@@ -1,0 +1,13 @@
+# デフォルトの無視ファイル
+/shelf/
+/workspace.xml
+# Rider ignored files
+/modules.xml
+/projectSettingsUpdater.xml
+/contentModel.xml
+/.idea.industrialization-tdd.iml
+# データソースのローカルストレージがファイルを無視しました
+/../../../../../../../../:\Users\satou\RiderProjects\industrialization-tdd\.idea\.idea.industrialization-tdd\.idea/dataSources/
+/dataSources.local.xml
+# エディターベースの HTTP クライアントリクエスト
+/httpRequests/
