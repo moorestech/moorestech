@@ -4,6 +4,5 @@
     {
         public MacineState GetState();
         public void SupplyPower(double power);
-        void RunProcess();
     }
 }

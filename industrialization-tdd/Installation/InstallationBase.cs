@@ -4,8 +4,8 @@ namespace industrialization.Installation
 {
     public abstract class InstallationBase
     {
-        private int InstallationID;
-        private Guid GUID;
+        protected int InstallationID;
+        protected Guid GUID;
 
         public int InstallationId => InstallationID;
 

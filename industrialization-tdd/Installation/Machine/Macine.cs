@@ -4,11 +4,19 @@ using industrialization.Item;
 
 namespace industrialization.Installation.Machine
 {
+    //TODO きちんと入ってきたアイテムを処理する機構を作る
+    //TODO レシピを取得する
     public class Macine : InstallationBase,IInstallationInventory,IMachine
     {
         private IInstallationInventory connected;
-        public Macine(int installationId, Guid guid) : base(installationId, guid)
+        private InventoryData inventoryData;
+        private double power;
+        public Macine(int installationId, Guid guid,IInstallationInventory connect) : base(installationId, guid)
         {
+            GUID = guid;
+            InstallationID = installationId;
+            inventoryData = new InventoryData(10);
+            connected = connect;
         }
         public MacineState GetState()
         {
@@ -17,22 +25,25 @@ namespace industrialization.Installation.Machine
 
         public void SupplyPower(double power)
         {
-            throw new System.NotImplementedException();
+            this.power = power;
         }
 
-        public void RunProcess()
+        void RunProcess()
         {
-            throw new System.NotImplementedException();
+            inventoryData.ItemStacks[1] = inventoryData.ItemStacks[0];
         }
 
         public bool InsertItem(ItemStack itemStack)
         {
-            throw new NotImplementedException();
+            inventoryData.ItemStacks[0] = itemStack;
+            RunProcess();
+            
+            return true;
         }
 
         public InventoryData GetInventory()
         {
-            throw new NotImplementedException();
+            return inventoryData;
         }
     }
 }
