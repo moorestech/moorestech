@@ -1,6 +1,7 @@
 ﻿using System;
 using industrialization.Inventory;
 using industrialization.Item;
+using industrialization_tdd.GameSystem;
 
 namespace industrialization.Installation.Machine
 {
@@ -17,6 +18,8 @@ namespace industrialization.Installation.Machine
             InstallationID = installationId;
             inventoryData = new InventoryData(10);
             connected = connect;
+
+            GameUpdate.UpdateEvent += Update;
         }
         public MacineState GetState()
         {
@@ -28,6 +31,10 @@ namespace industrialization.Installation.Machine
             this.power = power;
         }
 
+        void Update()
+        {
+        }
+        
         void RunProcess()
         {
             inventoryData.ItemStacks[1] = inventoryData.ItemStacks[0];
