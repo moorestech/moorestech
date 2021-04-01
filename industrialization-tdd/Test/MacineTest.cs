@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using industrialization.Installation.BeltConveyor;
 using industrialization.Installation.Machine;
 using industrialization.Item;
@@ -19,7 +20,12 @@ namespace industrialization.Test
         {
             GameUpdate.StartUpdate();
             
-            //Assert.AreEqual();
+            Task.Run(exeTest);
+        }
+
+        public void exeTest()
+        {
+            Assert.AreEqual(10,10);
         }
     }
 }

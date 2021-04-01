@@ -7,10 +7,10 @@ namespace industrialization.Installation
 {
     public class InstallationConfig
     {
-        private const string configPath = "";
+        private static string configPath = "C:\\Users\\satou\\RiderProjects\\industrialization-tdd\\industrialization-tdd\\Config\\installation.json";
         private static InstallationData[] _machineDatas;
 
-        public static InstallationData GetMachineData(int id)
+        public static InstallationData GetInstllationConfig(int id)
         {
             if (_machineDatas == null)
             {
@@ -20,9 +20,15 @@ namespace industrialization.Installation
                 ms.Seek(0, SeekOrigin.Begin);
                 var serializer = new DataContractJsonSerializer(typeof(installationJson));
                 var data = serializer.ReadObject(ms) as installationJson;
+                _machineDatas = data.installations;
             }
 
-            return null;
+            return _machineDatas[id];
+        }
+
+        public static void SetPath(string path)
+        {
+            configPath = path;
         }
         
     }
@@ -33,6 +39,7 @@ namespace industrialization.Installation
         [DataMember(Name = "installations")]
         public InstallationData[] installations;
     }
+    [DataContract] 
     public class InstallationData
     {
         [DataMember(Name = "name")]

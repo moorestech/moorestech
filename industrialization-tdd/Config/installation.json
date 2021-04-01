@@ -3,6 +3,18 @@
     {
       "name": "TestMachine1",
       "inventorySlots": 2
+    },
+    {
+      "name": "aaa",
+      "inventorySlots": 5
+    },
+    {
+      "name": "bb",
+      "inventorySlots": 22
+    },
+    {
+      "name": "ccccc",
+      "inventorySlots": 25
     }
   ]
 }
