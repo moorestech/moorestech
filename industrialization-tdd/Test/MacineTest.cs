@@ -2,6 +2,7 @@
 using industrialization.Installation.BeltConveyor;
 using industrialization.Installation.Machine;
 using industrialization.Item;
+using industrialization_tdd.GameSystem;
 using NUnit.Framework;
 
 namespace industrialization.Test
@@ -16,12 +17,9 @@ namespace industrialization.Test
         [Test]
         public void Test1()
         {
-            int ID = 10;
-            var machine = new Macine(0,Guid.Empty,new BeltConveyor(0, Guid.Empty));
-            machine.InsertItem(new ItemStack(10,1));
-            var outputItem = machine.GetInventory().ItemStacks[1].ID;
+            GameUpdate.StartUpdate();
             
-            Assert.AreEqual(ID,outputItem);
+            //Assert.AreEqual();
         }
     }
 }
