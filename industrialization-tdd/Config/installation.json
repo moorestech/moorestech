@@ -1,0 +1,8 @@
+﻿{
+  "installations":[
+    {
+      "name": "TestMachine1",
+      "inventorySlots": 2
+    }
+  ]
+}
