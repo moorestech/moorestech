@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace industrialization_tdd.GameSystem
+namespace industrialization.GameSystem
 {
     public class GameUpdate
     {

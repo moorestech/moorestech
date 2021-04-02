@@ -1,4 +1,5 @@
-﻿using industrialization.Installation;
+﻿using industrialization.Config;
+using industrialization.Installation;
 using NUnit.Framework;
 
 namespace industrialization.Test
@@ -17,7 +18,7 @@ namespace industrialization.Test
         [TestCase(3,"ccccc")]
         public void ConfigNameTest(int id,string ans)
         {
-            string name = InstallationConfig.GetInstllationConfig(id).name;
+            string name = InstallationConfig.GetInstllationConfig(id).Name;
             Assert.AreEqual(ans,name);
         }
 
@@ -29,7 +30,7 @@ namespace industrialization.Test
         public void inventorySolotsTest(int id, int ans)
         {
             
-            int slots = InstallationConfig.GetInstllationConfig(id).inventorySlot;
+            int slots = InstallationConfig.GetInstllationConfig(id).InventorySlot;
             Assert.AreEqual(ans,slots);
         }
     }

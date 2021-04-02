@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using industrialization.Installation.BeltConveyor;
 using industrialization.Installation.Machine;
 using industrialization.Item;
-using industrialization_tdd.GameSystem;
+using industrialization.GameSystem;
 using NUnit.Framework;
 
 namespace industrialization.Test
