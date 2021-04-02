@@ -2,7 +2,7 @@
 {
     public interface IMachine
     {
-        public MacineState GetState();
+        public MachineState GetState();
         public void SupplyPower(double power);
     }
 }

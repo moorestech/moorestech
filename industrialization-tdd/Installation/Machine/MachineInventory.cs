@@ -3,10 +3,15 @@ using industrialization.Item;
 
 namespace industrialization.Installation.Machine
 {
-    public class MacineInventory : IInstallationInventory
+    public class MachineInventory : IInstallationInventory
     {
         private InventoryData inventoryData;
-        
+
+        public MachineInventory(int inventorySlots)
+        {
+            inventoryData = new InventoryData(inventorySlots);
+        }
+
         public bool InsertItem(ItemStack itemStack)
         {
             throw new System.NotImplementedException();
