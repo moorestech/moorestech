@@ -1,5 +1,4 @@
 ﻿using System;
-using industrialization.GameSystem;
 
 namespace industrialization.Installation.Machine
 {
@@ -10,7 +9,6 @@ namespace industrialization.Installation.Machine
         public MachineRunProcess(MachineInventory inventory)
         {
             this.inventory = inventory;
-            GameUpdate.UpdateEvent += Update;
         }
 
         public MachineState GetState()
@@ -21,16 +19,6 @@ namespace industrialization.Installation.Machine
         public void SupplyPower(double power)
         {
             throw new System.NotImplementedException();
-        }
-
-        private void Update()
-        {
-            int ans = 0;
-            for (int i = 0; i < 100000; i++)
-            {
-                ans += i;
-            }
-            Console.WriteLine(ans);
         }
     }
 }

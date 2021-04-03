@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using industrialization.Installation.BeltConveyor;
 using industrialization.Installation.Machine;
 using industrialization.Item;
-using industrialization.GameSystem;
 using NUnit.Framework;
 
 namespace industrialization.Test
@@ -18,14 +18,9 @@ namespace industrialization.Test
         [Test]
         public void Test1()
         {
-            GameUpdate.StartUpdate();
-            
-            Task.Run(exeTest);
-        }
-
-        public void exeTest()
-        {
-            Assert.AreEqual(10,10);
+            var data = new MachineInstllation(0, Guid.Empty, new BeltConveyor(0,Guid.Empty));
+            Thread.Sleep(10000);
+            Assert.AreEqual(10, 10);
         }
     }
 }
