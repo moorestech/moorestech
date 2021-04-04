@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
@@ -20,75 +22,55 @@ namespace industrialization.Config
             return _recipeDatas[id];
         }
 
+        private static Dictionary<string, MachineRecipeData> _recipeDataCash;
+        //TODO ここのロジックの実装、テストの作成
+        public static MachineRecipeData GetRecipeData(int installationID, List<int> iunputItem)
+        {
+            if (_recipeDatas == null)
+            {
+                _recipeDatas = loadConfig();
+            }
+
+            if (_recipeDataCash == null)
+            {
+                _recipeDataCash = setupCash(_recipeDatas);
+            }
+
+            var key = getKey(installationID, iunputItem);
+            return _recipeDataCash[key];
+        }
+
         static MachineRecipeData[] loadConfig()
         {
             //JSONデータの読み込み
             var json = File.ReadAllText(configPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
-            var serializer = new DataContractJsonSerializer(typeof(MacineRecipe));
-            var data = serializer.ReadObject(ms) as MacineRecipe;
+            var serializer = new DataContractJsonSerializer(typeof(MachineRecipe));
+            var data = serializer.ReadObject(ms) as MachineRecipe;
             return data.Recipes;
         }
-    }
-    
-    [DataContract] 
-    class MacineRecipe
-    {
-        [DataMember(Name = "recipes")]
-        private MachineRecipeData[] recipes;
+        static Dictionary<string, MachineRecipeData> setupCash(MachineRecipeData[] recipeDatas)
+        {
+            var cash = new Dictionary<string, MachineRecipeData>();
+            recipeDatas.ToList().ForEach(recipe =>
+            {
+                var items = new List<int>();
+                recipe.ItemInputs.ToList().ForEach(item => items.Add(item.ItemId));
+                cash.Add(getKey(recipe.InstallationId,items),recipe);
+            });
+            return cash;
+        }
 
-        public MachineRecipeData[] Recipes => recipes;
-    }
-
-    [DataContract] 
-    public class MachineRecipeData
-    {
-        [DataMember(Name = "installationID")]
-        private int installationID;
-        [DataMember(Name = "time")]
-        private double time;
-        [DataMember(Name = "input")]
-        private MacineRecipeInput[] itemInputs;
-        [DataMember(Name = "output")]
-        private MacineRecipeOutput[] itemOutputs;
-
-        public MacineRecipeOutput[] ItemOutputs => itemOutputs;
-
-        public MacineRecipeInput[] ItemInputs => itemInputs;
-
-        public double Time => time;
-
-        public int InstallationId => installationID;
-    }
-
-    [DataContract] 
-    public class MacineRecipeInput
-    {
-        [DataMember(Name = "id")]
-        private int itemID;
-        [DataMember(Name = "amount")]
-        private int amount;
-
-        public int Amount => amount;
-
-        public int ItemId => itemID;
-    }
-
-    [DataContract] 
-    public class MacineRecipeOutput
-    {
-        [DataMember(Name = "id")]
-        private int itemID;
-        [DataMember(Name = "amount")]
-        private int amount;
-        [DataMember(Name = "percent")]
-        private double percent;
-
-        public double Percent => percent;
-
-        public int Amount => amount;
-
-        public int ItemId => itemID;
+        static string getKey(int installationID, List<int> itemID)
+        {
+            string itemlist = "";
+            itemID.Sort();
+            itemID.ForEach(i =>
+            {
+                itemlist = itemlist + "_" + i;
+            });
+            return installationID + itemlist;
+        }
     }
 }
