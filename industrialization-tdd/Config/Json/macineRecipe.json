@@ -33,6 +33,57 @@
           "percent" : 1
         }
       ]
+    },    
+    {
+      "installationID": 1,
+      "time": 1.5,
+      "input": [
+        {
+          "id": 1,
+          "amount" : 1
+        },
+        {
+          "id": 2,
+          "amount" : 1
+        }
+      ],
+      "output": [
+        {
+          "id": 3,
+          "amount": 1,
+          "percent" : 1
+        }
+      ]
+    },
+    {
+      "installationID": 3,
+      "time": 1.5,
+      "input": [
+        {
+          "id": 1,
+          "amount" : 1
+        },
+        {
+          "id": 2,
+          "amount" : 1
+        },
+        {
+          "id": 0,
+          "amount" : 1
+        }
+      ],
+      "output": [
+        {
+          "id": 5,
+          "amount": 1,
+          "percent" : 1
+        },
+        {
+          "id": 2,
+          "amount": 1,
+          "percent" : 1
+        }
+      ]
     }
     
   ]
