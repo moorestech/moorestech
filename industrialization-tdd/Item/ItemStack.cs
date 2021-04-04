@@ -22,11 +22,6 @@ namespace industrialization.Item
             this.id = id;
             this.amount = amount;
         }
-        public static IItemStack[] NewItemStackArray(int amount)
-        {
-            var itemArray = new NullItemStack[amount];
-            return itemArray;
-        }
 
         //TODO アイテムスタック数のif文を追加する
         public ItemProcessResult addItem(IItemStack receiveItemStack)
