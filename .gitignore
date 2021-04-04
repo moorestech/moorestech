@@ -1,0 +1,6 @@
+*.exe
+*.cache
+*.dll
+*.log
+*.pdb
+[Dd]ebug*/
