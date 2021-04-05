@@ -1,24 +1,19 @@
 ﻿using System;
+using System.Threading;
+using industrialization.Config;
+using industrialization.Item;
 
 namespace industrialization.Installation.Machine
 {
-    public class MachineRunProcess : IMachine
+    public class MachineRunProcess
     {
-        private MachineInventory inventory;
-
-        public MachineRunProcess(MachineInventory inventory)
+        public delegate void Output(ItemStack item);
+        private event Output OutputEvent;
+        
+        //TODO プロセス実行のロジック実装
+        public MachineRunProcess(Output outputEvent)
         {
-            this.inventory = inventory;
-        }
-
-        public MachineState GetState()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void SupplyPower(double power)
-        {
-            throw new System.NotImplementedException();
+            OutputEvent += outputEvent;
         }
     }
 }

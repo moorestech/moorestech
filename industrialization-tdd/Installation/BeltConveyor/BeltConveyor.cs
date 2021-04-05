@@ -15,9 +15,9 @@ namespace industrialization.Installation.BeltConveyor
             InstallationID = installationId;
         }
 
-        public bool InsertItem(ItemStack itemStack)
+        public IItemStack InsertItem(IItemStack itemStack)
         {
-            return true;
+            throw new NotImplementedException();
         }
 
         public InventoryData GetInventory()

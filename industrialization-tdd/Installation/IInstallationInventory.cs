@@ -5,7 +5,7 @@ namespace industrialization.Installation
 {
     public interface IInstallationInventory
     {
-        public bool InsertItem(ItemStack itemStack);
+        public IItemStack InsertItem(IItemStack itemStack);
         public InventoryData GetInventory();
     }
 }

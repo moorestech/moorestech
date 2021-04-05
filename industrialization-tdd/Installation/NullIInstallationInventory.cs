@@ -5,9 +5,9 @@ namespace industrialization.Installation
 {
     public class NullIInstallationInventory : IInstallationInventory
     {
-        public bool InsertItem(ItemStack itemStack)
+        public IItemStack InsertItem(IItemStack itemStack)
         {
-            return false;
+            return new NullItemStack();
         }
 
         public InventoryData GetInventory()
