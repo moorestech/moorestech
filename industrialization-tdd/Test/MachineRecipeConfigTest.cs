@@ -25,7 +25,7 @@ namespace industrialization.Test
         [TestCase(1,2)]
         public void RecipeInputItemIdTest(int id, int ans)
         {
-            int id_ = MachineRecipeConfig.GetRecipeData(id).ItemInputs[0].ItemId;
+            int id_ = MachineRecipeConfig.GetRecipeData(id).ItemInputs[0].ItemStack.ID;
             Assert.AreEqual(ans,id_);
         }
         
@@ -37,7 +37,7 @@ namespace industrialization.Test
         [TestCase(3,new int[3]{2,1,0},5)]
         public void RecipeInputItemInstallationIDTest(int installtionID, int[] items,int output0ID)
         {
-            int ans = MachineRecipeConfig.GetRecipeData(installtionID, items.ToList()).ItemOutputs[0].ItemId;
+            int ans = MachineRecipeConfig.GetRecipeData(installtionID, items.ToList()).
             Assert.AreEqual(ans,output0ID);
         }
     }
