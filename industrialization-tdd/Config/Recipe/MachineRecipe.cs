@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using industrialization.Item;
 
 namespace industrialization.Config
 {
@@ -11,8 +12,9 @@ namespace industrialization.Config
 
         public MachineRecipeData[] Recipes => recipes;
     }
+
     [DataContract] 
-    public class MachineRecipeData
+    public class MachineRecipeData : IMachineRecipeData
     {
         [DataMember(Name = "installationID")]
         private int installationID;
@@ -30,6 +32,12 @@ namespace industrialization.Config
         public double Time => time;
 
         public int InstallationId => installationID;
+
+        //TODO ここ実装する
+        public bool RecipeConfirmation(IItemStack[] InputSlot)
+        {
+            return false;
+        }
     }
 
     [DataContract] 
@@ -40,9 +48,14 @@ namespace industrialization.Config
         [DataMember(Name = "amount")]
         private int amount;
 
-        public int Amount => amount;
 
-        public int ItemId => itemID;
+        public IItemStack ItemStack
+        {
+            get
+            {
+                return new ItemStack(itemID, amount);
+            }
+        }
     }
 
     [DataContract] 
@@ -57,8 +70,12 @@ namespace industrialization.Config
 
         public double Percent => percent;
 
-        public int Amount => amount;
-
-        public int ItemId => itemID;
+        public IItemStack ItemStack
+        {
+            get
+            {
+                return new ItemStack(itemID, amount);
+            }
+        }
     }
 }

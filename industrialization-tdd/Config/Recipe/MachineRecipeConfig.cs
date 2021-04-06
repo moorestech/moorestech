@@ -4,13 +4,14 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using industrialization.Item;
 
 namespace industrialization.Config
 {
     public class MachineRecipeConfig
     {
         
-        private const string configPath = "C:\\Users\\satou\\RiderProjects\\industrialization-tdd\\industrialization-tdd\\Config\\Json\\macineRecipe.json";
+        private const string configPath = "C:\\Users\\satou_katsumi\\RiderProjects\\industrialization-tdd\\industrialization-tdd\\Config\\Json\\macineRecipe.json";
         private static MachineRecipeData[] _recipeDatas;
 
         public static MachineRecipeData GetRecipeData(int id)
@@ -24,7 +25,7 @@ namespace industrialization.Config
 
         private static Dictionary<string, MachineRecipeData> _recipeDataCash;
         //TODO ここのロジックの実装、テストの作成
-        public static MachineRecipeData GetRecipeData(int installationID, List<int> iunputItem)
+        public static IMachineRecipeData GetRecipeData(int installationID, List<int> iunputItem)
         {
             if (_recipeDatas == null)
             {
@@ -37,7 +38,19 @@ namespace industrialization.Config
             }
 
             var key = getKey(installationID, iunputItem);
-            return _recipeDataCash[key];
+            if (_recipeDataCash.ContainsKey(key))
+            {
+                return _recipeDataCash[key];
+            }
+            else
+            {
+                return new NullMachineRecipeData();
+            }
+        }
+
+        public static IMachineRecipeData GetRecipeData(int installationID, IItemStack[] iunputItem)
+        {
+            var a = iunputItem.ToList().SelectMany(i => i.ID);
         }
 
         static MachineRecipeData[] loadConfig()
@@ -56,7 +69,7 @@ namespace industrialization.Config
             recipeDatas.ToList().ForEach(recipe =>
             {
                 var items = new List<int>();
-                recipe.ItemInputs.ToList().ForEach(item => items.Add(item.ItemId));
+                recipe.ItemInputs.ToList().ForEach(item => items.Add(item.ItemStack.ID));
                 cash.Add(getKey(recipe.InstallationId,items),recipe);
             });
             return cash;

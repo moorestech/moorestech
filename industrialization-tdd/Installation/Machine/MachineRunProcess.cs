@@ -10,6 +10,7 @@ namespace industrialization.Installation.Machine
         public delegate void Output(ItemStack item);
         private event Output OutputEvent;
         
+        
         //TODO プロセス実行のロジック実装
         public MachineRunProcess(Output outputEvent)
         {
