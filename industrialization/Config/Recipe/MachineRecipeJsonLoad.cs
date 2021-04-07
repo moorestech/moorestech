@@ -8,7 +8,7 @@ namespace industrialization.Config.Recipe
     public static class MachineRecipeJsonLoad
     {
         private const string ConfigPath = "C:\\Users\\satou_katsumi\\RiderProjects\\industrialization\\industrialization\\Config\\Json\\macineRecipe.json";
-        public static MachineRecipeData[] LoadConfig()
+        public static IMachineRecipeData[] LoadConfig()
         {
             //JSONデータの読み込み
             var json = File.ReadAllText(ConfigPath);
