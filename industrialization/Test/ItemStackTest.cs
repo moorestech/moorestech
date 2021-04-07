@@ -44,8 +44,8 @@ namespace industrialization.Test
             var result = mineItemStack.AddItem(receivedItemStack);
             Assert.AreEqual(result.MineItemStack.Amount, ansMAmo);
             Assert.AreEqual(result.ReceiveItemStack.Amount, ansRAmo);
-            Assert.AreEqual(result.MineItemStack.ID, ansMid);
-            Assert.AreEqual(result.ReceiveItemStack.ID, ansRID);
+            Assert.AreEqual(result.MineItemStack.Id, ansMid);
+            Assert.AreEqual(result.ReceiveItemStack.Id, ansRID);
         }
 
         [TestCase(0,5,1,4,0)]
@@ -66,7 +66,7 @@ namespace industrialization.Test
 
             var result = mineItemStack.SubItem(subamo);            
             Assert.AreEqual(ansamo,result.Amount);
-            Assert.AreEqual(ansID,result.ID);
+            Assert.AreEqual(ansID,result.Id);
 
         }
         

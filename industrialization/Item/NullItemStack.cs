@@ -2,7 +2,7 @@
 {
     public class NullItemStack : IItemStack
     {
-        public int ID => -1;
+        public int Id => -1;
         public int Amount => 0;
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)

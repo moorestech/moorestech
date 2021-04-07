@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 using industrialization.Config;
+using industrialization.Config.Recipe;
 using industrialization.Inventory;
 using industrialization.Item;
-using industrialization_tdd.Config.Recipe;
 
 namespace industrialization.Installation.Machine
 {
@@ -31,7 +31,7 @@ namespace industrialization.Installation.Machine
         {
             for (int i = 0; i < _inputSlot.Length; i++)
             {
-                if (_inputSlot[i].ID == itemStack.ID)
+                if (_inputSlot[i].Id == itemStack.Id)
                 {
                     var r = _inputSlot[i].AddItem(itemStack);
                     _inputSlot[i] = r.MineItemStack;

@@ -3,11 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using industrialization.Config;
-using industrialization.Config.Recipe;
 using industrialization.Item;
 
-namespace industrialization_tdd.Config.Recipe
+namespace industrialization.Config.Recipe
 {
     public static class MachineRecipeConfig
     {
@@ -46,8 +44,8 @@ namespace industrialization_tdd.Config.Recipe
             var json = File.ReadAllText(ConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
-            var serializer = new DataContractJsonSerializer(typeof(MachineRecipes));
-            var data = serializer.ReadObject(ms) as MachineRecipes;
+            var serializer = new DataContractJsonSerializer(typeof(JsonMachineRecipes));
+            var data = serializer.ReadObject(ms) as JsonMachineRecipes;
 
             var r = data.Recipes.ToList().Select(r =>
             {
@@ -56,7 +54,7 @@ namespace industrialization_tdd.Config.Recipe
                         ItemInputs.
                         ToList().
                         Select(item => item.ItemStack);
-                inputItem = inputItem.ToList().OrderBy(i => i.ID);
+                inputItem = inputItem.ToList().OrderBy(i => i.Id);
 
                 var outputs =
                     r.ItemOutputs.Select(r => new ItemOutput(r.ItemStack, r.Percent));
@@ -81,10 +79,10 @@ namespace industrialization_tdd.Config.Recipe
         private static string GetKey(int installationId, List<IItemStack> itemId)
         {
             var items = "";
-            itemId = itemId.OrderBy(i => i.ID).ToList();
+            itemId = itemId.OrderBy(i => i.Id).ToList();
             itemId.ForEach(i =>
             {
-                items = items + "_" + i.ID;
+                items = items + "_" + i.Id;
             });
             return installationId + items;
         }

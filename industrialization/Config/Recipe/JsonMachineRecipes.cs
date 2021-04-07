@@ -4,7 +4,7 @@ using industrialization.Item;
 namespace industrialization.Config.Recipe
 {
     [DataContract] 
-    public class MachineRecipes
+    public class JsonMachineRecipes
     {
         
         [DataMember(Name = "recipes")]
