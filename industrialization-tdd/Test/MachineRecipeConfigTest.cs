@@ -29,6 +29,9 @@ namespace industrialization.Test
             Assert.AreEqual(ans,id_);
         }
         
+        /// <summary>
+        /// レシピがある時のテスト
+        /// </summary>
         [TestCase(0,new int[1]{0},1)]
         [TestCase(0,new int[1]{2},1)]
         [TestCase(1,new int[2]{1,2},3)]

@@ -50,7 +50,8 @@ namespace industrialization.Config
 
         public static IMachineRecipeData GetRecipeData(int installationID, IItemStack[] iunputItem)
         {
-            var a = iunputItem.ToList().SelectMany(i => i.ID);
+            IEnumerable<int> q = iunputItem.ToList().Select(i => i.ID);
+            return GetRecipeData(installationID, q.ToList());
         }
 
         static MachineRecipeData[] loadConfig()
