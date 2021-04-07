@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace industrialization.Config
+namespace industrialization.Config.Installation
 {
     [DataContract] 
     class InstallationJson

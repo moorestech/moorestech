@@ -1,4 +1,5 @@
 ﻿using industrialization.Config;
+using industrialization.Config.Installation;
 using industrialization.Installation;
 using NUnit.Framework;
 

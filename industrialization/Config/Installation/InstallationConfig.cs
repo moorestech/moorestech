@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 
-namespace industrialization.Config
+namespace industrialization.Config.Installation
 {
     public static class InstallationConfig
     {

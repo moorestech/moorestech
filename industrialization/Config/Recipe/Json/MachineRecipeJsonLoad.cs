@@ -2,8 +2,9 @@
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using industrialization.Config.Recipe.Data;
 
-namespace industrialization.Config.Recipe
+namespace industrialization.Config.Recipe.Json
 {
     public static class MachineRecipeJsonLoad
     {
@@ -14,8 +15,8 @@ namespace industrialization.Config.Recipe
             var json = File.ReadAllText(ConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
-            var serializer = new DataContractJsonSerializer(typeof(JsonMachineRecipes));
-            var data = serializer.ReadObject(ms) as JsonMachineRecipes;
+            var serializer = new DataContractJsonSerializer(typeof(PurseJsonMachineRecipes));
+            var data = serializer.ReadObject(ms) as PurseJsonMachineRecipes;
 
             var r = data.Recipes.ToList().Select(r =>
             {

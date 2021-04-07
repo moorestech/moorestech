@@ -1,6 +1,6 @@
 ﻿using industrialization.Item;
 
-namespace industrialization.Config.Recipe
+namespace industrialization.Config.Recipe.Data
 {
     public interface IMachineRecipeData
     {
