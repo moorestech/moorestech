@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using industrialization.Config;
+using industrialization.Item;
+using industrialization_tdd.Config.Recipe;
 using NUnit.Framework;
 
 namespace industrialization.Test
@@ -25,7 +27,7 @@ namespace industrialization.Test
         [TestCase(1,2)]
         public void RecipeInputItemIdTest(int id, int ans)
         {
-            int id_ = MachineRecipeConfig.GetRecipeData(id).ItemInputs[0].ItemStack.ID;
+            int id_ = MachineRecipeConfig.GetRecipeData(id).ItemInputs[0].ID;
             Assert.AreEqual(ans,id_);
         }
         
@@ -40,8 +42,12 @@ namespace industrialization.Test
         [TestCase(3,new int[3]{2,1,0},5)]
         public void RecipeInputItemInstallationIDTest(int installtionID, int[] items,int output0ID)
         {
-            int ans = MachineRecipeConfig.GetRecipeData(installtionID, items.ToList()).
-            Assert.AreEqual(ans,output0ID);
+            var input = new List<IItemStack>();
+            items.ToList().ForEach(
+                i => input.Add(new ItemStack(i,1)));
+            
+            int ans = MachineRecipeConfig.GetRecipeData(installtionID, input).ItemOutputs[0].OutputItem.ID;
+            Assert.AreEqual(output0ID,ans);
         }
     }
 }

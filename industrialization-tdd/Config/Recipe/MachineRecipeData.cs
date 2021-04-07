@@ -1,81 +1,30 @@
-﻿using System.Runtime.Serialization;
-using industrialization.Item;
+﻿using industrialization.Item;
 
 namespace industrialization.Config
 {
-    [DataContract] 
-    public class MachineRecipe
-    {
-        
-        [DataMember(Name = "recipes")]
-        private MachineRecipeData[] recipes;
-
-        public MachineRecipeData[] Recipes => recipes;
-    }
-
-    [DataContract] 
     public class MachineRecipeData : IMachineRecipeData
     {
-        [DataMember(Name = "installationID")]
-        private int installationID;
-        [DataMember(Name = "time")]
-        private double time;
-        [DataMember(Name = "input")]
-        private MacineRecipeInput[] itemInputs;
-        [DataMember(Name = "output")]
-        private MacineRecipeOutput[] itemOutputs;
+        public int InstallationId => installationId;
+        private readonly int installationId;
 
-        public MacineRecipeOutput[] ItemOutputs => itemOutputs;
+        public MachineRecipeData(int InstallationId,double time,ItemStack[] itemInputs, ItemOutput[] itemOutputs)
+        {
+            this.installationId = InstallationId;
+            this.itemInputs = itemInputs;
+            this.itemOutputs = itemOutputs;
+            this.time = time;
+        }
 
-        public MacineRecipeInput[] ItemInputs => itemInputs;
-
+        public IItemStack[] ItemInputs => itemInputs;
+        private readonly IItemStack[] itemInputs;
+        public ItemOutput[] ItemOutputs => itemOutputs;
+        private readonly ItemOutput[] itemOutputs;
+        
         public double Time => time;
-
-        public int InstallationId => installationID;
-
-        //TODO ここ実装する
+        private readonly double time;
         public bool RecipeConfirmation(IItemStack[] InputSlot)
         {
-            return false;
-        }
-    }
-
-    [DataContract] 
-    public class MacineRecipeInput
-    {
-        [DataMember(Name = "id")]
-        private int itemID;
-        [DataMember(Name = "amount")]
-        private int amount;
-
-
-        public IItemStack ItemStack
-        {
-            get
-            {
-                return new ItemStack(itemID, amount);
-            }
-        }
-    }
-
-    [DataContract] 
-    public class MacineRecipeOutput
-    {
-        [DataMember(Name = "id")]
-        private int itemID;
-        [DataMember(Name = "amount")]
-        private int amount;
-        [DataMember(Name = "percent")]
-        private double percent;
-
-        public double Percent => percent;
-
-        public IItemStack ItemStack
-        {
-            get
-            {
-                return new ItemStack(itemID, amount);
-            }
+            throw new System.NotImplementedException();
         }
     }
 }

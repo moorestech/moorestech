@@ -2,6 +2,7 @@
 using industrialization.Config;
 using industrialization.Inventory;
 using industrialization.Item;
+using industrialization_tdd.Config.Recipe;
 
 namespace industrialization.Installation.Machine
 {
@@ -43,10 +44,8 @@ namespace industrialization.Installation.Machine
 
         void StartProcess()
         {
-            if (machineRunProcess == null || MachineRecipeConfig.GetRecipeData(installationId,InputSlot).RecipeConfirmation(InputSlot))
-            {
-                
-            }
+            if (machineRunProcess == null) return;
+            if(MachineRecipeConfig.GetRecipeData(installationId,InputSlot.ToList()).RecipeConfirmation(InputSlot)) return;;
         }
 
         void OutputEvent(ItemStack output)
