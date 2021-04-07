@@ -6,6 +6,7 @@ namespace industrialization.Config.Recipe
     {
         IItemStack[] ItemInputs { get; }
         ItemOutput[] ItemOutputs { get; }
+        int InstallationId { get; }
         double Time{ get; }
         bool RecipeConfirmation(IItemStack[] inputSlot);
     }

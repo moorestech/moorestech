@@ -10,21 +10,22 @@ namespace industrialization.Config.Recipe
     public static class MachineRecipeConfig
     {
         
-        private static MachineRecipeData[] _recipedatas;
+        private static IMachineRecipeData[] _recipedatas;
 
-        public static MachineRecipeData GetRecipeData(int id)
+        public static IMachineRecipeData GetRecipeData(int id)
         {
             _recipedatas ??= MachineRecipeJsonLoad.LoadConfig();
             return _recipedatas[id];
         }
 
-        private static Dictionary<string, MachineRecipeData> _recipeDataCash;
+        private static Dictionary<string, IMachineRecipeData> _recipeDataCash;
         public static IMachineRecipeData GetRecipeData(int installationId, List<IItemStack> iunputItem)
         {
             _recipedatas ??= MachineRecipeJsonLoad.LoadConfig();
 
-            if (_recipedatas == null)
+            if (_recipeDataCash == null)
             {
+                _recipeDataCash = new Dictionary<string, IMachineRecipeData>();
                 _recipedatas.ToList().ForEach(recipe =>
                 {
                     _recipeDataCash.Add(
