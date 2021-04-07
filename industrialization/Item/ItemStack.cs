@@ -4,7 +4,7 @@ namespace industrialization.Item
 {
     public class ItemStack : IItemStack
     {
-        public int ID { get; }
+        public int Id { get; }
 
         public int Amount { get; }
 
@@ -19,7 +19,7 @@ namespace industrialization.Item
             {
                 throw new ArgumentOutOfRangeException();
             }
-            ID = id;
+            Id = id;
             Amount = amount;
         }
 
@@ -31,10 +31,10 @@ namespace industrialization.Item
                 return new ItemProcessResult(this, new NullItemStack());
             }
 
-            if (((ItemStack) receiveItemStack).ID == ID)
+            if (((ItemStack) receiveItemStack).Id == Id)
             {
                 var newAmount = ((ItemStack) receiveItemStack).Amount + Amount;
-                return new ItemProcessResult(new ItemStack(ID,newAmount),new NullItemStack());
+                return new ItemProcessResult(new ItemStack(Id,newAmount),new NullItemStack());
             }
             else
             {
@@ -47,7 +47,7 @@ namespace industrialization.Item
         {
             if (0 < Amount - subAmount)
             {
-                return new ItemStack(ID,Amount-subAmount);
+                return new ItemStack(Id,Amount-subAmount);
             }
             else if(0 == Amount - subAmount)
             {

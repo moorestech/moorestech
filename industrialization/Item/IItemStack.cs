@@ -2,7 +2,7 @@
 {
     public interface IItemStack
     {
-        int ID { get; }
+        int Id { get; }
         int Amount { get; }
         ItemProcessResult AddItem(IItemStack receiveItemStack);
         IItemStack SubItem(int subAmount);

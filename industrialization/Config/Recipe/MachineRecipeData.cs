@@ -1,13 +1,12 @@
-﻿using industrialization.Config.Recipe;
-using industrialization.Item;
+﻿using industrialization.Item;
 
-namespace industrialization.Config
+namespace industrialization.Config.Recipe
 {
     public class MachineRecipeData : IMachineRecipeData
     {
         public int InstallationId { get; }
 
-        public MachineRecipeData(int installationId,double time,IItemStack[] itemInputs, ItemOutput[] itemOutputs)
+        public MachineRecipeData(int installationId,double time,ItemStack[] itemInputs, ItemOutput[] itemOutputs)
         {
             InstallationId = installationId;
             ItemInputs = itemInputs;
