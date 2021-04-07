@@ -43,7 +43,7 @@ namespace industrialization.Installation.Machine
 
         void StartProcess()
         {
-            if (machineRunProcess == null || MachineRecipeConfig.GetRecipeData(installationId,InputSlot))
+            if (machineRunProcess == null || MachineRecipeConfig.GetRecipeData(installationId,InputSlot).RecipeConfirmation(InputSlot))
             {
                 
             }

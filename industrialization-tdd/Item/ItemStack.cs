@@ -6,8 +6,8 @@ namespace industrialization.Item
     {
         public int ID => id;
         public int Amount => amount;
-        private int id;
-        private int amount;
+        private readonly int id;
+        private readonly int amount;
         //TODO そのアイテムのスタック数以上に入れないようにする
         public ItemStack(int id,int amount)
         {
@@ -33,8 +33,8 @@ namespace industrialization.Item
 
             if (((ItemStack) receiveItemStack).id == id)
             {
-                amount += ((ItemStack) receiveItemStack).amount;
-                return new ItemProcessResult(this,new NullItemStack());
+                var a = ((ItemStack) receiveItemStack).amount + amount;
+                return new ItemProcessResult(new ItemStack(ID,amount),new NullItemStack());
             }
             else
             {
