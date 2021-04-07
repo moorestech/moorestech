@@ -4,15 +4,9 @@ namespace industrialization.Config
 {
     public class NullMachineRecipeData : IMachineRecipeData
     {
-        public MacineRecipeInput[] ItemInputs
-        {
-            get
-            {
-                return new MacineRecipeInput[0];
-            }
-        }
-
-        public MacineRecipeOutput[] ItemOutputs { get; }
+        public IItemStack[] ItemInputs { get; }
+        public ItemOutput[] ItemOutputs { get; }
+        public double Time { get; }
 
         public bool RecipeConfirmation(IItemStack[] InputSlot)
         {

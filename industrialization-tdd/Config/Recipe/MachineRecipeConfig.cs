@@ -1,43 +1,43 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using industrialization.Config;
 using industrialization.Item;
 
-namespace industrialization.Config
+namespace industrialization_tdd.Config.Recipe
 {
-    public class MachineRecipeConfig
+    public static class MachineRecipeConfig
     {
         
-        private const string configPath = "C:\\Users\\satou_katsumi\\RiderProjects\\industrialization-tdd\\industrialization-tdd\\Config\\Json\\macineRecipe.json";
+        private const string ConfigPath = "C:\\Users\\satou_katsumi\\RiderProjects\\industrialization-tdd\\industrialization-tdd\\Config\\Json\\macineRecipe.json";
         private static MachineRecipeData[] _recipeDatas;
 
         public static MachineRecipeData GetRecipeData(int id)
         {
             if (_recipeDatas == null)
             {
-                _recipeDatas = loadConfig();
+                _recipeDatas = LoadConfig();
             }
             return _recipeDatas[id];
         }
 
         private static Dictionary<string, MachineRecipeData> _recipeDataCash;
         //TODO ここのロジックの実装、テストの作成
-        public static IMachineRecipeData GetRecipeData(int installationID, List<int> iunputItem)
+        public static IMachineRecipeData GetRecipeData(int installationId, List<IItemStack> iunputItem)
         {
             if (_recipeDatas == null)
             {
-                _recipeDatas = loadConfig();
+                _recipeDatas = LoadConfig();
             }
 
             if (_recipeDataCash == null)
             {
-                _recipeDataCash = setupCash(_recipeDatas);
+                _recipeDataCash = SetupCash(_recipeDatas);
             }
 
-            var key = getKey(installationID, iunputItem);
+            var key = GetKey(installationId, iunputItem);
             if (_recipeDataCash.ContainsKey(key))
             {
                 return _recipeDataCash[key];
@@ -48,43 +48,53 @@ namespace industrialization.Config
             }
         }
 
-        public static IMachineRecipeData GetRecipeData(int installationID, IItemStack[] iunputItem)
-        {
-            IEnumerable<int> q = iunputItem.ToList().Select(i => i.ID);
-            return GetRecipeData(installationID, q.ToList());
-        }
-
-        static MachineRecipeData[] loadConfig()
+        static MachineRecipeData[] LoadConfig()
         {
             //JSONデータの読み込み
-            var json = File.ReadAllText(configPath);
+            var json = File.ReadAllText(ConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
-            var serializer = new DataContractJsonSerializer(typeof(MachineRecipe));
-            var data = serializer.ReadObject(ms) as MachineRecipe;
-            return data.Recipes;
+            var serializer = new DataContractJsonSerializer(typeof(MachineRecipes));
+            var data = serializer.ReadObject(ms) as MachineRecipes;
+
+            IEnumerable<MachineRecipeData> r = data.Recipes.ToList().Select(r =>
+            {
+                IEnumerable<ItemStack> inputItem = 
+                    r.
+                        ItemInputs.
+                        ToList().
+                        Select(item => item.ItemStack);
+                inputItem = inputItem.ToList().OrderBy(i => i.ID);
+
+                IEnumerable<ItemOutput> outputs =
+                    r.ItemOutputs.Select(r => new ItemOutput(r.ItemStack, r.Percent));
+                
+                return new MachineRecipeData(r.InstallationId,r.Time,inputItem.ToArray(),outputs.ToArray());
+            });
+            
+            return r.ToArray();
         }
-        static Dictionary<string, MachineRecipeData> setupCash(MachineRecipeData[] recipeDatas)
+        static Dictionary<string, MachineRecipeData> SetupCash(MachineRecipeData[] recipeDatas)
         {
             var cash = new Dictionary<string, MachineRecipeData>();
             recipeDatas.ToList().ForEach(recipe =>
             {
-                var items = new List<int>();
-                recipe.ItemInputs.ToList().ForEach(item => items.Add(item.ItemStack.ID));
-                cash.Add(getKey(recipe.InstallationId,items),recipe);
+                cash.Add(
+                    GetKey(recipe.InstallationId,recipe.ItemInputs.ToList()),
+                    recipe);
             });
             return cash;
         }
 
-        static string getKey(int installationID, List<int> itemID)
+        private static string GetKey(int installationId, List<IItemStack> itemId)
         {
-            string itemlist = "";
-            itemID.Sort();
-            itemID.ForEach(i =>
+            var itemlist = "";
+            itemId = itemId.OrderBy(i => i.ID).ToList();
+            itemId.ForEach(i =>
             {
-                itemlist = itemlist + "_" + i;
+                itemlist = itemlist + "_" + i.ID;
             });
-            return installationID + itemlist;
+            return installationId + itemlist;
         }
     }
 }

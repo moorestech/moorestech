@@ -33,8 +33,8 @@ namespace industrialization.Item
 
             if (((ItemStack) receiveItemStack).id == id)
             {
-                var a = ((ItemStack) receiveItemStack).amount + amount;
-                return new ItemProcessResult(new ItemStack(ID,amount),new NullItemStack());
+                var newAmount = ((ItemStack) receiveItemStack).amount + amount;
+                return new ItemProcessResult(new ItemStack(ID,newAmount),new NullItemStack());
             }
             else
             {
