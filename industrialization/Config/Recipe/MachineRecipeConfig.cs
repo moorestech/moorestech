@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using industrialization.Config.Recipe.Data;
+using industrialization.Config.Recipe.Json;
 using industrialization.Item;
 
 namespace industrialization.Config.Recipe

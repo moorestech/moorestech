@@ -1,10 +1,10 @@
 ﻿using System.Runtime.Serialization;
 using industrialization.Item;
 
-namespace industrialization.Config.Recipe
+namespace industrialization.Config.Recipe.Json
 {
     [DataContract] 
-    public class JsonMachineRecipes
+    public class PurseJsonMachineRecipes
     {
         
         [DataMember(Name = "recipes")]
