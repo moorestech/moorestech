@@ -14,8 +14,8 @@ namespace industrialization.Test
         {
         }
 
-        [TestCase(0,1)]
-        [TestCase(1,1.5)]
+        [TestCase(0,1000)]
+        [TestCase(1,1500)]
         public void RecipeTimeTest(int id,double ans)
         {
             var time = MachineRecipeConfig.GetRecipeData(id).Time;

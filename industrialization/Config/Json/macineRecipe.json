@@ -2,7 +2,7 @@
   "recipes" : [
     {
       "installationID": 0,
-      "time": 1,
+      "time": 1000,
       "input": [
         {
           "id": 0,
@@ -19,7 +19,7 @@
     },
     {
       "installationID": 0,
-      "time": 1.5,
+      "time": 1500,
       "input": [
         {
           "id": 2,
@@ -36,7 +36,7 @@
     },    
     {
       "installationID": 1,
-      "time": 1.5,
+      "time": 1500,
       "input": [
         {
           "id": 1,
@@ -57,7 +57,7 @@
     },
     {
       "installationID": 3,
-      "time": 1.5,
+      "time": 1500,
       "input": [
         {
           "id": 1,

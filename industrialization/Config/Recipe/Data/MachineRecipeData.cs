@@ -6,7 +6,7 @@ namespace industrialization.Config.Recipe.Data
     {
         public int InstallationId { get; }
 
-        public MachineRecipeData(int installationId,double time,ItemStack[] itemInputs, ItemOutput[] itemOutputs)
+        public MachineRecipeData(int installationId,long time,ItemStack[] itemInputs, ItemOutput[] itemOutputs)
         {
             InstallationId = installationId;
             ItemInputs = itemInputs;
@@ -18,7 +18,7 @@ namespace industrialization.Config.Recipe.Data
 
         public ItemOutput[] ItemOutputs { get; }
 
-        public double Time { get; }
+        public long Time { get; }
 
         public bool RecipeConfirmation(IItemStack[] inputSlot)
         {
