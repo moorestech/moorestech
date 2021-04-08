@@ -53,19 +53,25 @@ namespace industrialization.Installation.Machine
                 RecipeConfirmation(_inputSlot)) return;
             //TODO アウトプットスロットに空きがあるかチェック
 
-            //スタートできるならスタートし、アイテムを減らす
+            //スタートできるなら加工をスタートし、アイテムを減らす
             _machineRunProcess = new MachineRunProcess(OutputEvent,recipe);
             //TODO アイテムを減らす処理
         }
 
-        void OutputEvent(ItemStack output)
+        void OutputEvent(ItemStack[] output)
         {
+            StartProcess();
             //アウトプットスロットに受け取ったアイテムを入れる
-            for (int i = 0; i < _outpuutSlot.Length; i++)
+            foreach (var outputItem in output)
             {
-                if (_outpuutSlot[i].Id == output.Id)
+                for (var i = 0; i < _outpuutSlot.Length; i++)
                 {
-                    _outpuutSlot[i] = _outpuutSlot[i].AddItem(output).MineItemStack;
+                    if (_outpuutSlot[i].Id != outputItem.Id) continue;
+                    //アイテムを出力スロットに加算
+                    _outpuutSlot[i] = _outpuutSlot[i].AddItem(outputItem).MineItemStack;
+                    //繋がってるインベントリに出力
+                    _outpuutSlot[i] = _connectInventory.InsertItem(_outpuutSlot[i]);
+                    break;
                 }
             }
         }

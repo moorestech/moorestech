@@ -7,7 +7,7 @@ namespace industrialization.Config.Recipe.Data
         IItemStack[] ItemInputs { get; }
         ItemOutput[] ItemOutputs { get; }
         int InstallationId { get; }
-        long Time{ get; }
+        int Time{ get; }
         bool RecipeConfirmation(IItemStack[] inputSlot);
     }
 
