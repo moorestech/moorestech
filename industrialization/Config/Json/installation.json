@@ -2,19 +2,23 @@
   "installations":[
     {
       "name": "TestMachine1",
-      "inventorySlots": 2
+      "inputSlot": 2,
+      "outputSlot": 1
     },
     {
       "name": "aaa",
-      "inventorySlots": 5
+      "inputSlot": 5,
+      "outputSlot": 3
     },
     {
       "name": "bb",
-      "inventorySlots": 22
+      "inputSlot": 22,
+      "outputSlot": 1
     },
     {
       "name": "ccccc",
-      "inventorySlots": 25
+      "inputSlot": 25,
+      "outputSlot": 5
     }
   ]
 }

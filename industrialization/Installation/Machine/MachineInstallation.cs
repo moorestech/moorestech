@@ -15,7 +15,7 @@ namespace industrialization.Installation.Machine
         {
             GUID = guid;
             InstallationID = installationId;
-            _machineInventory = new MachineInventory(installationId);
+            _machineInventory = new MachineInventory(installationId,connect);
         }
 
         public MachineState GetState()
