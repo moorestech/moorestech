@@ -18,17 +18,22 @@ namespace industrialization.Config.Recipe.Json
             var serializer = new DataContractJsonSerializer(typeof(PurseJsonMachineRecipes));
             var data = serializer.ReadObject(ms) as PurseJsonMachineRecipes;
 
+            //レシピデータを実際に使用する形式に変換
             var r = data.Recipes.ToList().Select(r =>
             {
                 var inputItem = 
-                    r.
+                        r.
                         ItemInputs.
                         ToList().
                         Select(item => item.ItemStack);
+                
+                
                 inputItem = inputItem.ToList().OrderBy(i => i.Id);
 
                 var outputs =
-                    r.ItemOutputs.Select(r => new ItemOutput(r.ItemStack, r.Percent));
+                        r.
+                        ItemOutputs.
+                        Select(r => new ItemOutput(r.ItemStack, r.Percent));
                 
                 return new MachineRecipeData(r.InstallationId,r.Time,inputItem.ToArray(),outputs.ToArray());
             });

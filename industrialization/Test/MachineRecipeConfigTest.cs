@@ -16,7 +16,7 @@ namespace industrialization.Test
 
         [TestCase(0,1000)]
         [TestCase(1,1500)]
-        public void RecipeTimeTest(int id,double ans)
+        public void RecipeTimeTest(int id,int ans)
         {
             var time = MachineRecipeConfig.GetRecipeData(id).Time;
             Assert.AreEqual(ans,time);
