@@ -19,7 +19,7 @@ namespace industrialization.Config.Recipe.Json
         [DataMember(Name = "installationID")]
         private int _installationId;
         [DataMember(Name = "time")]
-        private double _time;
+        private long _time;
         [DataMember(Name = "input")]
         private MachineRecipeInput[] _itemInputs;
         [DataMember(Name = "output")]
@@ -29,7 +29,7 @@ namespace industrialization.Config.Recipe.Json
 
         public MachineRecipeInput[] ItemInputs => _itemInputs;
 
-        public double Time => _time;
+        public long Time => _time;
 
         public int InstallationId => _installationId;
 

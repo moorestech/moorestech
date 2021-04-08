@@ -34,11 +34,15 @@ namespace industrialization.Config.Installation
         [DataMember(Name = "name")]
         private string _name;
 
-        [DataMember(Name = "inventorySlots")]
-        private int _inventorySlot;
+        [DataMember(Name = "inputSlot")]
+        private int _inputSlot;
+        
+        [DataMember(Name = "outputSlot")]
+        private int _outputSlot;
         
         public string Name => _name;
 
-        public int InventorySlot => _inventorySlot;
+        public int InputSlot => _inputSlot;
+        public int OutputSlot => _outputSlot;
     }
 }
