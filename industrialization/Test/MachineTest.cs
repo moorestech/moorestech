@@ -15,8 +15,8 @@ namespace industrialization.Test
         {
         }
 
-        [Test]
-        public void ItemProcessingTest(int installationID,int[] InputItems)
+        //[Test]
+        public void ItemProcessingTest(int installationID,int[] InputItemsID,int[] InputItemsAmount,int[] OutputItemID,int[] OutputItemAmount)
         {
             var data = new MachineInstallation(0, Guid.Empty, new BeltConveyor(0,Guid.Empty));
             Thread.Sleep(10000);
