@@ -1,4 +1,6 @@
-﻿using industrialization.Item;
+﻿using System;
+using System.Linq;
+using industrialization.Item;
 
 namespace industrialization.Config.Recipe.Data
 {
@@ -22,7 +24,13 @@ namespace industrialization.Config.Recipe.Data
 
         public bool RecipeConfirmation(IItemStack[] inputSlot)
         {
-            throw new System.NotImplementedException();
+            int cnt = 0;
+            foreach (var slot in inputSlot)
+            {
+                cnt += ItemInputs.Count(input => slot.Id == input.Id && input.Amount <= slot.Amount);
+            }
+
+            return cnt == inputSlot.Length;
         }
     }
 }
