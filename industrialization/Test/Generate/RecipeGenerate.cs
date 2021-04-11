@@ -15,23 +15,26 @@ namespace industrialization.Test.Generate
         public void Main()
         {
             int seed = 2119350917;
+            int recipeNum = 200;
             
             var serializer = new DataContractJsonSerializer(typeof(recipe));
             FileStream fs = new FileStream("output.json", FileMode.Create);
-            serializer.WriteObject(fs, MakeRecipe(seed));
+            var r = MakeRecipe(seed,recipeNum);
+            MachineIOGenerate.MachineIOTestCase(r, seed);
         }
 
-        recipe MakeRecipe(int seed)
+        recipe MakeRecipe(int seed,int recipeNum)
         {
             var random = new Random(seed);
             var recipes = new List<recipes>();
-            for (int i = 0; i < 200; i++)
+            for (int i = 0; i < recipeNum; i++)
             {
                 recipes.Add(new recipes(random));
             }
 
             return new recipe(recipes.ToArray());
         }
+    }
 
         [DataContract]
         public class recipe
@@ -113,7 +116,4 @@ namespace industrialization.Test.Generate
                 this.percent = percent;
             }
         }
-        
-        
-    }
 }
