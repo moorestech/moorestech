@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using industrialization.Installation;
 using industrialization.Installation.Machine;
@@ -14,7 +15,7 @@ namespace industrialization.Test
         public void ItemProcessingTest()
         {
             int seed = 2119350917;
-            int recipeNum = 200;
+            int recipeNum = 1;
             
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
             foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
@@ -27,8 +28,15 @@ namespace industrialization.Test
                     machine.MachineInventory.InsertItem(new ItemStack(minput.Id,minput.Amount));
                 }
                 Thread.Sleep((int)(m.time * 1.2f));
-                var reminder = machine.MachineInventory.InputSlot;
+                
+                var remainder = machine.MachineInventory.InputSlot;
                 var output = machine.MachineInventory.OutpuutSlot;
+                remainder.ToList().Sort((a,b) => a.Id - b.Id);
+                output.ToList().Sort((a,b) => a.Id - b.Id);
+                
+                
+                Assert.AreEqual(m.output, output);
+                Assert.AreEqual(m.inputRemainder, remainder);
             }
         }
     }

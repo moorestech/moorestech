@@ -58,5 +58,10 @@ namespace industrialization.Item
                 return this;
             }
         }
+
+        public bool CanAdd(IItemStack item)
+        {
+            return Id == item.Id || item.Id == NullItemStack.NullItemId;
+        }
     }
 }

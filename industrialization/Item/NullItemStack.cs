@@ -2,6 +2,7 @@
 {
     public class NullItemStack : IItemStack
     {
+        public const int NullItemId = -1;
         public int Id => -1;
         public int Amount => 0;
 
@@ -13,6 +14,11 @@
         public IItemStack SubItem(int subAmount)
         {
             return this;
+        }
+
+        public bool CanAdd(IItemStack item)
+        {
+            return true;
         }
     }
 }
