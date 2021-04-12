@@ -9,13 +9,13 @@ namespace industrialization.Installation.Machine
     //TODO レシピを取得する
     public class MachineInstallation : InstallationBase,IMachine
     {
-        private MachineInventory _machineInventory;
+        public MachineInventory MachineInventory { get; }
 
         public MachineInstallation(int installationId, Guid guid, IInstallationInventory connect) : base(installationId,guid)
         {
             GUID = guid;
             InstallationID = installationId;
-            _machineInventory = new MachineInventory(installationId,connect);
+            MachineInventory = new MachineInventory(installationId,connect);
         }
 
         public MachineState GetState()

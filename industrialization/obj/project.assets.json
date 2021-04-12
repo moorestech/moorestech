@@ -4615,19 +4615,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\satou_katsumi\\.nuget\\packages\\": {}
+    "C:\\Users\\satou\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\satou_katsumi\\RiderProjects\\industrialization\\industrialization\\industrialization.csproj",
+      "projectUniqueName": "C:\\Users\\satou\\RiderProjects\\industrialization\\industrialization\\industrialization.csproj",
       "projectName": "industrialization",
-      "projectPath": "C:\\Users\\satou_katsumi\\RiderProjects\\industrialization\\industrialization\\industrialization.csproj",
-      "packagesPath": "C:\\Users\\satou_katsumi\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\satou_katsumi\\RiderProjects\\industrialization\\industrialization\\obj\\",
+      "projectPath": "C:\\Users\\satou\\RiderProjects\\industrialization\\industrialization\\industrialization.csproj",
+      "packagesPath": "C:\\Users\\satou\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\satou\\RiderProjects\\industrialization\\industrialization\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\satou_katsumi\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\satou\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -4681,7 +4681,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.101\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Users\\satou\\.dotnet\\sdk\\5.0.201\\RuntimeIdentifierGraph.json"
       }
     }
   }

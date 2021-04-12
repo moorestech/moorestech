@@ -11,7 +11,9 @@ namespace industrialization.Installation.Machine
         private MachineRunProcess _machineRunProcess;
         private IInstallationInventory _connectInventory;
         private IItemStack[] _inputSlot;
+        public IItemStack[] InputSlot => _inputSlot;
         private IItemStack[] _outpuutSlot;
+        public IItemStack[] OutpuutSlot => _outpuutSlot;
         private int installationId;
 
         //TODO インプット、アウトプットスロットを取得し実装
