@@ -68,10 +68,13 @@ namespace industrialization.Installation.Machine
         {
             //プロセスをスタートできるか判定
             if (_machineRunProcess != null && _machineRunProcess.IsProcessing()) return;
+            
             var recipe = MachineRecipeConfig.GetRecipeData(installationId, _inputSlot.ToList());
             if(MachineRecipeConfig.GetRecipeData(
                 installationId,_inputSlot.ToList()).
                 RecipeConfirmation(_inputSlot)) return;
+            
+            
             //TODO アウトプットスロットに空きがあるかチェック
 
             //スタートできるなら加工をスタートし、アイテムを減らす
@@ -81,13 +84,12 @@ namespace industrialization.Installation.Machine
 
         void OutputEvent(ItemStack[] output)
         {
-            StartProcess();
             //アウトプットスロットに受け取ったアイテムを入れる
             foreach (var outputItem in output)
             {
                 for (var i = 0; i < _outpuutSlot.Length; i++)
                 {
-                    if (_outpuutSlot[i].Id != outputItem.Id) continue;
+                    if (_outpuutSlot[i].CanAdd(outputItem)) continue;
                     //アイテムを出力スロットに加算
                     _outpuutSlot[i] = _outpuutSlot[i].AddItem(outputItem).MineItemStack;
                     //繋がってるインベントリに出力
@@ -95,6 +97,7 @@ namespace industrialization.Installation.Machine
                     break;
                 }
             }
+            StartProcess();
         }
 
         public InventoryData GetInventory()
