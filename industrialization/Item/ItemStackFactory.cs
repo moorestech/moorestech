@@ -6,8 +6,8 @@ namespace industrialization.Item
     {
         public static IItemStack[] CreateEmptyItemStacksArray(int amount)
         {
-            var a = new NullItemStack[amount];
-            for (int i = 0; i < a.Length; i++)
+            var a = new IItemStack[amount];
+            for (var i = 0; i < a.Length; i++)
             {
                 a[i] = new NullItemStack();
             }

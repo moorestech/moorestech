@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using industrialization.Config;
 using industrialization.Config.Recipe;
 using industrialization.Inventory;
@@ -54,8 +55,8 @@ namespace industrialization.Installation.Machine
                 if (_inputSlot[i].CanAdd(itemStack))
                 {
                     var r = _inputSlot[i].AddItem(itemStack);
-                    IItemStack iitem = r.MineItemStack;
-                    _inputSlot[i] = new ItemStack(iitem.Id,iitem.Amount);
+                    _inputSlot[i] = null;
+                    _inputSlot[i] = r.MineItemStack;
                     StartProcess();
                     return r.ReceiveItemStack;
                 }
