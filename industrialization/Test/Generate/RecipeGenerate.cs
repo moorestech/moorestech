@@ -11,7 +11,7 @@ namespace industrialization.Test.Generate
 {
     public class RecipeGenerate
     {
-        [Test]
+        //[Test]
         public void Main()
         {
             int seed = 2119350917;
