@@ -31,8 +31,6 @@ namespace industrialization.Test
                 
                 var remainder = machine.MachineInventory.InputSlot;
                 var output = machine.MachineInventory.OutpuutSlot;
-                remainder.ToList().Sort((a,b) => a.Id - b.Id);
-                output.ToList().Sort((a,b) => a.Id - b.Id);
                 
                 
                 Assert.AreEqual(m.output, output);
