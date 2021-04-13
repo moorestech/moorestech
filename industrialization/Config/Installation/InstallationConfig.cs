@@ -7,7 +7,7 @@ namespace industrialization.Config.Installation
 {
     public static class InstallationConfig
     {
-        private const string ConfigPath = "C:\\Users\\satou_katsumi\\RiderProjects\\industrialization\\industrialization\\Config\\Json\\installation.json";
+        private const string ConfigPath = "C:\\Users\\satou\\RiderProjects\\industrialization\\industrialization\\Config\\Json\\installation.json";
         private static InstallationData[] _machineDatas;
 
         public static InstallationData GetInstallationsConfig(int id)

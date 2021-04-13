@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using industrialization.Config;
 using industrialization.Config.Recipe;
 using industrialization.Inventory;
@@ -11,7 +12,26 @@ namespace industrialization.Installation.Machine
         private MachineRunProcess _machineRunProcess;
         private IInstallationInventory _connectInventory;
         private IItemStack[] _inputSlot;
+        public IItemStack[] InputSlot
+        {
+            get
+            {
+                var a = _inputSlot.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+                a.Sort((a, b) => a.Id - b.Id);
+                return a.ToArray();
+            }
+        }
+
         private IItemStack[] _outpuutSlot;
+        public IItemStack[] OutpuutSlot
+        {
+            get
+            {
+                var a = _outpuutSlot.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+                a.Sort((a, b) => a.Id - b.Id);
+                return a.ToArray();
+            }
+        }
         private int installationId;
 
         //TODO インプット、アウトプットスロットを取得し実装
@@ -19,8 +39,8 @@ namespace industrialization.Installation.Machine
         {
             this.installationId = installationId;
             _connectInventory = connectInventory;
-            _inputSlot = ItemStackFactory.CreateEmptyItemStacksArray(1);
-            _outpuutSlot = ItemStackFactory.CreateEmptyItemStacksArray(1);
+            _inputSlot = ItemStackFactory.CreateEmptyItemStacksArray(100);
+            _outpuutSlot = ItemStackFactory.CreateEmptyItemStacksArray(100);
         }
         
         /// <summary>
@@ -32,9 +52,10 @@ namespace industrialization.Installation.Machine
         {
             for (int i = 0; i < _inputSlot.Length; i++)
             {
-                if (_inputSlot[i].Id == itemStack.Id)
+                if (_inputSlot[i].CanAdd(itemStack))
                 {
                     var r = _inputSlot[i].AddItem(itemStack);
+                    _inputSlot[i] = null;
                     _inputSlot[i] = r.MineItemStack;
                     StartProcess();
                     return r.ReceiveItemStack;

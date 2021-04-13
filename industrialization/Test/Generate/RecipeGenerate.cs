@@ -23,7 +23,7 @@ namespace industrialization.Test.Generate
             MachineIOGenerate.MachineIOTestCase(r, seed);
         }
 
-        recipe MakeRecipe(int seed,int recipeNum)
+        public static recipe MakeRecipe(int seed,int recipeNum)
         {
             var random = new Random(seed);
             var recipes = new List<recipes>();
