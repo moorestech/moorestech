@@ -15,12 +15,13 @@ namespace industrialization.Test.Generate
         public void Main()
         {
             int seed = 2119350917;
-            int recipeNum = 200;
+            int recipeNum = 30;
             
             var serializer = new DataContractJsonSerializer(typeof(recipe));
             FileStream fs = new FileStream("output.json", FileMode.Create);
             var r = MakeRecipe(seed,recipeNum);
             MachineIOGenerate.MachineIOTestCase(r, seed);
+            serializer.WriteObject(fs,r);
         }
 
         public static recipe MakeRecipe(int seed,int recipeNum)
@@ -66,7 +67,7 @@ namespace industrialization.Test.Generate
                 var tmpInput = new List<inputitem>();
                 for (int i = 0; i < inputnum; i++)
                 {
-                    tmpInput.Add(new inputitem(r.Next(0,1001),r.Next(0,101)));
+                    tmpInput.Add(new inputitem(r.Next(0,1001),r.Next(1,101)));
                 }
                 input = tmpInput.ToArray();
                 
@@ -74,12 +75,12 @@ namespace industrialization.Test.Generate
                 var tmpOutput = new List<outputitem>();
                 for (int i = 0; i < outputnum; i++)
                 {
-                    tmpOutput.Add(new outputitem(r.Next(0,1001),r.Next(0,101),1));
+                    tmpOutput.Add(new outputitem(r.Next(0,1001),r.Next(1,101),1));
                 }
                 output = tmpOutput.ToArray();
                 
                 
-                installationID = r.Next(0,1001);
+                installationID = r.Next(0,101);
                 time = r.Next(1,4)*1000;
             }
         }

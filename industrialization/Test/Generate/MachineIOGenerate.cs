@@ -31,7 +31,7 @@ namespace industrialization.Test.Generate
                 //1～4の乱数のうち1の時は引く、それ以外は足す
                 if (random.Next(1, 5) == 1)
                 {
-                    input.ForEach(i => i.amount -= random.Next(0,i.amount));
+                    input.ForEach(i => i.amount -= random.Next(0,i.amount-1));
                 }
                 else
                 {
