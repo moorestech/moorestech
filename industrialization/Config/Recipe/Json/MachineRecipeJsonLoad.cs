@@ -8,11 +8,10 @@ namespace industrialization.Config.Recipe.Json
 {
     public static class MachineRecipeJsonLoad
     {
-        private const string ConfigPath = "C:\\Users\\satou\\RiderProjects\\industrialization\\industrialization\\Config\\Json\\macineRecipe.json";
         public static IMachineRecipeData[] LoadConfig()
         {
             //JSONデータの読み込み
-            var json = File.ReadAllText(ConfigPath);
+            var json = File.ReadAllText(ConfigPath.RecipeConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
             var serializer = new DataContractJsonSerializer(typeof(PurseJsonMachineRecipes));
