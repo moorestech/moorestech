@@ -18,7 +18,9 @@ namespace industrialization.Test.Generate
                 testCase.Add(new MachineIOTest(i,
                     r[i].input,
                     r[i].output,
-                    ItemStackFactory.CreateEmptyItemStacksArray(r[i].input.Length)));
+                    ItemStackFactory.CreateEmptyItemStacksArray(r[i].input.Length),
+                    r[i].installationID,
+                    r[i].time));
                 
                 
                 var random = new Random(seed);
@@ -57,7 +59,7 @@ namespace industrialization.Test.Generate
 
                 var output = MachineIOTest.Convart(r[i].output);
                 output.ToList().ForEach(i => i = ItemStackFactory.NewItemStack(i.Id,i.Amount*cnt));
-                testCase.Add(new MachineIOTest(i,input.ToArray(),output.ToArray(),remainder.ToArray()));
+                testCase.Add(new MachineIOTest(i,input.ToArray(),output.ToArray(),remainder.ToArray(),r[i].installationID,r[i].time));
             }
 
             return testCase.ToArray();
@@ -66,23 +68,29 @@ namespace industrialization.Test.Generate
         public class MachineIOTest
         {
             public int recipeID;
+            public int installtionId;
             public IItemStack[] input;
             public IItemStack[] output;
             public IItemStack[] inputRemainder;
+            public int time;
 
-            public MachineIOTest(int recipeId, inputitem[] input, outputitem[] output, IItemStack[] inputRemainder)
+            public MachineIOTest(int recipeId, inputitem[] input, outputitem[] output, IItemStack[] inputRemainder,int installtionId,int time)
             {
+                this.installtionId = installtionId;
                 recipeID = recipeId;
                 this.input = Convart(input);
                 this.output = Convart(output);
                 this.inputRemainder = inputRemainder;
+                this.time = time;
             }
-            public MachineIOTest(int recipeId, inputitem[] input, IItemStack[] output, inputitem[] inputRemainder)
+            public MachineIOTest(int recipeId, inputitem[] input, IItemStack[] output, inputitem[] inputRemainder,int installtionId,int time)
             {
+                this.installtionId = installtionId;
                 recipeID = recipeId;
                 this.input = Convart(input);
                 this.output = output;
                 this.inputRemainder = Convart(inputRemainder);
+                this.time = time;
             }
 
             public static IItemStack[] Convart(inputitem[] input)
