@@ -4,3 +4,9 @@
 *.log
 *.pdb
 [Dd]ebug*/
+industrialization.sln.DotSettings.user
+industrialization/obj/industrialization.csproj.nuget.dgspec.json
+industrialization/obj/industrialization.csproj.nuget.g.props
+industrialization/obj/project.assets.json
+industrialization/obj/project.packagespec.json
+industrialization/obj/rider.project.restore.info
