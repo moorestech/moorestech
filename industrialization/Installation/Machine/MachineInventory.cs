@@ -98,10 +98,5 @@ namespace industrialization.Installation.Machine
             }
             StartProcess();
         }
-
-        public InventoryData GetInventory()
-        {
-            throw new System.NotImplementedException();
-        }
     }
 }

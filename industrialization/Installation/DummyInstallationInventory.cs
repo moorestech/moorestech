@@ -19,10 +19,5 @@ namespace industrialization.Installation
             insertedItems.Sort((i,j) => i.Id - j.Id);
             return new NullItemStack();
         }
-
-        public InventoryData GetInventory()
-        {
-            throw new System.NotImplementedException();
-        }
     }
 }

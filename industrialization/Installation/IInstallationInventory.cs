@@ -6,6 +6,5 @@ namespace industrialization.Installation
     public interface IInstallationInventory
     {
         public IItemStack InsertItem(IItemStack itemStack);
-        public InventoryData GetInventory();
     }
 }

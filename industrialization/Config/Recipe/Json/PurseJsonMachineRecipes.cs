@@ -33,12 +33,6 @@ namespace industrialization.Config.Recipe.Json
         public int Time => _time;
 
         public int InstallationId => _installationId;
-
-        //TODO ここ実装する
-        public bool RecipeConfirmation(IItemStack[] inputSlot)
-        {
-            return false;
-        }
     }
 
     [DataContract] 
