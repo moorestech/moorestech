@@ -20,5 +20,10 @@
         {
             return true;
         }
+        public override bool Equals(object? obj)
+        {
+            if (typeof(NullItemStack) != obj.GetType()) return false;
+            return ((NullItemStack) obj).Id == Id && ((NullItemStack) obj).Amount == Amount;
+        }
     }
 }

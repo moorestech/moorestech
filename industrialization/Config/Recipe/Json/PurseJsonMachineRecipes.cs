@@ -50,14 +50,7 @@ namespace industrialization.Config.Recipe.Json
         private int _amount;
 
 
-        public ItemStack ItemStack
-        {
-            get
-            {
-                Console.WriteLine(string.Format("id:{0} amount:{1}",_itemId,_amount));
-                return new ItemStack(_itemId, _amount);
-            }
-        }
+        public ItemStack ItemStack => new ItemStack(_itemId, _amount);
     }
 
     [DataContract] 
