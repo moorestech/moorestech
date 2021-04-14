@@ -63,5 +63,11 @@ namespace industrialization.Item
         {
             return Id == item.Id || item.Id == NullItemStack.NullItemId;
         }
+
+        public override bool Equals(object? obj)
+        {
+            if (typeof(ItemStack) != obj.GetType()) return false;
+            return ((ItemStack) obj).Id == Id && ((ItemStack) obj).Amount == Amount;
+        }
     }
 }

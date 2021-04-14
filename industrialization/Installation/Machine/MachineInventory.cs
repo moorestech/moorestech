@@ -55,7 +55,6 @@ namespace industrialization.Installation.Machine
                 if (_inputSlot[i].CanAdd(itemStack))
                 {
                     var r = _inputSlot[i].AddItem(itemStack);
-                    _inputSlot[i] = null;
                     _inputSlot[i] = r.MineItemStack;
                     StartProcess();
                     return r.ReceiveItemStack;
