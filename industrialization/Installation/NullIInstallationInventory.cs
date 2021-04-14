@@ -9,10 +9,5 @@ namespace industrialization.Installation
         {
             return new NullItemStack();
         }
-
-        public InventoryData GetInventory()
-        {
-            throw new System.NotImplementedException();
-        }
     }
 }

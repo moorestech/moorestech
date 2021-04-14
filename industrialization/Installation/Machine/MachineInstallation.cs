@@ -5,8 +5,6 @@ using industrialization.Item;
 
 namespace industrialization.Installation.Machine
 {
-    //TODO きちんと入ってきたアイテムを処理する機構を作る
-    //TODO レシピを取得する
     public class MachineInstallation : InstallationBase,IMachine
     {
         public MachineInventory MachineInventory { get; }
