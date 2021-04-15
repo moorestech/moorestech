@@ -15,7 +15,6 @@ namespace industrialization.Installation.Machine
         private event Output OutputEvent;
         private readonly long endtime;
         
-        //TODO プロセス実行のロジック実装
         public MachineRunProcess(Output outputEvent,IMachineRecipeData recipeData)
         {
             OutputEvent += outputEvent;

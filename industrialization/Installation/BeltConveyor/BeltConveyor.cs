@@ -7,6 +7,7 @@ namespace industrialization.Installation.BeltConveyor
     //TODO ベルトコンベアの仮コードを直す
     public class BeltConveyor : InstallationBase, IInstallationInventory, IBeltConveyor
     {
+        private double _beltConveyorSpeed = 0;
         private readonly InventoryData _inventoryData;
         public BeltConveyor(int installationId, Guid guid) : base(installationId, guid)
         {

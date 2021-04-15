@@ -14,6 +14,7 @@ namespace industrialization.Config.Recipe
         
         private static IMachineRecipeData[] _recipedatas;
 
+        //IDからレシピデータを取得する
         public static IMachineRecipeData GetRecipeData(int id)
         {
             _recipedatas ??= MachineRecipeJsonLoad.LoadConfig();
@@ -21,6 +22,12 @@ namespace industrialization.Config.Recipe
         }
 
         private static Dictionary<string, IMachineRecipeData> _recipeDataCash;
+        /// <summary>
+        /// 設置物IDと現在の搬入スロットからレシピを検索し、取得する
+        /// </summary>
+        /// <param name="installationId">設置物ID</param>
+        /// <param name="iunputItem">搬入スロット</param>
+        /// <returns>レシピデータ</returns>
         public static IMachineRecipeData GetRecipeData(int installationId, List<IItemStack> iunputItem)
         {
             _recipedatas ??= MachineRecipeJsonLoad.LoadConfig();
