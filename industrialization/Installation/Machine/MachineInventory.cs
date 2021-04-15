@@ -2,7 +2,6 @@
 using System.Linq;
 using industrialization.Config;
 using industrialization.Config.Recipe;
-using industrialization.Inventory;
 using industrialization.Item;
 
 namespace industrialization.Installation.Machine
