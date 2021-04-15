@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
-using System.Text.Json;
 using NUnit.Framework;
 
 namespace industrialization.Test.Generate

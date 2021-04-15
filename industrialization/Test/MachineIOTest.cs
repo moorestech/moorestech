@@ -71,7 +71,7 @@ namespace industrialization.Test
         public void ItemProcessingTest()
         {
             int seed = 2119350917;
-            int recipeNum = 30;
+            int recipeNum = 5;
             
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
             foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
