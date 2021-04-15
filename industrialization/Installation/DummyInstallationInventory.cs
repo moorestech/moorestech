@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using industrialization.Inventory;
 using industrialization.Item;
 
 namespace industrialization.Installation

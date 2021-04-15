@@ -1,5 +1,4 @@
-﻿using industrialization.Inventory;
-using industrialization.Item;
+﻿using industrialization.Item;
 
 namespace industrialization.Installation
 {
