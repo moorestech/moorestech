@@ -1,6 +1,5 @@
 ﻿using System;
 using industrialization.Config;
-using industrialization.Inventory;
 using industrialization.Item;
 
 namespace industrialization.Installation.Machine
