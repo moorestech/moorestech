@@ -67,6 +67,8 @@ namespace industrialization.Test
             
         }
         
+        
+        //アイテムが通常通り処理されるかのテスト
         [Test]
         public void ItemProcessingTest()
         {
@@ -96,6 +98,39 @@ namespace industrialization.Test
                 for (int i = 0; i < output.Length; i++)
                 {
                     Assert.True(m.inputRemainder[i].Equals(remainder[i]));
+                }
+            }
+        }
+        //処理時間を短く判定したときに、失敗するかのテスト
+        [Test]
+        public void ItemProcessingFaildTest()
+        {
+            int seed = 2119350917;
+            int recipeNum = 5;
+            
+            var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
+            foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
+            {
+                var conecct = new DummyInstallationInventory();
+                var machine = new MachineInstallation(m.installtionId,Guid.Empty, conecct);
+
+                foreach (var minput in m.input)
+                {
+                    machine.MachineInventory.InsertItem(new ItemStack(minput.Id,minput.Amount));
+                }
+                Thread.Sleep((int)(m.time * 0.8f));
+                
+                var remainder = machine.MachineInventory.InputSlot;
+                var output = machine.MachineInventory.OutpuutSlot;
+
+
+                for (int i = 0; i < output.Length; i++)
+                {
+                    Assert.False(m.output[i].Equals(output[i]));
+                }
+                for (int i = 0; i < output.Length; i++)
+                {
+                    Assert.False(m.inputRemainder[i].Equals(remainder[i]));
                 }
             }
         }

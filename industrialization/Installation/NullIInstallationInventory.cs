@@ -6,7 +6,7 @@ namespace industrialization.Installation
     {
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            return new NullItemStack();
+            return itemStack;
         }
     }
 }
