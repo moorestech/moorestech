@@ -3,7 +3,5 @@
     public interface IBeltConveyor
     {
         public BeltConveyorState GetState();
-
-        void FlowItem();
     }
 }

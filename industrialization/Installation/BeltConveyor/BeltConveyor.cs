@@ -1,12 +1,31 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using industrialization.Item;
+using industrialization.Util;
 
 namespace industrialization.Installation.BeltConveyor
 {
-    //TODO ベルトコンベアの仮コードを直す
+    
+    /*
+     ベルトコンベアの仕様
+     ベルトコンベアは3つのアイテムを載せられる
+     それぞれ0%、25%、50%、75%、100%にアイテムが差し掛かった時点で更新処理をかけて、次のスロットに進めるかどうか判定する
+     */
+    
     public class BeltConveyor : InstallationBase, IInstallationInventory, IBeltConveyor
     {
-        private double _beltConveyorSpeed = 0;
+        //TODO _beltConveyorSpeed変数は仮なので、recipeコンフィグが出来たら消す
+        private double _beltConveyorSpeed = 300;
+        private IInstallationInventory connect;
+        private List<BeltConveyorItems> beltConveyorItems = new List<BeltConveyorItems>(4);
+
+        private const int _0percentIndex = 0;
+        private const int _25percentIndex = 1;
+        private const int _50percentIndex = 2;
+        private const int _75percentIndex = 3;
+        
         public BeltConveyor(int installationId, Guid guid) : base(installationId, guid)
         {
             GUID = guid;
@@ -15,17 +34,86 @@ namespace industrialization.Installation.BeltConveyor
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            throw new NotImplementedException();
+            //受け取ったitemStackから1個だけとって返す
+            if (beltConveyorItems[_0percentIndex] == null)
+            {
+                beltConveyorItems[_0percentIndex] = new BeltConveyorItems(itemStack.Id,(int)_beltConveyorSpeed,_0percentIndex,UpdateItem);
+                return itemStack.SubItem(1);
+            }
+            //もしアイテムに空きが無ければそのまま返す
+            return itemStack;
         }
 
+        //アイテムが25%、50%、75%、100%に到達したとき呼び出される
+        private void UpdateItem(int index)
+        {
+            if (index == _75percentIndex)
+            {
+                //アイテムを隣接する設置物に入れたとき、アイテムの搬入に成功したら75%インデックスのアイテムを消して詰める
+                if (connect.InsertItem(new ItemStack(beltConveyorItems[index].Id, 1)).Id == NullItemStack.NullItemId)
+                {
+                    beltConveyorItems[index] = null;
+                    beltConveyorItems = MoveItems(beltConveyorItems, index);
+                }
+                return;
+            }else
+            {
+                //普通に右詰めする
+                beltConveyorItems = MoveItems(beltConveyorItems, index+1);
+            }
+        }
+
+        private static List<BeltConveyorItems> MoveItems(List<BeltConveyorItems> beltConveyorItems,int startMoveIndex)
+        {
+            //リストを昇順にループし、アイテムを入れ替える
+            for (int i = startMoveIndex; i == 0; i--)
+            {
+                if (beltConveyorItems[i] == null && beltConveyorItems[i-1] != null)
+                {
+                    beltConveyorItems[i]  = beltConveyorItems[i-1].NewBeltConveyorItems();
+                    beltConveyorItems[i - 1] = null;
+                }
+            }
+            return beltConveyorItems;
+        }
+        
         public BeltConveyorState GetState()
         {
             throw new NotImplementedException();
         }
+    }
 
-        public void FlowItem()
+    class BeltConveyorItems
+    {
+        public int Id { get; }
+        private long _inputTime;
+        private long _outputTime;
+        private int _index;
+        private int _beltConveyorSpeed;
+        
+        public delegate void Arrival(int index);
+        private event Arrival ArrivalEvent;
+
+        public BeltConveyorItems(int itemId, int beltConveyorSpeed,int index,Arrival arrivalEvent)
         {
-            throw new NotImplementedException();
+            Id = itemId;
+            _inputTime = UnixTime.GetNowUnixTime();
+            _outputTime = UnixTime.GetNowUnixTime()+beltConveyorSpeed;
+            ArrivalEvent = arrivalEvent;
+            _index = index;
+            _beltConveyorSpeed = beltConveyorSpeed;
+
+            Task.Run(() =>
+            {
+                Thread.Sleep(beltConveyorSpeed);
+                ArrivalEvent(_index);
+            });
         }
+
+        public BeltConveyorItems NewBeltConveyorItems()
+        {
+            return new BeltConveyorItems(Id, _beltConveyorSpeed,_index+1 ,ArrivalEvent);
+        }
+
     }
 }
