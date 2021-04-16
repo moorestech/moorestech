@@ -42,7 +42,6 @@ namespace industrialization.Item
             }
         }
 
-        //TODO 多分この戻り値だと問題が発生するからいつか直す
         public IItemStack SubItem(int subAmount)
         {
             if (0 < Amount - subAmount)
