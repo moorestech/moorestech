@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using industrialization.Installation;
 using industrialization.Installation.BeltConveyor;
 using industrialization.Installation.Machine;
 using industrialization.Item;
@@ -18,7 +19,7 @@ namespace industrialization.Test
         //[Test]
         public void ItemProcessingTest(int installationID,int[] InputItemsID,int[] InputItemsAmount,int[] OutputItemID,int[] OutputItemAmount)
         {
-            var data = new MachineInstallation(0, Guid.Empty, new BeltConveyor(0,Guid.Empty));
+            var data = new MachineInstallation(0, Guid.Empty, new BeltConveyor(0,Guid.Empty,new NullIInstallationInventory()));
             Thread.Sleep(10000);
             Assert.AreEqual(10, 10);
         }

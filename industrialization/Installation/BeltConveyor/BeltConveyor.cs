@@ -19,25 +19,31 @@ namespace industrialization.Installation.BeltConveyor
         //TODO _beltConveyorSpeed変数は仮なので、recipeコンフィグが出来たら消す
         private double _beltConveyorSpeed = 300;
         private IInstallationInventory connect;
-        private List<BeltConveyorItems> beltConveyorItems = new List<BeltConveyorItems>(4);
+        private List<BeltConveyorItems> _beltConveyorItems;
 
         private const int _0percentIndex = 0;
         private const int _25percentIndex = 1;
         private const int _50percentIndex = 2;
         private const int _75percentIndex = 3;
         
-        public BeltConveyor(int installationId, Guid guid) : base(installationId, guid)
+        public BeltConveyor(int installationId, Guid guid,IInstallationInventory connect) : base(installationId, guid)
         {
             GUID = guid;
             InstallationID = installationId;
+            this.connect = connect;
+            _beltConveyorItems = new List<BeltConveyorItems>();
+            for (int i = 0; i < 4; i++)
+            {
+                _beltConveyorItems.Add(null);
+            }
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
             //受け取ったitemStackから1個だけとって返す
-            if (beltConveyorItems[_0percentIndex] == null)
+            if (_beltConveyorItems[_0percentIndex] == null)
             {
-                beltConveyorItems[_0percentIndex] = new BeltConveyorItems(itemStack.Id,(int)_beltConveyorSpeed,_0percentIndex,UpdateItem);
+                _beltConveyorItems[_0percentIndex] = new BeltConveyorItems(itemStack.Id,(int)_beltConveyorSpeed,_0percentIndex,UpdateItem);
                 return itemStack.SubItem(1);
             }
             //もしアイテムに空きが無ければそのまま返す
@@ -50,16 +56,16 @@ namespace industrialization.Installation.BeltConveyor
             if (index == _75percentIndex)
             {
                 //アイテムを隣接する設置物に入れたとき、アイテムの搬入に成功したら75%インデックスのアイテムを消して詰める
-                if (connect.InsertItem(new ItemStack(beltConveyorItems[index].Id, 1)).Id == NullItemStack.NullItemId)
+                if (connect.InsertItem(new ItemStack(_beltConveyorItems[index].Id, 1)).Id == NullItemStack.NullItemId)
                 {
-                    beltConveyorItems[index] = null;
-                    beltConveyorItems = MoveItems(beltConveyorItems, index);
+                    _beltConveyorItems[index] = null;
+                    _beltConveyorItems = MoveItems(_beltConveyorItems, index);
                 }
                 return;
             }else
             {
                 //普通に右詰めする
-                beltConveyorItems = MoveItems(beltConveyorItems, index+1);
+                _beltConveyorItems = MoveItems(_beltConveyorItems, index+1);
             }
         }
 
