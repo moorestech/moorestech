@@ -21,11 +21,6 @@ namespace industrialization.Test
                 var beltconveyor = new BeltConveyor(0, new Guid(),new NullIInstallationInventory());
 
                 var outputItem = beltconveyor.InsertItem(item);
-                var privateObject = new Private(beltconveyor);
-
-                
-                var value = (int) privateObject.GetField("_Value");
-                Assert.AreEqual(0, value);
                 
                 Assert.True(outputItem.Equals(ItemStackFactory.NewItemStack(id,amount-1)));
             }
