@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using industrialization.Item;
 
 namespace industrialization.Installation
@@ -6,11 +7,17 @@ namespace industrialization.Installation
     public class DummyInstallationInventory : IInstallationInventory
     {
         public List<IItemStack> insertedItems = new List<IItemStack>();
+
+        public DummyInstallationInventory()
+        {
+            insertedItems = ItemStackFactory.CreateEmptyItemStacksArray(100).ToList();
+        }
+
         public IItemStack InsertItem(IItemStack itemStack)
         {
             for (int i = 0; i < insertedItems.Count; i++)
             {
-                if (insertedItems[i].Id != itemStack.Id) continue;
+                if (!insertedItems[i].CanAdd(itemStack)) continue;
                 var r = insertedItems[i].AddItem(itemStack);
                 insertedItems[i] = r.MineItemStack;
                 return r.ReceiveItemStack;

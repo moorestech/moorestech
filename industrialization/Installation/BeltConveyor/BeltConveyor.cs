@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using industrialization.Item;
 using industrialization.Util;
+using NUnit.Framework;
 
 namespace industrialization.Installation.BeltConveyor
 {
@@ -21,6 +22,27 @@ namespace industrialization.Installation.BeltConveyor
         private IInstallationInventory connect;
         private List<BeltConveyorItems> _beltConveyorItems;
 
+        public List<IItemStack> TeestBeltConveyorItems
+        {
+            get
+            {
+                var a = new List<IItemStack>();
+                foreach (var item in _beltConveyorItems)
+                {
+                    if (item == null)
+                    {
+                        a.Add(new NullItemStack());
+                    }
+                    else
+                    {
+                        a.Add(new ItemStack(item.Id,1));
+                    }
+                }
+
+                return a;
+            }
+        }
+            
         private const int _0percentIndex = 0;
         private const int _25percentIndex = 1;
         private const int _50percentIndex = 2;
@@ -72,7 +94,7 @@ namespace industrialization.Installation.BeltConveyor
         private static List<BeltConveyorItems> MoveItems(List<BeltConveyorItems> beltConveyorItems,int startMoveIndex)
         {
             //リストを昇順にループし、アイテムを入れ替える
-            for (int i = startMoveIndex; i == 0; i--)
+            for (int i = startMoveIndex; i > 0; i--)
             {
                 if (beltConveyorItems[i] == null && beltConveyorItems[i-1] != null)
                 {
@@ -111,11 +133,14 @@ namespace industrialization.Installation.BeltConveyor
             _index = index;
             _beltConveyorSpeed = beltConveyorSpeed;
 
-            Task.Run(() =>
-            {
-                Thread.Sleep(beltConveyorSpeed);
-                ArrivalEvent(_index);
-            });
+            Task.Run(ExecuteEvent);
+        }
+
+        private void ExecuteEvent()
+        {
+            
+            Thread.Sleep(_beltConveyorSpeed);
+            ArrivalEvent(_index);
         }
 
         public BeltConveyorItems NewBeltConveyorItems()
