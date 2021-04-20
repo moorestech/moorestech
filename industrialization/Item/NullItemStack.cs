@@ -25,5 +25,9 @@
             if (typeof(NullItemStack) != obj.GetType()) return false;
             return ((NullItemStack) obj).Id == Id && ((NullItemStack) obj).Amount == Amount;
         }
+        public override string ToString()
+        {
+            return $"ID:{Id} Amount:{Amount}";
+        }
     }
 }
