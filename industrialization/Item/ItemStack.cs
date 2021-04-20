@@ -68,5 +68,10 @@ namespace industrialization.Item
             if (typeof(ItemStack) != obj.GetType()) return false;
             return ((ItemStack) obj).Id == Id && ((ItemStack) obj).Amount == Amount;
         }
+
+        public override string ToString()
+        {
+            return $"ID:{Id} Amount:{Amount}";
+        }
     }
 }

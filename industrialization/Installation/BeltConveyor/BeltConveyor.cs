@@ -8,13 +8,6 @@ using NUnit.Framework;
 
 namespace industrialization.Installation.BeltConveyor
 {
-    
-    /*
-     ベルトコンベアの仕様
-     ベルトコンベアは3つのアイテムを載せられる
-     それぞれ0%、25%、50%、75%、100%にアイテムが差し掛かった時点で更新処理をかけて、次のスロットに進めるかどうか判定する
-     */
-    
     public class BeltConveyor : InstallationBase, IInstallationInventory, IBeltConveyor
     {
         //TODO _beltConveyorSpeed変数は仮なので、recipeコンフィグが出来たら消す
@@ -42,12 +35,8 @@ namespace industrialization.Installation.BeltConveyor
                 return a;
             }
         }
-            
-        private const int _0percentIndex = 0;
-        private const int _25percentIndex = 1;
-        private const int _50percentIndex = 2;
-        private const int _75percentIndex = 3;
         
+        //TODO ベルトコンベアに置けるアイテムの数を取得する
         public BeltConveyor(int installationId, Guid guid,IInstallationInventory connect) : base(installationId, guid)
         {
             GUID = guid;
@@ -63,9 +52,9 @@ namespace industrialization.Installation.BeltConveyor
         public IItemStack InsertItem(IItemStack itemStack)
         {
             //受け取ったitemStackから1個だけとって返す
-            if (_beltConveyorItems[_0percentIndex] == null)
+            if (_beltConveyorItems[0] == null)
             {
-                _beltConveyorItems[_0percentIndex] = new BeltConveyorItems(itemStack.Id,(int)_beltConveyorSpeed,_0percentIndex,UpdateItem);
+                _beltConveyorItems[0] = new BeltConveyorItems(itemStack.Id,(int)_beltConveyorSpeed,0,UpdateItem);
                 return itemStack.SubItem(1);
             }
             //もしアイテムに空きが無ければそのまま返す
@@ -75,7 +64,7 @@ namespace industrialization.Installation.BeltConveyor
         //アイテムが25%、50%、75%、100%に到達したとき呼び出される
         private void UpdateItem(int index)
         {
-            if (index == _75percentIndex)
+            if (index == _beltConveyorItems.Count-1)
             {
                 //アイテムを隣接する設置物に入れたとき、アイテムの搬入に成功したら75%インデックスのアイテムを消して詰める
                 if (connect.InsertItem(new ItemStack(_beltConveyorItems[index].Id, 1)).Id == NullItemStack.NullItemId)
