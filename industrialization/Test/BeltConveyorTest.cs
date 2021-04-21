@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using industrialization.Config.BeltConveyor;
 using industrialization.Installation;
 using industrialization.Installation.BeltConveyor;
 using industrialization.Item;
@@ -14,19 +15,24 @@ namespace industrialization.Test
         public void InsertBeltConveyorTest()
         {
             var random = new Random(4123);
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 20; i++)
             {
                 //必要な変数を作成
+                int speed = random.Next(50, 500);
+                int num = random.Next(1, 5);
+                BeltConveyorConfig.TestSetBeltConveyorNum(speed,num);
+                
                 int id = random.Next(0, 10);
                 int amount = random.Next(1, 10);
                 var item = ItemStackFactory.NewItemStack(id, amount);
                 var dummy = new DummyInstallationInventory();
                 var beltconveyor = new BeltConveyor(0, new Guid(),dummy);
 
+
                 var outputItem = beltconveyor.InsertItem(item);
                 
                 
-                Thread.Sleep(2000);
+                Thread.Sleep((int)(speed * num * 1.5));
                 
                 Assert.True(outputItem.Equals(ItemStackFactory.NewItemStack(id,amount-1)));
                 var tmp = ItemStackFactory.NewItemStack(id, 1);
@@ -40,6 +46,7 @@ namespace industrialization.Test
             var random = new Random(4123);
             for (int i = 0; i < 100; i++)
             {
+                BeltConveyorConfig.TestSetBeltConveyorNum(200,5);
                 //必要な変数を作成
                 var item1 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
                 var item2 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
