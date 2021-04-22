@@ -4,6 +4,7 @@ using industrialization.Config.BeltConveyor;
 using industrialization.Installation;
 using industrialization.Installation.BeltConveyor;
 using industrialization.Item;
+using Microsoft.VisualBasic;
 using NUnit.Framework;
 
 namespace industrialization.Test
