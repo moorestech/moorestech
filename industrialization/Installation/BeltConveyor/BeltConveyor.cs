@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using industrialization.Config.BeltConveyor;
 using industrialization.Item;
 using industrialization.Util;
 using NUnit.Framework;
@@ -11,8 +12,8 @@ namespace industrialization.Installation.BeltConveyor
     public class BeltConveyor : InstallationBase, IInstallationInventory, IBeltConveyor
     {
         //TODO _beltConveyorSpeed変数は仮なので、recipeコンフィグが出来たら消す
-        private double _beltConveyorSpeed = 300;
-        private IInstallationInventory connect;
+        private readonly double _beltConveyorSpeed;
+        private IInstallationInventory _connect;
         private List<BeltConveyorItems> _beltConveyorItems;
 
         public List<IItemStack> TeestBeltConveyorItems
@@ -28,7 +29,7 @@ namespace industrialization.Installation.BeltConveyor
                     }
                     else
                     {
-                        a.Add(new ItemStack(item.Id,1));
+                        a.Add(new ItemStack(item.Id, 1));
                     }
                 }
 
@@ -36,14 +37,15 @@ namespace industrialization.Installation.BeltConveyor
             }
         }
         
-        //TODO ベルトコンベアに置けるアイテムの数を取得する
         public BeltConveyor(int installationId, Guid guid,IInstallationInventory connect) : base(installationId, guid)
         {
+            var data = BeltConveyorConfig.GetBeltConveyorData(installationId);
+            _beltConveyorSpeed = data.BeltConveyorSpeed;
             GUID = guid;
             InstallationID = installationId;
-            this.connect = connect;
+            this._connect = connect;
             _beltConveyorItems = new List<BeltConveyorItems>();
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < data.BeltConveyorItemNum; i++)
             {
                 _beltConveyorItems.Add(null);
             }
@@ -67,7 +69,7 @@ namespace industrialization.Installation.BeltConveyor
             if (index == _beltConveyorItems.Count-1)
             {
                 //アイテムを隣接する設置物に入れたとき、アイテムの搬入に成功したら75%インデックスのアイテムを消して詰める
-                if (connect.InsertItem(new ItemStack(_beltConveyorItems[index].Id, 1)).Id == NullItemStack.NullItemId)
+                if (_connect.InsertItem(new ItemStack(_beltConveyorItems[index].Id, 1)).Id == NullItemStack.NullItemId)
                 {
                     _beltConveyorItems[index] = null;
                     _beltConveyorItems = MoveItems(_beltConveyorItems, index);
