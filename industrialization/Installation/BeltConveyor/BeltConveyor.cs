@@ -11,8 +11,7 @@ namespace industrialization.Installation.BeltConveyor
 {
     public class BeltConveyor : InstallationBase, IInstallationInventory, IBeltConveyor
     {
-        //TODO _beltConveyorSpeed変数は仮なので、recipeコンフィグが出来たら消す
-        private readonly double _beltConveyorSpeed;
+        private readonly int _beltConveyorSpeed;
         private IInstallationInventory _connect;
         private List<BeltConveyorItems> _beltConveyorItems;
 
@@ -56,7 +55,7 @@ namespace industrialization.Installation.BeltConveyor
             //受け取ったitemStackから1個だけとって返す
             if (_beltConveyorItems[0] == null)
             {
-                _beltConveyorItems[0] = new BeltConveyorItems(itemStack.Id,(int)_beltConveyorSpeed,0,UpdateItem);
+                _beltConveyorItems[0] = new BeltConveyorItems(itemStack.Id,_beltConveyorSpeed,0,UpdateItem);
                 return itemStack.SubItem(1);
             }
             //もしアイテムに空きが無ければそのまま返す
