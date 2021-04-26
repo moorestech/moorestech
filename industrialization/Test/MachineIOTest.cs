@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using industrialization.GameSystem;
 using industrialization.Installation;
 using industrialization.Installation.Machine;
 using industrialization.Item;
@@ -73,20 +74,23 @@ namespace industrialization.Test
         public void ItemProcessingTest()
         {
             int seed = 2119350917;
-            int recipeNum = 5;
+            int recipeNum = 20;
             
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
             foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
             {
-                var conecct = new DummyInstallationInventory();
+                var conecct = new DummyInstallationInventory(m.output.Length);
                 var machine = new MachineInstallation(m.installtionId,Guid.Empty, conecct);
 
                 foreach (var minput in m.input)
                 {
                     machine.MachineInventory.InsertItem(new ItemStack(minput.Id,minput.Amount));
                 }
-                
-                Thread.Sleep((int)(m.time * 1.2f));
+
+                while (!DummyInstallationInventory.IsFinish)
+                {
+                    GameUpdate.Update();
+                }
                 
                 var remainder = machine.MachineInventory.InputSlot;
                 var output = machine.MachineInventory.OutpuutSlot;
@@ -107,19 +111,23 @@ namespace industrialization.Test
         public void ItemProcessingFaildTest()
         {
             int seed = 2119350917;
-            int recipeNum = 5;
+            int recipeNum = 20;
             
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
             foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
             {
-                var conecct = new DummyInstallationInventory();
+                var conecct = new DummyInstallationInventory(m.output.Length);
                 var machine = new MachineInstallation(m.installtionId,Guid.Empty, conecct);
 
                 foreach (var minput in m.input)
                 {
                     machine.MachineInventory.InsertItem(new ItemStack(minput.Id,minput.Amount));
                 }
-                Thread.Sleep((int)(m.time * 0.8f));
+                
+                while (!DummyInstallationInventory.IsFinish)
+                {
+                    GameUpdate.Update();
+                }
                 
                 var remainder = machine.MachineInventory.InputSlot;
                 var output = machine.MachineInventory.OutpuutSlot;
