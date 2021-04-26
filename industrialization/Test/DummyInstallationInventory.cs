@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using industrialization.Item;
 
@@ -6,10 +7,17 @@ namespace industrialization.Installation
 {
     public class DummyInstallationInventory : IInstallationInventory
     {
+        public static bool IsFinish => _isFinish;
+        private static bool _isFinish = false;
+        
         public List<IItemStack> insertedItems = new List<IItemStack>();
+        private int InsertToEndNum { get; }
+        private int _endInsertCnt;
 
-        public DummyInstallationInventory()
+        public DummyInstallationInventory(int insertToEndNum = Int32.MaxValue)
         {
+            _isFinish = false;
+            this.InsertToEndNum = insertToEndNum;
             insertedItems = ItemStackFactory.CreateEmptyItemStacksArray(100).ToList();
         }
 
@@ -23,6 +31,8 @@ namespace industrialization.Installation
                 return r.ReceiveItemStack;
             }
             insertedItems.Sort((i,j) => i.Id - j.Id);
+            _endInsertCnt++;
+            _isFinish = InsertToEndNum < _endInsertCnt;
             return new NullItemStack();
         }
     }
