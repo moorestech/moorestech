@@ -85,6 +85,7 @@ namespace industrialization.Test
                 {
                     machine.MachineInventory.InsertItem(new ItemStack(minput.Id,minput.Amount));
                 }
+                
                 Thread.Sleep((int)(m.time * 1.2f));
                 
                 var remainder = machine.MachineInventory.InputSlot;
