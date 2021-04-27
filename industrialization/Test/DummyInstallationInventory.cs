@@ -18,6 +18,7 @@ namespace industrialization.Installation
         {
             _isFinish = false;
             this.InsertToEndNum = insertToEndNum;
+            _endInsertCnt = 0;
             insertedItems = ItemStackFactory.CreateEmptyItemStacksArray(100).ToList();
         }
 
@@ -32,7 +33,7 @@ namespace industrialization.Installation
             }
             insertedItems.Sort((i,j) => i.Id - j.Id);
             _endInsertCnt++;
-            _isFinish = InsertToEndNum < _endInsertCnt;
+            _isFinish = InsertToEndNum <= _endInsertCnt;
             return new NullItemStack();
         }
     }

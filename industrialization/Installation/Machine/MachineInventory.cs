@@ -68,9 +68,10 @@ namespace industrialization.Installation.Machine
             if (_machineRunProcess != null && _machineRunProcess.IsProcessing()) return;
             
             var recipe = MachineRecipeConfig.GetRecipeData(installationId, _inputSlot.ToList());
-            if(MachineRecipeConfig.GetRecipeData(
-                installationId,_inputSlot.ToList()).
-                RecipeConfirmation(_inputSlot)) return;
+            var tmp = MachineRecipeConfig.GetRecipeData(
+                installationId, InputSlot.ToList()).RecipeConfirmation(InputSlot);
+            Console.WriteLine(tmp);
+            if(!tmp) return;
             
             
             //TODO アウトプットスロットに空きがあるかチェック

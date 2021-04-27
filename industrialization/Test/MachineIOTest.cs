@@ -111,7 +111,7 @@ namespace industrialization.Test
         public void ItemProcessingFaildTest()
         {
             int seed = 2119350917;
-            int recipeNum = 20;
+            int recipeNum = 1;
             
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
             foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
@@ -121,7 +121,7 @@ namespace industrialization.Test
 
                 foreach (var minput in m.input)
                 {
-                    machine.MachineInventory.InsertItem(new ItemStack(minput.Id,minput.Amount));
+                   machine.MachineInventory.InsertItem(new ItemStack(minput.Id,minput.Amount));
                 }
                 
                 while (!DummyInstallationInventory.IsFinish)
