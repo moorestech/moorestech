@@ -14,14 +14,7 @@ namespace industrialization.GameSystem
         {
             foreach (var update in _updates)
             {
-                if (update == null)
-                {
-                    _updates.Remove(update);
-                }
-                else
-                {
-                    update.Update();
-                }
+                update?.Update();
             }
         }
     }
