@@ -21,7 +21,7 @@ namespace industrialization.Installation.Machine
         public MachineRunProcess(Output outputEvent,IMachineRecipeData recipeData)
         {
             OutputEvent += outputEvent;
-            endtime = UnixTime.GetNowUnixTime() + recipeData.Time;
+            endtime = UnixTime.GetNowUnixTime() + recipeData.Time / 1000;
             this.recipeData = recipeData;
             GameUpdate.AddUpdate(this);
         }
