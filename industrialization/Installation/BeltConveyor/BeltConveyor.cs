@@ -123,13 +123,13 @@ namespace industrialization.Installation.BeltConveyor
             _index = index;
             _beltConveyorSpeed = beltConveyorSpeed;
 
-            Task.Run(ExecuteEvent);
+            ExecuteEvent();
         }
 
         private void ExecuteEvent()
         {
             
-            Thread.Sleep(_beltConveyorSpeed);
+            //TODO ここを同期処理に Thread.Sleep(_beltConveyorSpeed);
             ArrivalEvent(_index);
         }
 
