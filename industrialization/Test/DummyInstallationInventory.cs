@@ -14,7 +14,7 @@ namespace industrialization.Installation
         private int InsertToEndNum { get; }
         private int _endInsertCnt;
 
-        public DummyInstallationInventory(int insertToEndNum = Int32.MaxValue)
+        public DummyInstallationInventory(int insertToEndNum = 1)
         {
             _isFinish = false;
             this.InsertToEndNum = insertToEndNum;
@@ -29,6 +29,8 @@ namespace industrialization.Installation
                 if (!insertedItems[i].CanAdd(itemStack)) continue;
                 var r = insertedItems[i].AddItem(itemStack);
                 insertedItems[i] = r.MineItemStack;
+                _endInsertCnt++;
+                _isFinish = InsertToEndNum <= _endInsertCnt;
                 return r.ReceiveItemStack;
             }
             insertedItems.Sort((i,j) => i.Id - j.Id);

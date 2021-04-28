@@ -12,9 +12,9 @@ namespace industrialization.GameSystem
 
         public static void Update()
         {
-            foreach (var update in _updates)
+            for (int i = _updates.Count - 1; 0 <= i ; i--)
             {
-                update?.Update();
+                _updates[i]?.Update();
             }
         }
     }

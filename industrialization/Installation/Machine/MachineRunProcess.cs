@@ -29,22 +29,21 @@ namespace industrialization.Installation.Machine
         //終了時間よりも現在時間のほうが大きかったらプロセス終了
         public bool IsProcessing()
         {
-            return UnixTime.GetNowUnixTime() < endtime;
+            var t = UnixTime.GetNowUnixTime();
+            return t < endtime;
         }
 
         public void Update()
         {
-            if (!IsProcessing() && !isFinish)
+            if (IsProcessing() || isFinish) return;
+            isFinish = true;
+            var outputItem = new List<ItemStack>();
+            foreach (var output in recipeData.ItemOutputs)
             {
-                isFinish = true;
-                var outputItem = new List<ItemStack>();
-                foreach (var output in recipeData.ItemOutputs)
-                {
-                    if (!ProbabilityCalculator.DetectFromPercent(output.Percent)) continue;
-                    outputItem.Add(new ItemStack(output.OutputItem.Id,output.OutputItem.Amount));
-                }
-                OutputEvent(outputItem.ToArray());
+                if (!ProbabilityCalculator.DetectFromPercent(output.Percent)) continue;
+                outputItem.Add(new ItemStack(output.OutputItem.Id,output.OutputItem.Amount));
             }
+            OutputEvent(outputItem.ToArray());
         }
     }
 }
