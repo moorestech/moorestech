@@ -83,7 +83,7 @@ namespace industrialization.Installation.Machine
                 {
                     if (_inputSlot[i].Id == item.Id &&  item.Amount <=_inputSlot[i].Amount)
                     {
-                        _inputSlot[i].SubItem(item.Amount);
+                        _inputSlot[i] = _inputSlot[i].SubItem(item.Amount);
                         break;
                     }
                 }
