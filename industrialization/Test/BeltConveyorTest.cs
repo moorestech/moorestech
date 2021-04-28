@@ -33,7 +33,7 @@ namespace industrialization.Test
                 var outputItem = beltconveyor.InsertItem(item);
                 
                 
-                Thread.Sleep((int)(speed * num * 1.5));
+                //TODO ここを同期処理に Thread.Sleep((int)(speed * num * 1.5));
                 
                 Assert.True(outputItem.Equals(ItemStackFactory.NewItemStack(id,amount-1)));
                 var tmp = ItemStackFactory.NewItemStack(id, 1);
