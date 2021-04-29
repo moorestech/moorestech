@@ -95,11 +95,6 @@ namespace industrialization.Installation.BeltConveyor
             return beltConveyorItems;
         }
         
-        public BeltConveyorState GetState()
-        {
-            throw new NotImplementedException();
-        }
-        
         
     }
 
