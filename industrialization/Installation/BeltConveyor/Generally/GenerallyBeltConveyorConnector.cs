@@ -1,4 +1,5 @@
-﻿using industrialization.Installation.BeltConveyor.Interface;
+﻿using System;
+using industrialization.Installation.BeltConveyor.Interface;
 using industrialization.Item;
 
 namespace industrialization.Installation.BeltConveyor.Generally
@@ -12,9 +13,9 @@ namespace industrialization.Installation.BeltConveyor.Generally
             _connect = connect;
         }
 
-        public bool ConnectInsert(ItemStack item)
+        public bool ConnectInsert(IItemStack item)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }
