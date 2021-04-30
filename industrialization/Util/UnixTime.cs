@@ -7,6 +7,7 @@ namespace industrialization.Util
         private static DateTime UNIX_EPOCH =
             new DateTime(1970, 1, 1, 0, 0, 0, 0);
 
+        //TODO このメソッド、クラスを消す
         public static long GetNowUnixTime()
         {
             DateTime targetTime = DateTime.Now;
