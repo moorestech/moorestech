@@ -7,7 +7,7 @@ namespace industrialization.Installation.BeltConveyor.Generally
     public class GenerallyBeltConveyor : InstallationBase, IInstallationInventory
     {
         private readonly IBeltConveyorComponent _beltConveyorItemInventory;
-        private const int CanCarryItemNum = 1; 
+        public const int CanCarryItemNum = 1; 
         
         /// <summary>
         /// アイテムの搬入が出来たら指定個数減らしてアイテムを返す

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using industrialization.GameSystem;
 using industrialization.Installation.BeltConveyor.Generally.DataClass;
@@ -55,15 +56,25 @@ namespace industrialization.Installation.BeltConveyor.Generally
         public void Update()
         {
             if (!ItemOutputAvailable())return;
-            if (!_beltConveyorConnector.InsertItem(new NullItemStack()))return;
-            if (DateTime.Now < _inventoryItems.Min(i => i.RemovalAvailableTime))return;
+            if(_inventoryItems.Count <= 0) return;
+            var minTime = _inventoryItems.Min(i => i.RemovalAvailableTime);
+            if (DateTime.Now < minTime)return;
 
             
+            //最も古いアイテムのインデックスを取得
+            int oldindex = 0;
+            for (int i = 0; i < _inventoryItems.Count; i++)
+            {
+                if (!_inventoryItems[i].RemovalAvailableTime.Equals(minTime)) continue;
+                oldindex = i;
+                break;
+            }
 
+            //アイテムをインサートを試す
+            var tmpItem = new ItemStack(_inventoryItems[oldindex].ItemID, GenerallyBeltConveyor.CanCarryItemNum);
+            if (!_beltConveyorConnector.InsertItem(tmpItem))return;
             
-
-
-            _beltConveyorConnector.InsertItem();
+            _inventoryItems.Remove(_inventoryItems[oldindex]);
         }
 
         private static bool ItemOutputAvailable()
