@@ -1,5 +1,6 @@
 ﻿using System;
-namespace industrialization.Installation.BeltConveyor.Generally
+
+namespace industrialization.Installation.BeltConveyor.Generally.DataClass
 {
     public class GenerallyBeltConveyorInventoryItem
     {
