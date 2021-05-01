@@ -2,45 +2,68 @@
 using System.Collections.Generic;
 using System.Linq;
 using industrialization.GameSystem;
+using industrialization.Installation.BeltConveyor.Generally.DataClass;
 using industrialization.Installation.BeltConveyor.Interface;
 using industrialization.Item;
 
 namespace industrialization.Installation.BeltConveyor.Generally
 {
-    public class GenerallyBeltConveyorInventory : IBeltConveyorItemInventory,IUpdate
+    /// <summary>
+    /// アイテムの搬出入とインベントリの管理を行う
+    /// </summary>
+    public class GenerallyBeltConveyorInventory : IBeltConveyorComponent,IUpdate
     {
         private const int InventoryItemNum = 4;
         private const double CanItemInsertTime = 0.5;
         
-        private readonly IBeltConveyorConnector _beltConveyorConnector;
-        private List<GenerallyBeltConveyorInventoryItem> _inventoryItems;
+        private readonly IBeltConveyorComponent _beltConveyorConnector;
+        private readonly List<GenerallyBeltConveyorInventoryItem> _inventoryItems;
 
-        public GenerallyBeltConveyorInventory(IBeltConveyorConnector beltConveyorConnector)
+        public GenerallyBeltConveyorInventory(IBeltConveyorComponent beltConveyorConnector)
         {
             _beltConveyorConnector = beltConveyorConnector;
             _inventoryItems = new List<GenerallyBeltConveyorInventoryItem>();
             GameUpdate.AddUpdate(this);
         }
 
+        /// <summary>
+        /// アイテムを搬入する
+        /// </summary>
+        /// <param name="item">搬入したいアイテム</param>
+        /// <returns>搬入に成功したらtrue、失敗したらfalseを返す</returns>
         public bool InsertItem(IItemStack item)
         {
-            if (_inventoryItems.Max(i => i.InsertTime))
-            {
-                
-            }
-            throw new System.NotImplementedException();
+            //インベントリのアイテムの中で一番新しく入ったアイテムが、指定時間立っていなかったらfalseを返す
+            if (DateTime.Now < 
+                _inventoryItems.
+                    Max(i => i.InsertTime).
+                    AddSeconds(CanItemInsertTime)) return false;
+            //インベントリ内のアイテムが指定個数かそれ以上ならfalseを返す
+            if (InventoryItemNum <= _inventoryItems.Count) return false;
+
+            
+            //上記の条件を満たさない時、インベントリにアイテムを加える
+            _inventoryItems.Add(new GenerallyBeltConveyorInventoryItem(item.Id,CanItemInsertTime));
+            return true;
         }
 
+        /// <summary>
+        /// アイテムの搬出判定を行う
+        /// 判定はUpdateで毎フレーム行われる
+        /// </summary>
+        /// <exception cref="NotImplementedException"></exception>
         public void Update()
         {
             if (!ItemOutputAvailable())return;
-            if (!_beltConveyorConnector.ConnectInsert(new NullItemStack()))return;
+            if (!_beltConveyorConnector.InsertItem(new NullItemStack()))return;
+            if (DateTime.Now < _inventoryItems.Min(i => i.RemovalAvailableTime))return;
 
             
+
             
-            //TODO アイテムを移す処理を書く
-            
-            throw new System.NotImplementedException();
+
+
+            _beltConveyorConnector.InsertItem();
         }
 
         private static bool ItemOutputAvailable()

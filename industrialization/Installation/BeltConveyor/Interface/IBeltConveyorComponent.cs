@@ -2,8 +2,8 @@
 
 namespace industrialization.Installation.BeltConveyor.Interface
 {
-    public interface IBeltConveyorConnector
+    public interface IBeltConveyorComponent
     {
-        public bool ConnectInsert(IItemStack item);
+        public bool InsertItem(IItemStack item);
     }
 }

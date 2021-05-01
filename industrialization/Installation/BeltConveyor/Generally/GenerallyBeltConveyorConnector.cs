@@ -4,7 +4,7 @@ using industrialization.Item;
 
 namespace industrialization.Installation.BeltConveyor.Generally
 {
-    public class GenerallyBeltConveyorConnector : IBeltConveyorConnector
+    public class GenerallyBeltConveyorConnector : IBeltConveyorComponent
     {
         private readonly IInstallationInventory _connect;
 
@@ -13,7 +13,7 @@ namespace industrialization.Installation.BeltConveyor.Generally
             _connect = connect;
         }
 
-        public bool ConnectInsert(IItemStack item)
+        public bool InsertItem(IItemStack item)
         {
             throw new NotImplementedException();
         }
