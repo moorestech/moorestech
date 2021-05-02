@@ -2,9 +2,9 @@
 
 namespace industrialization.Installation.BeltConveyor.Generally.DataClass
 {
-    public class GenerallyBeltConveyorInventoryItem
+    public class GenericBeltConveyorInventoryItem
     {
-        public GenerallyBeltConveyorInventoryItem(int itemId,double removalAvailableTime)
+        public GenericBeltConveyorInventoryItem(int itemId,double removalAvailableTime)
         {
             ItemID = itemId;
             InsertTime = DateTime.Now;

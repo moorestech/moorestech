@@ -4,7 +4,7 @@ using industrialization.Item;
 
 namespace industrialization.Installation.BeltConveyor.Generally
 {
-    public class GenerallyBeltConveyor : InstallationBase, IInstallationInventory
+    public class GenericBeltConveyor : InstallationBase, IInstallationInventory
     {
         private readonly IBeltConveyorComponent _beltConveyorItemInventory;
         public const int CanCarryItemNum = 1; 
@@ -24,7 +24,7 @@ namespace industrialization.Installation.BeltConveyor.Generally
             return itemStack;
         }
 
-        public GenerallyBeltConveyor(int installationId, Guid guid,IBeltConveyorComponent beltConveyorItemInventory) : base(installationId, guid)
+        public GenericBeltConveyor(int installationId, Guid guid,IBeltConveyorComponent beltConveyorItemInventory) : base(installationId, guid)
         {
             _beltConveyorItemInventory = beltConveyorItemInventory;
         }

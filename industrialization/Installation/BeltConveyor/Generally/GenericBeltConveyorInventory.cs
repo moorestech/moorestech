@@ -12,18 +12,18 @@ namespace industrialization.Installation.BeltConveyor.Generally
     /// <summary>
     /// アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class GenerallyBeltConveyorInventory : IBeltConveyorComponent,IUpdate
+    public class GenericBeltConveyorInventory : IBeltConveyorComponent,IUpdate
     {
         private const int InventoryItemNum = 4;
         private const double CanItemInsertTime = 0.5;
         
         private readonly IBeltConveyorComponent _beltConveyorConnector;
-        private readonly List<GenerallyBeltConveyorInventoryItem> _inventoryItems;
+        private readonly List<GenericBeltConveyorInventoryItem> _inventoryItems;
 
-        public GenerallyBeltConveyorInventory(IBeltConveyorComponent beltConveyorConnector)
+        public GenericBeltConveyorInventory(IBeltConveyorComponent beltConveyorConnector)
         {
             _beltConveyorConnector = beltConveyorConnector;
-            _inventoryItems = new List<GenerallyBeltConveyorInventoryItem>();
+            _inventoryItems = new List<GenericBeltConveyorInventoryItem>();
             GameUpdate.AddUpdate(this);
         }
 
@@ -44,7 +44,7 @@ namespace industrialization.Installation.BeltConveyor.Generally
 
             
             //上記の条件を満たさない時、インベントリにアイテムを加える
-            _inventoryItems.Add(new GenerallyBeltConveyorInventoryItem(item.Id,CanItemInsertTime));
+            _inventoryItems.Add(new GenericBeltConveyorInventoryItem(item.Id,CanItemInsertTime));
             return true;
         }
 
@@ -71,7 +71,7 @@ namespace industrialization.Installation.BeltConveyor.Generally
             }
 
             //アイテムをインサートを試す
-            var tmpItem = new ItemStack(_inventoryItems[oldindex].ItemID, GenerallyBeltConveyor.CanCarryItemNum);
+            var tmpItem = new ItemStack(_inventoryItems[oldindex].ItemID, GenericBeltConveyor.CanCarryItemNum);
             if (!_beltConveyorConnector.InsertItem(tmpItem))return;
             
             _inventoryItems.Remove(_inventoryItems[oldindex]);
