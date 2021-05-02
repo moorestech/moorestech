@@ -4,11 +4,11 @@ using industrialization.Item;
 
 namespace industrialization.Installation.BeltConveyor.Generally
 {
-    public class GenerallyBeltConveyorConnector : IBeltConveyorComponent
+    public class GenericBeltConveyorConnector : IBeltConveyorComponent
     {
         private readonly IInstallationInventory _connect;
 
-        public GenerallyBeltConveyorConnector(IInstallationInventory connect)
+        public GenericBeltConveyorConnector(IInstallationInventory connect)
         {
             _connect = connect;
         }

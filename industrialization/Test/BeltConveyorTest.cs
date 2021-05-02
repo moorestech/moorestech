@@ -3,6 +3,7 @@ using System.Threading;
 using industrialization.Config.BeltConveyor;
 using industrialization.Installation;
 using industrialization.Installation.BeltConveyor;
+using industrialization.Installation.BeltConveyor.Generally;
 using industrialization.Item;
 using Microsoft.VisualBasic;
 using NUnit.Framework;
@@ -27,7 +28,7 @@ namespace industrialization.Test
                 int amount = random.Next(1, 10);
                 var item = ItemStackFactory.NewItemStack(id, amount);
                 var dummy = new DummyInstallationInventory();
-                var beltconveyor = new BeltConveyor(0, new Guid(),dummy);
+                var beltconveyor = new GenericBeltConveyor(0,Guid.Empty, new GenericBeltConveyorInventory(new GenericBeltConveyorConnector(dummy)));
 
 
                 var outputItem = beltconveyor.InsertItem(item);
