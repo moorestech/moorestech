@@ -15,7 +15,8 @@ namespace industrialization.Installation.BeltConveyor.Generally
 
         public bool InsertItem(IItemStack item)
         {
-            throw new NotImplementedException();
+            var inserted = _connect.InsertItem(item);
+            return inserted.Id == NullItemStack.NullItemId;
         }
     }
 }
