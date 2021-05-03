@@ -35,7 +35,7 @@ namespace industrialization.Installation.BeltConveyor.Generally
         public bool InsertItem(IItemStack item)
         {
             //インベントリのアイテムの中で一番新しく入ったアイテムが、指定時間立っていなかったらfalseを返す
-            if (DateTime.Now < 
+            if (0 < _inventoryItems.Count && DateTime.Now < 
                 _inventoryItems.
                     Max(i => i.InsertTime).
                     AddSeconds(CanItemInsertTime)) return false;
@@ -55,7 +55,6 @@ namespace industrialization.Installation.BeltConveyor.Generally
         /// <exception cref="NotImplementedException"></exception>
         public void Update()
         {
-            if (!ItemOutputAvailable())return;
             if(_inventoryItems.Count <= 0) return;
             var minTime = _inventoryItems.Min(i => i.RemovalAvailableTime);
             if (DateTime.Now < minTime)return;
@@ -75,11 +74,6 @@ namespace industrialization.Installation.BeltConveyor.Generally
             if (!_beltConveyorConnector.InsertItem(tmpItem))return;
             
             _inventoryItems.Remove(_inventoryItems[oldindex]);
-        }
-
-        private static bool ItemOutputAvailable()
-        {
-            throw new System.NotImplementedException();
         }
     }
 }

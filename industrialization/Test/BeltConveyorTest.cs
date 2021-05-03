@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using industrialization.Config.BeltConveyor;
+using industrialization.GameSystem;
 using industrialization.Installation;
 using industrialization.Installation.BeltConveyor;
 using industrialization.Installation.BeltConveyor.Generally;
@@ -27,17 +28,20 @@ namespace industrialization.Test
                 int id = random.Next(0, 10);
                 int amount = random.Next(1, 10);
                 var item = ItemStackFactory.NewItemStack(id, amount);
-                var dummy = new DummyInstallationInventory();
+                var dummy = new DummyInstallationInventory(1);
                 var beltconveyor = new GenericBeltConveyor(0,Guid.Empty, new GenericBeltConveyorInventory(new GenericBeltConveyorConnector(dummy)));
 
 
                 var outputItem = beltconveyor.InsertItem(item);
-                
-                
-                //TODO ここを同期処理に Thread.Sleep((int)(speed * num * 1.5));
+
+                while (!DummyInstallationInventory.IsFinish)
+                {
+                    GameUpdate.Update();
+                }
                 
                 Assert.True(outputItem.Equals(ItemStackFactory.NewItemStack(id,amount-1)));
                 var tmp = ItemStackFactory.NewItemStack(id, 1);
+                Console.WriteLine($"{tmp} {dummy.insertedItems[0]}");
                 Assert.True(dummy.insertedItems[0].Equals(tmp));
             }
         }
@@ -53,7 +57,7 @@ namespace industrialization.Test
                 var item1 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
                 var item2 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
 
-                var beltconveyor = new BeltConveyor(0, new Guid(),new DummyInstallationInventory());
+                var beltconveyor = new GenericBeltConveyor(0,Guid.Empty, new GenericBeltConveyorInventory(new GenericBeltConveyorConnector(new DummyInstallationInventory())));
 
                 var item1out = beltconveyor.InsertItem(item1);
                 var item2out = beltconveyor.InsertItem(item2);
@@ -69,13 +73,12 @@ namespace industrialization.Test
             var random = new Random(4123);
             for (int i = 0; i < 100; i++)
             {
-                //TODO　書き換える
                 BeltConveyorConfig.TestSetBeltConveyorNum(200,5);
                 //必要な変数を作成
                 var item1 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
                 var item2 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
 
-                var beltconveyor = new BeltConveyor(0, new Guid(),new DummyInstallationInventory());
+                var beltconveyor = new GenericBeltConveyor(0,Guid.Empty, new GenericBeltConveyorInventory(new GenericBeltConveyorConnector(new DummyInstallationInventory())));
 
                 var item1out = beltconveyor.InsertItem(item1);
                 var item2out = beltconveyor.InsertItem(item2);
