@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Threading;
 using industrialization.Config.BeltConveyor;
 using industrialization.GameSystem;
 using industrialization.Installation;
-using industrialization.Installation.BeltConveyor;
 using industrialization.Installation.BeltConveyor.Generally;
 using industrialization.Item;
-using Microsoft.VisualBasic;
 using NUnit.Framework;
 
 namespace industrialization.Test
