@@ -2,27 +2,33 @@
   "items": [
     {
       "name": "Test",
-      "id": 0
+      "id": 0,
+      "stacks": 100
     },
     {
       "name": "Test",
-      "id": 1
+      "id": 1,
+      "stacks": 100
     },
     {
       "name": "Test",
-      "id": 2
+      "id": 2,
+      "stacks": 100
     },
     {
       "name": "Test",
-      "id": 3
+      "id": 3,
+      "stacks": 100
     },
     {
       "name": "Test",
-      "id": 4
+      "id": 4,
+      "stacks": 100
     },
     {
       "name": "Test",
-      "id": 5
+      "id": 5,
+      "stacks": 100
     }
   ]
 }
