@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using industrialization.GameSystem;
 using industrialization.Installation;
 using industrialization.Installation.Machine;
