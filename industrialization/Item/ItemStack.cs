@@ -1,4 +1,5 @@
 ﻿using System;
+using industrialization.Config.Item;
 
 namespace industrialization.Item
 {
@@ -8,7 +9,6 @@ namespace industrialization.Item
 
         public int Amount { get; }
 
-        //TODO そのアイテムのスタック数以上に入れないようにする
         public ItemStack(int id,int amount)
         {
             if (id < 0)
@@ -19,27 +19,40 @@ namespace industrialization.Item
             {
                 throw new ArgumentOutOfRangeException();
             }
+            if (ItemConfig.GetItemConfig(id).Stack < amount)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
             Id = id;
             Amount = amount;
         }
-
-        //TODO アイテムスタック数のif文を追加する
+        
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
+            //加算するアイテムがnullならそのまま返す
             if (receiveItemStack.GetType() == typeof(NullItemStack))
             {
                 return new ItemProcessResult(this, new NullItemStack());
             }
-
-            if (((ItemStack) receiveItemStack).Id == Id)
-            {
-                var newAmount = ((ItemStack) receiveItemStack).Amount + Amount;
-                return new ItemProcessResult(new ItemStack(Id,newAmount),new NullItemStack());
-            }
-            else
+            //IDが違うならそれぞれで返す
+            if (((ItemStack) receiveItemStack).Id != Id)
             {
                 return new ItemProcessResult(this, receiveItemStack);
             }
+            
+            var newAmount = ((ItemStack) receiveItemStack).Amount + Amount;
+            var tmpStack = ItemConfig.GetItemConfig(Id).Stack;
+            
+            //量が指定数より多かったらはみ出した分を返す
+            if (tmpStack < newAmount)
+            {
+                var tmpItem = ItemStackFactory.NewItemStack(Id,tmpStack);
+                var tmpReceive = ItemStackFactory.NewItemStack(Id, newAmount-tmpStack);
+
+                return new ItemProcessResult(tmpItem, tmpReceive);
+            }
+            
+            return new ItemProcessResult(new ItemStack(Id, newAmount), new NullItemStack());
         }
 
         public IItemStack SubItem(int subAmount)

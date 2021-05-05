@@ -9,10 +9,10 @@ namespace industrialization.Config.Item
     {
         private static ItemConfigData[] _itemDatas;
 
-        public static ItemConfigData GetInstallationsConfig(int id)
+        public static ItemConfigData GetItemConfig(int id)
         {
             _itemDatas ??= LoadJsonFile();
-
+            
             return _itemDatas[id];
         }
 
