@@ -2,6 +2,7 @@
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using static System.Int32;
 
 namespace industrialization.Config.Item
 {
@@ -9,10 +10,16 @@ namespace industrialization.Config.Item
     {
         private static ItemConfigData[] _itemDatas;
 
-        public static ItemConfigData GetInstallationsConfig(int id)
+        public static ItemConfigData GetItemConfig(int id)
         {
             _itemDatas ??= LoadJsonFile();
-
+            
+            //アイテムが登録されてないときの仮
+            if (_itemDatas.Length-1 < id)
+            {
+                return new ItemConfigData("Null",id,MaxValue);
+            }
+            
             return _itemDatas[id];
         }
 
@@ -37,7 +44,14 @@ namespace industrialization.Config.Item
         private int _id;
         [DataMember(Name = "stacks")]
         private int _stack;
-        
+
+        public ItemConfigData(string name, int id, int stack)
+        {
+            _name = name;
+            _id = id;
+            _stack = stack;
+        }
+
         public string Name => _name;
         public int Id => _id;
         public int Stack => _stack;
