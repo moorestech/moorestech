@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using industrialization.Config.Recipe.Data;
 using industrialization.GameSystem;
 using industrialization.Item;
@@ -10,15 +11,14 @@ namespace industrialization.Installation.Machine
     {
         public delegate void Output(ItemStack[] item);
         private event Output OutputEvent;
-        private readonly long endtime;
+        private readonly DateTime endtime;
         private bool isFinish = false;
         private IMachineRecipeData recipeData;
         
         public MachineRunProcess(Output outputEvent,IMachineRecipeData recipeData)
         {
             OutputEvent += outputEvent;
-            //TODO ここ修正
-            endtime = UnixTime.GetNowUnixTime() + recipeData.Time / 1000;
+            endtime = DateTime.Now.AddMilliseconds(recipeData.Time);
             this.recipeData = recipeData;
             GameUpdate.AddUpdate(this);
         }
@@ -26,8 +26,7 @@ namespace industrialization.Installation.Machine
         //終了時間よりも現在時間のほうが大きかったらプロセス終了
         public bool IsProcessing()
         {
-            var t = UnixTime.GetNowUnixTime();
-            return t < endtime;
+            return DateTime.Now < endtime;
         }
 
         public void Update()
