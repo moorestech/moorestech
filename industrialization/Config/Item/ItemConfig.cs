@@ -15,7 +15,7 @@ namespace industrialization.Config.Item
             _itemDatas ??= LoadJsonFile();
             
             //アイテムが登録されてないときの仮
-            if (_itemDatas.Length < id)
+            if (_itemDatas.Length-1 < id)
             {
                 return new ItemConfigData("Null",id,MaxValue);
             }

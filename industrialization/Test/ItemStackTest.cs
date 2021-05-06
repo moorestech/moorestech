@@ -1,4 +1,5 @@
-﻿using industrialization.Item;
+﻿using System;
+using industrialization.Item;
 using NUnit.Framework;
 
 namespace industrialization.Test
@@ -69,6 +70,48 @@ namespace industrialization.Test
             Assert.AreEqual(ansID,result.Id);
 
         }
+
         
+        [TestCase(0,50,50,0)]
+        [TestCase(0,49,51,0)]
+        [TestCase(0,49,52,1)]
+        [TestCase(0,1,100,1)]
+        [TestCase(0,60,50,10)]
+        [TestCase(0,100,1,1)]
+        [TestCase(0,100,100,100)]
+        [TestCase(2,300,1,1)]
+        [TestCase(2,1,300,1)]
+        [TestCase(2,300,300,300)]
+        public void ItemAddToOverFlowTest(int id,int baseAmo,int addAmo,int overflowAmo)
+        {
+            var baseItem = ItemStackFactory.NewItemStack(id, baseAmo);
+            
+            
+            var result = baseItem.AddItem(ItemStackFactory.NewItemStack(id, addAmo));
+            Assert.True(ItemStackFactory.NewItemStack(id,overflowAmo).Equals(result.ReceiveItemStack));
+            
+        }
+        
+        
+        [TestCase(0,100,false)]
+        [TestCase(0,99,false)]
+        [TestCase(0,101,true)]
+        [TestCase(0,110,true)]
+        [TestCase(0,200,true)]
+        [TestCase(1,50,false)]
+        [TestCase(1,51,true)]
+        [TestCase(1,100,true)]
+        public void ItemAddToOverFlowThrowTest(int id,int baseAmo,bool isthrow)
+        {
+            try
+            {
+                ItemStackFactory.NewItemStack(id, baseAmo);
+                Assert.False(isthrow);
+            }
+            catch (Exception e)
+            {
+                Assert.True(isthrow);
+            }
+        }
     }
 }
