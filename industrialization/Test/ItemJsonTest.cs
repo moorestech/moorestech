@@ -13,7 +13,7 @@ namespace industrialization.Test
         [TestCase(5,10)]
         public void JsonStackTest(int id, int stack)
         {
-            Assert.AreEqual(stack, ItemConfig.GetInstallationsConfig(id).Stack);
+            Assert.AreEqual(stack, ItemConfig.GetItemConfig(id).Stack);
         }
         [TestCase(0,"Test1")]
         [TestCase(1,"Test2")]
@@ -23,7 +23,7 @@ namespace industrialization.Test
         [TestCase(5,"Test6")]
         public void JsonNameTest(int id, string name)
         {
-            Assert.AreEqual(name, ItemConfig.GetInstallationsConfig(id).Name);
+            Assert.AreEqual(name, ItemConfig.GetItemConfig(id).Name);
         }
     }
 }
