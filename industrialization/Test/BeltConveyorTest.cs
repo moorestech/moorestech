@@ -17,11 +17,6 @@ namespace industrialization.Test
             var random = new Random(4123);
             for (int i = 0; i < 20; i++)
             {
-                //必要な変数を作成
-                int speed = random.Next(50, 500);
-                int num = random.Next(1, 5);
-                BeltConveyorConfig.TestSetBeltConveyorNum(speed,num);
-                
                 int id = random.Next(0, 10);
                 int amount = random.Next(1, 10);
                 var item = ItemStackFactory.NewItemStack(id, amount);
@@ -49,18 +44,17 @@ namespace industrialization.Test
             var random = new Random(4123);
             for (int i = 0; i < 100; i++)
             {
-                BeltConveyorConfig.TestSetBeltConveyorNum(200,5);
                 //必要な変数を作成
                 var item1 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
                 var item2 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
 
-                var beltconveyor = new GenericBeltConveyor(0,Guid.Empty, new GenericBeltConveyorInventory(new GenericBeltConveyorConnector(new DummyInstallationInventory())));
+                var beltconveyor = new GenericBeltConveyor(0,Guid.Empty, new GenericBeltConveyorInventory(new GenericBeltConveyorConnector(new NullIInstallationInventory())));
 
-                var item1out = beltconveyor.InsertItem(item1);
-                var item2out = beltconveyor.InsertItem(item2);
+                var item1Out = beltconveyor.InsertItem(item1);
+                var item2Out = beltconveyor.InsertItem(item2);
 
-                Assert.True(item1out.Equals(item1.SubItem(1)));
-                Assert.True(item2.Equals(item2out));
+                Assert.True(item1Out.Equals(item1.SubItem(1)));
+                Assert.True(item2Out.Equals(item2));
             }
         }
         //ランダムなアイテムを搬入し、搬出を確かめるテスト
@@ -70,7 +64,6 @@ namespace industrialization.Test
             var random = new Random(4123);
             for (int i = 0; i < 100; i++)
             {
-                BeltConveyorConfig.TestSetBeltConveyorNum(200,5);
                 //必要な変数を作成
                 var item1 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
                 var item2 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
