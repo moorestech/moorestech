@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using industrialization.Config;
 using industrialization.Config.Recipe;
 using industrialization.Item;
+using industrialization.Util;
 
 namespace industrialization.Installation.Machine
 {
@@ -10,7 +12,7 @@ namespace industrialization.Installation.Machine
     {
         private MachineRunProcess _machineRunProcess;
         private IInstallationInventory _connectInventory;
-        private IItemStack[] _inputSlot;
+        private List<IItemStack> _inputSlot;
         public IItemStack[] InputSlot
         {
             get
@@ -21,7 +23,7 @@ namespace industrialization.Installation.Machine
             }
         }
 
-        private IItemStack[] _outpuutSlot;
+        private List<IItemStack> _outpuutSlot;
         public IItemStack[] OutpuutSlot
         {
             get
@@ -38,8 +40,8 @@ namespace industrialization.Installation.Machine
         {
             this.installationId = installationId;
             _connectInventory = connectInventory;
-            _inputSlot = ItemStackFactory.CreateEmptyItemStacksArray(100);
-            _outpuutSlot = ItemStackFactory.CreateEmptyItemStacksArray(100);
+            _inputSlot = CreateEmptyItemStacksList.Create(100);
+            _outpuutSlot = CreateEmptyItemStacksList.Create(100);
         }
         
         /// <summary>
@@ -49,7 +51,7 @@ namespace industrialization.Installation.Machine
         /// <returns>余り、枠が無かった等入れようとした結果余ったアイテム</returns>
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            for (int i = 0; i < _inputSlot.Length; i++)
+            for (int i = 0; i < _inputSlot.Count; i++)
             {
                 if (_inputSlot[i].CanAdd(itemStack))
                 {
@@ -79,7 +81,7 @@ namespace industrialization.Installation.Machine
             //TODO アイテムを減らす処理のテスト
             foreach (var item in recipe.ItemInputs)
             {
-                for (int i = 0; i < _inputSlot.Length; i++)
+                for (int i = 0; i < _inputSlot.Count; i++)
                 {
                     if (_inputSlot[i].Id == item.Id &&  item.Amount <=_inputSlot[i].Amount)
                     {
@@ -95,7 +97,7 @@ namespace industrialization.Installation.Machine
             //アウトプットスロットに受け取ったアイテムを入れる
             foreach (var outputItem in output)
             {
-                for (var i = 0; i < _outpuutSlot.Length; i++)
+                for (var i = 0; i < _outpuutSlot.Count; i++)
                 {
                     if (!_outpuutSlot[i].CanAdd(outputItem)) continue;
                     //アイテムを出力スロットに加算
