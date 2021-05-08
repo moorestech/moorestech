@@ -20,7 +20,7 @@ namespace industrialization.Test
         [TestCase(false,new int[2]{0,0}, new int[2]{10,5})]
         public void MachineInputTest(bool isEquals,int[] id,int[] amount)
         {
-            var machine = new MachineInstallation(0,Guid.Empty,new DummyInstallationInventory());
+            var machine = new NormalMachine(0,Guid.Empty,new DummyInstallationInventory());
             var items = new List<IItemStack>();
             for (int i = 0; i < id.Length; i++)
             {
@@ -47,7 +47,7 @@ namespace industrialization.Test
         [TestCase(new int[6]{1,3,1,5,5,0}, new int[6]{1,1,2,6,2,4}, new int[4]{0,1,3,5}, new int[4]{4,3,1,8})]
         public void MachineAddInputTest(int[] id,int[] amount,int[] ansid,int[] ansamount)
         {
-            var machine = new MachineInstallation(0,Guid.Empty,new DummyInstallationInventory());
+            var machine = new NormalMachine(0,Guid.Empty,new DummyInstallationInventory());
             for (int i = 0; i < id.Length; i++)
             {
                 machine.MachineInventory.InsertItem(ItemStackFactory.NewItemStack(id[i], amount[i]));
@@ -79,7 +79,7 @@ namespace industrialization.Test
             foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
             {
                 var conecct = new DummyInstallationInventory(m.output.Length);
-                var machine = new MachineInstallation(m.installtionId,Guid.Empty, conecct);
+                var machine = new NormalMachine(m.installtionId,Guid.Empty, conecct);
 
                 foreach (var minput in m.input)
                 {
@@ -116,7 +116,7 @@ namespace industrialization.Test
             foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
             {
                 var conecct = new DummyInstallationInventory(m.output.Length);
-                var machine = new MachineInstallation(m.installtionId,Guid.Empty, conecct);
+                var machine = new NormalMachine(m.installtionId,Guid.Empty, conecct);
 
                 foreach (var minput in m.input)
                 {
