@@ -1,14 +1,15 @@
-﻿using industrialization.Item;
+﻿using System.Collections.Generic;
+using industrialization.Item;
 
 namespace industrialization.Config.Recipe.Data
 {
     public interface IMachineRecipeData
     {
-        IItemStack[] ItemInputs { get; }
+        List<IItemStack> ItemInputs { get; }
         ItemOutput[] ItemOutputs { get; }
         int InstallationId { get; }
         int Time{ get; }
-        bool RecipeConfirmation(IItemStack[] inputSlot);
+        bool RecipeConfirmation(List<IItemStack> inputSlot);
     }
 
     public class ItemOutput

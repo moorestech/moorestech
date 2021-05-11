@@ -3,7 +3,7 @@ using industrialization.Item;
 
 namespace industrialization.Util
 {
-    public class CreateEmptyItemStacksList
+    public static class CreateEmptyItemStacksList
     {
         public static List<IItemStack> Create(int amount)
         {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using industrialization.Item;
+using industrialization.Util;
 
 namespace industrialization.Installation
 {
@@ -19,7 +20,7 @@ namespace industrialization.Installation
             _isFinish = false;
             this.InsertToEndNum = insertToEndNum;
             _endInsertCnt = 0;
-            insertedItems = ItemStackFactory.CreateEmptyItemStacksArray(100).ToList();
+            insertedItems = CreateEmptyItemStacksList.Create(100).ToList();
         }
 
         public IItemStack InsertItem(IItemStack itemStack)

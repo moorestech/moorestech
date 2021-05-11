@@ -13,24 +13,24 @@ namespace industrialization.Installation.Machine
         private MachineRunProcess _machineRunProcess;
         private IInstallationInventory _connectInventory;
         private List<IItemStack> _inputSlot;
-        public IItemStack[] InputSlot
+        public List<IItemStack> InputSlot
         {
             get
             {
                 var a = _inputSlot.Where(i => i.Id != NullItemStack.NullItemId).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
-                return a.ToArray();
+                return a.ToList();
             }
         }
 
         private List<IItemStack> _outpuutSlot;
-        public IItemStack[] OutpuutSlot
+        public List<IItemStack> OutpuutSlot
         {
             get
             {
                 var a = _outpuutSlot.Where(i => i.Id != NullItemStack.NullItemId).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
-                return a.ToArray();
+                return a.ToList();
             }
         }
         private int installationId;
