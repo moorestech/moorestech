@@ -91,7 +91,7 @@ namespace industrialization.Test
             {
                 itemStacks.Add(new ItemStack(items[i],itemamount[i]));
             }
-            var a =MachineRecipeConfig.GetRecipeData(installationsId, itemStacks).RecipeConfirmation(itemStacks.ToArray());
+            var a =MachineRecipeConfig.GetRecipeData(installationsId, itemStacks).RecipeConfirmation(itemStacks);
             Assert.AreEqual(ans,a);
         }
     }
