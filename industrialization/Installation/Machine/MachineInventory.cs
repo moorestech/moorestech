@@ -78,7 +78,6 @@ namespace industrialization.Installation.Machine
 
             //スタートできるなら加工をスタートし、アイテムを減らす
             _machineRunProcess = new MachineRunProcess(OutputEvent,recipe);
-            //TODO アイテムを減らす処理のテスト
             foreach (var item in recipe.ItemInputs)
             {
                 for (int i = 0; i < _inputSlot.Count; i++)
