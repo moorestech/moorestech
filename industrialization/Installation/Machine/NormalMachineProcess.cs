@@ -31,6 +31,8 @@ namespace industrialization.Installation.Machine
             return itemStack;
         }
         
+        
+        
         //TODO プロセスをスタートする
         void StartProcess()
         {
