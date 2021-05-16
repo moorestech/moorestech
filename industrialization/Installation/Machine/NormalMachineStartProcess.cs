@@ -13,11 +13,10 @@ namespace industrialization.Installation.Machine
         private readonly NormalMachineRunProcess _normalMachineRunProcess;
         public NormalMachineStartProcess(int installationId, NormalMachineRunProcess normalMachineRunProcess)
         {
-            this._installationId = installationId;
+            _installationId = installationId;
             _normalMachineRunProcess = normalMachineRunProcess;
         }
 
-        //TODO プロセスをスタートする
         public List<IItemStack> StartingProcess(List<IItemStack> inputSlot)
         {
             var recipe = MachineRecipeConfig.GetRecipeData(_installationId, inputSlot.ToList());
@@ -32,14 +31,14 @@ namespace industrialization.Installation.Machine
             //スタートできるならインベントリ敵にスタートできるか判定し、アイテムを減らす
             foreach (var item in recipe.ItemInputs)
             {
-                for (int i = 0; i < inputSlot.Count; i++)
+                for (var i = 0; i < inputSlot.Count; i++)
                 {
-                    if (inputSlot[i].Id == item.Id &&  item.Amount <=inputSlot[i].Amount)
-                    {
-                        inputSlot[i] = inputSlot[i].SubItem(item.Amount);
-                        //TODO プロセススタート
-                        break;
-                    }
+                    if (inputSlot[i].Id != item.Id || item.Amount > inputSlot[i].Amount) continue;
+                    //アイテムを減らす
+                    inputSlot[i] = inputSlot[i].SubItem(item.Amount);
+                    //プロセススタート
+                    _normalMachineRunProcess.StartProcess(recipe);
+                    break;
                 }
             }
 
