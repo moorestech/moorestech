@@ -71,7 +71,7 @@ namespace industrialization.Item
             }
         }
 
-        public bool CanAdd(IItemStack item)
+        public bool IsAllowedToAdd(IItemStack item)
         {
             return Id == item.Id || item.Id == NullItemStack.NullItemId;
         }
