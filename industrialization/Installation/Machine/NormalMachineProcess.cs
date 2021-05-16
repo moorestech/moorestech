@@ -1,65 +1,45 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using industrialization.Config.Installation;
+using industrialization.Config.Recipe;
 using industrialization.Item;
 using industrialization.Util;
 
 namespace industrialization.Installation.Machine
 {
-    public class NormalMachineProcess : IMachineComponent
+    public class NormalMachineProcess
     {
-        private readonly List<IItemStack> _inputSlot;
-
-        public NormalMachineProcess(int installtionId)
+        private int _installationId;
+        public NormalMachineProcess(int installationId)
         {
-            var data = InstallationConfig.GetInstallationsConfig(installtionId);
-            _inputSlot = CreateEmptyItemStacksList.Create(data.InputSlot);
+            this._installationId = installationId;
         }
 
-        public IItemStack InsertItem(IItemStack itemStack)
-        {
-            
-            for (int i = 0; i < _inputSlot.Count; i++)
-            {
-                if (_inputSlot[i].CanAdd(itemStack))
-                {
-                    var r = _inputSlot[i].AddItem(itemStack);
-                    _inputSlot[i] = r.MineItemStack;
-                    //TODO プロセスをスタートさせる
-                    return r.ReceiveItemStack;
-                }
-            }
-            return itemStack;
-        }
-        
-        
-        
         //TODO プロセスをスタートする
-        void StartProcess()
+        public List<IItemStack> StartProcess(List<IItemStack> inputSlot)
         {
-            
-            //プロセスをスタートできるか判定
-            if (_machineRunProcess != null && _machineRunProcess.IsProcessing()) return;
-            
-            var recipe = MachineRecipeConfig.GetRecipeData(installationId, InputSlot.ToList());
-            var tmp = recipe.RecipeConfirmation(InputSlot);
-            if(!tmp) return;
+            var recipe = MachineRecipeConfig.GetRecipeData(_installationId, inputSlot.ToList());
+            var tmp = recipe.RecipeConfirmation(inputSlot);
+            if(!tmp) return inputSlot;
             
             
             //TODO アウトプットスロットに空きがあるかチェック
 
             //スタートできるなら加工をスタートし、アイテムを減らす
-            _machineRunProcess = new MachineRunProcess(OutputEvent,recipe);
             foreach (var item in recipe.ItemInputs)
             {
-                for (int i = 0; i < _inputSlot.Count; i++)
+                for (int i = 0; i < inputSlot.Count; i++)
                 {
-                    if (_inputSlot[i].Id == item.Id &&  item.Amount <=_inputSlot[i].Amount)
+                    if (inputSlot[i].Id == item.Id &&  item.Amount <=inputSlot[i].Amount)
                     {
-                        _inputSlot[i] = _inputSlot[i].SubItem(item.Amount);
+                        inputSlot[i] = inputSlot[i].SubItem(item.Amount);
+                        //TODO プロセススタート
                         break;
                     }
                 }
             }
+
+            return inputSlot;
         }
     }
 }
