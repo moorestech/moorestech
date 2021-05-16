@@ -16,7 +16,7 @@
             return this;
         }
 
-        public bool CanAdd(IItemStack item)
+        public bool IsAllowedToAdd(IItemStack item)
         {
             return true;
         }

@@ -27,7 +27,7 @@ namespace industrialization.Installation
         {
             for (int i = 0; i < insertedItems.Count; i++)
             {
-                if (!insertedItems[i].CanAdd(itemStack)) continue;
+                if (!insertedItems[i].IsAllowedToAdd(itemStack)) continue;
                 var r = insertedItems[i].AddItem(itemStack);
                 insertedItems[i] = r.MineItemStack;
                 _endInsertCnt++;

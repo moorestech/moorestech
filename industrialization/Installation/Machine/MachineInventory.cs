@@ -53,7 +53,7 @@ namespace industrialization.Installation.Machine
         {
             for (int i = 0; i < _inputSlot.Count; i++)
             {
-                if (_inputSlot[i].CanAdd(itemStack))
+                if (_inputSlot[i].IsAllowedToAdd(itemStack))
                 {
                     var r = _inputSlot[i].AddItem(itemStack);
                     _inputSlot[i] = r.MineItemStack;
@@ -98,7 +98,7 @@ namespace industrialization.Installation.Machine
             {
                 for (var i = 0; i < _outpuutSlot.Count; i++)
                 {
-                    if (!_outpuutSlot[i].CanAdd(outputItem)) continue;
+                    if (!_outpuutSlot[i].IsAllowedToAdd(outputItem)) continue;
                     //アイテムを出力スロットに加算
                     _outpuutSlot[i] = _outpuutSlot[i].AddItem(outputItem).MineItemStack;
                     //繋がってるインベントリに出力

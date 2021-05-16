@@ -7,25 +7,29 @@ using industrialization.Util;
 
 namespace industrialization.Installation.Machine
 {
-    public class NormalMachineProcess
+    public class NormalMachineStartProcess
     {
-        private int _installationId;
-        public NormalMachineProcess(int installationId)
+        private readonly int _installationId;
+        private readonly NormalMachineRunProcess _normalMachineRunProcess;
+        public NormalMachineStartProcess(int installationId, NormalMachineRunProcess normalMachineRunProcess)
         {
             this._installationId = installationId;
+            _normalMachineRunProcess = normalMachineRunProcess;
         }
 
         //TODO プロセスをスタートする
-        public List<IItemStack> StartProcess(List<IItemStack> inputSlot)
+        public List<IItemStack> StartingProcess(List<IItemStack> inputSlot)
         {
             var recipe = MachineRecipeConfig.GetRecipeData(_installationId, inputSlot.ToList());
+            //実行できるレシピがなかったらそのまま返す
             var tmp = recipe.RecipeConfirmation(inputSlot);
             if(!tmp) return inputSlot;
             
             
-            //TODO アウトプットスロットに空きがあるかチェック
+            //プロセスの実行ができるかどうかを見る
+            if (!_normalMachineRunProcess.IsAllowedToStartProcess()) return inputSlot;
 
-            //スタートできるなら加工をスタートし、アイテムを減らす
+            //スタートできるならインベントリ敵にスタートできるか判定し、アイテムを減らす
             foreach (var item in recipe.ItemInputs)
             {
                 for (int i = 0; i < inputSlot.Count; i++)

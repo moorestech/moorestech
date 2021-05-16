@@ -7,12 +7,12 @@ namespace industrialization.Installation.Machine
 {
     public class NormalMachineInputInventory : IMachineComponent
     {
-        private NormalMachineProcess _normalMachineProcess;
+        private NormalMachineStartProcess _normalMachineStartProcess;
         private List<IItemStack> _inputSlot;
 
-        public NormalMachineInputInventory(NormalMachineProcess normalMachineProcess,int installationId)
+        public NormalMachineInputInventory(NormalMachineStartProcess normalMachineStartProcess,int installationId)
         {
-            _normalMachineProcess = normalMachineProcess;
+            _normalMachineStartProcess = normalMachineStartProcess;
             var data = InstallationConfig.GetInstallationsConfig(installationId);
             _inputSlot = CreateEmptyItemStacksList.Create(data.InputSlot);
         }
@@ -22,14 +22,14 @@ namespace industrialization.Installation.Machine
             
             for (var i = 0; i < _inputSlot.Count; i++)
             {
-                if (!_inputSlot[i].CanAdd(itemStack)) continue;
+                if (!_inputSlot[i].IsAllowedToAdd(itemStack)) continue;
                 
                 //インベントリにアイテムを入れる
                 var r = _inputSlot[i].AddItem(itemStack);
                 _inputSlot[i] = r.MineItemStack;
                 
                 //プロセスをスタートさせる
-                _inputSlot = _normalMachineProcess.StartProcess(_inputSlot);
+                _inputSlot = _normalMachineStartProcess.StartingProcess(_inputSlot);
                 
                 //とった結果のアイテムを返す
                 return r.ReceiveItemStack;
