@@ -18,7 +18,7 @@ namespace industrialization.Installation.Machine
         /// <returns></returns>
         public bool IsAllowedToStartProcess()
         {
-            return false;
+            return _normalMachineOutputInventory.IsAllowedToOutputItem();
         }
 
         /// <summary>
