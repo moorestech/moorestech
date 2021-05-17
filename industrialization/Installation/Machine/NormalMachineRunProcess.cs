@@ -1,33 +1,38 @@
-﻿using industrialization.Config.Recipe.Data;
+﻿using System;
+using industrialization.Config.Recipe.Data;
 using industrialization.GameSystem;
 
 namespace industrialization.Installation.Machine
 {
     public class NormalMachineRunProcess : IUpdate
     {
+        private IMachineRecipeData _machineRecipeData;
         private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
+        private DateTime _processEndTime;
         public NormalMachineRunProcess(NormalMachineOutputInventory normalMachineOutputInventory)
         {
+            _machineRecipeData = new NullMachineRecipeData();
             _normalMachineOutputInventory = normalMachineOutputInventory;
             GameUpdate.AddUpdate(this);
         }
         
         /// <summary>
-        /// TODO 実行中かどうか、アウトプットスロットがいっぱいじゃないかを見る
+        /// 実行中かどうか、アウトプットスロットがいっぱいじゃないかを見る
         /// </summary>
         /// <returns></returns>
         public bool IsAllowedToStartProcess()
         {
-            return _normalMachineOutputInventory.IsAllowedToOutputItem();
+            return !IsProcessing && _normalMachineOutputInventory.IsAllowedToOutputItem(_machineRecipeData);
         }
 
         /// <summary>
-        /// TODO 実際にプロセスを始めるための待機
+        /// 実際にプロセスを開始する
         /// </summary>
         /// <param name="machineRecipeData"></param>
         public void StartProcess(IMachineRecipeData machineRecipeData)
         {
-            
+            _machineRecipeData = machineRecipeData;
+            _processEndTime = DateTime.Now.AddMilliseconds(machineRecipeData.Time);
         }
 
         /// <summary>
@@ -36,7 +41,12 @@ namespace industrialization.Installation.Machine
         /// <exception cref="NotImplementedException"></exception>
         public void Update()
         {
+            if (!IsProcessing) return;
+            _processEndTime = DateTime.MaxValue;;
+            _normalMachineOutputInventory.InsertOutputSlot(_machineRecipeData);
             throw new System.NotImplementedException();
         }
+
+        private bool IsProcessing => DateTime.Now < _processEndTime;
     }
 }

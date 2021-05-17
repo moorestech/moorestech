@@ -37,7 +37,7 @@ namespace industrialization.Config.Recipe.Json
                         ItemOutputs.
                         Select(r => new ItemOutput(r.ItemStack, r.Percent));
                 
-                return new MachineRecipeData(r.InstallationId,r.Time,inputItem,outputs.ToArray());
+                return new MachineRecipeData(r.InstallationId,r.Time,inputItem,outputs.ToList());
             });
             
             return r.ToArray();

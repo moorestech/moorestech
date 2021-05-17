@@ -65,7 +65,7 @@ namespace industrialization.Test
             items.ToList().ForEach(
                 i => input.Add(new ItemStack(i,1)));
             
-            int ans = MachineRecipeConfig.GetRecipeData(installationsId, input).ItemOutputs.Length;
+            int ans = MachineRecipeConfig.GetRecipeData(installationsId, input).ItemOutputs.Count;
             Assert.AreEqual(outputLength,ans);
         }
 
