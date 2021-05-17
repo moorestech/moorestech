@@ -73,7 +73,10 @@ namespace industrialization.Item
 
         public bool IsAllowedToAdd(IItemStack item)
         {
-            return Id == item.Id || item.Id == NullItemStack.NullItemId;
+            var tmpStack = ItemConfig.GetItemConfig(Id).Stack;
+            
+            return (Id == item.Id || item.Id == NullItemStack.NullItemId)&&
+                   item.Amount + Amount <=tmpStack;
         }
 
         public override bool Equals(object? obj)

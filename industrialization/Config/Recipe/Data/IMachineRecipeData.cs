@@ -6,7 +6,7 @@ namespace industrialization.Config.Recipe.Data
     public interface IMachineRecipeData
     {
         List<IItemStack> ItemInputs { get; }
-        ItemOutput[] ItemOutputs { get; }
+        List<ItemOutput> ItemOutputs { get; }
         int InstallationId { get; }
         int Time{ get; }
         bool RecipeConfirmation(List<IItemStack> inputSlot);

@@ -9,7 +9,7 @@ namespace industrialization.Config.Recipe.Data
     {
         public int InstallationId { get; }
 
-        public MachineRecipeData(int installationId,int time,List<IItemStack> itemInputs, ItemOutput[] itemOutputs)
+        public MachineRecipeData(int installationId,int time,List<IItemStack> itemInputs, List<ItemOutput> itemOutputs)
         {
             InstallationId = installationId;
             ItemInputs = itemInputs;
@@ -19,7 +19,7 @@ namespace industrialization.Config.Recipe.Data
 
         public List<IItemStack> ItemInputs { get; }
 
-        public ItemOutput[] ItemOutputs { get; }
+        public List<ItemOutput> ItemOutputs { get; }
 
         public int Time { get; }
 
