@@ -9,12 +9,21 @@ namespace industrialization.Installation.Machine
 {
     public class NormalMachineOutputInventory
     {
-        private List<IItemStack> _outputSlot;
-        private IInstallationInventory connectInventory;
-
-        public NormalMachineOutputInventory(int installationId, IInstallationInventory installationInventory)
+        private readonly List<IItemStack> _outputSlot;
+        private readonly IInstallationInventory _connectInventory;
+        public List<IItemStack> OutputSlot 
         {
-            connectInventory = installationInventory;
+            get
+            {
+                var a = _outputSlot.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+                a.Sort((a, b) => a.Id - b.Id);
+                return a.ToList();
+            }
+        }
+
+        public NormalMachineOutputInventory(int installationId, IInstallationInventory connect)
+        {
+            _connectInventory = connect;
             var data = InstallationConfig.GetInstallationsConfig(installationId);
             _outputSlot = CreateEmptyItemStacksList.Create(data.OutputSlot);
         }
@@ -54,7 +63,7 @@ namespace industrialization.Installation.Machine
         {
             for (int i = 0; i < _outputSlot.Count; i++)
             {
-                _outputSlot[i] = connectInventory.InsertItem(_outputSlot[i]);
+                _outputSlot[i] = _connectInventory.InsertItem(_outputSlot[i]);
             }
         }
     }

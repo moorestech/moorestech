@@ -6,17 +6,17 @@ namespace industrialization.Installation.Machine
 {
     public class NormalMachine : InstallationBase,IInstallationInventory
     {
-        private readonly IMachineComponent _machineComponent;
-        public NormalMachine(int installationId, Guid guid,IMachineComponent machineComponent) : base(installationId,guid)
+        public readonly NormalMachineInputInventory NormalMachineInputInventory;
+        public NormalMachine(int installationId, Guid guid,NormalMachineInputInventory normalMachineInputInventory) : base(installationId,guid)
         {
-            this._machineComponent = machineComponent;
+            NormalMachineInputInventory = normalMachineInputInventory;
             GUID = guid;
             InstallationID = installationId;
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            return _machineComponent.InsertItem(itemStack);
+            return NormalMachineInputInventory.InsertItem(itemStack);
         }
     }
 }

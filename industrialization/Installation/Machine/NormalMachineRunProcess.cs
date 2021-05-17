@@ -7,12 +7,12 @@ namespace industrialization.Installation.Machine
     public class NormalMachineRunProcess : IUpdate
     {
         private IMachineRecipeData _machineRecipeData;
-        private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
+        public readonly NormalMachineOutputInventory NormalMachineOutputInventory;
         private DateTime _processEndTime;
         public NormalMachineRunProcess(NormalMachineOutputInventory normalMachineOutputInventory)
         {
             _machineRecipeData = new NullMachineRecipeData();
-            _normalMachineOutputInventory = normalMachineOutputInventory;
+            NormalMachineOutputInventory = normalMachineOutputInventory;
             GameUpdate.AddUpdate(this);
         }
         
@@ -22,7 +22,7 @@ namespace industrialization.Installation.Machine
         /// <returns></returns>
         public bool IsAllowedToStartProcess()
         {
-            return !IsProcessing && _normalMachineOutputInventory.IsAllowedToOutputItem(_machineRecipeData);
+            return !IsProcessing && NormalMachineOutputInventory.IsAllowedToOutputItem(_machineRecipeData);
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace industrialization.Installation.Machine
         {
             if (!IsProcessing) return;
             _processEndTime = DateTime.MaxValue;;
-            _normalMachineOutputInventory.InsertOutputSlot(_machineRecipeData);
+            NormalMachineOutputInventory.InsertOutputSlot(_machineRecipeData);
             throw new System.NotImplementedException();
         }
 
