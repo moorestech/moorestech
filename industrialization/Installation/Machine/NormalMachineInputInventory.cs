@@ -1,18 +1,29 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using industrialization.Config.Installation;
 using industrialization.Item;
 using industrialization.Util;
 
 namespace industrialization.Installation.Machine
 {
-    public class NormalMachineInputInventory : IMachineComponent
+    public class NormalMachineInputInventory
     {
-        private NormalMachineStartProcess _normalMachineStartProcess;
+        public readonly NormalMachineStartProcess NormalMachineStartProcess;
         private List<IItemStack> _inputSlot;
 
-        public NormalMachineInputInventory(NormalMachineStartProcess normalMachineStartProcess,int installationId)
+        public List<IItemStack> InputSlot
         {
-            _normalMachineStartProcess = normalMachineStartProcess;
+            get
+            {
+                var a = _inputSlot.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+                a.Sort((a, b) => a.Id - b.Id);
+                return a.ToList();
+            }
+        }
+
+        public NormalMachineInputInventory(int installationId,NormalMachineStartProcess normalMachineStartProcess)
+        {
+            NormalMachineStartProcess = normalMachineStartProcess;
             var data = InstallationConfig.GetInstallationsConfig(installationId);
             _inputSlot = CreateEmptyItemStacksList.Create(data.InputSlot);
         }
@@ -29,7 +40,7 @@ namespace industrialization.Installation.Machine
                 _inputSlot[i] = r.MineItemStack;
                 
                 //プロセスをスタートさせる
-                _inputSlot = _normalMachineStartProcess.StartingProcess(_inputSlot);
+                _inputSlot = NormalMachineStartProcess.StartingProcess(_inputSlot);
                 
                 //とった結果のアイテムを返す
                 return r.ReceiveItemStack;

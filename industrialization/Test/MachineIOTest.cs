@@ -4,6 +4,7 @@ using System.Linq;
 using industrialization.GameSystem;
 using industrialization.Installation;
 using industrialization.Installation.Machine;
+using industrialization.Installation.Machine.util;
 using industrialization.Item;
 using industrialization.Test.Generate;
 using NUnit.Framework;
@@ -20,7 +21,7 @@ namespace industrialization.Test
         [TestCase(false,new int[2]{0,0}, new int[2]{10,5})]
         public void MachineInputTest(bool isEquals,int[] id,int[] amount)
         {
-            var machine = new NormalMachine(0,Guid.Empty,new DummyInstallationInventory());
+            var machine = NormalMachineFactory.Create(0, Guid.Empty, new DummyInstallationInventory(1));
             var items = new List<IItemStack>();
             for (int i = 0; i < id.Length; i++)
             {
@@ -29,16 +30,16 @@ namespace industrialization.Test
 
             foreach (var item in items)
             {
-                machine.MachineInventory.InsertItem(item);
+                machine.InsertItem(item);
             }
 
             if (isEquals)
             {
-                Assert.AreEqual(items.ToArray(), machine.MachineInventory.InputSlot.ToArray());   
+                Assert.AreEqual(items.ToArray(), machine.NormalMachineInputInventory.InputSlot.ToArray());   
             }
             else
             {
-                Assert.AreNotEqual(items.ToArray(), machine.MachineInventory.InputSlot.ToArray());
+                Assert.AreNotEqual(items.ToArray(), machine.NormalMachineInputInventory.InputSlot.ToArray());
             }
             
         }
@@ -47,10 +48,10 @@ namespace industrialization.Test
         [TestCase(new int[6]{1,3,1,5,5,0}, new int[6]{1,1,2,6,2,4}, new int[4]{0,1,3,5}, new int[4]{4,3,1,8})]
         public void MachineAddInputTest(int[] id,int[] amount,int[] ansid,int[] ansamount)
         {
-            var machine = new NormalMachine(0,Guid.Empty,new DummyInstallationInventory());
+            var machine = NormalMachineFactory.Create(0,Guid.Empty,new DummyInstallationInventory());
             for (int i = 0; i < id.Length; i++)
             {
-                machine.MachineInventory.InsertItem(ItemStackFactory.NewItemStack(id[i], amount[i]));
+                machine.InsertItem(ItemStackFactory.NewItemStack(id[i], amount[i]));
             }
 
             var ansItem = new List<IItemStack>();
@@ -61,7 +62,7 @@ namespace industrialization.Test
 
             for (int i = 0; i < ansItem.Count; i++)
             {
-                var m = machine.MachineInventory.InputSlot;
+                var m = machine.NormalMachineInputInventory.InputSlot;
                 Assert.True(ansItem[i].Equals(m[i]));
             }
             
@@ -78,12 +79,12 @@ namespace industrialization.Test
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
             foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
             {
-                var conecct = new DummyInstallationInventory(m.output.Length);
-                var machine = new NormalMachine(m.installtionId,Guid.Empty, conecct);
+                var conecct = new DummyInstallationInventory(m.output.Count);
+                var machine = NormalMachineFactory.Create(m.installtionId,Guid.Empty, conecct);
 
                 foreach (var minput in m.input)
                 {
-                    machine.MachineInventory.InsertItem(new ItemStack(minput.Id,minput.Amount));
+                    machine.InsertItem(new ItemStack(minput.Id,minput.Amount));
                 }
 
                 while (!DummyInstallationInventory.IsFinish)
@@ -91,15 +92,15 @@ namespace industrialization.Test
                     GameUpdate.Update();
                 }
                 
-                var remainder = machine.MachineInventory.InputSlot;
-                var output = machine.MachineInventory.OutpuutSlot;
+                var remainder = machine.NormalMachineInputInventory.InputSlot;
+                var output = machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess.NormalMachineOutputInventory.OutputSlot;
 
 
-                for (int i = 0; i < output.Length; i++)
+                for (int i = 0; i < output.Count; i++)
                 {
                     Assert.True(m.output[i].Equals(output[i]));
                 }
-                for (int i = 0; i < output.Length; i++)
+                for (int i = 0; i < output.Count; i++)
                 {
                     Assert.True(m.inputRemainder[i].Equals(remainder[i]));
                 }
@@ -115,12 +116,12 @@ namespace industrialization.Test
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
             foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
             {
-                var conecct = new DummyInstallationInventory(m.output.Length);
-                var machine = new NormalMachine(m.installtionId,Guid.Empty, conecct);
+                var conecct = new DummyInstallationInventory(m.output.Count);
+                var machine = NormalMachineFactory.Create(m.installtionId,Guid.Empty, conecct);
 
                 foreach (var minput in m.input)
                 {
-                   machine.MachineInventory.InsertItem(new ItemStack(minput.Id,minput.Amount));
+                   machine.InsertItem(new ItemStack(minput.Id,minput.Amount));
                 }
                 
                 while (!DummyInstallationInventory.IsFinish)
@@ -128,15 +129,15 @@ namespace industrialization.Test
                     GameUpdate.Update();
                 }
                 
-                var remainder = machine.MachineInventory.InputSlot;
-                var output = machine.MachineInventory.OutpuutSlot;
+                var remainder = machine.NormalMachineInputInventory.InputSlot;
+                var output =  machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess.NormalMachineOutputInventory.OutputSlot;
 
 
-                for (int i = 0; i < output.Length; i++)
+                for (int i = 0; i < output.Count; i++)
                 {
                     Assert.False(m.output[i].Equals(output[i]));
                 }
-                for (int i = 0; i < output.Length; i++)
+                for (int i = 0; i < output.Count; i++)
                 {
                     Assert.False(m.inputRemainder[i].Equals(remainder[i]));
                 }

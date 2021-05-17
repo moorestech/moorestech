@@ -12,11 +12,11 @@ namespace industrialization.Installation.Machine
     public class NormalMachineStartProcess
     {
         private readonly int _installationId;
-        private readonly NormalMachineRunProcess _normalMachineRunProcess;
+        public readonly NormalMachineRunProcess NormalMachineRunProcess;
         public NormalMachineStartProcess(int installationId, NormalMachineRunProcess normalMachineRunProcess)
         {
             _installationId = installationId;
-            _normalMachineRunProcess = normalMachineRunProcess;
+            NormalMachineRunProcess = normalMachineRunProcess;
         }
 
         public List<IItemStack> StartingProcess(List<IItemStack> inputSlot)
@@ -26,7 +26,7 @@ namespace industrialization.Installation.Machine
             if(!recipe.RecipeConfirmation(inputSlot)) return inputSlot;
             
             //プロセスの実行ができるかどうかを見る
-            if (!_normalMachineRunProcess.IsAllowedToStartProcess()) return inputSlot;
+            if (!NormalMachineRunProcess.IsAllowedToStartProcess()) return inputSlot;
 
             //inputスロットからアイテムを減らす
             foreach (var item in recipe.ItemInputs)
@@ -40,7 +40,7 @@ namespace industrialization.Installation.Machine
                 }
             }
             //プロセススタート
-            _normalMachineRunProcess.StartProcess(recipe);
+            NormalMachineRunProcess.StartProcess(recipe);
 
             return inputSlot;
         }
