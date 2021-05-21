@@ -21,7 +21,7 @@ namespace industrialization.Test
         [TestCase(false,new int[2]{0,0}, new int[2]{10,5})]
         public void MachineInputTest(bool isEquals,int[] id,int[] amount)
         {
-            var machine = NormalMachineFactory.Create(0, Guid.Empty, new DummyInstallationInventory(1));
+            var machine = NormalMachineFactory.Create(4, Guid.Empty, new DummyInstallationInventory(1));
             var items = new List<IItemStack>();
             for (int i = 0; i < id.Length; i++)
             {
@@ -48,7 +48,7 @@ namespace industrialization.Test
         [TestCase(new int[6]{1,3,1,5,5,0}, new int[6]{1,1,2,6,2,4}, new int[4]{0,1,3,5}, new int[4]{4,3,1,8})]
         public void MachineAddInputTest(int[] id,int[] amount,int[] ansid,int[] ansamount)
         {
-            var machine = NormalMachineFactory.Create(0,Guid.Empty,new DummyInstallationInventory());
+            var machine = NormalMachineFactory.Create(4,Guid.Empty,new DummyInstallationInventory());
             for (int i = 0; i < id.Length; i++)
             {
                 machine.InsertItem(ItemStackFactory.NewItemStack(id[i], amount[i]));
@@ -63,6 +63,7 @@ namespace industrialization.Test
             for (int i = 0; i < ansItem.Count; i++)
             {
                 var m = machine.NormalMachineInputInventory.InputSlot;
+                Console.WriteLine(m[i].ToString()+" "+ansItem[i].ToString());
                 Assert.True(ansItem[i].Equals(m[i]));
             }
             

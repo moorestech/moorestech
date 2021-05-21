@@ -57,6 +57,8 @@ namespace industrialization.Installation.Machine
                     break;
                 }
             }
+
+            InsertConnectInventory();
         }
 
         void InsertConnectInventory()
