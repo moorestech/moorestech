@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using industrialization.Item;
+using industrialization.Util;
 using NUnit.Framework;
 
 namespace industrialization.Test.Generate
@@ -18,7 +19,7 @@ namespace industrialization.Test.Generate
                 testCase.Add(new MachineIOTest(i,
                     r[i].input,
                     r[i].output,
-                    ItemStackFactory.CreateEmptyItemStacksArray(r[i].input.Length),
+                    CreateEmptyItemStacksList.Create(r[i].input.Length),
                     r[i].installationID,
                     r[i].time));
                 
@@ -59,7 +60,7 @@ namespace industrialization.Test.Generate
 
                 var output = MachineIOTest.Convart(r[i].output);
                 output.ToList().ForEach(i => i = ItemStackFactory.NewItemStack(i.Id,i.Amount*cnt));
-                testCase.Add(new MachineIOTest(i,input.ToArray(),output.ToArray(),remainder.ToArray(),r[i].installationID,r[i].time));
+                testCase.Add(new MachineIOTest(i,input.ToArray(),output,remainder.ToArray(),r[i].installationID,r[i].time));
             }
 
             return testCase.ToArray();
@@ -69,12 +70,12 @@ namespace industrialization.Test.Generate
         {
             public int recipeID;
             public int installtionId;
-            public IItemStack[] input;
-            public IItemStack[] output;
-            public IItemStack[] inputRemainder;
+            public List<IItemStack> input;
+            public List<IItemStack> output;
+            public List<IItemStack> inputRemainder;
             public int time;
 
-            public MachineIOTest(int recipeId, inputitem[] input, outputitem[] output, IItemStack[] inputRemainder,int installtionId,int time)
+            public MachineIOTest(int recipeId, inputitem[] input, outputitem[] output, List<IItemStack> inputRemainder,int installtionId,int time)
             {
                 this.installtionId = installtionId;
                 recipeID = recipeId;
@@ -83,7 +84,7 @@ namespace industrialization.Test.Generate
                 this.inputRemainder = inputRemainder;
                 this.time = time;
             }
-            public MachineIOTest(int recipeId, inputitem[] input, IItemStack[] output, inputitem[] inputRemainder,int installtionId,int time)
+            public MachineIOTest(int recipeId, inputitem[] input, List<IItemStack> output, inputitem[] inputRemainder,int installtionId,int time)
             {
                 this.installtionId = installtionId;
                 recipeID = recipeId;
@@ -93,7 +94,7 @@ namespace industrialization.Test.Generate
                 this.time = time;
             }
 
-            public static IItemStack[] Convart(inputitem[] input)
+            public static List<IItemStack> Convart(inputitem[] input)
             {
                 var r = new List<IItemStack>();
                 foreach (var i in input)
@@ -101,10 +102,10 @@ namespace industrialization.Test.Generate
                     r.Add(ItemStackFactory.NewItemStack(i.id,i.amount));
                 }
 
-                return r.ToArray();
+                return r;
             }
 
-            public static IItemStack[] Convart(outputitem[] output)
+            public static List<IItemStack> Convart(outputitem[] output)
             {
                 var r = new List<IItemStack>();
                 foreach (var o in output)
@@ -112,7 +113,7 @@ namespace industrialization.Test.Generate
                     r.Add(ItemStackFactory.NewItemStack(o.id,o.amount));
                 }
 
-                return r.ToArray();
+                return r;
             }
         }
     }

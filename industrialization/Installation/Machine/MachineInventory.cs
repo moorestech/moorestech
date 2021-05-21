@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using industrialization.Config;
 using industrialization.Config.Recipe;
 using industrialization.Item;
+using industrialization.Util;
 
 namespace industrialization.Installation.Machine
 {
@@ -10,25 +12,25 @@ namespace industrialization.Installation.Machine
     {
         private MachineRunProcess _machineRunProcess;
         private IInstallationInventory _connectInventory;
-        private IItemStack[] _inputSlot;
-        public IItemStack[] InputSlot
+        private List<IItemStack> _inputSlot;
+        public List<IItemStack> InputSlot
         {
             get
             {
                 var a = _inputSlot.Where(i => i.Id != NullItemStack.NullItemId).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
-                return a.ToArray();
+                return a.ToList();
             }
         }
 
-        private IItemStack[] _outpuutSlot;
-        public IItemStack[] OutpuutSlot
+        private List<IItemStack> _outpuutSlot;
+        public List<IItemStack> OutpuutSlot
         {
             get
             {
                 var a = _outpuutSlot.Where(i => i.Id != NullItemStack.NullItemId).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
-                return a.ToArray();
+                return a.ToList();
             }
         }
         private int installationId;
@@ -38,8 +40,8 @@ namespace industrialization.Installation.Machine
         {
             this.installationId = installationId;
             _connectInventory = connectInventory;
-            _inputSlot = ItemStackFactory.CreateEmptyItemStacksArray(100);
-            _outpuutSlot = ItemStackFactory.CreateEmptyItemStacksArray(100);
+            _inputSlot = CreateEmptyItemStacksList.Create(100);
+            _outpuutSlot = CreateEmptyItemStacksList.Create(100);
         }
         
         /// <summary>
@@ -49,9 +51,9 @@ namespace industrialization.Installation.Machine
         /// <returns>余り、枠が無かった等入れようとした結果余ったアイテム</returns>
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            for (int i = 0; i < _inputSlot.Length; i++)
+            for (int i = 0; i < _inputSlot.Count; i++)
             {
-                if (_inputSlot[i].CanAdd(itemStack))
+                if (_inputSlot[i].IsAllowedToAdd(itemStack))
                 {
                     var r = _inputSlot[i].AddItem(itemStack);
                     _inputSlot[i] = r.MineItemStack;
@@ -76,10 +78,9 @@ namespace industrialization.Installation.Machine
 
             //スタートできるなら加工をスタートし、アイテムを減らす
             _machineRunProcess = new MachineRunProcess(OutputEvent,recipe);
-            //TODO アイテムを減らす処理のテスト
             foreach (var item in recipe.ItemInputs)
             {
-                for (int i = 0; i < _inputSlot.Length; i++)
+                for (int i = 0; i < _inputSlot.Count; i++)
                 {
                     if (_inputSlot[i].Id == item.Id &&  item.Amount <=_inputSlot[i].Amount)
                     {
@@ -95,9 +96,9 @@ namespace industrialization.Installation.Machine
             //アウトプットスロットに受け取ったアイテムを入れる
             foreach (var outputItem in output)
             {
-                for (var i = 0; i < _outpuutSlot.Length; i++)
+                for (var i = 0; i < _outpuutSlot.Count; i++)
                 {
-                    if (!_outpuutSlot[i].CanAdd(outputItem)) continue;
+                    if (!_outpuutSlot[i].IsAllowedToAdd(outputItem)) continue;
                     //アイテムを出力スロットに加算
                     _outpuutSlot[i] = _outpuutSlot[i].AddItem(outputItem).MineItemStack;
                     //繋がってるインベントリに出力

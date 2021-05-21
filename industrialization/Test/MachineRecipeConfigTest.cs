@@ -65,7 +65,7 @@ namespace industrialization.Test
             items.ToList().ForEach(
                 i => input.Add(new ItemStack(i,1)));
             
-            int ans = MachineRecipeConfig.GetRecipeData(installationsId, input).ItemOutputs.Length;
+            int ans = MachineRecipeConfig.GetRecipeData(installationsId, input).ItemOutputs.Count;
             Assert.AreEqual(outputLength,ans);
         }
 
@@ -91,7 +91,7 @@ namespace industrialization.Test
             {
                 itemStacks.Add(new ItemStack(items[i],itemamount[i]));
             }
-            var a =MachineRecipeConfig.GetRecipeData(installationsId, itemStacks).RecipeConfirmation(itemStacks.ToArray());
+            var a =MachineRecipeConfig.GetRecipeData(installationsId, itemStacks).RecipeConfirmation(itemStacks);
             Assert.AreEqual(ans,a);
         }
     }

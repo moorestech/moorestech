@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -26,17 +27,17 @@ namespace industrialization.Config.Recipe.Json
                         r.
                         ItemInputs.
                         ToList().
-                        Select(item => item.ItemStack);
+                        Select(item => (IItemStack)item.ItemStack).ToList();
                 
                 
-                inputItem = inputItem.ToList().OrderBy(i => i.Id);
+                inputItem = inputItem.OrderBy(i => i.Id).ToList();
 
                 var outputs =
                         r.
                         ItemOutputs.
                         Select(r => new ItemOutput(r.ItemStack, r.Percent));
                 
-                return new MachineRecipeData(r.InstallationId,r.Time,inputItem.ToArray(),outputs.ToArray());
+                return new MachineRecipeData(r.InstallationId,r.Time,inputItem,outputs.ToList());
             });
             
             return r.ToArray();
