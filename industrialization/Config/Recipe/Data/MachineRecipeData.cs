@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using industrialization.Item;
 
@@ -8,7 +9,7 @@ namespace industrialization.Config.Recipe.Data
     {
         public int InstallationId { get; }
 
-        public MachineRecipeData(int installationId,int time,ItemStack[] itemInputs, ItemOutput[] itemOutputs)
+        public MachineRecipeData(int installationId,int time,List<IItemStack> itemInputs, List<ItemOutput> itemOutputs)
         {
             InstallationId = installationId;
             ItemInputs = itemInputs;
@@ -16,13 +17,13 @@ namespace industrialization.Config.Recipe.Data
             Time = time;
         }
 
-        public IItemStack[] ItemInputs { get; }
+        public List<IItemStack> ItemInputs { get; }
 
-        public ItemOutput[] ItemOutputs { get; }
+        public List<ItemOutput> ItemOutputs { get; }
 
         public int Time { get; }
 
-        public bool RecipeConfirmation(IItemStack[] inputSlot)
+        public bool RecipeConfirmation(List<IItemStack> inputSlot)
         {
             int cnt = 0;
             foreach (var slot in inputSlot)
@@ -30,7 +31,7 @@ namespace industrialization.Config.Recipe.Data
                 cnt += ItemInputs.Count(input => slot.Id == input.Id && input.Amount <= slot.Amount);
             }
 
-            return cnt == inputSlot.Length;
+            return cnt == inputSlot.Count;
         }
     }
 }
