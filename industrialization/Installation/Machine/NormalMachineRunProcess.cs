@@ -11,6 +11,7 @@ namespace industrialization.Installation.Machine
         private DateTime _processEndTime;
         public NormalMachineRunProcess(NormalMachineOutputInventory normalMachineOutputInventory)
         {
+            _processEndTime = DateTime.MaxValue;
             _machineRecipeData = new NullMachineRecipeData();
             NormalMachineOutputInventory = normalMachineOutputInventory;
             GameUpdate.AddUpdate(this);
@@ -42,11 +43,10 @@ namespace industrialization.Installation.Machine
         public void Update()
         {
             if (!IsProcessing) return;
-            _processEndTime = DateTime.MaxValue;;
+            _processEndTime = DateTime.MaxValue;
             NormalMachineOutputInventory.InsertOutputSlot(_machineRecipeData);
-            throw new System.NotImplementedException();
         }
 
-        private bool IsProcessing => DateTime.Now < _processEndTime;
+        private bool IsProcessing => _processEndTime < DateTime.Now;
     }
 }

@@ -23,9 +23,9 @@ namespace industrialization.Config.Recipe
         /// 設置物IDと現在の搬入スロットからレシピを検索し、取得する
         /// </summary>
         /// <param name="installationId">設置物ID</param>
-        /// <param name="iunputItem">搬入スロット</param>
+        /// <param name="inputItem">搬入スロット</param>
         /// <returns>レシピデータ</returns>
-        public static IMachineRecipeData GetRecipeData(int installationId, List<IItemStack> iunputItem)
+        public static IMachineRecipeData GetRecipeData(int installationId, List<IItemStack> inputItem)
         {
             _recipedatas ??= MachineRecipeJsonLoad.LoadConfig();
 
@@ -40,7 +40,9 @@ namespace industrialization.Config.Recipe
                 });
             }
 
-            var key = GetKey(installationId, iunputItem);
+            var tmpInputItem = inputItem.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+            tmpInputItem.Sort((a, b) => a.Id - b.Id);
+            var key = GetKey(installationId, tmpInputItem);
             if (_recipeDataCash.ContainsKey(key))
             {
                 return _recipeDataCash[key];
@@ -53,7 +55,7 @@ namespace industrialization.Config.Recipe
         private static string GetKey(int installationId, List<IItemStack> itemId)
         {
             var items = "";
-            itemId = itemId.OrderBy(i => i.Id).ToList();
+            itemId.Sort((a, b) => a.Id - b.Id);
             itemId.ForEach(i =>
             {
                 items = items + "_" + i.Id;
