@@ -14,7 +14,7 @@ namespace industrialization.Installation.Machine
             _processEndTime = DateTime.MaxValue;
             _machineRecipeData = new NullMachineRecipeData();
             NormalMachineOutputInventory = normalMachineOutputInventory;
-            GameUpdate.AddUpdate(this);
+            GameUpdate.AddUpdateObject(this);
         }
         
         /// <summary>
