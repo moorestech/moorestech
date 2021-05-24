@@ -2,7 +2,7 @@
 {
     public interface IInstallationElectric
     {
-        int RequestElectric();
-        void SupplyElectric();
+        int RequestPower();
+        void SupplyPower();
     }
 }

@@ -20,7 +20,7 @@ namespace industrialization.Installation.Machine
             OutputEvent += outputEvent;
             endtime = DateTime.Now.AddMilliseconds(recipeData.Time);
             this.recipeData = recipeData;
-            GameUpdate.AddUpdate(this);
+            GameUpdate.AddUpdateObject(this);
         }
 
         //終了時間よりも現在時間のほうが大きかったらプロセス終了

@@ -24,7 +24,7 @@ namespace industrialization.Installation.BeltConveyor.Generally
         {
             _beltConveyorConnector = beltConveyorConnector;
             _inventoryItems = new List<GenericBeltConveyorInventoryItem>();
-            GameUpdate.AddUpdate(this);
+            GameUpdate.AddUpdateObject(this);
         }
 
         /// <summary>
