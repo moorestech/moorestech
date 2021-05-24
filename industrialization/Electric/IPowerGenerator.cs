@@ -1,6 +1,6 @@
 ﻿namespace industrialization.Electric
 {
-    public interface IGenerator
+    public interface IPowerGenerator
     {
         int OutputPower();
     }
