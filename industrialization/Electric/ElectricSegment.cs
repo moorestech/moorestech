@@ -7,12 +7,12 @@ namespace industrialization.Electric
     public class ElectricSegment : IUpdate
     {
         private readonly List<IInstallationElectric> _electrics;
-        private readonly List<IGenerator> _generators;
+        private readonly List<IPowerGenerator> _generators;
 
         public ElectricSegment()
         {
             GameUpdate.AddUpdateObject(this);
-            _generators = new List<IGenerator>();
+            _generators = new List<IPowerGenerator>();
             _electrics = new List<IInstallationElectric>();
         }
         
@@ -54,14 +54,14 @@ namespace industrialization.Electric
             _electrics.Remove(installationElectric);
         }
 
-        public void AddGenerator(IGenerator generator)
+        public void AddGenerator(IPowerGenerator powerGenerator)
         {
-            _generators.Add(generator);
+            _generators.Add(powerGenerator);
         }
 
-        public void RemoveGenerator(IGenerator generator)
+        public void RemoveGenerator(IPowerGenerator powerGenerator)
         {
-            _generators.Remove(generator);
+            _generators.Remove(powerGenerator);
         }
 
     }
