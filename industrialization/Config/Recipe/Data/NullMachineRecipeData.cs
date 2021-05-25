@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using industrialization.Item;
 
@@ -9,7 +10,7 @@ namespace industrialization.Config.Recipe.Data
         public List<IItemStack> ItemInputs => System.Array.Empty<IItemStack>().ToList();
         public List<ItemOutput> ItemOutputs => System.Array.Empty<ItemOutput>().ToList();
         public int InstallationId => -1;
-        public int Time => 0;
+        public int Time => Int32.MaxValue;
 
         public bool RecipeConfirmation(List<IItemStack> inputSlot)
         {
