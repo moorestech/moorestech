@@ -52,7 +52,7 @@ namespace industrialization.Installation.Machine
                 nowPower = 0;
                 return;
             }
-            _processEndTime = DateTime.MaxValue;
+            _processStartTime = DateTime.MaxValue;
             NormalMachineOutputInventory.InsertOutputSlot(_machineRecipeData);
             
             nowPower = 0;
