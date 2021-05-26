@@ -40,7 +40,7 @@ namespace industrialization.Electric
             //電力を供給
             foreach (var electric in _electrics)
             {
-                electric.SupplyPower(electric.RequestPower()*powerRate);
+                electric.SupplyPower((int)(electric.RequestPower()*powerRate));
             }
         }
 

@@ -3,6 +3,6 @@
     public interface IInstallationElectric
     {
         int RequestPower();
-        void SupplyPower(double power);
+        void SupplyPower(int power);
     }
 }

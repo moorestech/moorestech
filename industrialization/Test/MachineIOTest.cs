@@ -90,6 +90,7 @@ namespace industrialization.Test
 
                 while (!DummyInstallationInventory.IsFinish)
                 {
+                    machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess.SupplyPower(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess.RequestPower());
                     GameUpdate.Update();
                 }
                 
