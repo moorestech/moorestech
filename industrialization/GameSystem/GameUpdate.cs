@@ -5,7 +5,7 @@ namespace industrialization.GameSystem
     public class GameUpdate
     {
         private static List<IUpdate> _updates = new List<IUpdate>();
-        public static void AddUpdate(IUpdate iUpdate)
+        public static void AddUpdateObject(IUpdate iUpdate)
         {
             _updates.Add(iUpdate);
         }
