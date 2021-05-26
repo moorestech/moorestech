@@ -13,7 +13,7 @@ namespace industrialization.Installation.Machine
         private IMachineRecipeData _machineRecipeData;
         public readonly NormalMachineOutputInventory NormalMachineOutputInventory;
         private DateTime _processStartTime;
-        private int nowPower = 0;
+        private int _nowPower = 0;
         public NormalMachineRunProcess(NormalMachineOutputInventory normalMachineOutputInventory)
         {
             _processStartTime = DateTime.MaxValue;
@@ -42,39 +42,52 @@ namespace industrialization.Installation.Machine
         }
 
         /// <summary>
-        /// TODO アップデートをして実行できるか見る
+        /// アップデートをして実行できるか見る
         /// </summary>
         /// <exception cref="NotImplementedException"></exception>
         public void Update()
         {
-            if (!IsProcessing)
+            if (!IsProcessing) return;
+            if (IsAllowedToStartProcess())
             {
-                nowPower = 0;
-                return;
+                StartProcess(_machineRecipeData);
             }
             _processStartTime = DateTime.MaxValue;
             NormalMachineOutputInventory.InsertOutputSlot(_machineRecipeData);
-            
-            nowPower = 0;
+            _nowPower = 0;
         }
 
 
-        //TODO ここの実装を考える
         //電力量が需要量より少なかったらプロセス終了までの時間を遅くする
-        //処理時間/(供給量/必要量) - 処理時間 でどれくらい延長すべきかを求める
         private bool IsProcessing
         {
             get
             {
+                //電力が0の時は現在時間を更新し続ける
+                if (_nowPower <= 0)
+                {
+                    _processStartTime = DateTime.Now;
+                }
                 try
                 {
-                    return _processStartTime.AddMilliseconds(_machineRecipeData.Time) < DateTime.Now;
+                    int tmp = _machineRecipeData.Time / (_nowPower / requestPower);
+                    return _processStartTime.AddMilliseconds(tmp) < DateTime.Now;
                 }
                 catch (Exception e)
                 {
                     return false;
                 }
             }
+        }
+        
+        public int RequestPower()
+        {
+            return requestPower;
+        }
+
+        public void SupplyPower(int power)
+        {
+            _nowPower = power;
         }
     }
 }
