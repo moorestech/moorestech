@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using industrialization.Electric;
 using industrialization.GameSystem;
 using industrialization.Installation;
 using industrialization.Installation.Machine;
@@ -88,9 +89,12 @@ namespace industrialization.Test
                     machine.InsertItem(new ItemStack(minput.Id,minput.Amount));
                 }
 
+                var electlic = new ElectricSegment();
+                electlic.AddInstallationElectric(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess);
+                electlic.AddGenerator(new TestPowerGenerator(1000));
+                
                 while (!DummyInstallationInventory.IsFinish)
                 {
-                    machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess.SupplyPower(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess.RequestPower());
                     GameUpdate.Update();
                 }
                 
