@@ -2,7 +2,7 @@
 
 namespace industrialization.Item
 {
-    public class ItemStackFactory
+    public static class ItemStackFactory
     {
         public static IItemStack NewItemStack(int id, int amount)
         {

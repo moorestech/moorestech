@@ -6,7 +6,7 @@ using static System.Int32;
 
 namespace industrialization.Config.Item
 {
-    public class ItemConfig
+    public static class ItemConfig
     {
         private static ItemConfigData[] _itemDatas;
 

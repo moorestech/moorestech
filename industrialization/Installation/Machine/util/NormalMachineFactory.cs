@@ -2,7 +2,7 @@
 
 namespace industrialization.Installation.Machine.util
 {
-    public class NormalMachineFactory
+    public static class NormalMachineFactory
     {
         public static NormalMachine Create(int installationId,Guid guid, IInstallationInventory connect)
         {

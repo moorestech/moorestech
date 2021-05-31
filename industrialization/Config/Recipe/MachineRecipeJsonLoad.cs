@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -7,7 +6,7 @@ using System.Text;
 using industrialization.Config.Recipe.Data;
 using industrialization.Item;
 
-namespace industrialization.Config.Recipe.Json
+namespace industrialization.Config.Recipe
 {
     public static class MachineRecipeJsonLoad
     {
