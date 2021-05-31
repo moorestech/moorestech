@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using industrialization.Core.Electric;
 using industrialization.Core.GameSystem;
 using industrialization.Core.Installation.Machine.util;
 using industrialization.Core.Item;
-using industrialization.Installation;
-using industrialization.Test.Generate;
+using industrialization.Core.Test.Generate;
 using NUnit.Framework;
 
-namespace industrialization.Test
+namespace industrialization.Core.Test
 {
     public class MachineIOTest
     {

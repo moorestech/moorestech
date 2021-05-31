@@ -1,7 +1,7 @@
 ﻿using industrialization.Core.Config.Item;
 using NUnit.Framework;
 
-namespace industrialization.Test
+namespace industrialization.Core.Test
 {
     public class ItemJsonTest
     {

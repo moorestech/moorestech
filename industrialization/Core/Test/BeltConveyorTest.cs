@@ -3,10 +3,9 @@ using industrialization.Core.GameSystem;
 using industrialization.Core.Installation;
 using industrialization.Core.Installation.BeltConveyor.Generally;
 using industrialization.Core.Item;
-using industrialization.Installation;
 using NUnit.Framework;
 
-namespace industrialization.Test
+namespace industrialization.Core.Test
 {
     public class BeltConveyorTest
     {

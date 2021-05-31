@@ -1,8 +1,7 @@
 ﻿using industrialization.Core.Config.Installation;
-using industrialization.Installation;
 using NUnit.Framework;
 
-namespace industrialization.Test
+namespace industrialization.Core.Test
 {
     public class InstallationConfigTest
     {
