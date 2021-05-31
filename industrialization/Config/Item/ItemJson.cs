@@ -3,8 +3,8 @@ using industrialization.Config.Installation;
 
 namespace industrialization.Config.Item
 {
-    [DataContract] 
-    class ItemJson
+    [DataContract]
+    internal class ItemJson
     {
         [DataMember(Name = "items")]
         private ItemConfigData[] _item;

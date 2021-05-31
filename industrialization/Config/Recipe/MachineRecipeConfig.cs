@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using industrialization.Config.Recipe.Data;
-using industrialization.Config.Recipe.Json;
 using industrialization.Item;
 
 namespace industrialization.Config.Recipe
