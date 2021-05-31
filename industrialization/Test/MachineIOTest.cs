@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using industrialization.Electric;
-using industrialization.GameSystem;
+using industrialization.Core.Electric;
+using industrialization.Core.GameSystem;
+using industrialization.Core.Installation.Machine.util;
+using industrialization.Core.Item;
 using industrialization.Installation;
-using industrialization.Installation.Machine;
-using industrialization.Installation.Machine.util;
-using industrialization.Item;
 using industrialization.Test.Generate;
 using NUnit.Framework;
 

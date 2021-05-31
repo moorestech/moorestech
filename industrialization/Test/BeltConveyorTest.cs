@@ -1,9 +1,9 @@
 ﻿using System;
-using industrialization.Config.BeltConveyor;
-using industrialization.GameSystem;
+using industrialization.Core.GameSystem;
+using industrialization.Core.Installation;
+using industrialization.Core.Installation.BeltConveyor.Generally;
+using industrialization.Core.Item;
 using industrialization.Installation;
-using industrialization.Installation.BeltConveyor.Generally;
-using industrialization.Item;
 using NUnit.Framework;
 
 namespace industrialization.Test

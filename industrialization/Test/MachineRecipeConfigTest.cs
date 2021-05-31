@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using industrialization.Config;
-using industrialization.Config.Recipe;
-using industrialization.Item;
+using industrialization.Core.Config.Recipe;
+using industrialization.Core.Item;
 using NUnit.Framework;
 
 namespace industrialization.Test
