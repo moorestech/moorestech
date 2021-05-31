@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using industrialization.Core.Installation;
 using industrialization.Core.Item;
 using industrialization.Core.Util;
 
-namespace industrialization.Installation
+namespace industrialization.Core.Test
 {
     public class DummyInstallationInventory : IInstallationInventory
     {

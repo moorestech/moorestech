@@ -4,7 +4,7 @@ using industrialization.Core.Config.Recipe;
 using industrialization.Core.Item;
 using NUnit.Framework;
 
-namespace industrialization.Test
+namespace industrialization.Core.Test
 {
     public class MachineRecipeConfigTest
     {
