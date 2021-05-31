@@ -10,4 +10,4 @@ industrialization/obj/industrialization.csproj.nuget.g.props
 industrialization/obj/project.assets.json
 industrialization/obj/project.packagespec.json
 industrialization/obj/rider.project.restore.info
-industrialization/Config/ConfigPath.cs
+industrialization/Core/Config/ConfigPath.cs
