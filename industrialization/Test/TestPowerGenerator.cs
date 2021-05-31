@@ -1,4 +1,4 @@
-﻿using industrialization.Electric;
+﻿using industrialization.Core.Electric;
 
 namespace industrialization.Test
 {

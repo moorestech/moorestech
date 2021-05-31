@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using industrialization.Item;
-using industrialization.Util;
+using industrialization.Core.Installation;
+using industrialization.Core.Item;
+using industrialization.Core.Util;
 
 namespace industrialization.Installation
 {

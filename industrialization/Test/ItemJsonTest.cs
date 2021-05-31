@@ -1,4 +1,4 @@
-﻿using industrialization.Config.Item;
+﻿using industrialization.Core.Config.Item;
 using NUnit.Framework;
 
 namespace industrialization.Test

@@ -13,4 +13,19 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0-release-20210330-02" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Config\BeltConveyor" />
+      <Folder Include="Config\Installation" />
+      <Folder Include="Config\Item" />
+      <Folder Include="Config\Json" />
+      <Folder Include="Config\Recipe\Data" />
+      <Folder Include="Electric" />
+      <Folder Include="GameSystem" />
+      <Folder Include="Installation\BeltConveyor\Generally\DataClass" />
+      <Folder Include="Installation\BeltConveyor\Interface" />
+      <Folder Include="Installation\Machine\util" />
+      <Folder Include="Item" />
+      <Folder Include="Util" />
+    </ItemGroup>
+
 </Project>
