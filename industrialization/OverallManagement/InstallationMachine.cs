@@ -6,7 +6,7 @@ namespace industrialization.OverallManagement
 {
     public class InstallationMachine
     {
-        public static void Create(int id, Guid from, Guid to)
+        public static void Create(int id,int x,int y, Guid from, Guid to)
         {
             //機械の生成
             var machine = NormalMachineFactory.Create(id,Guid.NewGuid(), WorldInstallationInventoryDatastore.GetInstallation(to));
@@ -17,7 +17,7 @@ namespace industrialization.OverallManagement
             
             //ワールドデータに登録
             WorldInstallationInventoryDatastore.AddInstallation(machine,machine.Guid);
-            WorldInstallationDatastore.AddInstallation(machine);
+            WorldInstallationDatastore.AddInstallation(machine,x,y);
         }
     }
 }
