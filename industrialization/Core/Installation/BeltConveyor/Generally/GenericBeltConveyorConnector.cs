@@ -5,7 +5,7 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
 {
     public class GenericBeltConveyorConnector : IBeltConveyorComponent
     {
-        private readonly IInstallationInventory _connect;
+        private IInstallationInventory _connect;
 
         public GenericBeltConveyorConnector(IInstallationInventory connect)
         {
@@ -16,6 +16,11 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
         {
             var inserted = _connect.InsertItem(item);
             return inserted.Id == NullItemStack.NullItemId;
+        }
+
+        public void ChangeConnector(IInstallationInventory installationInventory)
+        {
+            _connect = installationInventory;
         }
     }
 }

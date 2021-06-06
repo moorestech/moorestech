@@ -24,6 +24,11 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
             return itemStack;
         }
 
+        public void ChangeConnector(IInstallationInventory installationInventory)
+        {
+            _beltConveyorItemInventory.ChangeConnector(installationInventory);
+        }
+
         public GenericBeltConveyor(int installationId, Guid guid,IBeltConveyorComponent beltConveyorItemInventory) : base(installationId, guid)
         {
             _beltConveyorItemInventory = beltConveyorItemInventory;
