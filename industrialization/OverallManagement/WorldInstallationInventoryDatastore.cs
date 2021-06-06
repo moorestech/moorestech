@@ -5,7 +5,7 @@ using industrialization.Core.Installation.Machine;
 
 namespace industrialization.OverallManagement
 {
-    public class WorldInstallationInventoryDatastore
+    public static class WorldInstallationInventoryDatastore
     {
         private static Dictionary<Guid, IInstallationInventory> _installatioInventorynMasterDictionary;
         public static void AddInstallation(IInstallationInventory installation,Guid guid)
