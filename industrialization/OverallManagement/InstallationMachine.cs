@@ -8,12 +8,15 @@ namespace industrialization.OverallManagement
     {
         public static void Create(int id, Guid from, Guid to)
         {
-            var fromInventory = WorldInstallationInventoryDatastore.GetInstallation(from);
-            var machineGuid = Guid.NewGuid();
-            var machine = NormalMachineFactory.Create(id,machineGuid,WorldInstallationInventoryDatastore.GetInstallation(to));
-            machine.ChangeConnector(fromInventory);
+            //機械の生成
+            var machine = NormalMachineFactory.Create(id,Guid.NewGuid(), WorldInstallationInventoryDatastore.GetInstallation(to));
             
-            WorldInstallationInventoryDatastore.AddInstallation(machine,machineGuid);
+            //機械のコネクターを変更する
+            machine.ChangeConnector(WorldInstallationInventoryDatastore.GetInstallation(from));
+            WorldInstallationInventoryDatastore.GetInstallation(to).ChangeConnector(machine);
+            
+            //ワールドデータに登録
+            WorldInstallationInventoryDatastore.AddInstallation(machine,machine.Guid);
             WorldIInstallationDatastore.AddInstallation(machine);
         }
     }
