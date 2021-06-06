@@ -17,7 +17,7 @@ namespace industrialization.OverallManagement
             
             //ワールドデータに登録
             WorldInstallationInventoryDatastore.AddInstallation(machine,machine.Guid);
-            WorldIInstallationDatastore.AddInstallation(machine);
+            WorldInstallationDatastore.AddInstallation(machine);
         }
     }
 }

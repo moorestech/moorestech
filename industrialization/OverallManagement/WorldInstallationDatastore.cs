@@ -4,7 +4,7 @@ using industrialization.Core.Installation;
 
 namespace industrialization.OverallManagement
 {
-    public class WorldIInstallationDatastore
+    public static class WorldInstallationDatastore
     {
         private static Dictionary<Guid, InstallationBase> _installationMasterDictionary;
 
