@@ -4,7 +4,7 @@ using industrialization.Core.Installation.Machine.util;
 
 namespace industrialization.OverallManagement
 {
-    public class InstallationMachine
+    public class InstallMachine
     {
         public static void Create(int id,int x,int y, Guid from, Guid to)
         {
