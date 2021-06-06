@@ -8,5 +8,10 @@ namespace industrialization.Core.Installation
         {
             return itemStack;
         }
+
+        public void ChangeConnector(IInstallationInventory installationInventory)
+        {
+            
+        }
     }
 }

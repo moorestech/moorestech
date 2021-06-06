@@ -39,5 +39,10 @@ namespace industrialization.Core.Test
             _isFinish = InsertToEndNum <= _endInsertCnt;
             return new NullItemStack();
         }
+
+        public void ChangeConnector(IInstallationInventory installationInventory)
+        {
+            
+        }
     }
 }
