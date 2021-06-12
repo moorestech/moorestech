@@ -47,6 +47,11 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
             return true;
         }
 
+        public void ChangeConnector(IInstallationInventory installationInventory)
+        {
+            _beltConveyorConnector.ChangeConnector(installationInventory);
+        }
+
         /// <summary>
         /// アイテムの搬出判定を行う
         /// 判定はUpdateで毎フレーム行われる

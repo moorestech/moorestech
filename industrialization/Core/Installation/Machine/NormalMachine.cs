@@ -17,5 +17,14 @@ namespace industrialization.Core.Installation.Machine
         {
             return NormalMachineInputInventory.InsertItem(itemStack);
         }
+
+        public void ChangeConnector(IInstallationInventory installationInventory)
+        {
+            NormalMachineInputInventory.
+                NormalMachineStartProcess.
+                NormalMachineRunProcess.
+                NormalMachineOutputInventory
+                .ChangeConnectInventory(installationInventory);
+        }
     }
 }

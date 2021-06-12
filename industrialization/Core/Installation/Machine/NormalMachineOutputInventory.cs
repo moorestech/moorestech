@@ -10,7 +10,7 @@ namespace industrialization.Core.Installation.Machine
     public class NormalMachineOutputInventory
     {
         private readonly List<IItemStack> _outputSlot;
-        private readonly IInstallationInventory _connectInventory;
+        private IInstallationInventory _connectInventory;
         public List<IItemStack> OutputSlot 
         {
             get
@@ -67,6 +67,11 @@ namespace industrialization.Core.Installation.Machine
             {
                 _outputSlot[i] = _connectInventory.InsertItem(_outputSlot[i]);
             }
+        }
+
+        public void ChangeConnectInventory(IInstallationInventory installationInventory)
+        {
+            _connectInventory = installationInventory;
         }
     }
 }
