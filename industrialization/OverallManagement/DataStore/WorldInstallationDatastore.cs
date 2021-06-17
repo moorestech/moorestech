@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using industrialization.Core.Installation;
 
-namespace industrialization.OverallManagement
+namespace industrialization.OverallManagement.DataStore
 {
     public static class WorldInstallationDatastore
     {
