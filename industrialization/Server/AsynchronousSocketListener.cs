@@ -2,8 +2,9 @@
 using System.Net;  
 using System.Net.Sockets;  
 using System.Text;  
-using System.Threading;  
-  
+using System.Threading;
+using industrialization.Server.PacketResponse;
+
 // State object for reading client data asynchronously  
 public class StateObject
 {
@@ -75,11 +76,6 @@ public class AsynchronousSocketListener
             handler.BeginReceive( state.buffer, 0, StateObject.BufferSize, 0,  
                 ReadCallback, state);
             
-            for (int i = 0; i < 10; i++)
-            {
-                Send(handler, i.ToString());
-                Thread.Sleep(1000);
-            }
             handler.Shutdown(SocketShutdown.Both);  
             handler.Close(); 
         }
@@ -109,13 +105,11 @@ public class AsynchronousSocketListener
         content = state.sb.ToString();
         
         Console.WriteLine(content);
+        Send(handler, PacketResponseFactory.GetPacketResponse(bytes).GetResponse());
     }
 
-    private static void Send(Socket handler, String data)
+    private static void Send(Socket handler, byte[] byteData)
     {
-        // 文字列データをASCIIエンコーディングでバイトデータに変換します。 
-        byte[] byteData = Encoding.ASCII.GetBytes(data);  
-  
         // リモートデバイスへのデータ送信を開始します。 
         handler.BeginSend(byteData, 0, byteData.Length, 0,  
             SendCallback, handler);  
