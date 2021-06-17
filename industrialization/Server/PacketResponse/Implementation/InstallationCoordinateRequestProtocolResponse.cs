@@ -18,9 +18,20 @@ namespace industrialization.Server.PacketResponse.Implementation
             x = BitConverter.ToInt32(new byte[4] {payload[5], payload[6], payload[7], payload[8]});
             y = BitConverter.ToInt32(new byte[4] {payload[9], payload[10], payload[11], payload[12]});
         }
+        
+        
+        /// <summary>
+        /// レスポンスの組み立て
+        /// </summary>
+        /// <returns></returns>
         public byte[] GetResponse()
         {
             throw new System.NotImplementedException();
+        }
+
+        public IPacketResponse NewInstance(byte[] payload)
+        {
+            return new InstallationCoordinateRequestProtocolResponse(payload);
         }
     }
 }
