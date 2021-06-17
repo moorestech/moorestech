@@ -1,4 +1,6 @@
-﻿namespace industrialization.Server.PacketResponse
+﻿using industrialization.Server.PacketResponse.Implementation;
+
+namespace industrialization.Server.PacketResponse
 {
     public class NullPacketResponse : IPacketResponse
     {

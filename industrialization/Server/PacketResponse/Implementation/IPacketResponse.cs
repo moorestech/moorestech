@@ -1,4 +1,4 @@
-﻿namespace industrialization.Server.PacketResponse
+﻿namespace industrialization.Server.PacketResponse.Implementation
 {
     public interface IPacketResponse
     {
