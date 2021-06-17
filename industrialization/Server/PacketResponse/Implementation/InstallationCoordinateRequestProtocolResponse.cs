@@ -2,6 +2,9 @@
 
 namespace industrialization.Server.PacketResponse.Implementation
 {
+    /// <summary>
+    /// 設置物の座標とGUIDを要求するプロトコルを受けたときにレスポンスを作成するクラス
+    /// </summary>
     public class InstallationCoordinateRequestProtocolResponse : IPacketResponse
     {
         private int x;
