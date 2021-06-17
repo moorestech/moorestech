@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace industrialization.Server.PacketResponse.Implementation
 {
@@ -26,6 +27,11 @@ namespace industrialization.Server.PacketResponse.Implementation
         /// <returns></returns>
         public byte[] GetResponse()
         {
+            var data = new List<byte>();
+            //IDの挿入
+            data.Add(1);
+            
+            //データの取得
             throw new System.NotImplementedException();
         }
 
