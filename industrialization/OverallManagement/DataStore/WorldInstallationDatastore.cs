@@ -6,13 +6,18 @@ namespace industrialization.OverallManagement.DataStore
 {
     public static class WorldInstallationDatastore
     {
+        //メインのデータストア
         private static Dictionary<Guid, InstallationWorldData> _installationMasterDictionary;
+        //座標がキーのデータストア
+        private static Dictionary<Coordinate,InstallationWorldData> _coordinateDictionary;
 
         public static void AddInstallation(InstallationBase installation,int x,int y)
         {
             if (!_installationMasterDictionary.ContainsKey(installation.Guid))
             {
-                _installationMasterDictionary.Add(installation.Guid,new InstallationWorldData(installation,x,y));
+                var data = new InstallationWorldData(installation, x, y);
+                _installationMasterDictionary.Add(installation.Guid,data);
+                _coordinateDictionary.Add(new Coordinate {x = x, y = y},data);
             }
         }
 
@@ -26,11 +31,24 @@ namespace industrialization.OverallManagement.DataStore
             return null;
         }
 
+        public static InstallationBase GetInstallation(int x,int y)
+        {
+            var c = new Coordinate {x = x, y = y};
+            if (_coordinateDictionary.ContainsKey(c))
+            {
+                return _coordinateDictionary[c].InstallationBase;
+            }
+
+            return null;
+        }
+
         public static void RemoveInstallation(InstallationBase installation)
         {
             if (_installationMasterDictionary.ContainsKey(installation.Guid))
             {
                 _installationMasterDictionary.Remove(installation.Guid);
+                var i = _installationMasterDictionary[installation.Guid];
+                _coordinateDictionary.Remove(new Coordinate {x=i.X, y = i.Y});
             }
         }
         
@@ -50,5 +68,11 @@ namespace industrialization.OverallManagement.DataStore
         
         
         }
+    }
+
+    struct Coordinate
+    {
+        public int x;
+        public int y;
     }
 }

@@ -9,20 +9,19 @@ namespace industrialization.Server.PacketResponse
     {
         private static List<IPacketResponse> _packetResponseList;
 
-        private static void init()
+        private static void Init()
         {
-            
+            var empty = System.Array.Empty<byte>();
+            _packetResponseList.Add(new InstallationCoordinateRequestProtocolResponse(empty));
         }
         
         public static IPacketResponse GetPacketResponse(byte[] payload)
         {
-            if (_packetResponseList == null) init();
+            if (_packetResponseList == null) Init();
 
             var id = BitConverter.ToInt16(new byte[2] {payload[0], payload[1]});
 
-
-            //TODO ここ書く
-            return _packetResponseList[id];
+            return _packetResponseList[id].NewInstance(payload);
         }
     }
 }

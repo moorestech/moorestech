@@ -8,5 +8,10 @@ namespace industrialization.Server.PacketResponse
         {
             return System.Array.Empty<byte>();
         }
+
+        public IPacketResponse NewInstance(byte[] payload)
+        {
+            return new NullPacketResponse();
+        }
     }
 }
