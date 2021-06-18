@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using industrialization.Core.Installation;
-using industrialization.Core.Installation.Machine;
 
-namespace industrialization.OverallManagement
+namespace industrialization.OverallManagement.DataStore
 {
     public static class WorldInstallationInventoryDatastore
     {
