@@ -34,6 +34,17 @@ namespace industrialization.OverallManagement.DataStore
             return false;
         }
 
+        public static Coordinate GetCoordinate(Guid guid)
+        {
+            if (_installationMasterDictionary.ContainsKey(guid))
+            {
+                var i = _installationMasterDictionary[guid];
+                return new Coordinate {x = i.X, y = i.Y};
+            }
+
+            return new Coordinate {x = Int32.MinValue, y = Int32.MinValue};
+        }
+        
         public static InstallationBase GetInstallation(Guid guid)
         {
             if (_installationMasterDictionary.ContainsKey(guid))
@@ -83,7 +94,7 @@ namespace industrialization.OverallManagement.DataStore
         }
     }
 
-    struct Coordinate
+    public struct Coordinate
     {
         public int x;
         public int y;
