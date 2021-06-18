@@ -95,7 +95,14 @@ public class AsynchronousSocketListener
         Socket handler = state.workSocket;
 
         Console.WriteLine(content);
-        Send(handler, PacketResponseFactory.GetPacketResponse(state.buffer).GetResponse());
+        try
+        {
+            Send(handler, PacketResponseFactory.GetPacketResponse(state.buffer).GetResponse());
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
     }
 
     private static void Send(Socket handler, byte[] byteData)

@@ -5,23 +5,23 @@ using industrialization.Server.PacketResponse.Implementation;
 
 namespace industrialization.Server.PacketResponse
 {
+    delegate IPacketResponse Instance(byte[] payload);
     public class PacketResponseFactory
     {
-        private static List<IPacketResponse> _packetResponseList;
+        private static List<Instance> _packetResponseList = new List<Instance>();
 
         private static void Init()
         {
-            var empty = System.Array.Empty<byte>();
-            _packetResponseList.Add(new InstallationCoordinateRequestProtocolResponse(empty));
+            _packetResponseList.Add(InstallationCoordinateRequestProtocolResponse.NewInstance);
         }
         
         public static IPacketResponse GetPacketResponse(byte[] payload)
         {
-            if (_packetResponseList == null) Init();
+            if (_packetResponseList.Count == 0) Init();
 
             var id = BitConverter.ToInt16(new byte[2] {payload[0], payload[1]});
 
-            return _packetResponseList[id].NewInstance(payload);
+            return _packetResponseList[id](payload);
         }
     }
 }

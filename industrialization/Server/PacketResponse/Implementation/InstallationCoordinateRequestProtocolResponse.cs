@@ -72,7 +72,7 @@ namespace industrialization.Server.PacketResponse.Implementation
             return payload.ToArray();
         }
 
-        public IPacketResponse NewInstance(byte[] payload)
+        public static IPacketResponse NewInstance(byte[] payload)
         {
             return new InstallationCoordinateRequestProtocolResponse(payload);
         }
