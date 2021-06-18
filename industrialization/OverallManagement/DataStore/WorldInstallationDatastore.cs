@@ -11,14 +11,27 @@ namespace industrialization.OverallManagement.DataStore
         //座標がキーのデータストア
         private static Dictionary<Coordinate,InstallationWorldData> _coordinateDictionary = new();
 
-        public static void AddInstallation(InstallationBase installation,int x,int y)
+
+        public static void ClearData()
         {
-            if (!_installationMasterDictionary.ContainsKey(installation.Guid))
+            _installationMasterDictionary = new();
+            _coordinateDictionary = new();
+        }
+        
+        public static bool AddInstallation(InstallationBase installation,int x,int y)
+        {
+            //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
+            if (!_installationMasterDictionary.ContainsKey(installation.Guid) &&
+                GetInstallation(x,y) == null)
             {
                 var data = new InstallationWorldData(installation, x, y);
                 _installationMasterDictionary.Add(installation.Guid,data);
                 _coordinateDictionary.Add(new Coordinate {x = x, y = y},data);
+
+                return true;
             }
+
+            return false;
         }
 
         public static InstallationBase GetInstallation(Guid guid)
