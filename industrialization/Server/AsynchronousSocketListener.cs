@@ -92,20 +92,10 @@ public class AsynchronousSocketListener
   
         // 非同期ステートオブジェクトからステートオブジェクトとハンドラソケットを取得します。 
         StateObject state = (StateObject) ar.AsyncState;  
-        Socket handler = state.workSocket;  
-  
-        //  クライアント・ソケットからデータを読み込みます。
-        int bytesRead = handler.EndReceive(ar);  
-        // まだまだデータがあるかもしれないので、これまでに受信したデータを保存しておきましょう。 
-        byte[] bytes = state.buffer;
-        state.sb.Append(Encoding.ASCII.GetString(  
-            bytes, 0, bytesRead));  
-  
-        // ファイルの終わりのタグをチェックします。タグがない場合は、さらにデータを読み込みます。 
-        content = state.sb.ToString();
-        
+        Socket handler = state.workSocket;
+
         Console.WriteLine(content);
-        Send(handler, PacketResponseFactory.GetPacketResponse(bytes).GetResponse());
+        Send(handler, PacketResponseFactory.GetPacketResponse(state.buffer).GetResponse());
     }
 
     private static void Send(Socket handler, byte[] byteData)
