@@ -7,9 +7,9 @@ namespace industrialization.OverallManagement.DataStore
     public static class WorldInstallationDatastore
     {
         //メインのデータストア
-        private static Dictionary<Guid, InstallationWorldData> _installationMasterDictionary;
+        private static Dictionary<Guid, InstallationWorldData> _installationMasterDictionary = new();
         //座標がキーのデータストア
-        private static Dictionary<Coordinate,InstallationWorldData> _coordinateDictionary;
+        private static Dictionary<Coordinate,InstallationWorldData> _coordinateDictionary = new();
 
         public static void AddInstallation(InstallationBase installation,int x,int y)
         {
