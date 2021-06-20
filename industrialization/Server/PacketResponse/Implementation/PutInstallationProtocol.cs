@@ -41,8 +41,14 @@ namespace industrialization.Server.PacketResponse.Implementation
 
         public byte[] GetResponse()
         {
-            short id = -1;
+            //返すものはない(ダミープロトコルを返す)
+            short id = 0;
             return BitConverter.GetBytes(id);
+        }
+
+        public static IPacketResponse NewInstance(byte[] payload)
+        {
+            return new PutInstallationProtocol(payload);
         }
     }
 }
