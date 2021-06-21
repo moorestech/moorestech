@@ -6,8 +6,7 @@ namespace industrialization.Server.PacketResponse.Implementation
     {
         public byte[] GetResponse()
         {
-            short id = 0;
-            return BitConverter.GetBytes(id);
+            return Array.Empty<byte>();
         }
 
         public static IPacketResponse NewInstance(byte[] payload)
