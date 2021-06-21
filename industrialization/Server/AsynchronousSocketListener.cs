@@ -107,6 +107,8 @@ public class AsynchronousSocketListener
 
     private static void Send(Socket handler, byte[] byteData)
     {
+        //配列が0の時はスルー
+        if (byteData.Length == 0)　return;
         // リモートデバイスへのデータ送信を開始します。 
         handler.BeginSend(byteData, 0, byteData.Length, 0,  
             SendCallback, handler);  
