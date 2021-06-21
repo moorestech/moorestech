@@ -12,6 +12,8 @@ namespace industrialization.Server.PacketResponse
 
         private static void Init()
         {
+            _packetResponseList.Add(DummyProtocol.NewInstance);
+            _packetResponseList.Add(PutInstallationProtocol.NewInstance);
             _packetResponseList.Add(InstallationCoordinateRequestProtocolResponse.NewInstance);
         }
         
