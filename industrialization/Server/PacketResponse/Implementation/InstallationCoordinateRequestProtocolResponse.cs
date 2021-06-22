@@ -19,8 +19,8 @@ namespace industrialization.Server.PacketResponse.Implementation
         /// <param name="payload">パケットのペイロード</param>
         public InstallationCoordinateRequestProtocolResponse(byte[] payload)
         {
-            x = BitConverter.ToInt32(new byte[4] {payload[5], payload[6], payload[7], payload[8]});
-            y = BitConverter.ToInt32(new byte[4] {payload[9], payload[10], payload[11], payload[12]});
+            x = BitConverter.ToInt32(new byte[4] {payload[4], payload[5], payload[6], payload[7]});
+            y = BitConverter.ToInt32(new byte[4] {payload[8], payload[9], payload[10], payload[11]});
             //入力さた座標を10の倍数に変換する
             x = x / 10 * 10;
             y = y / 10 * 10;
