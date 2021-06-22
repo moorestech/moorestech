@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace industrialization.Server.PacketResponse.Implementation
+namespace industrialization.Server.PacketResponse.ProtocolImplementation
 {
     public class DummyProtocol : IPacketResponse
     {
