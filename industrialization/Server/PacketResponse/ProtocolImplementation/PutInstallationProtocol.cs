@@ -5,9 +5,9 @@ using industrialization.OverallManagement.DataStore;
 
 namespace industrialization.Server.PacketResponse.ProtocolImplementation
 {
-    public class PutInstallationProtocol
+    public static class PutInstallationProtocol
     {
-        public PutInstallationProtocol(byte[] payload)
+        public static byte[] GetResponse(byte[] payload)
         {
             //パケットのパース、接続元、接続先のインスタンス取得
             int installationId = BitConverter.ToInt32(new byte[4] {payload[2], payload[3], payload[4], payload[5]});
@@ -36,10 +36,6 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
             
             WorldInstallationInventoryDatastore.AddInstallation(installtion,installtion.Guid);
             WorldInstallationDatastore.AddInstallation(installtion, x, y);
-        }
-
-        public static byte[] GetResponse(byte[] payload)
-        {
             //返すものはない
             return Array.Empty<byte>();
         }
