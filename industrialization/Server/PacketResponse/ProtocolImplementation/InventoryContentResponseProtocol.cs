@@ -1,6 +1,6 @@
 ﻿namespace industrialization.Server.PacketResponse.ProtocolImplementation
 {
-    public class InventoryContentResponseProtocol
+    public static class InventoryContentResponseProtocol
     {
         public static byte[] GetResponse(byte[] payload)
         {
