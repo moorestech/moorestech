@@ -5,7 +5,7 @@ using industrialization.OverallManagement.DataStore;
 
 namespace industrialization.Server.PacketResponse.ProtocolImplementation
 {
-    public class PutInstallationProtocol : IPacketResponse
+    public class PutInstallationProtocol
     {
         public PutInstallationProtocol(byte[] payload)
         {
@@ -38,15 +38,10 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
             WorldInstallationDatastore.AddInstallation(installtion, x, y);
         }
 
-        public byte[] GetResponse()
+        public static byte[] GetResponse(byte[] payload)
         {
             //返すものはない
             return Array.Empty<byte>();
-        }
-
-        public static IPacketResponse NewInstance(byte[] payload)
-        {
-            return new PutInstallationProtocol(payload);
         }
     }
 }

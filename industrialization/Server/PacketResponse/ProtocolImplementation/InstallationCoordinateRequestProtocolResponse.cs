@@ -9,30 +9,21 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
     /// <summary>
     /// 設置物の座標とGUIDを要求するプロトコルを受けたときにレスポンスを作成するクラス
     /// </summary>
-    public class InstallationCoordinateRequestProtocolResponse : IPacketResponse
+    public static class InstallationCoordinateRequestProtocolResponse
     {
-        private int x;
-        private int y;
-        /// <summary>
-        /// 必要なデータをインスタ時に解析する
-        /// </summary>
-        /// <param name="payload">パケットのペイロード</param>
-        public InstallationCoordinateRequestProtocolResponse(byte[] payload)
-        {
-            x = BitConverter.ToInt32(new byte[4] {payload[4], payload[5], payload[6], payload[7]});
-            y = BitConverter.ToInt32(new byte[4] {payload[8], payload[9], payload[10], payload[11]});
-            //入力さた座標を10の倍数に変換する
-            x = x / 10 * 10;
-            y = y / 10 * 10;
-        }
-        
-        
         /// <summary>
         /// レスポンスの組み立て
         /// </summary>
         /// <returns></returns>
-        public byte[] GetResponse()
+        public static byte[] GetResponse(byte[] payloada)
         {
+            int x = BitConverter.ToInt32(new byte[4] {payloada[4], payloada[5], payloada[6], payloada[7]});
+            int y = BitConverter.ToInt32(new byte[4] {payloada[8], payloada[9], payloada[10], payloada[11]});
+            //入力さた座標を10の倍数に変換する
+            x = x / 10 * 10;
+            y = y / 10 * 10;
+            
+            
             var payload = new List<byte>();
             //パケットIDの挿入
             short id = 1;
@@ -70,11 +61,6 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
             }
 
             return payload.ToArray();
-        }
-
-        public static IPacketResponse NewInstance(byte[] payload)
-        {
-            return new InstallationCoordinateRequestProtocolResponse(payload);
         }
     }
 }

@@ -2,16 +2,11 @@
 
 namespace industrialization.Server.PacketResponse.ProtocolImplementation
 {
-    public class DummyProtocol : IPacketResponse
+    public class DummyProtocol
     {
-        public byte[] GetResponse()
+        public static byte[] GetResponse(byte[] payload)
         {
             return Array.Empty<byte>();
-        }
-
-        public static IPacketResponse NewInstance(byte[] payload)
-        {
-            return new DummyProtocol();
         }
     }
 }
