@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using industrialization.Core.Installation.Machine.util;
 using industrialization.OverallManagement.DataStore;
 
-namespace industrialization.Server.PacketResponse.Implementation
+namespace industrialization.Server.PacketResponse.ProtocolImplementation
 {
     public class PutInstallationProtocol : IPacketResponse
     {

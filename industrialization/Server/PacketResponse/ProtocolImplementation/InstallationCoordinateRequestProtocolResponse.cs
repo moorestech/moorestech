@@ -4,7 +4,7 @@ using System.Linq;
 using industrialization.Core.Installation;
 using industrialization.OverallManagement.DataStore;
 
-namespace industrialization.Server.PacketResponse.Implementation
+namespace industrialization.Server.PacketResponse.ProtocolImplementation
 {
     /// <summary>
     /// 設置物の座標とGUIDを要求するプロトコルを受けたときにレスポンスを作成するクラス

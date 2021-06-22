@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using industrialization.Server.PacketResponse.Implementation;
+using industrialization.Server.PacketResponse.ProtocolImplementation;
 
 namespace industrialization.Server.PacketResponse
 {
