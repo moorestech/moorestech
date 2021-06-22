@@ -1,8 +1,8 @@
 ﻿namespace industrialization.Server.PacketResponse.ProtocolImplementation
 {
-    public class InventoryContentResponseProtocol : IPacketResponse
+    public class InventoryContentResponseProtocol
     {
-        public byte[] GetResponse()
+        public static byte[] GetResponse(byte[] payload)
         {
             throw new System.NotImplementedException();
         }

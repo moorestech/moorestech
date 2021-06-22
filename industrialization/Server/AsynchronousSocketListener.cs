@@ -97,7 +97,7 @@ public class AsynchronousSocketListener
         Console.WriteLine(content);
         try
         {
-            Send(handler, PacketResponseFactory.GetPacketResponse(state.buffer).GetResponse());
+            Send(handler, PacketResponseFactory.GetPacketResponse(state.buffer));
         }
         catch (Exception e)
         {
