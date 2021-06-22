@@ -15,19 +15,19 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
         /// レスポンスの組み立て
         /// </summary>
         /// <returns></returns>
-        public static byte[] GetResponse(byte[] payloada)
+        public static byte[] GetResponse(byte[] payload)
         {
-            int x = BitConverter.ToInt32(new byte[4] {payloada[4], payloada[5], payloada[6], payloada[7]});
-            int y = BitConverter.ToInt32(new byte[4] {payloada[8], payloada[9], payloada[10], payloada[11]});
+            int x = BitConverter.ToInt32(new byte[4] {payload[4], payload[5], payload[6], payload[7]});
+            int y = BitConverter.ToInt32(new byte[4] {payload[8], payload[9], payload[10], payload[11]});
             //入力さた座標を10の倍数に変換する
             x = x / 10 * 10;
             y = y / 10 * 10;
             
             
-            var payload = new List<byte>();
+            var responsePayload = new List<byte>();
             //パケットIDの挿入
             short id = 1;
-            BitConverter.GetBytes(id).ToList().ForEach(b => payload.Add(b));
+            BitConverter.GetBytes(id).ToList().ForEach(b => responsePayload.Add(b));
 
             var inst = new List<InstallationBase>();
             
@@ -45,22 +45,22 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
                 }
             }
             //建物データの数
-            BitConverter.GetBytes(inst.Count).ToList().ForEach(b => payload.Add(b));
+            BitConverter.GetBytes(inst.Count).ToList().ForEach(b => responsePayload.Add(b));
             //パディング
-            payload.Add(0);
-            payload.Add(0);
+            responsePayload.Add(0);
+            responsePayload.Add(0);
             
             //データをバイト配列に登録
             foreach (var i in inst)
             {
                 var c = WorldInstallationDatastore.GetCoordinate(i.Guid);
-                BitConverter.GetBytes(c.x).ToList().ForEach(b => payload.Add(b));
-                BitConverter.GetBytes(c.y).ToList().ForEach(b => payload.Add(b));
-                BitConverter.GetBytes(i.InstallationId).ToList().ForEach(b => payload.Add(b));
-                i.Guid.ToByteArray().ToList().ForEach(b => payload.Add(b));
+                BitConverter.GetBytes(c.x).ToList().ForEach(b => responsePayload.Add(b));
+                BitConverter.GetBytes(c.y).ToList().ForEach(b => responsePayload.Add(b));
+                BitConverter.GetBytes(i.InstallationId).ToList().ForEach(b => responsePayload.Add(b));
+                i.Guid.ToByteArray().ToList().ForEach(b => responsePayload.Add(b));
             }
 
-            return payload.ToArray();
+            return responsePayload.ToArray();
         }
     }
 }
