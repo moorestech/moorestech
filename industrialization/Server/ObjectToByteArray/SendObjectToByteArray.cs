@@ -1,4 +1,4 @@
-﻿namespace industrialization.Server.ToByteArray
+﻿namespace industrialization.Server.ObjectToByteArray
 {
     public class SendObjectToByteArray
     {

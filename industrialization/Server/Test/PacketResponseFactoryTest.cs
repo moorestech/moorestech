@@ -4,7 +4,7 @@ namespace industrialization.Server.Test
 {
     public class PacketResponseFactoryTest
     {
-        //建物を1チャンクに設置したとき正しくデータを取得できるかのテスト
+        //なにも設定してないときに空の配列を取得する
         [Test]
         public void Building1ChunkInstalledWhenCorrectlyDataAcquirableIsTest()
         {
