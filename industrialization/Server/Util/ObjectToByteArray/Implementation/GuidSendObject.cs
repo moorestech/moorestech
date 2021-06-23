@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace industrialization.Server.ObjectToByteArray.Implementation
+namespace industrialization.Server.Util.ObjectToByteArray.Implementation
 {
     public class GuidSendObject : ISendObject
     {

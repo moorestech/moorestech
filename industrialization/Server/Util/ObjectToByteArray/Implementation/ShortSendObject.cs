@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace industrialization.Server.ObjectToByteArray.Implementation
+namespace industrialization.Server.Util.ObjectToByteArray.Implementation
 {
-    public class IntSendObject : ISendObject
+    public class ShortSendObject
     {
-        private readonly int _sendData;
-        public IntSendObject(int sendData)
+        private readonly short _sendData;
+        public ShortSendObject(short sendData)
         {
             _sendData = sendData;
         }
