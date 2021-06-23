@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace industrialization.Server.ToByteArray
+namespace industrialization.Server.ObjectToByteArray.Implementation
 {
     public class IntSendObject : ISendObject
     {
