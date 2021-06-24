@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using industrialization.Server.Util;
-using industrialization.Server.Util.ByteArrayToObject;
 using NUnit.Framework;
 
 namespace industrialization.Server.Test
@@ -20,7 +19,7 @@ namespace industrialization.Server.Test
                 var guid = Guid.NewGuid();
                 var ans = guid.ToByteArray();
 
-                var exp = SendObjectToByteArray.ToByteArray(guid);
+                var exp = ByteArrayConverter.ToByteArray(guid);
 
                 for (int j = 0; j < ans.Length; j++)
                 {
@@ -39,7 +38,7 @@ namespace industrialization.Server.Test
                 var data = random.Next(Int32.MinValue, Int32.MaxValue);
                 var ans = BitConverter.GetBytes(data);
 
-                var exp = SendObjectToByteArray.ToByteArray(data);
+                var exp = ByteArrayConverter.ToByteArray(data);
 
                 for (int j = 0; j < ans.Length; j++)
                 {
@@ -58,7 +57,7 @@ namespace industrialization.Server.Test
                 var data = (short)random.Next(short.MinValue,short.MaxValue);
                 var ans = BitConverter.GetBytes(data);
 
-                var exp = SendObjectToByteArray.ToByteArray(data);
+                var exp = ByteArrayConverter.ToByteArray(data);
 
                 for (int j = 0; j < ans.Length; j++)
                 {
@@ -72,7 +71,7 @@ namespace industrialization.Server.Test
         public void OneGUIDConvertTest()
         {
             var guid = Guid.NewGuid();
-            var byteData = new ByteArrayToSendObject(SendObjectToByteArray.ToByteArray(guid));
+            var byteData = new ByteArrayToSendObject(ByteArrayConverter.ToByteArray(guid));
 
             Assert.AreEqual(guid.ToString(),byteData.MoveNextToGetGuid().ToString());
         }
@@ -81,7 +80,7 @@ namespace industrialization.Server.Test
         public void OneIntConvertTest()
         {
             var Int =  new Random(1000).Next(Int32.MinValue, Int32.MaxValue);
-            var byteData = new ByteArrayToSendObject(SendObjectToByteArray.ToByteArray(Int));
+            var byteData = new ByteArrayToSendObject(ByteArrayConverter.ToByteArray(Int));
 
             Assert.AreEqual(Int,byteData.MoveNextToGetInt());
         }
@@ -90,7 +89,7 @@ namespace industrialization.Server.Test
         public void OneShortConvertTest()
         {
             var Short = (short)new Random(1000).Next(short.MinValue, short.MaxValue);
-            var byteData = new ByteArrayToSendObject(SendObjectToByteArray.ToByteArray(Short));
+            var byteData = new ByteArrayToSendObject(ByteArrayConverter.ToByteArray(Short));
 
             Assert.AreEqual(Short,byteData.MoveNextToGetShort());
         }
@@ -104,10 +103,10 @@ namespace industrialization.Server.Test
             var guid1 = Guid.NewGuid();
             var guid2 = Guid.NewGuid();
             var ans = new List<byte>();
-            ans.AddRange(SendObjectToByteArray.ToByteArray(id));
-            ans.AddRange(SendObjectToByteArray.ToByteArray(guid1));
-            ans.AddRange(SendObjectToByteArray.ToByteArray(guid2));
-            ans.AddRange(SendObjectToByteArray.ToByteArray(50));
+            ans.AddRange(ByteArrayConverter.ToByteArray(id));
+            ans.AddRange(ByteArrayConverter.ToByteArray(guid1));
+            ans.AddRange(ByteArrayConverter.ToByteArray(guid2));
+            ans.AddRange(ByteArrayConverter.ToByteArray(50));
 
             var byteData = new ByteArrayToSendObject(ans.ToArray());
 

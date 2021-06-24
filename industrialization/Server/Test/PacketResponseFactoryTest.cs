@@ -10,7 +10,6 @@ namespace industrialization.Server.Test
         [Test]
         public void Building1ChunkInstalledWhenCorrectlyDataAcquirableIsTest()
         {
-            //建物の設置
             var putPayLoad = new List<byte>();
             throw new ArgumentException();
             Assert.True(true);

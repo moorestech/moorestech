@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace industrialization.Server.Util.ByteArrayToObject
+namespace industrialization.Server.Util
 {
     public class ByteArrayToSendObject
     {
