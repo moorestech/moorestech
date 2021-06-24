@@ -4,10 +4,10 @@ using System.Linq;
 
 namespace industrialization.Server.Util
 {
-    public class ByteArrayToSendObject
+    public class ByteArrayEnumerator
     {
         private readonly IEnumerator<byte> _payload;
-        public ByteArrayToSendObject(byte[] payload)
+        public ByteArrayEnumerator(byte[] payload)
         {
             _payload = payload.ToList().GetEnumerator();
         }
@@ -20,6 +20,7 @@ namespace industrialization.Server.Util
                 _payload.MoveNext();
                 b.Add(_payload.Current);
             }
+
             return new Guid(b.ToArray());
         }
 

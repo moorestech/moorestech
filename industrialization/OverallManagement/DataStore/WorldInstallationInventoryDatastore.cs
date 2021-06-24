@@ -6,7 +6,7 @@ namespace industrialization.OverallManagement.DataStore
 {
     public static class WorldInstallationInventoryDatastore
     {
-        private static Dictionary<string, IInstallationInventory> _installatioInventorynMasterDictionary;
+        private static Dictionary<string, IInstallationInventory> _installatioInventorynMasterDictionary = new();
         public static void AddInstallation(IInstallationInventory installation,Guid guid)
         {
             if (!_installatioInventorynMasterDictionary.ContainsKey(guid.ToString()))
