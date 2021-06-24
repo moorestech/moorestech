@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using NUnit.Framework;
 
 namespace industrialization.Server.Test
 {
@@ -10,7 +12,8 @@ namespace industrialization.Server.Test
         {
             //建物の設置
             var putPayLoad = new List<byte>();
-            
+            throw new ArgumentException();
+            Assert.True(true);
         }
     }
 }

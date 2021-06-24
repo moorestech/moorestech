@@ -13,8 +13,4 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0-release-20210330-02" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Server\Util" />
-    </ItemGroup>
-
 </Project>
