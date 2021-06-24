@@ -18,7 +18,7 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
         /// <returns></returns>
         public static byte[] GetResponse(byte[] payload)
         {
-            var payloadData = new ByteArrayToSendObject(payload);
+            var payloadData = new ByteArrayEnumerator(payload);
             //IDの取得
             payloadData.MoveNextToGetShort();
             //パディング
