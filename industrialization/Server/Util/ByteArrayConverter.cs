@@ -2,7 +2,7 @@
 
 namespace industrialization.Server.Util
 {
-    public class SendObjectToByteArray
+    public static class ByteArrayConverter
     {
         public static byte[] ToByteArray(Guid guid)
         {
