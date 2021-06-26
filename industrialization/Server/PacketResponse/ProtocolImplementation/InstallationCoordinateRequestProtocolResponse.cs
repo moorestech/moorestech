@@ -29,11 +29,6 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
             x = x / 10 * 10;
             y = y / 10 * 10;
             
-            
-            var responsePayload = new List<byte>();
-            //パケットIDの挿入
-            short id = 1;
-            responsePayload.AddRange(ByteArrayConverter.ToByteArray(id));
 
             var inst = new List<InstallationBase>();
             
@@ -43,20 +38,20 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
             {
                 for (int j = y; j < y+10; j++)
                 {
-                    var instbase = WorldInstallationDatastore.GetInstallation(x, y);
-                    if (instbase.Guid.ToString() != Guid.Empty.ToString())
-                    {
-                        inst.Add(instbase);   
-                    }
+                    if(!WorldInstallationDatastore.ContainsCoordinate(i, j)) continue;
+                    inst.Add(WorldInstallationDatastore.GetInstallation(i, j));   
                 }
             }
+            var responsePayload = new List<byte>();
+            //パケットIDの挿入
+            responsePayload.AddRange(ByteArrayConverter.ToByteArray((short)1));
             //建物データの数
             responsePayload.AddRange(ByteArrayConverter.ToByteArray(inst.Count));
+            //パディング
+            responsePayload.AddRange(ByteArrayConverter.ToByteArray((short)0));
             //要求された座標
             responsePayload.AddRange(ByteArrayConverter.ToByteArray(x));
             responsePayload.AddRange(ByteArrayConverter.ToByteArray(y));
-            //パディング
-            responsePayload.Add(0);
             
             //データをバイト配列に登録
             foreach (var i in inst)
