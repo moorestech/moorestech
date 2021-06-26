@@ -21,8 +21,8 @@ namespace industrialization.OverallManagement.DataStore
         public static bool AddInstallation(InstallationBase installation,int x,int y)
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
-            if (!_installationMasterDictionary.ContainsKey(installation.Guid.ToString()) &&
-                GetInstallation(x,y) == null)
+            if (!ContainsKey(installation.Guid) &&
+                !ContainsCoordinate(x,y))
             {
                 var data = new InstallationWorldData(installation, x, y);
                 _installationMasterDictionary.Add(installation.Guid.ToString(),data);
@@ -32,6 +32,11 @@ namespace industrialization.OverallManagement.DataStore
             }
 
             return false;
+        }
+
+        public static bool ContainsKey(Guid guid)
+        {
+            return _installationMasterDictionary.ContainsKey(guid.ToString());
         }
 
         public static Coordinate GetCoordinate(Guid guid)
@@ -55,6 +60,11 @@ namespace industrialization.OverallManagement.DataStore
             return new NullInstallation(-1,Guid.Empty);
         }
 
+        public static bool ContainsCoordinate(int x, int y)
+        {
+            var c = new Coordinate {x = x, y = y};
+            return _coordinateDictionary.ContainsKey(c);
+        }
         public static InstallationBase GetInstallation(int x,int y)
         {
             var c = new Coordinate {x = x, y = y};
@@ -63,7 +73,7 @@ namespace industrialization.OverallManagement.DataStore
                 return _coordinateDictionary[c].InstallationBase;
             }
 
-            return new NullInstallation(-1,Guid.Empty);
+            return null;
         }
 
         public static void RemoveInstallation(InstallationBase installation)
