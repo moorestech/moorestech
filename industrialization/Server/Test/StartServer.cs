@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using industrialization.Server.PacketHandle;
+using NUnit.Framework;
 
 namespace industrialization.Server.Test
 {
@@ -7,7 +8,7 @@ namespace industrialization.Server.Test
         [Test]
         public void StartTest()
         {
-            AsynchronousSocketListener.StartListening();
+            PacketHandler.StartServer();
             Assert.True(true);
         }
     }
