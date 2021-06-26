@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 using industrialization.Server.PacketResponse.ProtocolImplementation;
+using industrialization.Server.Util;
 
 namespace industrialization.Server.PacketResponse
 {
-    delegate byte[] Responses(byte[] payload);
     public static class PacketResponseFactory
     {
+        delegate byte[] Responses(byte[] payload);
         private static List<Responses> _packetResponseList = new List<Responses>();
 
         private static void Init()
@@ -22,9 +23,7 @@ namespace industrialization.Server.PacketResponse
         {
             if (_packetResponseList.Count == 0) Init();
 
-            var id = BitConverter.ToInt16(new byte[2] {payload[0], payload[1]});
-
-            return _packetResponseList[id](payload);
+            return _packetResponseList[new ByteArrayEnumerator(payload).MoveNextToGetShort()](payload);
         }
     }
 }

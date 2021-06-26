@@ -17,8 +17,14 @@ namespace industrialization.Server.Util
             var b = new List<byte>();
             for (int i = 0; i < 16; i++)
             {
-                _payload.MoveNext();
-                b.Add(_payload.Current);
+                if (_payload.MoveNext())
+                {
+                    b.Add(_payload.Current);
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
+                }
             }
 
             return new Guid(b.ToArray());
@@ -29,8 +35,14 @@ namespace industrialization.Server.Util
             var b = new List<byte>();
             for (int i = 0; i < 4; i++)
             {
-                _payload.MoveNext();
-                b.Add(_payload.Current);
+                if (_payload.MoveNext())
+                {
+                    b.Add(_payload.Current);
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
+                }
             }
             return BitConverter.ToInt32(b.ToArray());
         }
@@ -40,8 +52,14 @@ namespace industrialization.Server.Util
             var b = new List<byte>();
             for (int i = 0; i < 2; i++)
             {
-                _payload.MoveNext();
-                b.Add(_payload.Current);
+                if (_payload.MoveNext())
+                {
+                    b.Add(_payload.Current);
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
+                }
             }
             return BitConverter.ToInt16(b.ToArray());
         }
