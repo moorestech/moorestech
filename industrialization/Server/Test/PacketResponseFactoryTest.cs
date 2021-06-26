@@ -73,6 +73,8 @@ namespace industrialization.Server.Test
             send.AddRange(ByteArrayConverter.ToByteArray((short)0));
             send.AddRange(ByteArrayConverter.ToByteArray(0));
             send.AddRange(ByteArrayConverter.ToByteArray(0));
+            
+            //実際にレスポンスを要求
             var response = new ByteArrayEnumerator(PacketResponseFactory.GetPacketResponse(send.ToArray()));
             response.MoveNextToGetShort();
             int num = response.MoveNextToGetInt();
@@ -80,6 +82,7 @@ namespace industrialization.Server.Test
             response.MoveNextToGetInt();
             response.MoveNextToGetInt();
 
+            //レスポンスを解析して必要なデータを取得
             var responseInstallations = new List<Installtion>();
             for (int i = 0; i < num; i++)
             {
@@ -91,6 +94,7 @@ namespace industrialization.Server.Test
             
             responseInstallations.Sort((a,b) => a.installtionID-b.installtionID);
 
+            //実際に正しいかテスト
             for (int i = 0; i < responseInstallations.Count; i++)
             {
                 Assert.AreEqual(ansInstallations[i].x,responseInstallations[i].x);

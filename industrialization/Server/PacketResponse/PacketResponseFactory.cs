@@ -5,9 +5,9 @@ using industrialization.Server.PacketResponse.ProtocolImplementation;
 
 namespace industrialization.Server.PacketResponse
 {
-    delegate byte[] Responses(byte[] payload);
     public static class PacketResponseFactory
     {
+        delegate byte[] Responses(byte[] payload);
         private static List<Responses> _packetResponseList = new List<Responses>();
 
         private static void Init()
