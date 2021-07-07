@@ -92,7 +92,7 @@ namespace industrialization.Server.Test
                     response.MoveNextToGetInt(),
                     response.MoveNextToGetInt(),
                     response.MoveNextToGetInt()));
-                response.MoveNextToGetGuid();
+                response.MoveNextToGetInt();
             }
             
             responseInstallations.Sort((a,b) => a.InstallationsId-b.InstallationsId);
@@ -128,8 +128,8 @@ namespace industrialization.Server.Test
             send.AddRange(ByteArrayConverter.ToByteArray((short)0));
             send.AddRange(ByteArrayConverter.ToByteArray(x));
             send.AddRange(ByteArrayConverter.ToByteArray(y));
-            send.AddRange(ByteArrayConverter.ToByteArray(Guid.Empty));
-            send.AddRange(ByteArrayConverter.ToByteArray(Guid.Empty));
+            send.AddRange(ByteArrayConverter.ToByteArray(Int32.MaxValue));
+            send.AddRange(ByteArrayConverter.ToByteArray(Int32.MaxValue));
             var response = PacketResponseFactory.GetPacketResponse(send.ToArray());
         }
     }
