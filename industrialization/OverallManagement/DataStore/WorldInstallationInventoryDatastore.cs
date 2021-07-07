@@ -6,30 +6,30 @@ namespace industrialization.OverallManagement.DataStore
 {
     public static class WorldInstallationInventoryDatastore
     {
-        private static Dictionary<string, IInstallationInventory> _installatioInventorynMasterDictionary = new();
-        public static void AddInstallation(IInstallationInventory installation,Guid guid)
+        private static Dictionary<int, IInstallationInventory> _installatioInventorynMasterDictionary = new();
+        public static void AddInstallation(IInstallationInventory installation,int intId)
         {
-            if (!_installatioInventorynMasterDictionary.ContainsKey(guid.ToString()))
+            if (!_installatioInventorynMasterDictionary.ContainsKey(intId))
             {
-                _installatioInventorynMasterDictionary.Add(guid.ToString(),installation);
+                _installatioInventorynMasterDictionary.Add(intId,installation);
             }
         }
 
-        public static IInstallationInventory GetInstallation(Guid guid)
+        public static IInstallationInventory GetInstallation(int intId)
         {
-            if (_installatioInventorynMasterDictionary.ContainsKey(guid.ToString()))
+            if (_installatioInventorynMasterDictionary.ContainsKey(intId))
             {
-                return _installatioInventorynMasterDictionary[guid.ToString()];
+                return _installatioInventorynMasterDictionary[intId];
             }
 
             return new NullIInstallationInventory();
         }
 
-        public static void RemoveInstallation(IInstallationInventory installation,Guid guid)
+        public static void RemoveInstallation(IInstallationInventory installation,int intId)
         {
-            if (_installatioInventorynMasterDictionary.ContainsKey(guid.ToString()))
+            if (_installatioInventorynMasterDictionary.ContainsKey(intId))
             {
-                _installatioInventorynMasterDictionary.Remove(guid.ToString());
+                _installatioInventorynMasterDictionary.Remove(intId);
             }
         }
     }

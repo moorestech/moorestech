@@ -8,7 +8,7 @@ using industrialization.Server.Util;
 namespace industrialization.Server.PacketResponse.ProtocolImplementation
 {
     /// <summary>
-    /// 設置物の座標とGUIDを要求するプロトコルを受けたときにレスポンスを作成するクラス
+    /// 設置物の座標とintIDを要求するプロトコルを受けたときにレスポンスを作成するクラス
     /// </summary>
     public static class InstallationCoordinateRequestProtocolResponse
     {
@@ -56,13 +56,13 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
             //データをバイト配列に登録
             foreach (var i in inst)
             {
-                var c = WorldInstallationDatastore.GetCoordinate(i.Guid);
+                var c = WorldInstallationDatastore.GetCoordinate(i.IntId);
                 
                 responsePayload.AddRange(ByteArrayConverter.ToByteArray(c.x));
                 responsePayload.AddRange(ByteArrayConverter.ToByteArray(c.y));
                 
                 responsePayload.AddRange(ByteArrayConverter.ToByteArray(i.InstallationId));
-                responsePayload.AddRange(ByteArrayConverter.ToByteArray(i.Guid));
+                responsePayload.AddRange(ByteArrayConverter.ToByteArray(i.IntId));
             }
 
             return responsePayload.ToArray();
