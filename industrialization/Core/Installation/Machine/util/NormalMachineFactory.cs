@@ -4,9 +4,9 @@ namespace industrialization.Core.Installation.Machine.util
 {
     public static class NormalMachineFactory
     {
-        public static NormalMachine Create(int installationId,Guid guid, IInstallationInventory connect)
+        public static NormalMachine Create(int installationId,int intID, IInstallationInventory connect)
         {
-            return new NormalMachine(installationId,guid,
+            return new NormalMachine(installationId,intID,
                 new NormalMachineInputInventory(installationId,
                     new NormalMachineStartProcess(installationId,
                         new NormalMachineRunProcess(

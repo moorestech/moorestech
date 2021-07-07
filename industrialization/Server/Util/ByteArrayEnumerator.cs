@@ -12,24 +12,6 @@ namespace industrialization.Server.Util
             _payload = payload.ToList().GetEnumerator();
         }
 
-        public Guid MoveNextToGetGuid()
-        {
-            var b = new List<byte>();
-            for (int i = 0; i < 16; i++)
-            {
-                if (_payload.MoveNext())
-                {
-                    b.Add(_payload.Current);
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
-                }
-            }
-
-            return new Guid(b.ToArray());
-        }
-
         public int MoveNextToGetInt()
         {
             var b = new List<byte>();

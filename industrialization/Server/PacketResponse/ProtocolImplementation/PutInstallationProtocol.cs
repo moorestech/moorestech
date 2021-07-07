@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using industrialization.Core;
 using industrialization.Core.Installation.Machine.util;
 using industrialization.OverallManagement.DataStore;
 using industrialization.Server.Util;
@@ -18,12 +19,12 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
             int x = payloadData.MoveNextToGetInt();
             int y = payloadData.MoveNextToGetInt();
             
-            var inputInstallation = WorldInstallationInventoryDatastore.GetInstallation(payloadData.MoveNextToGetGuid());
+            var inputInstallation = WorldInstallationInventoryDatastore.GetInstallation(payloadData.MoveNextToGetInt());
 
-            var installation = NormalMachineFactory.Create(installationId, Guid.NewGuid(), WorldInstallationInventoryDatastore.GetInstallation(payloadData.MoveNextToGetGuid()));
+            var installation = NormalMachineFactory.Create(installationId, IntId.NewIntId(), WorldInstallationInventoryDatastore.GetInstallation(payloadData.MoveNextToGetInt()));
             inputInstallation.ChangeConnector(installation);
             
-            WorldInstallationInventoryDatastore.AddInstallation(installation,installation.Guid);
+            WorldInstallationInventoryDatastore.AddInstallation(installation,installation.IntId);
             WorldInstallationDatastore.AddInstallation(installation, x, y);
             //返すものはない
             return Array.Empty<byte>();

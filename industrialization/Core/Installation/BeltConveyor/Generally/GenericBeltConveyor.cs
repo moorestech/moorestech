@@ -29,7 +29,7 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
             _beltConveyorItemInventory.ChangeConnector(installationInventory);
         }
 
-        public GenericBeltConveyor(int installationId, Guid guid,IBeltConveyorComponent beltConveyorItemInventory) : base(installationId, guid)
+        public GenericBeltConveyor(int installationId, int intID,IBeltConveyorComponent beltConveyorItemInventory) : base(installationId, intID)
         {
             _beltConveyorItemInventory = beltConveyorItemInventory;
         }

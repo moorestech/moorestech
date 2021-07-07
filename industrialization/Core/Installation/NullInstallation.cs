@@ -4,9 +4,9 @@ namespace industrialization.Core.Installation
 {
     public class NullInstallation : InstallationBase
     {
-        public NullInstallation(int installationId, Guid guid) : base(installationId, guid)
+        public NullInstallation(int installationId, int intID) : base(installationId, intID)
         {
-            guid = Guid.Empty;
+            intID = Int32.MaxValue;
             installationId = -1;
         }
     }
