@@ -5,16 +5,16 @@ namespace industrialization.Core.Installation
     public abstract class InstallationBase
     {
         protected int InstallationID;
-        protected Guid GUID;
+        protected int intID;
 
         public int InstallationId => InstallationID;
 
-        public Guid Guid => GUID;
+        public int IntId => intID;
 
-        protected InstallationBase(int installationId, Guid guid)
+        protected InstallationBase(int installationId, int intID)
         {
-            InstallationID = installationId;
-            GUID = guid;
+            this.InstallationID = installationId;
+            this.intID = intID;
         }
     }
 }
