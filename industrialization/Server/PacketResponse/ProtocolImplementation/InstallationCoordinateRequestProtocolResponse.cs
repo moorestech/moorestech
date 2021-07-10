@@ -16,7 +16,7 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
         /// レスポンスの組み立て
         /// </summary>
         /// <returns></returns>
-        public static byte[] GetResponse(byte[] payload)
+        public static byte[][] GetResponse(byte[] payload)
         {
             var payloadData = new ByteArrayEnumerator(payload);
             //IDの取得
@@ -32,6 +32,7 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
 
             var inst = new List<InstallationBase>();
             
+            //TODO ここ複数パケットに対応させる
             //データの取得
             //1チャンクは10*10ブロック
             for (int i = x; i < x+10; i++)
@@ -65,7 +66,7 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
                 responsePayload.AddRange(ByteArrayConverter.ToByteArray(i.IntId));
             }
 
-            return responsePayload.ToArray();
+            return new byte[0][];
         }
     }
 }

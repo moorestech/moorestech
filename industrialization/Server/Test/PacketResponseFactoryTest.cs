@@ -77,7 +77,7 @@ namespace industrialization.Server.Test
             send.AddRange(ByteArrayConverter.ToByteArray(0));
             
             //実際にレスポンスを要求
-            var response = new ByteArrayEnumerator(PacketResponseFactory.GetPacketResponse(send.ToArray()));
+            var response = new ByteArrayEnumerator(PacketResponseFactory.GetPacketResponse(send.ToArray())[0]);
             response.MoveNextToGetShort();
             int num = response.MoveNextToGetInt();
             response.MoveNextToGetShort();

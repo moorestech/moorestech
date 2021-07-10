@@ -2,7 +2,7 @@
 {
     public static class InventoryContentResponseProtocol
     {
-        public static byte[] GetResponse(byte[] payload)
+        public static byte[][] GetResponse(byte[] payload)
         {
             throw new System.NotImplementedException();
         }
