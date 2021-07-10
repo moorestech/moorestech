@@ -9,7 +9,7 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
 {
     public static class PutInstallationProtocol
     {
-        public static byte[] GetResponse(byte[] payload)
+        public static byte[][] GetResponse(byte[] payload)
         {
             //パケットのパース、接続元、接続先のインスタンス取得
             var payloadData = new ByteArrayEnumerator(payload);
@@ -27,7 +27,7 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
             WorldInstallationInventoryDatastore.AddInstallation(installation,installation.IntId);
             WorldInstallationDatastore.AddInstallation(installation, x, y);
             //返すものはない
-            return Array.Empty<byte>();
+            return new byte[0][];
         }
     }
 }

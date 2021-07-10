@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -36,8 +37,13 @@ namespace industrialization.Server.PacketHandle
                     while (true)
                     {
                         client.Receive(bytes);
+                        
                         //パケットのレスポンスを得て、送信する
-                        client.Send(PacketResponseFactory.GetPacketResponse(bytes));
+                        var responses = PacketResponseFactory.GetPacketResponse(bytes);
+                        for (int i = 0; i < responses.GetLength(0); i++)
+                        {
+                            client.Send(responses[i]);
+                        }
                     }
                 }).Start();
             }
