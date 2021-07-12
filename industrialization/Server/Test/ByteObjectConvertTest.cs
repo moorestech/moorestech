@@ -66,6 +66,42 @@ namespace industrialization.Server.Test
 
             Assert.AreEqual(Short,byteData.MoveNextToGetShort());
         }
+        [Test]
+        //floatを相互変化しても問題ないかテスト
+        public void OneFloatConvertTest()
+        {
+            var Float = (float)new Random(1000).NextDouble();
+            var byteData = new ByteArrayEnumerator(ByteArrayConverter.ToByteArray(Float));
+
+            Assert.AreEqual(Float,byteData.MoveNextToGetFloat());
+        }
+        [Test]
+        //stringを相互変化しても問題ないかテスト
+        public void OneStringConvertTest()
+        {
+            var String = "変換test012()あいうaＢC:";
+            var byteData = new ByteArrayEnumerator(ByteArrayConverter.ToByteArray(String));
+
+            Assert.AreEqual(String,byteData.MoveNextToGetString());
+        }
+        [Test]
+        //バイト数を指定してstringを相互変化しても問題ないかテスト
+        public void OneByteNumStringConvertTest()
+        {
+            var String = "変換test012()あいうaＢC:";
+            var byteData = new ByteArrayEnumerator(ByteArrayConverter.ToByteArray(String));
+
+            Assert.AreEqual(String,byteData.MoveNextToGetString(30));
+        }
+        [Test]
+        //違うバイト数を指定してstringを相互変化して失敗させるテスト
+        public void OneDifferentByteNumStringConvertTest()
+        {
+            var String = "変換test012()あいうaＢC:";
+            var byteData = new ByteArrayEnumerator(ByteArrayConverter.ToByteArray(String));
+
+            Assert.AreNotEqual(String,byteData.MoveNextToGetString(29));
+        }
         
         [Test]
         //いろいろ相互変換をしても問題ないかテスト
