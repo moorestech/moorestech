@@ -34,7 +34,7 @@ namespace industrialization.Server.Test
             for (int i = 0; i < ansResponse.Count; i++)
             {
                 Console.WriteLine(i);
-                Assert.AreEqual(ansResponse[i],response[i]);
+                Assert.AreEqual(ansResponse[i],response[0][i]);
             }
         }
         

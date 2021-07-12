@@ -66,7 +66,10 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
                 responsePayload.AddRange(ByteArrayConverter.ToByteArray(i.IntId));
             }
 
-            return new byte[0][];
+            var returnPayload = new byte[1][];
+            returnPayload[0] = responsePayload.ToArray();
+            
+            return returnPayload;
         }
     }
 }
