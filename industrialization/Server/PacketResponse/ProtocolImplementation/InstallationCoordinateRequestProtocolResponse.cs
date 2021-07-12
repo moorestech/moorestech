@@ -12,6 +12,7 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
     /// </summary>
     public static class InstallationCoordinateRequestProtocolResponse
     {
+        private const int DefaultChunkSize = 4;
         /// <summary>
         /// レスポンスの組み立て
         /// </summary>
@@ -25,19 +26,18 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
             payloadData.MoveNextToGetShort();
             int x = payloadData.MoveNextToGetInt();
             int y = payloadData.MoveNextToGetInt();
-            //入力さた座標を10の倍数に変換する
-            x = x / 10 * 10;
-            y = y / 10 * 10;
+            //入力さた座標をデフォルトチャンクサイズの倍数に変換する
+            x = x / DefaultChunkSize * DefaultChunkSize;
+            y = y / DefaultChunkSize * DefaultChunkSize;
             
 
             var inst = new List<InstallationBase>();
             
-            //TODO ここ複数パケットに対応させる
             //データの取得
-            //1チャンクは10*10ブロック
-            for (int i = x; i < x+10; i++)
+            //1チャンクのサイズ分ループを回してデータを取得する
+            for (int i = x; i < x+DefaultChunkSize; i++)
             {
-                for (int j = y; j < y+10; j++)
+                for (int j = y; j < y+DefaultChunkSize; j++)
                 {
                     if(!WorldInstallationDatastore.ContainsCoordinate(i, j)) continue;
                     inst.Add(WorldInstallationDatastore.GetInstallation(i, j));   
@@ -63,7 +63,6 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
                 responsePayload.AddRange(ByteArrayConverter.ToByteArray(c.y));
                 
                 responsePayload.AddRange(ByteArrayConverter.ToByteArray(i.InstallationId));
-                responsePayload.AddRange(ByteArrayConverter.ToByteArray(i.IntId));
             }
 
             var returnPayload = new byte[1][];
