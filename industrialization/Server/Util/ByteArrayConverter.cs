@@ -12,5 +12,13 @@ namespace industrialization.Server.Util
         {
             return BitConverter.GetBytes(sendData);
         }
+        public static byte[] ToByteArray(float sendData)
+        {
+            return BitConverter.GetBytes(sendData);
+        }
+        public static byte[] ToByteArray(string sendData)
+        {
+            return System.Text.Encoding.UTF8.GetBytes(sendData);
+        }
     }
 }
