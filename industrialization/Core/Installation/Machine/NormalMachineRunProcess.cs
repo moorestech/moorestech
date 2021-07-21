@@ -28,7 +28,7 @@ namespace industrialization.Core.Installation.Machine
         /// <returns></returns>
         public bool IsAllowedToStartProcess()
         {
-            return !IsProcessing && NormalMachineOutputInventory.IsAllowedToOutputItem(_machineRecipeData);
+            return !IsWaiting && NormalMachineOutputInventory.IsAllowedToOutputItem(_machineRecipeData);
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace industrialization.Core.Installation.Machine
         /// <exception cref="NotImplementedException"></exception>
         public void Update()
         {
-            if (!IsProcessing) return;
+            if (!IsWaiting) return;
             if (IsAllowedToStartProcess())
             {
                 StartProcess(_machineRecipeData);
@@ -59,7 +59,7 @@ namespace industrialization.Core.Installation.Machine
 
 
         //電力量が需要量より少なかったらプロセス終了までの時間を遅くする
-        private bool IsProcessing
+        private bool IsWaiting
         {
             get
             {
