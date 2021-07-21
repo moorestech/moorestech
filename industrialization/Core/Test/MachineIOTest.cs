@@ -114,7 +114,7 @@ namespace industrialization.Core.Test
         public void ItemProcessingFaildTest()
         {
             int seed = 2119350917;
-            int recipeNum = 1;
+            int recipeNum = 20;
             
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
             foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
@@ -126,6 +126,10 @@ namespace industrialization.Core.Test
                 {
                    machine.InsertItem(new ItemStack(minput.Id,minput.Amount));
                 }
+                
+                var electlic = new ElectricSegment();
+                electlic.AddInstallationElectric(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess);
+                electlic.AddGenerator(new TestPowerGenerator(1000));
                 
                 while (!conecct.IsFinish)
                 {
