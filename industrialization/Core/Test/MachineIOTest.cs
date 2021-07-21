@@ -90,7 +90,7 @@ namespace industrialization.Core.Test
                 electlic.AddInstallationElectric(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess);
                 electlic.AddGenerator(new TestPowerGenerator(1000));
                 
-                while (!DummyInstallationInventory.IsFinish)
+                while (!conecct.IsFinish)
                 {
                     GameUpdate.Update();
                 }
@@ -127,7 +127,7 @@ namespace industrialization.Core.Test
                    machine.InsertItem(new ItemStack(minput.Id,minput.Amount));
                 }
                 
-                while (!DummyInstallationInventory.IsFinish)
+                while (!conecct.IsFinish)
                 {
                     GameUpdate.Update();
                 }
