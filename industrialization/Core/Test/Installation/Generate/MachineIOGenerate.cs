@@ -4,7 +4,7 @@ using System.Linq;
 using industrialization.Core.Item;
 using industrialization.Core.Util;
 
-namespace industrialization.Core.Test.Generate
+namespace industrialization.Core.Test.Installation.Generate
 {
     public static class MachineIoGenerate
     {
