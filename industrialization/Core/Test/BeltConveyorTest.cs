@@ -25,7 +25,7 @@ namespace industrialization.Core.Test
 
                 var outputItem = beltconveyor.InsertItem(item);
 
-                while (!dummy.IsFinish)
+                while (!dummy.IsItemExists)
                 {
                     GameUpdate.Update();
                 }

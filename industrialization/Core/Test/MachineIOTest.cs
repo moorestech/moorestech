@@ -90,7 +90,7 @@ namespace industrialization.Core.Test
                 electlic.AddInstallationElectric(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess);
                 electlic.AddGenerator(new TestPowerGenerator(1000));
                 
-                while (!conecct.IsFinish)
+                while (!conecct.IsItemExists)
                 {
                     GameUpdate.Update();
                 }
