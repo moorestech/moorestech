@@ -2,7 +2,7 @@
 
 namespace industrialization.Core.Util
 {
-    public class ProbabilityCalculator
+    public static class ProbabilityCalculator
     {
         public static bool DetectFromPercent(double percent)
         {

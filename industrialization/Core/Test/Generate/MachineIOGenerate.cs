@@ -29,7 +29,7 @@ namespace industrialization.Core.Test.Generate
                 var input = r[i].input.Select(rInput => new inputitem(rInput.id, rInput.amount)).ToList();
 
                 //1～4の乱数のうち1の時は引く、それ以外は足す
-                if (random.Next(1, 5) == 1)
+                if (random.Next(0, 5) == 1)
                 {
                     input.ForEach(i => i.amount -= random.Next(0,i.amount-1));
                 }
