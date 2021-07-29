@@ -32,8 +32,8 @@ namespace industrialization.Core.Test.Installation
                 
                 Assert.True(outputItem.Equals(ItemStackFactory.NewItemStack(id,amount-1)));
                 var tmp = ItemStackFactory.NewItemStack(id, 1);
-                Console.WriteLine($"{tmp} {dummy.insertedItems[0]}");
-                Assert.True(dummy.insertedItems[0].Equals(tmp));
+                Console.WriteLine($"{tmp} {dummy.InsertedItems[0]}");
+                Assert.True(dummy.InsertedItems[0].Equals(tmp));
             }
         }
         //二つのアイテムが入ったとき、一方しか入らないテスト
