@@ -8,8 +8,8 @@ namespace industrialization.Core.Test
 {
     public class DummyInstallationInventory : IInstallationInventory
     {
-        public bool IsFinish => _isFinish;
-        private bool _isFinish = false;
+        public bool IsItemExists => _isItemExists;
+        private bool _isItemExists = false;
         
         public List<IItemStack> insertedItems = new List<IItemStack>();
         private int InsertToEndNum { get; }
@@ -17,7 +17,7 @@ namespace industrialization.Core.Test
 
         public DummyInstallationInventory(int insertToEndNum = 1)
         {
-            _isFinish = false;
+            _isItemExists = false;
             this.InsertToEndNum = insertToEndNum;
             _endInsertCnt = 0;
             insertedItems = CreateEmptyItemStacksList.Create(100).ToList();
@@ -31,7 +31,7 @@ namespace industrialization.Core.Test
                 var r = insertedItems[i].AddItem(itemStack);
                 insertedItems[i] = r.MineItemStack;
                 _endInsertCnt++;
-                _isFinish = InsertToEndNum <= _endInsertCnt;
+                _isItemExists = InsertToEndNum <= _endInsertCnt;
                 return r.ReceiveItemStack;
             }
             return new NullItemStack();
