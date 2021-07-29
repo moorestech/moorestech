@@ -120,6 +120,7 @@ namespace industrialization.Core.Test
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
             foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
             {
+                //前処理
                 var conecct = new DummyInstallationInventory(m.output.Count);
                 var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, conecct);
 
@@ -132,11 +133,17 @@ namespace industrialization.Core.Test
                 electlic.AddInstallationElectric(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess);
                 electlic.AddGenerator(new TestPowerGenerator(1000));
                 
-                while (!conecct.IsFinish)
+                
+                
+                //処理スタート
+                while (!conecct.IsItemExists)
                 {
                     GameUpdate.Update();
                 }
                 
+                
+                //検証
+                //TODO 処理時間が極端に短かったらアウト
                 var remainder = machine.NormalMachineInputInventory.InputSlot;
                 var output =  machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess.NormalMachineOutputInventory.OutputSlot;
 
