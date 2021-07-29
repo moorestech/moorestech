@@ -42,4 +42,29 @@ namespace industrialization.Core.Test
         {
         }
     }
+
+    public class DummyInstallationInventoryTest
+    {
+        
+        [Test]
+        public void InsertItemTest()
+        {
+            var d = new DummyInstallationInventory();
+            for (int i = 1; i <= 100; i++)
+            {
+                d.InsertItem(new ItemStack(i,1));
+            }
+            
+            var item = d.InsertItem(new ItemStack(101,1));
+            Assert.True(item.Equals(new NullItemStack()));
+        }
+
+        [Test]
+        public void ChangeConnectorTest()
+        {
+            var d = new DummyInstallationInventory();
+            d.ChangeConnector(null);
+            Assert.True(true);
+        }
+    }
 }
