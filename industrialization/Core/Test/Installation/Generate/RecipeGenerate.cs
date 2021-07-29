@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
 
-namespace industrialization.Core.Test.Generate
+namespace industrialization.Core.Test.Installation.Generate
 {
     public class RecipeGenerate
     {

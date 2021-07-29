@@ -5,7 +5,7 @@ using industrialization.Core.Installation.BeltConveyor.Generally;
 using industrialization.Core.Item;
 using NUnit.Framework;
 
-namespace industrialization.Core.Test
+namespace industrialization.Core.Test.Installation
 {
     public class BeltConveyorTest
     {

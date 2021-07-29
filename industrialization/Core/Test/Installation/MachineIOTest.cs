@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using industrialization.Core.Electric;
 using industrialization.Core.GameSystem;
-using industrialization.Core.Installation;
 using industrialization.Core.Installation.Machine.util;
 using industrialization.Core.Item;
-using industrialization.Core.Test.Generate;
+using industrialization.Core.Test.Installation.Generate;
 using NUnit.Framework;
 
-namespace industrialization.Core.Test
+namespace industrialization.Core.Test.Installation
 {
-    public class MachineIOTest
+    public class MachineIoTest
     {
         [TestCase(true,new int[1]{1}, new int[1]{1})]
         [TestCase(true,new int[2]{100,101}, new int[2]{10,10})]

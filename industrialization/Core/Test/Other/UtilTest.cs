@@ -1,9 +1,7 @@
-﻿using System;
-using industrialization.Core.Util;
-using Newtonsoft.Json.Serialization;
+﻿using industrialization.Core.Util;
 using NUnit.Framework;
 
-namespace industrialization.Core.Test
+namespace industrialization.Core.Test.Other
 {
     public class UtilTest
     {

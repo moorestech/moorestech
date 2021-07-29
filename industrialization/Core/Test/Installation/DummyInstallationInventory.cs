@@ -5,7 +5,7 @@ using industrialization.Core.Item;
 using industrialization.Core.Util;
 using NUnit.Framework;
 
-namespace industrialization.Core.Test
+namespace industrialization.Core.Test.Installation
 {
     public class DummyInstallationInventory : IInstallationInventory
     {
