@@ -113,5 +113,59 @@ namespace industrialization.Core.Test
                 Assert.True(isthrow);
             }
         }
+        
+        
+        //関係ないオブジェクトを渡すFalseになるテスト
+        [TestCase(0)]
+        [TestCase(1.5)]
+        [TestCase("aaa")]
+        public void NotRelatedObjectPassFalseHaveTest(object obj)
+        {
+            IItemStack nullItem = new NullItemStack();
+            Assert.False(nullItem.Equals(obj));
+            IItemStack item = new ItemStack(5,1);
+            Assert.False(item.Equals(obj));
+        }
+
+        [Test]
+        public void ToStringTest()
+        {
+            IItemStack item = new NullItemStack();
+            Assert.True(item.ToString() == "ID:-1 Amount:0");
+            item = new ItemStack(1, 5);
+            Assert.True(item.ToString() == "ID:1 Amount:5");
+            item = new ItemStack(13, 10);
+            Assert.True(item.ToString() == "ID:13 Amount:10");
+        }
+
+        
+        [TestCase(0,5,true)]
+        [TestCase(-1,10,false)]
+        [TestCase(-10,1,false)]
+        [TestCase(5,2,true)]
+        [TestCase(5,1,true)]
+        [TestCase(5,0,false)]
+        [TestCase(5,-1,false)]
+        public void NewItemStackThrowError(int id,int amount,bool ok)
+        {
+            try
+            {
+                new ItemStack(id, amount);
+                Assert.True(ok);
+            }
+            catch
+            {
+                Assert.False(ok);
+            }
+        }
+
+        [Test]
+        public void ItemStackFactoryNullItemTest()
+        {
+            Assert.True(ItemStackFactory.NewItemStack(-1,0).GetType() == typeof(NullItemStack));
+            Assert.True(ItemStackFactory.NewItemStack(10,0).GetType() == typeof(NullItemStack));
+            Assert.True(ItemStackFactory.NewItemStack(-50,10).GetType() == typeof(NullItemStack));
+            Assert.True(ItemStackFactory.NewItemStack(5,10).GetType() == typeof(ItemStack));
+        }
     }
 }

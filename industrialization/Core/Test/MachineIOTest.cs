@@ -160,12 +160,5 @@ namespace industrialization.Core.Test
                 }
             }
         }
-
-        [Test]
-        public void DummyInstallationInventoryTest()
-        {
-            new DummyInstallationInventory().ChangeConnector(null);
-            Assert.True(true);
-        }
     }
 }
