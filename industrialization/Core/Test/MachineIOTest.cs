@@ -98,6 +98,7 @@ namespace industrialization.Core.Test
                 var remainder = machine.NormalMachineInputInventory.InputSlot;
                 var output = machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess.NormalMachineOutputInventory.OutputSlot;
 
+                Assert.False(output.Count <= 0);
 
                 for (int i = 0; i < output.Count; i++)
                 {
@@ -139,6 +140,7 @@ namespace industrialization.Core.Test
                 var remainder = machine.NormalMachineInputInventory.InputSlot;
                 var output =  machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess.NormalMachineOutputInventory.OutputSlot;
 
+                Assert.False(output.Count <= 0);
 
                 for (int i = 0; i < output.Count; i++)
                 {
