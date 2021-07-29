@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using industrialization.Core.Electric;
 using industrialization.Core.GameSystem;
 using industrialization.Core.Installation.Machine.util;
@@ -74,12 +75,13 @@ namespace industrialization.Core.Test.Installation
         {
             int seed = 2119350917;
             int recipeNum = 20;
-            
+
+            int cnt = 0;
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
             foreach (var m in MachineIoGenerate.MachineIoTestCase(r, seed))
             {
-                var conecct = new DummyInstallationInventory(m.output.Count);
-                var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, conecct);
+                var connect = new DummyInstallationInventory(m.output.Count);
+                var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, connect);
 
                 foreach (var minput in m.input)
                 {
@@ -90,13 +92,13 @@ namespace industrialization.Core.Test.Installation
                 electlic.AddInstallationElectric(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess);
                 electlic.AddGenerator(new TestPowerGenerator(1000));
                 
-                while (!conecct.IsItemExists)
+                while (!connect.IsItemExists)
                 {
                     GameUpdate.Update();
                 }
                 
                 var remainder = machine.NormalMachineInputInventory.InputSlot;
-                var output = machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess.NormalMachineOutputInventory.OutputSlot;
+                var output = connect.InsertedItems;
 
                 Assert.False(output.Count <= 0);
 
@@ -104,10 +106,17 @@ namespace industrialization.Core.Test.Installation
                 {
                     Assert.True(m.output[i].Equals(output[i]));
                 }
-                for (int i = 0; i < output.Count; i++)
+                
+                var inputRemainder = m.inputRemainder.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+                inputRemainder.Sort((a, b) => a.Id - b.Id);
+                Console.WriteLine(cnt);
+                if (cnt == 9) ;
+                for (int i = 0; i < remainder.Count; i++)
                 {
-                    Assert.True(m.inputRemainder[i].Equals(remainder[i]));
+                    Assert.True(inputRemainder[i].Equals(remainder[i]));
                 }
+
+                cnt++;
             }
         }
         //処理時間を短く判定したときに、失敗するかのテスト
@@ -121,8 +130,8 @@ namespace industrialization.Core.Test.Installation
             foreach (var m in MachineIoGenerate.MachineIoTestCase(r, seed))
             {
                 //前処理
-                var conecct = new DummyInstallationInventory(m.output.Count);
-                var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, conecct);
+                var connect = new DummyInstallationInventory(m.output.Count);
+                var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, connect);
 
                 foreach (var minput in m.input)
                 {
@@ -136,7 +145,7 @@ namespace industrialization.Core.Test.Installation
                 
                 
                 //処理スタート
-                while (!conecct.IsItemExists)
+                while (!connect.IsItemExists)
                 {
                     GameUpdate.Update();
                 }
@@ -145,7 +154,7 @@ namespace industrialization.Core.Test.Installation
                 //検証
                 //TODO 処理時間が極端に短かったらアウト
                 var remainder = machine.NormalMachineInputInventory.InputSlot;
-                var output =  machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess.NormalMachineOutputInventory.OutputSlot;
+                var output = connect.InsertedItems;
 
                 Assert.False(output.Count <= 0);
 

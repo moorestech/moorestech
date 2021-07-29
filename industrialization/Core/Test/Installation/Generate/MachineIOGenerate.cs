@@ -45,6 +45,11 @@ namespace industrialization.Core.Test.Installation.Generate
                             continue_ = false; 
                             break;
                         }
+                    }
+                    if(!continue_) break;
+                    
+                    for (int j = 0; j < remainder.Count; j++)
+                    {
                         remainder[j].amount -= r[i].input[j].amount;
                     }
                     if(continue_) cnt++;
@@ -52,6 +57,7 @@ namespace industrialization.Core.Test.Installation.Generate
 
                 var output = MachineIOTest.Convart(r[i].output);
                 output.ToList().ForEach(i => i = ItemStackFactory.NewItemStack(i.Id,i.Amount*cnt));
+                //インプットアイテム数を増やしたテストケース
                 testCase.Add(new MachineIOTest(i,input.ToArray(),output,remainder.ToArray(),r[i].installationID,r[i].time));
             }
 
@@ -94,7 +100,9 @@ namespace industrialization.Core.Test.Installation.Generate
                     r.Add(ItemStackFactory.NewItemStack(i.id,i.amount));
                 }
 
-                return r;
+                var a = r.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+                a.Sort((a, b) => a.Id - b.Id);
+                return a.ToList();
             }
 
             public static List<IItemStack> Convart(outputitem[] output)
@@ -105,7 +113,9 @@ namespace industrialization.Core.Test.Installation.Generate
                     r.Add(ItemStackFactory.NewItemStack(o.id,o.amount));
                 }
 
-                return r;
+                var a = r.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+                a.Sort((a, b) => a.Id - b.Id);
+                return a.ToList();
             }
         }
     }

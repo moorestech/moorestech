@@ -11,8 +11,16 @@ namespace industrialization.Core.Test.Installation
     {
         public bool IsItemExists => _isItemExists;
         private bool _isItemExists = false;
-        
-        public List<IItemStack> insertedItems = new List<IItemStack>();
+        private readonly List<IItemStack> insertedItems;
+        public List<IItemStack> InsertedItems 
+        {
+            get
+            {
+                var a = insertedItems.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+                a.Sort((a, b) => a.Id - b.Id);
+                return a.ToList();
+            }
+        }
         private int InsertToEndNum { get; }
         private int _endInsertCnt;
 
