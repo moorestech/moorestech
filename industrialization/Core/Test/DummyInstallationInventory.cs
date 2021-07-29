@@ -3,6 +3,7 @@ using System.Linq;
 using industrialization.Core.Installation;
 using industrialization.Core.Item;
 using industrialization.Core.Util;
+using NUnit.Framework;
 
 namespace industrialization.Core.Test
 {
