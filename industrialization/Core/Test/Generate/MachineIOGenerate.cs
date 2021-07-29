@@ -6,9 +6,9 @@ using industrialization.Core.Util;
 
 namespace industrialization.Core.Test.Generate
 {
-    public class  MachineIOGenerate
+    public static class MachineIoGenerate
     {
-        public static MachineIOTest[]  MachineIOTestCase(recipe recipe,int seed)
+        public static MachineIOTest[]  MachineIoTestCase(recipe recipe,int seed)
         {
             var testCase = new List<MachineIOTest>();
             recipes[] r = recipe.recipes;
@@ -28,15 +28,8 @@ namespace industrialization.Core.Test.Generate
                 //inputにランダムな量増減する
                 var input = r[i].input.Select(rInput => new inputitem(rInput.id, rInput.amount)).ToList();
 
-                //1～4の乱数のうち1の時は引く、それ以外は足す
-                if (random.Next(0, 5) == 1)
-                {
-                    input.ForEach(i => i.amount -= random.Next(0,i.amount-1));
-                }
-                else
-                {
-                    input.ForEach(i => i.amount += random.Next(0,i.amount*10));
-                }
+                //ランダムな数足す
+                input.ForEach(i => i.amount += random.Next(0,i.amount*10));
                 var remainder = new List<inputitem>();
                 remainder.AddRange(input.Select(i => new inputitem(i.id, i.amount)));
 

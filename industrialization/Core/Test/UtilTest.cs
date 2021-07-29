@@ -1,4 +1,5 @@
-﻿using industrialization.Core.Util;
+﻿using System;
+using industrialization.Core.Util;
 using Newtonsoft.Json.Serialization;
 using NUnit.Framework;
 

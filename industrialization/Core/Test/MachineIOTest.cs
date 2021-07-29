@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using industrialization.Core.Electric;
 using industrialization.Core.GameSystem;
+using industrialization.Core.Installation;
 using industrialization.Core.Installation.Machine.util;
 using industrialization.Core.Item;
 using industrialization.Core.Test.Generate;
@@ -76,7 +77,7 @@ namespace industrialization.Core.Test
             int recipeNum = 20;
             
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
-            foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
+            foreach (var m in MachineIoGenerate.MachineIoTestCase(r, seed))
             {
                 var conecct = new DummyInstallationInventory(m.output.Count);
                 var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, conecct);
@@ -118,7 +119,7 @@ namespace industrialization.Core.Test
             int recipeNum = 20;
             
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
-            foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
+            foreach (var m in MachineIoGenerate.MachineIoTestCase(r, seed))
             {
                 //前処理
                 var conecct = new DummyInstallationInventory(m.output.Count);
@@ -158,6 +159,13 @@ namespace industrialization.Core.Test
                     Assert.False(m.inputRemainder[i].Equals(remainder[i]));
                 }
             }
+        }
+
+        [Test]
+        public void DummyInstallationInventoryTest()
+        {
+            new DummyInstallationInventory().ChangeConnector(null);
+            Assert.True(true);
         }
     }
 }
