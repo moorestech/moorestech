@@ -5,7 +5,7 @@ namespace industrialization.Server.Test
 {
     public class StartServer
     {
-        [Test]
+        //[Test]
         public void StartTest()
         {
             PacketHandler.StartServer();

@@ -8,18 +8,6 @@ namespace industrialization.Core.Test.Generate
 {
     public class RecipeGenerate
     {
-        //[Test]
-        public void Main()
-        {
-            int seed = 2119350917;
-            int recipeNum = 30;
-            
-            var serializer = new DataContractJsonSerializer(typeof(recipe));
-            FileStream fs = new FileStream("output.json", FileMode.Create);
-            var r = MakeRecipe(seed,recipeNum);
-            MachineIOGenerate.MachineIOTestCase(r, seed);
-            serializer.WriteObject(fs,r);
-        }
 
         public static recipe MakeRecipe(int seed,int recipeNum)
         {
