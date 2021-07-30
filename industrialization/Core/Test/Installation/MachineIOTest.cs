@@ -92,6 +92,7 @@ namespace industrialization.Core.Test.Installation
                 electlic.AddInstallationElectric(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess);
                 electlic.AddGenerator(new TestPowerGenerator(1000));
                 
+                //TODO 1子完了したら次に行ってしまう問題
                 while (!connect.IsItemExists)
                 {
                     GameUpdate.Update();

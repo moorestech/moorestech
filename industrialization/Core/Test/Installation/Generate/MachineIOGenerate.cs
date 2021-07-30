@@ -11,22 +11,22 @@ namespace industrialization.Core.Test.Installation.Generate
         public static MachineIOTest[]  MachineIoTestCase(recipe recipe,int seed)
         {
             var testCase = new List<MachineIOTest>();
-            recipes[] r = recipe.recipes;
-            for (int i = 0; i < r.Length; i++)
+            recipes[] recipes = recipe.recipes;
+            foreach (var r in recipes)
             {
                 //必要量だけ入れる
-                testCase.Add(new MachineIOTest(i,
-                    r[i].input,
-                    r[i].output,
-                    CreateEmptyItemStacksList.Create(r[i].input.Length),
-                    r[i].installationID,
-                    r[i].time));
+                testCase.Add(new MachineIOTest(
+                    r.input,
+                    r.output,
+                    CreateEmptyItemStacksList.Create(r.input.Length),
+                    r.installationID,
+                    r.time));
                 
                 
                 var random = new Random(seed);
                 
                 //inputにランダムな量増減する
-                var input = r[i].input.Select(rInput => new inputitem(rInput.id, rInput.amount)).ToList();
+                var input = r.input.Select(rInput => new inputitem(rInput.id, rInput.amount)).ToList();
 
                 //ランダムな数足す
                 input.ForEach(i => i.amount += random.Next(0,i.amount*10));
@@ -40,7 +40,7 @@ namespace industrialization.Core.Test.Installation.Generate
                 {
                     for (int j = 0; j < remainder.Count; j++)
                     {
-                        if(remainder[j].amount < r[i].input[j].amount)
+                        if(remainder[j].amount < r.input[j].amount)
                         {
                             continue_ = false; 
                             break;
@@ -50,15 +50,15 @@ namespace industrialization.Core.Test.Installation.Generate
                     
                     for (int j = 0; j < remainder.Count; j++)
                     {
-                        remainder[j].amount -= r[i].input[j].amount;
+                        remainder[j].amount -= r.input[j].amount;
                     }
                     if(continue_) cnt++;
                 }
 
-                var output = MachineIOTest.Convart(r[i].output);
+                var output = MachineIOTest.Convart(r.output);
                 output.ToList().ForEach(i => i = ItemStackFactory.NewItemStack(i.Id,i.Amount*cnt));
                 //インプットアイテム数を増やしたテストケース
-                testCase.Add(new MachineIOTest(i,input.ToArray(),output,remainder.ToArray(),r[i].installationID,r[i].time));
+                testCase.Add(new MachineIOTest(input.ToArray(),output,remainder.ToArray(),r.installationID,r.time));
             }
 
             return testCase.ToArray();
@@ -66,26 +66,23 @@ namespace industrialization.Core.Test.Installation.Generate
         
         public class MachineIOTest
         {
-            public int recipeID;
             public int installtionId;
             public List<IItemStack> input;
             public List<IItemStack> output;
             public List<IItemStack> inputRemainder;
             public int time;
 
-            public MachineIOTest(int recipeId, inputitem[] input, outputitem[] output, List<IItemStack> inputRemainder,int installtionId,int time)
+            public MachineIOTest(inputitem[] input, outputitem[] output, List<IItemStack> inputRemainder,int installtionId,int time)
             {
                 this.installtionId = installtionId;
-                recipeID = recipeId;
                 this.input = Convart(input);
                 this.output = Convart(output);
                 this.inputRemainder = inputRemainder;
                 this.time = time;
             }
-            public MachineIOTest(int recipeId, inputitem[] input, List<IItemStack> output, inputitem[] inputRemainder,int installtionId,int time)
+            public MachineIOTest(inputitem[] input, List<IItemStack> output, inputitem[] inputRemainder,int installtionId,int time)
             {
                 this.installtionId = installtionId;
-                recipeID = recipeId;
                 this.input = Convart(input);
                 this.output = output;
                 this.inputRemainder = Convart(inputRemainder);
