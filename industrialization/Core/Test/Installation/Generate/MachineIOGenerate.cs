@@ -20,7 +20,8 @@ namespace industrialization.Core.Test.Installation.Generate
                     r.output,
                     CreateEmptyItemStacksList.Create(r.input.Length),
                     r.installationID,
-                    r.time));
+                    r.time,
+                    1));
                 
                 
                 var random = new Random(seed);
@@ -55,10 +56,10 @@ namespace industrialization.Core.Test.Installation.Generate
                     if(continue_) cnt++;
                 }
 
-                var output = MachineIOTest.Convart(r.output);
-                output.ToList().ForEach(i => i = ItemStackFactory.NewItemStack(i.Id,i.Amount*cnt));
+                //出力アイテムもクラフト回数分倍にする
+                var output = MachineIOTest.Convart(r.output).Select(i => i = ItemStackFactory.NewItemStack(i.Id,i.Amount*cnt)).ToList();
                 //インプットアイテム数を増やしたテストケース
-                testCase.Add(new MachineIOTest(input.ToArray(),output,remainder.ToArray(),r.installationID,r.time));
+                testCase.Add(new MachineIOTest(input.ToArray(),output,remainder.ToArray(),r.installationID,r.time,cnt));
             }
 
             return testCase.ToArray();
@@ -71,22 +72,25 @@ namespace industrialization.Core.Test.Installation.Generate
             public List<IItemStack> output;
             public List<IItemStack> inputRemainder;
             public int time;
+            public int CraftCnt;
 
-            public MachineIOTest(inputitem[] input, outputitem[] output, List<IItemStack> inputRemainder,int installtionId,int time)
+            public MachineIOTest(inputitem[] input, outputitem[] output, List<IItemStack> inputRemainder,int installtionId,int time,int craftCnt)
             {
                 this.installtionId = installtionId;
                 this.input = Convart(input);
                 this.output = Convart(output);
                 this.inputRemainder = inputRemainder;
                 this.time = time;
+                CraftCnt = craftCnt;
             }
-            public MachineIOTest(inputitem[] input, List<IItemStack> output, inputitem[] inputRemainder,int installtionId,int time)
+            public MachineIOTest(inputitem[] input, List<IItemStack> output, inputitem[] inputRemainder,int installtionId,int time,int craftCnt)
             {
                 this.installtionId = installtionId;
                 this.input = Convart(input);
                 this.output = output;
                 this.inputRemainder = Convart(inputRemainder);
                 this.time = time;
+                CraftCnt = craftCnt;
             }
 
             public static List<IItemStack> Convart(inputitem[] input)
