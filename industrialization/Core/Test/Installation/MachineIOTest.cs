@@ -78,7 +78,8 @@ namespace industrialization.Core.Test.Installation
 
             int cnt = 0;
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
-            foreach (var m in MachineIoGenerate.MachineIoTestCase(r, seed))
+            var recipes = MachineIoGenerate.MachineIoTestCase(r, seed);
+            foreach (var m in recipes)
             {
                 var connect = new DummyInstallationInventory(m.output.Count);
                 var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, connect);
@@ -92,9 +93,16 @@ namespace industrialization.Core.Test.Installation
                 electlic.AddInstallationElectric(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess);
                 electlic.AddGenerator(new TestPowerGenerator(1000));
                 
-                //TODO 1子完了したら次に行ってしまう問題
-                while (!connect.IsItemExists)
+                var now = DateTime.Now;
+                DateTime endTime = now.AddMilliseconds(m.time*m.CraftCnt);
+                //TODO 1個作ったらもうそれ以降処理が進まない問題
+                while (!(connect.InsertedItems.Count != 0 && m.output[0].Equals(connect.InsertedItems[0])))
                 {
+                    //クラフト時間が超過したら失敗
+                    now = DateTime.Now;
+                    if (cnt == 9 && endTime.AddSeconds(1) < now)
+                    {
+                    }
                     GameUpdate.Update();
                 }
                 
