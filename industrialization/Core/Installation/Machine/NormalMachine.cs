@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using industrialization.Core.Config.Installation;
+using industrialization.Core.Config.Recipe.Data;
 using industrialization.Core.GameSystem;
 using industrialization.Core.Item;
 using industrialization.Core.Util;
@@ -17,7 +18,7 @@ namespace industrialization.Core.Installation.Machine
         
         public NormalMachine(int installationId, int intId,
             NormalMachineInputInventory normalMachineInputInventory,
-            NormalMachineOutputInventory normalMachineOutputInventory) : base(installationId, intId)
+            NormalMachineOutputInventory normalMachineOutputInventory ) : base(installationId, intId)
         {
             _normalMachineInputInventory = normalMachineInputInventory;
             _normalMachineOutputInventory = normalMachineOutputInventory;
@@ -29,7 +30,6 @@ namespace industrialization.Core.Installation.Machine
         {
             //アイテムをインプットスロットに入れた後、プロセス開始できるなら開始
             var item = _normalMachineInputInventory.InsertItem(itemStack);
-            if (IsAllowedToStartProcess) _state = ProcessState.Processing;
             return item;
         }
         public void ChangeConnector(IInstallationInventory installationInventory)
@@ -66,6 +66,15 @@ namespace industrialization.Core.Installation.Machine
         }
         private void Idle()
         {
+            if (IsAllowedToStartProcess) StartProcessing();
+        }
+
+        private IMachineRecipeData _processingRecipeData;
+        private void StartProcessing()
+        {
+            _state = ProcessState.Processing;
+            _processingRecipeData = _normalMachineInputInventory.GetRecipeData();
+            _normalMachineInputInventory.ReduceInputSlot(_processingRecipeData);
         }
         private void Processing()
         {
