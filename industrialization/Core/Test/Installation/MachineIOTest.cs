@@ -74,7 +74,7 @@ namespace industrialization.Core.Test.Installation
         public void ItemProcessingTest()
         {
             int seed = 2119350917;
-            int recipeNum = 20;
+            int recipeNum = 1;
 
             int cnt = 0;
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
@@ -100,8 +100,9 @@ namespace industrialization.Core.Test.Installation
                 {
                     //クラフト時間が超過したら失敗
                     now = DateTime.Now;
-                    if (cnt == 9 && endTime.AddSeconds(1) < now)
+                    if (endTime.AddSeconds(1) < now)
                     {
+                        Assert.Fail();
                     }
                     GameUpdate.Update();
                 }
@@ -119,7 +120,6 @@ namespace industrialization.Core.Test.Installation
                 var inputRemainder = m.inputRemainder.Where(i => i.Id != NullItemStack.NullItemId).ToList();
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
                 Console.WriteLine(cnt);
-                if (cnt == 9) ;
                 for (int i = 0; i < remainder.Count; i++)
                 {
                     Assert.True(inputRemainder[i].Equals(remainder[i]));

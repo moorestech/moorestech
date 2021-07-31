@@ -17,12 +17,13 @@ namespace industrialization.Core.Installation.Machine
 
         public List<IItemStack> StartingProcess(List<IItemStack> inputSlot)
         {
+            //建物IDと現在のインプットスロットからレシピを検索する
             var recipe = MachineRecipeConfig.GetRecipeData(_installationId, inputSlot.ToList());
-            //実行できるレシピがなかったらそのまま返す
-            if(!recipe.RecipeConfirmation(inputSlot)) return inputSlot;
             
-            //プロセスの実行ができるかどうかを見る
-            if (!NormalMachineRunProcess.IsAllowedToStartProcess()) return inputSlot;
+            //実行できるレシピかどうか
+            if(!recipe.RecipeConfirmation(inputSlot)) return inputSlot;
+            //処理をスタートできるか？
+            if (!NormalMachineRunProcess.IsAllowedToStartProcess) return inputSlot;
 
             //inputスロットからアイテムを減らす
             foreach (var item in recipe.ItemInputs)
