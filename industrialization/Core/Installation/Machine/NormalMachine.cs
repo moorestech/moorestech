@@ -1,32 +1,68 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using industrialization.Core.Config.Installation;
+using industrialization.Core.GameSystem;
 using industrialization.Core.Item;
+using industrialization.Core.Util;
 
 namespace industrialization.Core.Installation.Machine
 {
-    public class NormalMachine : InstallationBase,IInstallationInventory
+    //TODO アウトプットのほうもつくる
+    public class NormalMachine : InstallationBase,IInstallationInventory,IUpdate
     {
-        public readonly NormalMachineInputInventory NormalMachineInputInventory;
-
+        private readonly NormalMachineInputInventory _normalMachineInputInventory;
+        private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
+        private ProcessState _state = ProcessState.Idle;
+        
+        public NormalMachine(int installationId, int intId,
+            NormalMachineInputInventory normalMachineInputInventory,
+            NormalMachineOutputInventory normalMachineOutputInventory) : base(installationId, intId)
+        {
+            _normalMachineInputInventory = normalMachineInputInventory;
+            _normalMachineOutputInventory = normalMachineOutputInventory;
+            intId = intId;
+            InstallationID = installationId;
+            GameUpdate.AddUpdateObject(this);
+        }
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            return NormalMachineInputInventory.InsertItem(itemStack);
+            return _normalMachineInputInventory.InsertItem(itemStack);
         }
-
         public void ChangeConnector(IInstallationInventory installationInventory)
         {
-            NormalMachineInputInventory.
-                NormalMachineStartProcess.
-                NormalMachineRunProcess.
-                NormalMachineOutputInventory
-                .ChangeConnectInventory(installationInventory);
+            _normalMachineOutputInventory.ChangeConnectInventory(installationInventory);
         }
 
-        public NormalMachine(int installationId, int intID,NormalMachineInputInventory normalMachineInputInventory) : base(installationId, intID)
+        private bool IsAllowedToStartProcess =>
+            _state == ProcessState.Idle && _normalMachineInputInventory.IsAllowedToStartProcess;
+
+        public void Update()
+        {
+            switch (_state)
+            {
+                case ProcessState.Idle :
+                    Idle();
+                    break;
+                case ProcessState.Processing :
+                    Processing();
+                    break;
+                case ProcessState.ProcessingExit :
+                    ProcessingExit();
+                    break;
+            }
+        }
+        private void Idle()
         {
             
-            NormalMachineInputInventory = normalMachineInputInventory;
-            intID = intID;
-            InstallationID = installationId;
+        }
+        private void Processing()
+        {
+            
+        }
+        private void ProcessingExit()
+        {
+            
         }
     }
 }
