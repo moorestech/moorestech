@@ -27,15 +27,27 @@ namespace industrialization.Core.Installation.Machine
         }
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            return _normalMachineInputInventory.InsertItem(itemStack);
+            //アイテムをインプットスロットに入れた後、プロセス開始できるなら開始
+            var item = _normalMachineInputInventory.InsertItem(itemStack);
+            if (IsAllowedToStartProcess) _state = ProcessState.Processing;
+            return item;
         }
         public void ChangeConnector(IInstallationInventory installationInventory)
         {
             _normalMachineOutputInventory.ChangeConnectInventory(installationInventory);
         }
 
-        private bool IsAllowedToStartProcess =>
-            _state == ProcessState.Idle && _normalMachineInputInventory.IsAllowedToStartProcess;
+        private bool IsAllowedToStartProcess
+        {
+            get
+            {
+                var recipe = _normalMachineInputInventory.GetRecipeData();
+                return _state == ProcessState.Idle && 
+                       _normalMachineInputInventory.IsAllowedToStartProcess && 
+                       _normalMachineOutputInventory.IsAllowedToOutputItem(recipe);
+            }
+        }
+            
 
         public void Update()
         {
@@ -54,7 +66,6 @@ namespace industrialization.Core.Installation.Machine
         }
         private void Idle()
         {
-            
         }
         private void Processing()
         {

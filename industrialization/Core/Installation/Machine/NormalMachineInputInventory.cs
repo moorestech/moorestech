@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using industrialization.Core.Config.Installation;
 using industrialization.Core.Config.Recipe;
+using industrialization.Core.Config.Recipe.Data;
 using industrialization.Core.Item;
 using industrialization.Core.Util;
 
@@ -54,6 +55,11 @@ namespace industrialization.Core.Installation.Machine
                 //実行できるレシピかどうか
                 return recipe.RecipeConfirmation(_inputSlot);
             }
+        }
+
+        public IMachineRecipeData GetRecipeData()
+        {
+            return MachineRecipeConfig.GetRecipeData(_installationId, _inputSlot.ToList());
         }
     }
 }
