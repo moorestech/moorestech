@@ -13,15 +13,6 @@ namespace industrialization.Core.Installation.Machine
     {
         private int _installationId;
         private List<IItemStack> _inputSlot;
-        public List<IItemStack> InputSlot
-        {
-            get
-            {
-                var a = _inputSlot.Where(i => i.Id != NullItemStack.NullItemId).ToList();
-                a.Sort((a, b) => a.Id - b.Id);
-                return a.ToList();
-            }
-        }
 
         public NormalMachineInputInventory(int installationId)
         {
@@ -60,6 +51,22 @@ namespace industrialization.Core.Installation.Machine
         public IMachineRecipeData GetRecipeData()
         {
             return MachineRecipeConfig.GetRecipeData(_installationId, _inputSlot.ToList());
+        }
+
+        public void ReduceInputSlot(IMachineRecipeData recipe)
+        {
+            
+            //inputスロットからアイテムを減らす
+            foreach (var item in recipe.ItemInputs)
+            {
+                for (var i = 0; i < _inputSlot.Count; i++)
+                {
+                    if (_inputSlot[i].Id != item.Id || item.Amount > _inputSlot[i].Amount) continue;
+                    //アイテムを減らす
+                    _inputSlot[i] = _inputSlot[i].SubItem(item.Amount);
+                    break;
+                }
+            }
         }
     }
 }
