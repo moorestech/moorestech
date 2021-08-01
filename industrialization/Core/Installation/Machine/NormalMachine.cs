@@ -15,6 +15,8 @@ namespace industrialization.Core.Installation.Machine
         private readonly NormalMachineInputInventory _normalMachineInputInventory;
         private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
         private ProcessState _state = ProcessState.Idle;
+        public List<IItemStack> InputSlot => _normalMachineInputInventory.InputSlot;
+        public List<IItemStack> OutputSlot => _normalMachineOutputInventory.OutputSlot;
         
         public NormalMachine(int installationId, int intId,
             NormalMachineInputInventory normalMachineInputInventory,

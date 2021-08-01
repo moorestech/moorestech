@@ -13,6 +13,15 @@ namespace industrialization.Core.Installation.Machine
     {
         private int _installationId;
         private List<IItemStack> _inputSlot;
+        public List<IItemStack> InputSlot 
+        {
+            get
+            {
+                var a = _inputSlot.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+                a.Sort((a, b) => a.Id - b.Id);
+                return a.ToList();
+            }
+        }
 
         public NormalMachineInputInventory(int installationId)
         {
