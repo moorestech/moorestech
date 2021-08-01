@@ -32,20 +32,21 @@ namespace industrialization.Core.Test.Installation
         /// <summary>
         /// レシピがある時のテスト
         /// </summary>
-        [TestCase(0,new int[1]{0},1)]
-        [TestCase(0,new int[1]{2},1)]
-        [TestCase(1,new int[2]{1,2},3)]
-        [TestCase(1,new int[2]{2,1},3)]
-        [TestCase(3,new int[3]{1,2,0},5)]
-        [TestCase(3,new int[3]{2,1,0},5)]
-        public void RecipeInputItemInstallationIdTest(int installationsId, int[] items,int output0Id)
+        [TestCase(0,new int[1]{0},1,1)]
+        [TestCase(0,new int[1]{2},1,1)]
+        [TestCase(1,new int[2]{1,2},3,1)]
+        [TestCase(1,new int[2]{2,1},3,1)]
+        [TestCase(3,new int[3]{1,2,0},5,1)]
+        [TestCase(3,new int[3]{2,1,0},5,1)]
+        public void RecipeInputItemInstallationIdTest(int installationsId, int[] items,int output0Id,double output0Percent)
         {
             var input = new List<IItemStack>();
             items.ToList().ForEach(
                 i => input.Add(new ItemStack(i,1)));
             
-            int ans = MachineRecipeConfig.GetRecipeData(installationsId, input).ItemOutputs[0].OutputItem.Id;
-            Assert.AreEqual(output0Id,ans);
+            var ans = MachineRecipeConfig.GetRecipeData(installationsId, input);
+            Assert.AreEqual(output0Id,ans.ItemOutputs[0].OutputItem.Id);
+            Assert.AreEqual(output0Percent,ans.ItemOutputs[0].Percent);
         }
         
         //nullの時のテスト

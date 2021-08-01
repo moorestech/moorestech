@@ -25,5 +25,15 @@ namespace industrialization.Core.Test.Other
         {
             Assert.AreEqual(name, ItemConfig.GetItemConfig(id).Name);
         }
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
+        [TestCase(5)]
+        public void JsonIdTest(int id)
+        {
+            Assert.AreEqual(id, ItemConfig.GetItemConfig(id).Id);
+        }
     }
 }
