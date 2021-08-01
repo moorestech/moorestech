@@ -97,12 +97,12 @@ namespace industrialization.Core.Test.Installation
                 DateTime endTime = now.AddMilliseconds(m.time*m.CraftCnt);
                 while (!(connect.InsertedItems.Count != 0 && m.output[0].Equals(connect.InsertedItems[0])))
                 {
-                    //クラフト時間が超過したら失敗
-                    if (endTime.AddSeconds(0.2) < DateTime.Now) Assert.Fail();
                     GameUpdate.Update();
                 }
+                //クラフト時間が超過したら失敗
+                Assert.False(endTime.AddSeconds(0.2) < DateTime.Now);
                 //クラフト時間が短かったらアウト
-                if (DateTime.Now < endTime.AddSeconds(-0.2)) Assert.Fail();
+                Assert.False(DateTime.Now < endTime.AddSeconds(-0.2));
                 
                 var remainder = machine.InputSlot;
                 var output = connect.InsertedItems;
