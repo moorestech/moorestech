@@ -8,7 +8,7 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally.DataClass
         {
             ItemID = itemId;
             InsertTime = DateTime.Now;
-            RemovalAvailableTime = DateTime.Now.AddSeconds(removalAvailableTime);
+            RemovalAvailableTime = DateTime.Now.AddMilliseconds(removalAvailableTime);
         }
 
         public DateTime InsertTime { get; }
