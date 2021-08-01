@@ -33,7 +33,7 @@ namespace industrialization.Core.Test.Installation
             
             segment.RemoveInstallationElectric(electric);
             GameUpdate.Update();
-            Assert.AreEqual(0, electric.nowPower);
+            Assert.AreEqual(25, electric.nowPower);
             Assert.AreEqual(100, electric2.nowPower);
         }
     }
