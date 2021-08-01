@@ -34,11 +34,11 @@ namespace industrialization.Core.Test.Installation
 
             if (isEquals)
             {
-                Assert.AreEqual(items.ToArray(), machine.NormalMachineInputInventory.InputSlot.ToArray());   
+                Assert.AreEqual(items.ToArray(), machine.InputSlot.ToArray());   
             }
             else
             {
-                Assert.AreNotEqual(items.ToArray(), machine.NormalMachineInputInventory.InputSlot.ToArray());
+                Assert.AreNotEqual(items.ToArray(), machine.InputSlot.ToArray());
             }
             
         }
@@ -61,7 +61,7 @@ namespace industrialization.Core.Test.Installation
 
             for (int i = 0; i < ansItem.Count; i++)
             {
-                var m = machine.NormalMachineInputInventory.InputSlot;
+                var m = machine.InputSlot;
                 Console.WriteLine(m[i].ToString()+" "+ansItem[i].ToString());
                 Assert.True(ansItem[i].Equals(m[i]));
             }
@@ -74,7 +74,7 @@ namespace industrialization.Core.Test.Installation
         public void ItemProcessingTest()
         {
             int seed = 2119350917;
-            int recipeNum = 1;
+            int recipeNum = 20;
 
             int cnt = 0;
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
@@ -90,24 +90,21 @@ namespace industrialization.Core.Test.Installation
                 }
 
                 var electlic = new ElectricSegment();
-                electlic.AddInstallationElectric(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess);
+                electlic.AddInstallationElectric(machine);
                 electlic.AddGenerator(new TestPowerGenerator(1000));
                 
                 var now = DateTime.Now;
                 DateTime endTime = now.AddMilliseconds(m.time*m.CraftCnt);
-                //TODO 1個作ったらもうそれ以降処理が進まない問題
                 while (!(connect.InsertedItems.Count != 0 && m.output[0].Equals(connect.InsertedItems[0])))
                 {
                     //クラフト時間が超過したら失敗
-                    now = DateTime.Now;
-                    if (endTime.AddSeconds(1) < now)
-                    {
-                        Assert.Fail();
-                    }
+                    if (endTime.AddSeconds(0.2) < DateTime.Now) Assert.Fail();
                     GameUpdate.Update();
                 }
+                //クラフト時間が短かったらアウト
+                if (DateTime.Now < endTime.AddSeconds(-0.2)) Assert.Fail();
                 
-                var remainder = machine.NormalMachineInputInventory.InputSlot;
+                var remainder = machine.InputSlot;
                 var output = connect.InsertedItems;
 
                 Assert.False(output.Count <= 0);
@@ -148,7 +145,7 @@ namespace industrialization.Core.Test.Installation
                 }
                 
                 var electlic = new ElectricSegment();
-                electlic.AddInstallationElectric(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess);
+                electlic.AddInstallationElectric(machine);
                 electlic.AddGenerator(new TestPowerGenerator(1000));
                 
                 
@@ -162,7 +159,7 @@ namespace industrialization.Core.Test.Installation
                 
                 //検証
                 //TODO 処理時間が極端に短かったらアウト
-                var remainder = machine.NormalMachineInputInventory.InputSlot;
+                var remainder = machine.InputSlot;
                 var output = connect.InsertedItems;
 
                 Assert.False(output.Count <= 0);
