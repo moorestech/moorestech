@@ -95,6 +95,7 @@ namespace industrialization.Core.Installation.Machine
         private int _nowPower = 0;
         public int RequestPower(){return requestPower;}
         public void SupplyPower(int power){_nowPower = power;}
+        public int GetIntId(){return intID;}
     }
 
     enum ProcessState
