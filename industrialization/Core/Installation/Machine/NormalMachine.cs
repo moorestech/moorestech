@@ -9,7 +9,6 @@ using industrialization.Core.Util;
 
 namespace industrialization.Core.Installation.Machine
 {
-    //TODO アウトプットのほうもつくる
     public class NormalMachine : InstallationBase,IInstallationInventory,IUpdate
     {
         private readonly NormalMachineInputInventory _normalMachineInputInventory;
@@ -59,9 +58,6 @@ namespace industrialization.Core.Installation.Machine
                 case ProcessState.Processing :
                     Processing();
                     break;
-                case ProcessState.ProcessingExit :
-                    ProcessingExit();
-                    break;
             }
         }
         private void Idle()
@@ -75,14 +71,24 @@ namespace industrialization.Core.Installation.Machine
             _state = ProcessState.Processing;
             _processingRecipeData = _normalMachineInputInventory.GetRecipeData();
             _normalMachineInputInventory.ReduceInputSlot(_processingRecipeData);
+            _remainingMillSecond = _processingRecipeData.Time;
         }
+
+        private double _remainingMillSecond;
         private void Processing()
         {
-            
+            _remainingMillSecond -= GameUpdate.UpdateTime;
+            if (_remainingMillSecond <= 0)
+            {
+                _state = ProcessState.Idle;
+                _normalMachineOutputInventory.InsertOutputSlot(_processingRecipeData);
+            }
         }
-        private void ProcessingExit()
-        {
-            
-        }
+    }
+
+    enum ProcessState
+    {
+        Idle,
+        Processing
     }
 }
