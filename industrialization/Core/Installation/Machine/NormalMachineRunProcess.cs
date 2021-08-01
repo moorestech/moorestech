@@ -75,11 +75,4 @@ namespace industrialization.Core.Installation.Machine
         public int RequestPower(){return requestPower;}
         public void SupplyPower(int power){_nowPower = power;}
     }
-
-    enum ProcessState
-    {
-        Idle,
-        Processing,
-        ProcessingExit
-    }
 }
