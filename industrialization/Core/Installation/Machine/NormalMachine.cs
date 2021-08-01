@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using industrialization.Core.Config.Installation;
 using industrialization.Core.Config.Recipe.Data;
+using industrialization.Core.Electric;
 using industrialization.Core.GameSystem;
 using industrialization.Core.Item;
 using industrialization.Core.Util;
 
 namespace industrialization.Core.Installation.Machine
 {
-    public class NormalMachine : InstallationBase,IInstallationInventory,IUpdate
+    public class NormalMachine : InstallationBase,IInstallationInventory,IUpdate,IInstallationElectric
     {
         private readonly NormalMachineInputInventory _normalMachineInputInventory;
         private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
@@ -77,13 +78,21 @@ namespace industrialization.Core.Installation.Machine
         private double _remainingMillSecond;
         private void Processing()
         {
-            _remainingMillSecond -= GameUpdate.UpdateTime;
+            _remainingMillSecond -= GameUpdate.UpdateTime * (_nowPower / (double)requestPower);
             if (_remainingMillSecond <= 0)
             {
                 _state = ProcessState.Idle;
                 _normalMachineOutputInventory.InsertOutputSlot(_processingRecipeData);
             }
         }
+
+        
+        
+        //TODO コンフィグに必要電力量を追加
+        private const int requestPower = 100;
+        private int _nowPower = 0;
+        public int RequestPower(){return requestPower;}
+        public void SupplyPower(int power){_nowPower = power;}
     }
 
     enum ProcessState

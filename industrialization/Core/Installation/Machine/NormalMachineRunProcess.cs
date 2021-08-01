@@ -7,8 +7,6 @@ namespace industrialization.Core.Installation.Machine
 {
     public class NormalMachineRunProcess : IUpdate,IInstallationElectric
     {
-        //TODO コンフィグに必要電力量を追加
-        private const int requestPower = 100;
         
         private IMachineRecipeData _machineRecipeData = new NullMachineRecipeData();
         public readonly NormalMachineOutputInventory NormalMachineOutputInventory;
