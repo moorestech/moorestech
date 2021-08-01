@@ -9,9 +9,6 @@ namespace industrialization.Core.Util
             percent *= 100;
             //小数点以下の桁数
             int digitNum = 0;
-            if(percent.ToString().IndexOf(".") > 0){
-                digitNum = percent.ToString ().Split(".")[1].Length;
-            }
 
             //小数点以下を無くすように乱数の上限と判定の境界を上げる
             int rate = (int)Math.Pow (10, digitNum);
