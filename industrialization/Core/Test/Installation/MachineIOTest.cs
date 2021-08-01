@@ -92,7 +92,7 @@ namespace industrialization.Core.Test.Installation
 
                 var electlic = new ElectricSegment();
                 electlic.AddInstallationElectric(machine);
-                electlic.AddGenerator(new TestPowerGenerator(1000));
+                electlic.AddGenerator(new TestPowerGenerator(1000,0));
                 
                 var now = DateTime.Now;
                 DateTime endTime = now.AddMilliseconds(m.time*m.CraftCnt);

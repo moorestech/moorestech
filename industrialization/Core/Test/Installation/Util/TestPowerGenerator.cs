@@ -6,15 +6,22 @@ namespace industrialization.Core.Test.Installation
     public class TestPowerGenerator : IPowerGenerator
     {
         private readonly int _power;
+        private int id;
 
-        public TestPowerGenerator(int power)
+        public TestPowerGenerator(int power,int id)
         {
             this._power = power;
+            this.id = id;
         }
 
         public int OutputPower()
         {
             return _power;
+        }
+
+        public int GetIntId()
+        {
+            return id;
         }
     }
 }
