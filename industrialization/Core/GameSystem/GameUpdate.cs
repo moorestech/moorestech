@@ -26,7 +26,8 @@ namespace industrialization.Core.GameSystem
             {
                 _updates[i]?.Update();
             }
-            Thread.Sleep(10);
+            //次のアップデートと最低10ミリ秒間隔を開けて実行する
+            while (DateTime.Now.Subtract(_prevUpdateDateTime).TotalMilliseconds <= 10){}
         }
     }
 }
