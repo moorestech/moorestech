@@ -125,54 +125,5 @@ namespace industrialization.Core.Test.Installation
                 cnt++;
             }
         }
-        //処理時間を短く判定したときに、失敗するかのテスト
-        [Test]
-        public void ItemProcessingFaildTest()
-        {
-            int seed = 2119350917;
-            int recipeNum = 20;
-            
-            var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
-            foreach (var m in MachineIoGenerate.MachineIoTestCase(r, seed))
-            {
-                //前処理
-                var connect = new DummyInstallationInventory(m.output.Count);
-                var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, connect);
-
-                foreach (var minput in m.input)
-                {
-                   machine.InsertItem(new ItemStack(minput.Id,minput.Amount));
-                }
-                
-                var electlic = new ElectricSegment();
-                electlic.AddInstallationElectric(machine);
-                electlic.AddGenerator(new TestPowerGenerator(1000));
-                
-                
-                
-                //処理スタート
-                while (!connect.IsItemExists)
-                {
-                    GameUpdate.Update();
-                }
-                
-                
-                //検証
-                //TODO 処理時間が極端に短かったらアウト
-                var remainder = machine.InputSlot;
-                var output = connect.InsertedItems;
-
-                Assert.False(output.Count <= 0);
-
-                for (int i = 0; i < output.Count; i++)
-                {
-                    Assert.False(m.output[i].Equals(output[i]));
-                }
-                for (int i = 0; i < output.Count; i++)
-                {
-                    Assert.False(m.inputRemainder[i].Equals(remainder[i]));
-                }
-            }
-        }
     }
 }
