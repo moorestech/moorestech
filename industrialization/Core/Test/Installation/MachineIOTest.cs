@@ -82,6 +82,7 @@ namespace industrialization.Core.Test.Installation
             
             var machineList = new List<NormalMachine>();
             var dummyInstallationList = new List<DummyInstallationInventory>();
+            var endDataTimeList = new List<DateTime>();
             var MaxDateTime = DateTime.Now;
             
             //機械の作成とアイテムの挿入
@@ -103,6 +104,7 @@ namespace industrialization.Core.Test.Installation
                 machineList.Add(machine);
                 
                 DateTime endTime = DateTime.Now.AddMilliseconds(m.time*m.CraftCnt);
+                endDataTimeList.Add(endTime);
                 if (endTime.CompareTo(MaxDateTime) == 1)
                 {
                     MaxDateTime = endTime;
@@ -118,15 +120,16 @@ namespace industrialization.Core.Test.Installation
             //検証
             for (int i = 0; i < machineList.Count; i++)
             {
-                var endTime = dummyInstallationList[i].EndTime;
+                Console.WriteLine(i);
+                var endTime = endDataTimeList[i];
                 var machine = machineList[i];
                 var connect = dummyInstallationList[i];
                 var machineIoTest = recipes[i];
                 
                 //クラフト時間が超過したら失敗
-                Assert.False(endTime.AddSeconds(0.2) < DateTime.Now);
+                Assert.True(connect.EndTime < endTime.AddSeconds(0.2));
                 //クラフト時間が短かったらアウト
-                Assert.False(DateTime.Now < endTime.AddSeconds(-0.2));
+                Assert.True(endTime.AddSeconds(-0.2) < connect.EndTime);
                 
                 var output = connect.InsertedItems;
                 Assert.False(output.Count <= 0);
