@@ -55,19 +55,13 @@ namespace industrialization.Core.Test.Installation
                 insertedItems[i] = r.MineItemStack;
                 _endInsertCnt++;
                 _isItemExists = InsertToEndNum <= _endInsertCnt;
+                
+                
+                //もし予想していたアイテムと現在のアイテムが同じだったらそれを終了時刻とする
+                if(InsertedItems[0].Equals(expect[0])) endTime = DateTime.Now;
+                
                 return r.ReceiveItemStack;
             }
-
-            //もし予想していたアイテムと現在のアイテムが同じだったらそれを終了時刻とする
-            int cnt = 0;
-            for (int i = 0; i < InsertedItems.Count; i++)
-            {
-                if (InsertedItems[i].Equals(expect[i]))
-                {
-                    cnt++;
-                }
-            }
-            if(cnt == insertedItems.Count) endTime = DateTime.Now;
             return new NullItemStack();
         }
 

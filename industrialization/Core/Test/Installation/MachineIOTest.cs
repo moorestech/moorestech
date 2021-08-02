@@ -74,7 +74,6 @@ namespace industrialization.Core.Test.Installation
         [Test]
         public void ItemProcessingTest()
         {
-            //TODO 大量の機械を用意して、一気に処理させて、検証を行うようにする
             int seed = 2119350917;
             int recipeNum = 20;
             var recipes = MachineIoGenerate.MachineIoTestCase(RecipeGenerate.MakeRecipe(seed,recipeNum), seed);
