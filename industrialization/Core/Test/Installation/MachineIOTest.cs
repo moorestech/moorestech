@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using industrialization.Core.Electric;
 using industrialization.Core.GameSystem;
+using industrialization.Core.Installation.Machine;
 using industrialization.Core.Installation.Machine.util;
 using industrialization.Core.Item;
 using industrialization.Core.Test.Installation.Generate;
@@ -80,9 +81,11 @@ namespace industrialization.Core.Test.Installation
             int cnt = 0;
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
             var recipes = MachineIoGenerate.MachineIoTestCase(r, seed);
+            var machineList = new List<NormalMachine>();
+            var dummyInstallationList = new List<DummyInstallationInventory>();
             foreach (var m in recipes)
             {
-                var connect = new DummyInstallationInventory(m.output.Count);
+                var connect = new DummyInstallationInventory(m.output,m.output.Count);
                 var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, connect);
 
                 foreach (var minput in m.input)
