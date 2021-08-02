@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using industrialization.Core.Installation;
 using industrialization.Core.Item;
@@ -12,6 +13,11 @@ namespace industrialization.Core.Test.Installation
         public bool IsItemExists => _isItemExists;
         private bool _isItemExists = false;
         private readonly List<IItemStack> insertedItems;
+        
+        //機械の処理終了時刻計測に関する機能
+        public DateTime EndTime => endTime;
+        private DateTime endTime;
+        private List<IItemStack> expect = new List<IItemStack>();
         public List<IItemStack> InsertedItems 
         {
             get
@@ -31,6 +37,14 @@ namespace industrialization.Core.Test.Installation
             _endInsertCnt = 0;
             insertedItems = CreateEmptyItemStacksList.Create(100).ToList();
         }
+        public DummyInstallationInventory(List<IItemStack> expect,int insertToEndNum = 1)
+        {
+            _isItemExists = false;
+            this.InsertToEndNum = insertToEndNum;
+            _endInsertCnt = 0;
+            insertedItems = CreateEmptyItemStacksList.Create(100).ToList();
+            this.expect = expect;
+        }
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
@@ -43,6 +57,17 @@ namespace industrialization.Core.Test.Installation
                 _isItemExists = InsertToEndNum <= _endInsertCnt;
                 return r.ReceiveItemStack;
             }
+
+            //もし予想していたアイテムと現在のアイテムが同じだったらそれを終了時刻とする
+            int cnt = 0;
+            for (int i = 0; i < InsertedItems.Count; i++)
+            {
+                if (InsertedItems[i].Equals(expect[i]))
+                {
+                    cnt++;
+                }
+            }
+            if(cnt == insertedItems.Count) endTime = DateTime.Now;
             return new NullItemStack();
         }
 
