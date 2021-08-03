@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using industrialization.Core.Electric;
 using industrialization.Core.GameSystem;
+using industrialization.Core.Installation;
 using industrialization.Core.Installation.Machine;
 using industrialization.Core.Installation.Machine.util;
 using industrialization.Core.Item;
@@ -69,10 +70,105 @@ namespace industrialization.Core.Test.Installation
             
         }
         
-        
         //アイテムが通常通り処理されるかのテスト
         [Test]
         public void ItemProcessingTest()
+        {
+            int seed = 2119350917;
+            int recipeNum = 20;
+            var recipes = MachineIoGenerate.MachineIoTestCase(RecipeGenerate.MakeRecipe(seed,recipeNum), seed);
+            
+            
+            var machineList = new List<NormalMachine>();
+            var MaxDateTime = DateTime.Now;
+            
+            //機械の作成とアイテムの挿入
+            foreach (var m in recipes)
+            {
+                var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, new NullIInstallationInventory());
+
+                foreach (var minput in m.input)
+                {
+                    machine.InsertItem(new ItemStack(minput.Id,minput.Amount));
+                }
+
+                var electrical = new ElectricSegment();
+                electrical.AddInstallationElectric(machine);
+                electrical.AddGenerator(new TestPowerGenerator(1000,0));
+                
+                machineList.Add(machine);
+                
+                DateTime endTime = DateTime.Now.AddMilliseconds(m.time*m.CraftCnt);
+                if (endTime.CompareTo(MaxDateTime) == 1)
+                {
+                    MaxDateTime = endTime;
+                }
+            }
+            
+            //最大クラフト時間を超過するまでクラフトする
+            while (MaxDateTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
+            {
+                GameUpdate.Update();
+            }
+            
+            //検証その1
+            for (int i = 0; i < machineList.Count; i++)
+            {
+                Console.WriteLine(i);
+                var machine = machineList[i];
+                var machineIoTest = recipes[i];
+                
+                Assert.False(machine.OutputSlot.Count <= 0);
+
+                for (int j = 0; j < machine.OutputSlot.Count; j++)
+                {
+                    Assert.True(machineIoTest.output[j].Equals(machine.OutputSlot[j]));
+                }
+                
+                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+                inputRemainder.Sort((a, b) => a.Id - b.Id);
+                for (int j = 0; j < machine.InputSlot.Count; j++)
+                {
+                    Assert.True(inputRemainder[j].Equals(machine.InputSlot[j]));
+                }
+            }
+            
+            var dummyInstallationList = new List<DummyInstallationInventory>();
+            //コネクターを変える
+            for (int i = 0; i < recipes.Length; i++)
+            {
+                var dummy = new DummyInstallationInventory(recipes[i].output);
+                machineList[i].ChangeConnector(dummy);
+                dummyInstallationList.Add(dummy);
+            }
+            GameUpdate.Update();
+            //検証その2
+            for (int i = 0; i < machineList.Count; i++)
+            {
+                Console.WriteLine(i);
+                var machine = machineList[i];
+                var dummy = dummyInstallationList[i];
+                var machineIoTest = recipes[i];
+                
+                Assert.True(machine.OutputSlot.Count == 0);
+
+                for (int j = 0; j < machineIoTest.output.Count; j++)
+                {
+                    Assert.True(machineIoTest.output[j].Equals(dummy.InsertedItems[j]));
+                }
+                
+                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+                inputRemainder.Sort((a, b) => a.Id - b.Id);
+                for (int j = 0; j < inputRemainder.Count; j++)
+                {
+                    Assert.True(inputRemainder[j].Equals(machine.InputSlot[j]));
+                }
+            }
+        }
+        
+        //アイテムが通常通り処理されるかのテスト
+        [Test]
+        public void ItemProcessingOutputTest()
         {
             int seed = 2119350917;
             int recipeNum = 20;
@@ -145,7 +241,6 @@ namespace industrialization.Core.Test.Installation
                     Assert.True(inputRemainder[j].Equals(machine.InputSlot[j]));
                 }
             }
-            
         }
     }
 }
