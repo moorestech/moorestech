@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using industrialization.Core.Installation;
 using industrialization.Core.Item;
@@ -11,12 +12,13 @@ namespace industrialization.Core.Test.Installation
     {
         public bool IsItemExists => _isItemExists;
         private bool _isItemExists = false;
-        private readonly List<IItemStack> insertedItems;
+        private readonly List<IItemStack> _insertedItems;
+        
         public List<IItemStack> InsertedItems 
         {
             get
             {
-                var a = insertedItems.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+                var a = _insertedItems.Where(i => i.Id != NullItemStack.NullItemId).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
                 return a.ToList();
             }
@@ -29,18 +31,19 @@ namespace industrialization.Core.Test.Installation
             _isItemExists = false;
             this.InsertToEndNum = insertToEndNum;
             _endInsertCnt = 0;
-            insertedItems = CreateEmptyItemStacksList.Create(100).ToList();
+            _insertedItems = CreateEmptyItemStacksList.Create(100).ToList();
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            for (int i = 0; i < insertedItems.Count; i++)
+            for (int i = 0; i < _insertedItems.Count; i++)
             {
-                if (!insertedItems[i].IsAllowedToAdd(itemStack)) continue;
-                var r = insertedItems[i].AddItem(itemStack);
-                insertedItems[i] = r.MineItemStack;
+                if (!_insertedItems[i].IsAllowedToAdd(itemStack)) continue;
+                var r = _insertedItems[i].AddItem(itemStack);
+                _insertedItems[i] = r.MineItemStack;
                 _endInsertCnt++;
                 _isItemExists = InsertToEndNum <= _endInsertCnt;
+
                 return r.ReceiveItemStack;
             }
             return new NullItemStack();

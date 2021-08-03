@@ -2,12 +2,13 @@
 using System.Linq;
 using industrialization.Core.Config.Installation;
 using industrialization.Core.Config.Recipe.Data;
+using industrialization.Core.GameSystem;
 using industrialization.Core.Item;
 using industrialization.Core.Util;
 
 namespace industrialization.Core.Installation.Machine
 {
-    public class NormalMachineOutputInventory
+    public class NormalMachineOutputInventory :IUpdate
     {
         private readonly List<IItemStack> _outputSlot;
         private IInstallationInventory _connectInventory;
@@ -26,6 +27,7 @@ namespace industrialization.Core.Installation.Machine
             _connectInventory = connect;
             var data = InstallationConfig.GetInstallationsConfig(installationId);
             _outputSlot = CreateEmptyItemStacksList.Create(data.OutputSlot);
+            GameUpdate.AddUpdateObject(this);
         }
 
         /// <summary>
@@ -58,7 +60,6 @@ namespace industrialization.Core.Installation.Machine
                 }
             }
 
-            InsertConnectInventory();
         }
 
         void InsertConnectInventory()
@@ -72,6 +73,11 @@ namespace industrialization.Core.Installation.Machine
         public void ChangeConnectInventory(IInstallationInventory installationInventory)
         {
             _connectInventory = installationInventory;
+        }
+
+        public void Update()
+        {
+            InsertConnectInventory();
         }
     }
 }
