@@ -72,7 +72,7 @@ namespace industrialization.Core.Test.Installation
         
         //アイテムが通常通り処理されるかのテスト
         [Test]
-        public void ItemProcessingAndChangeConnecterTest()
+        public void ItemProcessingAndChangeConnectorTest()
         {
             int seed = 2119350917;
             int recipeNum = 20;
