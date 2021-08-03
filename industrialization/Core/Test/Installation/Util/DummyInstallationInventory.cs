@@ -58,7 +58,7 @@ namespace industrialization.Core.Test.Installation
                 
                 
                 //もし予想していたアイテムと現在のアイテムが同じだったらそれを終了時刻とする
-                if(InsertedItems[0].Equals(expect[0])) endTime = DateTime.Now;
+                if(InsertedItems.Count != 0 && InsertedItems[0].Equals(expect[0])) endTime = DateTime.Now;
                 
                 return r.ReceiveItemStack;
             }
