@@ -72,7 +72,7 @@ namespace industrialization.Core.Test.Installation
         
         //アイテムが通常通り処理されるかのテスト
         [Test]
-        public void ItemProcessingTest()
+        public void ItemProcessingAndChangeConnecterTest()
         {
             int seed = 2119350917;
             int recipeNum = 20;
@@ -137,7 +137,7 @@ namespace industrialization.Core.Test.Installation
             //コネクターを変える
             for (int i = 0; i < recipes.Length; i++)
             {
-                var dummy = new DummyInstallationInventory(recipes[i].output);
+                var dummy = new DummyInstallationInventory(recipes[i].output.Count);
                 machineList[i].ChangeConnector(dummy);
                 dummyInstallationList.Add(dummy);
             }
@@ -177,13 +177,12 @@ namespace industrialization.Core.Test.Installation
             
             var machineList = new List<NormalMachine>();
             var dummyInstallationList = new List<DummyInstallationInventory>();
-            var endDataTimeList = new List<DateTime>();
             var MaxDateTime = DateTime.Now;
             
             //機械の作成とアイテムの挿入
             foreach (var m in recipes)
             {
-                var connect = new DummyInstallationInventory(m.output,m.output.Count);
+                var connect = new DummyInstallationInventory(m.output.Count);
                 var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, connect);
 
                 foreach (var minput in m.input)
@@ -199,7 +198,6 @@ namespace industrialization.Core.Test.Installation
                 machineList.Add(machine);
                 
                 DateTime endTime = DateTime.Now.AddMilliseconds(m.time*m.CraftCnt);
-                endDataTimeList.Add(endTime);
                 if (endTime.CompareTo(MaxDateTime) == 1)
                 {
                     MaxDateTime = endTime;
@@ -216,15 +214,9 @@ namespace industrialization.Core.Test.Installation
             for (int i = 0; i < machineList.Count; i++)
             {
                 Console.WriteLine(i);
-                var endTime = endDataTimeList[i];
                 var machine = machineList[i];
                 var connect = dummyInstallationList[i];
                 var machineIoTest = recipes[i];
-                
-                //クラフト時間が超過したら失敗
-                Assert.True(connect.EndTime < endTime.AddSeconds(0.2));
-                //クラフト時間が短かったらアウト
-                Assert.True(endTime.AddSeconds(-0.2) < connect.EndTime);
                 
                 var output = connect.InsertedItems;
                 Assert.False(output.Count <= 0);
