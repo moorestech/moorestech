@@ -2,6 +2,7 @@
 using industrialization.Core.GameSystem;
 using industrialization.Core.Installation;
 using industrialization.Core.Installation.BeltConveyor.Generally;
+using industrialization.Core.Installation.BeltConveyor.util;
 using industrialization.Core.Item;
 using NUnit.Framework;
 
@@ -23,7 +24,7 @@ namespace industrialization.Core.Test.Installation
                 int amount = random.Next(1, 10);
                 var item = ItemStackFactory.NewItemStack(id, amount);
                 var dummy = new DummyInstallationInventory(1);
-                var beltConveyor = new GenericBeltConveyor(0,Int32.MaxValue, new GenericBeltConveyor(0,new GenericBeltConveyorConnector(dummy)));
+                var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,new DummyInstallationInventory());
 
 
                 var outputItem = beltConveyor.InsertItem(item);
@@ -50,10 +51,10 @@ namespace industrialization.Core.Test.Installation
                 var item1 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
                 var item2 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
 
-                var beltconveyor = new GenericBeltConveyor(0,Int32.MaxValue, new GenericBeltConveyor(0,new GenericBeltConveyorConnector(new NullIInstallationInventory())));
+                var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,new DummyInstallationInventory());
 
-                var item1Out = beltconveyor.InsertItem(item1);
-                var item2Out = beltconveyor.InsertItem(item2);
+                var item1Out = beltConveyor.InsertItem(item1);
+                var item2Out = beltConveyor.InsertItem(item2);
 
                 Assert.True(item1Out.Equals(item1.SubItem(1)));
                 Assert.True(item2Out.Equals(item2));
@@ -70,10 +71,10 @@ namespace industrialization.Core.Test.Installation
                 var item1 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
                 var item2 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
 
-                var beltconveyor = new GenericBeltConveyor(0,Int32.MaxValue, new GenericBeltConveyor(0,new GenericBeltConveyorConnector(new DummyInstallationInventory())));
+                var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,new DummyInstallationInventory());
 
-                var item1out = beltconveyor.InsertItem(item1);
-                var item2out = beltconveyor.InsertItem(item2);
+                var item1out = beltConveyor.InsertItem(item1);
+                var item2out = beltConveyor.InsertItem(item2);
 
                 Assert.True(item1out.Equals(item1.SubItem(1)));
                 Assert.True(item2.Equals(item2out));
