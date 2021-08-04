@@ -15,7 +15,7 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
         private readonly int _inventoryItemNum = 4;
         private readonly double _canItemInsertTime = 500;
 
-        private readonly List<BeltConveyorInventoryItem> _inventoryItems;
+        private readonly List<BeltConveyorInventoryItem> _inventoryItems = new List<BeltConveyorInventoryItem>();
         private IInstallationInventory _connector;
 
         public GenericBeltConveyor(int installationId, int intId, IInstallationInventory connector): base(installationId, intId)
@@ -31,7 +31,8 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
         {
             //新しく挿入可能か
             if (_inventoryItems.Count < _inventoryItemNum &&
-                _inventoryItems[0].RemainingTime < _canItemInsertTime - _canItemInsertTime / _inventoryItemNum)
+                (1 <= _inventoryItems.Count && _inventoryItems[0].RemainingTime < _canItemInsertTime - _canItemInsertTime / _inventoryItemNum)||
+                _inventoryItems.Count == 0)
             {
                 if (_inventoryItems.Count == 0)
                 {

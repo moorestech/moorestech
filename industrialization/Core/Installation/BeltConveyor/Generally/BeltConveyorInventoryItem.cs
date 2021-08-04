@@ -9,7 +9,7 @@
             get => _remainingTime;
             set
             {
-                if (LimitTime < value)
+                if (LimitTime < RemainingTime)
                 {
                     _remainingTime = value;
                 }
