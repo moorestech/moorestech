@@ -23,7 +23,7 @@ namespace industrialization.Core.Test.Installation
                 int amount = random.Next(1, 10);
                 var item = ItemStackFactory.NewItemStack(id, amount);
                 var dummy = new DummyInstallationInventory(1);
-                var beltConveyor = new GenericBeltConveyor(0,Int32.MaxValue, new GenericBeltConveyorInventory(0,new GenericBeltConveyorConnector(dummy)));
+                var beltConveyor = new GenericBeltConveyor(0,Int32.MaxValue, new GenericBeltConveyor(0,new GenericBeltConveyorConnector(dummy)));
 
 
                 var outputItem = beltConveyor.InsertItem(item);
@@ -50,7 +50,7 @@ namespace industrialization.Core.Test.Installation
                 var item1 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
                 var item2 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
 
-                var beltconveyor = new GenericBeltConveyor(0,Int32.MaxValue, new GenericBeltConveyorInventory(0,new GenericBeltConveyorConnector(new NullIInstallationInventory())));
+                var beltconveyor = new GenericBeltConveyor(0,Int32.MaxValue, new GenericBeltConveyor(0,new GenericBeltConveyorConnector(new NullIInstallationInventory())));
 
                 var item1Out = beltconveyor.InsertItem(item1);
                 var item2Out = beltconveyor.InsertItem(item2);
@@ -70,7 +70,7 @@ namespace industrialization.Core.Test.Installation
                 var item1 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
                 var item2 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
 
-                var beltconveyor = new GenericBeltConveyor(0,Int32.MaxValue, new GenericBeltConveyorInventory(0,new GenericBeltConveyorConnector(new DummyInstallationInventory())));
+                var beltconveyor = new GenericBeltConveyor(0,Int32.MaxValue, new GenericBeltConveyor(0,new GenericBeltConveyorConnector(new DummyInstallationInventory())));
 
                 var item1out = beltconveyor.InsertItem(item1);
                 var item2out = beltconveyor.InsertItem(item2);
