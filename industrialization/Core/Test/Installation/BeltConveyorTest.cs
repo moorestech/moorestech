@@ -9,7 +9,9 @@ namespace industrialization.Core.Test.Installation
 {
     public class BeltConveyorTest
     {
-        //TODO ベルトコンベアのアイテムの時間経過をupdateTimeにする
+        //TODO アイテム搬出入時間のテスト
+        //TODO 一定個数以上アイテムが入らないテスト
+        
         //一個のアイテムが入って正しく搬出されるかのテスト
         [Test]
         public void InsertBeltConveyorTest()
