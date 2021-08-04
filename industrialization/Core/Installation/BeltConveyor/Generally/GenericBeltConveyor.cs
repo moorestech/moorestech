@@ -6,7 +6,6 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
 {
     public class GenericBeltConveyor : InstallationBase, IInstallationInventory
     {
-        private readonly IBeltConveyorComponent _beltConveyorItemInventory;
         public const int CanCarryItemNum = 1; 
         
         /// <summary>
