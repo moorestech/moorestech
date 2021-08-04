@@ -10,7 +10,7 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
     /// <summary>
     /// アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class GenericBeltConveyor : IUpdate, IInstallationInventory
+    public class GenericBeltConveyor :InstallationBase, IUpdate, IInstallationInventory
     {
         private readonly int _inventoryItemNum = 4;
         private readonly double _canItemInsertTime = 500;
@@ -18,10 +18,10 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
         private readonly List<BeltConveyorInventoryItem> _inventoryItems;
         private IInstallationInventory _connector;
 
-        public GenericBeltConveyor(int installtionID, IInstallationInventory connector)
+        public GenericBeltConveyor(int installationId, int intId, IInstallationInventory connector): base(installationId, intId)
         {
             _connector = connector;
-            var conf = BeltConveyorConfig.GetBeltConveyorData(installtionID);
+            var conf = BeltConveyorConfig.GetBeltConveyorData(installationId);
             _inventoryItemNum = conf.BeltConveyorItemNum;
             _canItemInsertTime = conf.BeltConveyorSpeed;
             GameUpdate.AddUpdateObject(this);
