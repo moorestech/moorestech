@@ -1,25 +1,25 @@
 ﻿namespace industrialization.Core.Config.BeltConveyor
 {
-    public class BeltConveyorConfig
+    public static class BeltConveyorConfig
     {
         private const int DefaultBeltConveyorNum = 4;
-        private const int DefaultBeltConveyorSpeed = 200;
+        private const int DefaultTimeOfItemEnterToExit = 200;
         //TODO テスト用仮メソッドを実装する
         public static BeltConveyorData GetBeltConveyorData(int installtionID)
         {
-            return new BeltConveyorData(DefaultBeltConveyorNum,DefaultBeltConveyorSpeed);
+            return new BeltConveyorData(DefaultBeltConveyorNum,DefaultTimeOfItemEnterToExit);
         }
     }
 
     public class BeltConveyorData
     {
-        public BeltConveyorData(int beltConveyorItemNum, int beltConveyorSpeed)
+        public BeltConveyorData(int beltConveyorItemNum, int timeOfItemEnterToExit)
         {
             BeltConveyorItemNum = beltConveyorItemNum;
-            BeltConveyorSpeed = beltConveyorSpeed;
+            TimeOfItemEnterToExit = timeOfItemEnterToExit;
         }
 
         public int BeltConveyorItemNum { get; }
-        public int BeltConveyorSpeed { get; }
+        public int TimeOfItemEnterToExit { get; }
     }
 }

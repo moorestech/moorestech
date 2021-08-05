@@ -26,8 +26,9 @@ namespace industrialization.Core.Test.Installation
                 var item = ItemStackFactory.NewItemStack(id, amount);
                 var dummy = new DummyInstallationInventory(1);
                 var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,dummy);
+                var conf = BeltConveyorConfig.GetBeltConveyorData(0);
 
-
+                var endTime = DateTime.Now.AddMilliseconds(conf.TimeOfItemEnterToExit);
                 var outputItem = beltConveyor.InsertItem(item);
                 while (!dummy.IsItemExists)
                 {

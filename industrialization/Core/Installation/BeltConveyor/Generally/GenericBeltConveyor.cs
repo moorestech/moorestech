@@ -23,7 +23,7 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
             _connector = connector;
             var conf = BeltConveyorConfig.GetBeltConveyorData(installationId);
             _inventoryItemNum = conf.BeltConveyorItemNum;
-            _timeOfItemEnterToExit = conf.BeltConveyorSpeed;
+            _timeOfItemEnterToExit = conf.TimeOfItemEnterToExit;
             GameUpdate.AddUpdateObject(this);
         }
 
