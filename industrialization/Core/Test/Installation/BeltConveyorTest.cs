@@ -11,7 +11,6 @@ namespace industrialization.Core.Test.Installation
 {
     public class BeltConveyorTest
     {
-        //TODO アイテム搬出入時間のテスト
         //TODO 一定個数以上アイテムが入らないテスト
         
         //一個のアイテムが入って正しく搬出されるかのテスト
@@ -26,14 +25,16 @@ namespace industrialization.Core.Test.Installation
                 var item = ItemStackFactory.NewItemStack(id, amount);
                 var dummy = new DummyInstallationInventory(1);
                 var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,dummy);
-                var conf = BeltConveyorConfig.GetBeltConveyorData(0);
 
-                var endTime = DateTime.Now.AddMilliseconds(conf.TimeOfItemEnterToExit);
+                var expectedEndTime = DateTime.Now.AddMilliseconds(
+                    BeltConveyorConfig.GetBeltConveyorData(0).TimeOfItemEnterToExit);
                 var outputItem = beltConveyor.InsertItem(item);
                 while (!dummy.IsItemExists)
                 {
                     GameUpdate.Update();
                 }
+                Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.2));
+                Assert.True(expectedEndTime.AddSeconds(-0.2) <= DateTime.Now);
                 
                 Assert.True(outputItem.Equals(ItemStackFactory.NewItemStack(id,amount-1)));
                 var tmp = ItemStackFactory.NewItemStack(id, 1);
