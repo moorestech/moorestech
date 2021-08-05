@@ -1,29 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using industrialization.Server.PacketResponse.Implementation;
+using industrialization.Server.PacketResponse.ProtocolImplementation;
+using industrialization.Server.Util;
 
 namespace industrialization.Server.PacketResponse
 {
-    delegate IPacketResponse Instance(byte[] payload);
-    public class PacketResponseFactory
+    public static class PacketResponseFactory
     {
-        private static List<Instance> _packetResponseList = new List<Instance>();
+        delegate byte[][] Responses(byte[] payload);
+        private static List<Responses> _packetResponseList = new List<Responses>();
 
         private static void Init()
         {
-            _packetResponseList.Add(DummyProtocol.NewInstance);
-            _packetResponseList.Add(PutInstallationProtocol.NewInstance);
-            _packetResponseList.Add(InstallationCoordinateRequestProtocolResponse.NewInstance);
+            _packetResponseList.Add(DummyProtocol.GetResponse);
+            _packetResponseList.Add(PutInstallationProtocol.GetResponse);
+            _packetResponseList.Add(InstallationCoordinateRequestProtocolResponse.GetResponse);
+            _packetResponseList.Add(InventoryContentResponseProtocol.GetResponse);
         }
         
-        public static IPacketResponse GetPacketResponse(byte[] payload)
+        public static byte[][] GetPacketResponse(byte[] payload)
         {
             if (_packetResponseList.Count == 0) Init();
 
-            var id = BitConverter.ToInt16(new byte[2] {payload[0], payload[1]});
-
-            return _packetResponseList[id](payload);
+            return _packetResponseList[new ByteArrayEnumerator(payload).MoveNextToGetShort()](payload);
         }
     }
 }

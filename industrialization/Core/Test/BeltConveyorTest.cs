@@ -20,12 +20,12 @@ namespace industrialization.Core.Test
                 int amount = random.Next(1, 10);
                 var item = ItemStackFactory.NewItemStack(id, amount);
                 var dummy = new DummyInstallationInventory(1);
-                var beltconveyor = new GenericBeltConveyor(0,Guid.Empty, new GenericBeltConveyorInventory(new GenericBeltConveyorConnector(dummy)));
+                var beltconveyor = new GenericBeltConveyor(0,Int32.MaxValue, new GenericBeltConveyorInventory(new GenericBeltConveyorConnector(dummy)));
 
 
                 var outputItem = beltconveyor.InsertItem(item);
 
-                while (!DummyInstallationInventory.IsFinish)
+                while (!dummy.IsFinish)
                 {
                     GameUpdate.Update();
                 }
@@ -47,7 +47,7 @@ namespace industrialization.Core.Test
                 var item1 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
                 var item2 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
 
-                var beltconveyor = new GenericBeltConveyor(0,Guid.Empty, new GenericBeltConveyorInventory(new GenericBeltConveyorConnector(new NullIInstallationInventory())));
+                var beltconveyor = new GenericBeltConveyor(0,Int32.MaxValue, new GenericBeltConveyorInventory(new GenericBeltConveyorConnector(new NullIInstallationInventory())));
 
                 var item1Out = beltconveyor.InsertItem(item1);
                 var item2Out = beltconveyor.InsertItem(item2);
@@ -67,7 +67,7 @@ namespace industrialization.Core.Test
                 var item1 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
                 var item2 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
 
-                var beltconveyor = new GenericBeltConveyor(0,Guid.Empty, new GenericBeltConveyorInventory(new GenericBeltConveyorConnector(new DummyInstallationInventory())));
+                var beltconveyor = new GenericBeltConveyor(0,Int32.MaxValue, new GenericBeltConveyorInventory(new GenericBeltConveyorConnector(new DummyInstallationInventory())));
 
                 var item1out = beltconveyor.InsertItem(item1);
                 var item2out = beltconveyor.InsertItem(item2);

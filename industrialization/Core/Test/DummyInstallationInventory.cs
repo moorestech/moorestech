@@ -8,8 +8,8 @@ namespace industrialization.Core.Test
 {
     public class DummyInstallationInventory : IInstallationInventory
     {
-        public static bool IsFinish => _isFinish;
-        private static bool _isFinish = false;
+        public bool IsFinish => _isFinish;
+        private bool _isFinish = false;
         
         public List<IItemStack> insertedItems = new List<IItemStack>();
         private int InsertToEndNum { get; }

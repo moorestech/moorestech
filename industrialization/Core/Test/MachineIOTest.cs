@@ -19,7 +19,7 @@ namespace industrialization.Core.Test
         [TestCase(false,new int[2]{0,0}, new int[2]{10,5})]
         public void MachineInputTest(bool isEquals,int[] id,int[] amount)
         {
-            var machine = NormalMachineFactory.Create(4, Guid.Empty, new DummyInstallationInventory(1));
+            var machine = NormalMachineFactory.Create(4, Int32.MaxValue, new DummyInstallationInventory(1));
             var items = new List<IItemStack>();
             for (int i = 0; i < id.Length; i++)
             {
@@ -46,7 +46,7 @@ namespace industrialization.Core.Test
         [TestCase(new int[6]{1,3,1,5,5,0}, new int[6]{1,1,2,6,2,4}, new int[4]{0,1,3,5}, new int[4]{4,3,1,8})]
         public void MachineAddInputTest(int[] id,int[] amount,int[] ansid,int[] ansamount)
         {
-            var machine = NormalMachineFactory.Create(4,Guid.Empty,new DummyInstallationInventory());
+            var machine = NormalMachineFactory.Create(4,Int32.MaxValue,new DummyInstallationInventory());
             for (int i = 0; i < id.Length; i++)
             {
                 machine.InsertItem(ItemStackFactory.NewItemStack(id[i], amount[i]));
@@ -79,7 +79,7 @@ namespace industrialization.Core.Test
             foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
             {
                 var conecct = new DummyInstallationInventory(m.output.Count);
-                var machine = NormalMachineFactory.Create(m.installtionId,Guid.Empty, conecct);
+                var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, conecct);
 
                 foreach (var minput in m.input)
                 {
@@ -90,7 +90,7 @@ namespace industrialization.Core.Test
                 electlic.AddInstallationElectric(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess);
                 electlic.AddGenerator(new TestPowerGenerator(1000));
                 
-                while (!DummyInstallationInventory.IsFinish)
+                while (!conecct.IsFinish)
                 {
                     GameUpdate.Update();
                 }
@@ -114,20 +114,24 @@ namespace industrialization.Core.Test
         public void ItemProcessingFaildTest()
         {
             int seed = 2119350917;
-            int recipeNum = 1;
+            int recipeNum = 20;
             
             var r = RecipeGenerate.MakeRecipe(seed,recipeNum);
             foreach (var m in MachineIOGenerate.MachineIOTestCase(r, seed))
             {
                 var conecct = new DummyInstallationInventory(m.output.Count);
-                var machine = NormalMachineFactory.Create(m.installtionId,Guid.Empty, conecct);
+                var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, conecct);
 
                 foreach (var minput in m.input)
                 {
                    machine.InsertItem(new ItemStack(minput.Id,minput.Amount));
                 }
                 
-                while (!DummyInstallationInventory.IsFinish)
+                var electlic = new ElectricSegment();
+                electlic.AddInstallationElectric(machine.NormalMachineInputInventory.NormalMachineStartProcess.NormalMachineRunProcess);
+                electlic.AddGenerator(new TestPowerGenerator(1000));
+                
+                while (!conecct.IsFinish)
                 {
                     GameUpdate.Update();
                 }
