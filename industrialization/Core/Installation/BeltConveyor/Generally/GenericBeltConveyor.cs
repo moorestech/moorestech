@@ -12,8 +12,8 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
     /// </summary>
     public class GenericBeltConveyor :InstallationBase, IUpdate, IInstallationInventory
     {
-        private readonly int _inventoryItemNum = 4;
-        private readonly double _canItemInsertTime = 500;
+        private readonly int _inventoryItemNum;
+        private readonly double _timeOfItemEnterToExit;//ベルトコンベアにアイテムが入って出るまでの時間
 
         private readonly List<BeltConveyorInventoryItem> _inventoryItems = new List<BeltConveyorInventoryItem>();
         private IInstallationInventory _connector;
@@ -23,7 +23,7 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
             _connector = connector;
             var conf = BeltConveyorConfig.GetBeltConveyorData(installationId);
             _inventoryItemNum = conf.BeltConveyorItemNum;
-            _canItemInsertTime = conf.BeltConveyorSpeed;
+            _timeOfItemEnterToExit = conf.BeltConveyorSpeed;
             GameUpdate.AddUpdateObject(this);
         }
 
@@ -31,13 +31,13 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
         {
             //新しく挿入可能か
             if (_inventoryItems.Count < _inventoryItemNum &&
-                1 <= _inventoryItems.Count && _inventoryItems[0].RemainingTime < _canItemInsertTime - _canItemInsertTime / _inventoryItemNum ||
+                1 <= _inventoryItems.Count && _inventoryItems[0].RemainingTime < _timeOfItemEnterToExit - _timeOfItemEnterToExit / _inventoryItemNum ||
                 _inventoryItems.Count == 0)
             {
                 if (_inventoryItems.Count == 0)
                 {
                     _inventoryItems.Add(
-                        new BeltConveyorInventoryItem(itemStack.Id, _canItemInsertTime, 0));
+                        new BeltConveyorInventoryItem(itemStack.Id, _timeOfItemEnterToExit, 0));
                 }
                 else
                 {
@@ -50,8 +50,8 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
 
                     _inventoryItems[0] = new BeltConveyorInventoryItem(
                         itemStack.Id,
-                        _canItemInsertTime,
-                        _inventoryItems[1].RemainingTime + (_canItemInsertTime / _inventoryItemNum));
+                        _timeOfItemEnterToExit,
+                        _inventoryItems[1].RemainingTime + (_timeOfItemEnterToExit / _inventoryItemNum));
                 }
 
                 return itemStack.SubItem(1);
@@ -77,7 +77,7 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
                 for (int i = 0; i < _inventoryItems.Count-1; i++)
                 {
                     _inventoryItems[i].LimitTime =
-                        _inventoryItems[i + 1].RemainingTime + _canItemInsertTime / _inventoryItemNum;
+                        _inventoryItems[i + 1].RemainingTime + _timeOfItemEnterToExit / _inventoryItemNum;
                 }
             }
 

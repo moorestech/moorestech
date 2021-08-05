@@ -1,4 +1,5 @@
 ﻿using System;
+using industrialization.Core.Config.BeltConveyor;
 using industrialization.Core.GameSystem;
 using industrialization.Core.Installation;
 using industrialization.Core.Installation.BeltConveyor.Generally;
@@ -28,7 +29,6 @@ namespace industrialization.Core.Test.Installation
 
 
                 var outputItem = beltConveyor.InsertItem(item);
-
                 while (!dummy.IsItemExists)
                 {
                     GameUpdate.Update();
@@ -58,26 +58,6 @@ namespace industrialization.Core.Test.Installation
 
                 Assert.True(item1Out.Equals(item1.SubItem(1)));
                 Assert.True(item2Out.Equals(item2));
-            }
-        }
-        //ランダムなアイテムを搬入し、搬出を確かめるテスト
-        [Test]
-        public void RandomItemInsertTest()
-        {
-            var random = new Random(4123);
-            for (int i = 0; i < 100; i++)
-            {
-                //必要な変数を作成
-                var item1 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
-                var item2 = ItemStackFactory.NewItemStack(random.Next(0,10), random.Next(1,10));
-
-                var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,new DummyInstallationInventory());
-
-                var item1out = beltConveyor.InsertItem(item1);
-                var item2out = beltConveyor.InsertItem(item2);
-
-                Assert.True(item1out.Equals(item1.SubItem(1)));
-                Assert.True(item2.Equals(item2out));
             }
         }
     }
