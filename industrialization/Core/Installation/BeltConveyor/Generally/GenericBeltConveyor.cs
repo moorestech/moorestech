@@ -27,11 +27,12 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
             GameUpdate.AddUpdateObject(this);
         }
 
-        public IItemStack InsertItem(IItemStack itemStack)
+        public IItemStack 
+        InsertItem(IItemStack itemStack)
         {
             //新しく挿入可能か
-            if (_inventoryItems.Count < _inventoryItemNum &&
-                1 <= _inventoryItems.Count && _inventoryItems[0].RemainingTime < _timeOfItemEnterToExit - _timeOfItemEnterToExit / _inventoryItemNum ||
+            if (1 <= _inventoryItems.Count && _inventoryItems.Count < _inventoryItemNum &&
+                _inventoryItems[0].RemainingTime < _timeOfItemEnterToExit - _timeOfItemEnterToExit / _inventoryItemNum ||
                 _inventoryItems.Count == 0)
             {
                 if (_inventoryItems.Count == 0)
@@ -79,6 +80,7 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
                     _inventoryItems[i].LimitTime =
                         _inventoryItems[i + 1].RemainingTime + _timeOfItemEnterToExit / _inventoryItemNum;
                 }
+                _inventoryItems[^1].LimitTime = 0;
             }
 
             //時間を減らす

@@ -42,6 +42,30 @@ namespace industrialization.Core.Test.Installation
                 Assert.True(dummy.InsertedItems[0].Equals(tmp));
             }
         }
+        //ベルトコンベアのインベントリをフルにするテスト
+        [Test]
+        public void FullInsertBeltConveyorTest()
+        {
+            var random = new Random(4123);
+            for (int i = 0; i < 20; i++)
+            {
+                int id = random.Next(0, 10);
+                var conf = BeltConveyorConfig.GetBeltConveyorData(0);
+                var item = ItemStackFactory.NewItemStack(id, conf.BeltConveyorItemNum + 1);
+                var dummy = new DummyInstallationInventory(conf.BeltConveyorItemNum);
+                var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,dummy);
+
+                while (!dummy.IsItemExists)
+                { 
+                    item = beltConveyor.InsertItem(item);
+                    GameUpdate.Update();
+                }
+                
+                Assert.True(item.Equals(ItemStackFactory.NewItemStack(id,0)));
+                var tmp = ItemStackFactory.NewItemStack(id, conf.BeltConveyorItemNum);
+                Assert.True(dummy.InsertedItems[0].Equals(tmp));
+            }
+        }
         //二つのアイテムが入ったとき、一方しか入らないテスト
         [Test]
         public void Insert2ItemBeltConveyorTest()

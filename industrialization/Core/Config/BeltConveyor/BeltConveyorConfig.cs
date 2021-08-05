@@ -3,7 +3,7 @@
     public static class BeltConveyorConfig
     {
         private const int DefaultBeltConveyorNum = 4;
-        private const int DefaultTimeOfItemEnterToExit = 200;
+        private const int DefaultTimeOfItemEnterToExit = 2000;
         //TODO テスト用仮メソッドを実装する
         public static BeltConveyorData GetBeltConveyorData(int installtionID)
         {
