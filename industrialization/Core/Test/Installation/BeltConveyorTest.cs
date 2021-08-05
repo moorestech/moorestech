@@ -11,7 +11,33 @@ namespace industrialization.Core.Test.Installation
 {
     public class BeltConveyorTest
     {
-        //TODO 一定個数以上アイテムが入らないテスト
+        //一定個数以上アイテムが入らないテストした後、正しく次に出力されるかのテスト
+        [Test]
+        public void FullInsertAndChangeConnectorBeltConveyorTest()
+        {
+            var random = new Random(4123);
+            for (int i = 0; i < 20; i++)
+            {
+                int id = random.Next(0, 10);
+                var conf = BeltConveyorConfig.GetBeltConveyorData(0);
+                var item = ItemStackFactory.NewItemStack(id, conf.BeltConveyorItemNum + 1);
+                var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,new NullIInstallationInventory());
+
+                var endTime = DateTime.Now.AddMilliseconds(conf.TimeOfItemEnterToExit);
+                while ( DateTime.Now < endTime.AddSeconds(0.2))
+                { 
+                    item = beltConveyor.InsertItem(item);
+                    GameUpdate.Update();
+                }
+                Assert.AreEqual(item.Amount,1);
+
+                var dummy = new DummyInstallationInventory();
+                beltConveyor.ChangeConnector(dummy);
+                GameUpdate.Update();
+                
+                Assert.True(dummy.InsertedItems[0].Equals(ItemStackFactory.NewItemStack(id,1)));
+            }
+        }
         
         //一個のアイテムが入って正しく搬出されるかのテスト
         [Test]
