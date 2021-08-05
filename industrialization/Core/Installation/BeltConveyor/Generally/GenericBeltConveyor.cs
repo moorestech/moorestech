@@ -77,7 +77,7 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
             //リミットの更新
             if (2 <= _inventoryItems.Count)
             {
-                for (int i = 0; i < _inventoryItems.Count; i++)
+                for (int i = 0; i < _inventoryItems.Count-1; i++)
                 {
                     _inventoryItems[i].LimitTime =
                         _inventoryItems[i + 1].RemainingTime + _canItemInsertTime / _inventoryItemNum;
