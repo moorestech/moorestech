@@ -7,7 +7,7 @@ namespace industrialization.Core.Installation.BeltConveyor.util
     {
         public static GenericBeltConveyor Create(int installationId,int intId, IInstallationInventory connect)
         {
-            return new GenericBeltConveyor(installationId,intId, new GenericBeltConveyorInventory(0,new GenericBeltConveyorConnector(connect)));
+            return new(installationId, intId, connect);
         } 
     }
 }
