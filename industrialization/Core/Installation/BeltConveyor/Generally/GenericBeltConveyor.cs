@@ -31,7 +31,7 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
         {
             //新しく挿入可能か
             if (_inventoryItems.Count < _inventoryItemNum &&
-                (1 <= _inventoryItems.Count && _inventoryItems[0].RemainingTime < _canItemInsertTime - _canItemInsertTime / _inventoryItemNum)||
+                1 <= _inventoryItems.Count && _inventoryItems[0].RemainingTime < _canItemInsertTime - _canItemInsertTime / _inventoryItemNum ||
                 _inventoryItems.Count == 0)
             {
                 if (_inventoryItems.Count == 0)
@@ -56,10 +56,7 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
 
                 return itemStack.SubItem(1);
             }
-            else
-            {
-                return itemStack;
-            }
+            return itemStack;
         }
 
         public void ChangeConnector(IInstallationInventory installationInventory)
@@ -92,7 +89,7 @@ namespace industrialization.Core.Installation.BeltConveyor.Generally
 
 
             //最後のアイテムが0だったら接続先に渡す
-            if (_inventoryItems[^1].RemainingTime <= 0)
+            if (1 <= _inventoryItems.Count && _inventoryItems[^1].RemainingTime <= 0)
             {
                 var output = _connector.InsertItem(ItemStackFactory.NewItemStack(_inventoryItems[^1].ItemId, 1));
                 //渡した結果がnullItemだったらそのアイテムを消す

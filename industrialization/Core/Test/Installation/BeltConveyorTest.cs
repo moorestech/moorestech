@@ -24,7 +24,7 @@ namespace industrialization.Core.Test.Installation
                 int amount = random.Next(1, 10);
                 var item = ItemStackFactory.NewItemStack(id, amount);
                 var dummy = new DummyInstallationInventory(1);
-                var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,new DummyInstallationInventory());
+                var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,dummy);
 
 
                 var outputItem = beltConveyor.InsertItem(item);

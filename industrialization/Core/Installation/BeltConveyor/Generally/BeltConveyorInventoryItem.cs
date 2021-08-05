@@ -19,7 +19,7 @@
         public BeltConveyorInventoryItem(int itemId, double remainingTime, double limitTime)
         {
             ItemId = itemId;
-            RemainingTime = remainingTime;
+            _remainingTime = remainingTime;
             LimitTime = limitTime;
         }
     }
