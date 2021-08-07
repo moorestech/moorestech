@@ -93,7 +93,7 @@ namespace industrialization.OverallManagement.DataStore
             {
                 X = x;
                 Y = y;
-                blockBase = blockBase;
+                BlockBase = blockBase;
             }
 
             public int X { get; }

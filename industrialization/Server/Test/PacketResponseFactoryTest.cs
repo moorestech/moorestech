@@ -116,9 +116,9 @@ namespace industrialization.Server.Test
             public readonly int x;
             public readonly int y;
 
-            public Block(int x, int y,int BlocksId)
+            public Block(int x, int y,int blocksId)
             {
-                BlocksId = BlocksId;
+                BlocksId = blocksId;
                 this.x = x;
                 this.y = y;
             }
