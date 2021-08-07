@@ -1,13 +1,14 @@
 ﻿using System.Runtime.Serialization;
+using industrialization.Core.Config.Installation;
 
-namespace industrialization.Core.Config.Installation
+namespace industrialization.Core.Config.Block
 {
     [DataContract] 
-    class InstallationJson
+    class BlockJson
     {
-        [DataMember(Name = "installations")]
-        private InstallationData[] _installations;
+        [DataMember(Name = "Blocks")]
+        private BlockData[] _blocks;
 
-        public InstallationData[] Installations => _installations;
+        public BlockData[] Blocks => _blocks;
     }
 }

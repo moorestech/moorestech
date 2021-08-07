@@ -8,7 +8,7 @@ using industrialization.Server.PacketResponse;
 
 namespace industrialization.Server.PacketHandle
 {
-    public class PacketHandler
+    public static class PacketHandler
     {
         public static void StartServer()
         {

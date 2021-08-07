@@ -21,10 +21,10 @@ namespace industrialization.Core.Config.Recipe
         /// <summary>
         /// 設置物IDと現在の搬入スロットからレシピを検索し、取得する
         /// </summary>
-        /// <param name="installationId">設置物ID</param>
+        /// <param name="BlockId">設置物ID</param>
         /// <param name="inputItem">搬入スロット</param>
         /// <returns>レシピデータ</returns>
-        public static IMachineRecipeData GetRecipeData(int installationId, List<IItemStack> inputItem)
+        public static IMachineRecipeData GetRecipeData(int BlockId, List<IItemStack> inputItem)
         {
             _recipedatas ??= MachineRecipeJsonLoad.LoadConfig();
 
@@ -34,14 +34,14 @@ namespace industrialization.Core.Config.Recipe
                 _recipedatas.ToList().ForEach(recipe =>
                 {
                     _recipeDataCash.Add(
-                        GetKey(recipe.InstallationId,recipe.ItemInputs.ToList()),
+                        GetKey(recipe.BlockId,recipe.ItemInputs.ToList()),
                         recipe);
                 });
             }
 
             var tmpInputItem = inputItem.Where(i => i.Id != NullItemStack.NullItemId).ToList();
             tmpInputItem.Sort((a, b) => a.Id - b.Id);
-            var key = GetKey(installationId, tmpInputItem);
+            var key = GetKey(BlockId, tmpInputItem);
             if (_recipeDataCash.ContainsKey(key))
             {
                 return _recipeDataCash[key];
@@ -51,7 +51,7 @@ namespace industrialization.Core.Config.Recipe
                 return new NullMachineRecipeData();
             }
         }
-        private static string GetKey(int installationId, List<IItemStack> itemId)
+        private static string GetKey(int blockId, List<IItemStack> itemId)
         {
             var items = "";
             itemId.Sort((a, b) => a.Id - b.Id);
@@ -59,7 +59,7 @@ namespace industrialization.Core.Config.Recipe
             {
                 items = items + "_" + i.Id;
             });
-            return installationId + items;
+            return blockId + items;
         }
     }
 }

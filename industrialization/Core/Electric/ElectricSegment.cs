@@ -6,14 +6,14 @@ namespace industrialization.Core.Electric
     //１つの電力のセグメントの処理
     public class ElectricSegment : IUpdate
     {
-        private readonly Dictionary<int,IInstallationElectric> _electrics;
+        private readonly Dictionary<int,IBlockElectric> _electrics;
         private readonly Dictionary<int,IPowerGenerator> _generators;
 
         public ElectricSegment()
         {
             GameUpdate.AddUpdateObject(this);
             _generators = new Dictionary<int,IPowerGenerator>();
-            _electrics = new Dictionary<int,IInstallationElectric>();
+            _electrics = new Dictionary<int,IBlockElectric>();
         }
         
         
@@ -44,19 +44,19 @@ namespace industrialization.Core.Electric
             }
         }
 
-        public void AddInstallationElectric(IInstallationElectric installationElectric)
+        public void AddBlockElectric(IBlockElectric blockElectric)
         {
-            if (!_electrics.ContainsKey(installationElectric.GetIntId()))
+            if (!_electrics.ContainsKey(blockElectric.GetIntId()))
             {
-                _electrics.Add(installationElectric.GetIntId(),installationElectric);
+                _electrics.Add(blockElectric.GetIntId(),blockElectric);
             }
         }
 
-        public void RemoveInstallationElectric(IInstallationElectric installationElectric)
+        public void RemoveBlockElectric(IBlockElectric blockElectric)
         {
-            if (_electrics.ContainsKey(installationElectric.GetIntId()))
+            if (_electrics.ContainsKey(blockElectric.GetIntId()))
             {
-                _electrics.Remove(installationElectric.GetIntId());
+                _electrics.Remove(blockElectric.GetIntId());
             }
         }
 

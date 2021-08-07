@@ -36,7 +36,7 @@ namespace industrialization.Core.Config.Recipe
                         ItemOutputs.
                         Select(r => new ItemOutput(r.ItemStack, r.Percent));
                 
-                return new MachineRecipeData(r.InstallationId,r.Time,inputItem,outputs.ToList());
+                return new MachineRecipeData(r.BlockId,r.Time,inputItem,outputs.ToList());
             });
             
             return r.ToArray();
@@ -57,8 +57,8 @@ namespace industrialization.Core.Config.Recipe
     [DataContract] 
     class MachineRecipe
     {
-        [DataMember(Name = "installationID")]
-        private int _installationId;
+        [DataMember(Name = "BlockID")]
+        private int _blockId;
         [DataMember(Name = "time")]
         private int _time;
         [DataMember(Name = "input")]
@@ -72,7 +72,7 @@ namespace industrialization.Core.Config.Recipe
 
         public int Time => _time;
 
-        public int InstallationId => _installationId;
+        public int BlockId => _blockId;
     }
 
     [DataContract] 

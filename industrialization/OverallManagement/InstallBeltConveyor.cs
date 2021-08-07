@@ -1,6 +1,6 @@
 ﻿using System;
 using industrialization.Core;
-using industrialization.Core.Installation.BeltConveyor.util;
+using industrialization.Core.Block.BeltConveyor.util;
 using industrialization.OverallManagement.DataStore;
 
 namespace industrialization.OverallManagement
@@ -12,15 +12,15 @@ namespace industrialization.OverallManagement
         {
             //機械の生成
             var beltConveyor  = BeltConveyorFactory.Create(id, IntId.NewIntId(),
-                WorldInstallationInventoryDatastore.GetInstallation(toId));
+                WorldBlockInventoryDatastore.GetBlock(toId));
             
             //機械のコネクターを変更する
-            beltConveyor.ChangeConnector(WorldInstallationInventoryDatastore.GetInstallation(fromId));
-            WorldInstallationInventoryDatastore.GetInstallation(toId).ChangeConnector(beltConveyor);
+            beltConveyor.ChangeConnector(WorldBlockInventoryDatastore.GetBlock(fromId));
+            WorldBlockInventoryDatastore.GetBlock(toId).ChangeConnector(beltConveyor);
             
             //ワールドデータに登録
-            WorldInstallationInventoryDatastore.AddInstallation(beltConveyor,beltConveyor.IntId);
-            WorldInstallationDatastore.AddInstallation(beltConveyor,x,y);
+            WorldBlockInventoryDatastore.AddBlock(beltConveyor,beltConveyor.IntId);
+            WorldBlockDatastore.AddBlock(beltConveyor,x,y);
         }
     }
 }

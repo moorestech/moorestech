@@ -2,33 +2,34 @@
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using industrialization.Core.Config.Block;
 
 namespace industrialization.Core.Config.Installation
 {
-    public static class InstallationConfig
+    public static class BlockConfig
     {
-        private static InstallationData[] _machineDatas;
+        private static BlockData[] _machineDatas;
 
-        public static InstallationData GetInstallationsConfig(int id)
+        public static BlockData GetBlocksConfig(int id)
         {
             _machineDatas ??= LoadJsonFile();
 
             return _machineDatas[id];
         }
 
-        private static InstallationData[] LoadJsonFile()
+        private static BlockData[] LoadJsonFile()
         {
-            var json = File.ReadAllText(ConfigPath.InstallationConfigPath);
+            var json = File.ReadAllText(ConfigPath.BlockConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
-            var serializer = new DataContractJsonSerializer(typeof(InstallationJson));
-            var data = serializer.ReadObject(ms) as InstallationJson;
-            return data?.Installations;
+            var serializer = new DataContractJsonSerializer(typeof(BlockJson));
+            var data = serializer.ReadObject(ms) as BlockJson;
+            return data?.Blocks;
         }
     }
 
     [DataContract] 
-    public class InstallationData
+    public class BlockData
     {
         [DataMember(Name = "name")]
         private string _name;

@@ -11,7 +11,7 @@ namespace industrialization.Core.Test.Other
             IMachineRecipeData recipeData = new NullMachineRecipeData();
             Assert.AreEqual(0,recipeData.ItemInputs.Count);
             Assert.AreEqual(0,recipeData.ItemOutputs.Count);
-            Assert.AreEqual(-1,recipeData.InstallationId);
+            Assert.AreEqual(-1,recipeData.BlockId);
             Assert.AreEqual(0,recipeData.Time);
         }
     }

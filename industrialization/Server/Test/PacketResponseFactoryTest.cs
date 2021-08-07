@@ -15,7 +15,7 @@ namespace industrialization.Server.Test
         [Test]
         public void NoInstalledWhenCorrectlyDataAcquirableTest()
         {
-            WorldInstallationDatastore.ClearData();
+            WorldBlockDatastore.ClearData();
             
             var send = new List<byte>();
             send.AddRange(ByteArrayConverter.ToByteArray((short)2));
@@ -43,35 +43,35 @@ namespace industrialization.Server.Test
         public void Building1ChunkInstalledWhenCorrectlyDataAcquirableTest()
         {
             //取得範囲外に建物設置
-            PutInstallation(1, -10, -5);
-            PutInstallation(0, -5, -5);
-            PutInstallation(4, -13, -12);
-            PutInstallation(1, -10, -5);
-            PutInstallation(9, 10, 10);
-            PutInstallation(9, 15, 10);
-            PutInstallation(9, 10, 20);
+            PutBlock(1, -10, -5);
+            PutBlock(0, -5, -5);
+            PutBlock(4, -13, -12);
+            PutBlock(1, -10, -5);
+            PutBlock(9, 10, 10);
+            PutBlock(9, 15, 10);
+            PutBlock(9, 10, 20);
             //限界地分析
-            PutInstallation(0, -1, -1);
-            PutInstallation(0, -1, 4);
-            PutInstallation(0, 4, -1);
-            PutInstallation(0, 4, 4);
+            PutBlock(0, -1, -1);
+            PutBlock(0, -1, 4);
+            PutBlock(0, 4, -1);
+            PutBlock(0, 4, 4);
             
             //取得範囲内に建物を設置
-            var ansInstallations = new List<Installation>();
-            PutInstallation(1, 0, 0);
-            ansInstallations.Add(new Installation(0,0,1));
-            PutInstallation(2, 0, 3);
-            ansInstallations.Add(new Installation(0,3,2));
-            PutInstallation(3, 3, 0);
-            ansInstallations.Add(new Installation(3,0,3));
-            PutInstallation(6, 3, 3);
-            ansInstallations.Add(new Installation(3,3,6));
-            PutInstallation(10, 2, 1);
-            ansInstallations.Add(new Installation(2,1,10));
-            PutInstallation(15, 0, 2);
-            ansInstallations.Add(new Installation(0,2,15));
-            PutInstallation(30, 3, 1);
-            ansInstallations.Add(new Installation(3,1,30));
+            var ansBlocks = new List<Block>();
+            PutBlock(1, 0, 0);
+            ansBlocks.Add(new Block(0,0,1));
+            PutBlock(2, 0, 3);
+            ansBlocks.Add(new Block(0,3,2));
+            PutBlock(3, 3, 0);
+            ansBlocks.Add(new Block(3,0,3));
+            PutBlock(6, 3, 3);
+            ansBlocks.Add(new Block(3,3,6));
+            PutBlock(10, 2, 1);
+            ansBlocks.Add(new Block(2,1,10));
+            PutBlock(15, 0, 2);
+            ansBlocks.Add(new Block(0,2,15));
+            PutBlock(30, 3, 1);
+            ansBlocks.Add(new Block(3,1,30));
             
             //設置データの要求
             var send = new List<byte>();
@@ -89,41 +89,41 @@ namespace industrialization.Server.Test
             response.MoveNextToGetInt();
 
             //レスポンスを解析して必要なデータを取得
-            var responseInstallations = new List<Installation>();
+            var responseBlocks = new List<Block>();
             for (int i = 0; i < num; i++)
             {
-                responseInstallations.Add(new Installation(
+                responseBlocks.Add(new Block(
                     response.MoveNextToGetInt(),
                     response.MoveNextToGetInt(),
                     response.MoveNextToGetInt()));
             }
             
-            responseInstallations.Sort((a,b) => a.InstallationsId-b.InstallationsId);
+            responseBlocks.Sort((a,b) => a.BlocksId-b.BlocksId);
 
-            Console.WriteLine(responseInstallations.Count);
+            Console.WriteLine(responseBlocks.Count);
             //実際に正しいかテスト
-            for (int i = 0; i < ansInstallations.Count; i++)
+            for (int i = 0; i < ansBlocks.Count; i++)
             {
                 Console.WriteLine(i);
-                Assert.AreEqual(ansInstallations[i].x,responseInstallations[i].x);
-                Assert.AreEqual(ansInstallations[i].y,responseInstallations[i].y);
-                Assert.AreEqual(ansInstallations[i].InstallationsId,responseInstallations[i].InstallationsId);
+                Assert.AreEqual(ansBlocks[i].x,responseBlocks[i].x);
+                Assert.AreEqual(ansBlocks[i].y,responseBlocks[i].y);
+                Assert.AreEqual(ansBlocks[i].BlocksId,responseBlocks[i].BlocksId);
             }
         }
-        class Installation
+        class Block
         {
-            public readonly int InstallationsId;
+            public readonly int BlocksId;
             public readonly int x;
             public readonly int y;
 
-            public Installation(int x, int y,int installationsId)
+            public Block(int x, int y,int BlocksId)
             {
-                InstallationsId = installationsId;
+                BlocksId = BlocksId;
                 this.x = x;
                 this.y = y;
             }
         }
-        void PutInstallation(int id,int x,int y)
+        void PutBlock(int id,int x,int y)
         {
             var send = new List<byte>();
             send.AddRange(ByteArrayConverter.ToByteArray((short)1));

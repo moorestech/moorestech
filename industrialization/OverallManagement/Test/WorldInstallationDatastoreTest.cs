@@ -1,24 +1,24 @@
 ﻿using System;
 using industrialization.Core;
-using industrialization.Core.Installation;
-using industrialization.Core.Installation.Machine;
-using industrialization.Core.Installation.Machine.util;
+using industrialization.Core.Block;
+using industrialization.Core.Block.Machine;
+using industrialization.Core.Block.Machine.util;
 using industrialization.OverallManagement.DataStore;
 using NUnit.Framework;
 
 namespace industrialization.OverallManagement.Test
 {
-    public class WorldInstallationDatastoreTest
+    public class WorldBlockDatastoreTest
     {
         [Test]
         public void DataInsertAndOutputTest()
         {
-            WorldInstallationDatastore.ClearData();
+            WorldBlockDatastore.ClearData();
             
             var intId = IntId.NewIntId();
-            var i =  NormalMachineFactory.Create(1, intId, new NullIInstallationInventory());
-            WorldInstallationDatastore.AddInstallation(i,1,1);
-            var output = WorldInstallationDatastore.GetInstallation(intId);
+            var i =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory());
+            WorldBlockDatastore.AddBlock(i,1,1);
+            var output = WorldBlockDatastore.GetBlock(intId);
             Assert.AreEqual(intId, output.IntId);
 
         }
@@ -26,49 +26,49 @@ namespace industrialization.OverallManagement.Test
         [Test]
         public void RegisteredDataCoordinateFromFetchTest()
         {
-            WorldInstallationDatastore.ClearData();
+            WorldBlockDatastore.ClearData();
             
             var random = new Random(131513);
             for (int i = 0; i < 10; i++)
             {
                 var intId = IntId.NewIntId();
-                var ins =  NormalMachineFactory.Create(1, intId, new NullIInstallationInventory());
+                var ins =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory());
 
                 int x = random.Next(-1000, 1000);
                 int y = random.Next(-1000, 1000);
                 
-                WorldInstallationDatastore.AddInstallation(ins,x,y);
-                var output = WorldInstallationDatastore.GetInstallation(x,y);
+                WorldBlockDatastore.AddBlock(ins,x,y);
+                var output = WorldBlockDatastore.GetBlock(x,y);
                 Assert.AreEqual(intId, output.IntId);
             }
         }
 
 
         [Test]
-        public void AlreadyRegisteredIntIDSecondTimeFailTest()
+        public void AlreadyRegisteredIntIdSecondTimeFailTest()
         {
-            WorldInstallationDatastore.ClearData();
+            WorldBlockDatastore.ClearData();
             
             var intId = IntId.NewIntId();
-            var i =  NormalMachineFactory.Create(1, intId, new NullIInstallationInventory());
-            WorldInstallationDatastore.AddInstallation(i,1,1);
+            var i =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory());
+            WorldBlockDatastore.AddBlock(i,1,1);
             
             //座標だけ変えてintIDは同じ
-            var i2 =  NormalMachineFactory.Create(1, intId, new NullIInstallationInventory());
-            Assert.False(WorldInstallationDatastore.AddInstallation(i2,10,10));
+            var i2 =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory());
+            Assert.False(WorldBlockDatastore.AddBlock(i2,10,10));
         }
 
         [Test]
         public void AlreadyCoordinateSecondTimeFailTest()
         {
-            WorldInstallationDatastore.ClearData();
+            WorldBlockDatastore.ClearData();
 
-            var i =  NormalMachineFactory.Create(1, IntId.NewIntId(), new NullIInstallationInventory());
-            WorldInstallationDatastore.AddInstallation(i,1,1);
+            var i =  NormalMachineFactory.Create(1, IntId.NewIntId(), new NullIBlockInventory());
+            WorldBlockDatastore.AddBlock(i,1,1);
             
             //座標だけ変えてintIDは同じ
-            var i2 =  NormalMachineFactory.Create(1, IntId.NewIntId(), new NullIInstallationInventory());
-            Assert.False(WorldInstallationDatastore.AddInstallation(i2,1,1));
+            var i2 =  NormalMachineFactory.Create(1, IntId.NewIntId(), new NullIBlockInventory());
+            Assert.False(WorldBlockDatastore.AddBlock(i2,1,1));
         }
     }
 }

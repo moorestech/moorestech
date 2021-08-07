@@ -1,31 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using industrialization.Core.Installation;
+using industrialization.Core.Block;
 
 namespace industrialization.OverallManagement.DataStore
 {
-    public static class WorldInstallationInventoryDatastore
+    public static class WorldBlockInventoryDatastore
     {
-        private static Dictionary<int, IInstallationInventory> _installatioInventorynMasterDictionary = new();
-        public static void AddInstallation(IInstallationInventory installation,int intId)
+        private static Dictionary<int, IBlockInventory> _installatioInventorynMasterDictionary = new();
+        public static void AddBlock(IBlockInventory Block,int intId)
         {
             if (!_installatioInventorynMasterDictionary.ContainsKey(intId))
             {
-                _installatioInventorynMasterDictionary.Add(intId,installation);
+                _installatioInventorynMasterDictionary.Add(intId,Block);
             }
         }
 
-        public static IInstallationInventory GetInstallation(int intId)
+        public static IBlockInventory GetBlock(int intId)
         {
             if (_installatioInventorynMasterDictionary.ContainsKey(intId))
             {
                 return _installatioInventorynMasterDictionary[intId];
             }
 
-            return new NullIInstallationInventory();
+            return new NullIBlockInventory();
         }
 
-        public static void RemoveInstallation(IInstallationInventory installation,int intId)
+        public static void RemoveBlock(IBlockInventory Block,int intId)
         {
             if (_installatioInventorynMasterDictionary.ContainsKey(intId))
             {

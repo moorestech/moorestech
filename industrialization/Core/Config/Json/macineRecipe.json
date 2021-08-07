@@ -1,7 +1,7 @@
 ﻿{
   "recipes" : [
     {
-      "installationID": 0,
+      "BlockID": 0,
       "time": 1000,
       "input": [
         {
@@ -18,7 +18,7 @@
       ]
     },
     {
-      "installationID": 0,
+      "BlockID": 0,
       "time": 1500,
       "input": [
         {
@@ -35,7 +35,7 @@
       ]
     },    
     {
-      "installationID": 1,
+      "BlockID": 1,
       "time": 1500,
       "input": [
         {
@@ -56,7 +56,7 @@
       ]
     },
     {
-      "installationID": 3,
+      "BlockID": 3,
       "time": 1500,
       "input": [
         {
@@ -108,7 +108,7 @@
           "id": 206
         }
       ],
-      "installationID": 91,
+      "BlockID": 91,
       "output": [
         {
           "amount": 45,
@@ -176,7 +176,7 @@
           "id": 254
         }
       ],
-      "installationID": 80,
+      "BlockID": 80,
       "output": [
         {
           "amount": 100,
@@ -232,7 +232,7 @@
           "id": 285
         }
       ],
-      "installationID": 51,
+      "BlockID": 51,
       "output": [
         {
           "amount": 70,
@@ -293,7 +293,7 @@
           "id": 63
         }
       ],
-      "installationID": 8,
+      "BlockID": 8,
       "output": [
         {
           "amount": 39,
@@ -310,7 +310,7 @@
           "id": 240
         }
       ],
-      "installationID": 8,
+      "BlockID": 8,
       "output": [
         {
           "amount": 70,
@@ -385,7 +385,7 @@
           "id": 10
         }
       ],
-      "installationID": 63,
+      "BlockID": 63,
       "output": [
         {
           "amount": 46,
@@ -439,7 +439,7 @@
           "id": 382
         }
       ],
-      "installationID": 22,
+      "BlockID": 22,
       "output": [
         {
           "amount": 78,
@@ -514,7 +514,7 @@
           "id": 11
         }
       ],
-      "installationID": 60,
+      "BlockID": 60,
       "output": [
         {
           "amount": 78,
@@ -566,7 +566,7 @@
           "id": 281
         }
       ],
-      "installationID": 8,
+      "BlockID": 8,
       "output": [
         {
           "amount": 99,
@@ -612,7 +612,7 @@
           "id": 711
         }
       ],
-      "installationID": 83,
+      "BlockID": 83,
       "output": [
         {
           "amount": 33,
@@ -642,7 +642,7 @@
           "id": 427
         }
       ],
-      "installationID": 22,
+      "BlockID": 22,
       "output": [
         {
           "amount": 16,
@@ -730,7 +730,7 @@
           "id": 526
         }
       ],
-      "installationID": 56,
+      "BlockID": 56,
       "output": [
         {
           "amount": 62,
@@ -755,7 +755,7 @@
           "id": 930
         }
       ],
-      "installationID": 50,
+      "BlockID": 50,
       "output": [
         {
           "amount": 32,
@@ -827,7 +827,7 @@
           "id": 320
         }
       ],
-      "installationID": 20,
+      "BlockID": 20,
       "output": [
         {
           "amount": 21,
@@ -877,7 +877,7 @@
           "id": 215
         }
       ],
-      "installationID": 11,
+      "BlockID": 11,
       "output": [
         {
           "amount": 8,
@@ -938,7 +938,7 @@
           "id": 110
         }
       ],
-      "installationID": 46,
+      "BlockID": 46,
       "output": [
         {
           "amount": 8,
@@ -1022,7 +1022,7 @@
           "id": 377
         }
       ],
-      "installationID": 77,
+      "BlockID": 77,
       "output": [
         {
           "amount": 83,
@@ -1079,7 +1079,7 @@
           "id": 527
         }
       ],
-      "installationID": 57,
+      "BlockID": 57,
       "output": [
         {
           "amount": 5,
@@ -1151,7 +1151,7 @@
           "id": 679
         }
       ],
-      "installationID": 41,
+      "BlockID": 41,
       "output": [
         {
           "amount": 58,
@@ -1217,7 +1217,7 @@
           "id": 391
         }
       ],
-      "installationID": 10,
+      "BlockID": 10,
       "output": [
         {
           "amount": 28,
@@ -1291,7 +1291,7 @@
           "id": 939
         }
       ],
-      "installationID": 36,
+      "BlockID": 36,
       "output": [
         {
           "amount": 27,
@@ -1369,7 +1369,7 @@
           "id": 574
         }
       ],
-      "installationID": 100,
+      "BlockID": 100,
       "output": [
         {
           "amount": 4,
@@ -1439,7 +1439,7 @@
           "id": 315
         }
       ],
-      "installationID": 6,
+      "BlockID": 6,
       "output": [
         {
           "amount": 37,
@@ -1495,7 +1495,7 @@
           "id": 212
         }
       ],
-      "installationID": 60,
+      "BlockID": 60,
       "output": [
         {
           "amount": 58,
@@ -1572,7 +1572,7 @@
           "id": 779
         }
       ],
-      "installationID": 57,
+      "BlockID": 57,
       "output": [
         {
           "amount": 22,
@@ -1608,7 +1608,7 @@
           "id": 483
         }
       ],
-      "installationID": 26,
+      "BlockID": 26,
       "output": [
         {
           "amount": 22,
@@ -1662,7 +1662,7 @@
           "id": 158
         }
       ],
-      "installationID": 57,
+      "BlockID": 57,
       "output": [
         {
           "amount": 92,
@@ -1695,7 +1695,7 @@
           "id": 464
         }
       ],
-      "installationID": 47,
+      "BlockID": 47,
       "output": [
         {
           "amount": 94,
@@ -1765,7 +1765,7 @@
           "id": 601
         }
       ],
-      "installationID": 1,
+      "BlockID": 1,
       "output": [
         {
           "amount": 80,
@@ -1834,7 +1834,7 @@
           "id": 940
         }
       ],
-      "installationID": 99,
+      "BlockID": 99,
       "output": [
         {
           "amount": 78,

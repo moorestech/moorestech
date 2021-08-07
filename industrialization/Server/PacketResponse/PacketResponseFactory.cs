@@ -14,8 +14,8 @@ namespace industrialization.Server.PacketResponse
         private static void Init()
         {
             _packetResponseList.Add(DummyProtocol.GetResponse);
-            _packetResponseList.Add(PutInstallationProtocol.GetResponse);
-            _packetResponseList.Add(InstallationCoordinateRequestProtocolResponse.GetResponse);
+            _packetResponseList.Add(PutBlockProtocol.GetResponse);
+            _packetResponseList.Add(BlockCoordinateRequestProtocolResponse.GetResponse);
             _packetResponseList.Add(InventoryContentResponseProtocol.GetResponse);
         }
         
