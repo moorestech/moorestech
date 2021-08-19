@@ -7,15 +7,15 @@ namespace industrialization.OverallManagement.DataStore
     public static class WorldBlockDatastore
     {
         //メインのデータストア
-        private static Dictionary<int, BlockWorldData> _blockMasterDictionary = new();
+        private static Dictionary<int, BlockWorldData> _blockMasterDictionary = new Dictionary<int, BlockWorldData>();
         //座標がキーのデータストア
-        private static Dictionary<Coordinate,BlockWorldData> _coordinateDictionary = new();
+        private static Dictionary<Coordinate,BlockWorldData> _coordinateDictionary = new Dictionary<Coordinate,BlockWorldData>();
 
 
         public static void ClearData()
         {
-            _blockMasterDictionary = new();
-            _coordinateDictionary = new();
+            _blockMasterDictionary = new Dictionary<int, BlockWorldData>();
+            _coordinateDictionary = new Dictionary<Coordinate,BlockWorldData>();
         }
         
         public static bool AddBlock(BlockBase Block,int x,int y)

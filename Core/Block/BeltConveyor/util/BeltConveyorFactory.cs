@@ -7,7 +7,7 @@ namespace industrialization.Core.Block.BeltConveyor.util
     {
         public static GenericBeltConveyor Create(int blockId,int intId, IBlockInventory connect)
         {
-            return new(blockId, intId, connect);
+            return new GenericBeltConveyor(blockId, intId, connect);
         } 
     }
 }

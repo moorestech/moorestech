@@ -6,7 +6,7 @@ namespace industrialization.OverallManagement.DataStore
 {
     public static class WorldBlockInventoryDatastore
     {
-        private static Dictionary<int, IBlockInventory> _installatioInventorynMasterDictionary = new();
+        private static Dictionary<int, IBlockInventory> _installatioInventorynMasterDictionary = new Dictionary<int, IBlockInventory>();
         public static void AddBlock(IBlockInventory Block,int intId)
         {
             if (!_installatioInventorynMasterDictionary.ContainsKey(intId))

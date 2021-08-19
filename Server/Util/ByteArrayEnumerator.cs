@@ -27,7 +27,7 @@ namespace industrialization.Server.Util
                     throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
                 }
             }
-            return BitConverter.ToInt32(b.ToArray());
+            return BitConverter.ToInt32(b.ToArray(),0);
         }
 
         public short MoveNextToGetShort()
@@ -44,7 +44,7 @@ namespace industrialization.Server.Util
                     throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
                 }
             }
-            return BitConverter.ToInt16(b.ToArray());
+            return BitConverter.ToInt16(b.ToArray(),0);
         }
         public float MoveNextToGetFloat()
         {
@@ -60,7 +60,7 @@ namespace industrialization.Server.Util
                     throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
                 }
             }
-            return BitConverter.ToSingle(b.ToArray());
+            return BitConverter.ToSingle(b.ToArray(),0);
         }
         /// <summary>
         /// バイト数を指定してそのバイト数の文字列を取得します
