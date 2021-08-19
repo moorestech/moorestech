@@ -9,7 +9,7 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
 {
     public static class PutBlockProtocol
     {
-        public static byte[,] GetResponse(byte[] payload)
+        public static List<byte[]> GetResponse(byte[] payload)
         {
             //パケットのパース、接続元、接続先のインスタンス取得
             var payloadData = new ByteArrayEnumerator(payload);
@@ -27,7 +27,7 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
             WorldBlockInventoryDatastore.AddBlock(block,block.IntId);
             WorldBlockDatastore.AddBlock(block, x, y);
             //返すものはない
-            return new byte[0,0];
+            return new List<byte[]>();
         }
     }
 }

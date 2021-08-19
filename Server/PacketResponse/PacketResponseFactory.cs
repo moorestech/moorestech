@@ -8,7 +8,7 @@ namespace industrialization.Server.PacketResponse
 {
     public static class PacketResponseFactory
     {
-        delegate byte[,] Responses(byte[] payload);
+        delegate List<byte[]> Responses(byte[] payload);
         private static List<Responses> _packetResponseList = new List<Responses>();
 
         private static void Init()
@@ -19,7 +19,7 @@ namespace industrialization.Server.PacketResponse
             _packetResponseList.Add(InventoryContentResponseProtocol.GetResponse);
         }
         
-        public static byte[] GetPacketResponse(byte[] payload)
+        public static List<byte[]> GetPacketResponse(byte[] payload)
         {
             if (_packetResponseList.Count == 0) Init();
 

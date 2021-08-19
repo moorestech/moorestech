@@ -17,7 +17,7 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
         /// レスポンスの組み立て
         /// </summary>
         /// <returns></returns>
-        public static byte[][] GetResponse(byte[] payload)
+        public static byte[,] GetResponse(byte[] payload)
         {
             var payloadData = new ByteArrayEnumerator(payload);
             //IDの取得
@@ -65,7 +65,7 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
                 responsePayload.AddRange(ByteArrayConverter.ToByteArray(i.BlockId));
             }
 
-            var returnPayload = new byte[1][];
+            var returnPayload = new byte[1,0];
             returnPayload[0] = responsePayload.ToArray();
             
             return returnPayload;
