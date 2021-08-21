@@ -12,7 +12,7 @@ namespace industrialization.Core.Block.Machine
 {
     public class NormalMachineInputInventory
     {
-        private readonly int _blockId;
+        private readonly uint _blockId;
         private readonly List<IItemStack> _inputSlot;
         public List<IItemStack> InputSlot 
         {
@@ -24,7 +24,7 @@ namespace industrialization.Core.Block.Machine
             }
         }
 
-        public NormalMachineInputInventory(int BlockId)
+        public NormalMachineInputInventory(uint BlockId)
         {
             _blockId = BlockId;
             var data = BlockConfig.GetBlocksConfig(BlockId);

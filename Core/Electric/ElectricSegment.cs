@@ -6,14 +6,14 @@ namespace industrialization.Core.Electric
     //１つの電力のセグメントの処理
     public class ElectricSegment : IUpdate
     {
-        private readonly Dictionary<int,IBlockElectric> _electrics;
-        private readonly Dictionary<int,IPowerGenerator> _generators;
+        private readonly Dictionary<uint,IBlockElectric> _electrics;
+        private readonly Dictionary<uint,IPowerGenerator> _generators;
 
         public ElectricSegment()
         {
             GameUpdate.AddUpdateObject(this);
-            _generators = new Dictionary<int,IPowerGenerator>();
-            _electrics = new Dictionary<int,IBlockElectric>();
+            _generators = new Dictionary<uint,IPowerGenerator>();
+            _electrics = new Dictionary<uint,IBlockElectric>();
         }
         
         

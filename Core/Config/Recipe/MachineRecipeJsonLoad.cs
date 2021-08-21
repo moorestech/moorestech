@@ -58,7 +58,7 @@ namespace industrialization.Core.Config.Recipe
     class MachineRecipe
     {
         [DataMember(Name = "BlockID")]
-        private int _blockId;
+        private uint _blockId;
         [DataMember(Name = "time")]
         private int _time;
         [DataMember(Name = "input")]
@@ -72,7 +72,7 @@ namespace industrialization.Core.Config.Recipe
 
         public int Time => _time;
 
-        public int BlockId => _blockId;
+        public uint BlockId => _blockId;
     }
 
     [DataContract] 

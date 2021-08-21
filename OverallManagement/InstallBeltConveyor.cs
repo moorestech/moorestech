@@ -8,7 +8,7 @@ namespace industrialization.OverallManagement
     public class InstallBeltConveyor
     {
         
-        public static void Create(int id,int x,int y, int fromId, int toId)
+        public static void Create(uint id,int x,int y, uint fromId, uint toId)
         {
             //機械の生成
             var beltConveyor  = BeltConveyorFactory.Create(id, IntId.NewIntId(),

@@ -10,7 +10,7 @@ namespace industrialization.Core.Config.Installation
     {
         private static BlockData[] _machineDatas;
 
-        public static BlockData GetBlocksConfig(int id)
+        public static BlockData GetBlocksConfig(uint id)
         {
             _machineDatas ??= LoadJsonFile();
 

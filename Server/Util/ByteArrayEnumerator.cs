@@ -29,6 +29,22 @@ namespace industrialization.Server.Util
             }
             return BitConverter.ToInt32(b.ToArray(),0);
         }
+        public uint MoveNextToGetUint()
+        {
+            var b = new List<byte>();
+            for (int i = 0; i < 4; i++)
+            {
+                if (_payload.MoveNext())
+                {
+                    b.Add(_payload.Current);
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
+                }
+            }
+            return BitConverter.ToUInt32(b.ToArray(),0);
+        }
 
         public short MoveNextToGetShort()
         {

@@ -5,7 +5,7 @@
         private const int DefaultBeltConveyorNum = 4;
         private const int DefaultTimeOfItemEnterToExit = 2000;
         //TODO テスト用仮メソッドを実装する
-        public static BeltConveyorData GetBeltConveyorData(int blockId)
+        public static BeltConveyorData GetBeltConveyorData(uint blockId)
         {
             return new BeltConveyorData(DefaultBeltConveyorNum,DefaultTimeOfItemEnterToExit);
         }

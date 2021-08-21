@@ -4,14 +4,14 @@ namespace industrialization.Core.Block
 {
     public abstract class BlockBase
     {
-        protected int BlockID;
-        protected int intID;
+        protected uint BlockID;
+        protected uint intID;
 
-        public int BlockId => BlockID;
+        public uint BlockId => BlockID;
 
-        public int IntId => intID;
+        public uint IntId => intID;
 
-        protected BlockBase(int blockId, int intId)
+        protected BlockBase(uint blockId, uint intId)
         {
             this.BlockID = blockId;
             this.intID = intId;

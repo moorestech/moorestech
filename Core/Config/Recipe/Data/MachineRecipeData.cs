@@ -6,9 +6,9 @@ namespace industrialization.Core.Config.Recipe.Data
 {
     public class MachineRecipeData : IMachineRecipeData
     {
-        public int BlockId { get; }
+        public uint BlockId { get; }
 
-        public MachineRecipeData(int blockId,int time,List<IItemStack> itemInputs, List<ItemOutput> itemOutputs)
+        public MachineRecipeData(uint blockId,int time,List<IItemStack> itemInputs, List<ItemOutput> itemOutputs)
         {
             BlockId = blockId;
             ItemInputs = itemInputs;

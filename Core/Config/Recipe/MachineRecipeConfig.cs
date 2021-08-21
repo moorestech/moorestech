@@ -24,7 +24,7 @@ namespace industrialization.Core.Config.Recipe
         /// <param name="BlockId">設置物ID</param>
         /// <param name="inputItem">搬入スロット</param>
         /// <returns>レシピデータ</returns>
-        public static IMachineRecipeData GetRecipeData(int BlockId, List<IItemStack> inputItem)
+        public static IMachineRecipeData GetRecipeData(uint BlockId, List<IItemStack> inputItem)
         {
             _recipedatas ??= MachineRecipeJsonLoad.LoadConfig();
 
@@ -51,7 +51,7 @@ namespace industrialization.Core.Config.Recipe
                 return new NullMachineRecipeData();
             }
         }
-        private static string GetKey(int blockId, List<IItemStack> itemId)
+        private static string GetKey(uint blockId, List<IItemStack> itemId)
         {
             var items = "";
             itemId.Sort((a, b) => a.Id - b.Id);

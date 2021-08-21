@@ -7,7 +7,7 @@ namespace industrialization.Core.Config.Recipe.Data
     {
         List<IItemStack> ItemInputs { get; }
         List<ItemOutput> ItemOutputs { get; }
-        int BlockId { get; }
+        uint BlockId { get; }
         int Time{ get; }
         bool RecipeConfirmation(List<IItemStack> inputSlot);
     }

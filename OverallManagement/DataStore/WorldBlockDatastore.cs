@@ -7,14 +7,14 @@ namespace industrialization.OverallManagement.DataStore
     public static class WorldBlockDatastore
     {
         //メインのデータストア
-        private static Dictionary<int, BlockWorldData> _blockMasterDictionary = new Dictionary<int, BlockWorldData>();
+        private static Dictionary<uint, BlockWorldData> _blockMasterDictionary = new Dictionary<uint, BlockWorldData>();
         //座標がキーのデータストア
         private static Dictionary<Coordinate,BlockWorldData> _coordinateDictionary = new Dictionary<Coordinate,BlockWorldData>();
 
 
         public static void ClearData()
         {
-            _blockMasterDictionary = new Dictionary<int, BlockWorldData>();
+            _blockMasterDictionary = new Dictionary<uint, BlockWorldData>();
             _coordinateDictionary = new Dictionary<Coordinate,BlockWorldData>();
         }
         
@@ -34,12 +34,12 @@ namespace industrialization.OverallManagement.DataStore
             return false;
         }
 
-        public static bool ContainsKey(int intId)
+        public static bool ContainsKey(uint intId)
         {
             return _blockMasterDictionary.ContainsKey(intId);
         }
 
-        public static Coordinate GetCoordinate(int intId)
+        public static Coordinate GetCoordinate(uint intId)
         {
             if (_blockMasterDictionary.ContainsKey(intId))
             {
@@ -50,14 +50,14 @@ namespace industrialization.OverallManagement.DataStore
             return new Coordinate {x = Int32.MaxValue, y = Int32.MaxValue};
         }
         
-        public static BlockBase GetBlock(int intId)
+        public static BlockBase GetBlock(uint intId)
         {
             if (_blockMasterDictionary.ContainsKey(intId))
             {
                 return _blockMasterDictionary[intId].BlockBase;
             }
 
-            return new NullBlock(-1,Int32.MaxValue);
+            return new NullBlock(0,Int32.MaxValue);
         }
 
         public static bool ContainsCoordinate(int x, int y)
