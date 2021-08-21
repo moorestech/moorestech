@@ -4,7 +4,7 @@ namespace industrialization.Core.Block.Machine.util
 {
     public static class NormalMachineFactory
     {
-        public static NormalMachine Create(uint BlockId,uint intID, IBlockInventory connect)
+        public static NormalMachine Create(int BlockId,int intID, IBlockInventory connect)
         {
             return new NormalMachine(BlockId, intID,
                 new NormalMachineInputInventory(BlockId),

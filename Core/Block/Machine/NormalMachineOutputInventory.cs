@@ -23,7 +23,7 @@ namespace industrialization.Core.Block.Machine
             }
         }
 
-        public NormalMachineOutputInventory(uint blockId, IBlockInventory connect)
+        public NormalMachineOutputInventory(int blockId, IBlockInventory connect)
         {
             _connectInventory = connect;
             var data = BlockConfig.GetBlocksConfig(blockId);

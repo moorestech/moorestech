@@ -17,7 +17,7 @@ namespace industrialization.Core.Block.BeltConveyor.Generally
         private readonly List<BeltConveyorInventoryItem> _inventoryItems = new List<BeltConveyorInventoryItem>();
         private IBlockInventory _connector;
 
-        public GenericBeltConveyor(uint blockId, uint intId, IBlockInventory connector): base(blockId, intId)
+        public GenericBeltConveyor(int blockId, int intId, IBlockInventory connector): base(blockId, intId)
         {
             _connector = connector;
             var conf = BeltConveyorConfig.GetBeltConveyorData(blockId);

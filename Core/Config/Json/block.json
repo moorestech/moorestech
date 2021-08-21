@@ -1,11 +1,6 @@
 ﻿{
   "Blocks":[
     {
-      "name": "",
-      "inputSlot": 0,
-      "outputSlot": 0
-    },
-    {
       "name": "TestMachine1",
       "inputSlot": 2,
       "outputSlot": 1

@@ -3,6 +3,6 @@
     public interface IPowerGenerator
     {
         int OutputPower();
-        uint GetIntId();
+        int GetIntId();
     }
 }

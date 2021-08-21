@@ -4,6 +4,6 @@
     {
         int RequestPower();
         void SupplyPower(int power);
-        uint GetIntId();
+        int GetIntId();
     }
 }

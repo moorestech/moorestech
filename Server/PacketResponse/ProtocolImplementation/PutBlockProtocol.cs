@@ -14,14 +14,14 @@ namespace industrialization.Server.PacketResponse.ProtocolImplementation
             //パケットのパース、接続元、接続先のインスタンス取得
             var payloadData = new ByteArrayEnumerator(payload);
             payloadData.MoveNextToGetShort();
-            uint blockId = payloadData.MoveNextToGetUint();
+            int blockId = payloadData.MoveNextToGetInt();
             payloadData.MoveNextToGetShort();
             int x = payloadData.MoveNextToGetInt();
             int y = payloadData.MoveNextToGetInt();
             
-            var inputBlock = WorldBlockInventoryDatastore.GetBlock(payloadData.MoveNextToGetUint());
+            var inputBlock = WorldBlockInventoryDatastore.GetBlock(payloadData.MoveNextToGetInt());
 
-            var block = NormalMachineFactory.Create(blockId, IntId.NewIntId(), WorldBlockInventoryDatastore.GetBlock(payloadData.MoveNextToGetUint()));
+            var block = NormalMachineFactory.Create(blockId, IntId.NewIntId(), WorldBlockInventoryDatastore.GetBlock(payloadData.MoveNextToGetInt()));
             inputBlock.ChangeConnector(block);
             
             WorldBlockInventoryDatastore.AddBlock(block,block.IntId);

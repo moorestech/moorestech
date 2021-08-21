@@ -14,7 +14,7 @@ namespace industrialization.Core.Block.Machine
         public List<IItemStack> InputSlot => _normalMachineInputInventory.InputSlot;
         public List<IItemStack> OutputSlot => _normalMachineOutputInventory.OutputSlot;
         
-        public NormalMachine(uint blockId, uint intId,
+        public NormalMachine(int blockId, int intId,
             NormalMachineInputInventory normalMachineInputInventory,
             NormalMachineOutputInventory normalMachineOutputInventory ) : base(blockId, intId)
         {
@@ -91,7 +91,7 @@ namespace industrialization.Core.Block.Machine
         private int _nowPower = 0;
         public int RequestPower(){return requestPower;}
         public void SupplyPower(int power){_nowPower = power;}
-        public uint GetIntId(){return intID;}
+        public int GetIntId(){return intID;}
     }
 
     enum ProcessState

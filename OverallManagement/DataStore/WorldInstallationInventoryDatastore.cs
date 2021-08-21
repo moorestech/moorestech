@@ -6,8 +6,8 @@ namespace industrialization.OverallManagement.DataStore
 {
     public static class WorldBlockInventoryDatastore
     {
-        private static Dictionary<uint, IBlockInventory> _installatioInventorynMasterDictionary = new Dictionary<uint, IBlockInventory>();
-        public static void AddBlock(IBlockInventory Block,uint intId)
+        private static Dictionary<int, IBlockInventory> _installatioInventorynMasterDictionary = new Dictionary<int, IBlockInventory>();
+        public static void AddBlock(IBlockInventory Block,int intId)
         {
             if (!_installatioInventorynMasterDictionary.ContainsKey(intId))
             {
@@ -15,7 +15,7 @@ namespace industrialization.OverallManagement.DataStore
             }
         }
 
-        public static IBlockInventory GetBlock(uint intId)
+        public static IBlockInventory GetBlock(int intId)
         {
             if (_installatioInventorynMasterDictionary.ContainsKey(intId))
             {
@@ -25,7 +25,7 @@ namespace industrialization.OverallManagement.DataStore
             return new NullIBlockInventory();
         }
 
-        public static void RemoveBlock(IBlockInventory Block,uint intId)
+        public static void RemoveBlock(IBlockInventory Block,int intId)
         {
             if (_installatioInventorynMasterDictionary.ContainsKey(intId))
             {

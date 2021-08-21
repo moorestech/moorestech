@@ -5,9 +5,9 @@ namespace industrialization.Core
     public static class IntId
     {
         private static Random _random = new Random();
-        public static uint NewIntId()
+        public static int NewIntId()
         {
-            return (uint)(_random.Next(1,Int32.MaxValue) + _random.Next(1,Int32.MaxValue-2));
+            return _random.Next(Int32.MinValue,Int32.MaxValue);
         }
     }
 }
