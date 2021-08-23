@@ -33,7 +33,7 @@ namespace industrialization.Server.PacketHandle
                 new Thread(() =>
                 {
                     Socket client = handler;
-                    byte[] bytes = new byte[1024];
+                    byte[] bytes = new byte[4096];
                     while (true)
                     {
                         client.Receive(bytes);
