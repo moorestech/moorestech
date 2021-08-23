@@ -39,11 +39,10 @@ namespace industrialization.Server.PacketHandle
                         client.Receive(bytes);
                         
                         //パケットのレスポンスを得て、送信する
-                        var responses = PacketResponseFactory.GetPacketResponse(bytes);
-                        foreach (var t in responses)
+                        new Thread(() =>
                         {
-                            client.Send(t);
-                        }
+                            PacketResponseFactory.GetPacketResponse(bytes).ForEach(t => client.Send(t));
+                        }).Start();
                     }
                 }).Start();
             }
