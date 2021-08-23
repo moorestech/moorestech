@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using industrialization.Server.PacketResponse;
+using industrialization.Server.PacketHandle.PacketResponse;
 
 namespace industrialization.Server.PacketHandle
 {

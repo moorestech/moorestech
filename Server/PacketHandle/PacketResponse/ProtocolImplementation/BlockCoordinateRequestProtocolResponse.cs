@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using industrialization.Core.Block;
 using industrialization.OverallManagement.DataStore;
 using industrialization.Server.Util;
 
-namespace industrialization.Server.PacketResponse.ProtocolImplementation
+namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplementation
 {
     /// <summary>
     /// 設置物の座標とintIDを要求するプロトコルを受けたときにレスポンスを作成するクラス

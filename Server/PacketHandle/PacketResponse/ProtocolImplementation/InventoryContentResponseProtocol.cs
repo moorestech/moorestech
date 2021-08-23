@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace industrialization.Server.PacketResponse.ProtocolImplementation
+namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplementation
 {
     public static class InventoryContentResponseProtocol
     {

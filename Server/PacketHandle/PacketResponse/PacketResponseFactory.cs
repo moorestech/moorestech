@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using industrialization.Server.PacketResponse.ProtocolImplementation;
+﻿using System.Collections.Generic;
+using industrialization.Server.PacketHandle.PacketResponse.ProtocolImplementation;
 using industrialization.Server.Util;
 
-namespace industrialization.Server.PacketResponse
+namespace industrialization.Server.PacketHandle.PacketResponse
 {
     public static class PacketResponseFactory
     {
