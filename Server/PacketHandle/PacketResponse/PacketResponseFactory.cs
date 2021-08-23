@@ -13,7 +13,7 @@ namespace industrialization.Server.PacketHandle.PacketResponse
         {
             _packetResponseList.Add(DummyProtocol.GetResponse);
             _packetResponseList.Add(PutBlockProtocol.GetResponse);
-            _packetResponseList.Add(BlockCoordinateRequestProtocolResponse.GetResponse);
+            _packetResponseList.Add(PlayerCoordinateSendProtocol.GetResponse);
             _packetResponseList.Add(InventoryContentResponseProtocol.GetResponse);
         }
         
