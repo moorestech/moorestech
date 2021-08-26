@@ -21,7 +21,11 @@ namespace industrialization.Server.Util
         {
             return 0;
         }
-        public byte MoveNextToShort()
+        public short MoveNextToShort()
+        {
+            return 0;
+        }
+        public float MoveNextToFloat()
         {
             return 0;
         }
