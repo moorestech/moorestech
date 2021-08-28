@@ -7,26 +7,30 @@ namespace industrialization.Server.Player
 {
     public class CoordinateToChunkBlocks
     {
-        public Coordinate OriginPosition { get; }
-        public int[,] Blocks { get; }
-        public CoordinateToChunkBlocks(Coordinate playerCoordinate)
+        public static int[,] Convert(Coordinate coordinate)
         {
             //その座標のチャンクの原点
-            var x = playerCoordinate.x / ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk;
-            var y = playerCoordinate.x / ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk;
-            OriginPosition = CoordinateCreator.New(x,y);
+            var x = coordinate.x / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
+            var y = coordinate.x / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
             
-            Blocks = new int[ChunkResponseConst.ChunkSize,ChunkResponseConst.ChunkSize];
+            var blocks = new int[ChunkResponseConst.ChunkSize,ChunkResponseConst.ChunkSize];
 
-            for (int i = 0; i < Blocks.GetLength(0); i++)
+            for (int i = 0; i < blocks.GetLength(0); i++)
             {
-                for (int j = 0; j < Blocks.GetLength(1); j++)
+                for (int j = 0; j < blocks.GetLength(1); j++)
                 {
-                    Blocks[i, j] = WorldBlockDatastore.GetBlock(
-                        OriginPosition.x + i,
-                        OriginPosition.y+ j).BlockId;
+                    blocks[i, j] = WorldBlockDatastore.GetBlock(
+                        x + i,
+                        y+ j).BlockId;
                 }                
             }
+
+            return blocks;
+        }
+
+        public static int[,] Convert(int x, int y)
+        {
+            return Convert(CoordinateCreator.New(x, y));
         }
     }
 }
