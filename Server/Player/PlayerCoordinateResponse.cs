@@ -17,7 +17,7 @@ namespace industrialization.Server.Player
             var y = playerCoordinate.x / ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk;
             
             //原点となるチャンクを求める
-            this.OriginPosition = CoordinateCreator.New(offset + x,offset + y);
+            OriginPosition = CoordinateCreator.New(offset + x,offset + y);
             Blocks = new int[
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.ChunkSize,
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.ChunkSize];
@@ -26,7 +26,9 @@ namespace industrialization.Server.Player
             {
                 for (int j = 0; j < Blocks.GetLength(1); j++)
                 {
-                    Blocks[i, j] = BlockConst.NullIntId;
+                    Blocks[i, j] = WorldBlockDatastore.GetBlock(
+                        OriginPosition.x + i,
+                        OriginPosition.y+ j).BlockId;
                 }                
             }
         }

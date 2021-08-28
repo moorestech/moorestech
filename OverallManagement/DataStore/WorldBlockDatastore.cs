@@ -73,7 +73,7 @@ namespace industrialization.OverallManagement.DataStore
                 return _coordinateDictionary[c].BlockBase;
             }
 
-            return null;
+            return new NullBlock(BlockConst.NullIntId,0);
         }
 
         public static void RemoveBlock(BlockBase block)
