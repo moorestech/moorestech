@@ -17,7 +17,7 @@ namespace industrialization.Core.Block.Machine
         {
             get
             {
-                var a = _outputSlot.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+                var a = _outputSlot.Where(i => i.Id != BlockConst.NullIntId).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
                 return a.ToList();
             }
