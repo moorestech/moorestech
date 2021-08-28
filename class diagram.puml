@@ -6,7 +6,7 @@ package Network <<Frame>> {
   PutBlockProtocol <-- PacketResponseFactory
   PlayerCoordinateSendProtocol <-- PacketResponseFactory
   InventoryContentResponseProtocol <-- PacketResponseFactory
-  PlayerCoordinateToBlock <-- PlayerCoordinateSendProtocol
+  PlayerCoordinateResponse <-- PlayerCoordinateSendProtocol
   PlayerCoordinateToDoResponse <-- PlayerCoordinateSendProtocol
   class PacketHandler{
     + void StartServer()
@@ -29,8 +29,9 @@ package Network <<Frame>> {
     - Coordinate lastPlayerCoordinate
     + bool DoResponse(Coordinate)
   }
-  class PlayerCoordinateToBlock{
-    + ResponseChunk GetChunkData(Coordinate)
+  class PlayerCoordinateResponse{
+    + Coordinate originPosition
+    + int[,] blocks
   }
   class InventoryContentResponseProtocol{
     + byte[] GetResponse(byte[])
