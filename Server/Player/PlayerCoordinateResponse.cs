@@ -1,5 +1,6 @@
 ﻿using industrialization.Core.Block;
 using industrialization.OverallManagement.DataStore;
+using industrialization.OverallManagement.Util;
 using industrialization.Server.Const;
 
 namespace industrialization.Server.Player
@@ -10,11 +11,13 @@ namespace industrialization.Server.Player
         public int[,] Blocks { get; }
         public PlayerCoordinateResponse(Coordinate playerCoordinate)
         {
-            //TODO プレイヤーのチャンクを求める
-            var player = ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.ChunkSize / 2;
+            var offset = -ChunkResponseConst.ChunkSize * ChunkResponseConst.PlayerVisibleRangeChunk / 2;
+            //プレイヤーがいる座標のチャンクの原点
+            var x = playerCoordinate.x / ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk;
+            var y = playerCoordinate.x / ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk;
             
-            //TODO 原点となるチャンクを求める
-            this.OriginPosition = playerCoordinate;
+            //原点となるチャンクを求める
+            this.OriginPosition = CoordinateCreator.New(offset + x,offset + y);
             Blocks = new int[
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.ChunkSize,
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.ChunkSize];
