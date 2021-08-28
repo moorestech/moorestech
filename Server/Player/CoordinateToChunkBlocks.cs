@@ -5,22 +5,18 @@ using industrialization.Server.Const;
 
 namespace industrialization.Server.Player
 {
-    public class PlayerCoordinateResponse
+    public class CoordinateToChunkBlocks
     {
         public Coordinate OriginPosition { get; }
         public int[,] Blocks { get; }
-        public PlayerCoordinateResponse(Coordinate playerCoordinate)
+        public CoordinateToChunkBlocks(Coordinate playerCoordinate)
         {
-            var offset = -ChunkResponseConst.ChunkSize * ChunkResponseConst.PlayerVisibleRangeChunk / 2;
-            //プレイヤーがいる座標のチャンクの原点
+            //その座標のチャンクの原点
             var x = playerCoordinate.x / ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk;
             var y = playerCoordinate.x / ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk;
+            OriginPosition = CoordinateCreator.New(x,y);
             
-            //原点となるチャンクを求める
-            OriginPosition = CoordinateCreator.New(offset + x,offset + y);
-            Blocks = new int[
-                ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.ChunkSize,
-                ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.ChunkSize];
+            Blocks = new int[ChunkResponseConst.ChunkSize,ChunkResponseConst.ChunkSize];
 
             for (int i = 0; i < Blocks.GetLength(0); i++)
             {
