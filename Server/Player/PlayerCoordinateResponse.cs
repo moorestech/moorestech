@@ -8,9 +8,13 @@ namespace industrialization.Server.Player
     {
         public Coordinate OriginPosition { get; }
         public int[,] Blocks { get; }
-        public PlayerCoordinateResponse(Coordinate originPosition)
+        public PlayerCoordinateResponse(Coordinate playerCoordinate)
         {
-            this.OriginPosition = originPosition;
+            //TODO プレイヤーのチャンクを求める
+            var player = ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.ChunkSize / 2;
+            
+            //TODO 原点となるチャンクを求める
+            this.OriginPosition = playerCoordinate;
             Blocks = new int[
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.ChunkSize,
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.ChunkSize];
