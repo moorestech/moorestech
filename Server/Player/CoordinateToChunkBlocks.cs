@@ -11,7 +11,7 @@ namespace industrialization.Server.Player
         {
             //その座標のチャンクの原点
             var x = coordinate.x / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
-            var y = coordinate.x / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
+            var y = coordinate.y / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
             
             var blocks = new int[ChunkResponseConst.ChunkSize,ChunkResponseConst.ChunkSize];
 
