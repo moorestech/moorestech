@@ -5,7 +5,7 @@ using industrialization.Server.Const;
 
 namespace industrialization.Server.Player
 {
-    public class CoordinateToChunkBlocks
+    public static class CoordinateToChunkBlocks
     {
         public static int[,] Convert(Coordinate coordinate)
         {
