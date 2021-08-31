@@ -18,7 +18,7 @@ namespace industrialization.Server.Player
             _lastCoordinate = coordinate;
             for (int i = now.Count - 1; i >= 0; i--)
             {
-                for (int j = 0; j < last.Count; j++)
+                for (int j = last.Count - 1; j >= 0; j--)
                 {
                     //もし前回の取得チャンクに今回の取得チャンクとの被りがあったら削除する
                     if (!now.Contains(last[j])) continue;
@@ -27,8 +27,8 @@ namespace industrialization.Server.Player
                     break;
                 }
             }
-            
-            return new List<Coordinate>();
+
+            return now;
         }
 
         private List<Coordinate> GetCoordinates(Coordinate coordinate)
@@ -45,7 +45,7 @@ namespace industrialization.Server.Player
                 {
                     result.Add(CoordinateCreator.New(
                         x + i * ChunkResponseConst.ChunkSize,
-                        y + i * ChunkResponseConst.ChunkSize));
+                        y + j * ChunkResponseConst.ChunkSize));
                 }
             }
 
