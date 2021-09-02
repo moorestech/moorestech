@@ -12,20 +12,14 @@ namespace industrialization.Server.Player
         private Coordinate _lastCoordinate = new Coordinate {x = Int32.MaxValue, y = Int32.MaxValue};
         public List<Coordinate> GetResponseCoordinate(Coordinate coordinate)
         {
-            //TODO ここに座標取得処理を作成
             var now = GetCoordinates(coordinate);
             var last = GetCoordinates(_lastCoordinate);
             _lastCoordinate = coordinate;
             for (int i = now.Count - 1; i >= 0; i--)
             {
-                for (int j = last.Count - 1; j >= 0; j--)
-                {
-                    //もし前回の取得チャンクに今回の取得チャンクとの被りがあったら削除する
-                    if (!now.Contains(last[j])) continue;
-                    now.RemoveAt(i);
-                    last.RemoveAt(j);
-                    break;
-                }
+                //もし前回の取得チャンクに今回の取得チャンクとの被りがあったら削除する
+                if (!last.Contains(now[i])) continue;
+                now.RemoveAt(i);
             }
 
             return now;
