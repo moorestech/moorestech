@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using industrialization.Server.PacketResponse;
+using industrialization.Server.PacketHandle.PacketResponse;
 
 namespace industrialization.Server.PacketHandle
 {
@@ -33,17 +33,16 @@ namespace industrialization.Server.PacketHandle
                 new Thread(() =>
                 {
                     Socket client = handler;
-                    byte[] bytes = new byte[1024];
+                    byte[] bytes = new byte[4096];
                     while (true)
                     {
                         client.Receive(bytes);
                         
                         //パケットのレスポンスを得て、送信する
-                        var responses = PacketResponseFactory.GetPacketResponse(bytes);
-                        foreach (var t in responses)
+                        new Thread(() =>
                         {
-                            client.Send(t);
-                        }
+                            PacketResponseCreator.GetPacketResponse(bytes).ForEach(t => client.Send(t));
+                        }).Start();
                     }
                 }).Start();
             }

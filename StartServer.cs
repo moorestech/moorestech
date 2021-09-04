@@ -1,6 +1,6 @@
 ﻿using industrialization.Server.PacketHandle;
 
-namespace industrialization.Server
+namespace industrialization
 {
     public static class StartServer
     {

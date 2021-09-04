@@ -57,7 +57,7 @@ namespace industrialization.OverallManagement.DataStore
                 return _blockMasterDictionary[intId].BlockBase;
             }
 
-            return new NullBlock(-1,Int32.MaxValue);
+            return new NullBlock(BlockConst.NullBlockId,Int32.MaxValue);
         }
 
         public static bool ContainsCoordinate(int x, int y)
@@ -73,7 +73,7 @@ namespace industrialization.OverallManagement.DataStore
                 return _coordinateDictionary[c].BlockBase;
             }
 
-            return null;
+            return new NullBlock(BlockConst.NullBlockId,0);
         }
 
         public static void RemoveBlock(BlockBase block)

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using industrialization.Core.Block;
 using industrialization.Core.Config.Recipe.Data;
 using industrialization.Core.Item;
 
@@ -39,7 +40,7 @@ namespace industrialization.Core.Config.Recipe
                 });
             }
 
-            var tmpInputItem = inputItem.Where(i => i.Id != NullItemStack.NullItemId).ToList();
+            var tmpInputItem = inputItem.Where(i => i.Id != BlockConst.NullBlockId).ToList();
             tmpInputItem.Sort((a, b) => a.Id - b.Id);
             var key = GetKey(BlockId, tmpInputItem);
             if (_recipeDataCash.ContainsKey(key))

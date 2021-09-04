@@ -1,0 +1,36 @@
+﻿@startuml
+
+package Network <<Frame>> {
+  PacketResponseFactory <-- PacketHandler
+  DummyProtocol <-- PacketResponseFactory
+  PutBlockProtocol <-- PacketResponseFactory
+  PlayerCoordinateSendProtocol <-- PacketResponseFactory
+  InventoryContentResponseProtocol <-- PacketResponseFactory
+  PlayerCoordinateToDoResponse <-- PlayerCoordinateSendProtocol
+  class PacketHandler{
+    + void StartServer()
+  }
+  class PacketResponseFactory{
+    - delegate Responses
+    - Init() 
+    + void StartServer()
+  }
+  class DummyProtocol{
+    + byte[] GetResponse(byte[])
+  }
+  class PutBlockProtocol{
+    + byte[] GetResponse(byte[])
+  }
+  class PlayerCoordinateSendProtocol{
+    + byte[] GetResponse(byte[])
+  }
+  class PlayerCoordinateToDoResponse{
+    - Coordinate lastPlayerCoordinate
+    + List<Coordinate> ResponseCoordinate(Coordinate)
+  }
+  class InventoryContentResponseProtocol{
+    + byte[] GetResponse(byte[])
+  }
+}
+
+@enduml

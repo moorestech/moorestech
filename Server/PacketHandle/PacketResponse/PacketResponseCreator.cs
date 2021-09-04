@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using industrialization.Server.PacketResponse.ProtocolImplementation;
+﻿using System.Collections.Generic;
+using industrialization.Server.PacketHandle.PacketResponse.ProtocolImplementation;
 using industrialization.Server.Util;
 
-namespace industrialization.Server.PacketResponse
+namespace industrialization.Server.PacketHandle.PacketResponse
 {
-    public static class PacketResponseFactory
+    public static class PacketResponseCreator
     {
         delegate List<byte[]> Responses(byte[] payload);
         private static List<Responses> _packetResponseList = new List<Responses>();
@@ -15,7 +13,7 @@ namespace industrialization.Server.PacketResponse
         {
             _packetResponseList.Add(DummyProtocol.GetResponse);
             _packetResponseList.Add(PutBlockProtocol.GetResponse);
-            _packetResponseList.Add(BlockCoordinateRequestProtocolResponse.GetResponse);
+            _packetResponseList.Add(PlayerCoordinateSendProtocol.GetResponse);
             _packetResponseList.Add(InventoryContentResponseProtocol.GetResponse);
         }
         

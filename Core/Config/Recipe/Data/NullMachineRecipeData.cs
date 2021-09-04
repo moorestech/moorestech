@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using industrialization.Core.Block;
 using industrialization.Core.Item;
 
 namespace industrialization.Core.Config.Recipe.Data
@@ -8,7 +9,7 @@ namespace industrialization.Core.Config.Recipe.Data
     {
         public List<IItemStack> ItemInputs => System.Array.Empty<IItemStack>().ToList();
         public List<ItemOutput> ItemOutputs => System.Array.Empty<ItemOutput>().ToList();
-        public int BlockId => -1;
+        public int BlockId => BlockConst.NullBlockId;
         public int Time => 0;
 
         public bool RecipeConfirmation(List<IItemStack> inputSlot)
