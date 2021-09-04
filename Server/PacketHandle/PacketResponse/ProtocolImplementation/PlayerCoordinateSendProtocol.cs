@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using industrialization.Core.Block;
 using industrialization.OverallManagement.DataStore;
+using industrialization.Server.Player;
 using industrialization.Server.Util;
 
 namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplementation
@@ -8,12 +9,22 @@ namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplement
     /// <summary>
     /// プレイヤー座標のプロトコル
     /// </summary>
-    public static class PlayerCoordinateSendProtocol
+    public class PlayerCoordinateSendProtocol
     {
-        public static List<byte[]> GetResponse(byte[] payload)
+        public List<byte[]> GetResponse(byte[] payload)
         {
             
             return new List<byte[]>();
+        }
+
+        private static PlayerCoordinateSendProtocol _instance;
+        public static PlayerCoordinateSendProtocol Instance
+        {
+            get
+            {
+                if (_instance is null) _instance = new PlayerCoordinateSendProtocol();
+                return _instance;
+            }
         }
     }
 }
