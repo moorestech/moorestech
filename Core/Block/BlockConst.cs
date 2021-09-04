@@ -1,7 +1,7 @@
 ﻿namespace industrialization.Core.Block
 {
-    public class BlockConst
+    public static class BlockConst
     {
-        public const int NullIntId = -1;
+        public const int NullBlockId = -1;
     }
 }

@@ -76,7 +76,7 @@ namespace industrialization.Core.Item
         {
             var tmpStack = ItemConfig.GetItemConfig(Id).Stack;
             
-            return (Id == item.Id || item.Id == BlockConst.NullIntId)&&
+            return (Id == item.Id || item.Id == BlockConst.NullBlockId)&&
                    item.Amount + Amount <=tmpStack;
         }
 

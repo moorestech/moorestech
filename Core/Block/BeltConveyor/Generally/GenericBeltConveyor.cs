@@ -95,7 +95,7 @@ namespace industrialization.Core.Block.BeltConveyor.Generally
             {
                 var output = _connector.InsertItem(ItemStackFactory.NewItemStack(_inventoryItems[last].ItemId, 1));
                 //渡した結果がnullItemだったらそのアイテムを消す
-                if (output.Id == BlockConst.NullIntId)
+                if (output.Id == BlockConst.NullBlockId)
                 {
                     _inventoryItems.RemoveAt(_inventoryItems.Count - 1);
                 }

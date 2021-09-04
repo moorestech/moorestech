@@ -4,7 +4,7 @@ namespace industrialization.Core.Item
 {
     public class NullItemStack : IItemStack
     {
-        public int Id => BlockConst.NullIntId;
+        public int Id => BlockConst.NullBlockId;
         public int Amount => 0;
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)

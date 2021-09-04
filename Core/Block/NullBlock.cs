@@ -7,7 +7,7 @@ namespace industrialization.Core.Block
         public NullBlock(int blockId, int intId) : base(blockId, intId)
         {
             intId = Int32.MaxValue;
-            blockId = BlockConst.NullIntId;
+            blockId = BlockConst.NullBlockId;
         }
     }
 }
