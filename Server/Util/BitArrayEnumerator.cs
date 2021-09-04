@@ -61,7 +61,7 @@ namespace industrialization.Server.Util
         }
 
         
-        public int MoveNextToGetInt()
+        public int MoveNextToInt()
         {
             var bitNum = 32;
             
