@@ -4,7 +4,7 @@ using industrialization.Server.Util;
 
 namespace industrialization.Server.PacketHandle.PacketResponse
 {
-    public static class PacketResponseFactory
+    public static class PacketResponseCreator
     {
         delegate List<byte[]> Responses(byte[] payload);
         private static List<Responses> _packetResponseList = new List<Responses>();

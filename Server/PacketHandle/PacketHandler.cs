@@ -41,7 +41,7 @@ namespace industrialization.Server.PacketHandle
                         //パケットのレスポンスを得て、送信する
                         new Thread(() =>
                         {
-                            PacketResponseFactory.GetPacketResponse(bytes).ForEach(t => client.Send(t));
+                            PacketResponseCreator.GetPacketResponse(bytes).ForEach(t => client.Send(t));
                         }).Start();
                     }
                 }).Start();
