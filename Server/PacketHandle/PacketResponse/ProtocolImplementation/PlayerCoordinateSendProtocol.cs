@@ -40,9 +40,9 @@ namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplement
         {
             var payload = new List<bool>();
             
-            payload.AddRange(ToBoolList(ByteArrayConverter.ToByteArray((short)1)));
-            payload.AddRange(ToBoolList(ByteArrayConverter.ToByteArray(chunk.x)));
-            payload.AddRange(ToBoolList(ByteArrayConverter.ToByteArray(chunk.y)));
+            payload.AddRange(ByteArrayToBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray((short)1)));
+            payload.AddRange(ByteArrayToBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray(chunk.x)));
+            payload.AddRange(ByteArrayToBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray(chunk.y)));
             var blocks = CoordinateToChunkBlocks.Convert(chunk);
             for (int i = 0; i < blocks.GetLength(0); i++)
             {
@@ -63,7 +63,7 @@ namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplement
                     {
                         payload.Add(false);
                         payload.Add(false);
-                        payload.AddRange(ToBoolList(ByteArrayConverter.ToByteArray((byte)id)));
+                        payload.AddRange(ByteArrayToBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray((byte)id)));
                         continue;
                     }
                     //short整数
@@ -71,60 +71,19 @@ namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplement
                     {
                         payload.Add(false);
                         payload.Add(true);
-                        payload.AddRange(ToBoolList(ByteArrayConverter.ToByteArray((short)id)));
+                        payload.AddRange(ByteArrayToBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray((short)id)));
                         continue;
                     }
                     //int整数
                     payload.Add(true);
                     payload.Add(false);
-                    payload.AddRange(ToBoolList(ByteArrayConverter.ToByteArray(id)));
+                    payload.AddRange(ByteArrayToBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray(id)));
                 }
             }
             
-            return BitsToBytes(payload);
+            return ByteArrayToBitArrayConverter.ToByteArray(payload);
         }
-        
-        byte[] BitsToBytes(IEnumerable<bool> bits)
-        {
-            int i = 0;
-            byte result = 0;
-            var bytes = new List<byte>();
-            foreach (var bit in bits)
-            {
-                // 指定桁数について1を立てる
-                if (bit) result |= (byte)(1 << 7 - i);
 
-                if (i == 7)
-                {
-                    // 1バイト分で出力しビットカウント初期化
-                    bytes.Add(result);
-                    i = 0;
-                    result = 0;
-                }
-                else
-                {
-                    i++;
-                }
-            }
-            bytes.Add(result);
-            return bytes.ToArray();
-        }
-        
-        static List<bool> ToBoolList(byte[] bytes)
-        {
-            var r = new List<bool>();
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                for(int j = 0; j < 8; j++)
-                {
-                    r.Add(bytes[i] % 2 != 0); 
-                    bytes[i] = (byte)(bytes[i] >> 1);
-                }
-            }
-
-            return r;
-        }
-        
 
         private static PlayerCoordinateSendProtocol _instance;
         public static PlayerCoordinateSendProtocol Instance
