@@ -13,6 +13,14 @@ namespace industrialization.Server.Util
             _payload = payload.ToList().GetEnumerator();
         }
 
+        public byte MoveNextToGetByte()
+        {
+            if (_payload.MoveNext())
+            {
+                return _payload.Current;
+            }
+            throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
+        }
         public int MoveNextToGetInt()
         {
             var b = new List<byte>();
