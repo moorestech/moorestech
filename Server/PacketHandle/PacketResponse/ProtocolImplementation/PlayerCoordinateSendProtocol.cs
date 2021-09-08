@@ -40,9 +40,9 @@ namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplement
         {
             var payload = new List<bool>();
             
-            payload.AddRange(ByteArrayToBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray((short)1)));
-            payload.AddRange(ByteArrayToBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray(chunk.x)));
-            payload.AddRange(ByteArrayToBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray(chunk.y)));
+            payload.AddRange(ByteArrayBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray((short)1)));
+            payload.AddRange(ByteArrayBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray(chunk.x)));
+            payload.AddRange(ByteArrayBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray(chunk.y)));
             var blocks = CoordinateToChunkBlocks.Convert(chunk);
             for (int i = 0; i < blocks.GetLength(0); i++)
             {
@@ -63,7 +63,7 @@ namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplement
                     {
                         payload.Add(false);
                         payload.Add(false);
-                        payload.AddRange(ByteArrayToBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray((byte)id)));
+                        payload.AddRange(ByteArrayBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray((byte)id)));
                         continue;
                     }
                     //short整数
@@ -71,17 +71,17 @@ namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplement
                     {
                         payload.Add(false);
                         payload.Add(true);
-                        payload.AddRange(ByteArrayToBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray((short)id)));
+                        payload.AddRange(ByteArrayBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray((short)id)));
                         continue;
                     }
                     //int整数
                     payload.Add(true);
                     payload.Add(false);
-                    payload.AddRange(ByteArrayToBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray(id)));
+                    payload.AddRange(ByteArrayBitArrayConverter.ToBoolList(ByteArrayConverter.ToByteArray(id)));
                 }
             }
             
-            return ByteArrayToBitArrayConverter.ToByteArray(payload);
+            return ByteArrayBitArrayConverter.ToByteArray(payload);
         }
 
 
