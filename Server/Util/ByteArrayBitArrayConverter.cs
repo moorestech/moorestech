@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,8 +15,9 @@ namespace industrialization.Server.Util
             foreach (var bit in bits)
             {
                 // 指定桁数について1を立てる
-                if (bit) result |= (byte)(1 << 7 - i);
-
+                result = (byte)(result << 1);
+                if (bit) result |= 1;
+                Console.WriteLine(Convert.ToString(result));
                 if (i == 7)
                 {
                     // 1バイト分で出力しビットカウント初期化
@@ -28,7 +30,11 @@ namespace industrialization.Server.Util
                     i++;
                 }
             }
-            bytes.Add(result);
+
+            if (i != 0)
+            {
+                bytes.Add(result);
+            }
             return bytes.ToArray();
         }
         public static byte[] ToByteArray(bool[] bits)
