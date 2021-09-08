@@ -17,7 +17,6 @@ namespace industrialization.Server.Util
                 // 指定桁数について1を立てる
                 result = (byte)(result << 1);
                 if (bit) result |= 1;
-                Console.WriteLine(Convert.ToString(result));
                 if (i == 7)
                 {
                     // 1バイト分で出力しビットカウント初期化
