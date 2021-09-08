@@ -15,7 +15,7 @@ namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplement
     /// </summary>
     public class PlayerCoordinateSendProtocol
     {
-        static Dictionary<string,PlayerCoordinateToResponse> _responses = new Dictionary<string, PlayerCoordinateToResponse>();
+        Dictionary<string,PlayerCoordinateToResponse> _responses = new Dictionary<string, PlayerCoordinateToResponse>();
         public List<byte[]> GetResponse(byte[] payload)
         {
             //プレイヤー座標の解析
@@ -55,11 +55,9 @@ namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplement
                         payload.Add(false);
                         continue;
                     }
-                    
-                    payload.Add(true);
 
                     //byte整数
-                    if (-128 <= id && id <= 127)
+                    if (byte.MinValue <= id && id <= byte.MaxValue)
                     {
                         payload.Add(false);
                         payload.Add(false);
@@ -67,7 +65,7 @@ namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplement
                         continue;
                     }
                     //short整数
-                    if (-32768  <= id && id <= 32767)
+                    if (short.MinValue  <= id && id <= short.MaxValue)
                     {
                         payload.Add(false);
                         payload.Add(true);
@@ -93,6 +91,10 @@ namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplement
                 if (_instance is null) _instance = new PlayerCoordinateSendProtocol();
                 return _instance;
             }
+        }
+        public static void Reset()
+        {
+            _instance = new PlayerCoordinateSendProtocol();
         }
     }
 }
