@@ -48,8 +48,10 @@ namespace industrialization.Server.Util
             {
                 for(int j = 0; j < 8; j++)
                 {
-                    r.Add(bytes[i] % 2 != 0); 
-                    bytes[i] = (byte)(bytes[i] >> 1);
+                    int tmp = bytes[i] & 128;
+                    tmp >>= 7;
+                    r.Add(tmp == 1); 
+                    bytes[i] = (byte)(bytes[i] << 1);
                 }
             }
 
