@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace industrialization.Server.Util
 {
-    public class BitArrayToByteArray
+    public static class BitArrayToByteArray
     {
         public static byte[] Convert(List<bool> bits)
         {
