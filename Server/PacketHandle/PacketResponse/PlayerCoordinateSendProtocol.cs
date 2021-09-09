@@ -31,53 +31,9 @@ namespace industrialization.Server.PacketHandle.PacketResponse
             //プレイヤーの座標から返すチャンクのブロックデータを取得をする
             //byte配列に変換して返す
             return _responses[name].
-                GetResponseCoordinate(CoordinateCreator.New((int) x, (int) y)).Select(BlockToPayload).ToList();
-        }
-
-        private byte[] BlockToPayload(Coordinate chunk)
-        {
-            var payload = new List<bool>();
-            
-            payload.AddRange(ByteArrayToBitArray.Convert(ByteArrayConverter.ToByteArray((short)1)));
-            payload.AddRange(ByteArrayToBitArray.Convert(ByteArrayConverter.ToByteArray(chunk.x)));
-            payload.AddRange(ByteArrayToBitArray.Convert(ByteArrayConverter.ToByteArray(chunk.y)));
-            var blocks = CoordinateToChunkBlocks.Convert(chunk);
-            for (int i = 0; i < blocks.GetLength(0); i++)
-            {
-                for (int j = 0; j < blocks.GetLength(1); j++)
-                {
-                    var id = blocks[i, j];
-                    //空気ブロックの追加
-                    if (id == BlockConst.NullBlockId)
-                    {
-                        payload.Add(false);
-                        continue;
-                    }
-
-                    //byte整数
-                    if (byte.MinValue <= id && id <= byte.MaxValue)
-                    {
-                        payload.Add(false);
-                        payload.Add(false);
-                        payload.AddRange(ByteArrayToBitArray.Convert((byte)id));
-                        continue;
-                    }
-                    //short整数
-                    if (short.MinValue  <= id && id <= short.MaxValue)
-                    {
-                        payload.Add(false);
-                        payload.Add(true);
-                        payload.AddRange(ByteArrayToBitArray.Convert(ByteArrayConverter.ToByteArray((short)id)));
-                        continue;
-                    }
-                    //int整数
-                    payload.Add(true);
-                    payload.Add(false);
-                    payload.AddRange(ByteArrayToBitArray.Convert(ByteArrayConverter.ToByteArray(id)));
-                }
-            }
-            
-            return BitArrayToByteArray.Convert(payload);
+                GetResponseCoordinate(CoordinateCreator.New((int) x, (int) y)).
+                Select(c => BlockToPayload.Convert(CoordinateToChunkBlocks.Convert(c),c)).
+                ToList();
         }
 
 
@@ -89,10 +45,6 @@ namespace industrialization.Server.PacketHandle.PacketResponse
                 if (_instance is null) _instance = new PlayerCoordinateSendProtocol();
                 return _instance;
             }
-        }
-        public static void Reset()
-        {
-            _instance = new PlayerCoordinateSendProtocol();
         }
     }
 }
