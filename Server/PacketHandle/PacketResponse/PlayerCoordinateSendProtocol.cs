@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using industrialization.Core.Block;
 using industrialization.OverallManagement.DataStore;
 using industrialization.OverallManagement.Util;
-using industrialization.Server.Player;
+using industrialization.Server.PacketHandle.PacketResponse.Player;
 using industrialization.Server.Util;
 
-namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplementation
+namespace industrialization.Server.PacketHandle.PacketResponse
 {
     /// <summary>
     /// プレイヤー座標のプロトコル
@@ -61,7 +59,7 @@ namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplement
                     {
                         payload.Add(false);
                         payload.Add(false);
-                        payload.AddRange(ByteArrayToBitArray.Convert(ByteArrayConverter.ToByteArray((byte)id)));
+                        payload.AddRange(ByteArrayToBitArray.Convert((byte)id));
                         continue;
                     }
                     //short整数

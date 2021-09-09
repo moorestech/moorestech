@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using industrialization.Core;
 using industrialization.OverallManagement.DataStore;
 using industrialization.OverallManagement.Util;
 using industrialization.Server.Const;
 
-namespace industrialization.Server.Player
+namespace industrialization.Server.PacketHandle.PacketResponse.Player
 {
     public class PlayerCoordinateToResponse
     {

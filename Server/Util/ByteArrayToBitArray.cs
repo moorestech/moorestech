@@ -26,5 +26,10 @@ namespace industrialization.Server.Util
         {
             return Convert(bytes.ToList());
         }
+        public static bool[] Convert(byte @byte)
+        {
+            
+            return Convert(new List<byte> {@byte});
+        }
     }
 }

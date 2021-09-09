@@ -1,9 +1,8 @@
-﻿using industrialization.Core.Block;
-using industrialization.OverallManagement.DataStore;
+﻿using industrialization.OverallManagement.DataStore;
 using industrialization.OverallManagement.Util;
 using industrialization.Server.Const;
 
-namespace industrialization.Server.Player
+namespace industrialization.Server.PacketHandle.PacketResponse.Player
 {
     public static class CoordinateToChunkBlocks
     {

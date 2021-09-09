@@ -4,7 +4,7 @@ using industrialization.Core.Block.Machine.util;
 using industrialization.OverallManagement.DataStore;
 using industrialization.Server.Util;
 
-namespace industrialization.Server.PacketHandle.PacketResponse.ProtocolImplementation
+namespace industrialization.Server.PacketHandle.PacketResponse
 {
     public static class PutBlockProtocol
     {
