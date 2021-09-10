@@ -26,6 +26,15 @@ namespace industrialization.Server.Util
         {
             return Convert(bytes.ToList());
         }
+
+        public static bool[] Convert(short @short)
+        {
+            return Convert(ByteArrayConverter.ToByteArray(@short));
+        }
+        public static bool[] Convert(int @int)
+        {
+            return Convert(ByteArrayConverter.ToByteArray(@int));
+        }
         public static bool[] Convert(byte @byte)
         {
             
