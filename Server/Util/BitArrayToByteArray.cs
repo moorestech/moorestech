@@ -10,22 +10,21 @@ namespace industrialization.Server.Util
             int i = 0;
             byte result = 0;
             var bytes = new List<byte>();
-            foreach (var bit in bits)
+            for (i = 0; i < bits.Count; i++)
             {
-                // 指定桁数について1を立てる
-                result = (byte)(result << 1);
-                if (bit) result |= 1;
-                if (i == 7)
+                if (i == 80)
+                {
+                    
+                }
+                if (i != 0 && i % 8 == 0)
                 {
                     // 1バイト分で出力しビットカウント初期化
                     bytes.Add(result);
-                    i = 0;
                     result = 0;
                 }
-                else
-                {
-                    i++;
-                }
+                // 指定桁数について1を立てる
+                result = (byte)(result << 1);
+                if (bits[i]) result |= 1;
             }
 
             if (i != 0)
