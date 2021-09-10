@@ -26,6 +26,7 @@ namespace industrialization.Server.PacketHandle.PacketResponse.Player
                         continue;
                     }
 
+                    payload.Add(true);
                     //byte整数
                     if (byte.MinValue <= id && id <= byte.MaxValue)
                     {
