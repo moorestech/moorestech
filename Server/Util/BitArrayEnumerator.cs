@@ -1,22 +1,24 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 
 namespace industrialization.Server.Util
 {
     public class BitArrayEnumerator
     {
-        private BitArray _bitArray;
+        private List<bool> _bitArray;
         private int index = 0;
 
         public BitArrayEnumerator(byte[] bytes)
         {
-            _bitArray = new BitArray(bytes);
+            _bitArray = ByteArrayToBitArray.Convert(bytes).ToList();
         }
 
         public bool MoveNextToBit()
         {
-            var r = _bitArray.Get(index);
+            var r = _bitArray[index];
             index++;
             return r;
         }
