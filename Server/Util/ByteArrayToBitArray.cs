@@ -40,5 +40,9 @@ namespace industrialization.Server.Util
             
             return Convert(new List<byte> {@byte});
         }
+        public static bool[] Convert(float @float)
+        {
+            return Convert(ByteArrayConverter.ToByteArray(@float));
+        }
     }
 }
