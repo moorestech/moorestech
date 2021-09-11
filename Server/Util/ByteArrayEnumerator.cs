@@ -76,7 +76,7 @@ namespace industrialization.Server.Util
         /// <param name="byteNum">バイト数 指定しないor0の時最後まで取得する</param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public string MoveNextToGetString(int byteNum = 0)
+        public string MoveNextToGetString(int byteNum)
         {
             if (byteNum < 0)
             {

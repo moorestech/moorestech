@@ -21,7 +21,8 @@ namespace industrialization.Server.PacketHandle.PacketResponse
             b.MoveNextToGetShort();
             var x = b.MoveNextToGetFloat();
             var y = b.MoveNextToGetFloat();
-            var name = b.MoveNextToGetString();
+            var nameNumber = b.MoveNextToGetShort();
+            var name = b.MoveNextToGetString(nameNumber);
             //新しいプレイヤーの情報ならDictionaryに追加する
             if (!_responses.ContainsKey(name))
             {
