@@ -26,40 +26,43 @@ namespace industrialization.Server.Util
         {
             var bitNum = 8;
             
-            var tmpBitArray = new BitArray(bitNum);
+            var tmpBitArray = new List<bool>();
             for (int i = 0; i < bitNum; i++)
             {
-                tmpBitArray[i] = _bitArray[i + index];
+                tmpBitArray.Add(_bitArray[i + index]);
             }
 
             index += bitNum;
-            return ToByteArray(tmpBitArray)[0];
+            var byteArray = BitArrayToByteArray.Convert(tmpBitArray);
+            return byteArray[0];
         }
         public short MoveNextToShort()
         {
             var bitNum = 16;
             
-            var tmpBitArray = new BitArray(bitNum);
+            var tmpBitArray = new List<bool>();
             for (int i = 0; i < bitNum; i++)
             {
-                tmpBitArray[i] = _bitArray[i + index];
+                tmpBitArray.Add(_bitArray[i + index]);
             }
-            
+
             index += bitNum;
-            return BitConverter.ToInt16(ToByteArray(tmpBitArray));
+            var byteArray = BitArrayToByteArray.Convert(tmpBitArray);
+            return BitConverter.ToInt16(byteArray,0);
         }
         public float MoveNextToFloat()
         {
             var bitNum = 32;
             
-            var tmpBitArray = new BitArray(bitNum);
+            var tmpBitArray = new List<bool>();
             for (int i = 0; i < bitNum; i++)
             {
-                tmpBitArray[i] = _bitArray[i + index];
+                tmpBitArray.Add(_bitArray[i + index]);
             }
-            
+
             index += bitNum;
-            return BitConverter.ToSingle(ToByteArray(tmpBitArray));
+            var byteArray = BitArrayToByteArray.Convert(tmpBitArray);
+            return BitConverter.ToSingle(byteArray,0);
         }
 
         
@@ -67,31 +70,15 @@ namespace industrialization.Server.Util
         {
             var bitNum = 32;
             
-            var tmpBitArray = new BitArray(bitNum);
+            var tmpBitArray = new List<bool>();
             for (int i = 0; i < bitNum; i++)
             {
-                tmpBitArray[i] = _bitArray[i + index];
+                tmpBitArray.Add(_bitArray[i + index]);
             }
-            
+
             index += bitNum;
-            return BitConverter.ToInt32(ToByteArray(tmpBitArray));
-        }
-        byte[] ToByteArray(BitArray bits)
-        {
-            const int BYTE = 8;
-            int length = (bits.Count / BYTE) + ((bits.Count % BYTE == 0) ? 0 : 1);
-            var bytes = new byte[length];
-
-            for (int i = 0; i < bits.Length; i++)
-            {
-                int bitIndex = i % BYTE;
-                int byteIndex = i / BYTE;
-                
-                int mask = (bits[i] ? 1 : 0) << bitIndex;
-                bytes[byteIndex] |= (byte) mask;
-            }
-
-            return bytes;
+            var byteArray = BitArrayToByteArray.Convert(tmpBitArray);
+            return BitConverter.ToInt32(byteArray,0);
         }
     }
 }
