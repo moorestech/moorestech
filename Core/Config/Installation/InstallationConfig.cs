@@ -9,10 +9,15 @@ namespace industrialization.Core.Config.Installation
     public static class BlockConfig
     {
         private static BlockData[] _machineDatas;
+        private static BlockData _nullData;
 
         public static BlockData GetBlocksConfig(int id)
         {
             _machineDatas ??= LoadJsonFile();
+            if ( _machineDatas.Length <= id)
+            {
+                return _nullData ??= new BlockData("null", 0, 0);
+            }
 
             return _machineDatas[id];
         }
@@ -39,7 +44,14 @@ namespace industrialization.Core.Config.Installation
         
         [DataMember(Name = "outputSlot")]
         private int _outputSlot;
-        
+
+        public BlockData(string name, int inputSlot, int outputSlot)
+        {
+            _name = name;
+            _inputSlot = inputSlot;
+            _outputSlot = outputSlot;
+        }
+
         public string Name => _name;
 
         public int InputSlot => _inputSlot;
