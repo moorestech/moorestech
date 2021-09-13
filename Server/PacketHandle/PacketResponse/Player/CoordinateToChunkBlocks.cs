@@ -20,7 +20,7 @@ namespace industrialization.Server.PacketHandle.PacketResponse.Player
                 {
                     blocks[i, j] = WorldBlockDatastore.GetBlock(
                         x + i,
-                        y+ j).BlockId;
+                        y+ j).GetBlockId();
                 }                
             }
 

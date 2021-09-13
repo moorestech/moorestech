@@ -19,7 +19,7 @@ namespace industrialization.OverallManagement
             WorldBlockInventoryDatastore.GetBlock(outputId).ChangeConnector(machine);
             
             //TODO ワールドデータに登録を別のところに
-            WorldBlockInventoryDatastore.AddBlock(machine,machine.IntId);
+            WorldBlockInventoryDatastore.AddBlock(machine,machine.GetIntId());
             WorldBlockDatastore.AddBlock(machine,x,y);
 
             return machine;

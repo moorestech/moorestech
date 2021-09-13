@@ -19,7 +19,7 @@ namespace industrialization.OverallManagement
             WorldBlockInventoryDatastore.GetBlock(toId).ChangeConnector(beltConveyor);
             
             //ワールドデータに登録
-            WorldBlockInventoryDatastore.AddBlock(beltConveyor,beltConveyor.IntId);
+            WorldBlockInventoryDatastore.AddBlock(beltConveyor,beltConveyor.GetIntId());
             WorldBlockDatastore.AddBlock(beltConveyor,x,y);
         }
     }

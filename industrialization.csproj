@@ -6,4 +6,9 @@
         <RootNamespace>industrialization</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="OverallManagement\Event" />
+      <Folder Include="Server\Event" />
+    </ItemGroup>
+
 </Project>

@@ -23,7 +23,7 @@ namespace industrialization.Server.PacketHandle.PacketResponse
             var block = NormalMachineFactory.Create(blockId, IntId.NewIntId(), WorldBlockInventoryDatastore.GetBlock(payloadData.MoveNextToGetInt()));
             inputBlock.ChangeConnector(block);
             
-            WorldBlockInventoryDatastore.AddBlock(block,block.IntId);
+            WorldBlockInventoryDatastore.AddBlock(block,block.GetIntId());
             WorldBlockDatastore.AddBlock(block, x, y);
             //返すものはない
             return new List<byte[]>();

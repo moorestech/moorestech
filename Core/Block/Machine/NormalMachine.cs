@@ -6,7 +6,7 @@ using industrialization.Core.Item;
 
 namespace industrialization.Core.Block.Machine
 {
-    public class NormalMachine : BlockBase,IBlockInventory,IUpdate,IBlockElectric
+    public class NormalMachine : IBlock,IBlockInventory,IUpdate,IBlockElectric
     {
         private readonly NormalMachineInputInventory _normalMachineInputInventory;
         private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
@@ -14,14 +14,18 @@ namespace industrialization.Core.Block.Machine
         public List<IItemStack> InputSlot => _normalMachineInputInventory.InputSlot;
         public List<IItemStack> OutputSlot => _normalMachineOutputInventory.OutputSlot;
         
+        private readonly int _blockId;
+        private readonly int _intId;
+        
         public NormalMachine(int blockId, int intId,
             NormalMachineInputInventory normalMachineInputInventory,
-            NormalMachineOutputInventory normalMachineOutputInventory ) : base(blockId, intId)
+            NormalMachineOutputInventory normalMachineOutputInventory )
         {
+            
             _normalMachineInputInventory = normalMachineInputInventory;
             _normalMachineOutputInventory = normalMachineOutputInventory;
-            intId = intId;
-            BlockID = blockId;
+            _blockId = blockId;
+            _intId = intId;
             GameUpdate.AddUpdateObject(this);
         }
         public IItemStack InsertItem(IItemStack itemStack)
@@ -91,7 +95,8 @@ namespace industrialization.Core.Block.Machine
         private int _nowPower = 0;
         public int RequestPower(){return requestPower;}
         public void SupplyPower(int power){_nowPower = power;}
-        public int GetIntId(){return intID;}
+        public int GetIntId(){return _intId;}
+        public int GetBlockId() { return _blockId; }
     }
 
     enum ProcessState

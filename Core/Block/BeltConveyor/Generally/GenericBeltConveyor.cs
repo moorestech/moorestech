@@ -9,7 +9,7 @@ namespace industrialization.Core.Block.BeltConveyor.Generally
     /// <summary>
     /// アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class GenericBeltConveyor :BlockBase, IUpdate, IBlockInventory
+    public class GenericBeltConveyor :IBlock, IUpdate, IBlockInventory
     {
         private readonly int _inventoryItemNum;
         private readonly double _timeOfItemEnterToExit;//ベルトコンベアにアイテムが入って出るまでの時間
@@ -17,8 +17,10 @@ namespace industrialization.Core.Block.BeltConveyor.Generally
         private readonly List<BeltConveyorInventoryItem> _inventoryItems = new List<BeltConveyorInventoryItem>();
         private IBlockInventory _connector;
 
-        public GenericBeltConveyor(int blockId, int intId, IBlockInventory connector): base(blockId, intId)
+        public GenericBeltConveyor(int blockId, int intId, IBlockInventory connector)
         {
+            _blockId = blockId;
+            _intId = intId;
             _connector = connector;
             var conf = BeltConveyorConfig.GetBeltConveyorData(blockId);
             _inventoryItemNum = conf.BeltConveyorItemNum;
@@ -100,6 +102,18 @@ namespace industrialization.Core.Block.BeltConveyor.Generally
                     _inventoryItems.RemoveAt(_inventoryItems.Count - 1);
                 }
             }
+        }
+
+        private int _blockId;
+        private int _intId;
+        public int GetIntId()
+        {
+            throw new NotImplementedException();
+        }
+
+        public int GetBlockId()
+        {
+            throw new NotImplementedException();
         }
     }
 }
