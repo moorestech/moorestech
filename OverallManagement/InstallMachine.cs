@@ -9,7 +9,7 @@ namespace industrialization.OverallManagement
 {
     public class InstallMachine
     {
-        public static NormalMachine Create(int id,int x,int y, int inputId, int outputId)
+        public static GeneralMachine Create(int id,int x,int y, int inputId, int outputId)
         {
             //機械の生成
             var machine = NormalMachineFactory.Create(id,IntId.NewIntId(), WorldBlockInventoryDatastore.GetBlock(outputId));
