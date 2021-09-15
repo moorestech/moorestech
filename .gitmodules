@@ -1,0 +1,3 @@
+[submodule "industrialization"]
+	path = industrialization
+	url = https://github.com/sakastudio/industrialization.git
