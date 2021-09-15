@@ -21,7 +21,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Core\Core.csproj" />
       <ProjectReference Include="..\industrialization\industrialization.csproj" />
+      <ProjectReference Include="..\Server\Server.csproj" />
+      <ProjectReference Include="..\World\World.csproj" />
     </ItemGroup>
 
 </Project>
