@@ -2,7 +2,6 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
-        <RootNamespace>industrialization_test</RootNamespace>
 
         <IsPackable>false</IsPackable>
     </PropertyGroup>
@@ -15,14 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="UnitTest" />
-      <Folder Include="CombinedTest\OverallManagement" />
-      <Folder Include="CombinedTest\Server" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Core\Core.csproj" />
-      <ProjectReference Include="..\industrialization\industrialization.csproj" />
       <ProjectReference Include="..\Server\Server.csproj" />
       <ProjectReference Include="..\World\World.csproj" />
     </ItemGroup>
