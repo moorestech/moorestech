@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using industrialization.Core.Block;
-using industrialization.Core.Item;
-using industrialization.Core.Util;
+using Core.Block;
+using Core.Item;
+using Core.Util;
 
 namespace industrialization_test.CombinedTest.Core.Generate
 {

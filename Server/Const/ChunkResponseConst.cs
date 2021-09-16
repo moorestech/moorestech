@@ -1,4 +1,4 @@
-﻿namespace industrialization.Server.Const
+﻿namespace Server.Const
 {
     public static class ChunkResponseConst
     {

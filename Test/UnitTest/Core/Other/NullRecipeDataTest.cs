@@ -1,4 +1,4 @@
-﻿using industrialization.Core.Config.Recipe.Data;
+﻿using Core.Config.Recipe.Data;
 using NUnit.Framework;
 
 namespace industrialization_test.UnitTest.Core.Other

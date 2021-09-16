@@ -1,6 +1,6 @@
 ﻿using industrialization.OverallManagement.DataStore;
 using industrialization.OverallManagement.Util;
-using industrialization.Server.Const;
+using Server.Const;
 
 namespace industrialization.Server.PacketHandle.PacketResponse.Player
 {

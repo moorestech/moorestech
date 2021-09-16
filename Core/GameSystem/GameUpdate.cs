@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 
-namespace industrialization.Core.GameSystem
+namespace Core.GameSystem
 {
     public static class GameUpdate
     {

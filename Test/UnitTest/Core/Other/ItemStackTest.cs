@@ -1,5 +1,5 @@
 ﻿using System;
-using industrialization.Core.Item;
+using Core.Item;
 using NUnit.Framework;
 
 namespace industrialization_test.UnitTest.Core.Other

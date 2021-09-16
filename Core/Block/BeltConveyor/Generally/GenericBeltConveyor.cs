@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using industrialization.Core.Config.BeltConveyor;
-using industrialization.Core.GameSystem;
-using industrialization.Core.Item;
+using Core.Config.BeltConveyor;
+using Core.GameSystem;
+using Core.Item;
 
-namespace industrialization.Core.Block.BeltConveyor.Generally
+namespace Core.Block.BeltConveyor.Generally
 {
     /// <summary>
     /// アイテムの搬出入とインベントリの管理を行う

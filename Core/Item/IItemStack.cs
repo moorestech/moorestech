@@ -1,4 +1,4 @@
-﻿namespace industrialization.Core.Item
+﻿namespace Core.Item
 {
     public interface IItemStack
     {

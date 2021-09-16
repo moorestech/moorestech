@@ -1,4 +1,4 @@
-﻿namespace industrialization.Core.Electric
+﻿namespace Core.Electric
 {
     public interface IBlockElectric
     {

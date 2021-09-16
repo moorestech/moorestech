@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using industrialization.Core.Block;
-using industrialization.Core.Item;
+using Core.Block;
+using Core.Item;
 
-namespace industrialization.Core.Config.Recipe.Data
+namespace Core.Config.Recipe.Data
 {
     public class NullMachineRecipeData : IMachineRecipeData
     {

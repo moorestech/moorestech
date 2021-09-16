@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using industrialization.Core.Item;
+using Core.Item;
 
-namespace industrialization.Core.Config.Recipe.Data
+namespace Core.Config.Recipe.Data
 {
     public interface IMachineRecipeData
     {

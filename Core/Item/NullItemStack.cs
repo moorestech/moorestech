@@ -1,6 +1,6 @@
-﻿using industrialization.Core.Block;
+﻿using Core.Block;
 
-namespace industrialization.Core.Item
+namespace Core.Item
 {
     public class NullItemStack : IItemStack
     {

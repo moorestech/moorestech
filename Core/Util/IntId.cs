@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace industrialization.Core
+namespace Core.Util
 {
     public static class IntId
     {

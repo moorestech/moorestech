@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using industrialization.Core.Block;
-using industrialization.Core.Config.Recipe.Data;
-using industrialization.Core.Item;
+using Core.Block;
+using Core.Config.Recipe.Data;
+using Core.Item;
 
-namespace industrialization.Core.Config.Recipe
+namespace Core.Config.Recipe
 {
     public static class MachineRecipeConfig
     {

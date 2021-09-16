@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace industrialization.Core.Block
+namespace Core.Block
 {
     public class NullBlock : IBlock
     {

@@ -1,12 +1,13 @@
 ﻿using System;
-using industrialization.Core;
-using industrialization.Core.Block;
-using industrialization.Core.Block.Machine.util;
+using Core;
+using Core.Block;
+using Core.Block.Machine.util;
+using Core.Util;
 using industrialization.OverallManagement.DataStore;
 using industrialization.OverallManagement.Util;
-using industrialization.Server.Const;
 using industrialization.Server.PacketHandle.PacketResponse.Player;
 using NUnit.Framework;
+using Server.Const;
 
 namespace industrialization_test.UnitTest.Server.Player
 {

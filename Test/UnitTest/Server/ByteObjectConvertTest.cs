@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using industrialization.Core;
+using Core;
+using Core.Util;
 using industrialization.Server.Util;
 using NUnit.Framework;
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace industrialization.Core.Util
+namespace Core.Util
 {
     public static class ProbabilityCalculator
     {

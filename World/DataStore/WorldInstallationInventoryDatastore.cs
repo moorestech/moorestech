@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using industrialization.Core.Block;
+using Core.Block;
 
 namespace industrialization.OverallManagement.DataStore
 {

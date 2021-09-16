@@ -3,10 +3,10 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using industrialization.Core.Config.Recipe.Data;
-using industrialization.Core.Item;
+using Core.Config.Recipe.Data;
+using Core.Item;
 
-namespace industrialization.Core.Config.Recipe
+namespace Core.Config.Recipe
 {
     public static class MachineRecipeJsonLoad
     {

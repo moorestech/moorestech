@@ -1,4 +1,4 @@
-﻿namespace industrialization.Core.GameSystem
+﻿namespace Core.GameSystem
 {
     public interface IUpdate
     {

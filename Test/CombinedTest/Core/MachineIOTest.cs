@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Block;
+using Core.Block.Machine;
+using Core.Block.Machine.util;
+using Core.Electric;
+using Core.GameSystem;
+using Core.Item;
 using industrialization_test.CombinedTest.Core.Generate;
 using industrialization_test.Util;
-using industrialization.Core.Block;
-using industrialization.Core.Block.Machine;
-using industrialization.Core.Block.Machine.util;
-using industrialization.Core.Electric;
-using industrialization.Core.GameSystem;
-using industrialization.Core.Item;
 using NUnit.Framework;
 
 namespace industrialization_test.CombinedTest.Core

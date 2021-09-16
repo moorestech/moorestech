@@ -1,4 +1,4 @@
-﻿namespace industrialization.Core.Block.BeltConveyor.Generally
+﻿namespace Core.Block.BeltConveyor.Generally
 {
     public class BeltConveyorInventoryItem
     {

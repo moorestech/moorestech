@@ -1,4 +1,4 @@
-﻿namespace industrialization.Core.Config
+﻿namespace Core.Config
 {
     public static class ConfigPath
     {

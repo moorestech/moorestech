@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace industrialization.Core.Config.Item
+namespace Core.Config.Item
 {
     [DataContract]
     internal class ItemJson

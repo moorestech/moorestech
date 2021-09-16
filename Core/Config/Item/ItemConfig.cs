@@ -4,7 +4,7 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using static System.Int32;
 
-namespace industrialization.Core.Config.Item
+namespace Core.Config.Item
 {
     public static class ItemConfig
     {

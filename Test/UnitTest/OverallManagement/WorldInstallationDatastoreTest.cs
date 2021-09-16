@@ -1,7 +1,8 @@
 ﻿using System;
-using industrialization.Core;
-using industrialization.Core.Block;
-using industrialization.Core.Block.Machine.util;
+using Core;
+using Core.Block;
+using Core.Block.Machine.util;
+using Core.Util;
 using industrialization.OverallManagement.DataStore;
 using NUnit.Framework;
 

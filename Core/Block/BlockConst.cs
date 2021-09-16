@@ -1,4 +1,4 @@
-﻿namespace industrialization.Core.Block
+﻿namespace Core.Block
 {
     public static class BlockConst
     {

@@ -1,4 +1,4 @@
-﻿using industrialization.Core.Config.Installation;
+﻿using Core.Config.Installation;
 using NUnit.Framework;
 
 namespace industrialization_test.CombinedTest.Core

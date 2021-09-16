@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using industrialization.Core.GameSystem;
+using Core.GameSystem;
 
-namespace industrialization.Core.Electric
+namespace Core.Electric
 {
     //１つの電力のセグメントの処理
     public class ElectricSegment : IUpdate

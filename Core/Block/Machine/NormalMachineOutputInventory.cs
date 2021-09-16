@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using industrialization.Core.Config.Block;
-using industrialization.Core.Config.Installation;
-using industrialization.Core.Config.Recipe.Data;
-using industrialization.Core.GameSystem;
-using industrialization.Core.Item;
-using industrialization.Core.Util;
+using Core.Config.Installation;
+using Core.Config.Recipe.Data;
+using Core.GameSystem;
+using Core.Item;
+using Core.Util;
 
-namespace industrialization.Core.Block.Machine
+namespace Core.Block.Machine
 {
     public class NormalMachineOutputInventory :IUpdate
     {

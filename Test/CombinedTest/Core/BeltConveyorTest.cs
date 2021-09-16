@@ -1,10 +1,10 @@
 ﻿using System;
+using Core.Block;
+using Core.Block.BeltConveyor.util;
+using Core.Config.BeltConveyor;
+using Core.GameSystem;
+using Core.Item;
 using industrialization_test.Util;
-using industrialization.Core.Block;
-using industrialization.Core.Block.BeltConveyor.util;
-using industrialization.Core.Config.BeltConveyor;
-using industrialization.Core.GameSystem;
-using industrialization.Core.Item;
 using NUnit.Framework;
 
 namespace industrialization_test.CombinedTest.Core

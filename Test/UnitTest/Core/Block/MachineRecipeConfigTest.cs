@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using industrialization.Core.Config.Recipe;
-using industrialization.Core.Item;
+using Core.Config.Recipe;
+using Core.Item;
 using NUnit.Framework;
 
 namespace industrialization_test.UnitTest.Core.Block

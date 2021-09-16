@@ -1,4 +1,4 @@
-﻿namespace industrialization.Core.Config.BeltConveyor
+﻿namespace Core.Config.BeltConveyor
 {
     public static class BeltConveyorConfig
     {

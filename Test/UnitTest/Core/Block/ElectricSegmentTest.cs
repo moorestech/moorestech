@@ -1,6 +1,6 @@
-﻿using industrialization_test.Util;
-using industrialization.Core.Electric;
-using industrialization.Core.GameSystem;
+﻿using Core.Electric;
+using Core.GameSystem;
+using industrialization_test.Util;
 using NUnit.Framework;
 
 namespace industrialization_test.UnitTest.Core.Block

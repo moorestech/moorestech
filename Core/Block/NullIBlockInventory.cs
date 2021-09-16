@@ -1,6 +1,6 @@
-﻿using industrialization.Core.Item;
+﻿using Core.Item;
 
-namespace industrialization.Core.Block
+namespace Core.Block
 {
     public class NullIBlockInventory : IBlockInventory
     {

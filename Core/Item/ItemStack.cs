@@ -1,8 +1,8 @@
 ﻿using System;
-using industrialization.Core.Block;
-using industrialization.Core.Config.Item;
+using Core.Block;
+using Core.Config.Item;
 
-namespace industrialization.Core.Item
+namespace Core.Item
 {
     public class ItemStack : IItemStack
     {

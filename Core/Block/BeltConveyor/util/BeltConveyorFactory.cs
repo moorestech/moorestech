@@ -1,7 +1,6 @@
-﻿using System;
-using industrialization.Core.Block.BeltConveyor.Generally;
+﻿using Core.Block.BeltConveyor.Generally;
 
-namespace industrialization.Core.Block.BeltConveyor.util
+namespace Core.Block.BeltConveyor.util
 {
     public static class BeltConveyorFactory
     {

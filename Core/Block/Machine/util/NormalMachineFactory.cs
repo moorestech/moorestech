@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace industrialization.Core.Block.Machine.util
+﻿namespace Core.Block.Machine.util
 {
     public static class NormalMachineFactory
     {

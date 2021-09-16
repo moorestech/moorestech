@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
-using industrialization.Core.Config.Recipe.Data;
-using industrialization.Core.Electric;
-using industrialization.Core.GameSystem;
-using industrialization.Core.Item;
+using Core.Config.Recipe.Data;
+using Core.Electric;
+using Core.GameSystem;
+using Core.Item;
 
-namespace industrialization.Core.Block.Machine
+namespace Core.Block.Machine
 {
     public class GeneralMachine : IBlock,IBlockInventory,IUpdate,IBlockElectric
     {

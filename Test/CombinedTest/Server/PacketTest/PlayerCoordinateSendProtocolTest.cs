@@ -2,16 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using industrialization.Core;
-using industrialization.Core.Block;
-using industrialization.Core.Block.Machine.util;
+using Core;
+using Core.Block;
+using Core.Block.Machine.util;
+using Core.Util;
 using industrialization.OverallManagement.DataStore;
 using industrialization.OverallManagement.Util;
-using industrialization.Server.Const;
 using industrialization.Server.PacketHandle;
 using industrialization.Server.PacketHandle.PacketResponse;
 using industrialization.Server.Util;
 using NUnit.Framework;
+using Server.Const;
 
 namespace industrialization_test.CombinedTest.Server.PacketTest
 {

@@ -1,4 +1,4 @@
-﻿using industrialization.Core.Util;
+﻿using Core.Util;
 using NUnit.Framework;
 
 namespace industrialization_test.UnitTest.Core.Other

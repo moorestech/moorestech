@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using industrialization.Core.Block;
-using industrialization.Core.Item;
-using industrialization.Core.Util;
+using Core.Block;
+using Core.Item;
+using Core.Util;
 using NUnit.Framework;
 
 namespace industrialization_test.Util

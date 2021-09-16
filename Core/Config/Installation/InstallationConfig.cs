@@ -2,9 +2,8 @@
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using industrialization.Core.Config.Block;
 
-namespace industrialization.Core.Config.Installation
+namespace Core.Config.Installation
 {
     public static class BlockConfig
     {

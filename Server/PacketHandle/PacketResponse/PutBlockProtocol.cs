@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
-using industrialization.Core;
-using industrialization.Core.Block.Machine.util;
+using Core;
+using Core.Block.Machine.util;
+using Core.Util;
 using industrialization.OverallManagement.DataStore;
 using industrialization.Server.Util;
 

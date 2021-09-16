@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using industrialization.Core.Item;
+using Core.Item;
 
-namespace industrialization.Core.Util
+namespace Core.Util
 {
     public static class CreateEmptyItemStacksList
     {

@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using industrialization.Core.Config.Block;
-using industrialization.Core.Config.Installation;
-using industrialization.Core.Config.Recipe;
-using industrialization.Core.Config.Recipe.Data;
-using industrialization.Core.Item;
-using industrialization.Core.Util;
+using Core.Config.Installation;
+using Core.Config.Recipe;
+using Core.Config.Recipe.Data;
+using Core.Item;
+using Core.Util;
 
-namespace industrialization.Core.Block.Machine
+namespace Core.Block.Machine
 {
     public class NormalMachineInputInventory
     {
