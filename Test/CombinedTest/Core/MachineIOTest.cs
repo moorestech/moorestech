@@ -7,11 +7,11 @@ using Core.Block.Machine.util;
 using Core.Electric;
 using Core.GameSystem;
 using Core.Item;
-using industrialization_test.CombinedTest.Core.Generate;
-using industrialization_test.Util;
 using NUnit.Framework;
+using Test.CombinedTest.Core.Generate;
+using Test.Util;
 
-namespace industrialization_test.CombinedTest.Core
+namespace Test.CombinedTest.Core
 {
     public class MachineIoTest
     {

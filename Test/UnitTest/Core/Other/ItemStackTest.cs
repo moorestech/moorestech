@@ -2,7 +2,7 @@
 using Core.Item;
 using NUnit.Framework;
 
-namespace industrialization_test.UnitTest.Core.Other
+namespace Test.UnitTest.Core.Other
 {
     public class ItemStackTest
     {

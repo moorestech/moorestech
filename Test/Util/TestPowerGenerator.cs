@@ -1,6 +1,6 @@
 ﻿using Core.Electric;
 
-namespace industrialization_test.Util
+namespace Test.Util
 {
     //デバック用で無限に電力を供給できる
     public class TestPowerGenerator : IPowerGenerator

@@ -1,8 +1,8 @@
-﻿using industrialization.OverallManagement.DataStore;
+﻿using World.DataStore;
 
-namespace industrialization.OverallManagement.Util
+namespace World.Util
 {
-    public class CoordinateCreator
+    public static class CoordinateCreator
     {
         public static Coordinate New(int X,int Y)
         {

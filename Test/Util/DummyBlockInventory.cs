@@ -5,7 +5,7 @@ using Core.Item;
 using Core.Util;
 using NUnit.Framework;
 
-namespace industrialization_test.Util
+namespace Test.Util
 {
     public class DummyBlockInventory : IBlockInventory
     {

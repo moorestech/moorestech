@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Core.Block;
 
-namespace industrialization.OverallManagement.DataStore
+namespace World.DataStore
 {
     public static class WorldBlockInventoryDatastore
     {

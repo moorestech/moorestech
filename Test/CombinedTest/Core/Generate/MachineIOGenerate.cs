@@ -5,7 +5,7 @@ using Core.Block;
 using Core.Item;
 using Core.Util;
 
-namespace industrialization_test.CombinedTest.Core.Generate
+namespace Test.CombinedTest.Core.Generate
 {
     public static class MachineIoGenerate
     {

@@ -1,7 +1,7 @@
 ﻿using Core.Config.Installation;
 using NUnit.Framework;
 
-namespace industrialization_test.CombinedTest.Core
+namespace Test.CombinedTest.Core
 {
     public class BlockConfigTest
     {

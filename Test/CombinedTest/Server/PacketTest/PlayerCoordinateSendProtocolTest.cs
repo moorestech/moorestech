@@ -2,18 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Core;
 using Core.Block;
 using Core.Block.Machine.util;
 using Core.Util;
-using industrialization.OverallManagement.DataStore;
-using industrialization.OverallManagement.Util;
 using NUnit.Framework;
 using Server.Const;
 using Server.PacketHandle;
 using Server.Util;
+using World.DataStore;
+using World.Util;
 
-namespace industrialization_test.CombinedTest.Server.PacketTest
+namespace Test.CombinedTest.Server.PacketTest
 {
     public class PlayerCoordinateSendProtocolTest
     {

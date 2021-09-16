@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using NUnit.Framework;
 using Server.Util;
 
-namespace industrialization_test.UnitTest.Server
+namespace Test.UnitTest.Server
 {
     public class ByteArrayBitArrayConverterTest
     {

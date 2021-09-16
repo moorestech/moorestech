@@ -4,10 +4,10 @@ using Core.Block.BeltConveyor.util;
 using Core.Config.BeltConveyor;
 using Core.GameSystem;
 using Core.Item;
-using industrialization_test.Util;
 using NUnit.Framework;
+using Test.Util;
 
-namespace industrialization_test.CombinedTest.Core
+namespace Test.CombinedTest.Core
 {
     public class BeltConveyorTest
     {

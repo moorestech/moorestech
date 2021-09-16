@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Core;
 using Core.Util;
 using NUnit.Framework;
 using Server.Util;
 
-namespace industrialization_test.UnitTest.Server
+namespace Test.UnitTest.Server
 {
     //バイト配列と各種オブジェクトとの変換のテスト
     public class ByteObjectConvertTest

@@ -9,8 +9,36 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5a9ef05f-b617-4190-bf7f-80c02345e80d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Test/Test.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Testa/Testa.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/industrialization.sln" beforeDir="false" afterPath="$PROJECT_DIR$/industrialization.sln" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/PacketHandle/PacketResponse/Player/BlockToPayload.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/PacketHandle/PacketResponse/Player/BlockToPayload.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/PacketHandle/PacketResponse/Player/CoordinateToChunkBlocks.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/PacketHandle/PacketResponse/Player/CoordinateToChunkBlocks.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/PacketHandle/PacketResponse/Player/PlayerCoordinateToResponse.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/PacketHandle/PacketResponse/Player/PlayerCoordinateToResponse.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/PacketHandle/PacketResponse/PlayerCoordinateSendProtocol.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/PacketHandle/PacketResponse/PlayerCoordinateSendProtocol.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/PacketHandle/PacketResponse/PutBlockProtocol.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/PacketHandle/PacketResponse/PutBlockProtocol.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/CombinedTest/Core/BeltConveyorTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/CombinedTest/Core/BeltConveyorTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/CombinedTest/Core/BlockConfigTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/CombinedTest/Core/BlockConfigTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/CombinedTest/Core/Generate/MachineIOGenerate.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/CombinedTest/Core/Generate/MachineIOGenerate.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/CombinedTest/Core/Generate/RecipeGenerate.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/CombinedTest/Core/Generate/RecipeGenerate.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/CombinedTest/Core/MachineIOTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/CombinedTest/Core/MachineIOTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/CombinedTest/Server/PacketTest/PlayerCoordinateSendProtocolTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/CombinedTest/Server/PacketTest/PlayerCoordinateSendProtocolTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/CombinedTest/Server/PacketTest/PutBlockProtocol.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/CombinedTest/Server/PacketTest/PutBlockProtocol.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/UnitTest/Core/Block/ElectricSegmentTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/UnitTest/Core/Block/ElectricSegmentTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/UnitTest/Core/Block/MachineRecipeConfigTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/UnitTest/Core/Block/MachineRecipeConfigTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/UnitTest/Core/Other/ItemJsonTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/UnitTest/Core/Other/ItemJsonTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/UnitTest/Core/Other/ItemStackTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/UnitTest/Core/Other/ItemStackTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/UnitTest/Core/Other/NullRecipeDataTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/UnitTest/Core/Other/NullRecipeDataTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/UnitTest/Core/Other/UtilTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/UnitTest/Core/Other/UtilTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/UnitTest/OverallManagement/WorldInstallationDatastoreTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/UnitTest/OverallManagement/WorldInstallationDatastoreTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/UnitTest/Server/BitObjectConvertTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/UnitTest/Server/BitObjectConvertTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/UnitTest/Server/ByteArrayBitArrayConverterTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/UnitTest/Server/ByteArrayBitArrayConverterTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/UnitTest/Server/ByteObjectConvertTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/UnitTest/Server/ByteObjectConvertTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/UnitTest/Server/Player/BlockToPayloadTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/UnitTest/Server/Player/BlockToPayloadTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/UnitTest/Server/Player/CoordinateToChunkBlocksTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/UnitTest/Server/Player/CoordinateToChunkBlocksTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/UnitTest/Server/Player/PlayerCoordinateToResponseTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/UnitTest/Server/Player/PlayerCoordinateToResponseTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/Util/DummyBlockInventory.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/Util/DummyBlockInventory.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test/Util/TestPowerGenerator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Test/Util/TestPowerGenerator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/World/DataStore/WorldBlockDatastore.cs" beforeDir="false" afterPath="$PROJECT_DIR$/World/DataStore/WorldBlockDatastore.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/World/DataStore/WorldInstallationInventoryDatastore.cs" beforeDir="false" afterPath="$PROJECT_DIR$/World/DataStore/WorldInstallationInventoryDatastore.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/World/Util/CoordinateCreator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/World/Util/CoordinateCreator.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,7 +70,6 @@
     <setting file="file://$PROJECT_DIR$/Server/StartServer.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Test/CombinedTest/Core/BeltConveyorTest.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/cb6b23b5581d4ab798055b57b3fd8d8674e00/6/Assert.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Server-old/Class1.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="ProjectId" id="1wwj0bscGCododL5tWO7ZYyG3Bb" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />

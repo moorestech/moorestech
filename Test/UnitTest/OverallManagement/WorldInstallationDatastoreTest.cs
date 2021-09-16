@@ -1,12 +1,11 @@
 ﻿using System;
-using Core;
 using Core.Block;
 using Core.Block.Machine.util;
 using Core.Util;
-using industrialization.OverallManagement.DataStore;
 using NUnit.Framework;
+using World.DataStore;
 
-namespace industrialization_test.UnitTest.OverallManagement
+namespace Test.UnitTest.OverallManagement
 {
     public class WorldBlockDatastoreTest
     {

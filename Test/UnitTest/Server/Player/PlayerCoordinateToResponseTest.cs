@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
-using industrialization.OverallManagement.DataStore;
-using industrialization.OverallManagement.Util;
 using NUnit.Framework;
 using Server.Const;
 using Server.PacketHandle.PacketResponse.Player;
+using World.DataStore;
+using World.Util;
 
-namespace industrialization_test.UnitTest.Server.Player
+namespace Test.UnitTest.Server.Player
 {
     public class PlayerCoordinateToResponseTest
     {

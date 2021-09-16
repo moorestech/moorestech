@@ -1,9 +1,9 @@
 ﻿using Core.Electric;
 using Core.GameSystem;
-using industrialization_test.Util;
 using NUnit.Framework;
+using Test.Util;
 
-namespace industrialization_test.UnitTest.Core.Block
+namespace Test.UnitTest.Core.Block
 {
     public class ElectricSegmentTest
     {

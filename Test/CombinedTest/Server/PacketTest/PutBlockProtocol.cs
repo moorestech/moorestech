@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using industrialization.OverallManagement.DataStore;
 using NUnit.Framework;
 using Server.PacketHandle;
 using Server.Util;
+using World.DataStore;
 
-namespace industrialization_test.CombinedTest.Server.PacketTest
+namespace Test.CombinedTest.Server.PacketTest
 {
     public class PutBlockProtocol
     {

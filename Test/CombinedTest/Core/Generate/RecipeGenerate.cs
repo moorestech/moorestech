@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace industrialization_test.CombinedTest.Core.Generate
+namespace Test.CombinedTest.Core.Generate
 {
     public static class RecipeGenerate
     {

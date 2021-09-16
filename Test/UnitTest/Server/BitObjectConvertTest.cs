@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using Server.Util;
 
-namespace industrialization_test.UnitTest.Server
+namespace Test.UnitTest.Server
 {
     public class BitObjectConvertTest
     {
