@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using Core;
 using Core.Util;
-using industrialization.Server.Util;
 using NUnit.Framework;
+using Server.Util;
 
 namespace industrialization_test.UnitTest.Server
 {

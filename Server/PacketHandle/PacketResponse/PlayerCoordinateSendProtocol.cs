@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using industrialization.OverallManagement.DataStore;
 using industrialization.OverallManagement.Util;
-using industrialization.Server.PacketHandle.PacketResponse.Player;
-using industrialization.Server.Util;
+using Server.PacketHandle.PacketResponse.Player;
+using Server.Util;
 
-namespace industrialization.Server.PacketHandle.PacketResponse
+namespace Server.PacketHandle.PacketResponse
 {
     /// <summary>
     /// プレイヤー座標のプロトコル

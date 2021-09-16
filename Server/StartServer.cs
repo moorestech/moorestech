@@ -1,6 +1,6 @@
-﻿using industrialization.Server.PacketHandle;
+﻿using Server.PacketHandle;
 
-namespace industrialization
+namespace Server
 {
     public static class StartServer
     {

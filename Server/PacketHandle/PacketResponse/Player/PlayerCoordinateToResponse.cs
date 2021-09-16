@@ -4,7 +4,7 @@ using industrialization.OverallManagement.DataStore;
 using industrialization.OverallManagement.Util;
 using Server.Const;
 
-namespace industrialization.Server.PacketHandle.PacketResponse.Player
+namespace Server.PacketHandle.PacketResponse.Player
 {
     public class PlayerCoordinateToResponse
     {

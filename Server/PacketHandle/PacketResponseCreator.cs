@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using industrialization.Server.PacketHandle.PacketResponse;
-using industrialization.Server.Util;
+using Server.PacketHandle.PacketResponse;
+using Server.Util;
 
-namespace industrialization.Server.PacketHandle
+namespace Server.PacketHandle
 {
     public static class PacketResponseCreator
     {

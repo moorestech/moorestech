@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Core.Block;
 using industrialization.OverallManagement.DataStore;
-using industrialization.Server.Util;
+using Server.Util;
 
-namespace industrialization.Server.PacketHandle.PacketResponse.Player
+namespace Server.PacketHandle.PacketResponse.Player
 {
     public static class BlockToPayload
     {

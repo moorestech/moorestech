@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using industrialization.OverallManagement.DataStore;
-using industrialization.Server.PacketHandle;
-using industrialization.Server.Util;
 using NUnit.Framework;
+using Server.PacketHandle;
+using Server.Util;
 
 namespace industrialization_test.CombinedTest.Server.PacketTest
 {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace industrialization.Server.PacketHandle.PacketResponse
+namespace Server.PacketHandle.PacketResponse
 {
     public static class DummyProtocol
     {

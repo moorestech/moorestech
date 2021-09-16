@@ -1,12 +1,8 @@
-﻿using System;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using industrialization.Server.PacketHandle.PacketResponse;
 
-namespace industrialization.Server.PacketHandle
+namespace Server.PacketHandle
 {
     public static class PacketHandler
     {

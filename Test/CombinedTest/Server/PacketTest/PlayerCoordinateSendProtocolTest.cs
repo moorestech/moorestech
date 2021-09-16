@@ -8,11 +8,10 @@ using Core.Block.Machine.util;
 using Core.Util;
 using industrialization.OverallManagement.DataStore;
 using industrialization.OverallManagement.Util;
-using industrialization.Server.PacketHandle;
-using industrialization.Server.PacketHandle.PacketResponse;
-using industrialization.Server.Util;
 using NUnit.Framework;
 using Server.Const;
+using Server.PacketHandle;
+using Server.Util;
 
 namespace industrialization_test.CombinedTest.Server.PacketTest
 {

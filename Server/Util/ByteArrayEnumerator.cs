@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace industrialization.Server.Util
+namespace Server.Util
 {
     public class ByteArrayEnumerator
     {

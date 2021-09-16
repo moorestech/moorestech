@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using industrialization.OverallManagement.DataStore;
 using industrialization.OverallManagement.Util;
-using industrialization.Server.PacketHandle.PacketResponse.Player;
 using NUnit.Framework;
 using Server.Const;
+using Server.PacketHandle.PacketResponse.Player;
 
 namespace industrialization_test.UnitTest.Server.Player
 {

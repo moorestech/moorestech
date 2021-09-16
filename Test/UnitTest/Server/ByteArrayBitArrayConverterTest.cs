@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using industrialization.Server.Util;
 using NUnit.Framework;
+using Server.Util;
 
 namespace industrialization_test.UnitTest.Server
 {

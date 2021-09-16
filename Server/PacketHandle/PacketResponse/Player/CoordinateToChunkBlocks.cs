@@ -2,7 +2,7 @@
 using industrialization.OverallManagement.Util;
 using Server.Const;
 
-namespace industrialization.Server.PacketHandle.PacketResponse.Player
+namespace Server.PacketHandle.PacketResponse.Player
 {
     public static class CoordinateToChunkBlocks
     {
