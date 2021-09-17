@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Block;
+using World.Event;
 
 namespace World.DataStore
 {
@@ -24,10 +25,12 @@ namespace World.DataStore
             if (!ContainsKey(Block.GetIntId()) &&
                 !ContainsCoordinate(x,y))
             {
+                var c = new Coordinate {x = x, y = y};
                 var data = new BlockWorldData(Block, x, y);
                 _blockMasterDictionary.Add(Block.GetIntId(),data);
-                _coordinateDictionary.Add(new Coordinate {x = x, y = y},data);
-
+                _coordinateDictionary.Add(c,data);
+                BlockPlaceEvent.OnBlockPutEventInvoke(c,data.Block);
+                
                 return true;
             }
 
