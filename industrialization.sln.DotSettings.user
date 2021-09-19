@@ -1,9 +1,0 @@
-﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=955f3979_002D7444_002D4f62_002D8889_002D386410125781/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Session" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;And&gt;
-    &lt;Project Location="C:\Users\satou_katsumi\Documents\industrialization\industrialization-test" Presentation="&amp;lt;industrialization-test&amp;gt;" /&gt;
-    &lt;Namespace&gt;industrialization_test&lt;/Namespace&gt;
-  &lt;/And&gt;
-&lt;/SessionState&gt;</s:String>
-	</wpf:ResourceDictionary>
