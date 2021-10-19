@@ -15,6 +15,7 @@ namespace Server.PacketHandle
             _packetResponseList.Add(PutBlockProtocol.GetResponse);
             _packetResponseList.Add(PlayerCoordinateSendProtocol.Instance.GetResponse);
             _packetResponseList.Add(InventoryContentResponseProtocol.GetResponse);
+            _packetResponseList.Add(SendEventProtocol.GetResponse);
         }
         
         public static List<byte[]> GetPacketResponse(byte[] payload)
