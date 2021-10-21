@@ -13,7 +13,7 @@ namespace World.Event
 
         internal static void OnBlockPutEventInvoke(Coordinate coordinate,IBlock block)
         {
-            OnBlockPutEvent(coordinate, block);
+            OnBlockPutEvent?.Invoke(coordinate, block);
         }
     }
 }
