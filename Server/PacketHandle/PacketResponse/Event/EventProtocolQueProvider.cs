@@ -35,5 +35,14 @@ namespace Server.PacketHandle.PacketResponse.Event
 
             return new List<byte[]>();
         }
+        private static EventProtocolQueProvider _instance;
+        public static EventProtocolQueProvider Instance
+        {
+            get
+            {
+                if (_instance is null) _instance = new EventProtocolQueProvider();
+                return _instance;
+            }
+        }
     }
 }

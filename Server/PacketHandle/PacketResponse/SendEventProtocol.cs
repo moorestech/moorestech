@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Server.PacketHandle.PacketResponse.Event;
 using Server.Util;
 
 namespace Server.PacketHandle.PacketResponse
@@ -11,7 +12,7 @@ namespace Server.PacketHandle.PacketResponse
             var b = new ByteArrayEnumerator(payload);
             b.MoveNextToGetShort();
             var userId = b.MoveNextToGetInt();
-            return null;
+            return EventProtocolQueProvider.Instance.GetEventBytesList(userId);
         }
     }
 }
