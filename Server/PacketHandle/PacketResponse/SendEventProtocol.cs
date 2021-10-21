@@ -11,7 +11,6 @@ namespace Server.PacketHandle.PacketResponse
             var b = new ByteArrayEnumerator(payload);
             b.MoveNextToGetShort();
             var userId = b.MoveNextToGetInt();
-            throw new System.NotImplementedException();
             return null;
         }
     }
