@@ -1,4 +1,5 @@
 ﻿using Server.PacketHandle;
+using Server.PacketHandle.PacketResponse.Event;
 
 namespace Server
 {
@@ -6,7 +7,13 @@ namespace Server
     {
         public static void Main(string[] args)
         {
+            Init();
             PacketHandler.StartServer();
+        }
+
+        static void Init()
+        {
+            RegisterSendClientEvents.Instance.Init();
         }
     }
 }
