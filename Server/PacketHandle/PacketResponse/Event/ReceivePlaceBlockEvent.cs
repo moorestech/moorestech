@@ -6,7 +6,7 @@ namespace Server.PacketHandle.PacketResponse.Event
 {
     public static class ReceivePlaceBlockEvent
     {
-        private const int EventId = 1;
+        private const short EventId = 1;
         public static void Init()
         {
             BlockPlaceEvent.Subscribe(ReceivedEvent);
