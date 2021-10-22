@@ -41,7 +41,7 @@ namespace Server.PacketHandle.PacketResponse.Event
             if (_events.ContainsKey(playerId))
             {
                 var data = _events[playerId].Copy();
-                //_events[playerId].Clear();
+                _events[playerId].Clear();
                 return data;
             }
             else
