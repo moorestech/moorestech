@@ -2,14 +2,21 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using Server.PacketHandle;
+using Server.PacketHandle.PacketResponse.Event;
 using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
     public class BlockPlaceEventPacketTest
     {
+        [SetUp]
+        public void Setup()
+        {
+            RegisterSendClientEvents.Instance.Init();
+        }
         //ブロックを設置しなかった時何も返ってこないテスト
         [Test]
+        [Order(0)]
         public void DontBlockPlaceTest()
         {
             var response = PacketResponseCreator.GetPacketResponse(EventRequestData(0));
@@ -18,7 +25,8 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         
         //ブロックを0個以上設置した時にブロック設置イベントが返ってくるテスト
         [Test]
-        public void OneBlockPlaceEvent()
+        [Order(1)]
+        public void BlockPlaceEvent()
         {
             //イベントキューにIDを登録する
             //詳細はコメントに記述

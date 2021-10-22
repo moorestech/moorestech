@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Util;
 
 namespace Server.PacketHandle.PacketResponse.Event
 {
@@ -39,8 +40,8 @@ namespace Server.PacketHandle.PacketResponse.Event
         {
             if (_events.ContainsKey(playerId))
             {
-                var data = _events[playerId];
-                _events[playerId] = new List<byte[]>();
+                var data = _events[playerId].Copy();
+                //_events[playerId].Clear();
                 return data;
             }
             else
