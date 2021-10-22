@@ -5,15 +5,15 @@ namespace World.Event
 {
     public static class BlockPlaceEvent
     {
-        public delegate void PutBlockEvent(Coordinate coordinate,IBlock block);
+        public delegate void PutBlockEvent(BlockPlaceEventProperties blockPlaceEventProperties);
         private static event PutBlockEvent OnBlockPutEvent;
 
         public static void Subscribe(PutBlockEvent @event) { OnBlockPutEvent += @event; }
         public static void UnSubscribe(PutBlockEvent @event) { OnBlockPutEvent -= @event; }
 
-        internal static void OnBlockPutEventInvoke(Coordinate coordinate,IBlock block)
+        internal static void OnBlockPutEventInvoke(BlockPlaceEventProperties blockPlaceEventProperties)
         {
-            OnBlockPutEvent?.Invoke(coordinate, block);
+            OnBlockPutEvent?.Invoke(blockPlaceEventProperties);
         }
     }
 }

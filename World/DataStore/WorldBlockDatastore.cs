@@ -29,7 +29,7 @@ namespace World.DataStore
                 var data = new BlockWorldData(Block, x, y);
                 _blockMasterDictionary.Add(Block.GetIntId(),data);
                 _coordinateDictionary.Add(c,data);
-                BlockPlaceEvent.OnBlockPutEventInvoke(c,data.Block);
+                BlockPlaceEvent.OnBlockPutEventInvoke(new BlockPlaceEventProperties(c,data.Block));
                 
                 return true;
             }
