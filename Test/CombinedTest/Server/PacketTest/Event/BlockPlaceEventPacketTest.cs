@@ -54,10 +54,10 @@ namespace Test.CombinedTest.Server.PacketTest.Event
                     var b = AnalysisResponsePacket(r);
                     for (int j = 0; j < blocks.Count; j++)
                     {
-                        if (b.Equals(blocks[i]))
+                        if (b.Equals(blocks[j]))
                         {
-                            blocks.RemoveAt(i);
-                            j = 0;
+                            blocks.RemoveAt(j);
+                            break;
                         }
                     }
                 }
@@ -73,7 +73,8 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         {
             var b = new ByteArrayEnumerator(payload);
             b.MoveNextToGetShort();
-            b.MoveNextToGetShort();
+            var eventId = b.MoveNextToGetShort();
+            Assert.AreEqual(1,eventId);
             var x = b.MoveNextToGetInt();
             var y = b.MoveNextToGetInt();
             var id = b.MoveNextToGetInt();
