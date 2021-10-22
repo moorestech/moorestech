@@ -32,8 +32,12 @@ namespace Server.PacketHandle.PacketResponse.Event
                 _events[playerId] = new List<byte[]>();
                 return data;
             }
-
-            return new List<byte[]>();
+            else
+            {
+                //ブロードキャストイベントの時に使うので、Dictionaryにキーを追加しておく
+                _events.Add(playerId,new List<byte[]>());
+                return _events[playerId];
+            }
         }
         private static EventProtocolQueProvider _instance;
         public static EventProtocolQueProvider Instance
