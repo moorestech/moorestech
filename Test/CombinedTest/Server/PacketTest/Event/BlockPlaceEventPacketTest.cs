@@ -20,6 +20,11 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Test]
         public void OneBlockPlaceEvent()
         {
+            //イベントキューにIDを登録する
+            //詳細はコメントに記述
+            var response = PacketResponseCreator.GetPacketResponse(EventRequestData(0));
+            Assert.AreEqual(0,response.Count);
+            
             var random = new Random(1410);
             for (int i = 0; i < 100; i++)
             {
@@ -34,8 +39,8 @@ namespace Test.CombinedTest.Server.PacketTest.Event
                     BlockPlace(x, y, id);
                 }
                 
-                var response = PacketResponseCreator.GetPacketResponse(EventRequestData(0));
-                Assert.AreEqual(response.Count,cnt);
+                response = PacketResponseCreator.GetPacketResponse(EventRequestData(0));
+                Assert.AreEqual(cnt,response.Count);
                 foreach (var r in response)
                 {
                     var b = AnalysisResponsePacket(r);

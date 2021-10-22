@@ -5,6 +5,9 @@ namespace Server.PacketHandle.PacketResponse.Event
 {
     /// <summary>
     /// 各プレイヤーにパケットとして送る必要があるイベントのキューを管理します
+    /// イベントキューは初回接続時に自身のIDを登録する必要ががあります。
+    /// しかし、イベント要求パケットは常に送られてくるため、登録プロトコルを作る必要はなく、最初にイベント要求パケットが送られた時点で登録すれば良いです
+    /// そのため、イベントプロトコルのテストは初回にID登録作業が必要となります。
     /// </summary>
     public class EventProtocolQueProvider
     {
