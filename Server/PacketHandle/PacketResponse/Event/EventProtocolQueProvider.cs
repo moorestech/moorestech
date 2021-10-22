@@ -8,6 +8,7 @@ namespace Server.PacketHandle.PacketResponse.Event
     /// </summary>
     public class EventProtocolQueProvider
     {
+        public const short EventPacketId = 3;
         private Dictionary<int, List<byte[]>> _events = new Dictionary<int, List<byte[]>>();
 
         public void AddEvent(int playerId,byte[] eventByteArray)
@@ -22,6 +23,13 @@ namespace Server.PacketHandle.PacketResponse.Event
                 _events.Add(playerId,new List<byte[]>(){eventByteArray});
             }
             
+        }
+        public void AddBroadcastEvent(byte[] eventByteArray)
+        {
+            foreach (var key in _events.Keys)
+            {
+                _events[key].Add(eventByteArray);
+            }
         }
 
         public List<byte[]> GetEventBytesList(int playerId)
