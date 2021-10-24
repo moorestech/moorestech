@@ -12,7 +12,7 @@ namespace Server.PacketHandle
             //ここからIPアドレスやポートの設定
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress ipAddress = ipHostInfo.AddressList[0];
-            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
+            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11564);
             //ここまでIPアドレスやポートの設定
 
             //ソケットの作成
