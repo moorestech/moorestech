@@ -113,8 +113,6 @@ namespace Test.CombinedTest.Server.PacketTest.Event
 
             public override bool Equals(object? obj)
             {
-                if (obj == null) return false;
-                if (obj is not Block) return false;
                 var b = obj as Block;
                 return 
                     b.id == id &&
