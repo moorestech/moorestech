@@ -11,7 +11,7 @@ namespace Server.PacketHandle.PacketResponse
     /// </summary>
     public class PlayerCoordinateSendProtocol
     {
-        Dictionary<string,PlayerCoordinateToResponse> _responses = new Dictionary<string, PlayerCoordinateToResponse>();
+        Dictionary<int,PlayerCoordinateToResponse> _responses = new Dictionary<int, PlayerCoordinateToResponse>();
         public List<byte[]> GetResponse(byte[] payload)
         {
             //プレイヤー座標の解析
@@ -19,17 +19,16 @@ namespace Server.PacketHandle.PacketResponse
             b.MoveNextToGetShort();
             var x = b.MoveNextToGetFloat();
             var y = b.MoveNextToGetFloat();
-            var nameNumber = b.MoveNextToGetShort();
-            var name = b.MoveNextToGetString(nameNumber);
+            var playerId = b.MoveNextToGetInt();
             //新しいプレイヤーの情報ならDictionaryに追加する
-            if (!_responses.ContainsKey(name))
+            if (!_responses.ContainsKey(playerId))
             {
-                _responses.Add(name,new PlayerCoordinateToResponse());
+                _responses.Add(playerId,new PlayerCoordinateToResponse());
             }
             
             //プレイヤーの座標から返すチャンクのブロックデータを取得をする
             //byte配列に変換して返す
-            return _responses[name].
+            return _responses[playerId].
                 GetResponseCoordinate(CoordinateCreator.New((int) x, (int) y)).
                 Select(c => ChunkBlockToPayload.Convert(CoordinateToChunkBlocks.Convert(c),c)).
                 ToList();
