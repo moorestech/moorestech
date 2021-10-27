@@ -1,4 +1,4 @@
-namespace Server.PacketHandle.PacketResponse.Event
+namespace Server.Event
 {
     public class RegisterSendClientEvents
     {

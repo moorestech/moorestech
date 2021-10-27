@@ -1,5 +1,5 @@
-﻿using Server.PacketHandle;
-using Server.PacketHandle.PacketResponse.Event;
+﻿using Server.Event;
+using Server.PacketHandle;
 
 namespace Server
 {

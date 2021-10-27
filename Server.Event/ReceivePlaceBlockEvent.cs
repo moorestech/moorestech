@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Server.Util;
 using World.Event;
 
-namespace Server.PacketHandle.PacketResponse.Event
+namespace Server.Event
 {
     public static class ReceivePlaceBlockEvent
     {

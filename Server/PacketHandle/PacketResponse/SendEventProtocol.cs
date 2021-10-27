@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Server.PacketHandle.PacketResponse.Event;
+using Server.Event;
 using Server.Util;
 
 namespace Server.PacketHandle.PacketResponse

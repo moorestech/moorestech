@@ -1,8 +1,7 @@
-using System;
 using System.Collections.Generic;
 using Core.Util;
 
-namespace Server.PacketHandle.PacketResponse.Event
+namespace Server.Event
 {
     /// <summary>
     /// 各プレイヤーにパケットとして送る必要があるイベントのキューを管理します

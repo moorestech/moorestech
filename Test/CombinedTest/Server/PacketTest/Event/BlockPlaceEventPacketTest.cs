@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
+using Server.Event;
 using Server.PacketHandle;
-using Server.PacketHandle.PacketResponse.Event;
 using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
