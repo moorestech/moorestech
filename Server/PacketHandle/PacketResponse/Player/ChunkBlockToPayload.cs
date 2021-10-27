@@ -5,7 +5,7 @@ using World.DataStore;
 
 namespace Server.PacketHandle.PacketResponse.Player
 {
-    public static class BlockToPayload
+    public static class ChunkBlockToPayload
     {
         public static byte[] Convert(int[,] blocks, Coordinate chunkCoordinate)
         {

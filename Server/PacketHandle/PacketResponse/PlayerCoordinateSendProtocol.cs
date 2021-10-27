@@ -31,7 +31,7 @@ namespace Server.PacketHandle.PacketResponse
             //byte配列に変換して返す
             return _responses[name].
                 GetResponseCoordinate(CoordinateCreator.New((int) x, (int) y)).
-                Select(c => BlockToPayload.Convert(CoordinateToChunkBlocks.Convert(c),c)).
+                Select(c => ChunkBlockToPayload.Convert(CoordinateToChunkBlocks.Convert(c),c)).
                 ToList();
         }
 

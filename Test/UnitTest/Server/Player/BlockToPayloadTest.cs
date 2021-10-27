@@ -57,7 +57,7 @@ namespace Test.UnitTest.Server.Player
             
             ans.AddRange(BitArrayToByteArray.Convert(ansBool));
 
-            var result = BlockToPayload.Convert(blocks, CoordinateCreator.New(0, 0));
+            var result = ChunkBlockToPayload.Convert(blocks, CoordinateCreator.New(0, 0));
 
             for (int i = 0; i < ans.Count; i++)
             {
