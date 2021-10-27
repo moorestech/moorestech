@@ -9,16 +9,12 @@ namespace Test.CombinedTest.Server.PacketTest.Event
 {
     public class BlockPlaceEventPacketTest
     {
-        [SetUp]
-        public void Setup()
-        {
-            RegisterSendClientEvents.Instance.Init();
-        }
         //ブロックを設置しなかった時何も返ってこないテスト
         [Test]
         [Order(0)]
         public void DontBlockPlaceTest()
         {
+            RegisterSendClientEvents.Instance.Init();
             var response = PacketResponseCreator.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(response.Count,0);
         }
@@ -36,6 +32,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var random = new Random(1410);
             for (int i = 0; i < 100; i++)
             {
+                Console.WriteLine(i);
                 var blocks = new List<Block>();
                 var cnt = random.Next(0, 20);
                 for (int j = 0; j < cnt; j++)
