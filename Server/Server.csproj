@@ -6,10 +6,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Event" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Core\Core.csproj" />
       <ProjectReference Include="..\Server.Event\Server.Event.csproj" />
       <ProjectReference Include="..\Server.Util\Server.Util.csproj" />
