@@ -21,7 +21,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             
             //1回のレスポンスのテスト
-            var response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload("a", 0, 0))
+            var response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
             Assert.AreEqual(25,response.Count());
@@ -49,20 +49,20 @@ namespace Test.CombinedTest.Server.PacketTest
             }
             
             //2回目は何も返ってこないテスト
-            PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload("a", 0, 0));
-            response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload("a", 0, 0))
+            PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0));
+            response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).ToList();
             Assert.AreEqual(response.Count,0);
             
             
             //場所をずらしたら返ってくるテスト
-            PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload("a", 0, 0));
-            response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload("a", 25, 25))
+            PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0));
+            response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(10, 25, 25))
                 .Select(PayloadToBlock).ToList();
             Assert.AreEqual(response.Count,9);
             
             //他の名前は普通に取得できるテスト
-            response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload("aa", 0, 0))
+            response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(15, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
             Assert.AreEqual(25,response.Count());
@@ -80,7 +80,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var b = NormalMachineFactory.Create(5, IntId.NewIntId(), new NullIBlockInventory());
             WorldBlockDatastore.AddBlock(b, 0, 0);
             
-            var response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload("b", 0, 0))
+            var response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
             Assert.AreEqual(25,response.Count());
@@ -132,7 +132,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 WorldBlockDatastore.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300));
             }
             
-            var response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload("c", 0, 0))
+            var response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(25, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
             Assert.AreEqual(25,response.Count());
@@ -162,14 +162,13 @@ namespace Test.CombinedTest.Server.PacketTest
             }
         }
 
-        byte[] PlayerCoordinatePayload(string playerName, float x, float y)
+        byte[] PlayerCoordinatePayload(int playerId, float x, float y)
         {
             var p = new List<byte>();
             p.AddRange(ByteArrayConverter.ToByteArray((short)2));
             p.AddRange(ByteArrayConverter.ToByteArray(x));
             p.AddRange(ByteArrayConverter.ToByteArray(y));
-            p.AddRange(ByteArrayConverter.ToByteArray((short)Encoding.UTF8.GetByteCount(playerName)));
-            p.AddRange(ByteArrayConverter.ToByteArray(playerName));
+            p.AddRange(ByteArrayConverter.ToByteArray(playerId));
             return p.ToArray();
         }
 
