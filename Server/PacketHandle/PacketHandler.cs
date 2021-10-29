@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -10,8 +11,8 @@ namespace Server.PacketHandle
         {
             
             //ここからIPアドレスやポートの設定
-            IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress ipAddress = ipHostInfo.AddressList[0];
+            //TODO 外と接続するときは変える必要あると思われる
+            IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
             IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11564);
             //ここまでIPアドレスやポートの設定
 
