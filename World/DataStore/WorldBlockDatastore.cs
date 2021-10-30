@@ -12,14 +12,14 @@ namespace World.DataStore
         //座標がキーのデータストア
         private Dictionary<Coordinate,BlockWorldData> _coordinateDictionary = new Dictionary<Coordinate,BlockWorldData>();
 
-        public bool AddBlock(IBlock Block,int x,int y)
+        public bool AddBlock(IBlock Block,int x,int y,IBlockInventory blockInventory)
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
             if (!ContainsKey(Block.GetIntId()) &&
                 !ContainsCoordinate(x,y))
             {
                 var c = new Coordinate {x = x, y = y};
-                var data = new BlockWorldData(Block, x, y);
+                var data = new BlockWorldData(Block, x, y,blockInventory);
                 _blockMasterDictionary.Add(Block.GetIntId(),data);
                 _coordinateDictionary.Add(c,data);
                 BlockPlaceEvent.OnBlockPutEventInvoke(new BlockPlaceEventProperties(c,data.Block));
@@ -28,6 +28,11 @@ namespace World.DataStore
             }
 
             return false;
+        }
+
+        public bool AddBlock(IBlock Block,int x,int y)
+        {
+            return AddBlock(Block, x, y, new NullIBlockInventory());
         }
 
         public bool ContainsKey(int intId)
@@ -83,18 +88,31 @@ namespace World.DataStore
         }
         
 
+        public IBlockInventory GetBlockInventory(int intId)
+        {
+            if (_blockMasterDictionary.ContainsKey(intId))
+            {
+                return _blockMasterDictionary[intId].BlockInventory;
+            }
+
+            return new NullIBlockInventory();
+        }
+        
+
         class BlockWorldData
         {
-            public BlockWorldData(IBlock block,int x, int y)
+            public BlockWorldData(IBlock block,int x, int y,  IBlockInventory blockInventory)
             {
                 X = x;
                 Y = y;
                 Block = block;
+                BlockInventory = blockInventory;
             }
 
             public int X { get; }
             public int Y { get; }
             public IBlock Block { get; }
+            public IBlockInventory BlockInventory { get; }
         }
     }
 

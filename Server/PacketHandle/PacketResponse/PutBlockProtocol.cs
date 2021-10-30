@@ -9,7 +9,6 @@ namespace Server.PacketHandle.PacketResponse
     public class PutBlockProtocol : IPacketResponse
     {
         private readonly WorldBlockDatastore _worldBlockDatastore;
-
         public PutBlockProtocol(WorldBlockDatastore worldBlockDatastore)
         {
             _worldBlockDatastore = worldBlockDatastore;
@@ -25,13 +24,12 @@ namespace Server.PacketHandle.PacketResponse
             int x = payloadData.MoveNextToGetInt();
             int y = payloadData.MoveNextToGetInt();
             
-            var inputBlock = WorldBlockInventoryDatastore.GetBlock(payloadData.MoveNextToGetInt());
+            var inputBlock = _worldBlockDatastore.GetBlockInventory(payloadData.MoveNextToGetInt());
 
-            var block = NormalMachineFactory.Create(blockId, IntId.NewIntId(), WorldBlockInventoryDatastore.GetBlock(payloadData.MoveNextToGetInt()));
+            var block = NormalMachineFactory.Create(blockId, IntId.NewIntId(), _worldBlockDatastore.GetBlockInventory(payloadData.MoveNextToGetInt()));
             inputBlock.ChangeConnector(block);
             
-            WorldBlockInventoryDatastore.AddBlock(block,block.GetIntId());
-            _worldBlockDatastore.AddBlock(block, x, y);
+            _worldBlockDatastore.AddBlock(block, x, y,block);
             //返すものはない
             return new List<byte[]>();
         }
