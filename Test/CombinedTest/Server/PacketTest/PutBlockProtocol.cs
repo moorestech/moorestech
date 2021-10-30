@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Server.PacketHandle;
 using Server.Util;
-using World.DataStore;
+using World;
 
 namespace Test.CombinedTest.Server.PacketTest
 {

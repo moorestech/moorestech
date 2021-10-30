@@ -1,6 +1,4 @@
-﻿using World.DataStore;
-
-namespace World.Util
+﻿namespace World.Util
 {
     public static class CoordinateCreator
     {
