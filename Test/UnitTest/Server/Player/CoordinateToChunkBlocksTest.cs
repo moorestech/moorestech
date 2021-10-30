@@ -32,12 +32,13 @@ namespace Test.UnitTest.Server.Player
         [Test]
         public void SameBlockResponseTest()
         {
+            var worldData = new WorldBlockDatastore();
             var random = new Random(3944156);
             //ブロックの設置
             for (int i = 0; i < 10000; i++)
             {
                 var b = NormalMachineFactory.Create(random.Next(0, 500), IntId.NewIntId(), new NullIBlockInventory());
-                WorldBlockDatastore.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300));
+                worldData.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300));
             }
             //レスポンスのチェック
             for (int l = 0; l < 100; l++)
@@ -53,7 +54,7 @@ namespace Test.UnitTest.Server.Player
                     for (int j = 0; j < b.GetLength(1); j++)
                     {
                         Assert.AreEqual(
-                            WorldBlockDatastore.GetBlock(c.x + i, c.y + j).GetBlockId(),
+                            worldData.GetBlock(c.x + i, c.y + j).GetBlockId(),
                             b[i,j]);
                     }
                 }

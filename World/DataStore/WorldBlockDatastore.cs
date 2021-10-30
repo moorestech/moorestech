@@ -5,21 +5,14 @@ using World.Event;
 
 namespace World.DataStore
 {
-    public static class WorldBlockDatastore
+    public class WorldBlockDatastore
     {
         //メインのデータストア
-        private static Dictionary<int, BlockWorldData> _blockMasterDictionary = new Dictionary<int, BlockWorldData>();
+        private Dictionary<int, BlockWorldData> _blockMasterDictionary = new Dictionary<int, BlockWorldData>();
         //座標がキーのデータストア
-        private static Dictionary<Coordinate,BlockWorldData> _coordinateDictionary = new Dictionary<Coordinate,BlockWorldData>();
+        private Dictionary<Coordinate,BlockWorldData> _coordinateDictionary = new Dictionary<Coordinate,BlockWorldData>();
 
-
-        public static void ClearData()
-        {
-            _blockMasterDictionary = new Dictionary<int, BlockWorldData>();
-            _coordinateDictionary = new Dictionary<Coordinate,BlockWorldData>();
-        }
-        
-        public static bool AddBlock(IBlock Block,int x,int y)
+        public bool AddBlock(IBlock Block,int x,int y)
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
             if (!ContainsKey(Block.GetIntId()) &&
@@ -37,12 +30,12 @@ namespace World.DataStore
             return false;
         }
 
-        public static bool ContainsKey(int intId)
+        public bool ContainsKey(int intId)
         {
             return _blockMasterDictionary.ContainsKey(intId);
         }
 
-        public static Coordinate GetCoordinate(int intId)
+        public Coordinate GetCoordinate(int intId)
         {
             if (_blockMasterDictionary.ContainsKey(intId))
             {
@@ -53,7 +46,7 @@ namespace World.DataStore
             return new Coordinate {x = Int32.MaxValue, y = Int32.MaxValue};
         }
         
-        public static IBlock GetBlock(int intId)
+        public IBlock GetBlock(int intId)
         {
             if (_blockMasterDictionary.ContainsKey(intId))
             {
@@ -63,12 +56,12 @@ namespace World.DataStore
             return new NullBlock(BlockConst.NullBlockId,Int32.MaxValue);
         }
 
-        public static bool ContainsCoordinate(int x, int y)
+        public bool ContainsCoordinate(int x, int y)
         {
             var c = new Coordinate {x = x, y = y};
             return _coordinateDictionary.ContainsKey(c);
         }
-        public static IBlock GetBlock(int x,int y)
+        public IBlock GetBlock(int x,int y)
         {
             var c = new Coordinate {x = x, y = y};
             if (_coordinateDictionary.ContainsKey(c))
@@ -79,7 +72,7 @@ namespace World.DataStore
             return new NullBlock(BlockConst.NullBlockId,0);
         }
 
-        public static void RemoveBlock(IBlock block)
+        public void RemoveBlock(IBlock block)
         {
             if (_blockMasterDictionary.ContainsKey(block.GetIntId()))
             {
@@ -102,8 +95,6 @@ namespace World.DataStore
             public int X { get; }
             public int Y { get; }
             public IBlock Block { get; }
-        
-        
         }
     }
 
