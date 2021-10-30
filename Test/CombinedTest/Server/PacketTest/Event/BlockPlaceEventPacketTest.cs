@@ -4,7 +4,7 @@ using NUnit.Framework;
 using Server.Event;
 using Server.PacketHandle;
 using Server.Util;
-using World.DataStore;
+using World;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
@@ -12,20 +12,19 @@ namespace Test.CombinedTest.Server.PacketTest.Event
     {
         //ブロックを設置しなかった時何も返ってこないテスト
         [Test]
-        [Order(0)]
         public void DontBlockPlaceTest()
         {
-            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore());
             RegisterSendClientEvents.Instance.Init();
+            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore());
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(response.Count,0);
         }
         
         //ブロックを0個以上設置した時にブロック設置イベントが返ってくるテスト
         [Test]
-        [Order(1)]
         public void BlockPlaceEvent()
         {
+            RegisterSendClientEvents.Instance.Init();
             var packetResponse = new PacketResponseCreator(new WorldBlockDatastore());
             //イベントキューにIDを登録する
             //詳細はコメントに記述
@@ -57,7 +56,6 @@ namespace Test.CombinedTest.Server.PacketTest.Event
                         if (b.Equals(blocks[j]))
                         {
                             blocks.RemoveAt(j);
-                            break;
                         }
                     }
                 }

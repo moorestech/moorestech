@@ -4,7 +4,7 @@ using Core.Block;
 using World.Event;
 using World.Util;
 
-namespace World.DataStore
+namespace World
 {
     public class WorldBlockDatastore
     {
@@ -18,8 +18,6 @@ namespace World.DataStore
         readonly Coordinate _nullCoordinate = CoordinateCreator.New(BlockConst.NullBlockIntId,BlockConst.NullBlockIntId);
         readonly IBlock _nullBlock = new NullBlock(BlockConst.NullBlockId,Int32.MaxValue);
         
-
-        public bool AddBlock(IBlock Block,int x,int y) { return AddBlock(Block, x, y, new NullIBlockInventory()); }
         public bool AddBlock(IBlock Block,int x,int y,IBlockInventory blockInventory)
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック

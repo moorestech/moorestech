@@ -6,7 +6,7 @@ using NUnit.Framework;
 using Server.Const;
 using Server.PacketHandle;
 using Server.PacketHandle.PacketResponse.Player;
-using World.DataStore;
+using World;
 using World.Util;
 
 namespace Test.UnitTest.Server.Player
@@ -40,7 +40,7 @@ namespace Test.UnitTest.Server.Player
             for (int i = 0; i < 10000; i++)
             {
                 var b = NormalMachineFactory.Create(random.Next(0, 500), IntId.NewIntId(), new NullIBlockInventory());
-                worldData.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300));
+                worldData.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300),b);
             }
             //レスポンスのチェック
             for (int l = 0; l < 100; l++)
