@@ -11,12 +11,13 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void SimpleBlockPlaceTest()
         {
-            
             var worldBlock = new WorldBlockDatastore();
-            PacketResponseCreator.GetPacketResponse(BlockPlace(1, 0, 0));
-            PacketResponseCreator.GetPacketResponse(BlockPlace(31, 2, 6));
-            PacketResponseCreator.GetPacketResponse(BlockPlace(10, -5, 6));
-            PacketResponseCreator.GetPacketResponse(BlockPlace(65, 0, -9));
+            var packetResponse = new PacketResponseCreator(worldBlock);
+            
+            packetResponse.GetPacketResponse(BlockPlace(1, 0, 0));
+            packetResponse.GetPacketResponse(BlockPlace(31, 2, 6));
+            packetResponse.GetPacketResponse(BlockPlace(10, -5, 6));
+            packetResponse.GetPacketResponse(BlockPlace(65, 0, -9));
             
             
             Assert.AreEqual(worldBlock.GetBlock(0,0).GetBlockId(),1);

@@ -4,6 +4,7 @@ using Core.Block.Machine.util;
 using Core.Util;
 using NUnit.Framework;
 using Server.Const;
+using Server.PacketHandle;
 using Server.PacketHandle.PacketResponse.Player;
 using World.DataStore;
 using World.Util;
@@ -15,7 +16,8 @@ namespace Test.UnitTest.Server.Player
         [Test]
         public void NothingBlockTest()
         {
-            var b = CoordinateToChunkBlocks.Convert(CoordinateCreator.New(0,0));
+            var worldData = new WorldBlockDatastore();
+            var b = CoordinateToChunkBlocks.Convert(CoordinateCreator.New(0,0),worldData);
 
             Assert.AreEqual(b.GetLength(0),ChunkResponseConst.ChunkSize);
             Assert.AreEqual(b.GetLength(1),ChunkResponseConst.ChunkSize);
@@ -46,7 +48,7 @@ namespace Test.UnitTest.Server.Player
                 var c = CoordinateCreator.New(
                     random.Next(-5, 5) * ChunkResponseConst.ChunkSize,
                     random.Next(-5, 5) * ChunkResponseConst.ChunkSize);
-                var b = CoordinateToChunkBlocks.Convert(c);
+                var b = CoordinateToChunkBlocks.Convert(c,worldData);
                 
                 //ブロックの確認
                 for (int i = 0; i < b.GetLength(0); i++)

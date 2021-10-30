@@ -4,6 +4,7 @@ using NUnit.Framework;
 using Server.Event;
 using Server.PacketHandle;
 using Server.Util;
+using World.DataStore;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
@@ -14,8 +15,9 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Order(0)]
         public void DontBlockPlaceTest()
         {
+            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore());
             RegisterSendClientEvents.Instance.Init();
-            var response = PacketResponseCreator.GetPacketResponse(EventRequestData(0));
+            var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(response.Count,0);
         }
         
@@ -24,9 +26,10 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Order(1)]
         public void BlockPlaceEvent()
         {
+            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore());
             //イベントキューにIDを登録する
             //詳細はコメントに記述
-            var response = PacketResponseCreator.GetPacketResponse(EventRequestData(0));
+            var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(0,response.Count);
             
             var random = new Random(1410);
@@ -41,10 +44,10 @@ namespace Test.CombinedTest.Server.PacketTest.Event
                     var y = random.Next(-10000, 10000);
                     var id = random.Next(1, 1000);
                     blocks.Add(new Block(x,y,id));
-                    BlockPlace(x, y, id);
+                    BlockPlace(x, y, id,packetResponse);
                 }
                 
-                response = PacketResponseCreator.GetPacketResponse(EventRequestData(0));
+                response = packetResponse.GetPacketResponse(EventRequestData(0));
                 Assert.AreEqual(cnt,response.Count);
                 foreach (var r in response)
                 {
@@ -61,7 +64,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
                 Assert.AreEqual(0,blocks.Count);
                 
                 //パケットを送ったので次は何も返ってこない
-                response = PacketResponseCreator.GetPacketResponse(EventRequestData(0));
+                response = packetResponse.GetPacketResponse(EventRequestData(0));
                 Assert.AreEqual(0,response.Count);
             }
         }
@@ -77,7 +80,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var id = b.MoveNextToGetInt();
             return new Block(x,y,id);
         }
-        void BlockPlace(int x,int y,int id)
+        void BlockPlace(int x,int y,int id,PacketResponseCreator packetResponseCreator)
         {
             var bytes = new List<byte>();
             bytes.AddRange(ByteArrayConverter.ToByteArray((short)1));
@@ -87,7 +90,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             bytes.AddRange(ByteArrayConverter.ToByteArray(y));
             bytes.AddRange(ByteArrayConverter.ToByteArray(0));
             bytes.AddRange(ByteArrayConverter.ToByteArray(0));
-            PacketResponseCreator.GetPacketResponse(bytes.ToArray());
+            packetResponseCreator.GetPacketResponse(bytes.ToArray());
         }
 
         byte[] EventRequestData(int plyaerID)

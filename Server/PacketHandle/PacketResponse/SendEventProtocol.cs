@@ -4,9 +4,9 @@ using Server.Util;
 
 namespace Server.PacketHandle.PacketResponse
 {
-    public static class SendEventProtocol
+    public class SendEventProtocol : IPacketResponse
     {
-        public static List<byte[]> GetResponse(byte[] payload)
+        public List<byte[]> GetResponse(byte[] payload)
         {
             //パケットのパース、接続元、接続先のインスタンス取得
             var b = new ByteArrayEnumerator(payload);

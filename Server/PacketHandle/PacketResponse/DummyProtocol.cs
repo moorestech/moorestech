@@ -2,9 +2,9 @@
 
 namespace Server.PacketHandle.PacketResponse
 {
-    public static class DummyProtocol
+    public class DummyProtocol : IPacketResponse
     {
-        public static List<byte[]> GetResponse(byte[] payload)
+        public List<byte[]> GetResponse(byte[] payload)
         {
             return new List<byte[]>();
         }

@@ -5,9 +5,9 @@ using System.Threading;
 
 namespace Server.PacketHandle
 {
-    public static class PacketHandler
+    public class PacketHandler
     {
-        public static void StartServer()
+        public void StartServer(PacketResponseCreator packetResponseCreator)
         {
             
             //ここからIPアドレスやポートの設定
@@ -38,7 +38,7 @@ namespace Server.PacketHandle
                         //パケットのレスポンスを得て、送信する
                         new Thread(() =>
                         {
-                            PacketResponseCreator.GetPacketResponse(bytes).ForEach(t => client.Send(t));
+                            packetResponseCreator.GetPacketResponse(bytes).ForEach(t => client.Send(t));
                         }).Start();
                     }
                 }).Start();

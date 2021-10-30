@@ -2,6 +2,7 @@
 using System.Linq;
 using Server.PacketHandle.PacketResponse.Player;
 using Server.Util;
+using World.DataStore;
 using World.Util;
 
 namespace Server.PacketHandle.PacketResponse
@@ -9,9 +10,16 @@ namespace Server.PacketHandle.PacketResponse
     /// <summary>
     /// プレイヤー座標のプロトコル
     /// </summary>
-    public class PlayerCoordinateSendProtocol
+    public class PlayerCoordinateSendProtocol : IPacketResponse
     {
-        Dictionary<int,PlayerCoordinateToResponse> _responses = new Dictionary<int, PlayerCoordinateToResponse>();
+        private readonly Dictionary<int,PlayerCoordinateToResponse> _responses = new ();
+        private readonly WorldBlockDatastore _worldBlockDatastore;
+
+        public PlayerCoordinateSendProtocol(WorldBlockDatastore worldBlockDatastore)
+        {
+            _worldBlockDatastore = worldBlockDatastore;
+        }
+
         public List<byte[]> GetResponse(byte[] payload)
         {
             //プレイヤー座標の解析
@@ -30,19 +38,8 @@ namespace Server.PacketHandle.PacketResponse
             //byte配列に変換して返す
             return _responses[playerId].
                 GetResponseCoordinate(CoordinateCreator.New((int) x, (int) y)).
-                Select(c => ChunkBlockToPayload.Convert(CoordinateToChunkBlocks.Convert(c),c)).
+                Select(c => ChunkBlockToPayload.Convert(CoordinateToChunkBlocks.Convert(c,_worldBlockDatastore),c)).
                 ToList();
-        }
-
-
-        private static PlayerCoordinateSendProtocol _instance;
-        public static PlayerCoordinateSendProtocol Instance
-        {
-            get
-            {
-                if (_instance is null) _instance = new PlayerCoordinateSendProtocol();
-                return _instance;
-            }
         }
     }
 }

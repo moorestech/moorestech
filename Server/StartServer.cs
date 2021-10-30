@@ -1,5 +1,6 @@
 ﻿using Server.Event;
 using Server.PacketHandle;
+using World.DataStore;
 
 namespace Server
 {
@@ -8,7 +9,7 @@ namespace Server
         public static void Main(string[] args)
         {
             Init();
-            PacketHandler.StartServer();
+            new PacketHandler().StartServer(new PacketResponseCreator(new WorldBlockDatastore()));
         }
 
         static void Init()
