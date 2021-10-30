@@ -8,7 +8,7 @@ namespace Core.Block
         {
         }
         
-        public int GetIntId(){return Int32.MaxValue;}
+        public int GetIntId(){return BlockConst.NullBlockIntId;}
         public int GetBlockId() { return BlockConst.NullBlockId; }
     }
 }

@@ -11,16 +11,19 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void SimpleBlockPlaceTest()
         {
-            PacketResponseCreator.GetPacketResponse(BlockPlace(1, 0, 0));
-            PacketResponseCreator.GetPacketResponse(BlockPlace(31, 2, 6));
-            PacketResponseCreator.GetPacketResponse(BlockPlace(10, -5, 6));
-            PacketResponseCreator.GetPacketResponse(BlockPlace(65, 0, -9));
+            var worldBlock = new WorldBlockDatastore();
+            var packetResponse = new PacketResponseCreator(worldBlock);
+            
+            packetResponse.GetPacketResponse(BlockPlace(1, 0, 0));
+            packetResponse.GetPacketResponse(BlockPlace(31, 2, 6));
+            packetResponse.GetPacketResponse(BlockPlace(10, -5, 6));
+            packetResponse.GetPacketResponse(BlockPlace(65, 0, -9));
             
             
-            Assert.AreEqual(WorldBlockDatastore.GetBlock(0,0).GetBlockId(),1);
-            Assert.AreEqual(WorldBlockDatastore.GetBlock(2,6).GetBlockId(),31);
-            Assert.AreEqual(WorldBlockDatastore.GetBlock(-5,6).GetBlockId(),10);
-            Assert.AreEqual(WorldBlockDatastore.GetBlock(0,-9).GetBlockId(),65);
+            Assert.AreEqual(worldBlock.GetBlock(0,0).GetBlockId(),1);
+            Assert.AreEqual(worldBlock.GetBlock(2,6).GetBlockId(),31);
+            Assert.AreEqual(worldBlock.GetBlock(-5,6).GetBlockId(),10);
+            Assert.AreEqual(worldBlock.GetBlock(0,-9).GetBlockId(),65);
         }
 
         byte[] BlockPlace(int id,int x,int y)

@@ -2,9 +2,9 @@
 
 namespace Server.PacketHandle.PacketResponse
 {
-    public static class InventoryContentResponseProtocol
+    public class InventoryContentResponseProtocol : IPacketResponse
     {
-        public static List<byte[]> GetResponse(byte[] payload)
+        public List<byte[]> GetResponse(byte[] payload)
         {
             throw new System.NotImplementedException();
         }

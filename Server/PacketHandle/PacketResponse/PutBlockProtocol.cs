@@ -6,9 +6,15 @@ using World.DataStore;
 
 namespace Server.PacketHandle.PacketResponse
 {
-    public static class PutBlockProtocol
+    public class PutBlockProtocol : IPacketResponse
     {
-        public static List<byte[]> GetResponse(byte[] payload)
+        private readonly WorldBlockDatastore _worldBlockDatastore;
+        public PutBlockProtocol(WorldBlockDatastore worldBlockDatastore)
+        {
+            _worldBlockDatastore = worldBlockDatastore;
+        }
+
+        public List<byte[]> GetResponse(byte[] payload)
         {
             //パケットのパース、接続元、接続先のインスタンス取得
             var payloadData = new ByteArrayEnumerator(payload);
@@ -18,13 +24,12 @@ namespace Server.PacketHandle.PacketResponse
             int x = payloadData.MoveNextToGetInt();
             int y = payloadData.MoveNextToGetInt();
             
-            var inputBlock = WorldBlockInventoryDatastore.GetBlock(payloadData.MoveNextToGetInt());
+            var inputBlock = _worldBlockDatastore.GetBlockInventory(payloadData.MoveNextToGetInt());
 
-            var block = NormalMachineFactory.Create(blockId, IntId.NewIntId(), WorldBlockInventoryDatastore.GetBlock(payloadData.MoveNextToGetInt()));
+            var block = NormalMachineFactory.Create(blockId, IntId.NewIntId(), _worldBlockDatastore.GetBlockInventory(payloadData.MoveNextToGetInt()));
             inputBlock.ChangeConnector(block);
             
-            WorldBlockInventoryDatastore.AddBlock(block,block.GetIntId());
-            WorldBlockDatastore.AddBlock(block, x, y);
+            _worldBlockDatastore.AddBlock(block, x, y,block);
             //返すものはない
             return new List<byte[]>();
         }

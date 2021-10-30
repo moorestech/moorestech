@@ -12,12 +12,12 @@ namespace Test.UnitTest.OverallManagement
         [Test]
         public void DataInsertAndOutputTest()
         {
-            WorldBlockDatastore.ClearData();
+            var worldData = new WorldBlockDatastore();
             
             var intId = IntId.NewIntId();
             var i =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory());
-            WorldBlockDatastore.AddBlock(i,1,1);
-            var output = WorldBlockDatastore.GetBlock(intId);
+            worldData.AddBlock(i,1,1);
+            var output = worldData.GetBlock(intId);
             Assert.AreEqual(intId, output.GetIntId());
 
         }
@@ -25,7 +25,7 @@ namespace Test.UnitTest.OverallManagement
         [Test]
         public void RegisteredDataCoordinateFromFetchTest()
         {
-            WorldBlockDatastore.ClearData();
+            var worldData = new WorldBlockDatastore();
             
             var random = new Random(131513);
             for (int i = 0; i < 10; i++)
@@ -36,8 +36,8 @@ namespace Test.UnitTest.OverallManagement
                 int x = random.Next(-1000, 1000);
                 int y = random.Next(-1000, 1000);
                 
-                WorldBlockDatastore.AddBlock(ins,x,y);
-                var output = WorldBlockDatastore.GetBlock(x,y);
+                worldData.AddBlock(ins,x,y);
+                var output = worldData.GetBlock(x,y);
                 Assert.AreEqual(intId, output.GetIntId());
             }
         }
@@ -46,28 +46,28 @@ namespace Test.UnitTest.OverallManagement
         [Test]
         public void AlreadyRegisteredIntIdSecondTimeFailTest()
         {
-            WorldBlockDatastore.ClearData();
+            var worldData = new WorldBlockDatastore();
             
             var intId = IntId.NewIntId();
             var i =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory());
-            WorldBlockDatastore.AddBlock(i,1,1);
+            worldData.AddBlock(i,1,1);
             
             //座標だけ変えてintIDは同じ
             var i2 =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory());
-            Assert.False(WorldBlockDatastore.AddBlock(i2,10,10));
+            Assert.False(worldData.AddBlock(i2,10,10));
         }
 
         [Test]
         public void AlreadyCoordinateSecondTimeFailTest()
         {
-            WorldBlockDatastore.ClearData();
+            var worldData = new WorldBlockDatastore();
 
             var i =  NormalMachineFactory.Create(1, IntId.NewIntId(), new NullIBlockInventory());
-            WorldBlockDatastore.AddBlock(i,1,1);
+            worldData.AddBlock(i,1,1);
             
             //座標だけ変えてintIDは同じ
             var i2 =  NormalMachineFactory.Create(1, IntId.NewIntId(), new NullIBlockInventory());
-            Assert.False(WorldBlockDatastore.AddBlock(i2,1,1));
+            Assert.False(worldData.AddBlock(i2,1,1));
         }
     }
 }

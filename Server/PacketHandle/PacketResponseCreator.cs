@@ -1,28 +1,28 @@
 ﻿using System.Collections.Generic;
 using Server.PacketHandle.PacketResponse;
 using Server.Util;
+using World.DataStore;
 
 namespace Server.PacketHandle
 {
-    public static class PacketResponseCreator
+    public class PacketResponseCreator
     {
-        delegate List<byte[]> Responses(byte[] payload);
-        private static List<Responses> _packetResponseList = new List<Responses>();
+        private List<IPacketResponse> _packetResponseList;
 
-        private static void Init()
+
+        public PacketResponseCreator(WorldBlockDatastore worldBlockDatastore)
         {
-            _packetResponseList.Add(DummyProtocol.GetResponse);
-            _packetResponseList.Add(PutBlockProtocol.GetResponse);
-            _packetResponseList.Add(PlayerCoordinateSendProtocol.Instance.GetResponse);
-            _packetResponseList.Add(InventoryContentResponseProtocol.GetResponse);
-            _packetResponseList.Add(SendEventProtocol.GetResponse);
+            _packetResponseList = new List<IPacketResponse>();
+            _packetResponseList.Add(new DummyProtocol());
+            _packetResponseList.Add(new PutBlockProtocol(worldBlockDatastore));
+            _packetResponseList.Add(new PlayerCoordinateSendProtocol(worldBlockDatastore));
+            _packetResponseList.Add(new InventoryContentResponseProtocol());
+            _packetResponseList.Add(new SendEventProtocol());
         }
-        
-        public static List<byte[]> GetPacketResponse(byte[] payload)
-        {
-            if (_packetResponseList.Count == 0) Init();
 
-            return _packetResponseList[new ByteArrayEnumerator(payload).MoveNextToGetShort()](payload);
+        public List<byte[]> GetPacketResponse(byte[] payload)
+        {
+            return _packetResponseList[new ByteArrayEnumerator(payload).MoveNextToGetShort()].GetResponse(payload);
         }
     }
 }

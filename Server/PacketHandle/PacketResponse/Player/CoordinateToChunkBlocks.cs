@@ -6,7 +6,7 @@ namespace Server.PacketHandle.PacketResponse.Player
 {
     public static class CoordinateToChunkBlocks
     {
-        public static int[,] Convert(Coordinate coordinate)
+        public static int[,] Convert(Coordinate coordinate,WorldBlockDatastore worldBlockDatastore)
         {
             //その座標のチャンクの原点
             var x = coordinate.x / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
@@ -18,7 +18,7 @@ namespace Server.PacketHandle.PacketResponse.Player
             {
                 for (int j = 0; j < blocks.GetLength(1); j++)
                 {
-                    blocks[i, j] = WorldBlockDatastore.GetBlock(
+                    blocks[i, j] = worldBlockDatastore.GetBlock(
                         x + i,
                         y+ j).GetBlockId();
                 }                
@@ -27,9 +27,9 @@ namespace Server.PacketHandle.PacketResponse.Player
             return blocks;
         }
 
-        public static int[,] Convert(int x, int y)
+        public static int[,] Convert(int x, int y,WorldBlockDatastore worldBlockDatastore)
         {
-            return Convert(CoordinateCreator.New(x, y));
+            return Convert(CoordinateCreator.New(x, y),worldBlockDatastore);
         }
     }
 }

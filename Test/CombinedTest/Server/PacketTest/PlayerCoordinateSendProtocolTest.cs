@@ -19,9 +19,9 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(1)]
         public void SimpleChunkResponseTest()
         {
-            
+            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore());
             //1回のレスポンスのテスト
-            var response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
+            var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
             Assert.AreEqual(25,response.Count());
@@ -49,20 +49,20 @@ namespace Test.CombinedTest.Server.PacketTest
             }
             
             //2回目は何も返ってこないテスト
-            PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0));
-            response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
+            packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0));
+            response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).ToList();
             Assert.AreEqual(response.Count,0);
             
             
             //場所をずらしたら返ってくるテスト
-            PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0));
-            response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(10, 25, 25))
+            packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0));
+            response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 25, 25))
                 .Select(PayloadToBlock).ToList();
             Assert.AreEqual(response.Count,9);
             
             //他の名前は普通に取得できるテスト
-            response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(15, 0, 0))
+            response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(15, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
             Assert.AreEqual(25,response.Count());
@@ -73,14 +73,14 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(2)]
         public void PlaceBlockToChunkResponseTest()
         {
-            WorldBlockDatastore.ClearData();
-            
+            var worldBlock = new WorldBlockDatastore();
+            var packetResponse = new PacketResponseCreator(worldBlock);
             var random = new Random(13944156);
             //ブロックの設置
             var b = NormalMachineFactory.Create(5, IntId.NewIntId(), new NullIBlockInventory());
-            WorldBlockDatastore.AddBlock(b, 0, 0);
+            worldBlock.AddBlock(b, 0, 0);
             
-            var response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0))
+            var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
             Assert.AreEqual(25,response.Count());
@@ -102,7 +102,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 {
                     for (int j = 0; j < r.Blocks.GetLength(1); j++)
                     {
-                        Assert.AreEqual(WorldBlockDatastore.GetBlock(c.x + i, c.y + j).GetBlockId()
+                        Assert.AreEqual(worldBlock.GetBlock(c.x + i, c.y + j).GetBlockId()
                             ,r.Blocks[i,j]);
                     }
                 }
@@ -114,7 +114,8 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(3)]
         public void RandomPlaceBlockToChunkResponseTest()
         {
-            WorldBlockDatastore.ClearData();
+            var worldBlock = new WorldBlockDatastore();
+            var packetResponse = new PacketResponseCreator(worldBlock);
             
             var random = new Random(13944156);
             //ブロックの設置
@@ -129,10 +130,10 @@ namespace Test.CombinedTest.Server.PacketTest
                 {
                     b = NormalMachineFactory.Create(random.Next(0, 500), IntId.NewIntId(), new NullIBlockInventory());
                 }
-                WorldBlockDatastore.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300));
+                worldBlock.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300));
             }
             
-            var response = PacketResponseCreator.GetPacketResponse(PlayerCoordinatePayload(25, 0, 0))
+            var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(25, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
             Assert.AreEqual(25,response.Count());
@@ -154,7 +155,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 {
                     for (int j = 0; j < r.Blocks.GetLength(1); j++)
                     {
-                        Assert.AreEqual(WorldBlockDatastore.GetBlock(c.x + i, c.y + j).GetBlockId()
+                        Assert.AreEqual(worldBlock.GetBlock(c.x + i, c.y + j).GetBlockId()
                             ,r.Blocks[i,j]);
                     }
                 }
