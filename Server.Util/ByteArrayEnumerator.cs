@@ -7,34 +7,25 @@ namespace Server.Util
 {
     public class ByteArrayEnumerator
     {
-        private readonly IEnumerator<byte> _payload;
+        private readonly List<byte> _payload;
+        private int index = 0;
         public ByteArrayEnumerator(byte[] payload)
         {
-            _payload = payload.ToList().GetEnumerator();
+            _payload = payload.ToList();
         }
 
         public byte MoveNextToGetByte()
         {
-            if (_payload.MoveNext())
-            {
-                return _payload.Current;
-            }
-            throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
+            return _payload[index++];
         }
         public int MoveNextToGetInt()
         {
             var b = new List<byte>();
             for (int i = 0; i < 4; i++)
             {
-                if (_payload.MoveNext())
-                {
-                    b.Add(_payload.Current);
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
-                }
+                b.Add(_payload[index++]);
             }
+            if (BitConverter.IsLittleEndian) b.Reverse();
             return BitConverter.ToInt32(b.ToArray(),0);
         }
 
@@ -43,15 +34,9 @@ namespace Server.Util
             var b = new List<byte>();
             for (int i = 0; i < 2; i++)
             {
-                if (_payload.MoveNext())
-                {
-                    b.Add(_payload.Current);
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
-                }
+                b.Add(_payload[index++]);
             }
+            if (BitConverter.IsLittleEndian) b.Reverse();
             return BitConverter.ToInt16(b.ToArray(),0);
         }
         public float MoveNextToGetFloat()
@@ -59,15 +44,9 @@ namespace Server.Util
             var b = new List<byte>();
             for (int i = 0; i < 4; i++)
             {
-                if (_payload.MoveNext())
-                {
-                    b.Add(_payload.Current);
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
-                }
+                b.Add(_payload[index++]);
             }
+            if (BitConverter.IsLittleEndian) b.Reverse();
             return BitConverter.ToSingle(b.ToArray(),0);
         }
         /// <summary>
@@ -85,23 +64,16 @@ namespace Server.Util
             var b = new List<byte>();
             if (byteNum == 0)
             {
-                while (_payload.MoveNext())
+                while (index < b.Count)
                 {
-                    b.Add(_payload.Current);
+                    b.Add(_payload[index++]);
                 }
             }
             else
             {
                 for (int i = 0; i < byteNum; i++)
                 {
-                    if (_payload.MoveNext())
-                    {
-                        b.Add(_payload.Current);
-                    }
-                    else
-                    {
-                        throw new ArgumentOutOfRangeException("パケットフォーマットの解析に不具合があります");
-                    }
+                    b.Add(_payload[index++]);
                 }
             }
             return Encoding.UTF8.GetString(b.ToArray());

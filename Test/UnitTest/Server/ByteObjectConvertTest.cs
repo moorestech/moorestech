@@ -10,44 +10,6 @@ namespace Test.UnitTest.Server
     public class ByteObjectConvertTest
     {      
         [Test]
-        //intを配列に変換して同じかテストする
-        public void OneintObjectToByteArrayTest()
-        {
-            var random = new Random(1000);
-            for (int i = 0; i < 100; i++)
-            {
-
-                var data = random.Next(Int32.MaxValue, Int32.MaxValue);
-                var ans = BitConverter.GetBytes(data);
-
-                var exp = ByteArrayConverter.ToByteArray(data);
-
-                for (int j = 0; j < ans.Length; j++)
-                {
-                    Assert.AreEqual(ans[j],exp[j]);
-                }
-            }
-        }        
-        [Test]
-        //shortを配列に変換して同じかテストする
-        public void OneshortObjectToByteArrayTest()
-        {
-            var random = new Random(1000);
-            for (int i = 0; i < 100; i++)
-            {
-
-                var data = (short)random.Next(short.MinValue,short.MaxValue);
-                var ans = BitConverter.GetBytes(data);
-
-                var exp = ByteArrayConverter.ToByteArray(data);
-
-                for (int j = 0; j < ans.Length; j++)
-                {
-                    Assert.AreEqual(ans[j],exp[j]);
-                }
-            }
-        }
-        [Test]
         //intを相互変化しても問題ないかテスト
         public void OneIntConvertTest()
         {
@@ -113,6 +75,21 @@ namespace Test.UnitTest.Server
             Assert.AreEqual(intId1,byteData.MoveNextToGetInt());
             Assert.AreEqual(intId2,byteData.MoveNextToGetInt());
             Assert.AreEqual(50,byteData.MoveNextToGetInt());
+        }
+
+        [TestCase(0,0,0,0,0)]
+        [TestCase(5,0,0,0,5)]
+        [TestCase(500,0,0,1,244)]
+        [TestCase(1546,0,0,6,10)]
+        public void ConvertTest(int ans,byte b1,byte b2,byte b3,byte b4)
+        {
+            var actual = ByteArrayConverter.ToByteArray(ans);
+            var expect = new byte[4]{b1, b2, b3, b4};
+            
+            Assert.AreEqual(expect[0],actual[0]);
+            Assert.AreEqual(expect[1],actual[1]);
+            Assert.AreEqual(expect[2],actual[2]);
+            Assert.AreEqual(expect[3],actual[3]);
         }
     }
 }

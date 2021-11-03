@@ -12,10 +12,6 @@ namespace Server.Util
             var bytes = new List<byte>();
             for (i = 0; i < bits.Count; i++)
             {
-                if (i == 80)
-                {
-                    
-                }
                 if (i != 0 && i % 8 == 0)
                 {
                     // 1バイト分で出力しビットカウント初期化

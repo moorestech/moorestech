@@ -52,6 +52,7 @@ namespace Test.UnitTest.Server
             boolArray.Add(false);
             boolArray.Add(true);
             boolArray.AddRange(ByteArrayToBitArray.Convert(5426));
+            boolArray.AddRange(ByteArrayToBitArray.Convert((byte)8));
 
             var bytes = BitArrayToByteArray.Convert(boolArray.ToArray());
             var bitArray = new BitArrayEnumerator(bytes);
@@ -69,6 +70,7 @@ namespace Test.UnitTest.Server
             Assert.AreEqual(true,bitArray.MoveNextToBit());
             
             Assert.AreEqual(5426,bitArray.MoveNextToInt());
+            Assert.AreEqual(8,bitArray.MoveNextToByte());
             
         }
     }

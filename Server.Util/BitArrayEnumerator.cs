@@ -6,77 +6,57 @@ namespace Server.Util
 {
     public class BitArrayEnumerator
     {
-        private List<bool> _bitArray;
+        private List<byte> bytesList;
         private int index = 0;
+        private readonly int[] BIT_MASK = {128 ,64, 32,16,8,4,2,1};
 
         public BitArrayEnumerator(byte[] bytes)
         {
-            _bitArray = ByteArrayToBitArray.Convert(bytes).ToList();
+            bytesList = bytes.ToList();
         }
 
         public bool MoveNextToBit()
         {
-            var r = _bitArray[index];
+            int r = bytesList[index/8] & BIT_MASK[index%8];
             index++;
-            return r;
+            if(r == 0)
+            {
+                return false;
+            }else
+            {
+                return true;
+            }
         }
         public byte MoveNextToByte()
         {
-            var bitNum = 8;
-            
-            var tmpBitArray = new List<bool>();
-            for (int i = 0; i < bitNum; i++)
-            {
-                tmpBitArray.Add(_bitArray[i + index]);
-            }
-
-            index += bitNum;
-            var byteArray = BitArrayToByteArray.Convert(tmpBitArray);
-            return byteArray[0];
+            return GetByteList(8)[0];
         }
         public short MoveNextToShort()
         {
-            var bitNum = 16;
-            
-            var tmpBitArray = new List<bool>();
-            for (int i = 0; i < bitNum; i++)
-            {
-                tmpBitArray.Add(_bitArray[i + index]);
-            }
-
-            index += bitNum;
-            var byteArray = BitArrayToByteArray.Convert(tmpBitArray);
-            return BitConverter.ToInt16(byteArray,0);
+            return BitConverter.ToInt16(GetByteList(16),0);
         }
         public float MoveNextToFloat()
         {
-            var bitNum = 32;
-            
-            var tmpBitArray = new List<bool>();
-            for (int i = 0; i < bitNum; i++)
-            {
-                tmpBitArray.Add(_bitArray[i + index]);
-            }
-
-            index += bitNum;
-            var byteArray = BitArrayToByteArray.Convert(tmpBitArray);
-            return BitConverter.ToSingle(byteArray,0);
+            return BitConverter.ToSingle(GetByteList(32),0);
         }
 
         
         public int MoveNextToInt()
         {
-            var bitNum = 32;
-            
+            return BitConverter.ToInt32(GetByteList(32),0);
+        }
+
+        byte[] GetByteList(int bitNum)
+        {
             var tmpBitArray = new List<bool>();
             for (int i = 0; i < bitNum; i++)
             {
-                tmpBitArray.Add(_bitArray[i + index]);
+                tmpBitArray.Add(MoveNextToBit());
             }
-
-            index += bitNum;
             var byteArray = BitArrayToByteArray.Convert(tmpBitArray);
-            return BitConverter.ToInt32(byteArray,0);
+            if(BitConverter.IsLittleEndian)
+                Array.Reverse(byteArray);
+            return byteArray;
         }
     }
 }

@@ -6,15 +6,24 @@ namespace Server.Util
     {
         public static byte[] ToByteArray(int sendData)
         {
-            return  BitConverter.GetBytes(sendData);
+            var result = BitConverter.GetBytes(sendData);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(result);
+            return result;
         }
         public static byte[] ToByteArray(short sendData)
         {
-            return BitConverter.GetBytes(sendData);
+            var result = BitConverter.GetBytes(sendData);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(result);
+            return result;
         }
         public static byte[] ToByteArray(float sendData)
         {
-            return BitConverter.GetBytes(sendData);
+            var result = BitConverter.GetBytes(sendData);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(result);
+            return result;
         }
         public static byte[] ToByteArray(string sendData)
         {
