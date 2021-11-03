@@ -56,15 +56,15 @@ namespace Test.UnitTest.Server
             bitArray.Clear();
             bitArray = new List<bool>
             {
-                false,
-                false,
-                false,
-                false,
-                true,
-                true,
-                true,
-                true,
                 false, false, false, false, false, false, false, false,
+                false,
+                false,
+                false,
+                false,
+                true,
+                true,
+                true,
+                true,
             };
             enumerator = new ByteArrayEnumerator(BitArrayToByteArray.Convert(bitArray));
             Assert.AreEqual(15,enumerator.MoveNextToGetShort());
@@ -72,15 +72,15 @@ namespace Test.UnitTest.Server
             bitArray.Clear();
             bitArray = new List<bool>
             {
-                true,
-                true,
-                true,
-                true,
-                false,
-                false,
-                false,
-                false,
                 false, false, false, false, false, false, false, false,
+                true,
+                true,
+                true,
+                true,
+                false,
+                false,
+                false,
+                false,
             };
             enumerator = new ByteArrayEnumerator(BitArrayToByteArray.Convert(bitArray));
             Assert.AreEqual(240,enumerator.MoveNextToGetShort());
@@ -88,15 +88,15 @@ namespace Test.UnitTest.Server
             bitArray.Clear();
             bitArray = new List<bool>
             {
-                true,
-                false,
-                true,
-                false,
-                false,
-                false,
-                true,
-                true,
                 false, false, false, false, false, false, false, false,
+                true,
+                false,
+                true,
+                false,
+                false,
+                false,
+                true,
+                true,
             };
             enumerator = new ByteArrayEnumerator(BitArrayToByteArray.Convert(bitArray));
             Assert.AreEqual(163,enumerator.MoveNextToGetShort());
