@@ -105,10 +105,14 @@ namespace Test.UnitTest.Server
             bitArray.Clear();
             bitArray = new List<bool>
             {
+                false,
+                false,
+                false,
+                false,
                 true,
                 true,
                 true,
-                true
+                true,
             };
             enumerator = new ByteArrayEnumerator(BitListToByteList.Convert(bitArray));
             Assert.AreEqual(15,enumerator.MoveNextToGetByte());
