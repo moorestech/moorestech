@@ -25,6 +25,7 @@ namespace Server.Util
 
             if (i != 0)
             {
+                if(i % 8 != 0) result = (byte)(result << 8 - i%8);
                 bytes.Add(result);
             }
             return bytes;
