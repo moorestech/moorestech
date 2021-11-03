@@ -14,7 +14,7 @@ namespace Test.UnitTest.Server
         public void OneIntConvertTest()
         {
             var Int =  new Random(1000).Next(Int32.MaxValue, Int32.MaxValue);
-            var byteData = new ByteArrayEnumerator(ByteArrayConverter.ToByteArray(Int));
+            var byteData = new ByteArrayEnumerator(ByteListConverter.ToByteArray(Int));
 
             Assert.AreEqual(Int,byteData.MoveNextToGetInt());
         }
@@ -23,7 +23,7 @@ namespace Test.UnitTest.Server
         public void OneShortConvertTest()
         {
             var Short = (short)new Random(1000).Next(short.MinValue, short.MaxValue);
-            var byteData = new ByteArrayEnumerator(ByteArrayConverter.ToByteArray(Short));
+            var byteData = new ByteArrayEnumerator(ByteListConverter.ToByteArray(Short));
 
             Assert.AreEqual(Short,byteData.MoveNextToGetShort());
         }
@@ -32,7 +32,7 @@ namespace Test.UnitTest.Server
         public void OneFloatConvertTest()
         {
             var Float = (float)new Random(1000).NextDouble();
-            var byteData = new ByteArrayEnumerator(ByteArrayConverter.ToByteArray(Float));
+            var byteData = new ByteArrayEnumerator(ByteListConverter.ToByteArray(Float));
 
             Assert.AreEqual(Float,byteData.MoveNextToGetFloat());
         }
@@ -41,7 +41,7 @@ namespace Test.UnitTest.Server
         public void OneByteNumStringConvertTest()
         {
             var String = "変換test012()あいうaＢC:";
-            var byteData = new ByteArrayEnumerator(ByteArrayConverter.ToByteArray(String));
+            var byteData = new ByteArrayEnumerator(ByteListConverter.ToByteArray(String));
 
             Assert.AreEqual(String,byteData.MoveNextToGetString(30));
         }
@@ -50,7 +50,7 @@ namespace Test.UnitTest.Server
         public void OneDifferentByteNumStringConvertTest()
         {
             var String = "変換test012()あいうaＢC:";
-            var byteData = new ByteArrayEnumerator(ByteArrayConverter.ToByteArray(String));
+            var byteData = new ByteArrayEnumerator(ByteListConverter.ToByteArray(String));
 
             Assert.AreNotEqual(String,byteData.MoveNextToGetString(29));
         }
@@ -64,12 +64,12 @@ namespace Test.UnitTest.Server
             var intId1 = IntId.NewIntId();
             var intId2 = IntId.NewIntId();
             var ans = new List<byte>();
-            ans.AddRange(ByteArrayConverter.ToByteArray(id));
-            ans.AddRange(ByteArrayConverter.ToByteArray(intId1));
-            ans.AddRange(ByteArrayConverter.ToByteArray(intId2));
-            ans.AddRange(ByteArrayConverter.ToByteArray(50));
+            ans.AddRange(ByteListConverter.ToByteArray(id));
+            ans.AddRange(ByteListConverter.ToByteArray(intId1));
+            ans.AddRange(ByteListConverter.ToByteArray(intId2));
+            ans.AddRange(ByteListConverter.ToByteArray(50));
 
-            var byteData = new ByteArrayEnumerator(ans.ToArray());
+            var byteData = new ByteArrayEnumerator(ans);
 
             Assert.AreEqual(id,byteData.MoveNextToGetShort()) ;
             Assert.AreEqual(intId1,byteData.MoveNextToGetInt());
@@ -83,7 +83,7 @@ namespace Test.UnitTest.Server
         [TestCase(1546,0,0,6,10)]
         public void ConvertTest(int ans,byte b1,byte b2,byte b3,byte b4)
         {
-            var actual = ByteArrayConverter.ToByteArray(ans);
+            var actual = ByteListConverter.ToByteArray(ans);
             var expect = new byte[4]{b1, b2, b3, b4};
             
             Assert.AreEqual(expect[0],actual[0]);

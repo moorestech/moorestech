@@ -3,9 +3,9 @@ using System.Linq;
 
 namespace Server.Util
 {
-    public static class BitArrayToByteArray
+    public static class BitListToByteList
     {
-        public static byte[] Convert(List<bool> bits)
+        public static List<byte> Convert(List<bool> bits)
         {
             int i = 0;
             byte result = 0;
@@ -27,11 +27,7 @@ namespace Server.Util
             {
                 bytes.Add(result);
             }
-            return bytes.ToArray();
-        }
-        public static byte[] Convert(bool[] bits)
-        {
-            return Convert(bits.ToList());
+            return bytes;
         }
     }
 }

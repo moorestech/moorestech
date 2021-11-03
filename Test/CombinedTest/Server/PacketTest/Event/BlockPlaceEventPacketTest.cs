@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using Server.Event;
 using Server.PacketHandle;
@@ -69,7 +70,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         
         Block AnalysisResponsePacket(byte[] payload)
         {
-            var b = new ByteArrayEnumerator(payload);
+            var b = new ByteArrayEnumerator(payload.ToList());
             b.MoveNextToGetShort();
             var eventId = b.MoveNextToGetShort();
             Assert.AreEqual(1,eventId);
@@ -81,22 +82,22 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         void BlockPlace(int x,int y,int id,PacketResponseCreator packetResponseCreator)
         {
             var bytes = new List<byte>();
-            bytes.AddRange(ByteArrayConverter.ToByteArray((short)1));
-            bytes.AddRange(ByteArrayConverter.ToByteArray(id));
-            bytes.AddRange(ByteArrayConverter.ToByteArray((short)0));
-            bytes.AddRange(ByteArrayConverter.ToByteArray(x));
-            bytes.AddRange(ByteArrayConverter.ToByteArray(y));
-            bytes.AddRange(ByteArrayConverter.ToByteArray(0));
-            bytes.AddRange(ByteArrayConverter.ToByteArray(0));
-            packetResponseCreator.GetPacketResponse(bytes.ToArray());
+            bytes.AddRange(ByteListConverter.ToByteArray((short)1));
+            bytes.AddRange(ByteListConverter.ToByteArray(id));
+            bytes.AddRange(ByteListConverter.ToByteArray((short)0));
+            bytes.AddRange(ByteListConverter.ToByteArray(x));
+            bytes.AddRange(ByteListConverter.ToByteArray(y));
+            bytes.AddRange(ByteListConverter.ToByteArray(0));
+            bytes.AddRange(ByteListConverter.ToByteArray(0));
+            packetResponseCreator.GetPacketResponse(bytes);
         }
 
-        byte[] EventRequestData(int plyaerID)
+        List<byte> EventRequestData(int plyaerID)
         {
             var payload = new List<byte>();
-            payload.AddRange(ByteArrayConverter.ToByteArray((short)4));
-            payload.AddRange(ByteArrayConverter.ToByteArray(plyaerID));
-            return payload.ToArray();
+            payload.AddRange(ByteListConverter.ToByteArray((short)4));
+            payload.AddRange(ByteListConverter.ToByteArray(plyaerID));
+            return payload;
         }
 
         class Block

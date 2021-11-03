@@ -20,7 +20,7 @@ namespace Test.UnitTest.Server
                 true,
                 true
             };
-            var enumerator = new ByteArrayEnumerator(BitArrayToByteArray.Convert(bitArray));
+            var enumerator = new ByteArrayEnumerator(BitListToByteList.Convert(bitArray));
             Assert.AreEqual(15,enumerator.MoveNextToGetByte());
             
             bitArray.Clear();
@@ -35,7 +35,7 @@ namespace Test.UnitTest.Server
                 false,
                 false
             };
-            enumerator = new ByteArrayEnumerator(BitArrayToByteArray.Convert(bitArray));
+            enumerator = new ByteArrayEnumerator(BitListToByteList.Convert(bitArray));
             Assert.AreEqual(240,enumerator.MoveNextToGetByte());
             
             bitArray.Clear();
@@ -50,7 +50,7 @@ namespace Test.UnitTest.Server
                 true,
                 true
             };
-            enumerator = new ByteArrayEnumerator(BitArrayToByteArray.Convert(bitArray));
+            enumerator = new ByteArrayEnumerator(BitListToByteList.Convert(bitArray));
             Assert.AreEqual(163,enumerator.MoveNextToGetByte());
             
             bitArray.Clear();
@@ -66,7 +66,7 @@ namespace Test.UnitTest.Server
                 true,
                 true,
             };
-            enumerator = new ByteArrayEnumerator(BitArrayToByteArray.Convert(bitArray));
+            enumerator = new ByteArrayEnumerator(BitListToByteList.Convert(bitArray));
             Assert.AreEqual(15,enumerator.MoveNextToGetShort());
             
             bitArray.Clear();
@@ -82,7 +82,7 @@ namespace Test.UnitTest.Server
                 false,
                 false,
             };
-            enumerator = new ByteArrayEnumerator(BitArrayToByteArray.Convert(bitArray));
+            enumerator = new ByteArrayEnumerator(BitListToByteList.Convert(bitArray));
             Assert.AreEqual(240,enumerator.MoveNextToGetShort());
             
             bitArray.Clear();
@@ -98,7 +98,7 @@ namespace Test.UnitTest.Server
                 true,
                 true,
             };
-            enumerator = new ByteArrayEnumerator(BitArrayToByteArray.Convert(bitArray));
+            enumerator = new ByteArrayEnumerator(BitListToByteList.Convert(bitArray));
             Assert.AreEqual(163,enumerator.MoveNextToGetShort());
             
             
@@ -110,7 +110,7 @@ namespace Test.UnitTest.Server
                 true,
                 true
             };
-            enumerator = new ByteArrayEnumerator(BitArrayToByteArray.Convert(bitArray));
+            enumerator = new ByteArrayEnumerator(BitListToByteList.Convert(bitArray));
             Assert.AreEqual(15,enumerator.MoveNextToGetByte());
         }
 
@@ -118,9 +118,9 @@ namespace Test.UnitTest.Server
         public void ByteArrayToBitArrayTest()
         {
             var byteList = new List<byte> {0,10,100};
-            byteList.AddRange(ByteArrayConverter.ToByteArray(1234546));
-            byteList.AddRange(ByteArrayConverter.ToByteArray(506.35f));
-            var bitEnum = new BitArrayEnumerator(BitArrayToByteArray.Convert(ByteArrayToBitArray.Convert(byteList)));
+            byteList.AddRange(ByteListConverter.ToByteArray(1234546));
+            byteList.AddRange(ByteListConverter.ToByteArray(506.35f));
+            var bitEnum = new BitListEnumerator(BitListToByteList.Convert(ByteListToBitList.Convert(byteList)));
             Assert.AreEqual(bitEnum.MoveNextToByte(),0);
             Assert.AreEqual(bitEnum.MoveNextToByte(),10);
             Assert.AreEqual(bitEnum.MoveNextToByte(),100);

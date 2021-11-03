@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -38,7 +39,7 @@ namespace Server.PacketHandle
                         //パケットのレスポンスを得て、送信する
                         new Thread(() =>
                         {
-                            packetResponseCreator.GetPacketResponse(bytes).ForEach(t => client.Send(t));
+                            packetResponseCreator.GetPacketResponse(bytes.ToList()).ForEach(t => client.Send(t));
                         }).Start();
                     }
                 }).Start();

@@ -26,18 +26,18 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(worldBlock.GetBlock(0,-9).GetBlockId(),65);
         }
 
-        byte[] BlockPlace(int id,int x,int y)
+        List<byte> BlockPlace(int id,int x,int y)
         {
             var bytes = new List<byte>();
-            bytes.AddRange(ByteArrayConverter.ToByteArray((short)1));
-            bytes.AddRange(ByteArrayConverter.ToByteArray(id));
-            bytes.AddRange(ByteArrayConverter.ToByteArray((short)0));
-            bytes.AddRange(ByteArrayConverter.ToByteArray(x));
-            bytes.AddRange(ByteArrayConverter.ToByteArray(y));
-            bytes.AddRange(ByteArrayConverter.ToByteArray(0));
-            bytes.AddRange(ByteArrayConverter.ToByteArray(0));
+            bytes.AddRange(ByteListConverter.ToByteArray((short)1));
+            bytes.AddRange(ByteListConverter.ToByteArray(id));
+            bytes.AddRange(ByteListConverter.ToByteArray((short)0));
+            bytes.AddRange(ByteListConverter.ToByteArray(x));
+            bytes.AddRange(ByteListConverter.ToByteArray(y));
+            bytes.AddRange(ByteListConverter.ToByteArray(0));
+            bytes.AddRange(ByteListConverter.ToByteArray(0));
 
-            return bytes.ToArray();
+            return bytes;
         }
     }
 }

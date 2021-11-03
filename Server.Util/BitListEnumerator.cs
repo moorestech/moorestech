@@ -4,15 +4,15 @@ using System.Linq;
 
 namespace Server.Util
 {
-    public class BitArrayEnumerator
+    public class BitListEnumerator
     {
         private List<byte> bytesList;
         private int index = 0;
         private readonly int[] BIT_MASK = {128 ,64, 32,16,8,4,2,1};
 
-        public BitArrayEnumerator(byte[] bytes)
+        public BitListEnumerator(List<byte> bytes)
         {
-            bytesList = bytes.ToList();
+            bytesList = bytes;
         }
 
         public bool MoveNextToBit()
@@ -29,31 +29,31 @@ namespace Server.Util
         }
         public byte MoveNextToByte()
         {
-            return GetByteList(8)[0];
+            return GetByteArray(8)[0];
         }
         public short MoveNextToShort()
         {
-            return BitConverter.ToInt16(GetByteList(16),0);
+            return BitConverter.ToInt16(GetByteArray(16),0);
         }
         public float MoveNextToFloat()
         {
-            return BitConverter.ToSingle(GetByteList(32),0);
+            return BitConverter.ToSingle(GetByteArray(32),0);
         }
 
         
         public int MoveNextToInt()
         {
-            return BitConverter.ToInt32(GetByteList(32),0);
+            return BitConverter.ToInt32(GetByteArray(32),0);
         }
 
-        byte[] GetByteList(int bitNum)
+        byte[] GetByteArray(int bitNum)
         {
             var tmpBitArray = new List<bool>();
             for (int i = 0; i < bitNum; i++)
             {
                 tmpBitArray.Add(MoveNextToBit());
             }
-            var byteArray = BitArrayToByteArray.Convert(tmpBitArray);
+            var byteArray = BitListToByteList.Convert(tmpBitArray).ToArray();
             if(BitConverter.IsLittleEndian)
                 Array.Reverse(byteArray);
             return byteArray;

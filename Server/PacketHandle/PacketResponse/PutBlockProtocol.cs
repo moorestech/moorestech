@@ -14,7 +14,7 @@ namespace Server.PacketHandle.PacketResponse
             _worldBlockDatastore = worldBlockDatastore;
         }
 
-        public List<byte[]> GetResponse(byte[] payload)
+        public List<byte[]> GetResponse(List<byte> payload)
         {
             //パケットのパース、接続元、接続先のインスタンス取得
             var payloadData = new ByteArrayEnumerator(payload);

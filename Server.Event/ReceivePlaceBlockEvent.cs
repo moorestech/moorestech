@@ -18,11 +18,11 @@ namespace Server.Event
             var id = blockPlaceEventProperties.Block.GetBlockId();
             var payload = new List<byte>();
             
-            payload.AddRange(ByteArrayConverter.ToByteArray(EventProtocolQueProvider.EventPacketId));
-            payload.AddRange(ByteArrayConverter.ToByteArray(EventId));
-            payload.AddRange(ByteArrayConverter.ToByteArray(c.x));
-            payload.AddRange(ByteArrayConverter.ToByteArray(c.y));
-            payload.AddRange(ByteArrayConverter.ToByteArray(id));
+            payload.AddRange(ByteListConverter.ToByteArray(EventProtocolQueProvider.EventPacketId));
+            payload.AddRange(ByteListConverter.ToByteArray(EventId));
+            payload.AddRange(ByteListConverter.ToByteArray(c.x));
+            payload.AddRange(ByteListConverter.ToByteArray(c.y));
+            payload.AddRange(ByteListConverter.ToByteArray(id));
             EventProtocolQueProvider.Instance.AddBroadcastEvent(payload.ToArray());
 
         }

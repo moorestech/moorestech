@@ -11,9 +11,9 @@ namespace Server.PacketHandle.PacketResponse.Player
         {
             var payload = new List<bool>();
             
-            payload.AddRange(ByteArrayToBitArray.Convert(ByteArrayConverter.ToByteArray((short)1)));
-            payload.AddRange(ByteArrayToBitArray.Convert(ByteArrayConverter.ToByteArray(chunkCoordinate.x)));
-            payload.AddRange(ByteArrayToBitArray.Convert(ByteArrayConverter.ToByteArray(chunkCoordinate.y)));
+            payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray((short)1)));
+            payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray(chunkCoordinate.x)));
+            payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray(chunkCoordinate.y)));
             for (int i = 0; i < blocks.GetLength(0); i++)
             {
                 for (int j = 0; j < blocks.GetLength(1); j++)
@@ -32,7 +32,7 @@ namespace Server.PacketHandle.PacketResponse.Player
                     {
                         payload.Add(false);
                         payload.Add(false);
-                        payload.AddRange(ByteArrayToBitArray.Convert((byte)id));
+                        payload.AddRange(ByteListToBitList.Convert((byte)id));
                         continue;
                     }
                     //short整数
@@ -40,17 +40,17 @@ namespace Server.PacketHandle.PacketResponse.Player
                     {
                         payload.Add(false);
                         payload.Add(true);
-                        payload.AddRange(ByteArrayToBitArray.Convert(ByteArrayConverter.ToByteArray((short)id)));
+                        payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray((short)id)));
                         continue;
                     }
                     //int整数
                     payload.Add(true);
                     payload.Add(false);
-                    payload.AddRange(ByteArrayToBitArray.Convert(ByteArrayConverter.ToByteArray(id)));
+                    payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray(id)));
                 }
             }
             
-            return BitArrayToByteArray.Convert(payload);
+            return BitListToByteList.Convert(payload).ToArray();
         }
     }
 }

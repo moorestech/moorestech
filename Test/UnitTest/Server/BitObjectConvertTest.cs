@@ -13,12 +13,12 @@ namespace Test.UnitTest.Server
             byteArray.Add(0);
             byteArray.Add(14);
             byteArray.Add(15);
-            byteArray.AddRange(ByteArrayConverter.ToByteArray(10));
-            byteArray.AddRange(ByteArrayConverter.ToByteArray(int.MaxValue));
-            byteArray.AddRange(ByteArrayConverter.ToByteArray((short)50));
-            byteArray.AddRange(ByteArrayConverter.ToByteArray(30.54f));
+            byteArray.AddRange(ByteListConverter.ToByteArray(10));
+            byteArray.AddRange(ByteListConverter.ToByteArray(int.MaxValue));
+            byteArray.AddRange(ByteListConverter.ToByteArray((short)50));
+            byteArray.AddRange(ByteListConverter.ToByteArray(30.54f));
 
-            var bitArray = new BitArrayEnumerator(byteArray.ToArray());
+            var bitArray = new BitListEnumerator(byteArray);
             
             Assert.AreEqual(0,bitArray.MoveNextToByte());
             Assert.AreEqual(14,bitArray.MoveNextToByte());
@@ -43,19 +43,19 @@ namespace Test.UnitTest.Server
         public void BitArrayToBitArrayEnumeratorTest()
         {
             var boolArray = new List<bool>();
-            boolArray.AddRange(ByteArrayToBitArray.Convert((byte)0));
-            boolArray.AddRange(ByteArrayToBitArray.Convert((byte)14));
+            boolArray.AddRange(ByteListToBitList.Convert((byte)0));
+            boolArray.AddRange(ByteListToBitList.Convert((byte)14));
             boolArray.Add(true);
             boolArray.Add(false);
-            boolArray.AddRange(ByteArrayToBitArray.Convert((byte)60));
+            boolArray.AddRange(ByteListToBitList.Convert((byte)60));
             boolArray.Add(true);
             boolArray.Add(false);
             boolArray.Add(true);
-            boolArray.AddRange(ByteArrayToBitArray.Convert(5426));
-            boolArray.AddRange(ByteArrayToBitArray.Convert((byte)8));
+            boolArray.AddRange(ByteListToBitList.Convert(5426));
+            boolArray.AddRange(ByteListToBitList.Convert((byte)8));
 
-            var bytes = BitArrayToByteArray.Convert(boolArray.ToArray());
-            var bitArray = new BitArrayEnumerator(bytes);
+            var bytes = BitListToByteList.Convert(boolArray);
+            var bitArray = new BitListEnumerator(bytes);
             
             Assert.AreEqual(0,bitArray.MoveNextToByte());
             Assert.AreEqual(14,bitArray.MoveNextToByte());

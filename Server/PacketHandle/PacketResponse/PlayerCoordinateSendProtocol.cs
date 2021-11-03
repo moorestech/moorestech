@@ -20,7 +20,7 @@ namespace Server.PacketHandle.PacketResponse
             _worldBlockDatastore = worldBlockDatastore;
         }
 
-        public List<byte[]> GetResponse(byte[] payload)
+        public List<byte[]> GetResponse(List<byte>  payload)
         {
             //プレイヤー座標の解析
             var b = new ByteArrayEnumerator(payload);

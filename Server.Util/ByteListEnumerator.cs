@@ -9,9 +9,9 @@ namespace Server.Util
     {
         private readonly List<byte> _payload;
         private int index = 0;
-        public ByteArrayEnumerator(byte[] payload)
+        public ByteArrayEnumerator(List<byte> payload)
         {
-            _payload = payload.ToList();
+            _payload = payload;
         }
 
         public byte MoveNextToGetByte()

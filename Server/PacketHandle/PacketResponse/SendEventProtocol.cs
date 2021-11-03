@@ -6,7 +6,7 @@ namespace Server.PacketHandle.PacketResponse
 {
     public class SendEventProtocol : IPacketResponse
     {
-        public List<byte[]> GetResponse(byte[] payload)
+        public List<byte[]> GetResponse(List<byte> payload)
         {
             //パケットのパース、接続元、接続先のインスタンス取得
             var b = new ByteArrayEnumerator(payload);

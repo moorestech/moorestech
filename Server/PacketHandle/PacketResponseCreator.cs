@@ -20,7 +20,7 @@ namespace Server.PacketHandle
             _packetResponseList.Add(new SendEventProtocol());
         }
 
-        public List<byte[]> GetPacketResponse(byte[] payload)
+        public List<byte[]> GetPacketResponse(List<byte> payload)
         {
             return _packetResponseList[new ByteArrayEnumerator(payload).MoveNextToGetShort()].GetResponse(payload);
         }

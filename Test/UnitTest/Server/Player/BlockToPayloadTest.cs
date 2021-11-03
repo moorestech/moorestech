@@ -20,42 +20,42 @@ namespace Test.UnitTest.Server.Player
             };
             
             var ans = new List<byte>();
-            ans.AddRange(ByteArrayConverter.ToByteArray((byte)1));
-            ans.AddRange(ByteArrayConverter.ToByteArray(0));
-            ans.AddRange(ByteArrayConverter.ToByteArray(0));
+            ans.AddRange(ByteListConverter.ToByteArray((byte)1));
+            ans.AddRange(ByteListConverter.ToByteArray(0));
+            ans.AddRange(ByteListConverter.ToByteArray(0));
             var ansBool = new List<bool>();
             ansBool.Add(true);
             ansBool.Add(false);
             ansBool.Add(false);
-            ansBool.AddRange(ByteArrayToBitArray.Convert((byte)0));
+            ansBool.AddRange(ByteListToBitList.Convert((byte)0));
             
             ansBool.Add(true);
             ansBool.Add(false);
             ansBool.Add(false);
-            ansBool.AddRange(ByteArrayToBitArray.Convert((byte)0));
+            ansBool.AddRange(ByteListToBitList.Convert((byte)0));
             
             ansBool.Add(true);
             ansBool.Add(false);
             ansBool.Add(false);
-            ansBool.AddRange(ByteArrayToBitArray.Convert((byte)5));
+            ansBool.AddRange(ByteListToBitList.Convert((byte)5));
             
             ansBool.Add(true);
             ansBool.Add(false);
             ansBool.Add(false);
-            ansBool.AddRange(ByteArrayToBitArray.Convert((byte)0));
+            ansBool.AddRange(ByteListToBitList.Convert((byte)0));
             
             ansBool.Add(false);
             
             ansBool.Add(true);
             ansBool.Add(false);
             ansBool.Add(false);
-            ansBool.AddRange(ByteArrayToBitArray.Convert((byte)6));
+            ansBool.AddRange(ByteListToBitList.Convert((byte)6));
             
             ansBool.Add(false);
             ansBool.Add(false);
             ansBool.Add(false);
             
-            ans.AddRange(BitArrayToByteArray.Convert(ansBool));
+            ans.AddRange(BitListToByteList.Convert(ansBool));
 
             var result = ChunkBlockToPayload.Convert(blocks, CoordinateCreator.New(0, 0));
 

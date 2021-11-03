@@ -164,19 +164,19 @@ namespace Test.CombinedTest.Server.PacketTest
             }
         }
 
-        byte[] PlayerCoordinatePayload(int playerId, float x, float y)
+        List<byte> PlayerCoordinatePayload(int playerId, float x, float y)
         {
             var p = new List<byte>();
-            p.AddRange(ByteArrayConverter.ToByteArray((short)2));
-            p.AddRange(ByteArrayConverter.ToByteArray(x));
-            p.AddRange(ByteArrayConverter.ToByteArray(y));
-            p.AddRange(ByteArrayConverter.ToByteArray(playerId));
-            return p.ToArray();
+            p.AddRange(ByteListConverter.ToByteArray((short)2));
+            p.AddRange(ByteListConverter.ToByteArray(x));
+            p.AddRange(ByteListConverter.ToByteArray(y));
+            p.AddRange(ByteListConverter.ToByteArray(playerId));
+            return p;
         }
 
         ChunkData PayloadToBlock(byte[] payload)
         {
-            var bit= new BitArrayEnumerator(payload);
+            var bit= new BitListEnumerator(payload.ToList());
             bit.MoveNextToShort();
             var x = bit.MoveNextToInt();
             var y = bit.MoveNextToInt();
