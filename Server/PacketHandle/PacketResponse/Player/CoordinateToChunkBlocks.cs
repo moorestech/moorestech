@@ -26,10 +26,5 @@ namespace Server.PacketHandle.PacketResponse.Player
 
             return blocks;
         }
-
-        public static int[,] Convert(int x, int y,WorldBlockDatastore worldBlockDatastore)
-        {
-            return Convert(CoordinateCreator.New(x, y),worldBlockDatastore);
-        }
     }
 }
