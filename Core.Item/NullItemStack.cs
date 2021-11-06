@@ -1,10 +1,8 @@
-﻿using Core.Block;
-
-namespace Core.Item
+﻿namespace Core.Item
 {
     public class NullItemStack : IItemStack
     {
-        public int Id => BlockConst.NullBlockId;
+        public int Id => ItemConst.NullItemId;
         public int Amount => 0;
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Core.Block.BlockConst\Core.Block.BlockConst.csproj" />
+      <ProjectReference Include="..\Core.ConfigPath\Core.ConfigPath.csproj" />
+      <ProjectReference Include="..\Core.Item\Core.Item.csproj" />
+    </ItemGroup>
+
+</Project>

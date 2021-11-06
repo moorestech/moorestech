@@ -1,5 +1,4 @@
 ﻿using System;
-using Core.Block;
 using Core.Config.Item;
 
 namespace Core.Item
@@ -76,7 +75,7 @@ namespace Core.Item
         {
             var tmpStack = ItemConfig.GetItemConfig(Id).Stack;
             
-            return (Id == item.Id || item.Id == BlockConst.NullBlockId)&&
+            return (Id == item.Id || item.Id == ItemConst.NullItemId)&&
                    item.Amount + Amount <=tmpStack;
         }
 
