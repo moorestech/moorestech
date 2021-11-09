@@ -4,6 +4,7 @@ namespace Server.Event
     {
         public void Init()
         {
+            //TODO イベント部分の初期化もDIにする
             ReceivePlaceBlockEvent.Init();
         }
         private static RegisterSendClientEvents _instance;
