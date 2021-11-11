@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Core.Block.Machine.util;
 using Core.Util;
 using Server.Util;
@@ -23,6 +24,7 @@ namespace Server.PacketHandle.PacketResponse
             payloadData.MoveNextToGetShort();
             int x = payloadData.MoveNextToGetInt();
             int y = payloadData.MoveNextToGetInt();
+            Console.WriteLine("Place Block blockID:" + blockId + " x:" + x + " y:" + y);
             
             var inputBlock = _worldBlockDatastore.GetBlockInventory(payloadData.MoveNextToGetInt());
 

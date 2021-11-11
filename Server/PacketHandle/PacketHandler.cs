@@ -22,6 +22,7 @@ namespace Server.PacketHandle
             //通信の受け入れ準備
             listener.Bind(localEndPoint);
             listener.Listen(10);
+            Console.WriteLine("受け入れ準備完了");
 
             while (true)
             {
@@ -32,6 +33,7 @@ namespace Server.PacketHandle
                 {
                     Socket client = handler;
                     byte[] bytes = new byte[4096];
+                    Console.WriteLine("接続確立");
                     while (true)
                     {
                         client.Receive(bytes);
