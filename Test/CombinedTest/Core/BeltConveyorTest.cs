@@ -21,7 +21,7 @@ namespace Test.CombinedTest.Core
                 int id = random.Next(0, 10);
                 var conf = BeltConveyorConfig.GetBeltConveyorData(0);
                 var item = ItemStackFactory.NewItemStack(id, conf.BeltConveyorItemNum + 1);
-                var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,new NullIBlockInventory());
+                var beltConveyor = BeltConveyorFactory.Create(1, Int32.MaxValue,new NullIBlockInventory());
 
                 var endTime = DateTime.Now.AddMilliseconds(conf.TimeOfItemEnterToExit);
                 while ( DateTime.Now < endTime.AddSeconds(0.2))
@@ -35,7 +35,7 @@ namespace Test.CombinedTest.Core
                 beltConveyor.ChangeConnector(dummy);
                 GameUpdate.Update();
                 
-                Assert.True(dummy.InsertedItems[0].Equals(ItemStackFactory.NewItemStack(id,1)));
+                Assert.AreEqual(ItemStackFactory.NewItemStack(id,1).ToString(),dummy.InsertedItems[0].ToString());
             }
         }
         
@@ -65,7 +65,7 @@ namespace Test.CombinedTest.Core
                 Assert.True(outputItem.Equals(ItemStackFactory.NewItemStack(id,amount-1)));
                 var tmp = ItemStackFactory.NewItemStack(id, 1);
                 Console.WriteLine($"{tmp} {dummy.InsertedItems[0]}");
-                Assert.True(dummy.InsertedItems[0].Equals(tmp));
+                Assert.AreEqual(tmp.ToString(),dummy.InsertedItems[0].ToString());
             }
         }
         //ベルトコンベアのインベントリをフルにするテスト

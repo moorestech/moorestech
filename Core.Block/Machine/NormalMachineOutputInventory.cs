@@ -16,7 +16,7 @@ namespace Core.Block.Machine
         {
             get
             {
-                var a = _outputSlot.Where(i => i.Id != BlockConst.NullBlockId).ToList();
+                var a = _outputSlot.Where(i => i.Id != ItemConst.NullItemId).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
                 return a.ToList();
             }

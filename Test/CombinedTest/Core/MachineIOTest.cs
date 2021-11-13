@@ -126,7 +126,7 @@ namespace Test.CombinedTest.Core
                     Assert.True(machineIoTest.output[j].Equals(machine.OutputSlot[j]));
                 }
                 
-                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Id != BlockConst.NullBlockId).ToList();
+                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Id != ItemConst.NullItemId).ToList();
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
                 for (int j = 0; j < machine.InputSlot.Count; j++)
                 {
@@ -158,7 +158,7 @@ namespace Test.CombinedTest.Core
                     Assert.True(machineIoTest.output[j].Equals(dummy.InsertedItems[j]));
                 }
                 
-                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Id != BlockConst.NullBlockId).ToList();
+                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Id != ItemConst.NullItemId).ToList();
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
                 for (int j = 0; j < inputRemainder.Count; j++)
                 {
@@ -227,7 +227,7 @@ namespace Test.CombinedTest.Core
                     Assert.True(machineIoTest.output[j].Equals(output[j]));
                 }
                 
-                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Id != BlockConst.NullBlockId).ToList();
+                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Id != ItemConst.NullItemId).ToList();
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
                 for (int j = 0; j < machine.InputSlot.Count; j++)
                 {

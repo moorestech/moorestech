@@ -1,40 +1,6 @@
 ﻿{
   "recipes" : [
     {
-      "BlockID": 0,
-      "time": 1000,
-      "input": [
-        {
-          "id": 0,
-          "amount" : 1
-        }
-      ],
-      "output": [
-        {
-          "id": 1,
-          "amount": 1,
-          "percent" : 1
-        }
-      ]
-    },
-    {
-      "BlockID": 0,
-      "time": 1500,
-      "input": [
-        {
-          "id": 2,
-          "amount" : 1
-        }
-      ],
-      "output": [
-        {
-          "id": 1,
-          "amount": 1,
-          "percent" : 1
-        }
-      ]
-    },    
-    {
       "BlockID": 1,
       "time": 1500,
       "input": [

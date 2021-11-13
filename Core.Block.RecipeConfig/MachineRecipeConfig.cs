@@ -40,7 +40,7 @@ namespace Core.Config.Recipe
                 });
             }
 
-            var tmpInputItem = inputItem.Where(i => i.Id != BlockConst.NullBlockId).ToList();
+            var tmpInputItem = inputItem.Where(i => i.Id != ItemConst.NullItemId).ToList();
             tmpInputItem.Sort((a, b) => a.Id - b.Id);
             var key = GetKey(BlockId, tmpInputItem);
             if (_recipeDataCash.ContainsKey(key))

@@ -102,7 +102,7 @@ namespace Test.CombinedTest.Core.Generate
                     r.Add(ItemStackFactory.NewItemStack(i.id,i.amount));
                 }
 
-                var a = r.Where(i => i.Id != BlockConst.NullBlockId).ToList();
+                var a = r.Where(i => i.Id != ItemConst.NullItemId).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
                 return a.ToList();
             }

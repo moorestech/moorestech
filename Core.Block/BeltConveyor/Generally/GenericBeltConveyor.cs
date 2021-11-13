@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Config.BeltConveyor;
+using Core.Config.Item;
 using Core.GameSystem;
 using Core.Item;
 
@@ -97,7 +98,7 @@ namespace Core.Block.BeltConveyor.Generally
             {
                 var output = _connector.InsertItem(ItemStackFactory.NewItemStack(_inventoryItems[last].ItemId, 1));
                 //渡した結果がnullItemだったらそのアイテムを消す
-                if (output.Id == BlockConst.NullBlockId)
+                if (output.Id == ItemConst.NullItemId)
                 {
                     _inventoryItems.RemoveAt(_inventoryItems.Count - 1);
                 }
