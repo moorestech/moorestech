@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Server.PacketHandle.PacketResponse.Player;
 using Server.Util;
@@ -28,6 +29,7 @@ namespace Server.PacketHandle.PacketResponse
             var x = b.MoveNextToGetFloat();
             var y = b.MoveNextToGetFloat();
             var playerId = b.MoveNextToGetInt();
+            Console.WriteLine("PlayerPosition X:" + x + " Y:" + y + " PlayerId:" + playerId);
             //新しいプレイヤーの情報ならDictionaryに追加する
             if (!_responses.ContainsKey(playerId))
             {
