@@ -29,7 +29,6 @@ namespace Server.PacketHandle.PacketResponse
             var x = b.MoveNextToGetFloat();
             var y = b.MoveNextToGetFloat();
             var playerId = b.MoveNextToGetInt();
-            Console.WriteLine("PlayerPosition PlayerId:" + playerId +" X:" + x + " Y:" + y);
             //新しいプレイヤーの情報ならDictionaryに追加する
             if (!_responses.ContainsKey(playerId))
             {
