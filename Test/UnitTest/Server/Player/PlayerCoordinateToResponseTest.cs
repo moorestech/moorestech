@@ -8,6 +8,7 @@ namespace Test.UnitTest.Server.Player
 {
     public class PlayerCoordinateToResponseTest
     {
+        //TODO プレイヤー座標がマイナス時のテストを行う
         [Test]
         public void OneCoordinateResponseTest()
         {
