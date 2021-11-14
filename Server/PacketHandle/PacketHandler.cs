@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Server.PacketHandle
 {
@@ -46,7 +48,8 @@ namespace Server.PacketHandle
                                 break;
                             }
                             //パケットを受信したら応答を返す
-                            packetResponseCreator.GetPacketResponse(bytes.ToList()).ForEach(t => client.Send(t));
+                            var result = packetResponseCreator.GetPacketResponse(bytes.ToList());
+                            SendPackets(client, result);
                         }
                     }
                     catch (Exception e)
@@ -55,6 +58,16 @@ namespace Server.PacketHandle
                         Console.WriteLine(e);
                     }
                 }).Start();
+            }
+        }
+
+        async void SendPackets(Socket client,List<byte[]> packets)
+        {
+            //一度にまとめて送るとクライアント側でさばき切れないので、0.1秒おきにパケットを送信する
+            foreach (var packet in packets)
+            {
+                client.Send(packet);
+                await Task.Delay(100);
             }
         }
     }
