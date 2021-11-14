@@ -6,7 +6,7 @@ namespace Server.Event
 {
     public static class ReceivePlaceBlockEvent
     {
-        private const short EventId = 1;
+        private const short EventId = 0;
         internal static void Init()
         {
             BlockPlaceEvent.Subscribe(ReceivedEvent);

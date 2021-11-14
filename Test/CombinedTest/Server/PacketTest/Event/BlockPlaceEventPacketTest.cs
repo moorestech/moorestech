@@ -73,7 +73,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var b = new ByteArrayEnumerator(payload.ToList());
             b.MoveNextToGetShort();
             var eventId = b.MoveNextToGetShort();
-            Assert.AreEqual(1,eventId);
+            Assert.AreEqual(0,eventId);
             var x = b.MoveNextToGetInt();
             var y = b.MoveNextToGetInt();
             var id = b.MoveNextToGetInt();
