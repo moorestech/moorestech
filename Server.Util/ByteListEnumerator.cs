@@ -26,7 +26,10 @@ namespace Server.Util
                 b.Add(_payload[index++]);
             }
             if (BitConverter.IsLittleEndian) b.Reverse();
-            return BitConverter.ToInt32(b.ToArray(),0);
+            
+            var data = BitConverter.ToInt32(b.ToArray(), 0);
+            b.Clear();
+            return data;
         }
 
         public short MoveNextToGetShort()
@@ -37,7 +40,10 @@ namespace Server.Util
                 b.Add(_payload[index++]);
             }
             if (BitConverter.IsLittleEndian) b.Reverse();
-            return BitConverter.ToInt16(b.ToArray(),0);
+            
+            var data = BitConverter.ToInt16(b.ToArray(), 0);
+            b.Clear();
+            return data;
         }
         public float MoveNextToGetFloat()
         {
@@ -47,7 +53,10 @@ namespace Server.Util
                 b.Add(_payload[index++]);
             }
             if (BitConverter.IsLittleEndian) b.Reverse();
-            return BitConverter.ToSingle(b.ToArray(),0);
+            
+            var data = BitConverter.ToSingle(b.ToArray(), 0);
+            b.Clear();
+            return data;
         }
         /// <summary>
         /// バイト数を指定してそのバイト数の文字列を取得します
