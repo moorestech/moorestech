@@ -35,16 +35,24 @@ namespace Server.PacketHandle
                     byte[] bytes = new byte[4096];
                     Console.WriteLine("接続確立");
                     //切断されるまでパケットを受信
-                    while (true)
+                    try
                     {
-                        int length = client.Receive(bytes);
-                        if (length == 0)
+                        while (true)
                         {
-                            Console.WriteLine("切断されました");
-                            break;
+                            int length = client.Receive(bytes);
+                            if (length == 0)
+                            {
+                                Console.WriteLine("切断されました");
+                                break;
+                            }
+                            //パケットを受信したら応答を返す
+                            packetResponseCreator.GetPacketResponse(bytes.ToList()).ForEach(t => client.Send(t));
                         }
-                        //パケットを受信したら応答を返す
-                        packetResponseCreator.GetPacketResponse(bytes.ToList()).ForEach(t => client.Send(t));
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("エラーによる切断");
+                        Console.WriteLine(e);
                     }
                 }).Start();
             }
