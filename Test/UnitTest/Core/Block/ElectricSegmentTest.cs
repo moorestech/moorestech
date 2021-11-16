@@ -7,7 +7,6 @@ namespace Test.UnitTest.Core.Block
 {
     public class ElectricSegmentTest
     {
-        //TODO ここをもっと書く
         [Test]
         public void ElectricEnergyTest()
         {
