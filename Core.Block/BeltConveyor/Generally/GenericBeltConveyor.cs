@@ -109,12 +109,12 @@ namespace Core.Block.BeltConveyor.Generally
         private int _intId;
         public int GetIntId()
         {
-            throw new NotImplementedException();
+            return _intId;
         }
 
         public int GetBlockId()
         {
-            throw new NotImplementedException();
+            return _blockId;
         }
     }
 }
