@@ -4,15 +4,16 @@ using World.Event;
 
 namespace Server.Event
 {
-    public static class ReceivePlaceBlockEvent
+    public class ReceivePlaceBlockEvent
     {
         private const short EventId = 0;
-        internal static void Init()
+
+        public ReceivePlaceBlockEvent()
         {
             BlockPlaceEvent.Subscribe(ReceivedEvent);
         }
 
-        private static void ReceivedEvent(BlockPlaceEventProperties blockPlaceEventProperties)
+        private void ReceivedEvent(BlockPlaceEventProperties blockPlaceEventProperties)
         {
             var c = blockPlaceEventProperties.Coordinate;
             var id = blockPlaceEventProperties.Block.GetBlockId();

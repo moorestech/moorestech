@@ -15,7 +15,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Test]
         public void DontBlockPlaceTest()
         {
-            RegisterSendClientEvents.Instance.Init();
+            new RegisterSendClientEvents();
             var packetResponse = new PacketResponseCreator(new WorldBlockDatastore());
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(response.Count,0);
@@ -25,7 +25,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Test]
         public void BlockPlaceEvent()
         {
-            RegisterSendClientEvents.Instance.Init();
+            new RegisterSendClientEvents();
             var packetResponse = new PacketResponseCreator(new WorldBlockDatastore());
             //イベントキューにIDを登録する
             //詳細はコメントに記述

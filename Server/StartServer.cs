@@ -8,13 +8,8 @@ namespace Server
     {
         public static void Main(string[] args)
         {
-            Init();
+            new RegisterSendClientEvents();
             new PacketHandler().StartServer(new PacketResponseCreator(new WorldBlockDatastore()));
-        }
-
-        static void Init()
-        {
-            RegisterSendClientEvents.Instance.Init();
         }
     }
 }
