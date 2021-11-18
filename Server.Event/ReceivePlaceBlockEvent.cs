@@ -8,9 +8,9 @@ namespace Server.Event
     {
         private const short EventId = 0;
 
-        public ReceivePlaceBlockEvent()
+        public ReceivePlaceBlockEvent(BlockPlaceEvent blockPlaceEvent)
         {
-            BlockPlaceEvent.Subscribe(ReceivedEvent);
+            blockPlaceEvent.Subscribe(ReceivedEvent);
         }
 
         private void ReceivedEvent(BlockPlaceEventProperties blockPlaceEventProperties)

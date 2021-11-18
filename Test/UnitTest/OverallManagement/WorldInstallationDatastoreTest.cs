@@ -4,6 +4,7 @@ using Core.Block.Machine.util;
 using Core.Util;
 using NUnit.Framework;
 using World;
+using World.Event;
 
 namespace Test.UnitTest.OverallManagement
 {
@@ -12,7 +13,7 @@ namespace Test.UnitTest.OverallManagement
         [Test]
         public void DataInsertAndOutputTest()
         {
-            var worldData = new WorldBlockDatastore();
+            var worldData = new WorldBlockDatastore(new BlockPlaceEvent());
             
             var intId = IntId.NewIntId();
             var i =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory());
@@ -25,7 +26,7 @@ namespace Test.UnitTest.OverallManagement
         [Test]
         public void RegisteredDataCoordinateFromFetchTest()
         {
-            var worldData = new WorldBlockDatastore();
+            var worldData = new WorldBlockDatastore(new BlockPlaceEvent());
             
             var random = new Random(131513);
             for (int i = 0; i < 10; i++)
@@ -46,7 +47,7 @@ namespace Test.UnitTest.OverallManagement
         [Test]
         public void AlreadyRegisteredIntIdSecondTimeFailTest()
         {
-            var worldData = new WorldBlockDatastore();
+            var worldData = new WorldBlockDatastore(new BlockPlaceEvent());
             
             var intId = IntId.NewIntId();
             var i =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory());
@@ -60,7 +61,7 @@ namespace Test.UnitTest.OverallManagement
         [Test]
         public void AlreadyCoordinateSecondTimeFailTest()
         {
-            var worldData = new WorldBlockDatastore();
+            var worldData = new WorldBlockDatastore(new BlockPlaceEvent());
 
             var i =  NormalMachineFactory.Create(1, IntId.NewIntId(), new NullIBlockInventory());
             worldData.AddBlock(i,1,1,i);

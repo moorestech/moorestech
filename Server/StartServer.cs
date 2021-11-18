@@ -1,6 +1,7 @@
 ﻿using Server.Event;
 using Server.PacketHandle;
 using World;
+using World.Event;
 
 namespace Server
 {
@@ -8,8 +9,9 @@ namespace Server
     {
         public static void Main(string[] args)
         {
-            new RegisterSendClientEvents();
-            new PacketHandler().StartServer(new PacketResponseCreator(new WorldBlockDatastore()));
+            var blockPlace = new BlockPlaceEvent();
+            new RegisterSendClientEvents(blockPlace);
+            new PacketHandler().StartServer(new PacketResponseCreator(new WorldBlockDatastore(blockPlace)));
         }
     }
 }

@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Server.PacketHandle;
 using Server.Util;
 using World;
+using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -11,7 +12,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void SimpleBlockPlaceTest()
         {
-            var worldBlock = new WorldBlockDatastore();
+            var worldBlock = new WorldBlockDatastore(new BlockPlaceEvent());
             var packetResponse = new PacketResponseCreator(worldBlock);
             
             packetResponse.GetPacketResponse(BlockPlace(1, 0, 0));

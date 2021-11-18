@@ -1,10 +1,12 @@
+using World.Event;
+
 namespace Server.Event
 {
     public class RegisterSendClientEvents
     {
-        public RegisterSendClientEvents()
+        public RegisterSendClientEvents(BlockPlaceEvent blockPlaceEvent)
         {
-            new ReceivePlaceBlockEvent();
+            new ReceivePlaceBlockEvent(blockPlaceEvent);
         }
     }
 }

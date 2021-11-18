@@ -14,10 +14,16 @@ namespace World
         private Dictionary<Coordinate,int> _coordinateDictionary = new();
 
         
-        
+        //TODO nullブロック系を定数にする
         readonly Coordinate _nullCoordinate = CoordinateCreator.New(BlockConst.NullBlockIntId,BlockConst.NullBlockIntId);
         readonly IBlock _nullBlock = new NullBlock(BlockConst.NullBlockId,Int32.MaxValue);
-        
+        private readonly BlockPlaceEvent _blockPlaceEvent;
+
+        public WorldBlockDatastore(BlockPlaceEvent blockPlaceEvent)
+        {
+            _blockPlaceEvent = blockPlaceEvent;
+        }
+
         public bool AddBlock(IBlock Block,int x,int y,IBlockInventory blockInventory)
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
@@ -27,7 +33,7 @@ namespace World
                 var data = new BlockWorldData(Block, x, y,blockInventory);
                 _blockMasterDictionary.Add(Block.GetIntId(),data);
                 _coordinateDictionary.Add(c,Block.GetIntId());
-                BlockPlaceEvent.OnBlockPutEventInvoke(new BlockPlaceEventProperties(c,data.Block));
+                _blockPlaceEvent.OnBlockPutEventInvoke(new BlockPlaceEventProperties(c,data.Block));
                 
                 return true;
             }

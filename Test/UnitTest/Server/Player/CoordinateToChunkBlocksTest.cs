@@ -7,6 +7,7 @@ using Server.Const;
 using Server.PacketHandle;
 using Server.PacketHandle.PacketResponse.Player;
 using World;
+using World.Event;
 using World.Util;
 
 namespace Test.UnitTest.Server.Player
@@ -16,7 +17,7 @@ namespace Test.UnitTest.Server.Player
         [Test]
         public void NothingBlockTest()
         {
-            var worldData = new WorldBlockDatastore();
+            var worldData = new WorldBlockDatastore(new BlockPlaceEvent());
             var b = CoordinateToChunkBlocks.Convert(CoordinateCreator.New(0,0),worldData);
 
             Assert.AreEqual(b.GetLength(0),ChunkResponseConst.ChunkSize);
@@ -34,7 +35,7 @@ namespace Test.UnitTest.Server.Player
         [Test]
         public void SameBlockResponseTest()
         {
-            var worldData = new WorldBlockDatastore();
+            var worldData = new WorldBlockDatastore(new BlockPlaceEvent());
             var random = new Random(3944156);
             //ブロックの設置
             for (int i = 0; i < 10000; i++)

@@ -6,6 +6,7 @@ using Server.Event;
 using Server.PacketHandle;
 using Server.Util;
 using World;
+using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
@@ -15,8 +16,9 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Test]
         public void DontBlockPlaceTest()
         {
-            new RegisterSendClientEvents();
-            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore());
+            var blockPlace = new BlockPlaceEvent();
+            new RegisterSendClientEvents(blockPlace);
+            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore(blockPlace));
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(response.Count,0);
         }
@@ -25,8 +27,9 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Test]
         public void BlockPlaceEvent()
         {
-            new RegisterSendClientEvents();
-            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore());
+            var blockPlace = new BlockPlaceEvent();
+            new RegisterSendClientEvents(blockPlace);
+            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore(blockPlace));
             //イベントキューにIDを登録する
             //詳細はコメントに記述
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
