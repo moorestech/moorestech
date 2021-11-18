@@ -8,7 +8,6 @@ namespace Test.UnitTest.Server.Player
 {
     public class PlayerCoordinateToResponseTest
     {
-        //TODO プレイヤー座標がマイナス時のテストを行う
         [Test]
         public void OneCoordinateResponseTest()
         {
@@ -82,6 +81,35 @@ namespace Test.UnitTest.Server.Player
             ans.Add(CoordinateCreator.New(0, 60));
             ans.Add(CoordinateCreator.New(20, 60));
             ans.Add(CoordinateCreator.New(40, 60));
+            
+            foreach (var a in ans)
+            {
+                Assert.True(cList.Contains(a));
+            }
+        }
+        
+        
+        [TestCase(0,25,60)]
+        [TestCase(25,45,80)]
+        [TestCase(1000,1020,1060)]
+        [TestCase(0,-25,-60)]
+        [TestCase(-25,-45,-80)]
+        [TestCase(-1000,-1020,-1060)]
+        public void ShiftOneChunkXToCoordinateResponseTest(int startX,int endX,int getChunkX)
+        {
+            
+            var p = new PlayerCoordinateToResponse();
+            //1回目は全てを返す
+            var cList = p.GetResponseCoordinate(CoordinateCreator.New(startX, 0));
+            Assert.AreEqual(cList.Count,ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk);
+            
+            //2回目1チャンクx分を増加させる
+            cList = p.GetResponseCoordinate(CoordinateCreator.New(endX, 0));
+            var ans = new List<Coordinate>();
+            for (int i = -2; i < 3; i++)
+            {
+                ans.Add(CoordinateCreator.New( getChunkX,i * ChunkResponseConst.ChunkSize));
+            }
             
             foreach (var a in ans)
             {
