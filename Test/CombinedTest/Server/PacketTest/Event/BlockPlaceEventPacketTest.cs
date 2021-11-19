@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Server.Event;
+using Server.Event.EventReceive.EventRegister;
 using Server.PacketHandle;
 using Server.Util;
 using World;
