@@ -1,4 +1,4 @@
-﻿namespace Core.Config.BeltConveyor
+﻿namespace Core.Block.Config
 {
     public static class BeltConveyorConfig
     {

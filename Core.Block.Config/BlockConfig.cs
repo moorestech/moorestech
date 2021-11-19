@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 
-namespace Core.Config.Installation
+namespace Core.Block.Config
 {
     public static class BlockConfig
     {
@@ -23,7 +23,7 @@ namespace Core.Config.Installation
 
         private static BlockData[] LoadJsonFile()
         {
-            var json = File.ReadAllText(ConfigPath.BlockConfigPath);
+            var json = File.ReadAllText(ConfigPath.ConfigPath.BlockConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
             var serializer = new DataContractJsonSerializer(typeof(BlockJson));

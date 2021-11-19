@@ -1,4 +1,4 @@
-﻿using Core.Config.Installation;
+﻿using Core.Block.Config;
 using NUnit.Framework;
 
 namespace Test.CombinedTest.Core

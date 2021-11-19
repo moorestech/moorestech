@@ -2,7 +2,7 @@
 using System.Linq;
 using Core.Item;
 
-namespace Core.Config.Recipe.Data
+namespace Core.Block.RecipeConfig.Data
 {
     public class MachineRecipeData : IMachineRecipeData
     {

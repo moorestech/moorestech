@@ -1,4 +1,4 @@
-﻿using Core.Config.Recipe.Data;
+﻿using Core.Block.RecipeConfig.Data;
 using NUnit.Framework;
 
 namespace Test.UnitTest.Core.Other

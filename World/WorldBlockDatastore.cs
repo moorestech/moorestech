@@ -15,8 +15,8 @@ namespace World
 
         
         //TODO nullブロック系を定数にする
-        readonly Coordinate _nullCoordinate = CoordinateCreator.New(BlockConst.NullBlockIntId,BlockConst.NullBlockIntId);
-        readonly IBlock _nullBlock = new NullBlock(BlockConst.NullBlockId,Int32.MaxValue);
+        readonly Coordinate _nullCoordinate = CoordinateCreator.New(BlockConst.BlockConst.NullBlockIntId,BlockConst.BlockConst.NullBlockIntId);
+        readonly IBlock _nullBlock = new NullBlock(BlockConst.BlockConst.NullBlockId,Int32.MaxValue);
         private readonly BlockPlaceEvent _blockPlaceEvent;
 
         public WorldBlockDatastore(BlockPlaceEvent blockPlaceEvent)

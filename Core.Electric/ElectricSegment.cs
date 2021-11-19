@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Core.GameSystem;
+using Core.Update;
 
 namespace Core.Electric
 {

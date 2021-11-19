@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Core.Block;
-using Core.Config.Recipe.Data;
+using Core.Block.RecipeConfig.Data;
 using Core.Item;
 
-namespace Core.Config.Recipe
+namespace Core.Block.RecipeConfig
 {
     public static class MachineRecipeConfig
     {

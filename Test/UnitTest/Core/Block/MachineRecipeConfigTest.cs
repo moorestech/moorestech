@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Core.Config.Recipe;
+using Core.Block.RecipeConfig;
 using Core.Item;
 using NUnit.Framework;
 

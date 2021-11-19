@@ -1,5 +1,5 @@
 ﻿using Core.Electric;
-using Core.GameSystem;
+using Core.Update;
 using NUnit.Framework;
 using Test.Util;
 

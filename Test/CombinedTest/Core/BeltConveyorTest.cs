@@ -1,9 +1,9 @@
 ﻿using System;
 using Core.Block;
 using Core.Block.BeltConveyor.util;
-using Core.Config.BeltConveyor;
-using Core.GameSystem;
+using Core.Block.Config;
 using Core.Item;
+using Core.Update;
 using NUnit.Framework;
 using Test.Util;
 

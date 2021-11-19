@@ -1,4 +1,4 @@
-﻿namespace Core.GameSystem
+﻿namespace Core.Update
 {
     public interface IUpdate
     {

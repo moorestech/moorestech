@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Core.Config.Installation;
-using Core.Config.Recipe;
-using Core.Config.Recipe.Data;
+using Core.Block.Config;
+using Core.Block.RecipeConfig;
+using Core.Block.RecipeConfig.Data;
 using Core.Item;
 using Core.Util;
 

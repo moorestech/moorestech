@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Core.Item;
 
-namespace Core.Config.Recipe.Data
+namespace Core.Block.RecipeConfig.Data
 {
     public interface IMachineRecipeData
     {

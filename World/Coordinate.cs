@@ -1,4 +1,4 @@
-﻿namespace World.Util
+﻿namespace World
 {
     public struct Coordinate
     {

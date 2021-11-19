@@ -10,7 +10,7 @@ namespace Test.UnitTest.Core.Block
         {
             var block = new NullBlock(0,100);
             Assert.AreEqual(int.MaxValue,block.GetIntId());
-            Assert.AreEqual(BlockConst.NullBlockId,block.GetBlockId());
+            Assert.AreEqual(BlockConst.BlockConst.NullBlockId,block.GetBlockId());
         }
         
     }

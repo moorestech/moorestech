@@ -1,4 +1,4 @@
-﻿namespace Core.Block
+﻿namespace BlockConst
 {
     public static class BlockConst
     {

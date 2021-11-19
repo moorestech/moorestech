@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace Core.Config.Installation
+namespace Core.Block.Config
 {
     [DataContract] 
     class BlockJson

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Core.GameSystem
+namespace Core.Update
 {
     public static class GameUpdate
     {

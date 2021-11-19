@@ -3,17 +3,18 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using Core.Config.Recipe.Data;
+using Core.Block.RecipeConfig.Data;
+using Core.Config;
 using Core.Item;
 
-namespace Core.Config.Recipe
+namespace Core.Block.RecipeConfig
 {
     public static class MachineRecipeJsonLoad
     {
         public static IMachineRecipeData[] LoadConfig()
         {
             //JSONデータの読み込み
-            var json = File.ReadAllText(ConfigPath.RecipeConfigPath);
+            var json = File.ReadAllText(ConfigPath.ConfigPath.RecipeConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
             var serializer = new DataContractJsonSerializer(typeof(PurseJsonMachineRecipes));

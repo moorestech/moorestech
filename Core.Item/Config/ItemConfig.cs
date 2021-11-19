@@ -25,7 +25,7 @@ namespace Core.Config.Item
 
         private static ItemConfigData[] LoadJsonFile()
         {
-            var json = File.ReadAllText(ConfigPath.ItemConfigPath);
+            var json = File.ReadAllText(ConfigPath.ConfigPath.ItemConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
             var serializer = new DataContractJsonSerializer(typeof(ItemJson));
