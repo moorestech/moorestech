@@ -18,7 +18,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         {
             var blockPlace = new BlockPlaceEvent();
             
-            var eventProtocol = new EventProtocolQueProvider();
+            var eventProtocol = new EventProtocolProvider();
             new RegisterSendClientEvents(blockPlace,eventProtocol);
             var packetResponse = new PacketResponseCreator(new WorldBlockDatastore(blockPlace),eventProtocol);
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
@@ -30,7 +30,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         public void BlockPlaceEvent()
         {
             var blockPlace = new BlockPlaceEvent();
-            var eventProtocol = new EventProtocolQueProvider();
+            var eventProtocol = new EventProtocolProvider();
             new RegisterSendClientEvents(blockPlace,eventProtocol);
             var packetResponse = new PacketResponseCreator(new WorldBlockDatastore(blockPlace),eventProtocol);
             //イベントキューにIDを登録する

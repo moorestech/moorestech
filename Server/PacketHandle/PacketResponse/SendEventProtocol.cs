@@ -6,10 +6,10 @@ namespace Server.PacketHandle.PacketResponse
 {
     public class SendEventProtocol : IPacketResponse
     {
-        private readonly EventProtocolQueProvider _eventProtocolQueProvider;
-        public SendEventProtocol(EventProtocolQueProvider eventProtocolQueProvider)
+        private readonly EventProtocolProvider _eventProtocolProvider;
+        public SendEventProtocol(EventProtocolProvider eventProtocolProvider)
         {
-            _eventProtocolQueProvider = eventProtocolQueProvider;
+            _eventProtocolProvider = eventProtocolProvider;
         }
 
         public List<byte[]> GetResponse(List<byte> payload)
@@ -18,7 +18,7 @@ namespace Server.PacketHandle.PacketResponse
             var b = new ByteArrayEnumerator(payload);
             b.MoveNextToGetShort();
             var userId = b.MoveNextToGetInt();
-            return _eventProtocolQueProvider.GetEventBytesList(userId);
+            return _eventProtocolProvider.GetEventBytesList(userId);
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(1)]
         public void SimpleChunkResponseTest()
         {
-            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore(new BlockPlaceEvent()),new EventProtocolQueProvider());
+            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore(new BlockPlaceEvent()),new EventProtocolProvider());
             //1回のレスポンスのテスト
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).ToList();
@@ -77,7 +77,7 @@ namespace Test.CombinedTest.Server.PacketTest
         public void PlaceBlockToChunkResponseTest()
         {
             var worldBlock = new WorldBlockDatastore(new BlockPlaceEvent());
-            var packetResponse = new PacketResponseCreator(worldBlock,new EventProtocolQueProvider());
+            var packetResponse = new PacketResponseCreator(worldBlock,new EventProtocolProvider());
             var random = new Random(13944156);
             //ブロックの設置
             var b = NormalMachineFactory.Create(5, IntId.NewIntId(), new NullIBlockInventory());
@@ -118,7 +118,7 @@ namespace Test.CombinedTest.Server.PacketTest
         public void RandomPlaceBlockToChunkResponseTest()
         {
             var worldBlock = new WorldBlockDatastore(new BlockPlaceEvent());
-            var packetResponse = new PacketResponseCreator(worldBlock,new EventProtocolQueProvider());
+            var packetResponse = new PacketResponseCreator(worldBlock,new EventProtocolProvider());
             
             var random = new Random(13944156);
             //ブロックの設置

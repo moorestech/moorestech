@@ -9,7 +9,7 @@ namespace Server.Event
     /// しかし、イベント要求パケットは常に送られてくるため、登録プロトコルを作る必要はなく、最初にイベント要求パケットが送られた時点で登録すれば良いです
     /// そのため、イベントプロトコルのテストは初回にID登録作業が必要となります。
     /// </summary>
-    public class EventProtocolQueProvider
+    public class EventProtocolProvider
     {
         public const short EventPacketId = 3;
         private Dictionary<int, List<byte[]>> _events = new Dictionary<int, List<byte[]>>();

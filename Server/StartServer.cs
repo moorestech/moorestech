@@ -10,7 +10,7 @@ namespace Server
         public static void Main(string[] args)
         {
             var blockPlace = new BlockPlaceEvent();
-            var eventProtocol = new EventProtocolQueProvider();
+            var eventProtocol = new EventProtocolProvider();
             new RegisterSendClientEvents(blockPlace,eventProtocol);
             new PacketHandler().StartServer(new PacketResponseCreator(new WorldBlockDatastore(blockPlace),eventProtocol));
         }

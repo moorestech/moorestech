@@ -11,14 +11,14 @@ namespace Server.PacketHandle
         private List<IPacketResponse> _packetResponseList;
 
 
-        public PacketResponseCreator(WorldBlockDatastore worldBlockDatastore,EventProtocolQueProvider eventProtocolQueProvider)
+        public PacketResponseCreator(WorldBlockDatastore worldBlockDatastore,EventProtocolProvider eventProtocolProvider)
         {
             _packetResponseList = new List<IPacketResponse>();
             _packetResponseList.Add(new DummyProtocol());
             _packetResponseList.Add(new PutBlockProtocol(worldBlockDatastore));
             _packetResponseList.Add(new PlayerCoordinateSendProtocol(worldBlockDatastore));
             _packetResponseList.Add(new InventoryContentResponseProtocol());
-            _packetResponseList.Add(new SendEventProtocol(eventProtocolQueProvider));
+            _packetResponseList.Add(new SendEventProtocol(eventProtocolProvider));
         }
 
         public List<byte[]> GetPacketResponse(List<byte> payload)

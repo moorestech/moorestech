@@ -7,12 +7,12 @@ namespace Server.Event
     public class ReceivePlaceBlockEvent
     {
         private const short EventId = 0;
-        readonly private EventProtocolQueProvider _eventProtocolQueProvider;
+        readonly private EventProtocolProvider _eventProtocolProvider;
 
-        public ReceivePlaceBlockEvent(BlockPlaceEvent blockPlaceEvent,EventProtocolQueProvider eventProtocolQueProvider)
+        public ReceivePlaceBlockEvent(BlockPlaceEvent blockPlaceEvent,EventProtocolProvider eventProtocolProvider)
         {
             blockPlaceEvent.Subscribe(ReceivedEvent);
-            _eventProtocolQueProvider = eventProtocolQueProvider;
+            _eventProtocolProvider = eventProtocolProvider;
         }
 
         private void ReceivedEvent(BlockPlaceEventProperties blockPlaceEventProperties)
@@ -21,12 +21,12 @@ namespace Server.Event
             var id = blockPlaceEventProperties.Block.GetBlockId();
             var payload = new List<byte>();
             
-            payload.AddRange(ByteListConverter.ToByteArray(EventProtocolQueProvider.EventPacketId));
+            payload.AddRange(ByteListConverter.ToByteArray(EventProtocolProvider.EventPacketId));
             payload.AddRange(ByteListConverter.ToByteArray(EventId));
             payload.AddRange(ByteListConverter.ToByteArray(c.x));
             payload.AddRange(ByteListConverter.ToByteArray(c.y));
             payload.AddRange(ByteListConverter.ToByteArray(id));
-            _eventProtocolQueProvider.AddBroadcastEvent(payload.ToArray());
+            _eventProtocolProvider.AddBroadcastEvent(payload.ToArray());
 
         }
         

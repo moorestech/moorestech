@@ -4,9 +4,9 @@ namespace Server.Event
 {
     public class RegisterSendClientEvents
     {
-        public RegisterSendClientEvents(BlockPlaceEvent blockPlaceEvent,EventProtocolQueProvider eventProtocolQueProvider)
+        public RegisterSendClientEvents(BlockPlaceEvent blockPlaceEvent,EventProtocolProvider eventProtocolProvider)
         {
-            new ReceivePlaceBlockEvent(blockPlaceEvent,eventProtocolQueProvider);
+            new ReceivePlaceBlockEvent(blockPlaceEvent,eventProtocolProvider);
         }
     }
 }
