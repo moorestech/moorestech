@@ -34,6 +34,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Block", "Block", "{C0EAA04D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{902BF189-8C08-459A-88AF-98CEC5BE8417}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlayerInventory", "PlayerInventory\PlayerInventory.csproj", "{79CDD544-4E7E-4C86-A0BE-3D88C6254714}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,6 +98,10 @@ Global
 		{9C2A2B7F-EDEF-4497-8576-0C9157D40CF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C2A2B7F-EDEF-4497-8576-0C9157D40CF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C2A2B7F-EDEF-4497-8576-0C9157D40CF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79CDD544-4E7E-4C86-A0BE-3D88C6254714}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79CDD544-4E7E-4C86-A0BE-3D88C6254714}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79CDD544-4E7E-4C86-A0BE-3D88C6254714}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79CDD544-4E7E-4C86-A0BE-3D88C6254714}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C31B62F2-71AB-4F7F-9C42-8D20D873F75E} = {6D142E32-204D-41A7-B121-423F9A073676}
