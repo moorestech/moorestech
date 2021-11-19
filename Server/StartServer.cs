@@ -10,8 +10,9 @@ namespace Server
         public static void Main(string[] args)
         {
             var blockPlace = new BlockPlaceEvent();
-            new RegisterSendClientEvents(blockPlace);
-            new PacketHandler().StartServer(new PacketResponseCreator(new WorldBlockDatastore(blockPlace)));
+            var eventProtocol = new EventProtocolQueProvider();
+            new RegisterSendClientEvents(blockPlace,eventProtocol);
+            new PacketHandler().StartServer(new PacketResponseCreator(new WorldBlockDatastore(blockPlace),eventProtocol));
         }
     }
 }
