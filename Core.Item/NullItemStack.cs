@@ -2,6 +2,10 @@
 {
     public class NullItemStack : IItemStack
     {
+        public NullItemStack()
+        {
+        }
+
         public int Id => ItemConst.NullItemId;
         public int Amount => 0;
 
