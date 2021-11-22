@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Item;
 
@@ -21,5 +22,21 @@ namespace PlayerInventory
                 MainInventory.Add(new NullItemStack());
             }
         }
+        
+        public IItemStack SetItem(int index, IItemStack itemStack)
+        {
+            return new NullItemStack();
+        }
+
+        public bool UseHotbarItem(int index)
+        {
+            return false;
+        }
+        
+        public IItemStack GetItem(int index)
+        {
+            return new NullItemStack();
+        }
+        
     }
 }
