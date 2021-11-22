@@ -4,7 +4,7 @@ using Core.Item;
 
 namespace PlayerInventory
 {
-    public class PlayerInventory
+    public class PlayerInventoryData
     {
         //TODO インベントリに必要な機能
         //TODO インベントリからアイテムを取る
@@ -13,7 +13,7 @@ namespace PlayerInventory
         public readonly int PlayerId;
         private readonly List<IItemStack> MainInventory;    
 
-        public PlayerInventory(int playerId)
+        public PlayerInventoryData(int playerId)
         {
             PlayerId = playerId;
             MainInventory = new List<IItemStack>();
@@ -27,6 +27,12 @@ namespace PlayerInventory
         {
             return new NullItemStack();
         }
+        
+        public IItemStack DropItem(int index, int count)
+        {
+            return new NullItemStack();
+        }
+        
 
         public IItemStack UseHotbarItem(int index)
         {
