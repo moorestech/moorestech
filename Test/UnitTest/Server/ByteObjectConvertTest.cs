@@ -91,5 +91,7 @@ namespace Test.UnitTest.Server
             Assert.AreEqual(expect[2],actual[2]);
             Assert.AreEqual(expect[3],actual[3]);
         }
+        
+        //TODO バイト配列とstringの変換テスト
     }
 }
