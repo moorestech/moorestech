@@ -9,7 +9,7 @@
       <ProjectReference Include="..\Core\Core.csproj" />
       <ProjectReference Include="..\Server.Event\Server.Event.csproj" />
       <ProjectReference Include="..\Server.Util\Server.Util.csproj" />
-      <ProjectReference Include="..\World\World.csproj" />
+      <ProjectReference Include="..\Game.World\Game.World.csproj" />
     </ItemGroup>
 
 </Project>
