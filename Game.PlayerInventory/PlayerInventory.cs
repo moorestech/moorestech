@@ -23,14 +23,14 @@ namespace PlayerInventory
             }
         }
         
-        public IItemStack SetItem(int index, IItemStack itemStack)
+        public IItemStack InsertItem(int index, IItemStack itemStack)
         {
             return new NullItemStack();
         }
 
-        public bool UseHotbarItem(int index)
+        public IItemStack UseHotbarItem(int index)
         {
-            return false;
+            return new NullItemStack();
         }
         
         public IItemStack GetItem(int index)
