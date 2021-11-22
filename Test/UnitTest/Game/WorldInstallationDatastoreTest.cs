@@ -6,7 +6,7 @@ using NUnit.Framework;
 using World;
 using World.Event;
 
-namespace Test.UnitTest.OverallManagement
+namespace Test.UnitTest.Game
 {
     public class WorldBlockDatastoreTest
     {
