@@ -25,7 +25,23 @@ namespace PlayerInventory
         
         public IItemStack InsertItem(int index, IItemStack itemStack)
         {
-            return new NullItemStack();
+            if (index < 0 || index >= MainInventory.Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
+
+            if (itemStack.Id == MainInventory[index].Id)
+            {
+                var result = MainInventory[index].AddItem(itemStack);
+                MainInventory[index] = result.MineItemStack;
+                return result.ReceiveItemStack;
+            }
+            else
+            {
+                var oldItemStack = MainInventory[index];
+                MainInventory[index] = itemStack;
+                return oldItemStack;
+            }
         }
         
         public IItemStack DropItem(int index, int count)
