@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Core.Item;
+using Core.Item.Implementation;
 
 namespace Core.Block.RecipeConfig.Data
 {

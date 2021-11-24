@@ -1,9 +1,8 @@
 ﻿using System;
 using Core.Config.Item;
-using Core.Item.Implementation;
 using Core.Item.Util;
 
-namespace Core.Item
+namespace Core.Item.Implementation
 {
     public class ItemStack : IItemStack
     {

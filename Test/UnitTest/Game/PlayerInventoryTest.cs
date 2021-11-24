@@ -1,6 +1,7 @@
 
 using Core.Config.Item;
 using Core.Item;
+using Core.Item.Implementation;
 using NUnit.Framework;
 using PlayerInventory;
 

@@ -6,6 +6,7 @@ using System.Text;
 using Core.Block.RecipeConfig.Data;
 using Core.Config;
 using Core.Item;
+using Core.Item.Implementation;
 
 namespace Core.Block.RecipeConfig
 {

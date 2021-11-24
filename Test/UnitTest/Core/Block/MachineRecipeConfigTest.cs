@@ -2,6 +2,7 @@
 using System.Linq;
 using Core.Block.RecipeConfig;
 using Core.Item;
+using Core.Item.Implementation;
 using NUnit.Framework;
 
 namespace Test.UnitTest.Core.Block
