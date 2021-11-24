@@ -15,7 +15,6 @@ namespace World
 
         
         //TODO nullブロック系を定数にする
-        readonly Coordinate _nullCoordinate = CoordinateCreator.New(BlockConst.BlockConst.NullBlockIntId,BlockConst.BlockConst.NullBlockIntId);
         readonly IBlock _nullBlock = new NullBlock(BlockConst.BlockConst.NullBlockId,Int32.MaxValue);
         private readonly BlockPlaceEvent _blockPlaceEvent;
 
@@ -39,7 +38,6 @@ namespace World
             }
             return false;
         }
-        public Coordinate GetCoordinate(int intId) { return _blockMasterDictionary.ContainsKey(intId) ? _blockMasterDictionary[intId].Coordinate : _nullCoordinate; }
         public IBlock GetBlock(int intId) { return _blockMasterDictionary.ContainsKey(intId) ? _blockMasterDictionary[intId].Block : _nullBlock; }
         public IBlockInventory GetBlockInventory(int intId) { return _blockMasterDictionary.ContainsKey(intId) ? _blockMasterDictionary[intId].BlockInventory : new NullIBlockInventory(); }
         public IBlock GetBlock(int x,int y)
