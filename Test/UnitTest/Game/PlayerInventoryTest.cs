@@ -16,29 +16,32 @@ namespace Test.UnitTest.Game
             var amount = ItemConfig.GetItemConfig(id).Stack;
             //Insert test
             var result = playerInventory.InsertItem(0,new ItemStack(id,amount));
-            Assert.AreEqual(result.Id,ItemConst.NullItemId);
+            Assert.AreEqual(ItemConst.NullItemId,result.Id);
+            
             result = playerInventory.InsertItem(0,new ItemStack(id,amount));
-            Assert.AreEqual(result.Id,id);
-            Assert.AreEqual(result.Amount,amount);
+            Assert.AreEqual(id,result.Id);
+            Assert.AreEqual(amount,result.Amount);
+            
             result = playerInventory.InsertItem(0,new ItemStack(id+1,1));
-            Assert.AreEqual(result.Id,id+1);
-            Assert.AreEqual(result.Amount,1);
+            Assert.AreEqual(id + 1,result.Id);
+            Assert.AreEqual(1,result.Amount);
 
             //drop and inset item test
             result = playerInventory.DropItem(0, 3);
-            Assert.AreEqual(result.Id,id);
-            Assert.AreEqual(result.Amount,3);
+            Assert.AreEqual(id,result.Id);
+            Assert.AreEqual(3,result.Amount);
+            
             result = playerInventory.GetItem(0);
-            Assert.AreEqual(result.Id,id);
-            Assert.AreEqual(result.Amount,amount - 3);
+            Assert.AreEqual(id,result.Id);
+            Assert.AreEqual(amount - 3,result.Amount);
+            
             result = playerInventory.InsertItem(0,new ItemStack(id,amount));
-            Assert.AreEqual(result.Id,id);
-            Assert.AreEqual(result.Amount,amount - 3);
+            Assert.AreEqual(id,result.Id);
+            Assert.AreEqual(amount - 3,result.Amount);
+            
             result = playerInventory.DropItem(0, amount - 3);
-            Assert.AreEqual(result.Id,id);
-            Assert.AreEqual(result.Amount,amount - 3);
-            result = playerInventory.GetItem(0);
-            Assert.AreEqual(result.Id,ItemConst.NullItemId);
+            Assert.AreEqual(id,result.Id);
+            Assert.AreEqual(amount - 3,result.Amount);
             
 
 

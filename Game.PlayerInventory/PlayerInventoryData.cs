@@ -35,18 +35,26 @@ namespace PlayerInventory
                 var result = MainInventory[index].AddItem(itemStack);
                 MainInventory[index] = result.MineItemStack;
                 return result.ReceiveItemStack;
-            }
-            else
+            }else if( MainInventory[index].Id == ItemConst.NullItemId)
             {
-                var oldItemStack = MainInventory[index];
                 MainInventory[index] = itemStack;
-                return oldItemStack;
+                return new NullItemStack();
+            }
+            {
+                return itemStack;
             }
         }
         
         public IItemStack DropItem(int index, int count)
         {
-            return new NullItemStack();
+            if(index < 0 || index >= MainInventory.Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
+
+            var result = MainInventory[index].SubItem(count);
+            MainInventory[index] = result;
+            return new ItemStack(MainInventory[index].Id,count);
         }
         
 
@@ -57,7 +65,12 @@ namespace PlayerInventory
         
         public IItemStack GetItem(int index)
         {
-            return new NullItemStack();
+            if (index < 0 || index >= MainInventory.Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
+
+            return MainInventory[index];
         }
         
     }
