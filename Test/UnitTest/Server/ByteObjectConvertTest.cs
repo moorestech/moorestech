@@ -91,7 +91,14 @@ namespace Test.UnitTest.Server
             Assert.AreEqual(expect[2],actual[2]);
             Assert.AreEqual(expect[3],actual[3]);
         }
-        
-        //TODO バイト配列とstringの変換テスト
+
+        [Test]
+        public void ByteArrayToStringTest()
+        {
+            var bytes = new List<byte>{0x61,0x41,0x72,0x36,0x23};
+            
+            var byteData = new ByteArrayEnumerator(bytes);
+            Assert.AreEqual("aAr6#",byteData.MoveNextToGetString(5));
+        }
     }
 }
