@@ -37,10 +37,10 @@ namespace Core.Block.Machine
                 
                 //インベントリにアイテムを入れる
                 var r = _inputSlot[i].AddItem(itemStack);
-                _inputSlot[i] = r.MineItemStack;
+                _inputSlot[i] = r.ProcessResultItemStack;
                 
                 //とった結果のアイテムを返す
-                return r.ReceiveItemStack;
+                return r.RemainderItemStack;
             }
             return itemStack;
         }

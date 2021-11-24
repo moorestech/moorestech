@@ -2,14 +2,20 @@
 {
     public class ItemProcessResult
     {
-        public ItemProcessResult(IItemStack mineItemStack, IItemStack receiveItemStack)
+        public ItemProcessResult(IItemStack processResultItemStack, IItemStack remainderItemStack)
         {
-            MineItemStack = mineItemStack;
-            ReceiveItemStack = receiveItemStack;
+            ProcessResultItemStack = processResultItemStack;
+            RemainderItemStack = remainderItemStack;
         }
 
-        public IItemStack ReceiveItemStack { get; }
+        /// <summary>
+        /// 元のアイテムスタックに対する処理結果のアイテムスタック
+        /// </summary>
+        public IItemStack RemainderItemStack { get; }
 
-        public IItemStack MineItemStack { get; }
+        /// <summary>
+        /// 処理した結果余ったアイテムスタック
+        /// </summary>
+        public IItemStack ProcessResultItemStack { get; }
     }
 }

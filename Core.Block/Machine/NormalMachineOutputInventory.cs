@@ -55,7 +55,7 @@ namespace Core.Block.Machine
                 {
                     if (!_outputSlot[i].IsAllowedToAdd(output.OutputItem)) continue;
                     
-                    _outputSlot[i] = _outputSlot[i].AddItem(output.OutputItem).MineItemStack;
+                    _outputSlot[i] = _outputSlot[i].AddItem(output.OutputItem).ProcessResultItemStack;
                     break;
                 }
             }

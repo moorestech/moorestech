@@ -39,11 +39,11 @@ namespace Test.Util
             {
                 if (!_insertedItems[i].IsAllowedToAdd(itemStack)) continue;
                 var r = _insertedItems[i].AddItem(itemStack);
-                _insertedItems[i] = r.MineItemStack;
+                _insertedItems[i] = r.ProcessResultItemStack;
                 _endInsertCnt++;
                 _isItemExists = InsertToEndNum <= _endInsertCnt;
 
-                return r.ReceiveItemStack;
+                return r.RemainderItemStack;
             }
             return new NullItemStack();
         }

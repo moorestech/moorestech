@@ -33,8 +33,8 @@ namespace PlayerInventory
             if (itemStack.Id == MainInventory[index].Id)
             {
                 var result = MainInventory[index].AddItem(itemStack);
-                MainInventory[index] = result.MineItemStack;
-                return result.ReceiveItemStack;
+                MainInventory[index] = result.ProcessResultItemStack;
+                return result.RemainderItemStack;
             }else if( MainInventory[index].Id == ItemConst.NullItemId)
             {
                 MainInventory[index] = itemStack;

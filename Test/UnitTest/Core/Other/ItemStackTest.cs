@@ -43,10 +43,10 @@ namespace Test.UnitTest.Core.Other
                 receivedItemStack = new ItemStack(rid,ramo);
             }
             var result = mineItemStack.AddItem(receivedItemStack);
-            Assert.AreEqual(result.MineItemStack.Amount, ansMAmo);
-            Assert.AreEqual(result.ReceiveItemStack.Amount, ansRAmo);
-            Assert.AreEqual(result.MineItemStack.Id, ansMid);
-            Assert.AreEqual(result.ReceiveItemStack.Id, ansRID);
+            Assert.AreEqual(result.ProcessResultItemStack.Amount, ansMAmo);
+            Assert.AreEqual(result.RemainderItemStack.Amount, ansRAmo);
+            Assert.AreEqual(result.ProcessResultItemStack.Id, ansMid);
+            Assert.AreEqual(result.RemainderItemStack.Id, ansRID);
         }
 
         [TestCase(0,5,1,4,0)]
@@ -89,7 +89,7 @@ namespace Test.UnitTest.Core.Other
             
             
             var result = baseItem.AddItem(ItemStackFactory.NewItemStack(id, addAmo));
-            Assert.True(ItemStackFactory.NewItemStack(id,overflowAmo).Equals(result.ReceiveItemStack));
+            Assert.True(ItemStackFactory.NewItemStack(id,overflowAmo).Equals(result.RemainderItemStack));
             
         }
         
