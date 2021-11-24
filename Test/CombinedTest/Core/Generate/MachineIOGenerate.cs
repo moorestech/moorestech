@@ -59,7 +59,7 @@ namespace Test.CombinedTest.Core.Generate
                 }
 
                 //出力アイテムもクラフト回数分倍にする
-                var output = MachineIOTest.Convart(r.output).Select(i => i = ItemStackFactory.NewItemStack(i.Id,i.Amount*cnt)).ToList();
+                var output = MachineIOTest.Convart(r.output).Select(i => i = ItemStackFactory.Create(i.Id,i.Amount*cnt)).ToList();
                 //インプットアイテム数を増やしたテストケース
                 testCase.Add(new MachineIOTest(input.ToArray(),output,remainder.ToArray(),r.BlockID,r.time,cnt));
             }
@@ -100,7 +100,7 @@ namespace Test.CombinedTest.Core.Generate
                 var r = new List<IItemStack>();
                 foreach (var i in input)
                 {
-                    r.Add(ItemStackFactory.NewItemStack(i.id,i.amount));
+                    r.Add(ItemStackFactory.Create(i.id,i.amount));
                 }
 
                 var a = r.Where(i => i.Id != ItemConst.NullItemId).ToList();
@@ -113,7 +113,7 @@ namespace Test.CombinedTest.Core.Generate
                 var r = new List<IItemStack>();
                 foreach (var o in output)
                 {
-                    r.Add(ItemStackFactory.NewItemStack(o.id,o.amount));
+                    r.Add(ItemStackFactory.Create(o.id,o.amount));
                 }
 
                 var a = r.Where(i => i.Id != BlockConst.BlockConst.NullBlockId).ToList();

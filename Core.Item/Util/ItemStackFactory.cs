@@ -4,7 +4,7 @@ namespace Core.Item.Util
 {
     public static class ItemStackFactory
     {
-        public static IItemStack NewItemStack(int id, int amount)
+        public static IItemStack Create(int id, int amount)
         {
             if (id < 0)
             {
@@ -16,6 +16,10 @@ namespace Core.Item.Util
             }
 
             return new ItemStack(id, amount);
+        }
+        public static IItemStack CreatEmpty()
+        {
+            return new NullItemStack();
         }
     }
 }

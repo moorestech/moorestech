@@ -29,7 +29,7 @@ namespace Test.CombinedTest.Core
             var items = new List<IItemStack>();
             for (int i = 0; i < id.Length; i++)
             {
-                items.Add(ItemStackFactory.NewItemStack(id[i], amount[i]));
+                items.Add(ItemStackFactory.Create(id[i], amount[i]));
             }
 
             foreach (var item in items)
@@ -55,7 +55,7 @@ namespace Test.CombinedTest.Core
             var machine = NormalMachineFactory.Create(4,Int32.MaxValue,new DummyBlockInventory());
             for (int i = 0; i < id.Length; i++)
             {
-                machine.InsertItem(ItemStackFactory.NewItemStack(id[i], amount[i]));
+                machine.InsertItem(ItemStackFactory.Create(id[i], amount[i]));
             }
 
             var ansItem = new List<IItemStack>();

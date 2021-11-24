@@ -47,8 +47,8 @@ namespace Core.Item.Implementation
             //量が指定数より多かったらはみ出した分を返す
             if (tmpStack < newAmount)
             {
-                var tmpItem = ItemStackFactory.NewItemStack(Id,tmpStack);
-                var tmpReceive = ItemStackFactory.NewItemStack(Id, newAmount-tmpStack);
+                var tmpItem = ItemStackFactory.Create(Id,tmpStack);
+                var tmpReceive = ItemStackFactory.Create(Id, newAmount-tmpStack);
 
                 return new ItemProcessResult(tmpItem, tmpReceive);
             }

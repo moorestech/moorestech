@@ -97,7 +97,7 @@ namespace Core.Block.BeltConveyor.Generally
             var last = _inventoryItems.Count - 1;
             if (1 <= _inventoryItems.Count && _inventoryItems[last].RemainingTime <= 0)
             {
-                var output = _connector.InsertItem(ItemStackFactory.NewItemStack(_inventoryItems[last].ItemId, 1));
+                var output = _connector.InsertItem(ItemStackFactory.Create(_inventoryItems[last].ItemId, 1));
                 //渡した結果がnullItemだったらそのアイテムを消す
                 if (output.Id == ItemConst.NullItemId)
                 {

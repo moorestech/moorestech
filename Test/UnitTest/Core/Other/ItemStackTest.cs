@@ -87,11 +87,11 @@ namespace Test.UnitTest.Core.Other
         [TestCase(2,300,300,300)]
         public void ItemAddToOverFlowTest(int id,int baseAmo,int addAmo,int overflowAmo)
         {
-            var baseItem = ItemStackFactory.NewItemStack(id, baseAmo);
+            var baseItem = ItemStackFactory.Create(id, baseAmo);
             
             
-            var result = baseItem.AddItem(ItemStackFactory.NewItemStack(id, addAmo));
-            Assert.True(ItemStackFactory.NewItemStack(id,overflowAmo).Equals(result.RemainderItemStack));
+            var result = baseItem.AddItem(ItemStackFactory.Create(id, addAmo));
+            Assert.True(ItemStackFactory.Create(id,overflowAmo).Equals(result.RemainderItemStack));
             
         }
         
@@ -108,7 +108,7 @@ namespace Test.UnitTest.Core.Other
         {
             try
             {
-                ItemStackFactory.NewItemStack(id, baseAmo);
+                ItemStackFactory.Create(id, baseAmo);
                 Assert.False(isthrow);
             }
             catch (Exception e)
@@ -165,10 +165,10 @@ namespace Test.UnitTest.Core.Other
         [Test]
         public void ItemStackFactoryNullItemTest()
         {
-            Assert.True(ItemStackFactory.NewItemStack(-1,0).GetType() == typeof(NullItemStack));
-            Assert.True(ItemStackFactory.NewItemStack(10,0).GetType() == typeof(NullItemStack));
-            Assert.True(ItemStackFactory.NewItemStack(-50,10).GetType() == typeof(NullItemStack));
-            Assert.True(ItemStackFactory.NewItemStack(5,10).GetType() == typeof(ItemStack));
+            Assert.True(ItemStackFactory.Create(-1,0).GetType() == typeof(NullItemStack));
+            Assert.True(ItemStackFactory.Create(10,0).GetType() == typeof(NullItemStack));
+            Assert.True(ItemStackFactory.Create(-50,10).GetType() == typeof(NullItemStack));
+            Assert.True(ItemStackFactory.Create(5,10).GetType() == typeof(ItemStack));
         }
     }
 }

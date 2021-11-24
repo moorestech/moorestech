@@ -68,7 +68,7 @@ namespace PlayerInventory
             }
             var result = MainInventory[index].SubItem(1);
             MainInventory[index] = result;
-            return ItemStackFactory.NewItemStack(MainInventory[index].Id, 1);
+            return ItemStackFactory.Create(MainInventory[index].Id, 1);
         }
         
         public IItemStack GetItem(int index)
