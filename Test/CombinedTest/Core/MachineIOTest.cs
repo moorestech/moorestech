@@ -6,6 +6,7 @@ using Core.Block.Machine;
 using Core.Block.Machine.util;
 using Core.Electric;
 using Core.Item;
+using Core.Item.Util;
 using Core.Update;
 using NUnit.Framework;
 using Test.CombinedTest.Core.Generate;

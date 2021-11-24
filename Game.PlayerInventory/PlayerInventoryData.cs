@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Item;
 using Core.Item.Implementation;
+using Core.Item.Util;
 
 namespace PlayerInventory
 {

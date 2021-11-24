@@ -1,4 +1,6 @@
-﻿namespace Core.Item.Implementation
+﻿using Core.Item.Util;
+
+namespace Core.Item.Implementation
 {
     public class NullItemStack : IItemStack
     {

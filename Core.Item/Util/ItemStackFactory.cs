@@ -1,6 +1,6 @@
 ﻿using Core.Item.Implementation;
 
-namespace Core.Item
+namespace Core.Item.Util
 {
     public static class ItemStackFactory
     {

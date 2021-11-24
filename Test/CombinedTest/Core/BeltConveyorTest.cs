@@ -3,6 +3,7 @@ using Core.Block;
 using Core.Block.BeltConveyor.util;
 using Core.Block.Config;
 using Core.Item;
+using Core.Item.Util;
 using Core.Update;
 using NUnit.Framework;
 using Test.Util;
