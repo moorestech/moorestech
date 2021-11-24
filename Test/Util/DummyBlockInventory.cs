@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Block;
 using Core.Item;
 using Core.Item.Implementation;
+using Core.Item.Util;
 using Core.Util;
 using NUnit.Framework;
 
@@ -46,7 +47,7 @@ namespace Test.Util
 
                 return r.RemainderItemStack;
             }
-            return new NullItemStack();
+            return ItemStackFactory.CreatEmpty();
         }
 
         public void ChangeConnector(IBlockInventory blockInventory)
@@ -63,11 +64,11 @@ namespace Test.Util
             var d = new DummyBlockInventory();
             for (int i = 1; i <= 100; i++)
             {
-                d.InsertItem(new ItemStack(i,1));
+                d.InsertItem(ItemStackFactory.Create(i,1));
             }
             
-            var item = d.InsertItem(new ItemStack(101,1));
-            Assert.True(item.Equals(new NullItemStack()));
+            var item = d.InsertItem(ItemStackFactory.Create(101,1));
+            Assert.True(item.Equals(ItemStackFactory.CreatEmpty()));
         }
 
         [Test]

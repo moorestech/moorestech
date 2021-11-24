@@ -4,7 +4,7 @@ using Core.Item.Util;
 
 namespace Core.Item.Implementation
 {
-    public class ItemStack : IItemStack
+    internal class ItemStack : IItemStack
     {
         public int Id { get; }
 
@@ -33,7 +33,7 @@ namespace Core.Item.Implementation
             //加算するアイテムがnullならそのまま返す
             if (receiveItemStack.GetType() == typeof(NullItemStack))
             {
-                return new ItemProcessResult(this, new NullItemStack());
+                return new ItemProcessResult(this, ItemStackFactory.CreatEmpty());
             }
             //IDが違うならそれぞれで返す
             if (((ItemStack) receiveItemStack).Id != Id)
@@ -53,16 +53,16 @@ namespace Core.Item.Implementation
                 return new ItemProcessResult(tmpItem, tmpReceive);
             }
             
-            return new ItemProcessResult(new ItemStack(Id, newAmount), new NullItemStack());
+            return new ItemProcessResult(ItemStackFactory.Create(Id, newAmount), ItemStackFactory.CreatEmpty());
         }
 
         public IItemStack SubItem(int subAmount)
         {
             if (0 < Amount - subAmount)
             {
-                return new ItemStack(Id,Amount-subAmount);
+                return ItemStackFactory.Create(Id,Amount-subAmount);
             }
-            return new NullItemStack();
+            return ItemStackFactory.CreatEmpty();
         }
 
         public bool IsAllowedToAdd(IItemStack item)

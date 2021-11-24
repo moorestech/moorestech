@@ -4,7 +4,7 @@ using Core.Block.Config;
 using Core.Block.RecipeConfig;
 using Core.Block.RecipeConfig.Data;
 using Core.Item;
-using Core.Util;
+using Core.Item.Util;
 
 namespace Core.Block.Machine
 {

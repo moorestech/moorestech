@@ -15,11 +15,11 @@ namespace Core.Block.RecipeConfig.Data
 
     public class ItemOutput
     {
-        public ItemStack OutputItem { get; }
+        public IItemStack OutputItem { get; }
 
         public double Percent { get; }
 
-        public ItemOutput(ItemStack outputItemMachine, double percent)
+        public ItemOutput(IItemStack outputItemMachine, double percent)
         {
             OutputItem = outputItemMachine;
             Percent = percent;

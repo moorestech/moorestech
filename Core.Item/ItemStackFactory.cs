@@ -1,6 +1,6 @@
 ﻿using Core.Item.Implementation;
 
-namespace Core.Item.Util
+namespace Core.Item
 {
     public static class ItemStackFactory
     {
@@ -8,11 +8,11 @@ namespace Core.Item.Util
         {
             if (id < 0)
             {
-                return new NullItemStack();
+                return CreatEmpty();
             }
             if (amount < 1)
             {
-                return new NullItemStack();
+                return CreatEmpty();
             }
 
             return new ItemStack(id, amount);

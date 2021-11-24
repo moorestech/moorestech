@@ -3,8 +3,8 @@ using System.Linq;
 using Core.Block.Config;
 using Core.Block.RecipeConfig.Data;
 using Core.Item;
+using Core.Item.Util;
 using Core.Update;
-using Core.Util;
 
 namespace Core.Block.Machine
 {

@@ -1,4 +1,4 @@
-﻿namespace Core.Item
+﻿namespace Core.Item.Util
 {
     public static class ItemConst
     {

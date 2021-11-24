@@ -2,7 +2,7 @@
 
 namespace Core.Item.Implementation
 {
-    public class NullItemStack : IItemStack
+    internal class NullItemStack : IItemStack
     {
         public NullItemStack()
         {
@@ -13,7 +13,7 @@ namespace Core.Item.Implementation
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
-            return new ItemProcessResult(receiveItemStack,new NullItemStack());
+            return new ItemProcessResult(receiveItemStack,ItemStackFactory.CreatEmpty());
         }
 
         public IItemStack SubItem(int subAmount)

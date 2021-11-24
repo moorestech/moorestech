@@ -29,20 +29,20 @@ namespace Test.UnitTest.Core.Other
             IItemStack mineItemStack;
             if (mid == -1)
             {
-                mineItemStack = new NullItemStack();
+                mineItemStack = ItemStackFactory.CreatEmpty();
             }
             else
             {
-                mineItemStack = new ItemStack(mid,mamo);
+                mineItemStack = ItemStackFactory.Create(mid,mamo);
             }
             IItemStack receivedItemStack;
             if (rid == -1)
             {
-                receivedItemStack = new NullItemStack();
+                receivedItemStack = ItemStackFactory.CreatEmpty();
             }
             else
             {
-                receivedItemStack = new ItemStack(rid,ramo);
+                receivedItemStack = ItemStackFactory.Create(rid,ramo);
             }
             var result = mineItemStack.AddItem(receivedItemStack);
             Assert.AreEqual(result.ProcessResultItemStack.Amount, ansMAmo);
@@ -53,7 +53,7 @@ namespace Test.UnitTest.Core.Other
 
         [TestCase(0,5,1,4,0)]
         [TestCase(-1,5,1,0,-1)]
-        [TestCase(0,5,10,5,0)]
+        [TestCase(0,5,10,0,-1)]
         [TestCase(0,8,8,0,-1)]
         [TestCase(0,8,9,0,-1)]
         public void SubTest(int mid, int mamo, int subamo, int ansamo, int ansID)
@@ -61,11 +61,11 @@ namespace Test.UnitTest.Core.Other
             IItemStack mineItemStack;
             if (mid == -1)
             {
-                mineItemStack = new NullItemStack();
+                mineItemStack = ItemStackFactory.CreatEmpty();
             }
             else
             {
-                mineItemStack = new ItemStack(mid,mamo);
+                mineItemStack = ItemStackFactory.Create(mid,mamo);
             }
 
             var result = mineItemStack.SubItem(subamo);            
@@ -124,51 +124,21 @@ namespace Test.UnitTest.Core.Other
         [TestCase("aaa")]
         public void NotRelatedObjectPassFalseHaveTest(object obj)
         {
-            IItemStack nullItem = new NullItemStack();
+            IItemStack nullItem = ItemStackFactory.CreatEmpty();
             Assert.False(nullItem.Equals(obj));
-            IItemStack item = new ItemStack(5,1);
+            IItemStack item = ItemStackFactory.Create(5,1);
             Assert.False(item.Equals(obj));
         }
 
         [Test]
         public void ToStringTest()
         {
-            IItemStack item = new NullItemStack();
+            IItemStack item = ItemStackFactory.CreatEmpty();
             Assert.True(item.ToString() == "ID:-1 Amount:0");
-            item = new ItemStack(1, 5);
+            item = ItemStackFactory.Create(1, 5);
             Assert.True(item.ToString() == "ID:1 Amount:5");
-            item = new ItemStack(13, 10);
+            item = ItemStackFactory.Create(13, 10);
             Assert.True(item.ToString() == "ID:13 Amount:10");
-        }
-
-        
-        [TestCase(0,5,true)]
-        [TestCase(-1,10,false)]
-        [TestCase(-10,1,false)]
-        [TestCase(5,2,true)]
-        [TestCase(5,1,true)]
-        [TestCase(5,0,false)]
-        [TestCase(5,-1,false)]
-        public void NewItemStackThrowError(int id,int amount,bool ok)
-        {
-            try
-            {
-                new ItemStack(id, amount);
-                Assert.True(ok);
-            }
-            catch
-            {
-                Assert.False(ok);
-            }
-        }
-
-        [Test]
-        public void ItemStackFactoryNullItemTest()
-        {
-            Assert.True(ItemStackFactory.Create(-1,0).GetType() == typeof(NullItemStack));
-            Assert.True(ItemStackFactory.Create(10,0).GetType() == typeof(NullItemStack));
-            Assert.True(ItemStackFactory.Create(-50,10).GetType() == typeof(NullItemStack));
-            Assert.True(ItemStackFactory.Create(5,10).GetType() == typeof(ItemStack));
         }
     }
 }

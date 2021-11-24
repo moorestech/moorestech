@@ -2,6 +2,7 @@
 using Core.Config.Item;
 using Core.Item;
 using Core.Item.Implementation;
+using Core.Item.Util;
 using NUnit.Framework;
 using PlayerInventory;
 
@@ -16,14 +17,14 @@ namespace Test.UnitTest.Game
             int id = 5;
             var amount = ItemConfig.GetItemConfig(id).Stack;
             //Insert test
-            var result = playerInventory.InsertItem(0,new ItemStack(id,amount));
+            var result = playerInventory.InsertItem(0,ItemStackFactory.Create(id,amount));
             Assert.AreEqual(ItemConst.NullItemId,result.Id);
             
-            result = playerInventory.InsertItem(0,new ItemStack(id,amount));
+            result = playerInventory.InsertItem(0,ItemStackFactory.Create(id,amount));
             Assert.AreEqual(id,result.Id);
             Assert.AreEqual(amount,result.Amount);
             
-            result = playerInventory.InsertItem(0,new ItemStack(id+1,1));
+            result = playerInventory.InsertItem(0,ItemStackFactory.Create(id+1,1));
             Assert.AreEqual(id + 1,result.Id);
             Assert.AreEqual(1,result.Amount);
 
@@ -36,7 +37,7 @@ namespace Test.UnitTest.Game
             Assert.AreEqual(id,result.Id);
             Assert.AreEqual(amount - 3,result.Amount);
             
-            result = playerInventory.InsertItem(0,new ItemStack(id,amount));
+            result = playerInventory.InsertItem(0,ItemStackFactory.Create(id,amount));
             Assert.AreEqual(id,result.Id);
             Assert.AreEqual(amount - 3,result.Amount);
             
@@ -56,7 +57,7 @@ namespace Test.UnitTest.Game
             int amount = 3;
             int slot = 27;
             
-            var result = playerInventory.InsertItem(slot,new ItemStack(id,amount));
+            var result = playerInventory.InsertItem(slot,ItemStackFactory.Create(id,amount));
             Assert.AreEqual(ItemConst.NullItemId,result.Id);
             
             result = playerInventory.UseHotBar(slot);

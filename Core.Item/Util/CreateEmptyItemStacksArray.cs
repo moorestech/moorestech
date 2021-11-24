@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using Core.Item;
-using Core.Item.Implementation;
 
-namespace Core.Util
+namespace Core.Item.Util
 {
     public static class CreateEmptyItemStacksList
     {
@@ -11,7 +9,7 @@ namespace Core.Util
             var a = new List<IItemStack>();
             for (var i = 0; i < amount; i++)
             {
-                a.Add(new NullItemStack());
+                a.Add(ItemStackFactory.CreatEmpty());
             }
             return a;
         }

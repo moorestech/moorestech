@@ -21,7 +21,7 @@ namespace PlayerInventory
             MainInventory = new List<IItemStack>();
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
-                MainInventory.Add(new NullItemStack());
+                MainInventory.Add(ItemStackFactory.CreatEmpty());
             }
         }
         
@@ -40,7 +40,7 @@ namespace PlayerInventory
             }else if( MainInventory[index].Id == ItemConst.NullItemId)
             {
                 MainInventory[index] = itemStack;
-                return new NullItemStack();
+                return ItemStackFactory.CreatEmpty();
             }
             {
                 return itemStack;
@@ -56,7 +56,7 @@ namespace PlayerInventory
 
             var result = MainInventory[index].SubItem(count);
             MainInventory[index] = result;
-            return new ItemStack(MainInventory[index].Id,count);
+            return ItemStackFactory.Create(MainInventory[index].Id,count);
         }
         
 

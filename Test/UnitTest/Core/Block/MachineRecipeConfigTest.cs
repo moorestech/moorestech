@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Implementation;
+using Core.Item.Util;
 using NUnit.Framework;
 
 namespace Test.UnitTest.Core.Block
@@ -33,7 +34,7 @@ namespace Test.UnitTest.Core.Block
         {
             var input = new List<IItemStack>();
             items.ToList().ForEach(
-                i => input.Add(new ItemStack(i,1)));
+                i => input.Add(ItemStackFactory.Create(i,1)));
             
             var ans = MachineRecipeConfig.GetRecipeData(BlocksId, input);
             Assert.AreEqual(output0Id,ans.ItemOutputs[0].OutputItem.Id);
@@ -52,7 +53,7 @@ namespace Test.UnitTest.Core.Block
         {
             var input = new List<IItemStack>();
             items.ToList().ForEach(
-                i => input.Add(new ItemStack(i,1)));
+                i => input.Add(ItemStackFactory.Create(i,1)));
             
             int ans = MachineRecipeConfig.GetRecipeData(BlocksId, input).ItemOutputs.Count;
             Assert.AreEqual(outputLength,ans);
@@ -73,7 +74,7 @@ namespace Test.UnitTest.Core.Block
             List<IItemStack> itemStacks = new List<IItemStack>();
             for (int i = 0; i < items.Length; i++)
             {
-                itemStacks.Add(new ItemStack(items[i],itemamount[i]));
+                itemStacks.Add(ItemStackFactory.Create(items[i],itemamount[i]));
             }
             var a =MachineRecipeConfig.GetRecipeData(BlocksId, itemStacks).RecipeConfirmation(itemStacks);
             Assert.AreEqual(ans,a);

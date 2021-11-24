@@ -61,7 +61,7 @@ namespace Test.CombinedTest.Core
             var ansItem = new List<IItemStack>();
             for (int i = 0; i < ansid.Length; i++)
             {
-                ansItem.Add(new ItemStack(ansid[i],ansamount[i]));
+                ansItem.Add(ItemStackFactory.Create(ansid[i],ansamount[i]));
             }
 
             for (int i = 0; i < ansItem.Count; i++)
@@ -92,7 +92,7 @@ namespace Test.CombinedTest.Core
 
                 foreach (var minput in m.input)
                 {
-                    machine.InsertItem(new ItemStack(minput.Id,minput.Amount));
+                    machine.InsertItem(ItemStackFactory.Create(minput.Id,minput.Amount));
                 }
 
                 var electrical = new ElectricSegment();
@@ -190,7 +190,7 @@ namespace Test.CombinedTest.Core
 
                 foreach (var minput in m.input)
                 {
-                    machine.InsertItem(new ItemStack(minput.Id,minput.Amount));
+                    machine.InsertItem(ItemStackFactory.Create(minput.Id,minput.Amount));
                 }
 
                 var electrical = new ElectricSegment();

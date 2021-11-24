@@ -7,6 +7,7 @@ using Core.Block.RecipeConfig.Data;
 using Core.Config;
 using Core.Item;
 using Core.Item.Implementation;
+using Core.Item.Util;
 
 namespace Core.Block.RecipeConfig
 {
@@ -86,7 +87,7 @@ namespace Core.Block.RecipeConfig
         private int _amount;
 
 
-        public ItemStack ItemStack => new ItemStack(_itemId, _amount);
+        public IItemStack ItemStack => ItemStackFactory.Create(_itemId,_amount);
     }
 
     [DataContract] 
@@ -101,6 +102,6 @@ namespace Core.Block.RecipeConfig
 
         public double Percent => _percent;
 
-        public ItemStack ItemStack => new ItemStack(_itemId, _amount);
+        public IItemStack ItemStack => ItemStackFactory.Create(_itemId,_amount);
     }
 }
