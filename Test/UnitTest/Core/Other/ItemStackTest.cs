@@ -53,6 +53,7 @@ namespace Test.UnitTest.Core.Other
         [TestCase(-1,5,1,0,-1)]
         [TestCase(0,5,10,5,0)]
         [TestCase(0,8,8,0,-1)]
+        [TestCase(0,8,9,0,-1)]
         public void SubTest(int mid, int mamo, int subamo, int ansamo, int ansID)
         {
             IItemStack mineItemStack;
