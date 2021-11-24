@@ -2,7 +2,7 @@
 
 namespace Server.PacketHandle.PacketResponse
 {
-    public class InventoryContentResponseProtocol : IPacketResponse
+    public class PlayerInventoryResponseProtocol : IPacketResponse
     {
         public List<byte[]> GetResponse(List<byte>  payload)
         {

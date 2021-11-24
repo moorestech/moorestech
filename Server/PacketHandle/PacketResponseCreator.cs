@@ -17,7 +17,7 @@ namespace Server.PacketHandle
             _packetResponseList.Add(new DummyProtocol());
             _packetResponseList.Add(new PutBlockProtocol(worldBlockDatastore));
             _packetResponseList.Add(new PlayerCoordinateSendProtocol(worldBlockDatastore));
-            _packetResponseList.Add(new InventoryContentResponseProtocol());
+            _packetResponseList.Add(new PlayerInventoryResponseProtocol());
             _packetResponseList.Add(new SendEventProtocol(eventProtocolProvider));
         }
 
