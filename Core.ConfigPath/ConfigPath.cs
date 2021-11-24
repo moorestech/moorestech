@@ -1,4 +1,4 @@
-﻿namespace Core.Config
+﻿namespace Core.ConfigPath
 {
     public static class ConfigPath
     {
