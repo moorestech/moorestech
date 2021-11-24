@@ -55,21 +55,13 @@ namespace Core.Item
             return new ItemProcessResult(new ItemStack(Id, newAmount), new NullItemStack());
         }
 
-        //TODO 0以下になるテストを書く
         public IItemStack SubItem(int subAmount)
         {
             if (0 < Amount - subAmount)
             {
                 return new ItemStack(Id,Amount-subAmount);
             }
-            else if(0 == Amount - subAmount)
-            {
-                return new NullItemStack();
-            }
-            else
-            {
-                return this;
-            }
+            return new NullItemStack();
         }
 
         public bool IsAllowedToAdd(IItemStack item)
