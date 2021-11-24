@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NUnit.Framework;
+using PlayerInventory;
 using Server.Event;
 using Server.PacketHandle;
 using Server.Util;
@@ -14,7 +15,7 @@ namespace Test.CombinedTest.Server.PacketTest
         public void SimpleBlockPlaceTest()
         {
             var worldBlock = new WorldBlockDatastore(new BlockPlaceEvent());
-            var packetResponse = new PacketResponseCreator(worldBlock,new EventProtocolProvider());
+            var packetResponse = new PacketResponseCreator(worldBlock,new EventProtocolProvider(),new PlayerInventoryDataStore());
             
             packetResponse.GetPacketResponse(BlockPlace(1, 0, 0));
             packetResponse.GetPacketResponse(BlockPlace(31, 2, 6));

@@ -7,6 +7,7 @@ using Core.Block.Machine;
 using Core.Block.Machine.util;
 using Core.Util;
 using NUnit.Framework;
+using PlayerInventory;
 using Server.Const;
 using Server.Event;
 using Server.PacketHandle;
@@ -22,7 +23,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(1)]
         public void SimpleChunkResponseTest()
         {
-            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore(new BlockPlaceEvent()),new EventProtocolProvider());
+            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore(new BlockPlaceEvent()),new EventProtocolProvider(),new PlayerInventoryDataStore());
             //1回のレスポンスのテスト
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).ToList();
@@ -77,7 +78,7 @@ namespace Test.CombinedTest.Server.PacketTest
         public void PlaceBlockToChunkResponseTest()
         {
             var worldBlock = new WorldBlockDatastore(new BlockPlaceEvent());
-            var packetResponse = new PacketResponseCreator(worldBlock,new EventProtocolProvider());
+            var packetResponse = new PacketResponseCreator(worldBlock,new EventProtocolProvider(),new PlayerInventoryDataStore());
             var random = new Random(13944156);
             //ブロックの設置
             var b = NormalMachineFactory.Create(5, IntId.NewIntId(), new NullIBlockInventory());
@@ -118,7 +119,7 @@ namespace Test.CombinedTest.Server.PacketTest
         public void RandomPlaceBlockToChunkResponseTest()
         {
             var worldBlock = new WorldBlockDatastore(new BlockPlaceEvent());
-            var packetResponse = new PacketResponseCreator(worldBlock,new EventProtocolProvider());
+            var packetResponse = new PacketResponseCreator(worldBlock,new EventProtocolProvider(),new PlayerInventoryDataStore());
             
             var random = new Random(13944156);
             //ブロックの設置

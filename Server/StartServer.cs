@@ -1,4 +1,5 @@
-﻿using Server.Event;
+﻿using PlayerInventory;
+using Server.Event;
 using Server.Event.EventReceive.EventRegister;
 using Server.PacketHandle;
 using World;
@@ -13,7 +14,7 @@ namespace Server
             var blockPlace = new BlockPlaceEvent();
             var eventProtocol = new EventProtocolProvider();
             new RegisterSendClientEvents(blockPlace,eventProtocol);
-            new PacketHandler().StartServer(new PacketResponseCreator(new WorldBlockDatastore(blockPlace),eventProtocol));
+            new PacketHandler().StartServer(new PacketResponseCreator(new WorldBlockDatastore(blockPlace),eventProtocol,new PlayerInventoryDataStore()));
         }
     }
 }
