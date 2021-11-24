@@ -12,9 +12,9 @@ namespace Core.Item.Implementation
 
         public ItemStack(int id,int amount)
         {
-            if (id < 0)
+            if (id == ItemConst.NullItemId)
             {
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentException("Item id cannot be null");
             }
             if (amount < 1)
             {

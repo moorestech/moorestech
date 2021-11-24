@@ -4,7 +4,7 @@ using Core.Item;
 
 namespace Core.Block.RecipeConfig.Data
 {
-    public class MachineRecipeData : IMachineRecipeData
+    internal class MachineRecipeData : IMachineRecipeData
     {
         public int BlockId { get; }
 

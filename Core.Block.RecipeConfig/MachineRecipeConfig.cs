@@ -17,6 +17,10 @@ namespace Core.Block.RecipeConfig
             _recipedatas ??= MachineRecipeJsonLoad.LoadConfig();
             return _recipedatas[id];
         }
+        public static IMachineRecipeData GetNullRecipeData()
+        {
+            return new NullMachineRecipeData();
+        }
 
         private static Dictionary<string, IMachineRecipeData> _recipeDataCash;
         /// <summary>

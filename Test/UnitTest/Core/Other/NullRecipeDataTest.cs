@@ -1,4 +1,5 @@
-﻿using Core.Block.RecipeConfig.Data;
+﻿using Core.Block.RecipeConfig;
+using Core.Block.RecipeConfig.Data;
 using NUnit.Framework;
 
 namespace Test.UnitTest.Core.Other
@@ -8,7 +9,7 @@ namespace Test.UnitTest.Core.Other
         [Test]
         public void NullTest()
         {
-            IMachineRecipeData recipeData = new NullMachineRecipeData();
+            IMachineRecipeData recipeData = MachineRecipeConfig.GetNullRecipeData();
             Assert.AreEqual(0,recipeData.ItemInputs.Count);
             Assert.AreEqual(0,recipeData.ItemOutputs.Count);
             Assert.AreEqual(0,recipeData.BlockId);

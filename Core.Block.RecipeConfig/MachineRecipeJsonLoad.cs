@@ -11,9 +11,9 @@ using Core.Item.Util;
 
 namespace Core.Block.RecipeConfig
 {
-    public static class MachineRecipeJsonLoad
+    internal static class MachineRecipeJsonLoad
     {
-        public static IMachineRecipeData[] LoadConfig()
+        internal static IMachineRecipeData[] LoadConfig()
         {
             //JSONデータの読み込み
             var json = File.ReadAllText(ConfigPath.ConfigPath.RecipeConfigPath);
