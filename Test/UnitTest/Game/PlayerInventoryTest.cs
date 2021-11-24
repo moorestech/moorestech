@@ -63,6 +63,8 @@ namespace Test.UnitTest.Game
             Assert.AreEqual(1,result.Amount);
             playerInventory.UseHotBar(slot);
             playerInventory.UseHotBar(slot);
+            result = playerInventory.UseHotBar(slot);
+            Assert.AreEqual(ItemConst.NullItemId,result.Id);
 
             result = playerInventory.GetItem(slot);
             Assert.AreEqual(ItemConst.NullItemId,result.Id);
