@@ -10,19 +10,13 @@ namespace Server.PacketHandle
 {
     public class PacketHandler
     {
+        const int port = 11564;
         public void StartServer(PacketResponseCreator packetResponseCreator)
         {
-            
-            //ここからIPアドレスやポートの設定
-            //TODO 外と接続するときは変える必要あると思われる
-            IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
-            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11564);
-            //ここまでIPアドレスやポートの設定
-
             //ソケットの作成
-            Socket listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             //通信の受け入れ準備
-            listener.Bind(localEndPoint);
+            listener.Bind(new IPEndPoint(IPAddress.Any, port));
             listener.Listen(10);
             Console.WriteLine("受け入れ準備完了");
 
