@@ -58,7 +58,7 @@ namespace PlayerInventory
         }
         
 
-        public IItemStack UseHotbarItem(int index)
+        public IItemStack UseHotBar(int index)
         {
             return new NullItemStack();
         }

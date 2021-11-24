@@ -46,5 +46,27 @@ namespace Test.UnitTest.Game
 
 
         }
+
+        [Test]
+        public void UseHotBarTest()
+        {
+            var playerInventory = new PlayerInventoryData(0);
+            int id = 5;
+            int amount = 3;
+            int slot = 27;
+            
+            var result = playerInventory.InsertItem(slot,new ItemStack(id,amount));
+            Assert.AreEqual(ItemConst.NullItemId,result.Id);
+            
+            result = playerInventory.UseHotBar(slot);
+            Assert.AreEqual(id,result.Id);
+            Assert.AreEqual(1,result.Amount);
+            playerInventory.UseHotBar(slot);
+            playerInventory.UseHotBar(slot);
+
+            result = playerInventory.GetItem(slot);
+            Assert.AreEqual(ItemConst.NullItemId,result.Id);
+
+        }
     }
 }
