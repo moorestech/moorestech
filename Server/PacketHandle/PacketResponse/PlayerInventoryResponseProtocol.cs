@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using PlayerInventory;
+using Server.Util;
 
 namespace Server.PacketHandle.PacketResponse
 {
@@ -14,7 +15,10 @@ namespace Server.PacketHandle.PacketResponse
 
         public List<byte[]> GetResponse(List<byte>  payload)
         {
-            throw new System.NotImplementedException();
+            var payloadData = new ByteArrayEnumerator(payload);
+            payloadData.MoveNextToGetShort();
+            var playerId = payloadData.MoveNextToGetInt();
+            var playerInventory = _playerInventoryDataStore.GetInventoryData(playerId);
         }
     }
 }
