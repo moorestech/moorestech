@@ -14,7 +14,6 @@ namespace World
         private Dictionary<Coordinate,int> _coordinateDictionary = new();
 
         
-        //TODO nullブロック系を定数にする
         readonly IBlock _nullBlock = new NullBlock(BlockConst.BlockConst.NullBlockId,Int32.MaxValue);
         private readonly BlockPlaceEvent _blockPlaceEvent;
 
