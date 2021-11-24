@@ -1,5 +1,6 @@
 ﻿using System;
 using Core.Item;
+using Core.Item.Implementation;
 using NUnit.Framework;
 
 namespace Test.UnitTest.Core.Other

@@ -1,4 +1,6 @@
-﻿namespace Core.Item
+﻿using Core.Item.Implementation;
+
+namespace Core.Item
 {
     public static class ItemStackFactory
     {

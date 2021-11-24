@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Item;
+using Core.Item.Implementation;
 
 namespace PlayerInventory
 {

@@ -2,6 +2,7 @@
 using System.Linq;
 using Core.Block;
 using Core.Item;
+using Core.Item.Implementation;
 using Core.Util;
 using NUnit.Framework;
 

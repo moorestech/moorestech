@@ -1,4 +1,4 @@
-﻿namespace Core.Item
+﻿namespace Core.Item.Implementation
 {
     public class NullItemStack : IItemStack
     {
