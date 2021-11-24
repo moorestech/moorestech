@@ -5,7 +5,7 @@ namespace PlayerInventory
     public class PlayerInventoryDataStore
     {
         readonly Dictionary<int,PlayerInventoryData> _playerInventoryData = new Dictionary<int,PlayerInventoryData>();
-        public PlayerInventoryData GetData(int playerId)
+        public PlayerInventoryData GetInventoryData(int playerId)
         {
             if (!_playerInventoryData.ContainsKey(playerId))
             {
