@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
 using Server.Event;
@@ -22,7 +23,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             var eventProtocol = new EventProtocolProvider();
             new RegisterSendClientEvents(blockPlace,eventProtocol);
-            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore(blockPlace),eventProtocol,new PlayerInventoryDataStore());
+            var (packetResponse,serviceProvider) = PaketResponseCreatorCreator.Create();
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(response.Count,0);
         }
@@ -31,10 +32,11 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Test]
         public void BlockPlaceEvent()
         {
-            var blockPlace = new BlockPlaceEvent();
-            var eventProtocol = new EventProtocolProvider();
+            var (packetResponse,serviceProvider) = PaketResponseCreatorCreator.Create();
+            var blockPlace = serviceProvider.GetService<BlockPlaceEvent>();
+            var eventProtocol = serviceProvider.GetService<EventProtocolProvider>();
             new RegisterSendClientEvents(blockPlace,eventProtocol);
-            var packetResponse = new PacketResponseCreator(new WorldBlockDatastore(blockPlace),eventProtocol,new PlayerInventoryDataStore());
+            
             //イベントキューにIDを登録する
             //詳細はコメントに記述
             var response = packetResponse.GetPacketResponse(EventRequestData(0));

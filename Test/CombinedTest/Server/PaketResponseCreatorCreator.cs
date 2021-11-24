@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using System;
+using Microsoft.Extensions.DependencyInjection;
 using PlayerInventory;
 using Server.Event;
 using Server.Event.EventReceive.EventRegister;
@@ -6,11 +7,11 @@ using Server.PacketHandle;
 using World;
 using World.Event;
 
-namespace Server
+namespace Test.CombinedTest.Server
 {
-    public static class StartServer
+    internal class PaketResponseCreatorCreator
     {
-        public static void Main(string[] args)
+        public static (PacketResponseCreator,ServiceProvider) Create()
         {
             
             var services = new ServiceCollection();
@@ -20,10 +21,9 @@ namespace Server
             services.AddSingleton<WorldBlockDatastore,WorldBlockDatastore>();
             services.AddSingleton<PlayerInventoryDataStore,PlayerInventoryDataStore>();
             var serviceProvider = services.BuildServiceProvider();
-            var packetResponseCreator = new PacketResponseCreator(serviceProvider);
+            var packetResponse = new PacketResponseCreator(serviceProvider);
             
-            
-            new PacketHandler().StartServer(packetResponseCreator);
+            return (packetResponse,serviceProvider);
         }
     }
 }

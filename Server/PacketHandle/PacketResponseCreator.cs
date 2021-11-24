@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 using PlayerInventory;
 using Server.Event;
 using Server.PacketHandle.PacketResponse;
@@ -12,14 +13,14 @@ namespace Server.PacketHandle
         private List<IPacketResponse> _packetResponseList;
 
 
-        public PacketResponseCreator(WorldBlockDatastore worldBlockDatastore,EventProtocolProvider eventProtocolProvider,PlayerInventoryDataStore playerInventoryDataStore)
+        public PacketResponseCreator(ServiceProvider serviceProvider)
         {
             _packetResponseList = new List<IPacketResponse>();
             _packetResponseList.Add(new DummyProtocol());
-            _packetResponseList.Add(new PutBlockProtocol(worldBlockDatastore));
-            _packetResponseList.Add(new PlayerCoordinateSendProtocol(worldBlockDatastore));
-            _packetResponseList.Add(new PlayerInventoryResponseProtocol(playerInventoryDataStore));
-            _packetResponseList.Add(new SendEventProtocol(eventProtocolProvider));
+            _packetResponseList.Add(new PutBlockProtocol(serviceProvider.GetService<WorldBlockDatastore>()));
+            _packetResponseList.Add(new PlayerCoordinateSendProtocol(serviceProvider.GetService<WorldBlockDatastore>()));
+            _packetResponseList.Add(new PlayerInventoryResponseProtocol(serviceProvider.GetService<PlayerInventoryDataStore>()));
+            _packetResponseList.Add(new SendEventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
         }
 
         public List<byte[]> GetPacketResponse(List<byte> payload)
