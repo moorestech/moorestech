@@ -60,7 +60,13 @@ namespace PlayerInventory
 
         public IItemStack UseHotBar(int index)
         {
-            return new NullItemStack();
+            if(index < 0 || index >= MainInventory.Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
+            var result = MainInventory[index].SubItem(1);
+            MainInventory[index] = result;
+            return ItemStackFactory.NewItemStack(MainInventory[index].Id, 1);
         }
         
         public IItemStack GetItem(int index)
