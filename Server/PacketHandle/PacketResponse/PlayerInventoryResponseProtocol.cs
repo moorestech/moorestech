@@ -19,6 +19,19 @@ namespace Server.PacketHandle.PacketResponse
             payloadData.MoveNextToGetShort();
             var playerId = payloadData.MoveNextToGetInt();
             var playerInventory = _playerInventoryDataStore.GetInventoryData(playerId);
+            
+            var response = new List<byte>();
+            response.AddRange(ByteListConverter.ToByteArray((short)4));
+            response.AddRange(ByteListConverter.ToByteArray(playerId));
+            response.AddRange(ByteListConverter.ToByteArray((short)0));
+            
+            for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+            {
+                response.AddRange(ByteListConverter.ToByteArray(playerInventory.GetItem(i).Id));
+                response.AddRange(ByteListConverter.ToByteArray(playerInventory.GetItem(i).Amount));
+            }
+
+            return new List<byte[]>() {response.ToArray()};
         }
     }
 }
