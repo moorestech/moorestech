@@ -16,12 +16,12 @@ namespace Core.Block
 
         public IItemStack GetItem(int slot)
         {
-            throw new System.NotImplementedException();
+            return ItemStackFactory.CreatEmpty();
         }
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
-            throw new System.NotImplementedException();
+            return itemStack;
         }
     }
 }
