@@ -79,15 +79,35 @@ namespace Core.Block.Machine
             ItemProcessResult result;
             if (slot < _normalMachineInputInventory.InputSlot.Count)
             {
-                result = _normalMachineInputInventory.InputSlot[slot].AddItem(itemStack);
-                _normalMachineInputInventory.SetItem(slot,result.ProcessResultItemStack);
-                return result.RemainderItemStack;
+                //アイテムIDが同じの時はスタックして余ったものを返す
+                var item = _normalMachineInputInventory.InputSlot[slot];
+                if (item.Id == itemStack.Id)
+                {
+                    result = item.AddItem(itemStack);
+                    _normalMachineInputInventory.SetItem(slot, result.ProcessResultItemStack);
+                    return result.RemainderItemStack;
+                }
+
+                //違う場合はそのまま入れ替える
+                _normalMachineInputInventory.SetItem(slot, itemStack);
+                return item;
             }
-            
-            slot -= _normalMachineInputInventory.InputSlot.Count;
-            result = _normalMachineOutputInventory.OutputSlot[slot].AddItem(itemStack);
-            _normalMachineOutputInventory.SetItem(slot,result.ProcessResultItemStack);
-            return result.RemainderItemStack;
+            else
+            {
+                //アウトプットスロットのインデックスに変換する
+                slot -= _normalMachineInputInventory.InputSlot.Count;
+
+                var item = _normalMachineOutputInventory.OutputSlot[slot];
+
+                if (item.Id == itemStack.Id)
+                {
+                    result = item.AddItem(itemStack);
+                    _normalMachineOutputInventory.SetItem(slot, result.ProcessResultItemStack);
+                    return result.RemainderItemStack;
+                }
+                _normalMachineOutputInventory.SetItem(slot, itemStack);
+                return item;
+            }
         }
 
         private bool IsAllowedToStartProcess
