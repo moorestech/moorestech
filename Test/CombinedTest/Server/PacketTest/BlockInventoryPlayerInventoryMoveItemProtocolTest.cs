@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Block;
 using Core.Block.Machine;
 using Core.Block.Machine.util;
+using Core.Config.Item;
 using Core.Item;
 using Core.Item.Util;
 using Microsoft.Extensions.DependencyInjection;
@@ -103,7 +104,23 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(2,playerInventoryData.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(1,playerInventoryData.GetItem(playerSlotIndex).Amount);
             
-            //TODO アイテムスタック数以上のアイテムを入れたときに戻されるテスト
+            //アイテムスタック数以上のアイテムを入れたときに戻されるテスト
+            var max = ItemConfig.GetItemConfig(2).Stack;
+            playerInventoryData.SetItem(playerSlotIndex, ItemStackFactory.Create(2,max));
+            //プレイヤーからアイテムを全て移す
+            packet.GetPacketResponse(CreateReplacePayload(0,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,max));
+            
+            Assert.AreEqual(2,block.InputSlotWithoutNullItemStack[blockInventorySlotIndex].Id);
+            Assert.AreEqual(max,block.InputSlotWithoutNullItemStack[blockInventorySlotIndex].Amount);
+            Assert.AreEqual(2,playerInventoryData.GetItem(playerSlotIndex).Id);
+            Assert.AreEqual(5,playerInventoryData.GetItem(playerSlotIndex).Amount);
+            //逆の場合
+            packet.GetPacketResponse(CreateReplacePayload(1,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,max));
+            
+            Assert.AreEqual(2,block.InputSlotWithoutNullItemStack[blockInventorySlotIndex].Id);
+            Assert.AreEqual(5,block.InputSlotWithoutNullItemStack[blockInventorySlotIndex].Amount);
+            Assert.AreEqual(2,playerInventoryData.GetItem(playerSlotIndex).Id);
+            Assert.AreEqual(max,playerInventoryData.GetItem(playerSlotIndex).Amount);
         }
 
         private List<byte> CreateReplacePayload(short blockToPlayerFlag,int playerId,int playerSlotIndex,int x,int y,int blockSlotIndex,int moveItemNum)
