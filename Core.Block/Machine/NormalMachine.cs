@@ -2,6 +2,7 @@
 using Core.Block.RecipeConfig.Data;
 using Core.Electric;
 using Core.Item;
+using Core.Item.Util;
 using Core.Update;
 
 namespace Core.Block.Machine
@@ -39,14 +40,35 @@ namespace Core.Block.Machine
             _normalMachineOutputInventory.ChangeConnectInventory(blockInventory);
         }
 
+        /// <summary>
+        /// インプットスロットが0から始まり、アウトプットスロットが続く
+        /// </summary>
+        /// <param name="slot"></param>
+        /// <returns></returns>
         public IItemStack GetItem(int slot)
         {
-            throw new System.NotImplementedException();
+            if (slot < _normalMachineInputInventory.InputSlot.Count)
+            {
+                return _normalMachineInputInventory.InputSlot[slot];
+            }
+            slot -= _normalMachineInputInventory.InputSlot.Count;
+            return _normalMachineOutputInventory.OutputSlot[slot];
         }
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
-            throw new System.NotImplementedException();
+            ItemProcessResult result;
+            if (slot < _normalMachineInputInventory.InputSlot.Count)
+            {
+                result = _normalMachineInputInventory.InputSlot[slot].AddItem(itemStack);
+                _normalMachineInputInventory.InputSlot[slot] = result.ProcessResultItemStack;
+                return result.RemainderItemStack;
+            }
+            
+            slot -= _normalMachineInputInventory.InputSlot.Count;
+            result = _normalMachineOutputInventory.OutputSlot[slot].AddItem(itemStack);
+            _normalMachineOutputInventory.OutputSlot[slot] = result.ProcessResultItemStack;
+            return result.RemainderItemStack;
         }
 
         private bool IsAllowedToStartProcess
