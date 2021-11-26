@@ -39,11 +39,6 @@ namespace Core.Block.Machine
             _normalMachineOutputInventory.ChangeConnectInventory(blockInventory);
         }
 
-        public IItemStack ReplaceItem(int index, IItemStack itemStack)
-        {
-            throw new System.NotImplementedException();
-        }
-
         private bool IsAllowedToStartProcess
         {
             get

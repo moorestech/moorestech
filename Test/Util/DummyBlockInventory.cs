@@ -53,11 +53,6 @@ namespace Test.Util
         public void ChangeConnector(IBlockInventory blockInventory)
         {
         }
-
-        public IItemStack ReplaceItem(int index, IItemStack itemStack)
-        {
-            return itemStack;
-        }
     }
 
     public class DummyBlockInventoryTest
