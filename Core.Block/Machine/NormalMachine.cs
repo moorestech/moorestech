@@ -12,8 +12,8 @@ namespace Core.Block.Machine
         private readonly NormalMachineInputInventory _normalMachineInputInventory;
         private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
         private ProcessState _state = ProcessState.Idle;
-        public List<IItemStack> InputSlot => _normalMachineInputInventory.InputSlot;
-        public List<IItemStack> OutputSlot => _normalMachineOutputInventory.OutputSlot;
+        public List<IItemStack> InputSlotWithoutNullItemStack => _normalMachineInputInventory.InputSlotWithoutNullItemStack;
+        public List<IItemStack> OutputSlotWithoutNullItemStack => _normalMachineOutputInventory.OutputSlotWithoutNullItemStack;
         
         private readonly int _blockId;
         private readonly int _intId;
@@ -47,23 +47,23 @@ namespace Core.Block.Machine
         /// <returns></returns>
         public IItemStack GetItem(int slot)
         {
-            if (slot < _normalMachineInputInventory.InputSlot.Count)
+            if (slot < _normalMachineInputInventory.InputSlotWithoutNullItemStack.Count)
             {
-                return _normalMachineInputInventory.InputSlot[slot];
+                return _normalMachineInputInventory.InputSlotWithoutNullItemStack[slot];
             }
-            slot -= _normalMachineInputInventory.InputSlot.Count;
-            return _normalMachineOutputInventory.OutputSlot[slot];
+            slot -= _normalMachineInputInventory.InputSlotWithoutNullItemStack.Count;
+            return _normalMachineOutputInventory.OutputSlotWithoutNullItemStack[slot];
         }
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            if (slot < _normalMachineInputInventory.InputSlot.Count)
+            if (slot < _normalMachineInputInventory.InputSlotWithoutNullItemStack.Count)
             {
                 _normalMachineInputInventory.SetItem(slot,itemStack);
             }
             else
             {
-                slot -= _normalMachineInputInventory.InputSlot.Count;
+                slot -= _normalMachineInputInventory.InputSlotWithoutNullItemStack.Count;
                 _normalMachineOutputInventory.SetItem(slot, itemStack);
             }
         }
@@ -77,15 +77,15 @@ namespace Core.Block.Machine
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
             ItemProcessResult result;
-            if (slot < _normalMachineInputInventory.InputSlot.Count)
+            if (slot < _normalMachineInputInventory.InputSlotWithoutNullItemStack.Count)
             {
-                result = _normalMachineInputInventory.InputSlot[slot].AddItem(itemStack);
+                result = _normalMachineInputInventory.InputSlotWithoutNullItemStack[slot].AddItem(itemStack);
                 _normalMachineInputInventory.SetItem(slot,result.ProcessResultItemStack);
                 return result.RemainderItemStack;
             }
             
-            slot -= _normalMachineInputInventory.InputSlot.Count;
-            result = _normalMachineOutputInventory.OutputSlot[slot].AddItem(itemStack);
+            slot -= _normalMachineInputInventory.InputSlotWithoutNullItemStack.Count;
+            result = _normalMachineOutputInventory.OutputSlotWithoutNullItemStack[slot].AddItem(itemStack);
             _normalMachineOutputInventory.SetItem(slot,result.ProcessResultItemStack);
             return result.RemainderItemStack;
         }

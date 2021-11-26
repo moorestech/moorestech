@@ -39,11 +39,11 @@ namespace Test.CombinedTest.Core
 
             if (isEquals)
             {
-                Assert.AreEqual(items.ToArray(), machine.InputSlot.ToArray());   
+                Assert.AreEqual(items.ToArray(), machine.InputSlotWithoutNullItemStack.ToArray());   
             }
             else
             {
-                Assert.AreNotEqual(items.ToArray(), machine.InputSlot.ToArray());
+                Assert.AreNotEqual(items.ToArray(), machine.InputSlotWithoutNullItemStack.ToArray());
             }
             
         }
@@ -66,7 +66,7 @@ namespace Test.CombinedTest.Core
 
             for (int i = 0; i < ansItem.Count; i++)
             {
-                var m = machine.InputSlot;
+                var m = machine.InputSlotWithoutNullItemStack;
                 Console.WriteLine(m[i].ToString()+" "+ansItem[i].ToString());
                 Assert.True(ansItem[i].Equals(m[i]));
             }
@@ -121,18 +121,18 @@ namespace Test.CombinedTest.Core
                 var machine = machineList[i];
                 var machineIoTest = recipes[i];
                 
-                Assert.False(machine.OutputSlot.Count <= 0);
+                Assert.False(machine.OutputSlotWithoutNullItemStack.Count <= 0);
 
-                for (int j = 0; j < machine.OutputSlot.Count; j++)
+                for (int j = 0; j < machine.OutputSlotWithoutNullItemStack.Count; j++)
                 {
-                    Assert.True(machineIoTest.output[j].Equals(machine.OutputSlot[j]));
+                    Assert.True(machineIoTest.output[j].Equals(machine.OutputSlotWithoutNullItemStack[j]));
                 }
                 
                 var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Id != ItemConst.NullItemId).ToList();
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
-                for (int j = 0; j < machine.InputSlot.Count; j++)
+                for (int j = 0; j < machine.InputSlotWithoutNullItemStack.Count; j++)
                 {
-                    Assert.True(inputRemainder[j].Equals(machine.InputSlot[j]));
+                    Assert.True(inputRemainder[j].Equals(machine.InputSlotWithoutNullItemStack[j]));
                 }
             }
             
@@ -153,7 +153,7 @@ namespace Test.CombinedTest.Core
                 var dummy = dummyBlockList[i];
                 var machineIoTest = recipes[i];
                 
-                Assert.True(machine.OutputSlot.Count == 0);
+                Assert.True(machine.OutputSlotWithoutNullItemStack.Count == 0);
 
                 for (int j = 0; j < machineIoTest.output.Count; j++)
                 {
@@ -164,7 +164,7 @@ namespace Test.CombinedTest.Core
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
                 for (int j = 0; j < inputRemainder.Count; j++)
                 {
-                    Assert.True(inputRemainder[j].Equals(machine.InputSlot[j]));
+                    Assert.True(inputRemainder[j].Equals(machine.InputSlotWithoutNullItemStack[j]));
                 }
             }
         }
@@ -231,9 +231,9 @@ namespace Test.CombinedTest.Core
                 
                 var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Id != ItemConst.NullItemId).ToList();
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
-                for (int j = 0; j < machine.InputSlot.Count; j++)
+                for (int j = 0; j < machine.InputSlotWithoutNullItemStack.Count; j++)
                 {
-                    Assert.True(inputRemainder[j].Equals(machine.InputSlot[j]));
+                    Assert.True(inputRemainder[j].Equals(machine.InputSlotWithoutNullItemStack[j]));
                 }
             }
         }

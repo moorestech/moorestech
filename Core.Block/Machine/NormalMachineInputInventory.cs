@@ -12,7 +12,7 @@ namespace Core.Block.Machine
     {
         private readonly int _blockId;
         private readonly List<IItemStack> _inputSlot;
-        public List<IItemStack> InputSlot 
+        public List<IItemStack> InputSlotWithoutNullItemStack 
         {
             get
             {
