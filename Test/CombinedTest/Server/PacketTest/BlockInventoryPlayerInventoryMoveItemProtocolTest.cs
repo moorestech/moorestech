@@ -94,7 +94,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //同じIDならそのまま足されるテスト
             //テスト用にブロックと同じアイテムIDを挿入
-            playerInventoryData.InsertItem(playerSlotIndex, ItemStackFactory.Create(2,3));
+            playerInventoryData.SetItem(playerSlotIndex, ItemStackFactory.Create(2,3));
             //プレイヤーからアイテム2つを移す
             packet.GetPacketResponse(CreateReplacePayload(0,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,2));
             
