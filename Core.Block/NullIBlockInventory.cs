@@ -19,6 +19,11 @@ namespace Core.Block
             return ItemStackFactory.CreatEmpty();
         }
 
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            
+        }
+
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
             return itemStack;

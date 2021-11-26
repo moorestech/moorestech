@@ -76,6 +76,22 @@ namespace PlayerInventory
 
             return MainInventory[index];
         }
-        
+
+        public void SetItem(int index, IItemStack itemStack)
+        {
+            if (index < 0 || index >= MainInventory.Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
+
+            MainInventory[index] = itemStack;
+        }
+
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack)
+        {
+            var result = MainInventory[slot].AddItem(itemStack);
+            MainInventory[slot] = result.ProcessResultItemStack;
+            return result.RemainderItemStack;
+        }
     }
 }

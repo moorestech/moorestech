@@ -55,6 +55,25 @@ namespace Core.Block.Machine
             return _normalMachineOutputInventory.OutputSlot[slot];
         }
 
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            if (slot < _normalMachineInputInventory.InputSlot.Count)
+            {
+                _normalMachineInputInventory.InputSlot[slot] = itemStack;
+            }
+            else
+            {
+                slot -= _normalMachineInputInventory.InputSlot.Count;
+                _normalMachineOutputInventory.OutputSlot[slot] = itemStack;
+            }
+        }
+
+        /// <summary>
+        /// アイテムの置き換えを実行しますが、同じアイテムIDの場合はそのまま現在のアイテムにスタックされ、スタックしきらなかったらその分を返します。
+        /// </summary>
+        /// <param name="slot"></param>
+        /// <param name="itemStack"></param>
+        /// <returns></returns>
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
             ItemProcessResult result;
