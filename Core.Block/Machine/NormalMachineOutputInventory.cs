@@ -21,6 +21,19 @@ namespace Core.Block.Machine
                 return a.ToList();
             }
         }
+        public List<IItemStack> OutputSlot
+        {
+            get
+            {
+                //アウトプットスロットをディープコピー
+                var a = new List<IItemStack>();
+                foreach (var itemStack in _outputSlot)
+                {
+                    a.Add(itemStack.Clone());
+                }
+                return a;
+            }
+        }
 
         public NormalMachineOutputInventory(int blockId, IBlockInventory connect)
         {
