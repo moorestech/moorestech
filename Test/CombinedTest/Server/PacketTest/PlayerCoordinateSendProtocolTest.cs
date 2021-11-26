@@ -26,7 +26,7 @@ namespace Test.CombinedTest.Server.PacketTest
         public void SimpleChunkResponseTest()
         {
             
-            var (packetResponse,serviceProvider) = PaketResponseCreatorCreator.Create();
+            var (packetResponse,serviceProvider) = PacketResponseCreatorGenerators.Create();
             //1回のレスポンスのテスト
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).ToList();
@@ -80,7 +80,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(2)]
         public void PlaceBlockToChunkResponseTest()
         {
-            var (packetResponse,serviceProvider) = PaketResponseCreatorCreator.Create();
+            var (packetResponse,serviceProvider) = PacketResponseCreatorGenerators.Create();
             var worldBlock = serviceProvider.GetService<WorldBlockDatastore>();
             
             var random = new Random(13944156);
@@ -122,7 +122,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(3)]
         public void RandomPlaceBlockToChunkResponseTest()
         {
-            var (packetResponse,serviceProvider) = PaketResponseCreatorCreator.Create();
+            var (packetResponse,serviceProvider) = PacketResponseCreatorGenerators.Create();
             var worldBlock = serviceProvider.GetService<WorldBlockDatastore>();
 
             var random = new Random(13944156);

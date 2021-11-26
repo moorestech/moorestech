@@ -15,7 +15,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void SimpleBlockPlaceTest()
         {
-            var (packetResponse,serviceProvider) = PaketResponseCreatorCreator.Create();
+            var (packetResponse,serviceProvider) = PacketResponseCreatorGenerators.Create();
             var worldBlock = serviceProvider.GetService<WorldBlockDatastore>();
             
             packetResponse.GetPacketResponse(BlockPlace(1, 0, 0));

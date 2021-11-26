@@ -23,7 +23,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             var eventProtocol = new EventProtocolProvider();
             new RegisterSendClientEvents(blockPlace,eventProtocol);
-            var (packetResponse,serviceProvider) = PaketResponseCreatorCreator.Create();
+            var (packetResponse,serviceProvider) = PacketResponseCreatorGenerators.Create();
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(response.Count,0);
         }
@@ -32,7 +32,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Test]
         public void BlockPlaceEvent()
         {
-            var (packetResponse,serviceProvider) = PaketResponseCreatorCreator.Create();
+            var (packetResponse,serviceProvider) = PacketResponseCreatorGenerators.Create();
             var blockPlace = serviceProvider.GetService<BlockPlaceEvent>();
             var eventProtocol = serviceProvider.GetService<EventProtocolProvider>();
             new RegisterSendClientEvents(blockPlace,eventProtocol);

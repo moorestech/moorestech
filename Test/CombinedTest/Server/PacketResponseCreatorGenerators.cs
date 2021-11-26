@@ -9,7 +9,7 @@ using World.Event;
 
 namespace Test.CombinedTest.Server
 {
-    internal class PaketResponseCreatorCreator
+    internal static class PacketResponseCreatorGenerators
     {
         public static (PacketResponseCreator,ServiceProvider) Create()
         {

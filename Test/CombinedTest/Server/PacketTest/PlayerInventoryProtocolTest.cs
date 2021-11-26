@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using Server.PacketHandle;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
