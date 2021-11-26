@@ -73,6 +73,11 @@ namespace Core.Item.Implementation
                    item.Amount + Amount <=tmpStack;
         }
 
+        public IItemStack Clone()
+        {
+            return ItemStackFactory.Create(Id,Amount);
+        }
+
         public override bool Equals(object? obj)
         {
             if (typeof(ItemStack) != obj.GetType()) return false;

@@ -25,6 +25,12 @@ namespace Core.Item.Implementation
         {
             return true;
         }
+
+        public IItemStack Clone()
+        {
+            return ItemStackFactory.CreatEmpty();
+        }
+
         public override bool Equals(object? obj)
         {
             if (typeof(NullItemStack) != obj.GetType()) return false;

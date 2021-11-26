@@ -9,5 +9,6 @@ namespace Core.Item
         ItemProcessResult AddItem(IItemStack receiveItemStack);
         IItemStack SubItem(int subAmount);
         bool IsAllowedToAdd(IItemStack item);
+        IItemStack Clone();
     }
 }
