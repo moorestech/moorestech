@@ -89,9 +89,22 @@ namespace PlayerInventory
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
-            var result = MainInventory[slot].AddItem(itemStack);
-            MainInventory[slot] = result.ProcessResultItemStack;
-            return result.RemainderItemStack;
+            if (slot < 0 || slot >= MainInventory.Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
+            //アイテムIDが同じの時はスタックして余ったものを返す
+            var item = MainInventory[slot];
+            if (item.Id == itemStack.Id)
+            {
+                var result = item.AddItem(itemStack);
+                MainInventory[slot] = result.ProcessResultItemStack;
+                return result.RemainderItemStack;
+            }
+
+            //違う場合はそのまま入れ替える
+            MainInventory[slot] = itemStack;
+            return item;
         }
     }
 }
