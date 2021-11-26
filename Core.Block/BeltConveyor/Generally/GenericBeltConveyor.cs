@@ -72,9 +72,9 @@ namespace Core.Block.BeltConveyor.Generally
             return ItemStackFactory.Create(_inventoryItems[slot].ItemId,1);
         }
 
-        public void SetItem(int slot, IItemStack itemStack)
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
-            _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.);
+            throw new Exception("ベルトコンベアでアイテムのリプレイスは出来ません");
         }
 
         /// <summary>
