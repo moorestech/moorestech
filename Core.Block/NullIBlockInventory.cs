@@ -19,7 +19,7 @@ namespace Core.Block
             throw new System.NotImplementedException();
         }
 
-        public void SetItem(int slot, IItemStack itemStack)
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
             throw new System.NotImplementedException();
         }

@@ -30,8 +30,7 @@ namespace Core.Block.BeltConveyor.Generally
             GameUpdate.AddUpdateObject(this);
         }
 
-        public IItemStack 
-        InsertItem(IItemStack itemStack)
+        public IItemStack InsertItem(IItemStack itemStack)
         {
             //新しく挿入可能か
             if (1 <= _inventoryItems.Count && _inventoryItems.Count < _inventoryItemNum &&
@@ -70,12 +69,12 @@ namespace Core.Block.BeltConveyor.Generally
 
         public IItemStack GetItem(int slot)
         {
-            throw new NotImplementedException();
+            return ItemStackFactory.Create(_inventoryItems[slot].ItemId,1);
         }
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            throw new NotImplementedException();
+            _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.);
         }
 
         /// <summary>
