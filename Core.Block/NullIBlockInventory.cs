@@ -13,5 +13,15 @@ namespace Core.Block
         {
             
         }
+
+        public IItemStack GetItem(int slot)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

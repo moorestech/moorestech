@@ -68,6 +68,16 @@ namespace Core.Block.BeltConveyor.Generally
             _connector = blockInventory;
         }
 
+        public IItemStack GetItem(int slot)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// アイテムの搬出判定を行う
         /// 判定はUpdateで毎フレーム行われる

@@ -53,6 +53,16 @@ namespace Test.Util
         public void ChangeConnector(IBlockInventory blockInventory)
         {
         }
+
+        public IItemStack GetItem(int slot)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 
     public class DummyBlockInventoryTest
