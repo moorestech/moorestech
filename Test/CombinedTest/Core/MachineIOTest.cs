@@ -82,7 +82,7 @@ namespace Test.CombinedTest.Core
             var recipes = MachineIoGenerate.MachineIoTestCase(RecipeGenerate.MakeRecipe(seed,recipeNum), seed);
             
             
-            var machineList = new List<GeneralMachine>();
+            var machineList = new List<NormalMachine>();
             var MaxDateTime = DateTime.Now;
             
             //機械の作成とアイテムの挿入
@@ -178,7 +178,7 @@ namespace Test.CombinedTest.Core
             var recipes = MachineIoGenerate.MachineIoTestCase(RecipeGenerate.MakeRecipe(seed,recipeNum), seed);
             
             
-            var machineList = new List<GeneralMachine>();
+            var machineList = new List<NormalMachine>();
             var dummyBlockList = new List<DummyBlockInventory>();
             var MaxDateTime = DateTime.Now;
             

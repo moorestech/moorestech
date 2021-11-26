@@ -129,7 +129,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //ブロックの設置
             for (int i = 0; i < 1000; i++)
             {
-                GeneralMachine b = null;
+                NormalMachine b = null;
                 if (random.Next(0, 3) == 1)
                 {
                     b = NormalMachineFactory.Create(random.Next(short.MaxValue, int.MaxValue), IntId.NewIntId(), new NullIBlockInventory());

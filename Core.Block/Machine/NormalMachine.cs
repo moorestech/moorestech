@@ -6,7 +6,7 @@ using Core.Update;
 
 namespace Core.Block.Machine
 {
-    public class GeneralMachine : IBlock,IBlockInventory,IUpdate,IBlockElectric
+    public class NormalMachine : IBlock,IBlockInventory,IUpdate,IBlockElectric
     {
         private readonly NormalMachineInputInventory _normalMachineInputInventory;
         private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
@@ -17,7 +17,7 @@ namespace Core.Block.Machine
         private readonly int _blockId;
         private readonly int _intId;
         
-        public GeneralMachine(int blockId, int intId,
+        public NormalMachine(int blockId, int intId,
             NormalMachineInputInventory normalMachineInputInventory,
             NormalMachineOutputInventory normalMachineOutputInventory )
         {
