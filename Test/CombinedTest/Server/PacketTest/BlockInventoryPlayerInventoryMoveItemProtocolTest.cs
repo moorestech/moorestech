@@ -47,8 +47,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //ブロックインベントリからプレイヤーインベントリへアイテムを移す
             packet.GetPacketResponse(CreateReplacePayload(1,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,5));
             //実際に移動できたか確認
-            Assert.AreEqual(ItemConst.NullItemId,block.InputSlot[blockInventorySlotIndex].Id);
-            Assert.AreEqual(0,block.InputSlot[blockInventorySlotIndex].Amount);
+            Assert.AreEqual(0,block.InputSlot.Count);
             Assert.AreEqual(1,playerInventoryData.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(5,playerInventoryData.GetItem(playerSlotIndex).Amount);
             
