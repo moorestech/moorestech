@@ -102,6 +102,8 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(5,block.InputSlotWithoutNullItemStack[blockInventorySlotIndex].Amount);
             Assert.AreEqual(2,playerInventoryData.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(1,playerInventoryData.GetItem(playerSlotIndex).Amount);
+            
+            //TODO アイテムスタック数以上のアイテムを入れたときに戻されるテスト
         }
 
         private List<byte> CreateReplacePayload(short blockToPlayerFlag,int playerId,int playerSlotIndex,int x,int y,int blockSlotIndex,int moveItemNum)
