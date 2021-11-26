@@ -76,5 +76,10 @@ namespace Core.Block.Machine
                 }
             }
         }
+
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            _inputSlot[slot] = itemStack;
+        }
     }
 }

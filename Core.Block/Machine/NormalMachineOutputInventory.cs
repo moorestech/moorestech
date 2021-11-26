@@ -79,5 +79,10 @@ namespace Core.Block.Machine
         {
             InsertConnectInventory();
         }
+
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            _outputSlot[slot] = itemStack;
+        }
     }
 }

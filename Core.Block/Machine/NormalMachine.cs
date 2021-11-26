@@ -59,12 +59,12 @@ namespace Core.Block.Machine
         {
             if (slot < _normalMachineInputInventory.InputSlot.Count)
             {
-                _normalMachineInputInventory.InputSlot[slot] = itemStack;
+                _normalMachineInputInventory.SetItem(slot,itemStack);
             }
             else
             {
                 slot -= _normalMachineInputInventory.InputSlot.Count;
-                _normalMachineOutputInventory.OutputSlot[slot] = itemStack;
+                _normalMachineOutputInventory.SetItem(slot, itemStack);
             }
         }
 
@@ -80,13 +80,13 @@ namespace Core.Block.Machine
             if (slot < _normalMachineInputInventory.InputSlot.Count)
             {
                 result = _normalMachineInputInventory.InputSlot[slot].AddItem(itemStack);
-                _normalMachineInputInventory.InputSlot[slot] = result.ProcessResultItemStack;
+                _normalMachineInputInventory.SetItem(slot,result.ProcessResultItemStack);
                 return result.RemainderItemStack;
             }
             
             slot -= _normalMachineInputInventory.InputSlot.Count;
             result = _normalMachineOutputInventory.OutputSlot[slot].AddItem(itemStack);
-            _normalMachineOutputInventory.OutputSlot[slot] = result.ProcessResultItemStack;
+            _normalMachineOutputInventory.SetItem(slot,result.ProcessResultItemStack);
             return result.RemainderItemStack;
         }
 
