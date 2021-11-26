@@ -92,13 +92,24 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(block.InputSlot[blockInventorySlotIndex].Amount,3);
             Assert.AreEqual(playerInventoryData.GetItem(playerSlotIndex).Id,1);
             Assert.AreEqual(playerInventoryData.GetItem(playerSlotIndex).Amount,5);
+            
+            //同じIDならそのまま足されるテスト
+            //テスト用にブロックと同じアイテムIDを挿入
+            playerInventoryData.InsertItem(playerSlotIndex, ItemStackFactory.Create(2,3));
+            //プレイヤーからアイテム2つを移す
+            packet.GetPacketResponse(CreateReplacePayload(0,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,2));
+            
+            Assert.AreEqual(block.InputSlot[blockInventorySlotIndex].Id,2);
+            Assert.AreEqual(block.InputSlot[blockInventorySlotIndex].Amount,5);
+            Assert.AreEqual(playerInventoryData.GetItem(playerSlotIndex).Id,2);
+            Assert.AreEqual(playerInventoryData.GetItem(playerSlotIndex).Amount,1);
         }
 
-        private List<byte> CreateReplacePayload(short playerToBlockFlag,int playerId,int playerSlotIndex,int x,int y,int blockSlotIndex,int moveItemNum)
+        private List<byte> CreateReplacePayload(short blockToPlayerFlag,int playerId,int playerSlotIndex,int x,int y,int blockSlotIndex,int moveItemNum)
         {
             var payload = new List<byte>();
             payload.AddRange(ByteListConverter.ToByteArray((short)3));
-            payload.AddRange(ByteListConverter.ToByteArray(playerToBlockFlag)); //ブロック→プレイヤーのフラグ
+            payload.AddRange(ByteListConverter.ToByteArray(blockToPlayerFlag)); //ブロック→プレイヤーのフラグ
             payload.AddRange(ByteListConverter.ToByteArray(playerId));
             payload.AddRange(ByteListConverter.ToByteArray(playerSlotIndex)); //プレイヤーインベントリの移動先スロット
             payload.AddRange(ByteListConverter.ToByteArray(x)); //ブロックX座標
