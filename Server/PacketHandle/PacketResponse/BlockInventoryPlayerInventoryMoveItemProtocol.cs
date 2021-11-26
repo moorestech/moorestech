@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using PlayerInventory;
 using Server.Util;
 using World;
 
@@ -7,10 +8,12 @@ namespace Server.PacketHandle.PacketResponse
     public class BlockInventoryPlayerInventoryMoveItemProtocol : IPacketResponse
     {
         private WorldBlockDatastore _worldBlockDatastore;
+        private PlayerInventoryDataStore _playerInventoryDataStore;
 
-        public BlockInventoryPlayerInventoryMoveItemProtocol(WorldBlockDatastore worldBlockDatastore)
+        public BlockInventoryPlayerInventoryMoveItemProtocol(WorldBlockDatastore worldBlockDatastore, PlayerInventoryDataStore playerInventoryDataStore)
         {
             _worldBlockDatastore = worldBlockDatastore;
+            _playerInventoryDataStore = playerInventoryDataStore;
         }
 
         public List<byte[]> GetResponse(List<byte> payload)

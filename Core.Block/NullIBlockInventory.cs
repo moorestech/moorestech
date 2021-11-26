@@ -13,5 +13,10 @@ namespace Core.Block
         {
             
         }
+
+        public IItemStack ReplaceItem(int index, IItemStack itemStack)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

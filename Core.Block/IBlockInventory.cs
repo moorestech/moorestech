@@ -6,5 +6,6 @@ namespace Core.Block
     {
         public IItemStack InsertItem(IItemStack itemStack);
         public void ChangeConnector(IBlockInventory blockInventory);
+        public IItemStack ReplaceItem(int index, IItemStack itemStack);
     }
 }

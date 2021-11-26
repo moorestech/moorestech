@@ -39,11 +39,18 @@ namespace World
         }
         public IBlock GetBlock(int intId) { return _blockMasterDictionary.ContainsKey(intId) ? _blockMasterDictionary[intId].Block : _nullBlock; }
         public IBlockInventory GetBlockInventory(int intId) { return _blockMasterDictionary.ContainsKey(intId) ? _blockMasterDictionary[intId].BlockInventory : new NullIBlockInventory(); }
+        public IBlockInventory GetBlockInventory(int x, int y) { return GetBlockInventory(GetIntId(x, y));}
         public IBlock GetBlock(int x,int y)
         {
             var c = CoordinateCreator.New(x,y);
             if (_coordinateDictionary.ContainsKey(c)) return _blockMasterDictionary[_coordinateDictionary[c]].Block;
             return _nullBlock;
+        }
+        public int GetIntId(int x, int y)
+        {
+            var c = CoordinateCreator.New(x,y);
+            if (_coordinateDictionary.ContainsKey(c)) return _coordinateDictionary[c];
+            return Int32.MaxValue;
         }
     }
 }

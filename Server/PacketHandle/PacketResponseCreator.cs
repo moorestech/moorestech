@@ -21,7 +21,7 @@ namespace Server.PacketHandle
             _packetResponseList.Add(new PlayerCoordinateSendProtocol(serviceProvider.GetService<WorldBlockDatastore>()));
             _packetResponseList.Add(new PlayerInventoryResponseProtocol(serviceProvider.GetService<PlayerInventoryDataStore>()));
             _packetResponseList.Add(new SendEventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
-            _packetResponseList.Add(new BlockInventoryPlayerInventoryMoveItemProtocol(serviceProvider.GetService<WorldBlockDatastore>()));
+            _packetResponseList.Add(new BlockInventoryPlayerInventoryMoveItemProtocol(serviceProvider.GetService<WorldBlockDatastore>(),serviceProvider.GetService<PlayerInventoryDataStore>()));
         }
 
         public List<byte[]> GetPacketResponse(List<byte> payload)
