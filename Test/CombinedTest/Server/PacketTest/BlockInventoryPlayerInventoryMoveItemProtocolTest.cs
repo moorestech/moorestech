@@ -108,7 +108,7 @@ namespace Test.CombinedTest.Server.PacketTest
         private List<byte> CreateReplacePayload(short blockToPlayerFlag,int playerId,int playerSlotIndex,int x,int y,int blockSlotIndex,int moveItemNum)
         {
             var payload = new List<byte>();
-            payload.AddRange(ByteListConverter.ToByteArray((short)3));
+            payload.AddRange(ByteListConverter.ToByteArray((short)5));
             payload.AddRange(ByteListConverter.ToByteArray(blockToPlayerFlag)); //ブロック→プレイヤーのフラグ
             payload.AddRange(ByteListConverter.ToByteArray(playerId));
             payload.AddRange(ByteListConverter.ToByteArray(playerSlotIndex)); //プレイヤーインベントリの移動先スロット
