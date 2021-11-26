@@ -21,6 +21,20 @@ namespace Core.Block.Machine
                 return a.ToList();
             }
         }
+        
+        public List<IItemStack> InputSlot
+        {
+            get
+            {
+                //アウトプットスロットをディープコピー
+                var a = new List<IItemStack>();
+                foreach (var itemStack in _inputSlot)
+                {
+                    a.Add(itemStack.Clone());
+                }
+                return a;
+            }
+        }
 
         public NormalMachineInputInventory(int BlockId)
         {
