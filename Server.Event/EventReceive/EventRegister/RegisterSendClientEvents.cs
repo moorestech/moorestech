@@ -9,6 +9,7 @@ namespace Server.Event.EventReceive.EventRegister
         public RegisterSendClientEvents(BlockPlaceEvent blockPlaceEvent,EventProtocolProvider eventProtocolProvider)
         {
             new ReceivePlaceBlockEvent(blockPlaceEvent,eventProtocolProvider);
+            new ReceiveInventoryUpdateEvent();
         }
     }
 }
