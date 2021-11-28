@@ -7,11 +7,11 @@ namespace Server.Event.EventReceive
     public class ReceivePlaceBlockEvent
     {
         private const short EventId = 0;
-        readonly private EventProtocolProvider _eventProtocolProvider;
+        private readonly EventProtocolProvider _eventProtocolProvider;
 
         public ReceivePlaceBlockEvent(BlockPlaceEvent blockPlaceEvent,EventProtocolProvider eventProtocolProvider)
         {
-            blockPlaceEvent.Subscribe(ReceivedEvent);
+            blockPlaceEvent.OnBlockPutEvent += ReceivedEvent;
             _eventProtocolProvider = eventProtocolProvider;
         }
 

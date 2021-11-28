@@ -5,10 +5,7 @@ namespace World.Event
     public class BlockPlaceEvent
     {
         public delegate void PutBlockEvent(BlockPlaceEventProperties blockPlaceEventProperties);
-        private event PutBlockEvent OnBlockPutEvent;
-
-        public void Subscribe(PutBlockEvent @event) { OnBlockPutEvent += @event; }
-        public void UnSubscribe(PutBlockEvent @event) { OnBlockPutEvent -= @event; }
+        public event PutBlockEvent OnBlockPutEvent;
 
         internal void OnBlockPutEventInvoke(BlockPlaceEventProperties blockPlaceEventProperties)
         {

@@ -6,6 +6,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Core\Core.csproj" />
+      <ProjectReference Include="..\Game.PlayerInventory\Game.PlayerInventory.csproj" />
       <ProjectReference Include="..\Server.Util\Server.Util.csproj" />
       <ProjectReference Include="..\Game.World\Game.World.csproj" />
     </ItemGroup>
