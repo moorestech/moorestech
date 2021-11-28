@@ -9,7 +9,7 @@ using World.Event;
 
 namespace Server
 {
-    public static class PacketResponseCreatorGenerators
+    public static class PacketResponseCreatorDiContainerGenerators
     {
         public static (PacketResponseCreator,ServiceProvider) Create()
         {

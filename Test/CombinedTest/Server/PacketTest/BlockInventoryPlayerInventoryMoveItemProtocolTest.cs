@@ -26,7 +26,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //初期設定----------------------------------------------------------
             
-            var (packet, serviceProvider) = PacketResponseCreatorGenerators.Create();
+            var (packet, serviceProvider) = PacketResponseCreatorDiContainerGenerators.Create();
             //ブロックの設置
             var blockDataStore = serviceProvider.GetService<WorldBlockDatastore>();
             var block = NormalMachineFactory.Create(1,1,new NullIBlockInventory());

@@ -18,7 +18,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         //TODO これをグリーンにする
         public void UpdateTest()
         {
-            var (packetResponse,serviceProvider) = PacketResponseCreatorGenerators.Create();
+            var (packetResponse,serviceProvider) = PacketResponseCreatorDiContainerGenerators.Create();
 
             var response =  packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(0,response.Count);
