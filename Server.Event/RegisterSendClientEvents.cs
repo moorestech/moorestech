@@ -1,3 +1,4 @@
+using PlayerInventory.Event;
 using Server.Event.EventReceive;
 using World.Event;
 
@@ -7,10 +8,10 @@ namespace Server.Event
     //インスタンスは生成させたら自動で各種イベントに登録される
     public class RegisterSendClientEvents
     {
-        public RegisterSendClientEvents(BlockPlaceEvent blockPlaceEvent,EventProtocolProvider eventProtocolProvider)
+        public RegisterSendClientEvents(BlockPlaceEvent blockPlaceEvent,EventProtocolProvider eventProtocolProvider,PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
         {
             new ReceivePlaceBlockEvent(blockPlaceEvent,eventProtocolProvider);
-            new ReceiveInventoryUpdateEvent();
+            new ReceiveInventoryUpdateEvent(playerInventoryUpdateEvent,eventProtocolProvider);
         }
     }
 }
