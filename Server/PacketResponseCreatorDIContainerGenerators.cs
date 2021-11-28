@@ -32,6 +32,10 @@ namespace Server
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
             
+            //イベントをインスタンス化する
+            serviceProvider.GetService<ReceiveInventoryUpdateEvent>();
+            serviceProvider.GetService<ReceivePlaceBlockEvent>();
+            
             return (packetResponse,serviceProvider);
         }
     }
