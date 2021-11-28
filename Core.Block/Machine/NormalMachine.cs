@@ -7,6 +7,11 @@ using Core.Update;
 
 namespace Core.Block.Machine
 {
+    /// <summary>
+    /// 「機械」というオブジェクト(ドメイン)事態の責務が大きすぎて、クラス自体の責務も大きくなってしまっているう
+    /// 単純に別のクラスに分けるのも手かも知れないが、本質的な解決になるのだろうか？
+    /// 現状箱のままにしておくが、今後機械関係のクラスに修正をする場合、この機械のクラス全体をリファクタする必要があるような気がする
+    /// </summary>
     public class NormalMachine : IBlock,IBlockInventory,IUpdate,IBlockElectric
     {
         private readonly NormalMachineInputInventory _normalMachineInputInventory;
