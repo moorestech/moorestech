@@ -11,18 +11,8 @@ namespace Server
     {
         public static void Main(string[] args)
         {
-            
-            var services = new ServiceCollection();
-            services.AddSingleton<BlockPlaceEvent,BlockPlaceEvent>();
-            services.AddSingleton<EventProtocolProvider,EventProtocolProvider>();
-            services.AddSingleton<RegisterSendClientEvents,RegisterSendClientEvents>();
-            services.AddSingleton<WorldBlockDatastore,WorldBlockDatastore>();
-            services.AddSingleton<PlayerInventoryDataStore,PlayerInventoryDataStore>();
-            var serviceProvider = services.BuildServiceProvider();
-            var packetResponseCreator = new PacketResponseCreator(serviceProvider);
-            
-            
-            new PacketHandler().StartServer(packetResponseCreator);
+            var (packet,_) = PacketResponseCreatorGenerators.Create();
+            new PacketHandler().StartServer(packet);
         }
     }
 }

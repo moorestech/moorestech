@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
+using Server;
 using Server.Event;
 using Server.PacketHandle;
 using Server.Util;
@@ -21,7 +22,6 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var blockPlace = new BlockPlaceEvent();
             
             var eventProtocol = new EventProtocolProvider();
-            new RegisterSendClientEvents(blockPlace,eventProtocol);
             var (packetResponse,serviceProvider) = PacketResponseCreatorGenerators.Create();
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(response.Count,0);
@@ -34,7 +34,6 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var (packetResponse,serviceProvider) = PacketResponseCreatorGenerators.Create();
             var blockPlace = serviceProvider.GetService<BlockPlaceEvent>();
             var eventProtocol = serviceProvider.GetService<EventProtocolProvider>();
-            new RegisterSendClientEvents(blockPlace,eventProtocol);
             
             //イベントキューにIDを登録する
             //詳細はコメントに記述

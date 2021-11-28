@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
+using Server;
 using Server.Event;
 using Server.PacketHandle;
 using Server.Util;

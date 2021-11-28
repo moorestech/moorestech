@@ -9,6 +9,7 @@ using Core.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
+using Server;
 using Server.Const;
 using Server.Event;
 using Server.PacketHandle;

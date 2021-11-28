@@ -5,6 +5,7 @@ using Core.Item.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
+using Server;
 using Server.Event;
 using Server.Util;
 using World.Event;
@@ -18,7 +19,6 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         public void UpdateTest()
         {
             var (packetResponse,serviceProvider) = PacketResponseCreatorGenerators.Create();
-            new RegisterSendClientEvents(serviceProvider.GetService<BlockPlaceEvent>(),serviceProvider.GetService<EventProtocolProvider>());
 
             var response =  packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(0,response.Count);

@@ -9,6 +9,7 @@ using Core.Item.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
+using Server;
 using Server.Util;
 using World;
 
