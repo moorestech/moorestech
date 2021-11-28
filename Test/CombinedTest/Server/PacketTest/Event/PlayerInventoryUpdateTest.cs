@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
 using Server.Event;
-using Server.Event.EventReceive.EventRegister;
 using Server.Util;
 using World.Event;
 
@@ -15,6 +14,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
     public class PlayerInventoryUpdateTest
     {
         [Test]
+        //TODO これをグリーンにする
         public void UpdateTest()
         {
             var (packetResponse,serviceProvider) = PacketResponseCreatorGenerators.Create();

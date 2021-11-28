@@ -2,7 +2,6 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using PlayerInventory;
 using Server.Event;
-using Server.Event.EventReceive.EventRegister;
 using Server.PacketHandle;
 using World;
 using World.Event;

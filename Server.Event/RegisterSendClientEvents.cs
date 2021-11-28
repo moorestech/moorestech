@@ -1,6 +1,7 @@
+using Server.Event.EventReceive;
 using World.Event;
 
-namespace Server.Event.EventReceive.EventRegister
+namespace Server.Event
 {
     //必要なイベントのインスタンスをまとめて生成する
     //インスタンスは生成させたら自動で各種イベントに登録される
