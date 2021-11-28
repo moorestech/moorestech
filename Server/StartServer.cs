@@ -11,7 +11,7 @@ namespace Server
     {
         public static void Main(string[] args)
         {
-            var (packet,_) = PacketResponseCreatorDiContainerGenerators.Create();
+            var (packet,_) = new PacketResponseCreatorDiContainerGenerators().Create();
             new PacketHandler().StartServer(packet);
         }
     }

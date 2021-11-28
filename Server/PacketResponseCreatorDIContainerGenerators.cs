@@ -9,9 +9,9 @@ using World.Event;
 
 namespace Server
 {
-    public static class PacketResponseCreatorDiContainerGenerators
+    public class PacketResponseCreatorDiContainerGenerators
     {
-        public static (PacketResponseCreator,ServiceProvider) Create()
+        public (PacketResponseCreator,ServiceProvider) Create()
         {
             
             var services = new ServiceCollection();

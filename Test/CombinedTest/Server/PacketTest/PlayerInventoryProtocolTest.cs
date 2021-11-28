@@ -18,7 +18,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             int playerId = 1;
             
-            var (packet, serviceProvider) = PacketResponseCreatorDiContainerGenerators.Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             
             
             //1回目のデータ要求
