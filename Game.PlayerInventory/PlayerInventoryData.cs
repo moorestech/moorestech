@@ -43,6 +43,7 @@ namespace PlayerInventory
                 return ItemStackFactory.CreatEmpty();
             }
             
+            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(PlayerId,slot,MainInventory[slot]));
             return itemStack;
         }
         
@@ -55,6 +56,8 @@ namespace PlayerInventory
 
             var result = MainInventory[slot].SubItem(count);
             MainInventory[slot] = result;
+            
+            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(PlayerId,slot,MainInventory[slot]));
             return ItemStackFactory.Create(MainInventory[slot].Id,count);
         }
         
@@ -67,6 +70,8 @@ namespace PlayerInventory
             }
             var result = MainInventory[slot].SubItem(1);
             MainInventory[slot] = result;
+            
+            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(PlayerId,slot,MainInventory[slot]));
             return ItemStackFactory.Create(MainInventory[slot].Id, 1);
         }
         
@@ -87,6 +92,7 @@ namespace PlayerInventory
                 throw new IndexOutOfRangeException();
             }
 
+            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(PlayerId,slot,MainInventory[slot]));
             MainInventory[slot] = itemStack;
         }
 
@@ -107,6 +113,7 @@ namespace PlayerInventory
 
             //違う場合はそのまま入れ替える
             MainInventory[slot] = itemStack;
+            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(PlayerId,slot,MainInventory[slot]));
             return item;
         }
     }

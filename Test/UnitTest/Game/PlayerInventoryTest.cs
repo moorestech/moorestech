@@ -5,6 +5,7 @@ using Core.Item.Implementation;
 using Core.Item.Util;
 using NUnit.Framework;
 using PlayerInventory;
+using PlayerInventory.Event;
 
 namespace Test.UnitTest.Game
 {
@@ -13,7 +14,7 @@ namespace Test.UnitTest.Game
         [Test]
         public void InsertToGetTest()
         {
-            var playerInventory = new PlayerInventoryData(0);
+            var playerInventory = new PlayerInventoryData(0,new PlayerInventoryUpdateEvent());
             int id = 5;
             var amount = ItemConfig.GetItemConfig(id).Stack;
             //Insert test
@@ -52,7 +53,7 @@ namespace Test.UnitTest.Game
         [Test]
         public void UseHotBarTest()
         {
-            var playerInventory = new PlayerInventoryData(0);
+            var playerInventory = new PlayerInventoryData(0,new PlayerInventoryUpdateEvent());
             int id = 5;
             int amount = 3;
             int slot = 27;
