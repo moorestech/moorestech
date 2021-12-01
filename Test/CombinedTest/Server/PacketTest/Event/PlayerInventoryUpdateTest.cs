@@ -39,7 +39,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             //チェック
             var byteData = new ByteArrayEnumerator(response[0].ToList());
             byteData.MoveNextToGetShort();
-            Assert.AreEqual(2,byteData.MoveNextToGetShort());
+            Assert.AreEqual(1,byteData.MoveNextToGetShort());
             Assert.AreEqual(5,byteData.MoveNextToGetInt());
             Assert.AreEqual(1,byteData.MoveNextToGetInt());
             Assert.AreEqual(5,byteData.MoveNextToGetInt());
