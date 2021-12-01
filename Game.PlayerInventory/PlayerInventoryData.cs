@@ -92,8 +92,8 @@ namespace PlayerInventory
                 throw new IndexOutOfRangeException();
             }
 
-            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(PlayerId,slot,MainInventory[slot]));
             MainInventory[slot] = itemStack;
+            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(PlayerId,slot,MainInventory[slot]));
         }
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
