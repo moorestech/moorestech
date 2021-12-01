@@ -17,6 +17,7 @@ using Server.Util;
 using World;
 using World.Event;
 using World.Util;
+using IntId = World.IntId;
 
 namespace Test.CombinedTest.Server.PacketTest
 {

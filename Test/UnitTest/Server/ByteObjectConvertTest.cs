@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Core.Util;
 using NUnit.Framework;
 using Server.Util;
+using World;
+using IntId = World.IntId;
 
 namespace Test.UnitTest.Server
 {

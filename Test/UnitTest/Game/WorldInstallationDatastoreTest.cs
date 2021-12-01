@@ -5,6 +5,7 @@ using Core.Util;
 using NUnit.Framework;
 using World;
 using World.Event;
+using IntId = World.IntId;
 
 namespace Test.UnitTest.Game
 {

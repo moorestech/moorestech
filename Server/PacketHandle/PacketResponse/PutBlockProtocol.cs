@@ -4,6 +4,7 @@ using Core.Block.Machine.util;
 using Core.Util;
 using Server.Util;
 using World;
+using IntId = World.IntId;
 
 namespace Server.PacketHandle.PacketResponse
 {

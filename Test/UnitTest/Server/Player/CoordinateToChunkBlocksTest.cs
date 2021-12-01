@@ -9,6 +9,7 @@ using Server.PacketHandle.PacketResponse.Player;
 using World;
 using World.Event;
 using World.Util;
+using IntId = World.IntId;
 
 namespace Test.UnitTest.Server.Player
 {

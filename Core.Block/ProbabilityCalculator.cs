@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Core.Util
+namespace Core.Block
 {
     public static class ProbabilityCalculator
     {

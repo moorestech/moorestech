@@ -1,7 +1,5 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{C31B62F2-71AB-4F7F-9C42-8D20D873F75E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.World", "Game.World\Game.World.csproj", "{407B0D28-2DCD-4ED0-BD2C-4254E1297A37}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{9AFE0665-CC93-483E-A81E-869F00423F69}"
@@ -29,6 +27,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Electric", "Core.Electric\Core.Electric.csproj", "{9C2A2B7F-EDEF-4497-8576-0C9157D40CF8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{6D142E32-204D-41A7-B121-423F9A073676}"
+ProjectSection(SolutionItems) = preProject
+	class diagram.drawio = class diagram.drawio
+	class diagram.puml = class diagram.puml
+EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Block", "Block", "{C0EAA04D-2C4C-4EED-9AEF-B00D7BB450CA}"
 EndProject
@@ -44,10 +46,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C31B62F2-71AB-4F7F-9C42-8D20D873F75E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C31B62F2-71AB-4F7F-9C42-8D20D873F75E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C31B62F2-71AB-4F7F-9C42-8D20D873F75E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C31B62F2-71AB-4F7F-9C42-8D20D873F75E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{407B0D28-2DCD-4ED0-BD2C-4254E1297A37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{407B0D28-2DCD-4ED0-BD2C-4254E1297A37}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{407B0D28-2DCD-4ED0-BD2C-4254E1297A37}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -106,7 +104,6 @@ Global
 		{79CDD544-4E7E-4C86-A0BE-3D88C6254714}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{C31B62F2-71AB-4F7F-9C42-8D20D873F75E} = {6D142E32-204D-41A7-B121-423F9A073676}
 		{A0A2C6F4-AAA1-430C-8DAF-034CF14D192E} = {6D142E32-204D-41A7-B121-423F9A073676}
 		{9C2A2B7F-EDEF-4497-8576-0C9157D40CF8} = {6D142E32-204D-41A7-B121-423F9A073676}
 		{A9AD78E3-165B-48F4-927F-AC7EFEBD7595} = {6D142E32-204D-41A7-B121-423F9A073676}

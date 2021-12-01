@@ -1,4 +1,4 @@
-namespace Core.Util
+namespace Server.Event
 {
     public static class ListDeepCopy
     {

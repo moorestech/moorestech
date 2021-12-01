@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Core.Util
+namespace World
 {
     public static class IntId
     {
