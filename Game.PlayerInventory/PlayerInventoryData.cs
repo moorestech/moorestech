@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Inventory;
 using Core.Item;
 using Core.Item.Implementation;
 using Core.Item.Util;
@@ -7,7 +8,7 @@ using PlayerInventory.Event;
 
 namespace PlayerInventory
 {
-    public class PlayerInventoryData
+    public class PlayerInventoryData : IInventory
     {
         public readonly int PlayerId;
         private readonly List<IItemStack> MainInventory;

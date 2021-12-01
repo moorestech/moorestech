@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Core.Block.RecipeConfig.Data;
 using Core.Electric;
+using Core.Inventory;
 using Core.Item;
 using Core.Item.Util;
 using Core.Update;
@@ -12,7 +13,7 @@ namespace Core.Block.Machine
     /// 単純に別のクラスに分けるのも手かも知れないが、本質的な解決になるのだろうか？
     /// 現状箱のままにしておくが、今後機械関係のクラスに修正をする場合、この機械のクラス全体をリファクタする必要があるような気がする
     /// </summary>
-    public class NormalMachine : IBlock,IBlockInventory,IUpdate,IBlockElectric
+    public class NormalMachine : IBlock,IBlockInventory,IUpdate,IBlockElectric,IInventory
     {
         private readonly NormalMachineInputInventory _normalMachineInputInventory;
         private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
