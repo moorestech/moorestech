@@ -3,16 +3,20 @@ using System.Collections.Generic;
 using Core.Item;
 using Core.Item.Implementation;
 using Core.Item.Util;
+using PlayerInventory.Event;
 
 namespace PlayerInventory
 {
     public class PlayerInventoryData
     {
         public readonly int PlayerId;
-        private readonly List<IItemStack> MainInventory;    
+        private readonly List<IItemStack> MainInventory;
+        private readonly PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
 
-        public PlayerInventoryData(int playerId)
+        public PlayerInventoryData(int playerId,PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
         {
+            _playerInventoryUpdateEvent = playerInventoryUpdateEvent;
+            
             PlayerId = playerId;
             MainInventory = new List<IItemStack>();
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
@@ -21,70 +25,69 @@ namespace PlayerInventory
             }
         }
         
-        public IItemStack InsertItem(int index, IItemStack itemStack)
+        public IItemStack InsertItem(int slot, IItemStack itemStack)
         {
-            if (index < 0 || index >= MainInventory.Count)
+            if (slot < 0 || slot >= MainInventory.Count)
             {
                 throw new IndexOutOfRangeException();
             }
 
-            if (itemStack.Id == MainInventory[index].Id)
+            if (itemStack.Id == MainInventory[slot].Id)
             {
-                var result = MainInventory[index].AddItem(itemStack);
-                MainInventory[index] = result.ProcessResultItemStack;
+                var result = MainInventory[slot].AddItem(itemStack);
+                MainInventory[slot] = result.ProcessResultItemStack;
                 return result.RemainderItemStack;
-            }else if( MainInventory[index].Id == ItemConst.NullItemId)
+            }else if( MainInventory[slot].Id == ItemConst.NullItemId)
             {
-                MainInventory[index] = itemStack;
+                MainInventory[slot] = itemStack;
                 return ItemStackFactory.CreatEmpty();
             }
-            {
-                return itemStack;
-            }
+            
+            return itemStack;
         }
         
-        public IItemStack DropItem(int index, int count)
+        public IItemStack DropItem(int slot, int count)
         {
-            if(index < 0 || index >= MainInventory.Count)
+            if(slot < 0 || slot >= MainInventory.Count)
             {
                 throw new IndexOutOfRangeException();
             }
 
-            var result = MainInventory[index].SubItem(count);
-            MainInventory[index] = result;
-            return ItemStackFactory.Create(MainInventory[index].Id,count);
+            var result = MainInventory[slot].SubItem(count);
+            MainInventory[slot] = result;
+            return ItemStackFactory.Create(MainInventory[slot].Id,count);
         }
         
 
-        public IItemStack UseHotBar(int index)
+        public IItemStack UseHotBar(int slot)
         {
-            if(index < 0 || index >= MainInventory.Count)
+            if(slot < 0 || slot >= MainInventory.Count)
             {
                 throw new IndexOutOfRangeException();
             }
-            var result = MainInventory[index].SubItem(1);
-            MainInventory[index] = result;
-            return ItemStackFactory.Create(MainInventory[index].Id, 1);
+            var result = MainInventory[slot].SubItem(1);
+            MainInventory[slot] = result;
+            return ItemStackFactory.Create(MainInventory[slot].Id, 1);
         }
         
-        public IItemStack GetItem(int index)
+        public IItemStack GetItem(int slot)
         {
-            if (index < 0 || index >= MainInventory.Count)
+            if (slot < 0 || slot >= MainInventory.Count)
             {
                 throw new IndexOutOfRangeException();
             }
 
-            return MainInventory[index];
+            return MainInventory[slot];
         }
 
-        public void SetItem(int index, IItemStack itemStack)
+        public void SetItem(int slot, IItemStack itemStack)
         {
-            if (index < 0 || index >= MainInventory.Count)
+            if (slot < 0 || slot >= MainInventory.Count)
             {
                 throw new IndexOutOfRangeException();
             }
 
-            MainInventory[index] = itemStack;
+            MainInventory[slot] = itemStack;
         }
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
