@@ -2,6 +2,6 @@ namespace Server.Event
 {
     internal class ServerEventConst
     {
-        public const int EventPacketId = 3;
+        public const short EventPacketId = 3;
     }
 }
