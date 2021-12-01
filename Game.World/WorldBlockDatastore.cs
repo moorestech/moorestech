@@ -6,6 +6,10 @@ using World.Util;
 
 namespace World
 {
+    /// <summary>
+    /// ワールドに存在するブロックとその座標の対応づけを行います。
+    /// 今はServerから直接参照されているけど、依存性の逆転をしたほうがいいかも...
+    /// </summary>
     public class WorldBlockDatastore
     {
         //メインのデータストア
