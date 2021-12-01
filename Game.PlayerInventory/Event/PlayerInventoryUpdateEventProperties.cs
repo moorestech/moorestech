@@ -1,3 +1,5 @@
+using Core.Item;
+
 namespace PlayerInventory.Event
 {
     public class PlayerInventoryUpdateEventProperties
@@ -8,12 +10,12 @@ namespace PlayerInventory.Event
         public readonly int amount;
 
 
-        public PlayerInventoryUpdateEventProperties(int playerId, int inventorySlot, int itemId, int amount)
+        public PlayerInventoryUpdateEventProperties(int playerId, int inventorySlot, IItemStack itemStack)
         {
             this.playerId = playerId;
             this.inventorySlot = inventorySlot;
-            this.itemId = itemId;
-            this.amount = amount;
+            this.itemId = itemStack.Id;
+            this.amount = itemStack.Amount;
         }
     }
 }
