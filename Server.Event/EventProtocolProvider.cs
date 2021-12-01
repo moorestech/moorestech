@@ -9,7 +9,6 @@ namespace Server.Event
     /// </summary>
     public class EventProtocolProvider
     {
-        public const short EventPacketId = 3;
         private Dictionary<int, List<byte[]>> _events = new Dictionary<int, List<byte[]>>();
 
         public void AddEvent(int playerId,byte[] eventByteArray)

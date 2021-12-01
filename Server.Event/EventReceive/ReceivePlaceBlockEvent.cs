@@ -22,7 +22,7 @@ namespace Server.Event.EventReceive
             var id = blockPlaceEventProperties.Block.GetBlockId();
             var payload = new List<byte>();
             
-            payload.AddRange(ByteListConverter.ToByteArray(EventProtocolProvider.EventPacketId));
+            payload.AddRange(ByteListConverter.ToByteArray(ServerEventConst.EventPacketId));
             payload.AddRange(ByteListConverter.ToByteArray(EventId));
             payload.AddRange(ByteListConverter.ToByteArray(c.x));
             payload.AddRange(ByteListConverter.ToByteArray(c.y));
