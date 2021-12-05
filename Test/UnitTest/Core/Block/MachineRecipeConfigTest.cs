@@ -46,8 +46,8 @@ namespace Test.UnitTest.Core.Block
         [TestCase(3,new int[3]{4,1,0},0)]
         [TestCase(3,new int[2]{2,1},0)]
         [TestCase(10,new int[1]{2},0)]
-        [TestCase(3,new int[3]{2,1,0},2)]//存在するときのテストケース
-        [TestCase(1,new int[2]{2,1},1)]
+        [TestCase(3,new int[3]{2,1,0},0)]
+        [TestCase(1,new int[2]{2,1},1)]//存在するときのテストケース
         [TestCase(0,new int[0],0)]
         public void NullRecipeTest(int BlocksId, int[] items,int outputLength)
         {
@@ -63,11 +63,11 @@ namespace Test.UnitTest.Core.Block
         [TestCase(1, new int[2] {2, 1}, new int[2] {1, 3}, true)]
         [TestCase(1, new int[2] {2, 1}, new int[2] {1, 30}, true)]
         [TestCase(1, new int[2] {2, 1}, new int[2] {1, 1}, false)]
-        [TestCase(3, new int[3] {1, 2, 0}, new int[3] {2, 3, 4}, true)]
-        [TestCase(3, new int[3] {1, 2, 0}, new int[3] {4, 6, 8}, true)]
-        [TestCase(3, new int[3] {1, 2, 0}, new int[3] {4, 6, 1}, false)]
-        [TestCase(3, new int[3] {2, 1, 0}, new int[3] {3, 2, 4}, true)]
-        [TestCase(3, new int[3] {2, 1, 0}, new int[3] {3, 1, 4}, false)]
+        [TestCase(3, new int[3] {1, 2, 3}, new int[3] {2, 3, 4}, true)]
+        [TestCase(3, new int[3] {1, 2, 3}, new int[3] {4, 6, 8}, true)]
+        [TestCase(3, new int[3] {1, 2, 3}, new int[3] {4, 6, 1}, false)]
+        [TestCase(3, new int[3] {2, 1, 3}, new int[3] {3, 2, 4}, true)]
+        [TestCase(3, new int[3] {2, 1, 3}, new int[3] {3, 1, 4}, false)]
         [TestCase(3, new int[4] {2, 1, 0, 5}, new int[4] {3, 1, 4, 5}, false)]
         public void RecipeConfirmationTest(int BlocksId, int[] items, int[] itemamount, bool ans)
         {
