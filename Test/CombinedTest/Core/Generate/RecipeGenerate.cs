@@ -50,15 +50,29 @@ namespace Test.CombinedTest.Core.Generate
                 var tmpInput = new List<inputitem>();
                 for (int i = 0; i < inputnum; i++)
                 {
-                    tmpInput.Add(new inputitem(r.Next(0,1001),r.Next(1,101)));
+                    //IDが重複するときはIDを変更
+                    var id = r.Next(1, 1001);
+                    while (tmpInput.Find(x => x.id == id) != null)
+                    {
+                        id = r.Next(1, 1001);
+                    }
+                    tmpInput.Add(new inputitem(id,r.Next(1,101)));
                 }
                 input = tmpInput.ToArray();
+                
+                
                 
                 int outputnum = r.Next(1, 11);
                 var tmpOutput = new List<outputitem>();
                 for (int i = 0; i < outputnum; i++)
                 {
-                    tmpOutput.Add(new outputitem(r.Next(0,1001),r.Next(1,101),1));
+                    //IDが重複するときはIDを変更
+                    var id = r.Next(1, 1001);
+                    while (tmpOutput.Find(x => x.id == id) != null)
+                    {
+                        id = r.Next(1, 1001);
+                    }
+                    tmpOutput.Add(new outputitem(id,r.Next(1,101),1));
                 }
                 output = tmpOutput.ToArray();
                 

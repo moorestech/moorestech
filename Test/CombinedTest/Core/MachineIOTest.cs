@@ -49,7 +49,6 @@ namespace Test.CombinedTest.Core
         }
         [TestCase(new int[2]{1,1}, new int[2]{1,1}, new int[1]{1}, new int[1]{2})]
         [TestCase(new int[2]{3,1}, new int[2]{1,1}, new int[2]{1,3}, new int[2]{1,1})]
-        [TestCase(new int[6]{1,3,1,5,5,0}, new int[6]{1,1,2,6,2,4}, new int[4]{0,1,3,5}, new int[4]{4,3,1,8})]
         public void MachineAddInputTest(int[] id,int[] amount,int[] ansid,int[] ansamount)
         {
             var machine = NormalMachineFactory.Create(4,Int32.MaxValue,new DummyBlockInventory());
@@ -68,7 +67,7 @@ namespace Test.CombinedTest.Core
             {
                 var m = machine.InputSlotWithoutNullItemStack;
                 Console.WriteLine(m[i].ToString()+" "+ansItem[i].ToString());
-                Assert.True(ansItem[i].Equals(m[i]));
+                Assert.AreEqual(ansItem[i],m[i]);
             }
             
         }
@@ -125,7 +124,7 @@ namespace Test.CombinedTest.Core
 
                 for (int j = 0; j < machine.OutputSlotWithoutNullItemStack.Count; j++)
                 {
-                    Assert.True(machineIoTest.output[j].Equals(machine.OutputSlotWithoutNullItemStack[j]));
+                    Assert.AreEqual(machineIoTest.output[j],machine.OutputSlotWithoutNullItemStack[j]);
                 }
                 
                 var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Id != ItemConst.NullItemId).ToList();
