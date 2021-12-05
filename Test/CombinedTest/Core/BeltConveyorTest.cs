@@ -47,7 +47,7 @@ namespace Test.CombinedTest.Core
             var random = new Random(4123);
             for (int i = 0; i < 5; i++)
             {
-                int id = random.Next(0, 10);
+                int id = random.Next(1, 11);
                 int amount = random.Next(1, 10);
                 var item = ItemStackFactory.Create(id, amount);
                 var dummy = new DummyBlockInventory(1);
@@ -76,7 +76,7 @@ namespace Test.CombinedTest.Core
             var random = new Random(4123);
             for (int i = 0; i < 5; i++)
             {
-                int id = random.Next(0, 10);
+                int id = random.Next(1, 11);
                 var conf = BeltConveyorConfig.GetBeltConveyorData(0);
                 var item = ItemStackFactory.Create(id, conf.BeltConveyorItemNum + 1);
                 var dummy = new DummyBlockInventory(conf.BeltConveyorItemNum);
@@ -101,8 +101,8 @@ namespace Test.CombinedTest.Core
             for (int i = 0; i < 5; i++)
             {
                 //必要な変数を作成
-                var item1 = ItemStackFactory.Create(random.Next(0,10), random.Next(1,10));
-                var item2 = ItemStackFactory.Create(random.Next(0,10), random.Next(1,10));
+                var item1 = ItemStackFactory.Create(random.Next(1,11), random.Next(1,10));
+                var item2 = ItemStackFactory.Create(random.Next(1,11), random.Next(1,10));
 
                 var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,new DummyBlockInventory());
 
