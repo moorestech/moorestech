@@ -13,21 +13,21 @@ namespace Test.UnitTest.Core.Other
         {
         }
 
-        [TestCase(0,1,0,1,2,0,0,-1)]
-        [TestCase(0,5,0,1,6,0,0,-1)]
-        [TestCase(-1,0,1,3,3,0,1,-1)]
-        [TestCase(-1,0,2,9,9,0,2,-1)]
-        [TestCase(-1,5,0,1,1,0,0,-1)]
-        [TestCase(0,1,-1,0,1,0,0,-1)]
-        [TestCase(0,1,-1,0,1,0,0,-1)]
-        [TestCase(0,5,-1,0,5,0,0,-1)]
-        [TestCase(1,1,0,8,1,8,1,0)]
-        [TestCase(1,1,0,1,1,1,1,0)]
+        [TestCase(1,1,1,1,2,0,1,ItemConst.NullItemId)]
+        [TestCase(1,5,1,1,6,0,1,ItemConst.NullItemId)]
+        [TestCase(ItemConst.NullItemId,0,1,3,3,0,1,ItemConst.NullItemId)]
+        [TestCase(ItemConst.NullItemId,0,2,9,9,0,2,ItemConst.NullItemId)]
+        [TestCase(ItemConst.NullItemId,5,1,1,1,0,1,ItemConst.NullItemId)]
+        [TestCase(1,1,ItemConst.NullItemId,0,1,0,1,ItemConst.NullItemId)]
+        [TestCase(1,1,ItemConst.NullItemId,0,1,0,1,ItemConst.NullItemId)]
+        [TestCase(1,5,ItemConst.NullItemId,0,5,0,1,ItemConst.NullItemId)]
+        [TestCase(3,1,1,8,1,8,3,1)]
+        [TestCase(1,1,3,1,1,1,1,3)]
         [TestCase(2,5,5,3,5,3,2,5)]
         public void AddTest(int mid,int mamo,int rid,int ramo,int ansMAmo,int ansRAmo,int ansMid,int ansRID)
         {
             IItemStack mineItemStack;
-            if (mid == -1)
+            if (mid == ItemConst.NullItemId)
             {
                 mineItemStack = ItemStackFactory.CreatEmpty();
             }
@@ -36,7 +36,7 @@ namespace Test.UnitTest.Core.Other
                 mineItemStack = ItemStackFactory.Create(mid,mamo);
             }
             IItemStack receivedItemStack;
-            if (rid == -1)
+            if (rid == ItemConst.NullItemId)
             {
                 receivedItemStack = ItemStackFactory.CreatEmpty();
             }
@@ -51,15 +51,15 @@ namespace Test.UnitTest.Core.Other
             Assert.AreEqual(result.RemainderItemStack.Id, ansRID);
         }
 
-        [TestCase(0,5,1,4,0)]
-        [TestCase(-1,5,1,0,-1)]
-        [TestCase(0,5,10,0,-1)]
-        [TestCase(0,8,8,0,-1)]
-        [TestCase(0,8,9,0,-1)]
+        [TestCase(1,5,1,4,1)]
+        [TestCase(ItemConst.NullItemId,5,1,0,ItemConst.NullItemId)]
+        [TestCase(1,5,10,0,ItemConst.NullItemId)]
+        [TestCase(1,8,8,0,ItemConst.NullItemId)]
+        [TestCase(1,8,9,0,ItemConst.NullItemId)]
         public void SubTest(int mid, int mamo, int subamo, int ansamo, int ansID)
         {
             IItemStack mineItemStack;
-            if (mid == -1)
+            if (mid == ItemConst.NullItemId)
             {
                 mineItemStack = ItemStackFactory.CreatEmpty();
             }
@@ -75,13 +75,10 @@ namespace Test.UnitTest.Core.Other
         }
 
         
-        [TestCase(0,50,50,0)]
-        [TestCase(0,49,51,0)]
-        [TestCase(0,49,52,1)]
-        [TestCase(0,1,100,1)]
-        [TestCase(0,60,50,10)]
-        [TestCase(0,100,1,1)]
-        [TestCase(0,100,100,100)]
+
+        [TestCase(2,299,0,0)]
+        [TestCase(2,299,1,0)]
+        [TestCase(2,150,150,0)]
         [TestCase(2,300,1,1)]
         [TestCase(2,1,300,1)]
         [TestCase(2,300,300,300)]
@@ -95,12 +92,6 @@ namespace Test.UnitTest.Core.Other
             
         }
         
-        
-        [TestCase(0,100,false)]
-        [TestCase(0,99,false)]
-        [TestCase(0,101,true)]
-        [TestCase(0,110,true)]
-        [TestCase(0,200,true)]
         [TestCase(1,50,false)]
         [TestCase(1,51,true)]
         [TestCase(1,100,true)]
@@ -134,7 +125,7 @@ namespace Test.UnitTest.Core.Other
         public void ToStringTest()
         {
             IItemStack item = ItemStackFactory.CreatEmpty();
-            Assert.True(item.ToString() == "ID:-1 Amount:0");
+            Assert.True(item.ToString() == "ID:0 Amount:0");
             item = ItemStackFactory.Create(1, 5);
             Assert.True(item.ToString() == "ID:1 Amount:5");
             item = ItemStackFactory.Create(13, 10);
