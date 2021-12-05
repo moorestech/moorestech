@@ -49,7 +49,7 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(0,response.MoveNextToGetShort());
 
             //データの検証
-            for (int i = 0; i < PlayerInventoryConst.MainInventoryColumns; i++)
+            for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
                 if (i == 0)
                 {
