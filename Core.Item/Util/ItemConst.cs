@@ -2,6 +2,6 @@
 {
     public static class ItemConst
     {
-        public const int NullItemId = -1;
+        public const int NullItemId = 0;
     }
 }
