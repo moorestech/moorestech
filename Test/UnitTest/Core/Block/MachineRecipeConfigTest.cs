@@ -28,8 +28,8 @@ namespace Test.UnitTest.Core.Block
         /// </summary>
         [TestCase(1,new int[2]{1,2},3,1)]
         [TestCase(1,new int[2]{2,1},3,1)]
-        [TestCase(3,new int[3]{1,2,0},5,1)]
-        [TestCase(3,new int[3]{2,1,0},5,1)]
+        [TestCase(3,new int[3]{1,2,3},5,1)]
+        [TestCase(3,new int[3]{2,1,3},5,1)]
         public void RecipeInputItemBlockIdTest(int BlocksId, int[] items,int output0Id,double output0Percent)
         {
             var input = new List<IItemStack>();
