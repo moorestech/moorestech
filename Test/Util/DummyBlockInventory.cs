@@ -53,21 +53,6 @@ namespace Test.Util
         public void ChangeConnector(IBlockInventory blockInventory)
         {
         }
-
-        public IItemStack GetItem(int slot)
-        {
-            return ItemStackFactory.CreatEmpty();
-        }
-
-        public void SetItem(int slot, IItemStack itemStack)
-        {
-            
-        }
-
-        public IItemStack ReplaceItem(int slot, IItemStack itemStack)
-        {
-            return itemStack;
-        }
     }
 
     public class DummyBlockInventoryTest

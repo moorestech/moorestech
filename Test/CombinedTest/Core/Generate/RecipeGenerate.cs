@@ -51,11 +51,11 @@ namespace Test.CombinedTest.Core.Generate
                 for (int i = 0; i < inputnum; i++)
                 {
                     //IDが重複するときはIDを変更
-                    var id = r.Next(1, 1001);
-                    while (tmpInput.Find(x => x.id == id) != null)
+                    var id = 0;
+                    do
                     {
                         id = r.Next(1, 1001);
-                    }
+                    } while (tmpInput.Find(x => x.id == id) != null);
                     tmpInput.Add(new inputitem(id,r.Next(1,101)));
                 }
                 input = tmpInput.ToArray();
