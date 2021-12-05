@@ -1,4 +1,5 @@
 ﻿using Core.Item.Implementation;
+using Core.Item.Util;
 
 namespace Core.Item
 {
@@ -6,7 +7,7 @@ namespace Core.Item
     {
         public static IItemStack Create(int id, int amount)
         {
-            if (id < 0)
+            if (id == ItemConst.NullItemId)
             {
                 return CreatEmpty();
             }
