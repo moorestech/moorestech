@@ -8,9 +8,9 @@ namespace Test.UnitTest.Core.Other
         [TestCase(0,100)]
         [TestCase(1,50)]
         [TestCase(2,300)]
-        [TestCase(3,50)]
+        [TestCase(3,55)]
         [TestCase(4,200)]
-        [TestCase(5,10)]
+        [TestCase(5,30)]
         public void JsonStackTest(int id, int stack)
         {
             Assert.AreEqual(stack, ItemConfig.GetItemConfig(id).Stack);
