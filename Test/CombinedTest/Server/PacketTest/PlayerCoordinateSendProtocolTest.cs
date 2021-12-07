@@ -195,7 +195,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 machineRecipeConfig = new TestMachineRecipeConfig(_itemStackFactory);
             }
 
-            return NormalMachineFactory.Create(5, IntId.NewIntId(),nullInventory, blockConfig, machineRecipeConfig,_itemStackFactory);
+            return NormalMachineFactory.Create(id, IntId.NewIntId(),nullInventory, blockConfig, machineRecipeConfig,_itemStackFactory);
         }
 
         List<byte> PlayerCoordinatePayload(int playerId, float x, float y)

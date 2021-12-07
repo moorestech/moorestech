@@ -12,6 +12,7 @@ using Core.Item.Config;
 using Core.Item.Implementation;
 using Core.Item.Util;
 using Core.Update;
+using Core.Util;
 using NUnit.Framework;
 using Test.CombinedTest.Core.Generate;
 using Test.Util;
@@ -20,7 +21,32 @@ namespace Test.CombinedTest.Core
 {
     public class MachineIoTest
     {
-        ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
+        
+        private IBlockInventory _nullInventory = new NullIBlockInventory();
+        private IBlockConfig _blockConfig = new TestBlockConfig();
+        private IItemConfig _itemConfig = new TestItemConfig();
+        private IMachineRecipeConfig _machineRecipeConfig;
+        private ItemStackFactory _itemStackFactory;
+
+        [SetUp]
+        public void Setup()
+        {
+            _nullInventory = new NullIBlockInventory();
+            _blockConfig = new TestBlockConfig();
+            _itemConfig = new TestItemConfig();
+            _itemStackFactory = new ItemStackFactory(_itemConfig);
+            _machineRecipeConfig = new TestMachineRecipeConfig(_itemStackFactory);
+        }
+
+        private NormalMachine CreateMachine(int id)
+        {
+            return NormalMachineFactory.Create(id, IntId.NewIntId(),_nullInventory, _blockConfig, _machineRecipeConfig,_itemStackFactory);
+        }
+        private NormalMachine CreateMachine(int id,IBlockInventory inventory)
+        {
+            return NormalMachineFactory.Create(id, IntId.NewIntId(),inventory, _blockConfig, _machineRecipeConfig,_itemStackFactory);
+        }
+        
         
         [TestCase(true,new int[1]{1}, new int[1]{1})]
         [TestCase(true,new int[2]{100,101}, new int[2]{10,10})]
@@ -30,11 +56,11 @@ namespace Test.CombinedTest.Core
         [TestCase(false,new int[2]{0,0}, new int[2]{10,5})]
         public void MachineInputTest(bool isEquals,int[] id,int[] amount)
         {
-            var machine = NormalMachineFactory.Create(4, Int32.MaxValue, new DummyBlockInventory(1),new TestBlockConfig(),new TestMachineRecipeConfig(itemStackFactory),itemStackFactory);
+            var machine = CreateMachine(4);
             var items = new List<IItemStack>();
             for (int i = 0; i < id.Length; i++)
             {
-                items.Add(itemStackFactory.Create(id[i], amount[i]));
+                items.Add(_itemStackFactory.Create(id[i], amount[i]));
             }
 
             foreach (var item in items)
@@ -56,16 +82,16 @@ namespace Test.CombinedTest.Core
         [TestCase(new int[2]{3,1}, new int[2]{1,1}, new int[2]{1,3}, new int[2]{1,1})]
         public void MachineAddInputTest(int[] id,int[] amount,int[] ansid,int[] ansamount)
         {
-            var machine = NormalMachineFactory.Create(4,Int32.MaxValue,new DummyBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig(itemStackFactory),itemStackFactory);
+            var machine = NormalMachineFactory.Create(4,Int32.MaxValue,new DummyBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig(_itemStackFactory),_itemStackFactory);
             for (int i = 0; i < id.Length; i++)
             {
-                machine.InsertItem(itemStackFactory.Create(id[i], amount[i]));
+                machine.InsertItem(_itemStackFactory.Create(id[i], amount[i]));
             }
 
             var ansItem = new List<IItemStack>();
             for (int i = 0; i < ansid.Length; i++)
             {
-                ansItem.Add(itemStackFactory.Create(ansid[i],ansamount[i]));
+                ansItem.Add(_itemStackFactory.Create(ansid[i],ansamount[i]));
             }
 
             for (int i = 0; i < ansItem.Count; i++)
@@ -88,16 +114,16 @@ namespace Test.CombinedTest.Core
             
             var machineList = new List<NormalMachine>();
             var MaxDateTime = DateTime.Now;
-            var machineConfig = new TestMachineRecipeConfig(itemStackFactory);
             
             //機械の作成とアイテムの挿入
             foreach (var m in recipes)
             {
-                var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, new NullIBlockInventory(),new TestBlockConfig(),machineConfig,itemStackFactory);
+                var machine = CreateMachine(m.installtionId);
+                
 
                 foreach (var minput in m.input)
                 {
-                    machine.InsertItem(itemStackFactory.Create(minput.Id,minput.Amount));
+                    machine.InsertItem(_itemStackFactory.Create(minput.Id,minput.Amount));
                 }
 
                 var electrical = new ElectricSegment();
@@ -191,11 +217,11 @@ namespace Test.CombinedTest.Core
             foreach (var m in recipes)
             {
                 var connect = new DummyBlockInventory(m.output.Count);
-                var machine = NormalMachineFactory.Create(m.installtionId,Int32.MaxValue, connect,new TestBlockConfig(),new TestMachineRecipeConfig(itemStackFactory),itemStackFactory);
+                var machine = CreateMachine(m.installtionId,connect);
 
                 foreach (var minput in m.input)
                 {
-                    machine.InsertItem(itemStackFactory.Create(minput.Id,minput.Amount));
+                    machine.InsertItem(_itemStackFactory.Create(minput.Id,minput.Amount));
                 }
 
                 var electrical = new ElectricSegment();

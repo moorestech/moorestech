@@ -97,7 +97,7 @@ namespace Test.UnitTest.Game
                 machineRecipeConfig = new TestMachineRecipeConfig(_itemStackFactory);
             }
 
-            return NormalMachineFactory.Create(5, intId,nullInventory, blockConfig, machineRecipeConfig,_itemStackFactory);
+            return NormalMachineFactory.Create(id, intId,nullInventory, blockConfig, machineRecipeConfig,_itemStackFactory);
         }
     }
 }
