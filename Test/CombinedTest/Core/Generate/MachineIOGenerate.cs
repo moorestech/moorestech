@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Block;
 using Core.Item;
+using Core.Item.Config;
 using Core.Item.Util;
 using Core.Util;
 
@@ -13,14 +14,16 @@ namespace Test.CombinedTest.Core.Generate
         public static MachineIOTest[]  MachineIoTestCase(recipe recipe,int seed)
         {
             var testCase = new List<MachineIOTest>();
+            var itemStackFactory = new ItemStackFactory(new TestItemConfig());
             recipes[] recipes = recipe.recipes;
             foreach (var r in recipes)
             {
                 //必要量だけ入れる
                 testCase.Add(new MachineIOTest(
+                    itemStackFactory,
                     r.input,
                     r.output,
-                    CreateEmptyItemStacksList.Create(r.input.Length),
+                    CreateEmptyItemStacksList.Create(r.input.Length,itemStackFactory),
                     r.BlockID,
                     r.time,
                     1));
@@ -59,9 +62,9 @@ namespace Test.CombinedTest.Core.Generate
                 }
 
                 //出力アイテムもクラフト回数分倍にする
-                var output = MachineIOTest.Convart(r.output).Select(i => i = ItemStackFactory.Create(i.Id,i.Amount*cnt)).ToList();
+                var output = MachineIOTest.Convart(r.output,itemStackFactory).Select(i => i = itemStackFactory.Create(i.Id,i.Amount*cnt)).ToList();
                 //インプットアイテム数を増やしたテストケース
-                testCase.Add(new MachineIOTest(input.ToArray(),output,remainder.ToArray(),r.BlockID,r.time,cnt));
+                testCase.Add(new MachineIOTest(itemStackFactory,input.ToArray(),output,remainder.ToArray(),r.BlockID,r.time,cnt));
             }
 
             return testCase.ToArray();
@@ -76,31 +79,31 @@ namespace Test.CombinedTest.Core.Generate
             public int time;
             public int CraftCnt;
 
-            public MachineIOTest(inputitem[] input, outputitem[] output, List<IItemStack> inputRemainder,int installtionId,int time,int craftCnt)
+            public MachineIOTest(ItemStackFactory itemStackFactory,inputitem[] input, outputitem[] output, List<IItemStack> inputRemainder,int installtionId,int time,int craftCnt)
             {
                 this.installtionId = installtionId;
-                this.input = Convart(input);
-                this.output = Convart(output);
+                this.input = Convart(input,itemStackFactory);
+                this.output = Convart(output,itemStackFactory);
                 this.inputRemainder = inputRemainder;
                 this.time = time;
                 CraftCnt = craftCnt;
             }
-            public MachineIOTest(inputitem[] input, List<IItemStack> output, inputitem[] inputRemainder,int installtionId,int time,int craftCnt)
+            public MachineIOTest(ItemStackFactory itemStackFactory,inputitem[] input, List<IItemStack> output, inputitem[] inputRemainder,int installtionId,int time,int craftCnt)
             {
                 this.installtionId = installtionId;
-                this.input = Convart(input);
+                this.input = Convart(input,itemStackFactory);
                 this.output = output;
-                this.inputRemainder = Convart(inputRemainder);
+                this.inputRemainder = Convart(inputRemainder,itemStackFactory);
                 this.time = time;
                 CraftCnt = craftCnt;
             }
 
-            public static List<IItemStack> Convart(inputitem[] input)
+            public static List<IItemStack> Convart(inputitem[] input,ItemStackFactory itemStackFactory)
             {
                 var r = new List<IItemStack>();
                 foreach (var i in input)
                 {
-                    r.Add(ItemStackFactory.Create(i.id,i.amount));
+                    r.Add(itemStackFactory.Create(i.id,i.amount));
                 }
 
                 var a = r.Where(i => i.Id != ItemConst.NullItemId).ToList();
@@ -108,12 +111,12 @@ namespace Test.CombinedTest.Core.Generate
                 return a.ToList();
             }
 
-            public static List<IItemStack> Convart(outputitem[] output)
+            public static List<IItemStack> Convart(outputitem[] output,ItemStackFactory itemStackFactory)
             {
                 var r = new List<IItemStack>();
                 foreach (var o in output)
                 {
-                    r.Add(ItemStackFactory.Create(o.id,o.amount));
+                    r.Add(itemStackFactory.Create(o.id,o.amount));
                 }
 
                 var a = r.Where(i => i.Id != BlockConst.BlockConst.NullBlockId).ToList();

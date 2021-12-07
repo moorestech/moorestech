@@ -1,11 +1,19 @@
-﻿using Core.Item.Implementation;
+﻿using Core.Item.Config;
+using Core.Item.Implementation;
 using Core.Item.Util;
 
 namespace Core.Item
 {
-    public static class ItemStackFactory
+    public class ItemStackFactory
     {
-        public static IItemStack Create(int id, int amount)
+        private readonly IItemConfig _itemConfig;
+
+        public ItemStackFactory(IItemConfig itemConfig)
+        {
+            _itemConfig = itemConfig;
+        }
+
+        public IItemStack Create(int id, int amount)
         {
             if (id == ItemConst.NullItemId)
             {
@@ -16,11 +24,11 @@ namespace Core.Item
                 return CreatEmpty();
             }
 
-            return new ItemStack(id, amount);
+            return new ItemStack(id, amount,_itemConfig,this);
         }
-        public static IItemStack CreatEmpty()
+        public IItemStack CreatEmpty()
         {
-            return new NullItemStack();
+            return new NullItemStack(this);
         }
     }
 }

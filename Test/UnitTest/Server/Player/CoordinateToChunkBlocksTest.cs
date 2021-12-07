@@ -1,8 +1,11 @@
 ﻿using System;
 using Core.Block;
 using Core.Block.Config;
+using Core.Block.Machine;
 using Core.Block.Machine.util;
 using Core.Block.RecipeConfig;
+using Core.Item;
+using Core.Item.Config;
 using Core.Util;
 using NUnit.Framework;
 using Server.Const;
@@ -43,7 +46,7 @@ namespace Test.UnitTest.Server.Player
             //ブロックの設置
             for (int i = 0; i < 10000; i++)
             {
-                var b = NormalMachineFactory.Create(random.Next(0, 500), IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
+                var b = CreateMachine(random.Next(0, 500));
                 worldData.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300),b);
             }
             //レスポンスのチェック
@@ -65,6 +68,29 @@ namespace Test.UnitTest.Server.Player
                     }
                 }
             }
+        }
+        
+
+        private IBlockInventory nullInventory = new NullIBlockInventory();
+        private IBlockConfig blockConfig = new TestBlockConfig();
+        private IItemConfig _itemConfig = new TestItemConfig();
+        private ItemStackFactory _itemStackFactory;
+        private IMachineRecipeConfig machineRecipeConfig;
+        bool init = false;
+
+        private NormalMachine CreateMachine(int id)
+        {
+            if (!init)
+            {
+                init = true;
+                nullInventory = new NullIBlockInventory();
+                blockConfig = new TestBlockConfig();
+                _itemConfig = new TestItemConfig();
+                _itemStackFactory = new ItemStackFactory(_itemConfig);
+                machineRecipeConfig = new TestMachineRecipeConfig(_itemStackFactory);
+            }
+
+            return NormalMachineFactory.Create(id, IntId.NewIntId(),nullInventory, blockConfig, machineRecipeConfig,_itemStackFactory);
         }
     }
 }

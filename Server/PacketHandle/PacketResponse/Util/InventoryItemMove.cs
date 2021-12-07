@@ -6,7 +6,7 @@ namespace Server.PacketHandle.PacketResponse.Util
 {
     public class InventoryItemMove
     {
-        public void Move(IInventory sourceInventory,int sourceSlot,IInventory destinationInventory,int destinationSlot,int itemAmount)
+        public void Move(ItemStackFactory itemStackFactory,IInventory sourceInventory,int sourceSlot,IInventory destinationInventory,int destinationSlot,int itemAmount)
         {
             //移動元からアイテムを取得
             var originItem = sourceInventory.GetItem(sourceSlot);
@@ -16,7 +16,7 @@ namespace Server.PacketHandle.PacketResponse.Util
                 itemAmount = originItem.Amount;
             }
             //実際に移動するアイテムインスタンスの作成
-            var moveItem = ItemStackFactory.Create(originItem.Id,itemAmount);
+            var moveItem = itemStackFactory.Create(originItem.Id,itemAmount);
                 
             var blockInventoryItem = destinationInventory.GetItem(destinationSlot);
                 
@@ -30,7 +30,7 @@ namespace Server.PacketHandle.PacketResponse.Util
                 //移動元インベントリに残るアイテムを計算
                 //ゼロの時は自動でNullItemになる
                 var playerItemAmount = originItem.Amount - itemAmount;
-                var remainItem = replaceItem.AddItem(ItemStackFactory.Create(originItem.Id,playerItemAmount)).ProcessResultItemStack;
+                var remainItem = replaceItem.AddItem(itemStackFactory.Create(originItem.Id,playerItemAmount)).ProcessResultItemStack;
                     
                 //移動元インベントリに残りのアイテムをセット
                 sourceInventory.SetItem(sourceSlot,remainItem);

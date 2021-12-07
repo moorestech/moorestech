@@ -7,6 +7,8 @@ using Core.Block.Config;
 using Core.Block.Machine;
 using Core.Block.Machine.util;
 using Core.Block.RecipeConfig;
+using Core.Item;
+using Core.Item.Config;
 using Core.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -28,21 +30,21 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(1)]
         public void SimpleChunkResponseTest()
         {
-            
-            var (packetResponse,serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             //1回のレスポンスのテスト
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
-            Assert.AreEqual(25,response.Count());
+            Assert.AreEqual(25, response.Count());
             var ans = new List<Coordinate>();
-            for (int i = -40; i <= 40; i+=ChunkResponseConst.ChunkSize)
+            for (int i = -40; i <= 40; i += ChunkResponseConst.ChunkSize)
             {
-                for (int j = -40; j <= 40; j+=ChunkResponseConst.ChunkSize)
+                for (int j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
                 {
                     ans.Add(CoordinateCreator.New(i, j));
                 }
             }
+
             foreach (var r in response)
             {
                 //座標の確認
@@ -52,57 +54,57 @@ namespace Test.CombinedTest.Server.PacketTest
                 {
                     for (int j = 0; j < r.Blocks.GetLength(1); j++)
                     {
-                        Assert.AreEqual(BlockConst.BlockConst.NullBlockId,r.Blocks[i,j]);
+                        Assert.AreEqual(BlockConst.BlockConst.NullBlockId, r.Blocks[i, j]);
                     }
                 }
-                
             }
-            
+
             //2回目は何も返ってこないテスト
             packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0));
             response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).ToList();
-            Assert.AreEqual(response.Count,0);
-            
-            
+            Assert.AreEqual(response.Count, 0);
+
+
             //場所をずらしたら返ってくるテスト
             packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0));
             response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 25, 25))
                 .Select(PayloadToBlock).ToList();
-            Assert.AreEqual(response.Count,9);
-            
+            Assert.AreEqual(response.Count, 9);
+
             //他の名前は普通に取得できるテスト
             response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(15, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
-            Assert.AreEqual(25,response.Count());
+            Assert.AreEqual(25, response.Count());
         }
-        
-        
+
+
         //ブロックを設置するテスト
         [Test, Order(2)]
         public void PlaceBlockToChunkResponseTest()
         {
-            var (packetResponse,serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldBlock = serviceProvider.GetService<WorldBlockDatastore>();
-            
+
             var random = new Random(13944156);
             //ブロックの設置
-            var b = NormalMachineFactory.Create(5, IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
+            var b = CreateMachine(5);
             worldBlock.AddBlock(b, 0, 0,b);
             
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
-            Assert.AreEqual(25,response.Count());
+            Assert.AreEqual(25, response.Count());
             var ans = new List<Coordinate>();
-            for (int i = -40; i <= 40; i+=ChunkResponseConst.ChunkSize)
+            for (int i = -40; i <= 40; i += ChunkResponseConst.ChunkSize)
             {
-                for (int j = -40; j <= 40; j+=ChunkResponseConst.ChunkSize)
+                for (int j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
                 {
                     ans.Add(CoordinateCreator.New(i, j));
                 }
             }
+
             foreach (var r in response)
             {
                 //座標の確認
@@ -114,18 +116,17 @@ namespace Test.CombinedTest.Server.PacketTest
                     for (int j = 0; j < r.Blocks.GetLength(1); j++)
                     {
                         Assert.AreEqual(worldBlock.GetBlock(c.x + i, c.y + j).GetBlockId()
-                            ,r.Blocks[i,j]);
+                            , r.Blocks[i, j]);
                     }
                 }
-                
             }
         }
-        
+
         //ランダムにブロックを設置するテスト
         [Test, Order(3)]
         public void RandomPlaceBlockToChunkResponseTest()
         {
-            var (packetResponse,serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldBlock = serviceProvider.GetService<WorldBlockDatastore>();
 
             var random = new Random(13944156);
@@ -135,27 +136,29 @@ namespace Test.CombinedTest.Server.PacketTest
                 NormalMachine b = null;
                 if (random.Next(0, 3) == 1)
                 {
-                    b = NormalMachineFactory.Create(random.Next(short.MaxValue, int.MaxValue), IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
+                    b = CreateMachine(random.Next(short.MaxValue, int.MaxValue));
                 }
                 else
                 {
-                    b = NormalMachineFactory.Create(random.Next(0, 500), IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
+                    b = CreateMachine(random.Next(0, 500));
                 }
-                worldBlock.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300),b);
+
+                worldBlock.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300), b);
             }
-            
+
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(25, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
-            Assert.AreEqual(25,response.Count());
+            Assert.AreEqual(25, response.Count());
             var ans = new List<Coordinate>();
-            for (int i = -40; i <= 40; i+=ChunkResponseConst.ChunkSize)
+            for (int i = -40; i <= 40; i += ChunkResponseConst.ChunkSize)
             {
-                for (int j = -40; j <= 40; j+=ChunkResponseConst.ChunkSize)
+                for (int j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
                 {
                     ans.Add(CoordinateCreator.New(i, j));
                 }
             }
+
             foreach (var r in response)
             {
                 //座標の確認
@@ -167,17 +170,38 @@ namespace Test.CombinedTest.Server.PacketTest
                     for (int j = 0; j < r.Blocks.GetLength(1); j++)
                     {
                         Assert.AreEqual(worldBlock.GetBlock(c.x + i, c.y + j).GetBlockId()
-                            ,r.Blocks[i,j]);
+                            , r.Blocks[i, j]);
                     }
                 }
-                
             }
+        }
+
+        private IBlockInventory nullInventory = new NullIBlockInventory();
+        private IBlockConfig blockConfig = new TestBlockConfig();
+        private IItemConfig _itemConfig = new TestItemConfig();
+        private ItemStackFactory _itemStackFactory;
+        private IMachineRecipeConfig machineRecipeConfig;
+        bool init = false;
+
+        private NormalMachine CreateMachine(int id)
+        {
+            if (!init)
+            {
+                init = true;
+                nullInventory = new NullIBlockInventory();
+                blockConfig = new TestBlockConfig();
+                _itemConfig = new TestItemConfig();
+                _itemStackFactory = new ItemStackFactory(_itemConfig);
+                machineRecipeConfig = new TestMachineRecipeConfig(_itemStackFactory);
+            }
+
+            return NormalMachineFactory.Create(id, IntId.NewIntId(),nullInventory, blockConfig, machineRecipeConfig,_itemStackFactory);
         }
 
         List<byte> PlayerCoordinatePayload(int playerId, float x, float y)
         {
             var p = new List<byte>();
-            p.AddRange(ByteListConverter.ToByteArray((short)2));
+            p.AddRange(ByteListConverter.ToByteArray((short) 2));
             p.AddRange(ByteListConverter.ToByteArray(x));
             p.AddRange(ByteListConverter.ToByteArray(y));
             p.AddRange(ByteListConverter.ToByteArray(playerId));
@@ -186,7 +210,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
         ChunkData PayloadToBlock(byte[] payload)
         {
-            var bit= new BitListEnumerator(payload.ToList());
+            var bit = new BitListEnumerator(payload.ToList());
             bit.MoveNextToShort();
             var x = bit.MoveNextToInt();
             var y = bit.MoveNextToInt();
@@ -226,7 +250,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 }
             }
 
-            return new ChunkData(blocks,CoordinateCreator.New(x,y));
+            return new ChunkData(blocks, CoordinateCreator.New(x, y));
         }
 
         private class ChunkData

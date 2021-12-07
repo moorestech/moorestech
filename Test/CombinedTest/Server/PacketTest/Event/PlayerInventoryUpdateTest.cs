@@ -15,7 +15,6 @@ namespace Test.CombinedTest.Server.PacketTest.Event
     public class PlayerInventoryUpdateTest
     {
         [Test]
-        //TODO これをグリーンにする
         public void UpdateTest()
         {
             var (packetResponse,serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -32,7 +31,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var playerInventoryData = serviceProvider.GetService<PlayerInventoryDataStore>().GetInventoryData(0);
             
             
-            playerInventoryData.SetItem(5,ItemStackFactory.Create(1,5));
+            playerInventoryData.SetItem(5,serviceProvider.GetService<ItemStackFactory>().Create(1,5));
             //イベントのキャッチ
             response =  packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(1,response.Count);

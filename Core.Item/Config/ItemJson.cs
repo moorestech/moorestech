@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using Core.Item.Config;
 
 namespace Core.Config.Item
 {

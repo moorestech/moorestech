@@ -35,11 +35,11 @@ namespace Core.Block.Machine
             }
         }
 
-        public NormalMachineOutputInventory(int blockId, IBlockInventory connect,IBlockConfig blockConfig)
+        public NormalMachineOutputInventory(int blockId, IBlockInventory connect,IBlockConfig blockConfig,ItemStackFactory itemStackFactory)
         {
             _connectInventory = connect;
             var data = blockConfig.GetBlocksConfig(blockId);
-            _outputSlot = CreateEmptyItemStacksList.Create(data.OutputSlot);
+            _outputSlot = CreateEmptyItemStacksList.Create(data.OutputSlot,itemStackFactory);
             GameUpdate.AddUpdateObject(this);
         }
 

@@ -18,12 +18,14 @@ namespace Core.Block.BeltConveyor.Generally
 
         private readonly List<BeltConveyorInventoryItem> _inventoryItems = new List<BeltConveyorInventoryItem>();
         private IBlockInventory _connector;
+        private readonly ItemStackFactory _itemStackFactory;
 
-        public GenericBeltConveyor(int blockId, int intId, IBlockInventory connector)
+        public GenericBeltConveyor(int blockId, int intId, IBlockInventory connector, ItemStackFactory itemStackFactory)
         {
             _blockId = blockId;
             _intId = intId;
             _connector = connector;
+            _itemStackFactory = itemStackFactory;
             var conf = BeltConveyorConfig.GetBeltConveyorData(blockId);
             _inventoryItemNum = conf.BeltConveyorItemNum;
             _timeOfItemEnterToExit = conf.TimeOfItemEnterToExit;
@@ -67,21 +69,6 @@ namespace Core.Block.BeltConveyor.Generally
             _connector = blockInventory;
         }
 
-        public IItemStack GetItem(int slot)
-        {
-            return ItemStackFactory.Create(_inventoryItems[slot].ItemId,1);
-        }
-
-        public void SetItem(int slot, IItemStack itemStack)
-        {
-            throw new Exception("ベルトコンベアでアイテムのセットは出来ません");
-        }
-
-        public IItemStack ReplaceItem(int slot, IItemStack itemStack)
-        {
-            throw new Exception("ベルトコンベアでアイテムのリプレイスは出来ません");
-        }
-
         /// <summary>
         /// アイテムの搬出判定を行う
         /// 判定はUpdateで毎フレーム行われる
@@ -111,7 +98,7 @@ namespace Core.Block.BeltConveyor.Generally
             var last = _inventoryItems.Count - 1;
             if (1 <= _inventoryItems.Count && _inventoryItems[last].RemainingTime <= 0)
             {
-                var output = _connector.InsertItem(ItemStackFactory.Create(_inventoryItems[last].ItemId, 1));
+                var output = _connector.InsertItem(_itemStackFactory.Create(_inventoryItems[last].ItemId, 1));
                 //渡した結果がnullItemだったらそのアイテムを消す
                 if (output.Id == ItemConst.NullItemId)
                 {

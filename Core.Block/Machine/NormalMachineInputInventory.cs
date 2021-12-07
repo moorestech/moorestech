@@ -37,12 +37,12 @@ namespace Core.Block.Machine
             }
         }
 
-        public NormalMachineInputInventory(int BlockId,IBlockConfig blockConfig,IMachineRecipeConfig machineRecipeConfig)
+        public NormalMachineInputInventory(int BlockId,IBlockConfig blockConfig,IMachineRecipeConfig machineRecipeConfig,ItemStackFactory itemStackFactory)
         {
             _blockId = BlockId;
             _machineRecipeConfig = machineRecipeConfig;
             var data = blockConfig.GetBlocksConfig(BlockId);
-            _inputSlot = CreateEmptyItemStacksList.Create(data.InputSlot);
+            _inputSlot = CreateEmptyItemStacksList.Create(data.InputSlot,itemStackFactory);
         }
 
         public IItemStack InsertItem(IItemStack itemStack)

@@ -4,8 +4,10 @@ namespace Core.Item.Implementation
 {
     internal class NullItemStack : IItemStack
     {
-        public NullItemStack()
+        ItemStackFactory _itemStackFactory;
+        public NullItemStack(ItemStackFactory itemStackFactory)
         {
+            _itemStackFactory = itemStackFactory;
         }
 
         public int Id => ItemConst.NullItemId;
@@ -13,7 +15,7 @@ namespace Core.Item.Implementation
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
-            return new ItemProcessResult(receiveItemStack,ItemStackFactory.CreatEmpty());
+            return new ItemProcessResult(receiveItemStack,_itemStackFactory.CreatEmpty());
         }
 
         public IItemStack SubItem(int subAmount)
@@ -28,7 +30,7 @@ namespace Core.Item.Implementation
 
         public IItemStack Clone()
         {
-            return ItemStackFactory.CreatEmpty();
+            return _itemStackFactory.CreatEmpty();
         }
 
         public override bool Equals(object? obj)

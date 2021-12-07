@@ -1,3 +1,7 @@
+using Core.Block.Config;
+using Core.Block.RecipeConfig;
+using Core.Item;
+using Core.Item.Config;
 using Microsoft.Extensions.DependencyInjection;
 using PlayerInventory;
 using PlayerInventory.Event;
@@ -15,6 +19,13 @@ namespace Server
         {
             
             var services = new ServiceCollection();
+            //テスト用のコンフィグ、ファクトリーのインスタンスを登録
+            services.AddSingleton<IBlockConfig, TestBlockConfig>();
+            services.AddSingleton<IMachineRecipeConfig, TestMachineRecipeConfig>();
+            services.AddSingleton<IItemConfig, TestItemConfig>();
+            services.AddSingleton<ItemStackFactory, ItemStackFactory >();
+            
+            
             //必要なクラスのインスタンスを生成
             services.AddSingleton<EventProtocolProvider,EventProtocolProvider>();
             services.AddSingleton<WorldBlockDatastore,WorldBlockDatastore>();
