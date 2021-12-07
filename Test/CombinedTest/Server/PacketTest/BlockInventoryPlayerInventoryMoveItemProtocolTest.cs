@@ -4,6 +4,7 @@ using Core.Block;
 using Core.Block.Config;
 using Core.Block.Machine;
 using Core.Block.Machine.util;
+using Core.Block.RecipeConfig;
 using Core.Config.Item;
 using Core.Item;
 using Core.Item.Util;
@@ -30,7 +31,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             //ブロックの設置
             var blockDataStore = serviceProvider.GetService<WorldBlockDatastore>();
-            var block = NormalMachineFactory.Create(1,1,new NullIBlockInventory(),new TestBlockConfig());
+            var block = NormalMachineFactory.Create(1,1,new NullIBlockInventory(),new TestBlockConfig(),new MachineRecipeConfig());
             blockDataStore.AddBlock(block, 0, 0, block);
             //ブロックにアイテムを挿入
             block.InsertItem(ItemStackFactory.Create(1,5));

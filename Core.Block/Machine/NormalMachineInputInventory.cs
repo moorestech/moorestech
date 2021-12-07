@@ -12,6 +12,7 @@ namespace Core.Block.Machine
     {
         private readonly int _blockId;
         private readonly List<IItemStack> _inputSlot;
+        private readonly IMachineRecipeConfig _machineRecipeConfig;
         public List<IItemStack> InputSlotWithoutNullItemStack 
         {
             get
@@ -36,9 +37,10 @@ namespace Core.Block.Machine
             }
         }
 
-        public NormalMachineInputInventory(int BlockId,IBlockConfig blockConfig)
+        public NormalMachineInputInventory(int BlockId,IBlockConfig blockConfig,IMachineRecipeConfig machineRecipeConfig)
         {
             _blockId = BlockId;
+            _machineRecipeConfig = machineRecipeConfig;
             var data = blockConfig.GetBlocksConfig(BlockId);
             _inputSlot = CreateEmptyItemStacksList.Create(data.InputSlot);
         }
@@ -64,7 +66,7 @@ namespace Core.Block.Machine
             get
             {
                 //建物IDと現在のインプットスロットからレシピを検索する
-                var recipe = MachineRecipeConfig.GetRecipeData(_blockId, _inputSlot.ToList());
+                var recipe = _machineRecipeConfig.GetRecipeData(_blockId, _inputSlot.ToList());
                 //実行できるレシピかどうか
                 return recipe.RecipeConfirmation(_inputSlot);
             }
@@ -72,7 +74,7 @@ namespace Core.Block.Machine
 
         public IMachineRecipeData GetRecipeData()
         {
-            return MachineRecipeConfig.GetRecipeData(_blockId, _inputSlot.ToList());
+            return _machineRecipeConfig.GetRecipeData(_blockId, _inputSlot.ToList());
         }
 
         public void ReduceInputSlot(IMachineRecipeData recipe)
