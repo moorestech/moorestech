@@ -31,7 +31,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             //ブロックの設置
             var blockDataStore = serviceProvider.GetService<WorldBlockDatastore>();
-            var block = NormalMachineFactory.Create(1,1,new NullIBlockInventory(),new TestBlockConfig(),new MachineRecipeConfig());
+            var block = NormalMachineFactory.Create(1,1,new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
             blockDataStore.AddBlock(block, 0, 0, block);
             //ブロックにアイテムを挿入
             block.InsertItem(ItemStackFactory.Create(1,5));

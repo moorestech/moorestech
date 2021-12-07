@@ -19,7 +19,7 @@ namespace Test.UnitTest.Core.Block
         [TestCase(1,1500)]
         public void RecipeTimeTest(int id,int ans)
         {
-            var time = new MachineRecipeConfig().GetRecipeData(id).Time;
+            var time = new TestMachineRecipeConfig().GetRecipeData(id).Time;
             Assert.AreEqual(ans,time);
         }
         
@@ -36,7 +36,7 @@ namespace Test.UnitTest.Core.Block
             items.ToList().ForEach(
                 i => input.Add(ItemStackFactory.Create(i,1)));
             
-            var ans = new MachineRecipeConfig().GetRecipeData(BlocksId, input);
+            var ans = new TestMachineRecipeConfig().GetRecipeData(BlocksId, input);
             Assert.AreEqual(output0Id,ans.ItemOutputs[0].OutputItem.Id);
             Assert.AreEqual(output0Percent,ans.ItemOutputs[0].Percent);
         }
@@ -55,7 +55,7 @@ namespace Test.UnitTest.Core.Block
             items.ToList().ForEach(
                 i => input.Add(ItemStackFactory.Create(i,1)));
             
-            int ans = new MachineRecipeConfig().GetRecipeData(BlocksId, input).ItemOutputs.Count;
+            int ans = new TestMachineRecipeConfig().GetRecipeData(BlocksId, input).ItemOutputs.Count;
             Assert.AreEqual(outputLength,ans);
         }
 
@@ -76,7 +76,7 @@ namespace Test.UnitTest.Core.Block
             {
                 itemStacks.Add(ItemStackFactory.Create(items[i],itemamount[i]));
             }
-            var a =new MachineRecipeConfig().GetRecipeData(BlocksId, itemStacks).RecipeConfirmation(itemStacks);
+            var a =new TestMachineRecipeConfig().GetRecipeData(BlocksId, itemStacks).RecipeConfirmation(itemStacks);
             Assert.AreEqual(ans,a);
         }
     }

@@ -88,7 +88,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             var random = new Random(13944156);
             //ブロックの設置
-            var b = NormalMachineFactory.Create(5, IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new MachineRecipeConfig());
+            var b = NormalMachineFactory.Create(5, IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
             worldBlock.AddBlock(b, 0, 0,b);
             
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0))
@@ -135,11 +135,11 @@ namespace Test.CombinedTest.Server.PacketTest
                 NormalMachine b = null;
                 if (random.Next(0, 3) == 1)
                 {
-                    b = NormalMachineFactory.Create(random.Next(short.MaxValue, int.MaxValue), IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new MachineRecipeConfig());
+                    b = NormalMachineFactory.Create(random.Next(short.MaxValue, int.MaxValue), IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
                 }
                 else
                 {
-                    b = NormalMachineFactory.Create(random.Next(0, 500), IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new MachineRecipeConfig());
+                    b = NormalMachineFactory.Create(random.Next(0, 500), IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
                 }
                 worldBlock.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300),b);
             }

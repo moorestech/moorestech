@@ -43,7 +43,7 @@ namespace Test.UnitTest.Server.Player
             //ブロックの設置
             for (int i = 0; i < 10000; i++)
             {
-                var b = NormalMachineFactory.Create(random.Next(0, 500), IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new MachineRecipeConfig());
+                var b = NormalMachineFactory.Create(random.Next(0, 500), IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
                 worldData.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300),b);
             }
             //レスポンスのチェック

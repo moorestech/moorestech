@@ -19,7 +19,7 @@ namespace Test.UnitTest.Game
             var worldData = new WorldBlockDatastore(new BlockPlaceEvent());
             
             var intId = IntId.NewIntId();
-            var i =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory(),new TestBlockConfig(),new MachineRecipeConfig());
+            var i =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
             worldData.AddBlock(i,1,1,i);
             var output = worldData.GetBlock(intId);
             Assert.AreEqual(intId, output.GetIntId());
@@ -35,7 +35,7 @@ namespace Test.UnitTest.Game
             for (int i = 0; i < 10; i++)
             {
                 var intId = IntId.NewIntId();
-                var ins =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory(),new TestBlockConfig(),new MachineRecipeConfig());
+                var ins =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
 
                 int x = random.Next(-1000, 1000);
                 int y = random.Next(-1000, 1000);
@@ -53,11 +53,11 @@ namespace Test.UnitTest.Game
             var worldData = new WorldBlockDatastore(new BlockPlaceEvent());
             
             var intId = IntId.NewIntId();
-            var i =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory(),new TestBlockConfig(),new MachineRecipeConfig());
+            var i =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
             worldData.AddBlock(i,1,1,i);
             
             //座標だけ変えてintIDは同じ
-            var i2 =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory(),new TestBlockConfig(),new MachineRecipeConfig());
+            var i2 =  NormalMachineFactory.Create(1, intId, new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
             Assert.False(worldData.AddBlock(i2,10,10,i2));
         }
 
@@ -66,11 +66,11 @@ namespace Test.UnitTest.Game
         {
             var worldData = new WorldBlockDatastore(new BlockPlaceEvent());
 
-            var i =  NormalMachineFactory.Create(1, IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new MachineRecipeConfig());
+            var i =  NormalMachineFactory.Create(1, IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
             worldData.AddBlock(i,1,1,i);
             
             //座標だけ変えてintIDは同じ
-            var i2 =  NormalMachineFactory.Create(1, IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new MachineRecipeConfig());
+            var i2 =  NormalMachineFactory.Create(1, IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig());
             Assert.False(worldData.AddBlock(i2,1,1,i2));
         }
     }

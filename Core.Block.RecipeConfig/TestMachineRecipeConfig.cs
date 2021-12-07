@@ -6,14 +6,24 @@ using Core.Item.Util;
 
 namespace Core.Block.RecipeConfig
 {
-    public class MachineRecipeConfig : IMachineRecipeConfig
+    public class TestMachineRecipeConfig : IMachineRecipeConfig
     {
         private readonly IMachineRecipeData[] _recipedatas;
+        
+        private readonly Dictionary<string, IMachineRecipeData> _recipeDataCash;
 
         //IDからレシピデータを取得する
-        public MachineRecipeConfig()
+        public TestMachineRecipeConfig()
         {
             _recipedatas = new MachineRecipeJsonLoad().LoadConfig();
+            
+            _recipeDataCash = new Dictionary<string, IMachineRecipeData>();
+            _recipedatas.ToList().ForEach(recipe =>
+            {
+                _recipeDataCash.Add(
+                    GetKey(recipe.BlockId, recipe.ItemInputs.ToList()),
+                    recipe);
+            });
         }
 
         public IMachineRecipeData GetRecipeData(int id)
@@ -26,7 +36,6 @@ namespace Core.Block.RecipeConfig
             return new NullMachineRecipeData();
         }
 
-        private Dictionary<string, IMachineRecipeData> _recipeDataCash;
 
         /// <summary>
         /// 設置物IDと現在の搬入スロットからレシピを検索し、取得する
@@ -36,17 +45,6 @@ namespace Core.Block.RecipeConfig
         /// <returns>レシピデータ</returns>
         public IMachineRecipeData GetRecipeData(int BlockId, List<IItemStack> inputItem)
         {
-            if (_recipeDataCash == null)
-            {
-                _recipeDataCash = new Dictionary<string, IMachineRecipeData>();
-                _recipedatas.ToList().ForEach(recipe =>
-                {
-                    _recipeDataCash.Add(
-                        GetKey(recipe.BlockId, recipe.ItemInputs.ToList()),
-                        recipe);
-                });
-            }
-
             var tmpInputItem = inputItem.Where(i => i.Id != ItemConst.NullItemId).ToList();
             tmpInputItem.Sort((a, b) => a.Id - b.Id);
             var key = GetKey(BlockId, tmpInputItem);
