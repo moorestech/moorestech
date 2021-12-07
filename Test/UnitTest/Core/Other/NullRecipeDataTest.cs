@@ -9,7 +9,7 @@ namespace Test.UnitTest.Core.Other
         [Test]
         public void NullTest()
         {
-            IMachineRecipeData recipeData = MachineRecipeConfig.GetNullRecipeData();
+            IMachineRecipeData recipeData = new TestMachineRecipeConfig().GetNullRecipeData();
             Assert.AreEqual(0,recipeData.ItemInputs.Count);
             Assert.AreEqual(0,recipeData.ItemOutputs.Count);
             Assert.AreEqual(0,recipeData.BlockId);

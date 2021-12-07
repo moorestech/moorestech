@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Core.Block.Config;
 using Core.Block.Machine.util;
+using Core.Block.RecipeConfig;
 using Core.Util;
 using Server.Util;
 using World;
@@ -30,7 +31,7 @@ namespace Server.PacketHandle.PacketResponse
             
             var inputBlock = _worldBlockDatastore.GetBlockInventory(payloadData.MoveNextToGetInt());
 
-            var block = NormalMachineFactory.Create(blockId, IntId.NewIntId(), _worldBlockDatastore.GetBlockInventory(payloadData.MoveNextToGetInt()),new TestBlockConfig());
+            var block = NormalMachineFactory.Create(blockId, IntId.NewIntId(), _worldBlockDatastore.GetBlockInventory(payloadData.MoveNextToGetInt()),new TestBlockConfig(),new TestMachineRecipeConfig());
             inputBlock.ChangeConnector(block);
             
             _worldBlockDatastore.AddBlock(block, x, y,block);

@@ -6,44 +6,45 @@ using Core.Item.Util;
 
 namespace Core.Block.RecipeConfig
 {
-    public static class MachineRecipeConfig
+    public class TestMachineRecipeConfig : IMachineRecipeConfig
     {
+        private readonly IMachineRecipeData[] _recipedatas;
         
-        private static IMachineRecipeData[] _recipedatas;
+        private readonly Dictionary<string, IMachineRecipeData> _recipeDataCash;
 
         //IDからレシピデータを取得する
-        public static IMachineRecipeData GetRecipeData(int id)
+        public TestMachineRecipeConfig()
         {
-            _recipedatas ??= MachineRecipeJsonLoad.LoadConfig();
+            _recipedatas = new MachineRecipeJsonLoad().LoadConfig();
+            
+            _recipeDataCash = new Dictionary<string, IMachineRecipeData>();
+            _recipedatas.ToList().ForEach(recipe =>
+            {
+                _recipeDataCash.Add(
+                    GetKey(recipe.BlockId, recipe.ItemInputs.ToList()),
+                    recipe);
+            });
+        }
+
+        public IMachineRecipeData GetRecipeData(int id)
+        {
             return _recipedatas[id];
         }
-        public static IMachineRecipeData GetNullRecipeData()
+
+        public IMachineRecipeData GetNullRecipeData()
         {
             return new NullMachineRecipeData();
         }
 
-        private static Dictionary<string, IMachineRecipeData> _recipeDataCash;
+
         /// <summary>
         /// 設置物IDと現在の搬入スロットからレシピを検索し、取得する
         /// </summary>
         /// <param name="BlockId">設置物ID</param>
         /// <param name="inputItem">搬入スロット</param>
         /// <returns>レシピデータ</returns>
-        public static IMachineRecipeData GetRecipeData(int BlockId, List<IItemStack> inputItem)
+        public IMachineRecipeData GetRecipeData(int BlockId, List<IItemStack> inputItem)
         {
-            _recipedatas ??= MachineRecipeJsonLoad.LoadConfig();
-
-            if (_recipeDataCash == null)
-            {
-                _recipeDataCash = new Dictionary<string, IMachineRecipeData>();
-                _recipedatas.ToList().ForEach(recipe =>
-                {
-                    _recipeDataCash.Add(
-                        GetKey(recipe.BlockId,recipe.ItemInputs.ToList()),
-                        recipe);
-                });
-            }
-
             var tmpInputItem = inputItem.Where(i => i.Id != ItemConst.NullItemId).ToList();
             tmpInputItem.Sort((a, b) => a.Id - b.Id);
             var key = GetKey(BlockId, tmpInputItem);
@@ -56,14 +57,12 @@ namespace Core.Block.RecipeConfig
                 return new NullMachineRecipeData();
             }
         }
-        private static string GetKey(int blockId, List<IItemStack> itemId)
+
+        private string GetKey(int blockId, List<IItemStack> itemId)
         {
             var items = "";
             itemId.Sort((a, b) => a.Id - b.Id);
-            itemId.ForEach(i =>
-            {
-                items = items + "_" + i.Id;
-            });
+            itemId.ForEach(i => { items = items + "_" + i.Id; });
             return blockId + items;
         }
     }
