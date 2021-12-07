@@ -2,6 +2,7 @@
 using System.Linq;
 using Core.Block;
 using Core.Item;
+using Core.Item.Config;
 using Core.Item.Implementation;
 using Core.Item.Util;
 using Core.Util;
@@ -26,13 +27,15 @@ namespace Test.Util
         }
         private int InsertToEndNum { get; }
         private int _endInsertCnt;
+        private ItemStackFactory _itemStackFactory;
 
         public DummyBlockInventory(int insertToEndNum = 1)
         {
+            _itemStackFactory = new ItemStackFactory(new TestItemConfig());
             _isItemExists = false;
             this.InsertToEndNum = insertToEndNum;
             _endInsertCnt = 0;
-            _insertedItems = CreateEmptyItemStacksList.Create(100).ToList();
+            _insertedItems = CreateEmptyItemStacksList.Create(100,_itemStackFactory).ToList();
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
@@ -47,7 +50,7 @@ namespace Test.Util
 
                 return r.RemainderItemStack;
             }
-            return ItemStackFactory.CreatEmpty();
+            return _itemStackFactory.CreatEmpty();
         }
 
         public void ChangeConnector(IBlockInventory blockInventory)
@@ -61,14 +64,15 @@ namespace Test.Util
         [Test]
         public void InsertItemTest()
         {
+            var _itemStackFactory = new ItemStackFactory(new TestItemConfig());
             var d = new DummyBlockInventory();
             for (int i = 1; i <= 100; i++)
             {
-                d.InsertItem(ItemStackFactory.Create(i,1));
+                d.InsertItem(_itemStackFactory.Create(i,1));
             }
             
-            var item = d.InsertItem(ItemStackFactory.Create(101,1));
-            Assert.True(item.Equals(ItemStackFactory.CreatEmpty()));
+            var item = d.InsertItem(_itemStackFactory.Create(101,1));
+            Assert.True(item.Equals(_itemStackFactory.CreatEmpty()));
         }
 
         [Test]

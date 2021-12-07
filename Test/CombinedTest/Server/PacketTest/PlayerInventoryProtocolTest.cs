@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
+using Core.Item.Config;
 using Core.Item.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -38,9 +39,10 @@ namespace Test.CombinedTest.Server.PacketTest
             }
 
             var playerInventoryData = serviceProvider.GetService<PlayerInventoryDataStore>().GetInventoryData(playerId);
-            playerInventoryData.InsertItem(0,ItemStackFactory.Create(1, 5));
-            playerInventoryData.InsertItem(20,ItemStackFactory.Create(3, 1));
-            playerInventoryData.InsertItem(34,ItemStackFactory.Create(10, 7));
+            ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
+            playerInventoryData.InsertItem(0,itemStackFactory.Create(1, 5));
+            playerInventoryData.InsertItem(20,itemStackFactory.Create(3, 1));
+            playerInventoryData.InsertItem(34,itemStackFactory.Create(10, 7));
             
             
             response = new ByteArrayEnumerator(packet.GetPacketResponse(payload)[0].ToList());

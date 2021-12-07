@@ -14,7 +14,7 @@ namespace Test.UnitTest.Core.Other
         [TestCase(5,30)]
         public void JsonStackTest(int id, int stack)
         {
-            Assert.AreEqual(stack, TestItemConfig.GetItemConfig(id).Stack);
+            Assert.AreEqual(stack, new TestItemConfig().GetItemConfig(id).Stack);
         }
         [TestCase(0,"Test1")]
         [TestCase(1,"Test2")]
@@ -24,7 +24,7 @@ namespace Test.UnitTest.Core.Other
         [TestCase(5,"Test6")]
         public void JsonNameTest(int id, string name)
         {
-            Assert.AreEqual(name, TestItemConfig.GetItemConfig(id).Name);
+            Assert.AreEqual(name, new TestItemConfig().GetItemConfig(id).Name);
         }
         [TestCase(0)]
         [TestCase(1)]
@@ -34,7 +34,7 @@ namespace Test.UnitTest.Core.Other
         [TestCase(5)]
         public void JsonIdTest(int id)
         {
-            Assert.AreEqual(id, TestItemConfig.GetItemConfig(id).Id);
+            Assert.AreEqual(id, new TestItemConfig().GetItemConfig(id).Id);
         }
     }
 }

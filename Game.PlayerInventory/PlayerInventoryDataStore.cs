@@ -11,19 +11,20 @@ namespace PlayerInventory
     public class PlayerInventoryDataStore
     {
         readonly Dictionary<int,PlayerInventoryData> _playerInventoryData = new Dictionary<int,PlayerInventoryData>();
-        private readonly PlayerInventoryUpdateEvent playerInventoryUpdateEvent;
+        private readonly PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public PlayerInventoryDataStore(PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+        public PlayerInventoryDataStore(PlayerInventoryUpdateEvent playerInventoryUpdateEvent, ItemStackFactory itemStackFactory)
         {
-            this.playerInventoryUpdateEvent = playerInventoryUpdateEvent;
+            _playerInventoryUpdateEvent = playerInventoryUpdateEvent;
+            _itemStackFactory = itemStackFactory;
         }
 
         public PlayerInventoryData GetInventoryData(int playerId)
         {
             if (!_playerInventoryData.ContainsKey(playerId))
             {
-                _playerInventoryData.Add(playerId, new PlayerInventoryData(playerId,playerInventoryUpdateEvent,_itemStackFactory));
+                _playerInventoryData.Add(playerId, new PlayerInventoryData(playerId,_playerInventoryUpdateEvent,_itemStackFactory));
             }
 
             return _playerInventoryData[playerId];

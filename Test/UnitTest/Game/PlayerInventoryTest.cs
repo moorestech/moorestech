@@ -15,18 +15,21 @@ namespace Test.UnitTest.Game
         [Test]
         public void InsertToGetTest()
         {
-            var playerInventory = new PlayerInventoryData(0,new PlayerInventoryUpdateEvent());
+            var itemConfig = new TestItemConfig();
+            var itemStackFactory = new ItemStackFactory(itemConfig);
+            
+            var playerInventory = new PlayerInventoryData(0,new PlayerInventoryUpdateEvent(),itemStackFactory);
             int id = 5;
-            var amount = TestItemConfig.GetItemConfig(id).Stack;
+            var amount = itemConfig.GetItemConfig(id).Stack;
             //Insert test
-            var result = playerInventory.InsertItem(0,ItemStackFactory.Create(id,amount));
+            var result = playerInventory.InsertItem(0,itemStackFactory.Create(id,amount));
             Assert.AreEqual(ItemConst.NullItemId,result.Id);
             
-            result = playerInventory.InsertItem(0,ItemStackFactory.Create(id,amount));
+            result = playerInventory.InsertItem(0,itemStackFactory.Create(id,amount));
             Assert.AreEqual(id,result.Id);
             Assert.AreEqual(amount,result.Amount);
             
-            result = playerInventory.InsertItem(0,ItemStackFactory.Create(id+1,1));
+            result = playerInventory.InsertItem(0,itemStackFactory.Create(id+1,1));
             Assert.AreEqual(id + 1,result.Id);
             Assert.AreEqual(1,result.Amount);
 
@@ -39,7 +42,7 @@ namespace Test.UnitTest.Game
             Assert.AreEqual(id,result.Id);
             Assert.AreEqual(amount - 3,result.Amount);
             
-            result = playerInventory.InsertItem(0,ItemStackFactory.Create(id,amount));
+            result = playerInventory.InsertItem(0,itemStackFactory.Create(id,amount));
             Assert.AreEqual(id,result.Id);
             Assert.AreEqual(amount - 3,result.Amount);
             
@@ -54,12 +57,13 @@ namespace Test.UnitTest.Game
         [Test]
         public void UseHotBarTest()
         {
-            var playerInventory = new PlayerInventoryData(0,new PlayerInventoryUpdateEvent());
+            var itemStackFactory = new ItemStackFactory(new TestItemConfig());
+            var playerInventory = new PlayerInventoryData(0,new PlayerInventoryUpdateEvent(),itemStackFactory);
             int id = 5;
             int amount = 3;
             int slot = 27;
             
-            var result = playerInventory.InsertItem(slot,ItemStackFactory.Create(id,amount));
+            var result = playerInventory.InsertItem(slot,itemStackFactory.Create(id,amount));
             Assert.AreEqual(ItemConst.NullItemId,result.Id);
             
             result = playerInventory.UseHotBar(slot);
