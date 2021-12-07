@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using Core.Block.Config;
 using Core.Block.Machine.util;
 using Core.Block.RecipeConfig;
+using Core.Item;
 using Core.Util;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Util;
 using World;
 using IntId = World.IntId;
@@ -13,9 +15,16 @@ namespace Server.PacketHandle.PacketResponse
     public class PutBlockProtocol : IPacketResponse
     {
         private readonly WorldBlockDatastore _worldBlockDatastore;
-        public PutBlockProtocol(WorldBlockDatastore worldBlockDatastore)
+        private readonly IBlockConfig _blockConfig;
+        private readonly IMachineRecipeConfig _recipeConfig;
+        private readonly ItemStackFactory _itemStackFactory;
+
+        public PutBlockProtocol(ServiceProvider serviceProvider)
         {
-            _worldBlockDatastore = worldBlockDatastore;
+            _worldBlockDatastore = serviceProvider.GetService<WorldBlockDatastore>();
+            _blockConfig = serviceProvider.GetService<IBlockConfig>();
+            _recipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
+            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 
         public List<byte[]> GetResponse(List<byte> payload)
@@ -31,7 +40,8 @@ namespace Server.PacketHandle.PacketResponse
             
             var inputBlock = _worldBlockDatastore.GetBlockInventory(payloadData.MoveNextToGetInt());
 
-            var block = NormalMachineFactory.Create(blockId, IntId.NewIntId(), _worldBlockDatastore.GetBlockInventory(payloadData.MoveNextToGetInt()),new TestBlockConfig(),new TestMachineRecipeConfig());
+            //TODO 機械の設置処理なので、ブロックの設置処理に書き直す
+            var block = NormalMachineFactory.Create(blockId, IntId.NewIntId(), _worldBlockDatastore.GetBlockInventory(payloadData.MoveNextToGetInt()),_blockConfig,_recipeConfig,_itemStackFactory);
             inputBlock.ChangeConnector(block);
             
             _worldBlockDatastore.AddBlock(block, x, y,block);

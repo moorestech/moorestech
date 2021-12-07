@@ -2,18 +2,28 @@
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using Core.Config.Item;
 using static System.Int32;
 
-namespace Core.Config.Item
+namespace Core.Item.Config
 {
-    public static class ItemConfig
+    public class TestItemConfig : IItemConfig
     {
-        private static ItemConfigData[] _itemDatas;
+        private ItemConfigData[] _itemDatas;
 
-        public static ItemConfigData GetItemConfig(int id)
+        public TestItemConfig()
         {
-            _itemDatas ??= LoadJsonFile();
             
+            var json = File.ReadAllText(ConfigPath.ConfigPath.ItemConfigPath);
+            var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
+            ms.Seek(0, SeekOrigin.Begin);
+            var serializer = new DataContractJsonSerializer(typeof(ItemJson));
+            var data = serializer.ReadObject(ms) as ItemJson;
+            _itemDatas = data.Items;
+        }
+
+        public ItemConfigData GetItemConfig(int id)
+        {
             //アイテムが登録されてないときの仮
             if (_itemDatas.Length-1 < id)
             {
@@ -22,17 +32,6 @@ namespace Core.Config.Item
             
             return _itemDatas[id];
         }
-
-        private static ItemConfigData[] LoadJsonFile()
-        {
-            var json = File.ReadAllText(ConfigPath.ConfigPath.ItemConfigPath);
-            var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
-            ms.Seek(0, SeekOrigin.Begin);
-            var serializer = new DataContractJsonSerializer(typeof(ItemJson));
-            var data = serializer.ReadObject(ms) as ItemJson;
-            return data?.Items;
-        }
-        
     }
 
     [DataContract] 

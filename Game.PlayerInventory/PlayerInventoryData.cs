@@ -13,16 +13,18 @@ namespace PlayerInventory
         public readonly int PlayerId;
         private readonly List<IItemStack> MainInventory;
         private readonly PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
+        private readonly ItemStackFactory _itemStackFactory;
 
-        public PlayerInventoryData(int playerId,PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+        public PlayerInventoryData(int playerId,PlayerInventoryUpdateEvent playerInventoryUpdateEvent, ItemStackFactory itemStackFactory)
         {
             _playerInventoryUpdateEvent = playerInventoryUpdateEvent;
-            
+            _itemStackFactory = itemStackFactory;
+
             PlayerId = playerId;
             MainInventory = new List<IItemStack>();
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
-                MainInventory.Add(ItemStackFactory.CreatEmpty());
+                MainInventory.Add(_itemStackFactory.CreatEmpty());
             }
         }
         
@@ -41,7 +43,7 @@ namespace PlayerInventory
             }else if( MainInventory[slot].Id == ItemConst.NullItemId)
             {
                 MainInventory[slot] = itemStack;
-                return ItemStackFactory.CreatEmpty();
+                return _itemStackFactory.CreatEmpty();
             }
             
             _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(PlayerId,slot,MainInventory[slot]));
@@ -59,7 +61,7 @@ namespace PlayerInventory
             MainInventory[slot] = result;
             
             _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(PlayerId,slot,MainInventory[slot]));
-            return ItemStackFactory.Create(MainInventory[slot].Id,count);
+            return _itemStackFactory.Create(MainInventory[slot].Id,count);
         }
         
 
@@ -73,7 +75,7 @@ namespace PlayerInventory
             MainInventory[slot] = result;
             
             _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(PlayerId,slot,MainInventory[slot]));
-            return ItemStackFactory.Create(MainInventory[slot].Id, 1);
+            return _itemStackFactory.Create(MainInventory[slot].Id, 1);
         }
         
         public IItemStack GetItem(int slot)

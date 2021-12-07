@@ -1,6 +1,7 @@
 
 using Core.Config.Item;
 using Core.Item;
+using Core.Item.Config;
 using Core.Item.Implementation;
 using Core.Item.Util;
 using NUnit.Framework;
@@ -16,7 +17,7 @@ namespace Test.UnitTest.Game
         {
             var playerInventory = new PlayerInventoryData(0,new PlayerInventoryUpdateEvent());
             int id = 5;
-            var amount = ItemConfig.GetItemConfig(id).Stack;
+            var amount = TestItemConfig.GetItemConfig(id).Stack;
             //Insert test
             var result = playerInventory.InsertItem(0,ItemStackFactory.Create(id,amount));
             Assert.AreEqual(ItemConst.NullItemId,result.Id);

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item;
 using Core.Item.Util;
+using Microsoft.Extensions.DependencyInjection;
 using PlayerInventory;
 using Server.PacketHandle.PacketResponse.Util;
 using Server.Util;
@@ -11,13 +12,15 @@ namespace Server.PacketHandle.PacketResponse
 {
     public class BlockInventoryPlayerInventoryMoveItemProtocol : IPacketResponse
     {
-        private WorldBlockDatastore _worldBlockDatastore;
-        private PlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly WorldBlockDatastore _worldBlockDatastore;
+        private readonly PlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly ItemStackFactory _itemStackFactory;
 
-        public BlockInventoryPlayerInventoryMoveItemProtocol(WorldBlockDatastore worldBlockDatastore, PlayerInventoryDataStore playerInventoryDataStore)
+        public BlockInventoryPlayerInventoryMoveItemProtocol(ServiceProvider serviceProvider)
         {
-            _worldBlockDatastore = worldBlockDatastore;
-            _playerInventoryDataStore = playerInventoryDataStore;
+            _worldBlockDatastore = serviceProvider.GetService<WorldBlockDatastore>();
+            _playerInventoryDataStore = serviceProvider.GetService<PlayerInventoryDataStore>();
+            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 
         public List<byte[]> GetResponse(List<byte> payload)
@@ -39,11 +42,11 @@ namespace Server.PacketHandle.PacketResponse
             //フラグが0の時はプレイヤーインベントリからブロックインベントリにアイテムを移す
             if (flag == 0)
             {
-                inventoryItemMove.Move(playerInventory,playerInventorySlot,blockInventory,blockInventorySlot,moveItemAmount);
+                inventoryItemMove.Move(_itemStackFactory,playerInventory,playerInventorySlot,blockInventory,blockInventorySlot,moveItemAmount);
             }
             else if (flag == 1)
             {
-                inventoryItemMove.Move(blockInventory,blockInventorySlot,playerInventory,playerInventorySlot,moveItemAmount);
+                inventoryItemMove.Move(_itemStackFactory,blockInventory,blockInventorySlot,playerInventory,playerInventorySlot,moveItemAmount);
             }
 
             return new List<byte[]>();

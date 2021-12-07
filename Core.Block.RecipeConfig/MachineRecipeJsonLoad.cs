@@ -17,7 +17,7 @@ namespace Core.Block.RecipeConfig
         {
         }
 
-        internal IMachineRecipeData[] LoadConfig()
+        internal IMachineRecipeData[] LoadConfig(ItemStackFactory itemStackFactory)
         {
             //JSONデータの読み込み
             var json = File.ReadAllText(ConfigPath.ConfigPath.RecipeConfigPath);
@@ -33,7 +33,7 @@ namespace Core.Block.RecipeConfig
                         r.
                         ItemInputs.
                         ToList().
-                        Select(item => (IItemStack)item.ItemStack).ToList();
+                        Select(item => itemStackFactory.Create(item.ItemId,item.Amount)).ToList();
                 
                 
                 inputItem = inputItem.OrderBy(i => i.Id).ToList();
@@ -41,7 +41,7 @@ namespace Core.Block.RecipeConfig
                 var outputs =
                         r.
                         ItemOutputs.
-                        Select(r => new ItemOutput(r.ItemStack, r.Percent));
+                        Select(r => new ItemOutput(itemStackFactory.Create(r.ItemId,r.Amount), r.Percent));
                 
                 return new MachineRecipeData(r.BlockId,r.Time,inputItem,outputs.ToList());
             });
@@ -90,8 +90,10 @@ namespace Core.Block.RecipeConfig
         [DataMember(Name = "amount")]
         private int _amount;
 
+        public int ItemId => _itemId;
 
-        public IItemStack ItemStack => ItemStackFactory.Create(_itemId,_amount);
+        public int Amount => _amount;
+
     }
 
     [DataContract] 
@@ -106,6 +108,8 @@ namespace Core.Block.RecipeConfig
 
         public double Percent => _percent;
 
-        public IItemStack ItemStack => ItemStackFactory.Create(_itemId,_amount);
+        public int ItemId => _itemId;
+
+        public int Amount => _amount;
     }
 }
