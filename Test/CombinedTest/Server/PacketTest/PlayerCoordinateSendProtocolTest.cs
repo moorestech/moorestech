@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Core.Block;
+using Core.Block.Config;
 using Core.Block.Machine;
 using Core.Block.Machine.util;
 using Core.Util;
@@ -86,7 +87,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             var random = new Random(13944156);
             //ブロックの設置
-            var b = NormalMachineFactory.Create(5, IntId.NewIntId(), new NullIBlockInventory());
+            var b = NormalMachineFactory.Create(5, IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig());
             worldBlock.AddBlock(b, 0, 0,b);
             
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0))
@@ -133,11 +134,11 @@ namespace Test.CombinedTest.Server.PacketTest
                 NormalMachine b = null;
                 if (random.Next(0, 3) == 1)
                 {
-                    b = NormalMachineFactory.Create(random.Next(short.MaxValue, int.MaxValue), IntId.NewIntId(), new NullIBlockInventory());
+                    b = NormalMachineFactory.Create(random.Next(short.MaxValue, int.MaxValue), IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig());
                 }
                 else
                 {
-                    b = NormalMachineFactory.Create(random.Next(0, 500), IntId.NewIntId(), new NullIBlockInventory());
+                    b = NormalMachineFactory.Create(random.Next(0, 500), IntId.NewIntId(), new NullIBlockInventory(),new TestBlockConfig());
                 }
                 worldBlock.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300),b);
             }

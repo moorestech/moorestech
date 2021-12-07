@@ -5,33 +5,31 @@ using System.Text;
 
 namespace Core.Block.Config
 {
-    public static class BlockConfig
+    public class TestBlockConfig : IBlockConfig
     {
-        private static BlockData[] _machineDatas;
-        private static BlockData _nullData;
+        private readonly BlockData[] _machineData;
+        private BlockData _nullData;
 
-        public static BlockData GetBlocksConfig(int id)
-        {
-            _machineDatas ??= LoadJsonFile();
-            if ( _machineDatas.Length <= id)
-            {
-                return _nullData ??= new BlockData("null", 0, 0);
-            }
-
-            return _machineDatas[id];
-        }
-
-        private static BlockData[] LoadJsonFile()
+        public TestBlockConfig()
         {
             var json = File.ReadAllText(ConfigPath.ConfigPath.BlockConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
             var serializer = new DataContractJsonSerializer(typeof(BlockJson));
             var data = serializer.ReadObject(ms) as BlockJson;
-            return data?.Blocks;
+            _machineData = data?.Blocks;
+        }
+
+        public BlockData GetBlocksConfig(int id)
+        {
+            if ( _machineData.Length <= id)
+            {
+                return _nullData ??= new BlockData("null", 0, 0);
+            }
+
+            return _machineData[id];
         }
     }
-
     [DataContract] 
     public class BlockData
     {

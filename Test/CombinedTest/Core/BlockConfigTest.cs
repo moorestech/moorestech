@@ -17,7 +17,7 @@ namespace Test.CombinedTest.Core
         [TestCase(3,"ccccc")]
         public void ConfigNameTest(int id,string ans)
         {
-            string name = BlockConfig.GetBlocksConfig(id).Name;
+            string name = new TestBlockConfig().GetBlocksConfig(id).Name;
             Assert.AreEqual(ans,name);
         }
 
@@ -28,7 +28,7 @@ namespace Test.CombinedTest.Core
         [TestCase(3,25)]
         public void InputSlotsTest(int id, int ans)
         {
-            int slots = BlockConfig.GetBlocksConfig(id).InputSlot;
+            int slots = new TestBlockConfig().GetBlocksConfig(id).InputSlot;
             Assert.AreEqual(ans,slots);
         }
         [TestCase(0,1)]
@@ -37,7 +37,7 @@ namespace Test.CombinedTest.Core
         [TestCase(3,5)]
         public void OutputSlotsTest(int id, int ans)
         {
-            int slots = BlockConfig.GetBlocksConfig(id).OutputSlot;
+            int slots = new TestBlockConfig().GetBlocksConfig(id).OutputSlot;
             Assert.AreEqual(ans,slots);
         }
     }

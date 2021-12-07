@@ -36,10 +36,10 @@ namespace Core.Block.Machine
             }
         }
 
-        public NormalMachineInputInventory(int BlockId)
+        public NormalMachineInputInventory(int BlockId,IBlockConfig blockConfig)
         {
             _blockId = BlockId;
-            var data = BlockConfig.GetBlocksConfig(BlockId);
+            var data = blockConfig.GetBlocksConfig(BlockId);
             _inputSlot = CreateEmptyItemStacksList.Create(data.InputSlot);
         }
 
