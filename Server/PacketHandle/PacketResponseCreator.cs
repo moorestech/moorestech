@@ -23,6 +23,7 @@ namespace Server.PacketHandle
             _packetResponseList.Add(new PlayerInventoryResponseProtocol(serviceProvider.GetService<PlayerInventoryDataStore>()));
             _packetResponseList.Add(new SendEventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseList.Add(new BlockInventoryPlayerInventoryMoveItemProtocol(serviceProvider));
+            _packetResponseList.Add(new PlayerInventoryMoveItemProtocol(serviceProvider));
         }
 
         public List<byte[]> GetPacketResponse(List<byte> payload)
