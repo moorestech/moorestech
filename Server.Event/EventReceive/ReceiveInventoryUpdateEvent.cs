@@ -18,7 +18,6 @@ namespace Server.Event.EventReceive
         
         private void ReceivedEvent(PlayerInventoryUpdateEventProperties playerInventoryUpdateEvent)
         {
-            //TODO プロトコルの実装
             var payload = new List<byte>();
             
             
