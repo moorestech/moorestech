@@ -111,6 +111,7 @@ namespace PlayerInventory
             {
                 var result = item.AddItem(itemStack);
                 MainInventory[slot] = result.ProcessResultItemStack;
+                _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(PlayerId,slot,MainInventory[slot]));
                 return result.RemainderItemStack;
             }
 
