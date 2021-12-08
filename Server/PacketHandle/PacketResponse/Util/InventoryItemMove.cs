@@ -18,11 +18,11 @@ namespace Server.PacketHandle.PacketResponse.Util
             //実際に移動するアイテムインスタンスの作成
             var moveItem = itemStackFactory.Create(originItem.Id,itemAmount);
                 
-            var blockInventoryItem = destinationInventory.GetItem(destinationSlot);
+            var destinationInventoryItem = destinationInventory.GetItem(destinationSlot);
                 
             //移動先アイテムがnullの時はそのまま入れかえる
             //移動先と同じIDの時は移動先スロットに加算し、余ったアイテムを移動元インベントリに入れる
-            if (blockInventoryItem.Id == ItemConst.NullItemId || originItem.Id == blockInventoryItem.Id)
+            if (destinationInventoryItem.Id == ItemConst.NullItemId || originItem.Id == destinationInventoryItem.Id)
             {
                 //移動先インベントリにアイテムを移動
                 var replaceItem = destinationInventory.ReplaceItem(destinationSlot,moveItem);
@@ -40,7 +40,7 @@ namespace Server.PacketHandle.PacketResponse.Util
                 //移動元インベントリのアイテムをすべて入れ替える時にのみ入れ替えを実行する
                 //一部入れ替え時は入れ替え作業は実行しない
                 destinationInventory.SetItem(destinationSlot,originItem);
-                sourceInventory.SetItem(sourceSlot,blockInventoryItem);
+                sourceInventory.SetItem(sourceSlot,destinationInventoryItem);
             }
         }
         
