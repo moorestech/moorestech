@@ -33,6 +33,7 @@ namespace Server.PacketHandle.PacketResponse
             if (!_responses.ContainsKey(playerId))
             {
                 _responses.Add(playerId,new PlayerCoordinateToResponse());
+                Console.WriteLine("プレイヤーが接続:" + playerId);
             }
             
             //プレイヤーの座標から返すチャンクのブロックデータを取得をする
