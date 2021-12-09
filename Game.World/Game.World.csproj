@@ -7,6 +7,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Core\Core.csproj" />
+      <ProjectReference Include="..\Game.World.Interface\Game.World.Interface.csproj" />
     </ItemGroup>
 
     <ItemGroup>

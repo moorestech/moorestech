@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Block;
+using Game.World.Interface;
 using World.Event;
 using World.Util;
 
@@ -8,9 +9,8 @@ namespace World
 {
     /// <summary>
     /// ワールドに存在するブロックとその座標の対応づけを行います。
-    /// 今はServerから直接参照されているけど、依存性の逆転をしたほうがいいかも...
     /// </summary>
-    public class WorldBlockDatastore
+    public class WorldBlockDatastore : IWorldBlockDatastore
     {
         //メインのデータストア
         private Dictionary<int, BlockWorldData> _blockMasterDictionary = new Dictionary<int, BlockWorldData>();
@@ -26,15 +26,15 @@ namespace World
             _blockPlaceEvent = blockPlaceEvent;
         }
 
-        public bool AddBlock(IBlock Block,int x,int y,IBlockInventory blockInventory)
+        public bool AddBlock(IBlock block,int x,int y,IBlockInventory blockInventory)
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
-            if (!_blockMasterDictionary.ContainsKey(Block.GetIntId()) && !_coordinateDictionary.ContainsKey(CoordinateCreator.New(x,y)))
+            if (!_blockMasterDictionary.ContainsKey(block.GetIntId()) && !_coordinateDictionary.ContainsKey(CoordinateCreator.New(x,y)))
             {
                 var c = CoordinateCreator.New(x,y);
-                var data = new BlockWorldData(Block, x, y,blockInventory);
-                _blockMasterDictionary.Add(Block.GetIntId(),data);
-                _coordinateDictionary.Add(c,Block.GetIntId());
+                var data = new BlockWorldData(block, x, y,blockInventory);
+                _blockMasterDictionary.Add(block.GetIntId(),data);
+                _coordinateDictionary.Add(c,block.GetIntId());
                 _blockPlaceEvent.OnBlockPutEventInvoke(new BlockPlaceEventProperties(c,data.Block));
                 
                 return true;
