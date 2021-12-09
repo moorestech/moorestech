@@ -44,7 +44,57 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(1,byteData.MoveNextToGetInt());
             Assert.AreEqual(5,byteData.MoveNextToGetInt());
 
-            //TODO インベントリ内のアイテムの移動当たりを実際に移動のプロトコルを用いてテストする
+            //インベントリ内のアイテムの移動を実際に移動のプロトコルを用いてテストする
+            //分割のテスト
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(5,4,3,0));
+            response =  packetResponse.GetPacketResponse(EventRequestData(0));
+            Assert.AreEqual(2,response.Count);
+            var byteData1 = new ByteArrayEnumerator(response[0].ToList());
+            var byteData2 = new ByteArrayEnumerator(response[1].ToList());
+            byteData1.MoveNextToGetShort();
+            byteData2.MoveNextToGetShort();
+            
+            Assert.AreEqual(1,byteData1.MoveNextToGetShort());
+            Assert.AreEqual(1,byteData2.MoveNextToGetShort());//イベントIDの確認
+            
+            var slots = new List<int>() { byteData1.MoveNextToGetInt(),byteData2.MoveNextToGetInt()};
+            Assert.True(slots.Contains(4));
+            Assert.True(slots.Contains(5));//移動時のスロット確認
+            
+            Assert.AreEqual(1,byteData1.MoveNextToGetInt());
+            Assert.AreEqual(1,byteData2.MoveNextToGetInt());//アイテムIDの確認
+            
+            var counts = new List<int>() { byteData1.MoveNextToGetInt(),byteData2.MoveNextToGetInt()};
+            Assert.True(counts.Contains(2));
+            Assert.True(counts.Contains(3));//アイテム数の確認
+            
+            
+            
+            //合成のテスト
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(4,5,3,0));
+            response =  packetResponse.GetPacketResponse(EventRequestData(0));
+            Assert.AreEqual(2,response.Count);
+            byteData1 = new ByteArrayEnumerator(response[0].ToList());
+            byteData2 = new ByteArrayEnumerator(response[1].ToList());
+            byteData1.MoveNextToGetShort();
+            byteData2.MoveNextToGetShort();
+            Assert.AreEqual(1,byteData1.MoveNextToGetShort());
+            Assert.AreEqual(1,byteData2.MoveNextToGetShort());//イベントIDの確認
+            
+            slots = new List<int>() { byteData1.MoveNextToGetInt(),byteData2.MoveNextToGetInt()};
+            Assert.True(slots.Contains(4));
+            Assert.True(slots.Contains(5));//移動時のスロット確認
+            
+            var ids = new List<int>() { byteData1.MoveNextToGetInt(),byteData2.MoveNextToGetInt()};
+            Assert.True(ids.Contains(1));
+            Assert.True(ids.Contains(0));//アイテムIDの確認
+            
+            counts = new List<int>() { byteData1.MoveNextToGetInt(),byteData2.MoveNextToGetInt()};
+            Assert.True(counts.Contains(5));
+            Assert.True(counts.Contains(0));//アイテム数の確認
+            
+            
+
         }
         
         
@@ -53,6 +103,20 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var payload = new List<byte>();
             payload.AddRange(ByteListConverter.ToByteArray((short)4));
             payload.AddRange(ByteListConverter.ToByteArray(plyaerID));
+            return payload;
+        }
+        
+        
+
+        private List<byte> PlayerInventoryItemMove(int fromSlot, int toSlot, int itemCount, int playerId)
+        {
+            
+            var payload = new List<byte>();
+            payload.AddRange(ByteListConverter.ToByteArray((short)6));
+            payload.AddRange(ByteListConverter.ToByteArray(playerId));
+            payload.AddRange(ByteListConverter.ToByteArray(fromSlot)); 
+            payload.AddRange(ByteListConverter.ToByteArray(toSlot)); 
+            payload.AddRange(ByteListConverter.ToByteArray(itemCount)); 
             return payload;
         }
     }
