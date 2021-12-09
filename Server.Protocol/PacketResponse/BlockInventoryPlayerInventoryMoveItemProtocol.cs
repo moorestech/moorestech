@@ -4,7 +4,6 @@ using Core.Item;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface;
 using Microsoft.Extensions.DependencyInjection;
-using PlayerInventory;
 using Server.PacketHandle.PacketResponse;
 using Server.PacketHandle.PacketResponse.Util;
 using Server.Util;

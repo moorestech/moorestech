@@ -4,6 +4,7 @@ using Core.Inventory;
 using Core.Item;
 using Core.Item.Util;
 using Game.PlayerInventory.Interface;
+using Game.PlayerInventory.Interface.Event;
 using PlayerInventory.Event;
 
 namespace PlayerInventory
@@ -12,10 +13,10 @@ namespace PlayerInventory
     {
         public readonly int PlayerId;
         private readonly List<IItemStack> MainInventory;
-        private readonly PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
+        private readonly IPlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public PlayerInventoryData(int playerId,PlayerInventoryUpdateEvent playerInventoryUpdateEvent, ItemStackFactory itemStackFactory)
+        public PlayerInventoryData(int playerId,IPlayerInventoryUpdateEvent playerInventoryUpdateEvent, ItemStackFactory itemStackFactory)
         {
             _playerInventoryUpdateEvent = playerInventoryUpdateEvent;
             _itemStackFactory = itemStackFactory;

@@ -1,6 +1,6 @@
 using Core.Item;
 
-namespace PlayerInventory.Event
+namespace Game.PlayerInventory.Interface.Event
 {
     public class PlayerInventoryUpdateEventProperties
     {

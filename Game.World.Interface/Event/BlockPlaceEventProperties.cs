@@ -1,7 +1,6 @@
 using Core.Block;
-using Game.World.Interface;
 
-namespace World.Event
+namespace Game.World.Interface.Event
 {
     public class BlockPlaceEventProperties
     {

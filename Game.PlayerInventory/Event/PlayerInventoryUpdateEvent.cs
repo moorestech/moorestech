@@ -1,11 +1,18 @@
+using Game.PlayerInventory.Interface.Event;
+
 namespace PlayerInventory.Event
 {
-    public class PlayerInventoryUpdateEvent
+    public class PlayerInventoryUpdateEvent : IPlayerInventoryUpdateEvent
     {
-        public delegate void PutBlockEvent(PlayerInventoryUpdateEventProperties playerInventoryUpdateEventProperties);
-        public event PutBlockEvent OnPlayerInventoryUpdate;
+        public event IPlayerInventoryUpdateEvent.UpdateInventoryEvent OnPlayerInventoryUpdate;
 
-        internal void OnPlayerInventoryUpdateInvoke(PlayerInventoryUpdateEventProperties playerInventoryUpdateEventProperties)
+
+        public void Subscribe(IPlayerInventoryUpdateEvent.UpdateInventoryEvent updateInventoryEvent)
+        {
+            OnPlayerInventoryUpdate += updateInventoryEvent;
+        }
+
+        public void OnPlayerInventoryUpdateInvoke(PlayerInventoryUpdateEventProperties playerInventoryUpdateEventProperties)
         {
             OnPlayerInventoryUpdate?.Invoke(playerInventoryUpdateEventProperties);
         }

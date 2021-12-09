@@ -3,7 +3,9 @@ using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
 using Game.PlayerInventory.Interface;
+using Game.PlayerInventory.Interface.Event;
 using Game.World.Interface;
+using Game.World.Interface.Event;
 using Microsoft.Extensions.DependencyInjection;
 using PlayerInventory;
 using PlayerInventory.Event;
@@ -35,10 +37,10 @@ namespace Server
             services.AddSingleton<IPlayerInventoryDataStore,PlayerInventoryDataStore>();
             
             //イベントを登録
-            services.AddSingleton<BlockPlaceEvent,BlockPlaceEvent>();
-            services.AddSingleton<PlayerInventoryUpdateEvent,PlayerInventoryUpdateEvent>();
+            services.AddSingleton<IBlockPlaceEvent,BlockPlaceEvent>();
+            services.AddSingleton<IPlayerInventoryUpdateEvent,PlayerInventoryUpdateEvent>();
             
-            //イベントを実際に送信するクラス
+            //イベントを実際に送信するクラスIPlayerInventoryDataStore
             services.AddSingleton<ReceiveInventoryUpdateEvent,ReceiveInventoryUpdateEvent>();
             services.AddSingleton<ReceivePlaceBlockEvent,ReceivePlaceBlockEvent>();
             

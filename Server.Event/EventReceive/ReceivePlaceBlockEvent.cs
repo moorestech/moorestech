@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Game.World.Interface.Event;
 using Server.Util;
-using World.Event;
 
 namespace Server.Event.EventReceive
 {
@@ -10,9 +10,9 @@ namespace Server.Event.EventReceive
         private const short EventId = 0;
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public ReceivePlaceBlockEvent(BlockPlaceEvent blockPlaceEvent,EventProtocolProvider eventProtocolProvider)
+        public ReceivePlaceBlockEvent(IBlockPlaceEvent blockPlaceEvent,EventProtocolProvider eventProtocolProvider)
         {
-            blockPlaceEvent.OnBlockPutEvent += ReceivedEvent;
+            blockPlaceEvent.Subscribe(ReceivedEvent);
             _eventProtocolProvider = eventProtocolProvider;
         }
 

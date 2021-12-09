@@ -1,13 +1,18 @@
 using Core.Block;
+using Game.World.Interface.Event;
 
 namespace World.Event
 {
-    public class BlockPlaceEvent
+    public class BlockPlaceEvent : IBlockPlaceEvent
     {
-        public delegate void PutBlockEvent(BlockPlaceEventProperties blockPlaceEventProperties);
-        public event PutBlockEvent OnBlockPutEvent;
+        public event IBlockPlaceEvent.BlockPlaceEvent OnBlockPutEvent;
 
-        internal void OnBlockPutEventInvoke(BlockPlaceEventProperties blockPlaceEventProperties)
+        public void Subscribe(IBlockPlaceEvent.BlockPlaceEvent blockPlaceEvent)
+        {
+            OnBlockPutEvent += blockPlaceEvent;
+        }
+
+        public void OnBlockPutEventInvoke(BlockPlaceEventProperties blockPlaceEventProperties)
         {
             OnBlockPutEvent?.Invoke(blockPlaceEventProperties);
         }

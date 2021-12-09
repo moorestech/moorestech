@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Core.Util;
 
 namespace Server.Event
 {

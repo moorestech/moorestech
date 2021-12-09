@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using PlayerInventory.Event;
+using Game.PlayerInventory.Interface.Event;
 using Server.Util;
 
 namespace Server.Event.EventReceive
@@ -9,10 +9,10 @@ namespace Server.Event.EventReceive
         private readonly EventProtocolProvider _eventProtocolProvider;
         private const short EventId = 1;
 
-        public ReceiveInventoryUpdateEvent(PlayerInventoryUpdateEvent playerInventoryUpdateEvent,EventProtocolProvider eventProtocolProvider)
+        public ReceiveInventoryUpdateEvent(IPlayerInventoryUpdateEvent inventoryUpdateEvent,EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            playerInventoryUpdateEvent.OnPlayerInventoryUpdate += ReceivedEvent;
+            inventoryUpdateEvent.Subscribe(ReceivedEvent);
         }
         
         

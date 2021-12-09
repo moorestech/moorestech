@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Core.Block;
 using Game.World.Interface;
+using Game.World.Interface.Event;
 using Game.World.Interface.Util;
 using World.Event;
 
@@ -19,9 +20,9 @@ namespace World
 
         
         readonly IBlock _nullBlock = new NullBlock(BlockConst.BlockConst.NullBlockId,Int32.MaxValue);
-        private readonly BlockPlaceEvent _blockPlaceEvent;
+        private readonly IBlockPlaceEvent _blockPlaceEvent;
 
-        public WorldBlockDatastore(BlockPlaceEvent blockPlaceEvent)
+        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent)
         {
             _blockPlaceEvent = blockPlaceEvent;
         }
