@@ -1,5 +1,5 @@
 using Core.Block;
-using World.Util;
+using Game.World.Interface;
 
 namespace World.Event
 {

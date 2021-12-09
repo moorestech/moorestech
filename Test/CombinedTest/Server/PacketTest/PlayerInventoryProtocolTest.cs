@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Item;
 using Core.Item.Config;
 using Core.Item.Util;
+using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
@@ -38,11 +39,11 @@ namespace Test.CombinedTest.Server.PacketTest
                 Assert.AreEqual(0,response.MoveNextToGetInt());
             }
 
-            var playerInventoryData = serviceProvider.GetService<PlayerInventoryDataStore>().GetInventoryData(playerId);
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
-            playerInventoryData.InsertItem(0,itemStackFactory.Create(1, 5));
-            playerInventoryData.InsertItem(20,itemStackFactory.Create(3, 1));
-            playerInventoryData.InsertItem(34,itemStackFactory.Create(10, 7));
+            playerInventoryData.SetItem(0,itemStackFactory.Create(1, 5));
+            playerInventoryData.SetItem(20,itemStackFactory.Create(3, 1));
+            playerInventoryData.SetItem(34,itemStackFactory.Create(10, 7));
             
             
             response = new ByteArrayEnumerator(packet.GetPacketResponse(payload)[0].ToList());

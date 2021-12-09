@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.World.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
@@ -17,7 +18,7 @@ namespace Test.CombinedTest.Server.PacketTest
         public void SimpleBlockPlaceTest()
         {
             var (packetResponse,serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
-            var worldBlock = serviceProvider.GetService<WorldBlockDatastore>();
+            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             
             packetResponse.GetPacketResponse(BlockPlace(1, 0, 0));
             packetResponse.GetPacketResponse(BlockPlace(31, 2, 6));

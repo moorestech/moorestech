@@ -4,6 +4,7 @@ using Core.Item;
 using Core.Item.Config;
 using Core.Item.Implementation;
 using Core.Item.Util;
+using Game.PlayerInventory.Interface;
 using NUnit.Framework;
 using PlayerInventory;
 using PlayerInventory.Event;

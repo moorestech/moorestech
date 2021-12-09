@@ -2,12 +2,15 @@ using Core.Block.Config;
 using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
+using Game.PlayerInventory.Interface;
+using Game.World.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using PlayerInventory;
 using PlayerInventory.Event;
 using Server.Event;
 using Server.Event.EventReceive;
 using Server.PacketHandle;
+using Server.Protocol;
 using World;
 using World.Event;
 
@@ -28,8 +31,8 @@ namespace Server
             
             //必要なクラスのインスタンスを生成
             services.AddSingleton<EventProtocolProvider,EventProtocolProvider>();
-            services.AddSingleton<WorldBlockDatastore,WorldBlockDatastore>();
-            services.AddSingleton<PlayerInventoryDataStore,PlayerInventoryDataStore>();
+            services.AddSingleton<IWorldBlockDatastore,WorldBlockDatastore>();
+            services.AddSingleton<IPlayerInventoryDataStore,PlayerInventoryDataStore>();
             
             //イベントを登録
             services.AddSingleton<BlockPlaceEvent,BlockPlaceEvent>();

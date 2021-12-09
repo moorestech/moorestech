@@ -1,4 +1,4 @@
-﻿namespace Server.Const
+﻿namespace Server.Protocol.PacketResponse.Const
 {
     public static class ChunkResponseConst
     {

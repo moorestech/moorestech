@@ -1,4 +1,4 @@
-﻿namespace World
+﻿namespace Game.World.Interface
 {
     public struct Coordinate
     {

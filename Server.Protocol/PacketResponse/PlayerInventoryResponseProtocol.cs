@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
-using PlayerInventory;
+using Game.PlayerInventory.Interface;
+using Server.PacketHandle.PacketResponse;
 using Server.Util;
 
-namespace Server.PacketHandle.PacketResponse
+namespace Server.Protocol.PacketResponse
 {
     public class PlayerInventoryResponseProtocol : IPacketResponse
     {
-        private PlayerInventoryDataStore _playerInventoryDataStore;
+        private IPlayerInventoryDataStore _playerInventoryDataStore;
 
-        public PlayerInventoryResponseProtocol(PlayerInventoryDataStore playerInventoryDataStore)
+        public PlayerInventoryResponseProtocol(IPlayerInventoryDataStore playerInventoryDataStore)
         {
             _playerInventoryDataStore = playerInventoryDataStore;
         }

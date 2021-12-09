@@ -5,23 +5,23 @@ using Core.Block.Machine.util;
 using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Util;
+using Game.World.Interface;
 using Microsoft.Extensions.DependencyInjection;
+using Server.PacketHandle.PacketResponse;
 using Server.Util;
-using World;
-using IntId = World.IntId;
 
-namespace Server.PacketHandle.PacketResponse
+namespace Server.Protocol.PacketResponse
 {
     public class PutBlockProtocol : IPacketResponse
     {
-        private readonly WorldBlockDatastore _worldBlockDatastore;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IBlockConfig _blockConfig;
         private readonly IMachineRecipeConfig _recipeConfig;
         private readonly ItemStackFactory _itemStackFactory;
 
         public PutBlockProtocol(ServiceProvider serviceProvider)
         {
-            _worldBlockDatastore = serviceProvider.GetService<WorldBlockDatastore>();
+            _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _blockConfig = serviceProvider.GetService<IBlockConfig>();
             _recipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();

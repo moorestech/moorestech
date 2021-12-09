@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.World.Interface;
+using Game.World.Interface.Util;
+using Server.PacketHandle.PacketResponse;
 using Server.PacketHandle.PacketResponse.Player;
 using Server.Util;
-using World;
-using World.Util;
 
-namespace Server.PacketHandle.PacketResponse
+namespace Server.Protocol.PacketResponse
 {
     /// <summary>
     /// プレイヤー座標のプロトコル
@@ -14,9 +15,9 @@ namespace Server.PacketHandle.PacketResponse
     public class PlayerCoordinateSendProtocol : IPacketResponse
     {
         private readonly Dictionary<int,PlayerCoordinateToResponse> _responses = new ();
-        private readonly WorldBlockDatastore _worldBlockDatastore;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
 
-        public PlayerCoordinateSendProtocol(WorldBlockDatastore worldBlockDatastore)
+        public PlayerCoordinateSendProtocol(IWorldBlockDatastore worldBlockDatastore)
         {
             _worldBlockDatastore = worldBlockDatastore;
         }

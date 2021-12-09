@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Item;
 using Core.Item.Util;
+using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
@@ -29,7 +30,7 @@ namespace Test.CombinedTest.Server.PacketTest
             payload.AddRange(ByteListConverter.ToByteArray((short)3));
             payload.AddRange(ByteListConverter.ToByteArray(playerId));
             packet.GetPacketResponse(payload);
-            var playerInventoryData = serviceProvider.GetService<PlayerInventoryDataStore>().GetInventoryData(playerId);
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             
             
             //アイテムの設定

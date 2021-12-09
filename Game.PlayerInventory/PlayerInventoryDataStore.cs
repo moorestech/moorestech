@@ -1,14 +1,15 @@
 using System.Collections.Generic;
+using Core.Inventory;
 using Core.Item;
+using Game.PlayerInventory.Interface;
 using PlayerInventory.Event;
 
 namespace PlayerInventory
 {
     /// <summary>
     /// プレイヤーインベントリのデータを扱います。
-    /// 今はServerから直接参照されているけど、依存性の逆転をしたほうがいいかも...
     /// </summary>
-    public class PlayerInventoryDataStore
+    public class PlayerInventoryDataStore : IPlayerInventoryDataStore
     {
         readonly Dictionary<int,PlayerInventoryData> _playerInventoryData = new Dictionary<int,PlayerInventoryData>();
         private readonly PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
@@ -20,7 +21,7 @@ namespace PlayerInventory
             _itemStackFactory = itemStackFactory;
         }
 
-        public PlayerInventoryData GetInventoryData(int playerId)
+        public IInventory GetInventoryData(int playerId)
         {
             if (!_playerInventoryData.ContainsKey(playerId))
             {

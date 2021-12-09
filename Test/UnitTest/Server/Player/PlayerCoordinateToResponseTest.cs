@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
+using Game.World.Interface;
+using Game.World.Interface.Util;
 using NUnit.Framework;
-using Server.Const;
 using Server.PacketHandle.PacketResponse.Player;
-using World;
-using World.Util;
+using Server.Protocol.PacketResponse.Const;
 
 namespace Test.UnitTest.Server.Player
 {

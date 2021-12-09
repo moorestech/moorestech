@@ -1,19 +1,20 @@
 using System.Collections.Generic;
 using Core.Item;
+using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
-using PlayerInventory;
+using Server.PacketHandle.PacketResponse;
 using Server.PacketHandle.PacketResponse.Util;
 using Server.Util;
 
-namespace Server.PacketHandle.PacketResponse
+namespace Server.Protocol.PacketResponse
 {
     public class PlayerInventoryMoveItemProtocol : IPacketResponse
     {
-        private readonly PlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ItemStackFactory _itemStackFactory;
         public PlayerInventoryMoveItemProtocol(ServiceProvider serviceProvider)
         {
-            _playerInventoryDataStore = serviceProvider.GetService<PlayerInventoryDataStore>();
+            _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 

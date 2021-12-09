@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using Server.Event;
+using Server.PacketHandle.PacketResponse;
 using Server.Util;
 
-namespace Server.PacketHandle.PacketResponse
+namespace Server.Protocol.PacketResponse
 {
     public class SendEventProtocol : IPacketResponse
     {

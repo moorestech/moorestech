@@ -9,6 +9,8 @@ using Core.Config.Item;
 using Core.Item;
 using Core.Item.Config;
 using Core.Item.Util;
+using Game.PlayerInventory.Interface;
+using Game.World.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
@@ -32,7 +34,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             //ブロックの設置
-            var blockDataStore = serviceProvider.GetService<WorldBlockDatastore>();
+            var blockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var block = NormalMachineFactory.Create(1,1,new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig(_itemStackFactory),_itemStackFactory);
             blockDataStore.AddBlock(block, 0, 0, block);
             //ブロックにアイテムを挿入
@@ -45,7 +47,7 @@ namespace Test.CombinedTest.Server.PacketTest
             payload.AddRange(ByteListConverter.ToByteArray((short)3));
             payload.AddRange(ByteListConverter.ToByteArray(playerId));
             packet.GetPacketResponse(payload);
-            var playerInventoryData = serviceProvider.GetService<PlayerInventoryDataStore>().GetInventoryData(playerId);
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             
             
             //実際にアイテムを移動するテスト--------------------------------------------------------
@@ -71,7 +73,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //別のアイテムIDが在ったとき、全て選択していれば入れ替える
             //別IDのアイテム挿入
-            playerInventoryData.InsertItem(playerSlotIndex, _itemStackFactory.Create(2,3));
+            playerInventoryData.SetItem(playerSlotIndex, _itemStackFactory.Create(2,3));
             //プレイヤーインベントリからブロックインベントリへ全てのアイテムを移す
             packet.GetPacketResponse(CreateReplacePayload(0,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,3));
             //きちんと移動できたか確認

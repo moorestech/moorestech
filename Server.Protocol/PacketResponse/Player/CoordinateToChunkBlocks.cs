@@ -1,12 +1,11 @@
-﻿using Server.Const;
-using World;
-using World.Util;
+﻿using Game.World.Interface;
+using Server.Protocol.PacketResponse.Const;
 
 namespace Server.PacketHandle.PacketResponse.Player
 {
     public static class CoordinateToChunkBlocks
     {
-        public static int[,] Convert(Coordinate coordinate,WorldBlockDatastore worldBlockDatastore)
+        public static int[,] Convert(Coordinate coordinate,IWorldBlockDatastore worldBlockDatastore)
         {
             //その座標のチャンクの原点
             var x = coordinate.x / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;

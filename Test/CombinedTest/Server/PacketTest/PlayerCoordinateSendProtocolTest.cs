@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Core.Block;
 using Core.Block.Config;
 using Core.Block.Machine;
@@ -9,18 +8,14 @@ using Core.Block.Machine.util;
 using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
-using Core.Util;
+using Game.World.Interface;
+using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using PlayerInventory;
 using Server;
-using Server.Const;
-using Server.Event;
-using Server.PacketHandle;
+using Server.Protocol.PacketResponse.Const;
 using Server.Util;
 using World;
-using World.Event;
-using World.Util;
 using IntId = World.IntId;
 
 namespace Test.CombinedTest.Server.PacketTest
@@ -85,7 +80,7 @@ namespace Test.CombinedTest.Server.PacketTest
         public void PlaceBlockToChunkResponseTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
-            var worldBlock = serviceProvider.GetService<WorldBlockDatastore>();
+            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var random = new Random(13944156);
             //ブロックの設置
@@ -127,7 +122,7 @@ namespace Test.CombinedTest.Server.PacketTest
         public void RandomPlaceBlockToChunkResponseTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
-            var worldBlock = serviceProvider.GetService<WorldBlockDatastore>();
+            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var random = new Random(13944156);
             //ブロックの設置

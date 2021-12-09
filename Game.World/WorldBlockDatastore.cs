@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using Core.Block;
 using Game.World.Interface;
+using Game.World.Interface.Util;
 using World.Event;
-using World.Util;
 
 namespace World
 {

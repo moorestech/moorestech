@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
 using Core.Item.Util;
+using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
@@ -28,7 +29,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             packetResponse.GetPacketResponse(payload);
             
             //インベントリにアイテムを追加
-            var playerInventoryData = serviceProvider.GetService<PlayerInventoryDataStore>().GetInventoryData(0);
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0);
             
             
             playerInventoryData.SetItem(5,serviceProvider.GetService<ItemStackFactory>().Create(1,5));
@@ -43,27 +44,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(1,byteData.MoveNextToGetInt());
             Assert.AreEqual(5,byteData.MoveNextToGetInt());
 
-            //アイテムをドロップしたときのテスト
-            playerInventoryData.DropItem(5,2);
-            response =  packetResponse.GetPacketResponse(EventRequestData(0));
-            Assert.AreEqual(1,response.Count);
-            byteData = new ByteArrayEnumerator(response[0].ToList());
-            byteData.MoveNextToGetShort();
-            byteData.MoveNextToGetShort();
-            Assert.AreEqual(5,byteData.MoveNextToGetInt());
-            Assert.AreEqual(1,byteData.MoveNextToGetInt());
-            Assert.AreEqual(3,byteData.MoveNextToGetInt());
-            
-            //アイテムをドロップしたときのテスト
-            playerInventoryData.DropItem(5,3);
-            response =  packetResponse.GetPacketResponse(EventRequestData(0));
-            Assert.AreEqual(1,response.Count);
-            byteData = new ByteArrayEnumerator(response[0].ToList());
-            byteData.MoveNextToGetShort();
-            byteData.MoveNextToGetShort();
-            Assert.AreEqual(5,byteData.MoveNextToGetInt());
-            Assert.AreEqual(ItemConst.NullItemId,byteData.MoveNextToGetInt());
-            Assert.AreEqual(0,byteData.MoveNextToGetInt());
+            //TODO インベントリ内のアイテムの移動当たりを実際に移動のプロトコルを用いてテストする
         }
         
         

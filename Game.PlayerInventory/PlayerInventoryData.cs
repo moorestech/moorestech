@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item;
-using Core.Item.Implementation;
 using Core.Item.Util;
+using Game.PlayerInventory.Interface;
 using PlayerInventory.Event;
 
 namespace PlayerInventory

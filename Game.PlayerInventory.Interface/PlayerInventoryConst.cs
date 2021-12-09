@@ -1,4 +1,4 @@
-namespace PlayerInventory
+namespace Game.PlayerInventory.Interface
 {
     public class PlayerInventoryConst
     {
