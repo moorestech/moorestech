@@ -3,9 +3,6 @@ using System.IO;
 
 namespace Core.ConfigPath
 {
-    /// <summary>
-    /// TODO ConfigをDI化する
-    /// </summary>
     public class ConfigPath
     {
         public static string RecipeConfigPath
