@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.World", "Game.World\Game.World.csproj", "{407B0D28-2DCD-4ED0-BD2C-4254E1297A37}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{9AFE0665-CC93-483E-A81E-869F00423F69}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Starter", "Server.Starter\Server.Starter.csproj", "{9AFE0665-CC93-483E-A81E-869F00423F69}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{69DC2CB7-562A-4890-B0D3-DDF99D72AA9A}"
 EndProject
