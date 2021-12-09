@@ -4,4 +4,8 @@
         <TargetFramework>net5.0</TargetFramework>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Game.Save.Interface\Game.Save.Interface.csproj" />
+    </ItemGroup>
+
 </Project>
