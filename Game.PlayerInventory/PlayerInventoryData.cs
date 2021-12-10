@@ -13,10 +13,10 @@ namespace PlayerInventory
     {
         public readonly int PlayerId;
         private readonly List<IItemStack> MainInventory;
-        private readonly IPlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
+        private readonly PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public PlayerInventoryData(int playerId,IPlayerInventoryUpdateEvent playerInventoryUpdateEvent, ItemStackFactory itemStackFactory)
+        public PlayerInventoryData(int playerId,PlayerInventoryUpdateEvent playerInventoryUpdateEvent, ItemStackFactory itemStackFactory)
         {
             _playerInventoryUpdateEvent = playerInventoryUpdateEvent;
             _itemStackFactory = itemStackFactory;

@@ -20,11 +20,11 @@ namespace World
 
         
         readonly IBlock _nullBlock = new NullBlock(BlockConst.BlockConst.NullBlockId,Int32.MaxValue);
-        private readonly IBlockPlaceEvent _blockPlaceEvent;
+        private readonly BlockPlaceEvent _blockPlaceEvent;
 
         public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent)
         {
-            _blockPlaceEvent = blockPlaceEvent;
+            _blockPlaceEvent = (BlockPlaceEvent) blockPlaceEvent;
         }
 
         public bool AddBlock(IBlock block,int x,int y,IBlockInventory blockInventory)
