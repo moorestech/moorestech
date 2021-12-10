@@ -18,6 +18,7 @@ namespace PlayerInventory
 
         public PlayerInventoryDataStore(IPlayerInventoryUpdateEvent playerInventoryUpdateEvent, ItemStackFactory itemStackFactory)
         {
+            //イベントの呼び出しをアセンブリに隠蔽するため、インターフェースをキャストします。
             _playerInventoryUpdateEvent = (PlayerInventoryUpdateEvent) playerInventoryUpdateEvent;
             _itemStackFactory = itemStackFactory;
         }
