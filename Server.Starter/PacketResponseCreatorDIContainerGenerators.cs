@@ -4,6 +4,8 @@ using Core.Item;
 using Core.Item.Config;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
+using Game.Save.Interface;
+using Game.Save.Json;
 using Game.World.Interface;
 using Game.World.Interface.Event;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +37,11 @@ namespace Server
             services.AddSingleton<EventProtocolProvider,EventProtocolProvider>();
             services.AddSingleton<IWorldBlockDatastore,WorldBlockDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore,PlayerInventoryDataStore>();
+            
+            //JSONファイルのセーブシステムの読み込み
+            services.AddSingleton<ISaveRepository, SaveJsonFile>();
+            //TODO ファイルパスを変更する
+            services.AddSingleton(new SaveJsonFilePath(""));
             
             //イベントを登録
             services.AddSingleton<IBlockPlaceEvent,BlockPlaceEvent>();

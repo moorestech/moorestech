@@ -7,20 +7,17 @@ namespace Game.Save.Json
 {
     public class SaveJsonFile : ISaveRepository
     {
-        private IWorldBlockDatastore _worldBlockDatastore;
-        private IPlayerInventoryDataStore _inventoryDataStore;
-        private string _filePath;
+        private readonly SaveJsonFilePath _filePath;
+        private readonly AssembleSaveJsonText _assembleSaveJsonText;
 
-        public SaveJsonFile(string filePath, IPlayerInventoryDataStore inventoryDataStore, IWorldBlockDatastore worldBlockDatastore)
+        public SaveJsonFile(SaveJsonFilePath filePath,AssembleSaveJsonText assembleSaveJsonText)
         {
             _filePath = filePath;
-            _inventoryDataStore = inventoryDataStore;
-            _worldBlockDatastore = worldBlockDatastore;
+            _assembleSaveJsonText = assembleSaveJsonText;
         }
 
         public void Save()
         {
-            throw new System.NotImplementedException();
         }
     }
 }
