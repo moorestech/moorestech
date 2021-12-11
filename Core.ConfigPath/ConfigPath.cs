@@ -9,13 +9,7 @@ namespace Core.ConfigPath
         {
             get
             {
-                if (recipeConfigPath == String.Empty)
-                {
-                    DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory); 
-                    DirectoryInfo diParent = di.Parent.Parent.Parent.Parent;
-            
-                    recipeConfigPath = Path.Combine(diParent.FullName, "Core.ConfigPath", "Json","macineRecipe.json");
-                }
+                if (recipeConfigPath == String.Empty)recipeConfigPath = GetConfigPath( "macineRecipe.json");
                 return recipeConfigPath;
             }
         }
@@ -24,14 +18,7 @@ namespace Core.ConfigPath
         {
             get
             {
-                
-                if (blockConfigPath == String.Empty)
-                {
-                    DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory); 
-                    DirectoryInfo diParent = di.Parent.Parent.Parent.Parent;
-            
-                    blockConfigPath = Path.Combine(diParent.FullName, "Core.ConfigPath", "Json","block.json");
-                }
+                if (blockConfigPath == String.Empty)blockConfigPath = GetConfigPath( "block.json");
                 return blockConfigPath;
             }
         }
@@ -41,16 +28,16 @@ namespace Core.ConfigPath
         {
             get
             {
-                
-                if (itemConfigPath == String.Empty)
-                {
-                    DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory); 
-                    DirectoryInfo diParent = di.Parent.Parent.Parent.Parent;
-            
-                    itemConfigPath = Path.Combine(diParent.FullName, "Core.ConfigPath", "Json","item.json");
-                }
+                if (itemConfigPath == String.Empty)itemConfigPath = GetConfigPath( "item.json");
                 return itemConfigPath;
             }
+        }
+        
+        private static string GetConfigPath(string fileName)
+        {
+            DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory); 
+            DirectoryInfo diParent = di.Parent.Parent.Parent.Parent;
+            return Path.Combine(diParent.FullName, "Core.ConfigPath", "Json",fileName);
         }
         private static string itemConfigPath = String.Empty;
     }
