@@ -45,7 +45,7 @@ namespace Core.Block.RecipeConfig
         /// <returns>レシピデータ</returns>
         public IMachineRecipeData GetRecipeData(int BlockId, List<IItemStack> inputItem)
         {
-            var tmpInputItem = inputItem.Where(i => i.Id != ItemConst.NullItemId).ToList();
+            var tmpInputItem = inputItem.Where(i => i.Amount != 0).ToList();
             tmpInputItem.Sort((a, b) => a.Id - b.Id);
             var key = GetKey(BlockId, tmpInputItem);
             if (_recipeDataCash.ContainsKey(key))
