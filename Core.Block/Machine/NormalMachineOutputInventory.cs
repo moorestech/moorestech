@@ -12,7 +12,7 @@ namespace Core.Block.Machine
     {
         private readonly List<IItemStack> _outputSlot;
         private IBlockInventory _connectInventory;
-        public List<IItemStack> OutputSlotWithoutNullItemStack 
+        public List<IItemStack> OutputSlotWithoutEmptyItemStack 
         {
             get
             {

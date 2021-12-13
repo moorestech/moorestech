@@ -13,7 +13,7 @@ namespace Core.Block.Machine
         private readonly int _blockId;
         private readonly List<IItemStack> _inputSlot;
         private readonly IMachineRecipeConfig _machineRecipeConfig;
-        public List<IItemStack> InputSlotWithoutNullItemStack 
+        public List<IItemStack> InputSlotWithoutEmptyItemStack 
         {
             get
             {
