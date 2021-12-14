@@ -4,5 +4,7 @@
     {
         public int GetIntId();
         public int GetBlockId();
+        
+        public IBlock New(BlockConfigData param);
     }
 }

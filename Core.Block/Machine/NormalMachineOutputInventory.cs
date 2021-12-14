@@ -12,6 +12,8 @@ namespace Core.Block.Machine
     {
         private readonly List<IItemStack> _outputSlot;
         private IBlockInventory _connectInventory;
+        private readonly ItemStackFactory _itemStackFactory;
+
         public List<IItemStack> OutputSlotWithoutNullItemStack 
         {
             get
@@ -38,8 +40,16 @@ namespace Core.Block.Machine
         public NormalMachineOutputInventory(int blockId, IBlockInventory connect,IBlockConfig blockConfig,ItemStackFactory itemStackFactory)
         {
             _connectInventory = connect;
+            _itemStackFactory = itemStackFactory;
             var data = blockConfig.GetBlocksConfig(blockId);
             _outputSlot = CreateEmptyItemStacksList.Create(data.OutputSlot,itemStackFactory);
+            GameUpdate.AddUpdateObject(this);
+        }
+        public NormalMachineOutputInventory(IBlockInventory connect,int outputSlot,ItemStackFactory itemStackFactory)
+        {
+            _connectInventory = connect;
+            _itemStackFactory = itemStackFactory;
+            _outputSlot = CreateEmptyItemStacksList.Create(outputSlot,itemStackFactory);
             GameUpdate.AddUpdateObject(this);
         }
 
@@ -96,6 +106,11 @@ namespace Core.Block.Machine
         public void SetItem(int slot, IItemStack itemStack)
         {
             _outputSlot[slot] = itemStack;
+        }
+
+        public NormalMachineOutputInventory New(IBlockInventory blockInventory,int outputSlot)
+        {
+            return new NormalMachineOutputInventory(blockInventory,outputSlot,_itemStackFactory);
         }
     }
 }

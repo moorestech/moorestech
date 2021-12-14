@@ -37,12 +37,21 @@ namespace Core.Block.Machine
             }
         }
 
+        private ItemStackFactory _itemStackFactory;
         public NormalMachineInputInventory(int BlockId,IBlockConfig blockConfig,IMachineRecipeConfig machineRecipeConfig,ItemStackFactory itemStackFactory)
         {
             _blockId = BlockId;
             _machineRecipeConfig = machineRecipeConfig;
+            _itemStackFactory = itemStackFactory;
             var data = blockConfig.GetBlocksConfig(BlockId);
             _inputSlot = CreateEmptyItemStacksList.Create(data.InputSlot,itemStackFactory);
+        }
+        public NormalMachineInputInventory(int BlockId,int inputSlot,IMachineRecipeConfig machineRecipeConfig,ItemStackFactory itemStackFactory)
+        {
+            _blockId = BlockId;
+            _machineRecipeConfig = machineRecipeConfig;
+            _itemStackFactory = itemStackFactory;
+            _inputSlot = CreateEmptyItemStacksList.Create(inputSlot,itemStackFactory);
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
@@ -96,6 +105,11 @@ namespace Core.Block.Machine
         public void SetItem(int slot, IItemStack itemStack)
         {
             _inputSlot[slot] = itemStack;
+        }
+
+        public NormalMachineInputInventory New(int blockId,int inputSlot)
+        {
+            return new NormalMachineInputInventory(blockId,inputSlot,_machineRecipeConfig,_itemStackFactory);
         }
     }
 }

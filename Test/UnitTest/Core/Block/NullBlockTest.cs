@@ -8,7 +8,7 @@ namespace Test.UnitTest.Core.Block
         [Test]
         public void Test()
         {
-            var block = new NullBlock(0,100);
+            var block = new NullBlock();
             Assert.AreEqual(int.MaxValue,block.GetIntId());
             Assert.AreEqual(BlockConst.BlockConst.NullBlockId,block.GetBlockId());
         }
