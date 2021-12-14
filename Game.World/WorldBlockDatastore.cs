@@ -19,7 +19,7 @@ namespace World
         private Dictionary<Coordinate,int> _coordinateDictionary = new();
 
         
-        readonly IBlock _nullBlock = new NullBlock(BlockConst.BlockConst.NullBlockId,Int32.MaxValue);
+        readonly IBlock _nullBlock = new NullBlock();
         private readonly BlockPlaceEvent _blockPlaceEvent;
 
         public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent)
