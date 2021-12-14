@@ -20,9 +20,9 @@ namespace Server.PacketHandle.PacketResponse.Util
                 
             var destinationInventoryItem = destinationInventory.GetItem(destinationSlot);
                 
-            //移動先アイテムがnullの時はそのまま入れかえる
+            //移動先アイテムがなかった時はそのまま入れかえる
             //移動先と同じIDの時は移動先スロットに加算し、余ったアイテムを移動元インベントリに入れる
-            if (destinationInventoryItem.Id == ItemConst.NullItemId || originItem.Id == destinationInventoryItem.Id)
+            if (destinationInventoryItem.Amount == 0 || originItem.Id == destinationInventoryItem.Id)
             {
                 //移動先インベントリにアイテムを移動
                 var replaceItem = destinationInventory.ReplaceItem(destinationSlot,moveItem);

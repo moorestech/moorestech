@@ -100,7 +100,7 @@ namespace Core.Block.BeltConveyor.Generally
             {
                 var output = _connector.InsertItem(_itemStackFactory.Create(_inventoryItems[last].ItemId, 1));
                 //渡した結果がnullItemだったらそのアイテムを消す
-                if (output.Id == ItemConst.NullItemId)
+                if (output.Amount == 0)
                 {
                     _inventoryItems.RemoveAt(_inventoryItems.Count - 1);
                 }

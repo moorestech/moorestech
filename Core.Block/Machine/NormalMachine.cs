@@ -19,8 +19,8 @@ namespace Core.Block.Machine
         private readonly NormalMachineInputInventory _normalMachineInputInventory;
         private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
         private ProcessState _state = ProcessState.Idle;
-        public List<IItemStack> InputSlotWithoutNullItemStack => _normalMachineInputInventory.InputSlotWithoutNullItemStack;
-        public List<IItemStack> OutputSlotWithoutNullItemStack => _normalMachineOutputInventory.OutputSlotWithoutNullItemStack;
+        public List<IItemStack> InputSlotWithoutEmptyItemStack => _normalMachineInputInventory.InputSlotWithoutEmptyItemStack;
+        public List<IItemStack> OutputSlotWithoutEmptyItemStack => _normalMachineOutputInventory.OutputSlotWithoutEmptyItemStack;
         
         private readonly int _blockId;
         private readonly int _intId;

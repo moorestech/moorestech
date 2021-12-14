@@ -12,13 +12,14 @@ namespace Core.Block.Machine
     {
         private readonly List<IItemStack> _outputSlot;
         private IBlockInventory _connectInventory;
+        
         private readonly ItemStackFactory _itemStackFactory;
-
-        public List<IItemStack> OutputSlotWithoutNullItemStack 
+        
+        public List<IItemStack> OutputSlotWithoutEmptyItemStack 
         {
             get
             {
-                var a = _outputSlot.Where(i => i.Id != ItemConst.NullItemId).ToList();
+                var a = _outputSlot.Where(i => i.Amount != 0).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
                 return a.ToList();
             }
@@ -40,7 +41,6 @@ namespace Core.Block.Machine
         public NormalMachineOutputInventory(int blockId, IBlockInventory connect,IBlockConfig blockConfig,ItemStackFactory itemStackFactory)
         {
             _connectInventory = connect;
-            _itemStackFactory = itemStackFactory;
             var data = blockConfig.GetBlocksConfig(blockId);
             _outputSlot = CreateEmptyItemStacksList.Create(data.OutputSlot,itemStackFactory);
             GameUpdate.AddUpdateObject(this);
