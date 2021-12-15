@@ -12,7 +12,8 @@ namespace Test.TestConfig
         //TODO 機械レシピ用のテストコンフィグも作る
         public AllMachineBlockConfig()
         {
-            _blockConfigDictionary = new BlockConfigJsonLoad(GetConfigPath("All Machine Block Config.json")).LoadJson();
+            var path = new TestConfigPath().GetPath("All Machine Block Config.json");
+            _blockConfigDictionary = new BlockConfigJsonLoad(path).LoadJson();
         }
 
         public BlockConfigData GetBlockConfig(int id)
@@ -20,12 +21,5 @@ namespace Test.TestConfig
             return _blockConfigDictionary[id];
         }
         
-        
-        private static string GetConfigPath(string fileName)
-        {
-            DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory); 
-            DirectoryInfo diParent = di.Parent.Parent.Parent.Parent;
-            return Path.Combine(diParent.FullName, "Test","TestConfig","Json",fileName);
-        }
     }
 }

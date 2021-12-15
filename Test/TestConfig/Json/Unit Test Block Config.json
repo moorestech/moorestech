@@ -1,0 +1,30 @@
+{
+  "Blocks":[
+    {
+      "name": "TestMachine1",
+      "type" : "Machine",
+      "param" : {"inputSlot": 2,"outputSlot": 1}
+    },
+    {
+      "name": "TestMachine2",
+      "type" : "Machine",
+      "param" : {"inputSlot": 3,"outputSlot": 1}
+    },
+    {
+      "name": "TestMachine3",
+      "type" : "Machine",
+      "param" : {"inputSlot": 2,"outputSlot": 3}
+    },
+    {
+      "id" : 10,
+      "name": "TestMachine10",
+      "type" : "Machine",
+      "param" : {"inputSlot": 5,"outputSlot": 1}
+    },
+    {
+      "name": "TestMachine11",
+      "type" : "Machine",
+      "param" : {"inputSlot": 2,"outputSlot": 6}
+    }
+  ]
+}
