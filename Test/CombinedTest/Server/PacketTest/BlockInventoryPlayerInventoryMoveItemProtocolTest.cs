@@ -1,28 +1,30 @@
 using System.Collections.Generic;
-using System.Linq;
 using Core.Block;
 using Core.Block.Config;
 using Core.Block.Machine;
-using Core.Block.Machine.util;
-using Core.Block.RecipeConfig;
-using Core.Config.Item;
 using Core.Item;
 using Core.Item.Config;
-using Core.Item.Util;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using PlayerInventory;
 using Server;
 using Server.Util;
-using World;
+using Test.TestConfig;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
     public class BlockInventoryPlayerInventoryMoveItemProtocolTest
     {
         private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
+        
+        private BlockFactory _blockFactory = new BlockFactory(new AllMachineBlockConfig());
+        private NormalMachine CreateMachine(int id,int intId)
+        {
+            var machine = _blockFactory.Create(id, intId) as NormalMachine;
+            return machine;
+        }
+        
         [Test]
         public void ItemMoveTest()
         {
@@ -35,7 +37,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             //ブロックの設置
             var blockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
-            var block = NormalMachineFactory.Create(1,1,new NullIBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig(_itemStackFactory),_itemStackFactory);
+            var block = CreateMachine(1,1);
             blockDataStore.AddBlock(block, 0, 0, block);
             //ブロックにアイテムを挿入
             block.InsertItem(_itemStackFactory.Create(1,5));

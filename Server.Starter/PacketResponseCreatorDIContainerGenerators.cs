@@ -27,7 +27,7 @@ namespace Server
             
             var services = new ServiceCollection();
             //テスト用のコンフィグ、ファクトリーのインスタンスを登録
-            services.AddSingleton<IBlockConfig, TestBlockConfig>();
+            
             services.AddSingleton<IMachineRecipeConfig, TestMachineRecipeConfig>();
             services.AddSingleton<IItemConfig, TestItemConfig>();
             services.AddSingleton<ItemStackFactory, ItemStackFactory >();

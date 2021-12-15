@@ -4,47 +4,34 @@ using System.Linq;
 using Core.Block;
 using Core.Block.Config;
 using Core.Block.Machine;
-using Core.Block.Machine.util;
 using Core.Block.RecipeConfig;
 using Core.Electric;
 using Core.Item;
 using Core.Item.Config;
-using Core.Item.Implementation;
-using Core.Item.Util;
 using Core.Update;
 using Core.Util;
 using NUnit.Framework;
 using Test.CombinedTest.Core.Generate;
+using Test.TestConfig;
 using Test.Util;
 
 namespace Test.CombinedTest.Core
 {
     public class MachineIoTest
     {
-        
-        private IBlockInventory _nullInventory = new NullIBlockInventory();
-        private IBlockConfig _blockConfig = new TestBlockConfig();
-        private IItemConfig _itemConfig = new TestItemConfig();
-        private IMachineRecipeConfig _machineRecipeConfig;
-        private ItemStackFactory _itemStackFactory;
-
-        [SetUp]
-        public void Setup()
-        {
-            _nullInventory = new NullIBlockInventory();
-            _blockConfig = new TestBlockConfig();
-            _itemConfig = new TestItemConfig();
-            _itemStackFactory = new ItemStackFactory(_itemConfig);
-            _machineRecipeConfig = new TestMachineRecipeConfig(_itemStackFactory);
-        }
-
+        private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
+        private BlockFactory _blockFactory = new BlockFactory(new AllMachineBlockConfig());
         private NormalMachine CreateMachine(int id)
         {
-            return NormalMachineFactory.Create(id, IntId.NewIntId(),_nullInventory, _blockConfig, _machineRecipeConfig,_itemStackFactory);
+            var machine = _blockFactory.Create(id, IntId.NewIntId()) as NormalMachine;
+            return machine;
         }
         private NormalMachine CreateMachine(int id,IBlockInventory inventory)
         {
-            return NormalMachineFactory.Create(id, IntId.NewIntId(),inventory, _blockConfig, _machineRecipeConfig,_itemStackFactory);
+            var machine = CreateMachine(id);
+            machine.ChangeConnector(inventory);
+            
+            return machine;
         }
         
         
@@ -82,7 +69,9 @@ namespace Test.CombinedTest.Core
         [TestCase(new int[2]{3,1}, new int[2]{1,1}, new int[2]{1,3}, new int[2]{1,1})]
         public void MachineAddInputTest(int[] id,int[] amount,int[] ansid,int[] ansamount)
         {
-            var machine = NormalMachineFactory.Create(4,Int32.MaxValue,new DummyBlockInventory(),new TestBlockConfig(),new TestMachineRecipeConfig(_itemStackFactory),_itemStackFactory);
+            
+            var machine = CreateMachine(4);
+            
             for (int i = 0; i < id.Length; i++)
             {
                 machine.InsertItem(_itemStackFactory.Create(id[i], amount[i]));

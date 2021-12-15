@@ -119,7 +119,7 @@ namespace Core.Block.BeltConveyor.Generally
             return _blockId;
         }
 
-        public IBlock New(BlockConfigData param)
+        public IBlock New(BlockConfigData param, int intId)
         {
             throw new NotImplementedException();
         }

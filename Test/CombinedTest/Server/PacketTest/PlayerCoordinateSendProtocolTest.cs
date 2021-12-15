@@ -4,10 +4,6 @@ using System.Linq;
 using Core.Block;
 using Core.Block.Config;
 using Core.Block.Machine;
-using Core.Block.Machine.util;
-using Core.Block.RecipeConfig;
-using Core.Item;
-using Core.Item.Config;
 using Game.World.Interface;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +11,7 @@ using NUnit.Framework;
 using Server;
 using Server.Protocol.PacketResponse.Const;
 using Server.Util;
-using World;
+using Test.TestConfig;
 using IntId = World.IntId;
 
 namespace Test.CombinedTest.Server.PacketTest
@@ -171,26 +167,12 @@ namespace Test.CombinedTest.Server.PacketTest
             }
         }
 
-        private IBlockInventory nullInventory = new NullIBlockInventory();
-        private IBlockConfig blockConfig = new TestBlockConfig();
-        private IItemConfig _itemConfig = new TestItemConfig();
-        private ItemStackFactory _itemStackFactory;
-        private IMachineRecipeConfig machineRecipeConfig;
-        bool init = false;
+        private BlockFactory _blockFactory = new BlockFactory(new AllMachineBlockConfig());
 
         private NormalMachine CreateMachine(int id)
         {
-            if (!init)
-            {
-                init = true;
-                nullInventory = new NullIBlockInventory();
-                blockConfig = new TestBlockConfig();
-                _itemConfig = new TestItemConfig();
-                _itemStackFactory = new ItemStackFactory(_itemConfig);
-                machineRecipeConfig = new TestMachineRecipeConfig(_itemStackFactory);
-            }
-
-            return NormalMachineFactory.Create(id, IntId.NewIntId(),nullInventory, blockConfig, machineRecipeConfig,_itemStackFactory);
+            var machine = _blockFactory.Create(id,  IntId.NewIntId()) as NormalMachine;
+            return machine;
         }
 
         List<byte> PlayerCoordinatePayload(int playerId, float x, float y)

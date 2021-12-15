@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Block.Config;
 using Core.Block.RecipeConfig.Data;
 using Core.Electric;
 using Core.Inventory;
@@ -175,14 +176,11 @@ namespace Core.Block.Machine
         public void SupplyPower(int power){_nowPower = power;}
         public int GetIntId(){return _intId;}
         public int GetBlockId() { return _blockId; }
-        public IBlock New(BlockConfigData param)
+        public IBlock New(BlockConfigData param, int intId)
         {
-            //TODO ランダム生成をIntidクラスからやるようにする
-            var random = new Random();
-
             var machineParam = param.Param as MachineBlockConfigParam;
             
-            return new NormalMachine(param.Id,random.Next(int.MinValue,int.MaxValue) ,
+            return new NormalMachine(param.Id,intId ,
                 _normalMachineInputInventory.New(param.Id,machineParam.InputSlot),
                 _normalMachineOutputInventory.New(new NullIBlockInventory(),machineParam.OutputSlot));
         }

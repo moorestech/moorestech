@@ -1,0 +1,46 @@
+{
+  "Blocks":[
+    {
+      "id" : 3,
+      "name": "TestMachine1",
+      "type" : "Block",
+      "param" : {"inputSlot": 2,"outputSlot": 1}
+    },
+    {
+      "id" : 1,
+      "name": "TestMachine1",
+      "type" : "Machine",
+      "param" : {"inputSlot": 2,"outputSlot": 1}
+    },
+    {
+      "id" : 2,
+      "name": "TestMachine1",
+      "type" : "Beltconveyor",
+      "param" : {"inputSlot": 2,"outputSlot": 1}
+    },
+    {
+      "id" : 4,
+      "name": "TestMachine1",
+      "type" : "Ore",
+      "param" : {"inputSlot": 2,"outputSlot": 1}
+    },
+    {
+      "id" : 4,
+      "name": "TestMachine1",
+      "type" : "Miner",
+      "param" : {"inputSlot": 2,"outputSlot": 1}
+    },
+    {
+      "id" : 4,
+      "name": "TestMachine1",
+      "type" : "Generator",
+      "param" : {"inputSlot": 2,"outputSlot": 1}
+    },
+    {
+      "id" : 4,
+      "name": "TestMachine1",
+      "type" : "ElectricPole",
+      "param" : {"inputSlot": 2,"outputSlot": 1}
+    },
+  ]
+}

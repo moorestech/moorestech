@@ -2,12 +2,8 @@
 using Core.Block;
 using Core.Block.Config;
 using Core.Block.Machine;
-using Core.Block.Machine.util;
-using Core.Block.RecipeConfig;
-using Core.Item;
-using Core.Item.Config;
-using Core.Util;
 using NUnit.Framework;
+using Test.TestConfig;
 using World;
 using World.Event;
 using IntId = World.IntId;
@@ -77,27 +73,11 @@ namespace Test.UnitTest.Game
             Assert.False(worldData.AddBlock(i2,1,1,i2));
         }
         
-
-        private IBlockInventory nullInventory = new NullIBlockInventory();
-        private IBlockConfig blockConfig = new TestBlockConfig();
-        private IItemConfig _itemConfig = new TestItemConfig();
-        private ItemStackFactory _itemStackFactory;
-        private IMachineRecipeConfig machineRecipeConfig;
-        bool init = false;
-
+        private BlockFactory _blockFactory = new BlockFactory(new AllMachineBlockConfig());
         private NormalMachine CreateMachine(int id,int intId)
         {
-            if (!init)
-            {
-                init = true;
-                nullInventory = new NullIBlockInventory();
-                blockConfig = new TestBlockConfig();
-                _itemConfig = new TestItemConfig();
-                _itemStackFactory = new ItemStackFactory(_itemConfig);
-                machineRecipeConfig = new TestMachineRecipeConfig(_itemStackFactory);
-            }
-
-            return NormalMachineFactory.Create(id, intId,nullInventory, blockConfig, machineRecipeConfig,_itemStackFactory);
+            var machine = _blockFactory.Create(id, intId) as NormalMachine;
+            return machine;
         }
     }
 }

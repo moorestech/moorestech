@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text.Json.Serialization;
 using Newtonsoft.Json.Linq;
 
-namespace Core.Block
+namespace Core.Block.Config
 {
     public class BlockConfigJsonLoad
     {
@@ -23,10 +21,24 @@ namespace Core.Block
             dynamic person = JObject.Parse(json);
             
             var blockDictionary = new Dictionary<int, BlockConfigData>();
-            var random = new Random();
+            
+            //最初に設定されたIDの連番を設定していく
+            //デフォルトはnull blockの次の値
+            int id = BlockConst.BlockConst.NullBlockId + 1;
+
             foreach (var block in person.Blocks)
             {
-                int id = block.id;
+                //IDがなければ加算
+                //IDがあればその値を設定
+                if (block.id == null)
+                {
+                    id++;
+                }
+                else
+                {
+                    id = block.id;
+                }
+                
                 string name = block.name;
                 string type = block.type;
                 BlockConfigParamBase blockParam = null;

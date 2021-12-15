@@ -1,5 +1,6 @@
 ﻿using Core.Block.Config;
 using NUnit.Framework;
+using Test.TestConfig;
 
 namespace Test.CombinedTest.Core
 {
@@ -17,7 +18,7 @@ namespace Test.CombinedTest.Core
         [TestCase(3,"ccccc")]
         public void ConfigNameTest(int id,string ans)
         {
-            string name = new TestBlockConfig().GetBlocksConfig(id).Name;
+            string name = new AllMachineBlockConfig().GetBlockConfig(id).Name;
             Assert.AreEqual(ans,name);
         }
 
@@ -28,7 +29,7 @@ namespace Test.CombinedTest.Core
         [TestCase(3,25)]
         public void InputSlotsTest(int id, int ans)
         {
-            int slots = new TestBlockConfig().GetBlocksConfig(id).InputSlot;
+            int slots = ((MachineBlockConfigParam)new AllMachineBlockConfig().GetBlockConfig(id).Param).InputSlot;
             Assert.AreEqual(ans,slots);
         }
         [TestCase(0,1)]
@@ -37,7 +38,7 @@ namespace Test.CombinedTest.Core
         [TestCase(3,5)]
         public void OutputSlotsTest(int id, int ans)
         {
-            int slots = new TestBlockConfig().GetBlocksConfig(id).OutputSlot;
+            int slots = ((MachineBlockConfigParam)new AllMachineBlockConfig().GetBlockConfig(id).Param).OutputSlot;
             Assert.AreEqual(ans,slots);
         }
     }

@@ -38,14 +38,6 @@ namespace Core.Block.Machine
         }
 
         private ItemStackFactory _itemStackFactory;
-        public NormalMachineInputInventory(int BlockId,IBlockConfig blockConfig,IMachineRecipeConfig machineRecipeConfig,ItemStackFactory itemStackFactory)
-        {
-            _blockId = BlockId;
-            _machineRecipeConfig = machineRecipeConfig;
-            _itemStackFactory = itemStackFactory;
-            var data = blockConfig.GetBlocksConfig(BlockId);
-            _inputSlot = CreateEmptyItemStacksList.Create(data.InputSlot,itemStackFactory);
-        }
         public NormalMachineInputInventory(int BlockId,int inputSlot,IMachineRecipeConfig machineRecipeConfig,ItemStackFactory itemStackFactory)
         {
             _blockId = BlockId;

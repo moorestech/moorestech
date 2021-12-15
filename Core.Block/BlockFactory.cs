@@ -1,22 +1,23 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Core.Block.Config;
 
 namespace Core.Block
 {
     public class BlockFactory
     {
         private Dictionary<string,IBlock> _blockTypes = new Dictionary<string, IBlock>();
-        private BlockConfig _blockConfig;
+        private IBlockConfig _allMachineBlockConfig;
 
-        public BlockFactory(BlockConfig blockConfig)
+        public BlockFactory(IBlockConfig allMachineBlockConfig)
         {
-            _blockConfig = blockConfig;
+            _allMachineBlockConfig = allMachineBlockConfig;
         }
 
-        public IBlock Create(int blockId)
+        public IBlock Create(int blockId,int indId)
         {
-            var type = _blockConfig.GetBlockConfigData(blockId);
-            return _blockTypes[type.Type].New(type);
+            var type = _allMachineBlockConfig.GetBlockConfig(blockId);
+            return _blockTypes[type.Type].New(type,indId);
         }
         
         

@@ -1,4 +1,5 @@
 ﻿using System;
+using Core.Block.Config;
 
 namespace Core.Block
 {
@@ -10,7 +11,7 @@ namespace Core.Block
         
         public int GetIntId(){return BlockConst.BlockConst.NullBlockIntId;}
         public int GetBlockId() { return BlockConst.BlockConst.NullBlockId; }
-        public IBlock New(BlockConfigData param)
+        public IBlock New(BlockConfigData param, int intId)
         {
             return new NullBlock();
         }

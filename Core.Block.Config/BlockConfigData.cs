@@ -1,6 +1,4 @@
-using System.Reflection.Metadata;
-
-namespace Core.Block
+namespace Core.Block.Config
 {
     public class BlockConfigData
     {
