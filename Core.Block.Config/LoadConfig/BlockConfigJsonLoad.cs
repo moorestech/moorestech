@@ -48,7 +48,8 @@ namespace Core.Block.Config.LoadConfig
                     case "Machine":
                         int inputSlot = block.param.inputSlot;
                         int outputSlot = block.param.outputSlot;
-                        blockParam = new MachineBlockConfigParam(inputSlot,outputSlot);
+                        int requiredPower = block.param.requiredPower;
+                        blockParam = new MachineBlockConfigParam(inputSlot,outputSlot,requiredPower);
                         break;
                     default:
                         throw new System.NotImplementedException();

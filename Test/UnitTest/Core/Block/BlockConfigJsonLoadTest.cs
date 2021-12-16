@@ -23,12 +23,14 @@ namespace Test.UnitTest.Core.Block
             Assert.AreEqual(data[1].Type,"Machine");
             Assert.AreEqual(((MachineBlockConfigParam)data[1].Param).InputSlot,2);
             Assert.AreEqual(((MachineBlockConfigParam)data[1].Param).OutputSlot,1);
+            Assert.AreEqual(((MachineBlockConfigParam)data[1].Param).RequiredPower,100);
             
             Assert.AreEqual(data[2].Id,2);
             Assert.AreEqual(data[2].Name,"TestMachine2");
             Assert.AreEqual(data[2].Type,"Machine");
             Assert.AreEqual(((MachineBlockConfigParam)data[2].Param).InputSlot,3);
             Assert.AreEqual(((MachineBlockConfigParam)data[2].Param).OutputSlot,1);
+            Assert.AreEqual(((MachineBlockConfigParam)data[2].Param).RequiredPower,100);
             
             Assert.AreEqual(data[3].Id,3);
             Assert.AreEqual(data[3].Name,"TestMachine3");

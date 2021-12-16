@@ -23,7 +23,7 @@ namespace Core.Block.Config
             return new BlockConfigData(id,
                 "Generated Block from AllMachineBlockConfig.cs",
                 "Machine",
-                new MachineBlockConfigParam(100,100));
+                new MachineBlockConfigParam(100,100,100));
         }
 
     }
