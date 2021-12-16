@@ -16,7 +16,7 @@ namespace Core.Block.BlockFactory
         public VanillaIBlockTemplates(IMachineRecipeConfig machineRecipeConfig, ItemStackFactory itemStackFactory)
         {
             BlockTypesDictionary = new Dictionary<string, IBlockTemplate>();
-            BlockTypesDictionary.Add(VanillaBlockType.Block,new NormalMachineTemplate(machineRecipeConfig, itemStackFactory));
+            BlockTypesDictionary.Add(VanillaBlockType.Machine,new NormalMachineTemplate(machineRecipeConfig, itemStackFactory));
         }
     }
 }

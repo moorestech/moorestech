@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Core.Block.Config.LoadConfig.ConfigParamGenerator;
 using Core.Block.Config.Param;
 using Newtonsoft.Json.Linq;
 
@@ -7,10 +8,14 @@ namespace Core.Block.Config.LoadConfig
 {
     public class BlockConfigJsonLoad
     {
-        string _jsonPath;
+        readonly string _jsonPath;
+        private readonly Dictionary<string,IBlockConfigParamGenerator> _generators;
+
+
         public BlockConfigJsonLoad(string jsonPath)
         {
             _jsonPath = jsonPath;
+            _generators = new VanillaBlockConfigGenerator().Generate();
         }
 
         public Dictionary<int, BlockConfigData> LoadJson()
@@ -41,20 +46,7 @@ namespace Core.Block.Config.LoadConfig
                 
                 string name = block.name;
                 string type = block.type;
-                BlockConfigParamBase blockParam = null;
-                //TODO switch caseをやめる
-                switch (type)
-                {
-                    case VanillaBlockType.Machine:
-                        int inputSlot = block.param.inputSlot;
-                        int outputSlot = block.param.outputSlot;
-                        int requiredPower = block.param.requiredPower;
-                        blockParam = new MachineBlockConfigParam(inputSlot,outputSlot,requiredPower);
-                        break;
-                    default:
-                        throw new System.NotImplementedException();
-                        break;
-                }
+                BlockConfigParamBase blockParam = _generators[VanillaBlockType.Machine].Generate(block.param);
                 blockDictionary.Add(id,new BlockConfigData(id,name,type,blockParam));
             }
 
