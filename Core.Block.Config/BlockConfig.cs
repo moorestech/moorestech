@@ -18,7 +18,7 @@ namespace Core.Block.Config
             {
                 return _blockConfigDictionary[id];   
             }
-            //TODO なかった時の処理を考える
+            //TODO なかった時はNullBlockConfigを返す
             //IDがなかったからインプット、アウトプットスロットが100のブロックを返す
             return new BlockConfigData(id,
                 "Generated Block from AllMachineBlockConfig.cs",
