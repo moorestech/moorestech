@@ -1,12 +1,12 @@
 namespace Core.Block.Config
-{
-    public enum VanillaBlockType
+{ 
+    public static class VanillaBlockType
     {
-        Block,
-        Machine,
-        BeltConveyor,
-        Miner,
-        Generator,
-        ElectricPole
+        public const string Block = "Block";
+        public const string Machine = "Machine";
+        public const string BeltConveyor = "BeltConveyor";
+        public const string Miner = "Miner";
+        public const string Generator = "Generator";
+        public const string ElectricPole = "ElectricPole";
     }
 }

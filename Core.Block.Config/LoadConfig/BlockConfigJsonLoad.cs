@@ -45,7 +45,7 @@ namespace Core.Block.Config.LoadConfig
                 //TODO switch caseをやめる
                 switch (type)
                 {
-                    case "Machine":
+                    case VanillaBlockType.Machine:
                         int inputSlot = block.param.inputSlot;
                         int outputSlot = block.param.outputSlot;
                         int requiredPower = block.param.requiredPower;

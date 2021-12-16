@@ -20,33 +20,33 @@ namespace Test.UnitTest.Core.Block
             
             Assert.AreEqual(data[1].Id,1);
             Assert.AreEqual(data[1].Name,"TestMachine1");
-            Assert.AreEqual(data[1].Type,"Machine");
+            Assert.AreEqual(data[1].Type,VanillaBlockType.Machine);
             Assert.AreEqual(((MachineBlockConfigParam)data[1].Param).InputSlot,2);
             Assert.AreEqual(((MachineBlockConfigParam)data[1].Param).OutputSlot,1);
             Assert.AreEqual(((MachineBlockConfigParam)data[1].Param).RequiredPower,100);
             
             Assert.AreEqual(data[2].Id,2);
             Assert.AreEqual(data[2].Name,"TestMachine2");
-            Assert.AreEqual(data[2].Type,"Machine");
+            Assert.AreEqual(data[2].Type,VanillaBlockType.Machine);
             Assert.AreEqual(((MachineBlockConfigParam)data[2].Param).InputSlot,3);
             Assert.AreEqual(((MachineBlockConfigParam)data[2].Param).OutputSlot,1);
             Assert.AreEqual(((MachineBlockConfigParam)data[2].Param).RequiredPower,100);
             
             Assert.AreEqual(data[3].Id,3);
             Assert.AreEqual(data[3].Name,"TestMachine3");
-            Assert.AreEqual(data[3].Type,"Machine");
+            Assert.AreEqual(data[3].Type,VanillaBlockType.Machine);
             Assert.AreEqual(((MachineBlockConfigParam)data[3].Param).InputSlot,2);
             Assert.AreEqual(((MachineBlockConfigParam)data[3].Param).OutputSlot,3);
             
             Assert.AreEqual(data[10].Id,10);
             Assert.AreEqual(data[10].Name,"TestMachine10");
-            Assert.AreEqual(data[10].Type,"Machine");
+            Assert.AreEqual(data[10].Type,VanillaBlockType.Machine);
             Assert.AreEqual(((MachineBlockConfigParam)data[10].Param).InputSlot,5);
             Assert.AreEqual(((MachineBlockConfigParam)data[10].Param).OutputSlot,1);
             
             Assert.AreEqual(data[11].Id,11);
             Assert.AreEqual(data[11].Name,"TestMachine11");
-            Assert.AreEqual(data[11].Type,"Machine");
+            Assert.AreEqual(data[11].Type,VanillaBlockType.Machine);
             Assert.AreEqual(((MachineBlockConfigParam)data[11].Param).InputSlot,2);
             Assert.AreEqual(((MachineBlockConfigParam)data[11].Param).OutputSlot,6);
         }
