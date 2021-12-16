@@ -55,6 +55,9 @@ namespace Server
             services.AddSingleton<ReceiveInventoryUpdateEvent,ReceiveInventoryUpdateEvent>();
             services.AddSingleton<ReceivePlaceBlockEvent,ReceivePlaceBlockEvent>();
             
+            //データのセーブシステム
+            services.AddSingleton<AssembleSaveJsonText,AssembleSaveJsonText>();
+            
             
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);

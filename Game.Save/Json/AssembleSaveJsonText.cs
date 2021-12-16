@@ -16,7 +16,7 @@ namespace Game.Save.Json
         
         public string AssembleSaveJson()
         {
-            return "";
+            return "{\"world\":[],\"inventory\":[]}";
         }
     }
 }
