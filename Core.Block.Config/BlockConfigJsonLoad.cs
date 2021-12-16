@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json.Linq;
@@ -24,7 +23,7 @@ namespace Core.Block.Config
             
             //最初に設定されたIDの連番を設定していく
             //デフォルトはnull blockの次の値
-            int id = BlockConst.BlockConst.NullBlockId + 1;
+            int id = BlockConst.BlockConst.NullBlockId;
 
             foreach (var block in person.Blocks)
             {
@@ -46,7 +45,9 @@ namespace Core.Block.Config
                 switch (type)
                 {
                     case "Machine":
-                        blockParam = new MachineBlockConfigParam(block.param.inputSlot,block.param.outputSlot);
+                        int inputSlot = block.param.inputSlot;
+                        int outputSlot = block.param.outputSlot;
+                        blockParam = new MachineBlockConfigParam(inputSlot,outputSlot);
                         break;
                     default:
                         throw new System.NotImplementedException();
