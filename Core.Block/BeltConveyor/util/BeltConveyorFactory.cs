@@ -1,4 +1,5 @@
 ﻿using Core.Block.BeltConveyor.Generally;
+using Core.Block.BlockInventory;
 using Core.Item;
 
 namespace Core.Block.BeltConveyor.util

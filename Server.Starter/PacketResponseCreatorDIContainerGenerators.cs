@@ -1,4 +1,5 @@
 using Core.Block;
+using Core.Block.BlockFactory;
 using Core.Block.Config;
 using Core.Block.RecipeConfig;
 using Core.Item;

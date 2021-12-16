@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
+using Core.Block.Config.Param;
 using Newtonsoft.Json.Linq;
 
-namespace Core.Block.Config
+namespace Core.Block.Config.LoadConfig
 {
     public class BlockConfigJsonLoad
     {

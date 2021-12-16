@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Block;
+using Core.Block.BlockInventory;
 using Game.World.Interface;
 using Game.World.Interface.Event;
 using Game.World.Interface.Util;

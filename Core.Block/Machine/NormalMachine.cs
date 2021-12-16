@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Block.BlockInventory;
 using Core.Block.Config;
 using Core.Block.RecipeConfig.Data;
 using Core.Electric;

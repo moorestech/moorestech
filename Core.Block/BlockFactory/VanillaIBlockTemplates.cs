@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using Core.Block.BlockFactory.BlockTemplate;
 using Core.Block.RecipeConfig;
 using Core.Item;
 
-namespace Core.Block
+namespace Core.Block.BlockFactory
 {
     /// <summary>
     /// バニラのブロックの全てのテンプレートを作るクラス

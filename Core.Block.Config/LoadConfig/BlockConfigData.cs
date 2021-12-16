@@ -1,4 +1,6 @@
-namespace Core.Block.Config
+using Core.Block.Config.Param;
+
+namespace Core.Block.Config.LoadConfig
 {
     public class BlockConfigData
     {

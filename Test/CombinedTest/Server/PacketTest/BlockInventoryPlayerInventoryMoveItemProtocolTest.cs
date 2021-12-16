@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.Block;
+using Core.Block.BlockFactory;
 using Core.Block.Config;
 using Core.Block.Machine;
 using Core.Block.RecipeConfig;

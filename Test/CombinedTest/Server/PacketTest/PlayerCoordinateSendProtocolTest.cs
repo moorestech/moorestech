@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Block;
+using Core.Block.BlockFactory;
 using Core.Block.Config;
 using Core.Block.Machine;
 using Core.Block.RecipeConfig;

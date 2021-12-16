@@ -1,10 +1,12 @@
+using Core.Block.BlockInventory;
 using Core.Block.Config;
+using Core.Block.Config.LoadConfig;
+using Core.Block.Config.Param;
 using Core.Block.Machine;
 using Core.Block.RecipeConfig;
 using Core.Item;
-using Core.Item.Config;
 
-namespace Core.Block
+namespace Core.Block.BlockFactory.BlockTemplate
 {
     public class NormalMachineTemplate : IBlockTemplate
     {

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Core.Block.BlockFactory.BlockTemplate;
 using Core.Block.Config;
 
-namespace Core.Block
+namespace Core.Block.BlockFactory
 {
     public class BlockFactory
     {

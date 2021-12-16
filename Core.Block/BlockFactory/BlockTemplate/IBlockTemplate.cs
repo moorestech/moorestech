@@ -1,6 +1,7 @@
 using Core.Block.Config;
+using Core.Block.Config.LoadConfig;
 
-namespace Core.Block
+namespace Core.Block.BlockFactory.BlockTemplate
 {
     public interface IBlockTemplate
     {

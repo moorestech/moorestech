@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Core.Block.Config;
+using Core.Block.Config.LoadConfig;
+using Core.Block.Config.Param;
 
 namespace Test.TestConfig
 {

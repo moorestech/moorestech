@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Block.BlockInventory;
 using Core.Block.Config;
 using Core.Config.Item;
 using Core.Item;

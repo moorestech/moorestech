@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Core.Block.BlockInventory;
 using Core.Block.Config;
 using Core.Block.RecipeConfig.Data;
 using Core.Item;

@@ -1,6 +1,7 @@
 ﻿using System;
 using Core.Block;
 using Core.Block.BeltConveyor.util;
+using Core.Block.BlockInventory;
 using Core.Block.Config;
 using Core.Item;
 using Core.Item.Config;
