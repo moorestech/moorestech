@@ -71,7 +71,6 @@ namespace Test.UnitTest.Server.Player
         }
         
 
-        //todo 仮実装のためのstringをenumにする
         private BlockFactory _blockFactory;
         private NormalMachine CreateMachine(int id)
         {
