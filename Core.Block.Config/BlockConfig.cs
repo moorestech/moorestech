@@ -17,13 +17,14 @@ namespace Core.Block.Config
             if (_blockConfigDictionary.ContainsKey(id))
             {
                 return _blockConfigDictionary[id];   
-            }
+            } 
             //TODO なかった時はNullBlockConfigを返す
             //IDがなかったからインプット、アウトプットスロットが100のブロックを返す
-            return new BlockConfigData(id,
-                "Generated Block from AllMachineBlockConfig.cs",
-                "Machine",
-                new MachineBlockConfigParam(100,100,100));
+            
+            return new BlockConfigData(BlockConst.BlockConst.NullBlockId,
+                "ID "+id+" is undefined",
+                VanillaBlockType.Block,
+                new NullBlockConfigParam());
         }
 
     }
