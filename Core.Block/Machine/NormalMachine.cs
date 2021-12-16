@@ -172,7 +172,6 @@ namespace Core.Block.Machine
 
         
         
-        //TODO コンフィグに必要電力量を追加
         private const int requestPower = 100;
         private int _nowPower = 0;
         public int RequestPower(){return requestPower;}
