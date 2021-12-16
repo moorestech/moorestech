@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using Core.Block;
 using Core.Block.Config;
 using Core.Block.Machine;
+using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
+using Core.Util;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,11 +19,14 @@ namespace Test.CombinedTest.Server.PacketTest
     public class BlockInventoryPlayerInventoryMoveItemProtocolTest
     {
         private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
-        
-        private BlockFactory _blockFactory = new BlockFactory(new AllMachineBlockConfig());
-        private NormalMachine CreateMachine(int id,int intId)
+        private BlockFactory _blockFactory;
+        private NormalMachine CreateMachine(int id,int indId)
         {
-            var machine = _blockFactory.Create(id, intId) as NormalMachine;
+            if (_blockFactory == null)
+            {
+                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(_itemStackFactory),_itemStackFactory));
+            }
+            var machine = _blockFactory.Create(id, indId) as NormalMachine;
             return machine;
         }
         

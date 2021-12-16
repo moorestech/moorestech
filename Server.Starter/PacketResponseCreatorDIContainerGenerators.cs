@@ -1,3 +1,4 @@
+using Core.Block;
 using Core.Block.Config;
 using Core.Block.RecipeConfig;
 using Core.Item;
@@ -27,10 +28,12 @@ namespace Server
             
             var services = new ServiceCollection();
             //テスト用のコンフィグ、ファクトリーのインスタンスを登録
-            
             services.AddSingleton<IMachineRecipeConfig, TestMachineRecipeConfig>();
             services.AddSingleton<IItemConfig, TestItemConfig>();
             services.AddSingleton<ItemStackFactory, ItemStackFactory >();
+            services.AddSingleton<IBlockConfig,BlockConfig>();
+            services.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
+            services.AddSingleton<BlockFactory, BlockFactory>();
             
             
             //必要なクラスのインスタンスを生成

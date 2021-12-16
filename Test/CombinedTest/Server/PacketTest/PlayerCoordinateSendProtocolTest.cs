@@ -4,6 +4,9 @@ using System.Linq;
 using Core.Block;
 using Core.Block.Config;
 using Core.Block.Machine;
+using Core.Block.RecipeConfig;
+using Core.Item;
+using Core.Item.Config;
 using Game.World.Interface;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
@@ -167,11 +170,15 @@ namespace Test.CombinedTest.Server.PacketTest
             }
         }
 
-        private BlockFactory _blockFactory = new BlockFactory(new AllMachineBlockConfig());
-
+        private BlockFactory _blockFactory;
         private NormalMachine CreateMachine(int id)
         {
-            var machine = _blockFactory.Create(id,  IntId.NewIntId()) as NormalMachine;
+            if (_blockFactory == null)
+            {
+                var itemStackFactory = new ItemStackFactory(new TestItemConfig());
+                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory),itemStackFactory));
+            }
+            var machine = _blockFactory.Create(id, IntId.NewIntId()) as NormalMachine;
             return machine;
         }
 

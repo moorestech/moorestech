@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using Core.Block;
 using Core.Block.Config;
 using Core.Block.Machine;
+using Core.Block.RecipeConfig;
+using Core.Item;
+using Core.Item.Config;
 using Game.World.Interface.Util;
 using NUnit.Framework;
 using Server.PacketHandle.PacketResponse.Player;
@@ -66,9 +70,15 @@ namespace Test.UnitTest.Server.Player
         }
         
 
-        private BlockFactory _blockFactory = new BlockFactory(new AllMachineBlockConfig());
+        //todo 仮実装のためのstringをenumにする
+        private BlockFactory _blockFactory;
         private NormalMachine CreateMachine(int id)
         {
+            if (_blockFactory == null)
+            {
+                var itemStackFactory = new ItemStackFactory(new TestItemConfig());
+                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory),itemStackFactory));
+            }
             var machine = _blockFactory.Create(id, IntId.NewIntId()) as NormalMachine;
             return machine;
         }

@@ -20,9 +20,13 @@ namespace Test.CombinedTest.Core
     public class MachineIoTest
     {
         private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
-        private BlockFactory _blockFactory = new BlockFactory(new AllMachineBlockConfig());
+        private BlockFactory _blockFactory;
         private NormalMachine CreateMachine(int id)
         {
+            if (_blockFactory == null)
+            {
+                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(_itemStackFactory),_itemStackFactory));
+            }
             var machine = _blockFactory.Create(id, IntId.NewIntId()) as NormalMachine;
             return machine;
         }

@@ -6,25 +6,22 @@ namespace Core.Block
 {
     public class BlockFactory
     {
-        private Dictionary<string,IBlock> _blockTypes = new Dictionary<string, IBlock>();
-        private IBlockConfig _allMachineBlockConfig;
+        private readonly Dictionary<string,IBlockTemplate> _blockTypesDictionary;
+        private readonly IBlockConfig _allMachineBlockConfig;
 
-        public BlockFactory(IBlockConfig allMachineBlockConfig)
+        public BlockFactory(IBlockConfig allMachineBlockConfig,VanillaIBlockTemplates vanillaIBlockTemplates)
         {
             _allMachineBlockConfig = allMachineBlockConfig;
+            _blockTypesDictionary = vanillaIBlockTemplates.BlockTypesDictionary;
         }
-
         public IBlock Create(int blockId,int indId)
         {
             var type = _allMachineBlockConfig.GetBlockConfig(blockId);
-            return _blockTypes[type.Type].New(type,indId);
+            return _blockTypesDictionary[type.Type].New(type,indId);
         }
-        
-        
-        
-        public void RegisterTemplateIBlock(string key,IBlock block)
+        public void RegisterTemplateIBlock(string key,IBlockTemplate block)
         {
-            _blockTypes.Add(key,block);
+            _blockTypesDictionary.Add(key,block);
         }
     }
 }

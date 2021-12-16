@@ -176,14 +176,6 @@ namespace Core.Block.Machine
         public void SupplyPower(int power){_nowPower = power;}
         public int GetIntId(){return _intId;}
         public int GetBlockId() { return _blockId; }
-        public IBlock New(BlockConfigData param, int intId)
-        {
-            var machineParam = param.Param as MachineBlockConfigParam;
-            
-            return new NormalMachine(param.Id,intId ,
-                _normalMachineInputInventory.New(param.Id,machineParam.InputSlot),
-                _normalMachineOutputInventory.New(new NullIBlockInventory(),machineParam.OutputSlot));
-        }
     }
 
     enum ProcessState

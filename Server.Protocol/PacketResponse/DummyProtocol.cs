@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Server.Protocol.PacketResponse;
 
 namespace Server.PacketHandle.PacketResponse
 {

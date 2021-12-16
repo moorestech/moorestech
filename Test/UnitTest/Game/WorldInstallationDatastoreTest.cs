@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using Core.Block;
 using Core.Block.Config;
 using Core.Block.Machine;
+using Core.Block.RecipeConfig;
+using Core.Item;
+using Core.Item.Config;
 using NUnit.Framework;
 using Test.TestConfig;
 using World;
@@ -73,10 +77,15 @@ namespace Test.UnitTest.Game
             Assert.False(worldData.AddBlock(i2,1,1,i2));
         }
         
-        private BlockFactory _blockFactory = new BlockFactory(new AllMachineBlockConfig());
-        private NormalMachine CreateMachine(int id,int intId)
+        private BlockFactory _blockFactory;
+        private NormalMachine CreateMachine(int id,int indId)
         {
-            var machine = _blockFactory.Create(id, intId) as NormalMachine;
+            if (_blockFactory == null)
+            {
+                var itemStackFactory = new ItemStackFactory(new TestItemConfig());
+                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory),itemStackFactory));
+            }
+            var machine = _blockFactory.Create(id, indId) as NormalMachine;
             return machine;
         }
     }
