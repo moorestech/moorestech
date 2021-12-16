@@ -18,9 +18,7 @@ namespace Core.Block.Config
             {
                 return _blockConfigDictionary[id];   
             } 
-            //TODO なかった時はNullBlockConfigを返す
-            //IDがなかったからインプット、アウトプットスロットが100のブロックを返す
-            
+            //未定義の時はNullBlockConfigを返す
             return new BlockConfigData(BlockConst.BlockConst.NullBlockId,
                 "ID "+id+" is undefined",
                 VanillaBlockType.Block,
