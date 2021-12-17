@@ -19,7 +19,7 @@ namespace Core.Block.Config
                 return _blockConfigDictionary[id];   
             } 
             //未定義の時はNullBlockConfigを返す
-            return new BlockConfigData(BlockConst.BlockConst.NullBlockId,
+            return new BlockConfigData(id,
                 "ID "+id+" is undefined",
                 VanillaBlockType.Block,
                 new NullBlockConfigParam());

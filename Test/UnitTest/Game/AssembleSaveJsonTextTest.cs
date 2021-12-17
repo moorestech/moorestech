@@ -16,5 +16,15 @@ namespace Test.UnitTest.Game
             var json = assembleSaveJsonText.AssembleSaveJson();
             Assert.AreEqual("{\"world\":[],\"inventory\":[]}",json);
         }
+        
+        [Test]
+        public void BlockPlacedTest()
+        {
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
+            var json = assembleSaveJsonText.AssembleSaveJson();
+            Assert.AreEqual("{\"world\":[],\"inventory\":[]}",json);
+        }
+        
     }
 }

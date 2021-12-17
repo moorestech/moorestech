@@ -5,10 +5,15 @@ namespace Core.Block.Config.LoadConfig
 {
     public class VanillaBlockConfigGenerator
     {
+        /// <summary>
+        ///  各ブロックのコンフィグを生成する
+        /// </summary>
+        /// <returns></returns>
         public Dictionary<string, IBlockConfigParamGenerator> Generate()
         {
             var config = new Dictionary<string, IBlockConfigParamGenerator>();
             config.Add(VanillaBlockType.Machine, new MachineConfigParamGenerator());
+            config.Add(VanillaBlockType.Block, new BlockConfigParamGenerator());
 
             return config;
         }
