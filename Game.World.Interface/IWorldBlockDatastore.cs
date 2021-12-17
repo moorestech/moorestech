@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.Block;
+using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 
 namespace Game.World.Interface

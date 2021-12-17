@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Block;
+using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 using Game.World.Interface;
 using Game.World.Interface.Event;
@@ -22,9 +23,11 @@ namespace World
         
         readonly IBlock _nullBlock = new NullBlock();
         private readonly BlockPlaceEvent _blockPlaceEvent;
+        private readonly BlockFactory _blockFactory;
 
-        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent)
+        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, BlockFactory blockFactory)
         {
+            _blockFactory = blockFactory;
             _blockPlaceEvent = (BlockPlaceEvent) blockPlaceEvent;
         }
 
@@ -43,7 +46,6 @@ namespace World
             }
             return false;
         }
-        public IBlock GetBlock(int intId) { return _blockMasterDictionary.ContainsKey(intId) ? _blockMasterDictionary[intId].Block : _nullBlock; }
         public IBlock GetBlock(int x,int y)
         {
             var c = CoordinateCreator.New(x,y);
@@ -66,7 +68,7 @@ namespace World
         {
             foreach (var block in saveBlockDataList)
             {
-                AddBlock(BlockFactory.CreateBlock(block.BlockId,block.BlockState),block.X,block.Y);
+                AddBlock(_blockFactory.Create(block.BlockId,block.IntId),block.X,block.Y);
             }
         }
     }

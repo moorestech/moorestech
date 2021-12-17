@@ -7,8 +7,11 @@ using Core.Block.Machine;
 using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
+using Game.World.Interface;
 using Game.World.Interface.Util;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server;
 using Server.PacketHandle.PacketResponse.Player;
 using Server.Protocol.PacketResponse.Const;
 using Test.TestConfig;
@@ -23,7 +26,8 @@ namespace Test.UnitTest.Server.Player
         [Test]
         public void NothingBlockTest()
         {
-            var worldData = new WorldBlockDatastore(new BlockPlaceEvent());
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
             var b = CoordinateToChunkBlocks.Convert(CoordinateCreator.New(0,0),worldData);
 
             Assert.AreEqual(b.GetLength(0),ChunkResponseConst.ChunkSize);
@@ -41,7 +45,8 @@ namespace Test.UnitTest.Server.Player
         [Test]
         public void SameBlockResponseTest()
         {
-            var worldData = new WorldBlockDatastore(new BlockPlaceEvent());
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
             var random = new Random(3944156);
             //ブロックの設置
             for (int i = 0; i < 10000; i++)
