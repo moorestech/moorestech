@@ -12,7 +12,7 @@ namespace PlayerInventory
     /// </summary>
     public class PlayerInventoryDataStore : IPlayerInventoryDataStore
     {
-        readonly Dictionary<int,PlayerInventoryData> _playerInventoryData = new Dictionary<int,PlayerInventoryData>();
+        readonly Dictionary<int,PlayerInventoryData> _playerInventoryData = new();
         private readonly PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
         private readonly ItemStackFactory _itemStackFactory;
 

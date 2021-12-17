@@ -8,8 +8,8 @@ namespace Server.PacketHandle.PacketResponse.Player
         public static int[,] Convert(Coordinate coordinate,IWorldBlockDatastore worldBlockDatastore)
         {
             //その座標のチャンクの原点
-            var x = coordinate.x / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
-            var y = coordinate.y / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
+            var x = coordinate.X / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
+            var y = coordinate.Y / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
             
             var blocks = new int[ChunkResponseConst.ChunkSize,ChunkResponseConst.ChunkSize];
 

@@ -15,9 +15,9 @@ namespace World
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
         //メインのデータストア
-        private Dictionary<int, BlockWorldData> _blockMasterDictionary = new Dictionary<int, BlockWorldData>();
+        private readonly Dictionary<int, BlockWorldData> _blockMasterDictionary = new();
         //座標とキーの紐づけ
-        private Dictionary<Coordinate,int> _coordinateDictionary = new();
+        private readonly Dictionary<Coordinate,int> _coordinateDictionary = new();
 
         
         readonly IBlock _nullBlock = new NullBlock();

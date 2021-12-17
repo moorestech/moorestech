@@ -2,12 +2,12 @@
 {
     public static class CoordinateCreator
     {
-        public static Coordinate New(int X,int Y)
+        public static Coordinate New(int x,int y)
         {
             return new Coordinate()
             {
-                x = X,
-                y = Y
+                X = x,
+                Y = y
             };
         }
     }

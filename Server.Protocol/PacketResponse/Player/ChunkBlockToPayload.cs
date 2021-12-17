@@ -12,8 +12,8 @@ namespace Server.PacketHandle.PacketResponse.Player
             var payload = new List<bool>();
             
             payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray((short)1)));
-            payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray(chunkCoordinate.x)));
-            payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray(chunkCoordinate.y)));
+            payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray(chunkCoordinate.X)));
+            payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray(chunkCoordinate.Y)));
             for (int i = 0; i < blocks.GetLength(0); i++)
             {
                 for (int j = 0; j < blocks.GetLength(1); j++)

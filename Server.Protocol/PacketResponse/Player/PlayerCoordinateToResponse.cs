@@ -8,7 +8,7 @@ namespace Server.PacketHandle.PacketResponse.Player
 {
     public class PlayerCoordinateToResponse
     {
-        private Coordinate _lastCoordinate = new Coordinate {x = Int32.MaxValue, y = Int32.MaxValue};
+        private Coordinate _lastCoordinate = new Coordinate {X = Int32.MaxValue, Y = Int32.MaxValue};
         public List<Coordinate> GetResponseCoordinate(Coordinate coordinate)
         {
             var now = GetCoordinates(coordinate);
@@ -28,8 +28,8 @@ namespace Server.PacketHandle.PacketResponse.Player
         {
             var chunkHalf = ChunkResponseConst.PlayerVisibleRangeChunk / 2;
             //その座標のチャンクの原点
-            var x = coordinate.x / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
-            var y = coordinate.y / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
+            var x = coordinate.X / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
+            var y = coordinate.Y / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
             
             var result = new List<Coordinate>();
             for (int i = -chunkHalf; i <= chunkHalf; i++)

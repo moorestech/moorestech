@@ -63,7 +63,7 @@ namespace Test.UnitTest.Server.Player
                     for (int j = 0; j < b.GetLength(1); j++)
                     {
                         Assert.AreEqual(
-                            worldData.GetBlock(c.x + i, c.y + j).GetBlockId(),
+                            worldData.GetBlock(c.X + i, c.Y + j).GetBlockId(),
                             b[i,j]);
                     }
                 }

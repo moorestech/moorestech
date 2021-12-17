@@ -1,4 +1,3 @@
-using Core.Block;
 using Game.World.Interface.Event;
 
 namespace World.Event

@@ -1,6 +1,6 @@
 namespace Game.PlayerInventory.Interface
 {
-    public class PlayerInventoryConst
+    public static class PlayerInventoryConst
     {
         public const int MainInventoryColumns = 9;
         public const int MainInventoryRows = 5;

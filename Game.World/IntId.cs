@@ -4,10 +4,10 @@ namespace World
 {
     public static class IntId
     {
-        private static Random _random = new Random();
+        private static readonly Random Random = new Random();
         public static int NewIntId()
         {
-            return _random.Next(Int32.MinValue,Int32.MaxValue);
+            return Random.Next(Int32.MinValue,Int32.MaxValue);
         }
     }
 }
