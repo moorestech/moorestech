@@ -1,3 +1,5 @@
+using System;
+
 namespace Core.Block
 {
     public class NormalBlock : IBlock
@@ -19,6 +21,11 @@ namespace Core.Block
         public int GetBlockId()
         {
             return _blockId;
+        }
+
+        public string GetState()
+        {
+            return String.Empty;
         }
     }
 }

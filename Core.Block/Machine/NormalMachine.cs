@@ -178,6 +178,10 @@ namespace Core.Block.Machine
         public void SupplyPower(int power){_nowPower = power;}
         public int GetIntId(){return _intId;}
         public int GetBlockId() { return _blockId; }
+        public string GetState()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     enum ProcessState

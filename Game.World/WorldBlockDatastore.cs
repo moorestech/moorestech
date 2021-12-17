@@ -50,5 +50,24 @@ namespace World
             if (_coordinateDictionary.ContainsKey(c)) return _blockMasterDictionary[_coordinateDictionary[c]].Block;
             return _nullBlock;
         }
+
+        public List<SaveBlockData> GetSaveBlockDataList()
+        {
+            var list = new List<SaveBlockData>();
+            foreach (var block in _blockMasterDictionary)
+            {
+                list.Add(new SaveBlockData(block.Value.X,block.Value.Y,block.Value.Block.GetBlockId(),block.Value.Block.GetIntId(),block.Value.Block.GetState()));
+            }
+
+            return list;
+        }
+
+        public void SetSaveBlockDataList(List<SaveBlockData> saveBlockDataList)
+        {
+            foreach (var block in saveBlockDataList)
+            {
+                AddBlock(BlockFactory.CreateBlock(block.BlockId,block.BlockState),block.X,block.Y);
+            }
+        }
     }
 }

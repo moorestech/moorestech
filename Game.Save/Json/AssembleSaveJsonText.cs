@@ -1,5 +1,8 @@
+using System.Collections.Generic;
+using Core.Inventory;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface;
+using Newtonsoft.Json;
 
 namespace Game.Save.Json
 {
@@ -16,7 +19,22 @@ namespace Game.Save.Json
         
         public string AssembleSaveJson()
         {
-            return "{\"world\":[],\"inventory\":[]}";
+            var saveData = new SaveData(_worldBlockDatastore.GetSaveBlockDataList(),_inventoryDataStore.GetSaveInventoryDataList());
+            return JsonConvert.SerializeObject(saveData);
         }
+    }
+    
+    public class SaveData
+    {
+        public SaveData(List<SaveBlockData> world, List<SaveInventoryData> inventory)
+        {
+            World = world;
+            Inventory = inventory;
+        }
+        
+        [JsonProperty("world")]
+        public List<SaveBlockData> World { get;}
+        [JsonProperty("inventory")]
+        public List<SaveInventoryData> Inventory { get; }
     }
 }

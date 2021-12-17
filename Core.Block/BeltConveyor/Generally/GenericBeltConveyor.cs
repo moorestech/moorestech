@@ -119,5 +119,10 @@ namespace Core.Block.BeltConveyor.Generally
         {
             return _blockId;
         }
+
+        public string GetState()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -13,8 +13,8 @@ namespace World
             Block = block;
         }
 
-        private int X { get; }
-        private int Y { get; }
+        public int X { get; }
+        public int Y { get; }
         public IBlock Block { get; }
     }
 }

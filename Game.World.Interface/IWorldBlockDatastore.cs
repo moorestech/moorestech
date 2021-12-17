@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Block;
 using Core.Block.BlockInventory;
 
@@ -11,5 +12,7 @@ namespace Game.World.Interface
     {
         public bool AddBlock(IBlock block, int x, int y);
         public IBlock GetBlock(int x, int y);
+        public List<SaveBlockData> GetSaveBlockDataList();
+        public void SetSaveBlockDataList(List<SaveBlockData> saveBlockDataList);
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using Core.Block;
 using Core.Block.BlockFactory;
 using Game.Save.Json;
@@ -31,7 +32,9 @@ namespace Test.UnitTest.Game
             worldBlockDatastore.AddBlock(new NormalBlock( 15, 100), 10,-15);
             
             var json = assembleSaveJsonText.AssembleSaveJson();
-            Assert.AreEqual("{\"world\":[{\"id\":10,\"X\":0,\"Y\":0,\"intId\":10,\"param\":{}},{\"id\":15,\"X\":10,\"Y\":-15,\"intId\":100,\"param\":{}}],\"inventory\":[]}",json);
+            var ans =
+                "{\"world\":[{\"X\":0,\"Y\":0,\"id\":10,\"intId\":10,\"state\":\"\"},{\"X\":10,\"Y\":-15,\"id\":15,\"intId\":100,\"state\":\"\"}],\"inventory\":[]}";
+            Assert.AreEqual(ans,json);
         }
         
     }

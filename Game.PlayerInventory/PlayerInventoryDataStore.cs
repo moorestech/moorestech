@@ -32,5 +32,10 @@ namespace PlayerInventory
 
             return _playerInventoryData[playerId];
         }
+
+        public List<SaveInventoryData> GetSaveInventoryDataList()
+        {
+            return new List<SaveInventoryData>();
+        }
     }
 }
