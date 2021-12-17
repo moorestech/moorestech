@@ -46,7 +46,7 @@ namespace Core.Block.Config.LoadConfig
                 
                 string name = block.name;
                 string type = block.type;
-                BlockConfigParamBase blockParam = _generators[VanillaBlockType.Machine].Generate(block.param);
+                BlockConfigParamBase blockParam = _generators[type].Generate(block.param);
                 blockDictionary.Add(id,new BlockConfigData(id,name,type,blockParam));
             }
 

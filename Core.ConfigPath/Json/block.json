@@ -7,8 +7,8 @@
     },
     {
       "name": "aaa",
-      "type" : "Machine",
-      "param" : {"inputSlot": 5,"outputSlot": 3,"requiredPower": 100}
+      "type" : "Block",
+      "param" : {}
     },
     {
       "name": "bb",
