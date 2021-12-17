@@ -35,7 +35,7 @@ namespace Server.Protocol.PacketResponse
             var blockInventorySlot = payloadData.MoveNextToGetInt();
             var moveItemAmount = payloadData.MoveNextToGetInt();
             
-            var blockInventory = (IInventory)_worldBlockDatastore.GetBlockInventory(blockX, blockY);
+            var blockInventory = (IInventory)_worldBlockDatastore.GetBlock(blockX, blockY);
             var playerInventory = (IInventory)_playerInventoryDataStore.GetInventoryData(playerId);
 
             var inventoryItemMove = new InventoryItemMove();

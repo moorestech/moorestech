@@ -24,7 +24,7 @@ namespace Test.UnitTest.Game
             
             var intId = IntId.NewIntId();
             var i =  CreateMachine(1,intId);
-            worldData.AddBlock(i,1,1,i);
+            worldData.AddBlock(i,1,1);
             var output = worldData.GetBlock(intId);
             Assert.AreEqual(intId, output.GetIntId());
 
@@ -44,7 +44,7 @@ namespace Test.UnitTest.Game
                 int x = random.Next(-1000, 1000);
                 int y = random.Next(-1000, 1000);
                 
-                worldData.AddBlock(ins,x,y,ins);
+                worldData.AddBlock(ins,x,y);
                 var output = worldData.GetBlock(x,y);
                 Assert.AreEqual(intId, output.GetIntId());
             }
@@ -58,11 +58,11 @@ namespace Test.UnitTest.Game
             
             var intId = IntId.NewIntId();
             var i =  CreateMachine(1, intId);
-            worldData.AddBlock(i,1,1,i);
+            worldData.AddBlock(i,1,1);
             
             //座標だけ変えてintIDは同じ
             var i2 =  CreateMachine(1, intId);
-            Assert.False(worldData.AddBlock(i2,10,10,i2));
+            Assert.False(worldData.AddBlock(i2,10,10));
         }
 
         [Test]
@@ -71,11 +71,11 @@ namespace Test.UnitTest.Game
             var worldData = new WorldBlockDatastore(new BlockPlaceEvent());
 
             var i =  CreateMachine(1, IntId.NewIntId());
-            worldData.AddBlock(i,1,1,i);
+            worldData.AddBlock(i,1,1);
             
             //座標だけ変えてintIDは同じ
             var i2 =  CreateMachine(1, IntId.NewIntId());
-            Assert.False(worldData.AddBlock(i2,1,1,i2));
+            Assert.False(worldData.AddBlock(i2,1,1));
         }
         
         private BlockFactory _blockFactory;

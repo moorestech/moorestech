@@ -6,17 +6,15 @@ namespace World
 {
     internal class BlockWorldData
     {
-        public BlockWorldData(IBlock block,int x, int y,  IBlockInventory blockInventory)
+        public BlockWorldData(IBlock block,int x, int y)
         {
             X = x;
             Y = y;
             Block = block;
-            BlockInventory = blockInventory;
         }
 
         private int X { get; }
         private int Y { get; }
         public IBlock Block { get; }
-        public IBlockInventory BlockInventory { get; }
     }
 }

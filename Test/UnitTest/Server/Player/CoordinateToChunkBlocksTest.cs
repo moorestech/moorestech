@@ -47,7 +47,7 @@ namespace Test.UnitTest.Server.Player
             for (int i = 0; i < 10000; i++)
             {
                 var b = CreateMachine(random.Next(0, 500));
-                worldData.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300),b);
+                worldData.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300));
             }
             //レスポンスのチェック
             for (int l = 0; l < 100; l++)

@@ -39,12 +39,10 @@ namespace Server.Protocol.PacketResponse
             int x = payloadData.MoveNextToGetInt();
             int y = payloadData.MoveNextToGetInt();
             Console.WriteLine("Place Block blockID:" + blockId + " x:" + x + " y:" + y);
-            
-            var inputBlock = _worldBlockDatastore.GetBlockInventory(payloadData.MoveNextToGetInt());
 
             var block = blockFactory.Create(blockId, IntId.NewIntId());
             
-            _worldBlockDatastore.AddBlock(block, x, y,new NullIBlockInventory());
+            _worldBlockDatastore.AddBlock(block, x, y);
             //返すものはない
             return new List<byte[]>();
         }
