@@ -9,16 +9,16 @@ namespace Core.Block.BlockFactory
     public class BlockFactory
     {
         private readonly Dictionary<string,IBlockTemplate> _blockTypesDictionary;
-        private readonly IBlockConfig _allMachineBlockConfig;
+        private readonly IBlockConfig _blockConfig;
 
-        public BlockFactory(IBlockConfig allMachineBlockConfig,VanillaIBlockTemplates vanillaIBlockTemplates)
+        public BlockFactory(IBlockConfig blockConfig,VanillaIBlockTemplates vanillaIBlockTemplates)
         {
-            _allMachineBlockConfig = allMachineBlockConfig;
+            _blockConfig = blockConfig;
             _blockTypesDictionary = vanillaIBlockTemplates.BlockTypesDictionary;
         }
         public IBlock Create(int blockId,int indId)
         {
-            var type = _allMachineBlockConfig.GetBlockConfig(blockId);
+            var type = _blockConfig.GetBlockConfig(blockId);
             if ( _blockTypesDictionary.ContainsKey(type.Type))
             {
                 return _blockTypesDictionary[type.Type].New(type,indId);

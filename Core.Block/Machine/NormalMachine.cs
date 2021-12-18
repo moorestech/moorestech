@@ -184,7 +184,7 @@ namespace Core.Block.Machine
         }
     }
 
-    enum ProcessState
+    public enum ProcessState
     {
         Idle,
         Processing

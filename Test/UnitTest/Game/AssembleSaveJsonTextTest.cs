@@ -1,11 +1,19 @@
 using System;
 using Core.Block;
 using Core.Block.BlockFactory;
+using Core.Block.Machine;
+using Core.Block.RecipeConfig;
+using Core.Item;
+using Core.Item.Config;
+using Core.Update;
 using Game.Save.Json;
 using Game.World.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using PlayerInventory;
+using PlayerInventory.Event;
 using Server;
+using Test.TestConfig;
 using World;
 using World.Event;
 
@@ -23,8 +31,9 @@ namespace Test.UnitTest.Game
             Assert.AreEqual("{\"world\":[],\"inventory\":[]}",json);
         }
         
+        //ブロックを追加した時のテスト
         [Test]
-        public void BlockPlacedTest()
+        public void SimpleBlockPlacedTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
@@ -46,8 +55,92 @@ namespace Test.UnitTest.Game
             var block2 = worldLoadBlockDatastore.GetBlock(10, -15);
             Assert.AreEqual(15, block2.GetBlockId());
             Assert.AreEqual(100, block2.GetIntId());
-
         }
         
+        //インベントリのあるブロックを追加した時のテスト
+        //レシピやブロックが変わった時はテストコードを修正してください
+        [Test]
+        public void InventoryBlockTest()
+        {
+            //機械の追加
+            var (itemStackFactory,blockFactory,worldBlockDatastore,playerInventoryDataStore,assembleSaveJsonText) = CreateBlockTestModule();
+            var machine = (NormalMachine)blockFactory.Create(1, 10);
+            worldBlockDatastore.AddBlock(machine, 0, 0);
+            
+            
+            //レシピ用のアイテムを追加
+            machine.InsertItem(itemStackFactory.Create(1,3));
+            machine.InsertItem(itemStackFactory.Create(2,1));
+            //処理を開始
+            GameUpdate.Update();
+            //別のアイテムを追加
+            machine.InsertItem(itemStackFactory.Create(5,6));
+            machine.InsertItem(itemStackFactory.Create(2,4));
+            
+            //リフレクションで機械の状態を設定
+            Type machineType = machine.GetType();
+            //機械のレシピの残り時間設定
+            var remainingMillSecond = machineType.GetField("_remainingMillSecond");
+            remainingMillSecond.SetValue(machine,300);
+            
+            //機械のアウトプットスロットの設定
+            var outputInventory = (NormalMachineOutputInventory)machineType.GetField("_normalMachineOutputInventory").GetValue(machine);
+            outputInventory.SetItem(0,itemStackFactory.Create(1,1));
+            outputInventory.SetItem(1,itemStackFactory.Create(3,2));
+
+            
+
+            var json = assembleSaveJsonText.AssembleSaveJson();
+            //配置したブロックを削除
+            worldBlockDatastore.AddBlock(blockFactory.Create(1,0),0,0);
+            
+            
+            
+            
+            //ロードした時に機械の状態が正しいことを確認
+            assembleSaveJsonText.LoadJson(json);
+            
+            var loadMachine = (NormalMachine)worldBlockDatastore.GetBlock(0,0);
+            //ブロックID、intIDが同じであることを確認
+            Assert.AreEqual(machine.GetBlockId(),loadMachine.GetBlockId());
+            Assert.AreEqual(machine.GetIntId(),loadMachine.GetIntId());
+            
+            var loadMachineType = loadMachine.GetType();
+            
+            //機械のレシピの残り時間のチェック
+            var loadRemainingMillSecond = loadMachineType.GetField("_remainingMillSecond");
+            Assert.AreEqual(300,(int)loadRemainingMillSecond.GetValue(loadMachine));
+            
+            //機械のステータスのチェック
+            var loadMachineStatus = loadMachineType.GetField("_state");
+            Assert.AreEqual(ProcessState.Processing,(ProcessState)loadMachineStatus.GetValue(loadMachine));
+            
+            //インプットスロットのチェック
+            Assert.AreEqual(loadMachine.InputSlotWithoutEmptyItemStack[0],itemStackFactory.Create(5,6));
+            Assert.AreEqual(loadMachine.InputSlotWithoutEmptyItemStack[1],itemStackFactory.Create(2,4));
+            
+            //アウトプットスロットのチェック
+            var outputInventoryField = (NormalMachineOutputInventory)loadMachineType.GetField("_normalMachineOutputInventory").GetValue(loadMachineType);
+            Assert.AreEqual(outputInventoryField.OutputSlot[0],itemStackFactory.CreatEmpty());
+            Assert.AreEqual(outputInventoryField.OutputSlot[1],itemStackFactory.Create(1,1));
+            Assert.AreEqual(outputInventoryField.OutputSlot[2],itemStackFactory.Create(3,2));
+
+
+
+
+
+        }
+
+        private (ItemStackFactory,BlockFactory,WorldBlockDatastore,PlayerInventoryDataStore,AssembleSaveJsonText) CreateBlockTestModule()
+        {
+            var itemFactory = new ItemStackFactory(new TestItemConfig());
+            var blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemFactory),itemFactory));
+            var worldBlockDatastore = new WorldBlockDatastore(new BlockPlaceEvent(),blockFactory);
+            var playerInventoryDataStore = new PlayerInventoryDataStore(new PlayerInventoryUpdateEvent(), itemFactory);
+            var assembleSaveJsonText = new AssembleSaveJsonText(playerInventoryDataStore,worldBlockDatastore);
+
+            return (itemFactory,blockFactory, worldBlockDatastore,playerInventoryDataStore, assembleSaveJsonText);
+        }
+       
     }
 }
