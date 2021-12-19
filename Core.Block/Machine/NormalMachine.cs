@@ -180,7 +180,7 @@ namespace Core.Block.Machine
         public int GetBlockId() { return _blockId; }
         public string GetState()
         {
-            throw new NotImplementedException();
+            //todo フォーマットを決める
         }
     }
 
