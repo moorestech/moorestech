@@ -120,7 +120,7 @@ namespace Core.Block.BeltConveyor.Generally
             return _blockId;
         }
 
-        public string GetState()
+        public string GetSaveState()
         {
             throw new NotImplementedException();
         }

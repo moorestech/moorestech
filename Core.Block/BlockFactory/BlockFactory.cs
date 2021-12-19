@@ -25,6 +25,15 @@ namespace Core.Block.BlockFactory
             }
             throw new Exception("Block type not found :" + type.Type);
         }
+        public IBlock Create(int blockId,int indId)
+        {
+            var type = _blockConfig.GetBlockConfig(blockId);
+            if ( _blockTypesDictionary.ContainsKey(type.Type))
+            {
+                return _blockTypesDictionary[type.Type].New(type,indId);
+            }
+            throw new Exception("Block type not found :" + type.Type);
+        }
         public void RegisterTemplateIBlock(string key,IBlockTemplate block)
         {
             _blockTypesDictionary.Add(key,block);

@@ -23,7 +23,7 @@ namespace Core.Block
             return _blockId;
         }
 
-        public string GetState()
+        public string GetSaveState()
         {
             return String.Empty;
         }

@@ -58,7 +58,7 @@ namespace World
             var list = new List<SaveBlockData>();
             foreach (var block in _blockMasterDictionary)
             {
-                list.Add(new SaveBlockData(block.Value.X,block.Value.Y,block.Value.Block.GetBlockId(),block.Value.Block.GetIntId(),block.Value.Block.GetState()));
+                list.Add(new SaveBlockData(block.Value.X,block.Value.Y,block.Value.Block.GetBlockId(),block.Value.Block.GetIntId(),block.Value.Block.GetSaveState()));
             }
 
             return list;

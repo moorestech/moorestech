@@ -12,7 +12,7 @@ namespace Core.Block
         
         public int GetIntId(){return BlockConst.BlockConst.NullBlockIntId;}
         public int GetBlockId() { return BlockConst.BlockConst.NullBlockId; }
-        public string GetState()
+        public string GetSaveState()
         {
             return String.Empty;
         }

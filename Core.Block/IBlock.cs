@@ -6,6 +6,6 @@ namespace Core.Block
     {
         public int GetIntId();
         public int GetBlockId();
-        public string GetState();
+        public string GetSaveState();
     }
 }
