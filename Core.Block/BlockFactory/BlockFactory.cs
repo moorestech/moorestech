@@ -30,7 +30,7 @@ namespace Core.Block.BlockFactory
             var type = _blockConfig.GetBlockConfig(blockId);
             if ( _blockTypesDictionary.ContainsKey(type.Type))
             {
-                return _blockTypesDictionary[type.Type].New(type,indId);
+                return _blockTypesDictionary[type.Type].Load(type,indId,state);
             }
             throw new Exception("Block type not found :" + type.Type);
         }

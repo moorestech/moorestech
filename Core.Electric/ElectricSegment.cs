@@ -30,7 +30,7 @@ namespace Core.Electric
             var requester = 0;
             foreach (var key in _electrics.Keys)
             {
-                requester += _electrics[key].RequestPower();
+                requester += _electrics[key].GetRequestPower();
             }
             
             //電力供給の割合の算出
@@ -40,7 +40,7 @@ namespace Core.Electric
             //電力を供給
             foreach (var key in _electrics.Keys)
             {
-                _electrics[key].SupplyPower((int)(_electrics[key].RequestPower()*powerRate));
+                _electrics[key].SupplyPower((int)(_electrics[key].GetRequestPower()*powerRate));
             }
         }
 

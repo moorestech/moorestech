@@ -8,7 +8,7 @@ namespace Core.Block.RecipeConfig
 {
     public class TestMachineRecipeConfig : IMachineRecipeConfig
     {
-        private readonly IMachineRecipeData[] _recipedatas;
+        private readonly List<IMachineRecipeData> _recipedatas;
         
         private readonly Dictionary<string, IMachineRecipeData> _recipeDataCash;
 
@@ -28,6 +28,10 @@ namespace Core.Block.RecipeConfig
 
         public IMachineRecipeData GetRecipeData(int id)
         {
+            if (id == -1)
+            {
+                return new NullMachineRecipeData();
+            }
             return _recipedatas[id];
         }
 

@@ -68,7 +68,7 @@ namespace World
         {
             foreach (var block in saveBlockDataList)
             {
-                AddBlock(_blockFactory.Create(block.BlockId,block.IntId),block.X,block.Y);
+                AddBlock(_blockFactory.Create(block.BlockId,block.IntId,block.State),block.X,block.Y);
             }
         }
     }

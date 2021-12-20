@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using Core.Block.BlockInventory;
-using Core.Block.Config;
+using Core.Block.RecipeConfig;
 using Core.Block.RecipeConfig.Data;
 using Core.Electric;
 using Core.Inventory;
@@ -26,9 +27,11 @@ namespace Core.Block.Machine
         public List<IItemStack> InputSlotWithoutEmptyItemStack => _normalMachineInputInventory.InputSlotWithoutEmptyItemStack;
         public List<IItemStack> OutputSlotWithoutEmptyItemStack => _normalMachineOutputInventory.OutputSlotWithoutEmptyItemStack;
         
+        private IMachineRecipeData _processingRecipeData;
+        
         private readonly int _blockId;
         private readonly int _intId;
-        
+
         public NormalMachine(int blockId, int intId,
             NormalMachineInputInventory normalMachineInputInventory,
             NormalMachineOutputInventory normalMachineOutputInventory )
@@ -40,6 +43,50 @@ namespace Core.Block.Machine
             _intId = intId;
             GameUpdate.AddUpdateObject(this);
         }
+        public NormalMachine(int blockId, int intId,string loadState,
+            ItemStackFactory itemStackFactory,
+            IMachineRecipeConfig machineRecipeConfig,
+            NormalMachineInputInventory normalMachineInputInventory,
+            NormalMachineOutputInventory normalMachineOutputInventory )
+        {
+            _normalMachineInputInventory = normalMachineInputInventory;
+            _normalMachineOutputInventory = normalMachineOutputInventory;
+            _blockId = blockId;
+            _intId = intId;
+            LoadString(loadState,itemStackFactory,machineRecipeConfig);
+            GameUpdate.AddUpdateObject(this);
+        }
+
+        private void LoadString(string loadString,ItemStackFactory itemStackFactory,IMachineRecipeConfig machineRecipeConfig)
+        {
+            var split = loadString.Split(',');
+            int index = 1;
+            int inventorySlot = 0;
+            for (; split[index] != "outputSlot"; index+=2)
+            {
+                var id = int.Parse(split[index]);
+                var count = int.Parse(split[index + 1]);
+                _normalMachineInputInventory.SetItem(inventorySlot,itemStackFactory.Create(id, count));
+                inventorySlot++;
+            }
+            
+            inventorySlot = 0;
+            for (index++; split[index] != "state"; index+=2)
+            {
+                var id = int.Parse(split[index]);
+                var count = int.Parse(split[index + 1]);
+                _normalMachineOutputInventory.SetItem(inventorySlot,itemStackFactory.Create(id, count));
+                inventorySlot++;
+            }
+            index++;
+            _state = (ProcessState) int.Parse(split[index]);
+            index+=2;
+            _remainingMillSecond = Double.Parse(split[index]);
+            index+=2;
+            int recipeId = int.Parse(split[index]);
+            _processingRecipeData = machineRecipeConfig.GetRecipeData(recipeId);
+        }
+        
         public IItemStack InsertItem(IItemStack itemStack)
         {
             //アイテムをインプットスロットに入れた後、プロセス開始できるなら開始
@@ -149,8 +196,6 @@ namespace Core.Block.Machine
         {
             if (IsAllowedToStartProcess) StartProcessing();
         }
-
-        private IMachineRecipeData _processingRecipeData;
         private void StartProcessing()
         {
             _state = ProcessState.Processing;
@@ -162,7 +207,7 @@ namespace Core.Block.Machine
         private double _remainingMillSecond;
         private void Processing()
         {
-            _remainingMillSecond -= GameUpdate.UpdateTime * (_nowPower / (double)requestPower);
+            _remainingMillSecond -= GameUpdate.UpdateTime * (_nowPower / (double)RequestPower);
             if (_remainingMillSecond <= 0)
             {
                 _state = ProcessState.Idle;
@@ -172,18 +217,36 @@ namespace Core.Block.Machine
 
         
         
-        private const int requestPower = 100;
+        private const int RequestPower = 100;
         private int _nowPower = 0;
-        public int RequestPower(){return requestPower;}
+        public int GetRequestPower(){return RequestPower;}
         public void SupplyPower(int power){_nowPower = power;}
         public int GetIntId(){return _intId;}
         public int GetBlockId() { return _blockId; }
         public string GetSaveState()
         {
-            //todo フォーマットを決める
             //フォーマット
-            //inputSlot,id,count,3,5,0,1,0,1,outputSlot,1,5,3,2,state,1,remainingTime,500
-            return "";
+            //inputSlot,item1 id,item1 count,item2 id,item2 count,outputSlot,item1 id,item1 count,item2 id,item2 count,state,0 or 1,remainingTime,500
+            StringBuilder saveState = new StringBuilder("inputSlot,");
+            //インプットスロットを保存
+            foreach (var item in _normalMachineInputInventory.InputSlot)
+            {
+                saveState.Append(item.Id + "," + item.Count + ",");
+            }
+            saveState.Append("outputSlot,");
+            //アウトプットスロットを保存
+            foreach (var item in _normalMachineOutputInventory.OutputSlot)
+            {
+                saveState.Append(item.Id + "," + item.Count + ",");
+            }
+            //状態を保存
+            saveState.Append("state,"+(int)_state + ",");
+            //現在の残り時間を保存
+            saveState.Append("remainingTime,"+_remainingMillSecond + ",");
+            //レシピIDを保存
+            saveState.Append("recipeId,"+_processingRecipeData.RecipeId);
+            
+            return saveState.ToString();
         }
     }
 

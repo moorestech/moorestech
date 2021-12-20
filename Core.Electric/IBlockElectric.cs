@@ -2,7 +2,7 @@
 {
     public interface IBlockElectric
     {
-        int RequestPower();
+        int GetRequestPower();
         void SupplyPower(int power);
         int GetIntId();
     }

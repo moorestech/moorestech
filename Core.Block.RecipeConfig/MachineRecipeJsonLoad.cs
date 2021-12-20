@@ -1,13 +1,11 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using Core.Block.RecipeConfig.Data;
-using Core.Config;
 using Core.Item;
-using Core.Item.Implementation;
-using Core.Item.Util;
 
 namespace Core.Block.RecipeConfig
 {
@@ -17,7 +15,7 @@ namespace Core.Block.RecipeConfig
         {
         }
 
-        internal IMachineRecipeData[] LoadConfig(ItemStackFactory itemStackFactory)
+        internal List<IMachineRecipeData> LoadConfig(ItemStackFactory itemStackFactory)
         {
             //JSONデータの読み込み
             var json = File.ReadAllText(ConfigPath.ConfigPath.RecipeConfigPath);
@@ -27,7 +25,7 @@ namespace Core.Block.RecipeConfig
             var data = serializer.ReadObject(ms) as PurseJsonMachineRecipes;
 
             //レシピデータを実際に使用する形式に変換
-            var r = data.Recipes.ToList().Select(r =>
+            var r = data.Recipes.ToList().Select((r,index) =>
             {
                 var inputItem = 
                         r.
@@ -43,10 +41,10 @@ namespace Core.Block.RecipeConfig
                         ItemOutputs.
                         Select(r => new ItemOutput(itemStackFactory.Create(r.ItemId,r.Count), r.Percent));
                 
-                return new MachineRecipeData(r.BlockId,r.Time,inputItem,outputs.ToList());
+                return (IMachineRecipeData)new MachineRecipeData(r.BlockId,r.Time,inputItem,outputs.ToList(),index);
             });
             
-            return r.ToArray();
+            return r.ToList();
         }
     }
     

@@ -10,6 +10,7 @@ namespace Core.Block.RecipeConfig.Data
         List<ItemOutput> ItemOutputs { get; }
         int BlockId { get; }
         int Time{ get; }
+        int RecipeId{ get; }
         bool RecipeConfirmation(List<IItemStack> inputSlot);
     }
 

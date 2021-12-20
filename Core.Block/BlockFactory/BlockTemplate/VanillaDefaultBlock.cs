@@ -8,5 +8,10 @@ namespace Core.Block.BlockFactory.BlockTemplate
         {
             return new NormalBlock(param.Id,intId);
         }
+
+        public IBlock Load(BlockConfigData param, int intId, string state)
+        {
+            return new NormalBlock(param.Id,intId);
+        }
     }
 }

@@ -4,6 +4,7 @@ using Core.Block;
 using Core.Block.BlockFactory;
 using Core.Block.Machine;
 using Core.Block.RecipeConfig;
+using Core.Block.RecipeConfig.Data;
 using Core.Item;
 using Core.Item.Config;
 using Core.Update;
@@ -86,10 +87,12 @@ namespace Test.UnitTest.Game
             
             //機械のアウトプットスロットの設定
             var outputInventory = (NormalMachineOutputInventory)machineType.GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
-            outputInventory.SetItem(0,itemStackFactory.Create(1,1));
-            outputInventory.SetItem(1,itemStackFactory.Create(3,2));
-
+            outputInventory.SetItem(1,itemStackFactory.Create(1,1));
+            outputInventory.SetItem(2,itemStackFactory.Create(3,2));
             
+            //レシピIDを取得
+            var _processingRecipeData = (IMachineRecipeData)machineType.GetField("_processingRecipeData",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+            var recipeId = _processingRecipeData.RecipeId;
 
             var json = assembleSaveJsonText.AssembleSaveJson();
             Console.WriteLine(json);
@@ -121,19 +124,19 @@ namespace Test.UnitTest.Game
             Assert.AreEqual(ProcessState.Processing,(ProcessState)loadMachineStatus.GetValue(loadMachine));
             
             //インプットスロットのチェック
-            Assert.AreEqual(loadMachine.InputSlotWithoutEmptyItemStack[0],itemStackFactory.Create(5,6));
-            Assert.AreEqual(loadMachine.InputSlotWithoutEmptyItemStack[1],itemStackFactory.Create(2,4));
+            var inputInventoryField = (NormalMachineInputInventory)loadMachineType.GetField("_normalMachineInputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachine);
+            Assert.AreEqual(itemStackFactory.Create(5,6),inputInventoryField.InputSlot[0]);
+            Assert.AreEqual(itemStackFactory.Create(2,4),inputInventoryField.InputSlot[1]);
             
             //アウトプットスロットのチェック
-            var outputInventoryField = (NormalMachineOutputInventory)loadMachineType.GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachineType);
-            Assert.AreEqual(outputInventoryField.OutputSlot[0],itemStackFactory.CreatEmpty());
-            Assert.AreEqual(outputInventoryField.OutputSlot[1],itemStackFactory.Create(1,1));
-            Assert.AreEqual(outputInventoryField.OutputSlot[2],itemStackFactory.Create(3,2));
-
-
-
-
-
+            var outputInventoryField = (NormalMachineOutputInventory)loadMachineType.GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachine);
+            Assert.AreEqual(itemStackFactory.CreatEmpty(),outputInventoryField.OutputSlot[0]);
+            Assert.AreEqual(itemStackFactory.Create(1,1),outputInventoryField.OutputSlot[1]);
+            Assert.AreEqual(itemStackFactory.Create(3,2),outputInventoryField.OutputSlot[2]);
+            
+            //レシピIDのチェック
+            var loadProcessingRecipeData = (IMachineRecipeData)loadMachineType.GetField("_processingRecipeData",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachine);
+            Assert.AreEqual(recipeId,loadProcessingRecipeData.RecipeId);
         }
 
         private (ItemStackFactory,BlockFactory,WorldBlockDatastore,PlayerInventoryDataStore,AssembleSaveJsonText) CreateBlockTestModule()

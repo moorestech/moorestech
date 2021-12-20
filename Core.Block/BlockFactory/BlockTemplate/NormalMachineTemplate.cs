@@ -22,8 +22,18 @@ namespace Core.Block.BlockFactory.BlockTemplate
         public IBlock New(BlockConfigData param, int intId)
         {
             var machineParam = param.Param as MachineBlockConfigParam;
-            
             return new NormalMachine(param.Id,intId ,
+                new NormalMachineInputInventory(param.Id,machineParam.InputSlot,_machineRecipeConfig,_itemStackFactory),
+                new NormalMachineOutputInventory(new NullIBlockInventory(),machineParam.OutputSlot,_itemStackFactory));
+
+        }
+
+        public IBlock Load(BlockConfigData param, int intId, string state)
+        {
+            var machineParam = param.Param as MachineBlockConfigParam;
+            return new NormalMachine(param.Id,intId ,state,
+                _itemStackFactory,
+                _machineRecipeConfig,
                 new NormalMachineInputInventory(param.Id,machineParam.InputSlot,_machineRecipeConfig,_itemStackFactory),
                 new NormalMachineOutputInventory(new NullIBlockInventory(),machineParam.OutputSlot,_itemStackFactory));
         }

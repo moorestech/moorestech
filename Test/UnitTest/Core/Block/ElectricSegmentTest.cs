@@ -47,7 +47,7 @@ namespace Test.UnitTest.Core.Block
             requestPower = request;
             this.id = id;
         }
-        public int RequestPower() {return requestPower;}
+        public int GetRequestPower() {return requestPower;}
         public void SupplyPower(int power) {nowPower = power; }
         public int GetIntId(){return id;}
     }

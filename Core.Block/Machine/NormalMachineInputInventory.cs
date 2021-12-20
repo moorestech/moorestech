@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Core.Block.Config;
 using Core.Block.RecipeConfig;
 using Core.Block.RecipeConfig.Data;
 using Core.Item;
@@ -17,9 +16,9 @@ namespace Core.Block.Machine
         {
             get
             {
-                var a = _inputSlot.Where(i => i.Count != 0).ToList();
-                a.Sort((a, b) => a.Id - b.Id);
-                return a.ToList();
+                var tmp = _inputSlot.Where(i => i.Count != 0).ToList();
+                tmp.Sort((a, b) => a.Id - b.Id);
+                return tmp.ToList();
             }
         }
         
@@ -37,12 +36,10 @@ namespace Core.Block.Machine
             }
         }
 
-        private ItemStackFactory _itemStackFactory;
-        public NormalMachineInputInventory(int BlockId,int inputSlot,IMachineRecipeConfig machineRecipeConfig,ItemStackFactory itemStackFactory)
+        public NormalMachineInputInventory(int blockId,int inputSlot,IMachineRecipeConfig machineRecipeConfig,ItemStackFactory itemStackFactory)
         {
-            _blockId = BlockId;
+            _blockId = blockId;
             _machineRecipeConfig = machineRecipeConfig;
-            _itemStackFactory = itemStackFactory;
             _inputSlot = CreateEmptyItemStacksList.Create(inputSlot,itemStackFactory);
         }
 
@@ -97,11 +94,6 @@ namespace Core.Block.Machine
         public void SetItem(int slot, IItemStack itemStack)
         {
             _inputSlot[slot] = itemStack;
-        }
-
-        public NormalMachineInputInventory New(int blockId,int inputSlot)
-        {
-            return new NormalMachineInputInventory(blockId,inputSlot,_machineRecipeConfig,_itemStackFactory);
         }
     }
 }
