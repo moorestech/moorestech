@@ -80,6 +80,7 @@ namespace Test.Util
         {
             var d = new DummyBlockInventory();
             d.AddConnector(null);
+            d.RemoveConnector(null);
             Assert.True(true);
         }
     }
