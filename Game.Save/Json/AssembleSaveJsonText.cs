@@ -40,7 +40,7 @@ namespace Game.Save.Json
         
         [JsonProperty("world")]
         public List<SaveBlockData> World { get;}
-        [JsonProperty("inventory")]
+        [JsonProperty("playerInventory")]
         public List<SaveInventoryData> Inventory { get; }
     }
 }

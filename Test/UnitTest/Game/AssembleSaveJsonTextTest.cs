@@ -30,7 +30,7 @@ namespace Test.UnitTest.Game
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var json = assembleSaveJsonText.AssembleSaveJson();
-            Assert.AreEqual("{\"world\":[],\"inventory\":[]}",json);
+            Assert.AreEqual("{\"world\":[],\"playerInventory\":[]}",json);
         }
         
         //ブロックを追加した時のテスト
