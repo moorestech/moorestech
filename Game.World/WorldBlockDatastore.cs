@@ -64,7 +64,7 @@ namespace World
             return list;
         }
 
-        public void SetSaveBlockDataList(List<SaveBlockData> saveBlockDataList)
+        public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList)
         {
             foreach (var block in saveBlockDataList)
             {

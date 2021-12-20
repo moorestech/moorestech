@@ -26,7 +26,7 @@ namespace Game.Save.Json
         public void LoadJson(string json)
         {
             var load =  JsonConvert.DeserializeObject<SaveData>(json);
-            _worldBlockDatastore.SetSaveBlockDataList(load.World);
+            _worldBlockDatastore.LoadBlockDataList(load.World);
         }
     }
     
