@@ -48,8 +48,8 @@ namespace Test.UnitTest.Core.Other
                 receivedItemStack = _itemStackFactory.Create(rid,ramo);
             }
             var result = mineItemStack.AddItem(receivedItemStack);
-            Assert.AreEqual(result.ProcessResultItemStack.Amount, ansMAmo);
-            Assert.AreEqual(result.RemainderItemStack.Amount, ansRAmo);
+            Assert.AreEqual(result.ProcessResultItemStack.Count, ansMAmo);
+            Assert.AreEqual(result.RemainderItemStack.Count, ansRAmo);
             Assert.AreEqual(result.ProcessResultItemStack.Id, ansMid);
             Assert.AreEqual(result.RemainderItemStack.Id, ansRID);
         }
@@ -72,7 +72,7 @@ namespace Test.UnitTest.Core.Other
             }
 
             var result = mineItemStack.SubItem(subamo);            
-            Assert.AreEqual(ansamo,result.Amount);
+            Assert.AreEqual(ansamo,result.Count);
             Assert.AreEqual(ansID,result.Id);
 
         }
@@ -128,11 +128,11 @@ namespace Test.UnitTest.Core.Other
         public void ToStringTest()
         {
             IItemStack item = _itemStackFactory.CreatEmpty();
-            Assert.True(item.ToString() == "ID:0 Amount:0");
+            Assert.True(item.ToString() == "ID:0 Count:0");
             item = _itemStackFactory.Create(1, 5);
-            Assert.True(item.ToString() == "ID:1 Amount:5");
+            Assert.True(item.ToString() == "ID:1 Count:5");
             item = _itemStackFactory.Create(13, 10);
-            Assert.True(item.ToString() == "ID:13 Amount:10");
+            Assert.True(item.ToString() == "ID:13 Count:10");
         }
     }
 }

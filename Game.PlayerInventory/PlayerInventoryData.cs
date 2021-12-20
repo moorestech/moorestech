@@ -40,7 +40,7 @@ namespace PlayerInventory
                 var result = _mainInventory[slot].AddItem(itemStack);
                 _mainInventory[slot] = result.ProcessResultItemStack;
                 return result.RemainderItemStack;
-            }else if( _mainInventory[slot].Amount == 0)
+            }else if( _mainInventory[slot].Count == 0)
             {
                 _mainInventory[slot] = itemStack;
                 return _itemStackFactory.CreatEmpty();

@@ -17,7 +17,7 @@ namespace Core.Block.Machine
         {
             get
             {
-                var a = _inputSlot.Where(i => i.Amount != 0).ToList();
+                var a = _inputSlot.Where(i => i.Count != 0).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
                 return a.ToList();
             }
@@ -86,9 +86,9 @@ namespace Core.Block.Machine
             {
                 for (var i = 0; i < _inputSlot.Count; i++)
                 {
-                    if (_inputSlot[i].Id != item.Id || item.Amount > _inputSlot[i].Amount) continue;
+                    if (_inputSlot[i].Id != item.Id || item.Count > _inputSlot[i].Count) continue;
                     //アイテムを減らす
-                    _inputSlot[i] = _inputSlot[i].SubItem(item.Amount);
+                    _inputSlot[i] = _inputSlot[i].SubItem(item.Count);
                     break;
                 }
             }

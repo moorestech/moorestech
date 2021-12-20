@@ -5,9 +5,9 @@ namespace Core.Item
     public interface IItemStack
     {
         int Id { get; }
-        int Amount { get; }
+        int Count { get; }
         ItemProcessResult AddItem(IItemStack receiveItemStack);
-        IItemStack SubItem(int subAmount);
+        IItemStack SubItem(int subCount);
         bool IsAllowedToAdd(IItemStack item);
         IItemStack Clone();
     }

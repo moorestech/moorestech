@@ -27,7 +27,7 @@ namespace Core.Block.RecipeConfig.Data
             int cnt = 0;
             foreach (var slot in inputSlot)
             {
-                cnt += ItemInputs.Count(input => slot.Id == input.Id && input.Amount <= slot.Amount);
+                cnt += ItemInputs.Count(input => slot.Id == input.Id && input.Count <= slot.Count);
             }
 
             return cnt == ItemInputs.Count;

@@ -47,13 +47,13 @@ namespace Test.CombinedTest.Core
         [TestCase(false,new int[3]{0,5,1}, new int[3]{10,5,8})]
         [TestCase(false,new int[2]{1,0}, new int[2]{10,5})]
         [TestCase(false,new int[2]{0,0}, new int[2]{10,5})]
-        public void MachineInputTest(bool isEquals,int[] id,int[] amount)
+        public void MachineInputTest(bool isEquals,int[] id,int[] count)
         {
             var machine = CreateMachine(4);
             var items = new List<IItemStack>();
             for (int i = 0; i < id.Length; i++)
             {
-                items.Add(_itemStackFactory.Create(id[i], amount[i]));
+                items.Add(_itemStackFactory.Create(id[i], count[i]));
             }
 
             foreach (var item in items)
@@ -73,20 +73,20 @@ namespace Test.CombinedTest.Core
         }
         [TestCase(new int[2]{1,1}, new int[2]{1,1}, new int[1]{1}, new int[1]{2})]
         [TestCase(new int[2]{3,1}, new int[2]{1,1}, new int[2]{1,3}, new int[2]{1,1})]
-        public void MachineAddInputTest(int[] id,int[] amount,int[] ansid,int[] ansamount)
+        public void MachineAddInputTest(int[] id,int[] count,int[] ansid,int[] anscount)
         {
             
             var machine = CreateMachine(4);
             
             for (int i = 0; i < id.Length; i++)
             {
-                machine.InsertItem(_itemStackFactory.Create(id[i], amount[i]));
+                machine.InsertItem(_itemStackFactory.Create(id[i], count[i]));
             }
 
             var ansItem = new List<IItemStack>();
             for (int i = 0; i < ansid.Length; i++)
             {
-                ansItem.Add(_itemStackFactory.Create(ansid[i],ansamount[i]));
+                ansItem.Add(_itemStackFactory.Create(ansid[i],anscount[i]));
             }
 
             for (int i = 0; i < ansItem.Count; i++)
@@ -118,7 +118,7 @@ namespace Test.CombinedTest.Core
 
                 foreach (var minput in m.input)
                 {
-                    machine.InsertItem(_itemStackFactory.Create(minput.Id,minput.Amount));
+                    machine.InsertItem(_itemStackFactory.Create(minput.Id,minput.Count));
                 }
 
                 var electrical = new ElectricSegment();
@@ -154,7 +154,7 @@ namespace Test.CombinedTest.Core
                     Assert.AreEqual(machineIoTest.output[j],machine.OutputSlotWithoutEmptyItemStack[j]);
                 }
                 
-                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Amount != 0).ToList();
+                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Count != 0).ToList();
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
                 for (int j = 0; j < machine.InputSlotWithoutEmptyItemStack.Count; j++)
                 {
@@ -186,7 +186,7 @@ namespace Test.CombinedTest.Core
                     Assert.True(machineIoTest.output[j].Equals(dummy.InsertedItems[j]));
                 }
                 
-                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Amount != 0).ToList();
+                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Count != 0).ToList();
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
                 for (int j = 0; j < inputRemainder.Count; j++)
                 {
@@ -216,7 +216,7 @@ namespace Test.CombinedTest.Core
 
                 foreach (var minput in m.input)
                 {
-                    machine.InsertItem(_itemStackFactory.Create(minput.Id,minput.Amount));
+                    machine.InsertItem(_itemStackFactory.Create(minput.Id,minput.Count));
                 }
 
                 var electrical = new ElectricSegment();
@@ -255,7 +255,7 @@ namespace Test.CombinedTest.Core
                     Assert.True(machineIoTest.output[j].Equals(output[j]));
                 }
                 
-                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Amount != 0).ToList();
+                var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Count != 0).ToList();
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
                 for (int j = 0; j < machine.InputSlotWithoutEmptyItemStack.Count; j++)
                 {

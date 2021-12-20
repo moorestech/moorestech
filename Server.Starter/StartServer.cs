@@ -37,10 +37,10 @@ namespace Server
                         var playerId = int.Parse(command[1]);
                         var slot = int.Parse(command[2]);
                         var itemId = int.Parse(command[3]);
-                        var amount = int.Parse(command[4]);
+                        var count = int.Parse(command[4]);
                         
                         var playerInventory = serviceProvider.GetService<PlayerInventoryDataStore>()?.GetInventoryData(playerId);
-                        playerInventory.SetItem(slot,itemStackFactory.Create(itemId,amount));
+                        playerInventory.SetItem(slot,itemStackFactory.Create(itemId,count));
                         Console.WriteLine("Gave item for player " + playerId);
                     }
                 }

@@ -7,7 +7,7 @@ namespace Game.PlayerInventory.Interface.Event
         public readonly int PlayerId;
         public readonly int InventorySlot;
         public readonly int ItemId;
-        public readonly int Amount;
+        public readonly int Count;
 
 
         public PlayerInventoryUpdateEventProperties(int playerId, int inventorySlot, IItemStack itemStack)
@@ -15,7 +15,7 @@ namespace Game.PlayerInventory.Interface.Event
             PlayerId = playerId;
             InventorySlot = inventorySlot;
             ItemId = itemStack.Id;
-            Amount = itemStack.Amount;
+            Count = itemStack.Count;
         }
     }
 }

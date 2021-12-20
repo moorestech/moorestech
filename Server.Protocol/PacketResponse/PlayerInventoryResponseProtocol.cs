@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
                 response.AddRange(ByteListConverter.ToByteArray(playerInventory.GetItem(i).Id));
-                response.AddRange(ByteListConverter.ToByteArray(playerInventory.GetItem(i).Amount));
+                response.AddRange(ByteListConverter.ToByteArray(playerInventory.GetItem(i).Count));
             }
 
             return new List<byte[]>() {response.ToArray()};

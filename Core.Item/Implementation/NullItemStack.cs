@@ -11,14 +11,14 @@ namespace Core.Item.Implementation
         }
 
         public int Id => ItemConst.NullItemId;
-        public int Amount => 0;
+        public int Count => 0;
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
             return new ItemProcessResult(receiveItemStack,_itemStackFactory.CreatEmpty());
         }
 
-        public IItemStack SubItem(int subAmount)
+        public IItemStack SubItem(int subCount)
         {
             return this;
         }
@@ -36,11 +36,11 @@ namespace Core.Item.Implementation
         public override bool Equals(object? obj)
         {
             if (typeof(NullItemStack) != obj.GetType()) return false;
-            return ((NullItemStack) obj).Id == Id && ((NullItemStack) obj).Amount == Amount;
+            return ((NullItemStack) obj).Id == Id && ((NullItemStack) obj).Count == Count;
         }
         public override string ToString()
         {
-            return $"ID:{Id} Amount:{Amount}";
+            return $"ID:{Id} Count:{Count}";
         }
     }
 }

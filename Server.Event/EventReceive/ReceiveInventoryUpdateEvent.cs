@@ -25,7 +25,7 @@ namespace Server.Event.EventReceive
             payload.AddRange(ByteListConverter.ToByteArray(EventId));
             payload.AddRange(ByteListConverter.ToByteArray(playerInventoryUpdateEvent.InventorySlot));
             payload.AddRange(ByteListConverter.ToByteArray(playerInventoryUpdateEvent.ItemId));
-            payload.AddRange(ByteListConverter.ToByteArray(playerInventoryUpdateEvent.Amount));
+            payload.AddRange(ByteListConverter.ToByteArray(playerInventoryUpdateEvent.Count));
             
             _eventProtocolProvider.AddEvent(playerInventoryUpdateEvent.PlayerId,payload.ToArray());
 

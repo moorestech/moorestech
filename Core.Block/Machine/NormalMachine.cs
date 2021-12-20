@@ -181,6 +181,9 @@ namespace Core.Block.Machine
         public string GetSaveState()
         {
             //todo フォーマットを決める
+            //フォーマット
+            //inputSlot,id,count,3,5,0,1,0,1,outputSlot,1,5,3,2,state,1,remainingTime,500
+            return "";
         }
     }
 

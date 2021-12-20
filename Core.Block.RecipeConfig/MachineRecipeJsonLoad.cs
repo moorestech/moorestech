@@ -33,7 +33,7 @@ namespace Core.Block.RecipeConfig
                         r.
                         ItemInputs.
                         ToList().
-                        Select(item => itemStackFactory.Create(item.ItemId,item.Amount)).ToList();
+                        Select(item => itemStackFactory.Create(item.ItemId,item.Count)).ToList();
                 
                 
                 inputItem = inputItem.OrderBy(i => i.Id).ToList();
@@ -41,7 +41,7 @@ namespace Core.Block.RecipeConfig
                 var outputs =
                         r.
                         ItemOutputs.
-                        Select(r => new ItemOutput(itemStackFactory.Create(r.ItemId,r.Amount), r.Percent));
+                        Select(r => new ItemOutput(itemStackFactory.Create(r.ItemId,r.Count), r.Percent));
                 
                 return new MachineRecipeData(r.BlockId,r.Time,inputItem,outputs.ToList());
             });
@@ -87,12 +87,12 @@ namespace Core.Block.RecipeConfig
     {
         [DataMember(Name = "id")]
         private int _itemId;
-        [DataMember(Name = "amount")]
-        private int _amount;
+        [DataMember(Name = "count")]
+        private int _count;
 
         public int ItemId => _itemId;
 
-        public int Amount => _amount;
+        public int Count => _count;
 
     }
 
@@ -101,8 +101,8 @@ namespace Core.Block.RecipeConfig
     {
         [DataMember(Name = "id")]
         private int _itemId;
-        [DataMember(Name = "amount")]
-        private int _amount;
+        [DataMember(Name = "count")]
+        private int _count;
         [DataMember(Name = "percent")]
         private double _percent;
 
@@ -110,6 +110,6 @@ namespace Core.Block.RecipeConfig
 
         public int ItemId => _itemId;
 
-        public int Amount => _amount;
+        public int Count => _count;
     }
 }

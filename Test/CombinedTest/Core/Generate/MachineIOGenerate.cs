@@ -32,12 +32,12 @@ namespace Test.CombinedTest.Core.Generate
                 var random = new Random(seed);
                 
                 //inputにランダムな量増減する
-                var input = r.input.Select(rInput => new inputitem(rInput.id, rInput.amount)).ToList();
+                var input = r.input.Select(rInput => new inputitem(rInput.id, rInput.count)).ToList();
 
                 //ランダムな数足す
-                input.ForEach(i => i.amount += random.Next(0,i.amount*10));
+                input.ForEach(i => i.count += random.Next(0,i.count*10));
                 var remainder = new List<inputitem>();
-                remainder.AddRange(input.Select(i => new inputitem(i.id, i.amount)));
+                remainder.AddRange(input.Select(i => new inputitem(i.id, i.count)));
 
                 var cnt = 0;
                 var continue_ = true;
@@ -46,7 +46,7 @@ namespace Test.CombinedTest.Core.Generate
                 {
                     for (int j = 0; j < remainder.Count; j++)
                     {
-                        if(remainder[j].amount < r.input[j].amount)
+                        if(remainder[j].count < r.input[j].count)
                         {
                             continue_ = false; 
                             break;
@@ -56,13 +56,13 @@ namespace Test.CombinedTest.Core.Generate
                     
                     for (int j = 0; j < remainder.Count; j++)
                     {
-                        remainder[j].amount -= r.input[j].amount;
+                        remainder[j].count -= r.input[j].count;
                     }
                     if(continue_) cnt++;
                 }
 
                 //出力アイテムもクラフト回数分倍にする
-                var output = MachineIOTest.Convart(r.output,itemStackFactory).Select(i => i = itemStackFactory.Create(i.Id,i.Amount*cnt)).ToList();
+                var output = MachineIOTest.Convart(r.output,itemStackFactory).Select(i => i = itemStackFactory.Create(i.Id,i.Count*cnt)).ToList();
                 //インプットアイテム数を増やしたテストケース
                 testCase.Add(new MachineIOTest(itemStackFactory,input.ToArray(),output,remainder.ToArray(),r.BlockID,r.time,cnt));
             }
@@ -103,10 +103,10 @@ namespace Test.CombinedTest.Core.Generate
                 var r = new List<IItemStack>();
                 foreach (var i in input)
                 {
-                    r.Add(itemStackFactory.Create(i.id,i.amount));
+                    r.Add(itemStackFactory.Create(i.id,i.count));
                 }
 
-                var a = r.Where(i => i.Amount != 0).ToList();
+                var a = r.Where(i => i.Count != 0).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
                 return a.ToList();
             }
@@ -116,7 +116,7 @@ namespace Test.CombinedTest.Core.Generate
                 var r = new List<IItemStack>();
                 foreach (var o in output)
                 {
-                    r.Add(itemStackFactory.Create(o.id,o.amount));
+                    r.Add(itemStackFactory.Create(o.id,o.count));
                 }
 
                 var a = r.Where(i => i.Id != BlockConst.BlockConst.NullBlockId).ToList();

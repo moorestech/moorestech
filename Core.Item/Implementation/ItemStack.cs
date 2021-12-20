@@ -8,11 +8,11 @@ namespace Core.Item.Implementation
     internal class ItemStack : IItemStack
     {
         public int Id { get; }
-        public int Amount { get; }
+        public int Count { get; }
         private readonly IItemConfig _itemConfig;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public ItemStack(int id,int amount,IItemConfig itemConfig,ItemStackFactory itemStackFactory)
+        public ItemStack(int id,int count,IItemConfig itemConfig,ItemStackFactory itemStackFactory)
         {
             _itemConfig = itemConfig;
             _itemStackFactory = itemStackFactory;
@@ -20,16 +20,16 @@ namespace Core.Item.Implementation
             {
                 throw new ArgumentException("Item id cannot be null");
             }
-            if (amount < 1)
+            if (count < 1)
             {
                 throw new ArgumentOutOfRangeException();
             }
-            if (itemConfig.GetItemConfig(id).Stack < amount)
+            if (itemConfig.GetItemConfig(id).Stack < count)
             {
                 throw new ArgumentOutOfRangeException();
             }
             Id = id;
-            Amount = amount;
+            Count = count;
         }
         
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
@@ -45,26 +45,26 @@ namespace Core.Item.Implementation
                 return new ItemProcessResult(this, receiveItemStack);
             }
             
-            var newAmount = ((ItemStack) receiveItemStack).Amount + Amount;
+            var newCount = ((ItemStack) receiveItemStack).Count + Count;
             var tmpStack = _itemConfig.GetItemConfig(Id).Stack;
             
             //量が指定数より多かったらはみ出した分を返す
-            if (tmpStack < newAmount)
+            if (tmpStack < newCount)
             {
                 var tmpItem = _itemStackFactory.Create(Id,tmpStack);
-                var tmpReceive = _itemStackFactory.Create(Id, newAmount-tmpStack);
+                var tmpReceive = _itemStackFactory.Create(Id, newCount-tmpStack);
 
                 return new ItemProcessResult(tmpItem, tmpReceive);
             }
             
-            return new ItemProcessResult(_itemStackFactory.Create(Id, newAmount), _itemStackFactory.CreatEmpty());
+            return new ItemProcessResult(_itemStackFactory.Create(Id, newCount), _itemStackFactory.CreatEmpty());
         }
 
-        public IItemStack SubItem(int subAmount)
+        public IItemStack SubItem(int subCount)
         {
-            if (0 < Amount - subAmount)
+            if (0 < Count - subCount)
             {
-                return _itemStackFactory.Create(Id,Amount-subAmount);
+                return _itemStackFactory.Create(Id,Count-subCount);
             }
             return _itemStackFactory.CreatEmpty();
         }
@@ -74,23 +74,23 @@ namespace Core.Item.Implementation
             var tmpStack = _itemConfig.GetItemConfig(Id).Stack;
             
             return (Id == item.Id || item.Id == ItemConst.NullItemId)&&
-                   item.Amount + Amount <=tmpStack;
+                   item.Count + Count <=tmpStack;
         }
 
         public IItemStack Clone()
         {
-            return _itemStackFactory.Create(Id,Amount);
+            return _itemStackFactory.Create(Id,Count);
         }
 
         public override bool Equals(object? obj)
         {
             if (typeof(ItemStack) != obj.GetType()) return false;
-            return ((ItemStack) obj).Id == Id && ((ItemStack) obj).Amount == Amount;
+            return ((ItemStack) obj).Id == Id && ((ItemStack) obj).Count == Count;
         }
 
         public override string ToString()
         {
-            return $"ID:{Id} Amount:{Amount}";
+            return $"ID:{Id} Count:{Count}";
         }
     }
 }

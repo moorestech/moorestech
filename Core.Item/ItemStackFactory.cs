@@ -13,18 +13,18 @@ namespace Core.Item
             _itemConfig = itemConfig;
         }
 
-        public IItemStack Create(int id, int amount)
+        public IItemStack Create(int id, int count)
         {
             if (id == ItemConst.NullItemId)
             {
                 return CreatEmpty();
             }
-            if (amount < 1)
+            if (count < 1)
             {
                 return CreatEmpty();
             }
 
-            return new ItemStack(id, amount,_itemConfig,this);
+            return new ItemStack(id, count,_itemConfig,this);
         }
         public IItemStack CreatEmpty()
         {

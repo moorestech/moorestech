@@ -21,35 +21,35 @@ namespace Test.UnitTest.Game
             
             var playerInventory = new PlayerInventoryData(0,new PlayerInventoryUpdateEvent(),itemStackFactory);
             int id = 5;
-            var amount = itemConfig.GetItemConfig(id).Stack;
+            var count = itemConfig.GetItemConfig(id).Stack;
             //Insert test
-            var result = playerInventory.InsertItem(0,itemStackFactory.Create(id,amount));
+            var result = playerInventory.InsertItem(0,itemStackFactory.Create(id,count));
             Assert.AreEqual(ItemConst.NullItemId,result.Id);
             
-            result = playerInventory.InsertItem(0,itemStackFactory.Create(id,amount));
+            result = playerInventory.InsertItem(0,itemStackFactory.Create(id,count));
             Assert.AreEqual(id,result.Id);
-            Assert.AreEqual(amount,result.Amount);
+            Assert.AreEqual(count,result.Count);
             
             result = playerInventory.InsertItem(0,itemStackFactory.Create(id+1,1));
             Assert.AreEqual(id + 1,result.Id);
-            Assert.AreEqual(1,result.Amount);
+            Assert.AreEqual(1,result.Count);
 
             //drop and inset item test
             result = playerInventory.DropItem(0, 3);
             Assert.AreEqual(id,result.Id);
-            Assert.AreEqual(3,result.Amount);
+            Assert.AreEqual(3,result.Count);
             
             result = playerInventory.GetItem(0);
             Assert.AreEqual(id,result.Id);
-            Assert.AreEqual(amount - 3,result.Amount);
+            Assert.AreEqual(count - 3,result.Count);
             
-            result = playerInventory.InsertItem(0,itemStackFactory.Create(id,amount));
+            result = playerInventory.InsertItem(0,itemStackFactory.Create(id,count));
             Assert.AreEqual(id,result.Id);
-            Assert.AreEqual(amount - 3,result.Amount);
+            Assert.AreEqual(count - 3,result.Count);
             
-            result = playerInventory.DropItem(0, amount - 3);
+            result = playerInventory.DropItem(0, count - 3);
             Assert.AreEqual(id,result.Id);
-            Assert.AreEqual(amount - 3,result.Amount);
+            Assert.AreEqual(count - 3,result.Count);
             
 
 
@@ -61,15 +61,15 @@ namespace Test.UnitTest.Game
             var itemStackFactory = new ItemStackFactory(new TestItemConfig());
             var playerInventory = new PlayerInventoryData(0,new PlayerInventoryUpdateEvent(),itemStackFactory);
             int id = 5;
-            int amount = 3;
+            int count = 3;
             int slot = 27;
             
-            var result = playerInventory.InsertItem(slot,itemStackFactory.Create(id,amount));
+            var result = playerInventory.InsertItem(slot,itemStackFactory.Create(id,count));
             Assert.AreEqual(ItemConst.NullItemId,result.Id);
             
             result = playerInventory.UseHotBar(slot);
             Assert.AreEqual(id,result.Id);
-            Assert.AreEqual(1,result.Amount);
+            Assert.AreEqual(1,result.Count);
             playerInventory.UseHotBar(slot);
             playerInventory.UseHotBar(slot);
             result = playerInventory.UseHotBar(slot);

@@ -87,13 +87,13 @@ namespace Test.CombinedTest.Core.Generate
         {
             [DataMember(Name = "id")]
             public int id;
-            [DataMember(Name = "amount")]
-            public int amount;
+            [DataMember(Name = "count")]
+            public int count;
 
-            public inputitem(int id, int amount)
+            public inputitem(int id, int count)
             {
                 this.id = id;
-                this.amount = amount;
+                this.count = count;
             }
         }
 
@@ -102,15 +102,15 @@ namespace Test.CombinedTest.Core.Generate
         {
             [DataMember(Name = "id")]
             public int id;
-            [DataMember(Name = "amount")]
-            public int amount;
+            [DataMember(Name = "count")]
+            public int count;
             [DataMember(Name = "percent")]
             public double percent;
 
-            public outputitem(int id, int amount, double percent)
+            public outputitem(int id, int count, double percent)
             {
                 this.id = id;
-                this.amount = amount;
+                this.count = count;
                 this.percent = percent;
             }
         }
