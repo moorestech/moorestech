@@ -12,7 +12,7 @@ namespace Core.Block.Machine
     public class NormalMachineOutputInventory :IUpdate
     {
         private readonly List<IItemStack> _outputSlot;
-        private IBlockInventory _connectInventory;
+        private readonly List<IBlockInventory> _connectInventory;
         
         private readonly ItemStackFactory _itemStackFactory;
         
@@ -40,7 +40,7 @@ namespace Core.Block.Machine
         }
         public NormalMachineOutputInventory(IBlockInventory connect,int outputSlot,ItemStackFactory itemStackFactory)
         {
-            _connectInventory = connect;
+            _connectInventory = new List<IBlockInventory> {connect};
             _itemStackFactory = itemStackFactory;
             _outputSlot = CreateEmptyItemStacksList.Create(outputSlot,itemStackFactory);
             GameUpdate.AddUpdateObject(this);
@@ -82,13 +82,21 @@ namespace Core.Block.Machine
         {
             for (int i = 0; i < _outputSlot.Count; i++)
             {
-                _outputSlot[i] = _connectInventory.InsertItem(_outputSlot[i]);
+                foreach (var connect in _connectInventory)
+                {
+                    _outputSlot[i] = connect.InsertItem(_outputSlot[i]);
+                }
             }
         }
 
-        public void ChangeConnectInventory(IBlockInventory blockInventory)
+        public void AddConnectInventory(IBlockInventory blockInventory)
         {
-            _connectInventory = blockInventory;
+            _connectInventory.Add(blockInventory);
+        }
+
+        public void RemoveConnectInventory(IBlockInventory blockInventory)
+        {
+            _connectInventory.Remove(blockInventory);
         }
 
         public void Update()

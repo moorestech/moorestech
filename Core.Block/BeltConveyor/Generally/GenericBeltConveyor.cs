@@ -65,9 +65,17 @@ namespace Core.Block.BeltConveyor.Generally
             return itemStack;
         }
 
-        public void ChangeConnector(IBlockInventory blockInventory)
+        public void AddConnector(IBlockInventory blockInventory)
         {
             _connector = blockInventory;
+        }
+
+        public void RemoveConnector(IBlockInventory blockInventory)
+        {
+            if (_connector.GetHashCode() == blockInventory.GetHashCode())
+            {
+                _connector = new NullIBlockInventory();
+            }
         }
 
         /// <summary>

@@ -35,7 +35,7 @@ namespace Test.CombinedTest.Core
         private NormalMachine CreateMachine(int id,IBlockInventory inventory)
         {
             var machine = CreateMachine(id);
-            machine.ChangeConnector(inventory);
+            machine.AddConnector(inventory);
             
             return machine;
         }
@@ -167,7 +167,7 @@ namespace Test.CombinedTest.Core
             for (int i = 0; i < recipes.Length; i++)
             {
                 var dummy = new DummyBlockInventory(recipes[i].output.Count);
-                machineList[i].ChangeConnector(dummy);
+                machineList[i].AddConnector(dummy);
                 dummyBlockList.Add(dummy);
             }
             GameUpdate.Update();

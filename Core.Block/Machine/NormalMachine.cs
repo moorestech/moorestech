@@ -93,9 +93,13 @@ namespace Core.Block.Machine
             var item = _normalMachineInputInventory.InsertItem(itemStack);
             return item;
         }
-        public void ChangeConnector(IBlockInventory blockInventory)
+        public void AddConnector(IBlockInventory blockInventory)
         {
-            _normalMachineOutputInventory.ChangeConnectInventory(blockInventory);
+            _normalMachineOutputInventory.AddConnectInventory(blockInventory);
+        }
+        public void RemoveConnector(IBlockInventory blockInventory)
+        {
+            _normalMachineOutputInventory.RemoveConnectInventory(blockInventory);
         }
 
         /// <summary>

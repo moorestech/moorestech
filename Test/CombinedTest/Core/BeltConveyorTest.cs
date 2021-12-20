@@ -43,7 +43,7 @@ namespace Test.CombinedTest.Core
                 Assert.AreEqual(item.Count,1);
 
                 var dummy = new DummyBlockInventory();
-                beltConveyor.ChangeConnector(dummy);
+                beltConveyor.AddConnector(dummy);
                 GameUpdate.Update();
                 
                 Assert.AreEqual(_itemStackFactory.Create(id,1).ToString(),dummy.InsertedItems[0].ToString());

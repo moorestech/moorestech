@@ -54,9 +54,8 @@ namespace Test.Util
             return _itemStackFactory.CreatEmpty();
         }
 
-        public void ChangeConnector(IBlockInventory blockInventory)
-        {
-        }
+        public void AddConnector(IBlockInventory blockInventory) { }
+        public void RemoveConnector(IBlockInventory blockInventory) { }
     }
 
     public class DummyBlockInventoryTest
@@ -80,7 +79,7 @@ namespace Test.Util
         public void ChangeConnectorTest()
         {
             var d = new DummyBlockInventory();
-            d.ChangeConnector(null);
+            d.AddConnector(null);
             Assert.True(true);
         }
     }
