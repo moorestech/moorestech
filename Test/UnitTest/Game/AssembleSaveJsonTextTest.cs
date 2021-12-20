@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using Core.Block;
 using Core.Block.BlockFactory;
 using Core.Block.Machine;
@@ -63,8 +64,8 @@ namespace Test.UnitTest.Game
         public void InventoryBlockTest()
         {
             //機械の追加
-            var (itemStackFactory,blockFactory,worldBlockDatastore,playerInventoryDataStore,assembleSaveJsonText) = CreateBlockTestModule();
-            var machine = (NormalMachine)blockFactory.Create(1, 10);
+            var (itemStackFactory,blockFactory,worldBlockDatastore,_,assembleSaveJsonText) = CreateBlockTestModule();
+            var machine = (NormalMachine)blockFactory.Create(2, 10);
             worldBlockDatastore.AddBlock(machine, 0, 0);
             
             
@@ -80,27 +81,31 @@ namespace Test.UnitTest.Game
             //リフレクションで機械の状態を設定
             Type machineType = machine.GetType();
             //機械のレシピの残り時間設定
-            var remainingMillSecond = machineType.GetField("_remainingMillSecond");
+            var remainingMillSecond = machineType.GetField("_remainingMillSecond",BindingFlags.NonPublic | BindingFlags.Instance);
             remainingMillSecond.SetValue(machine,300);
             
             //機械のアウトプットスロットの設定
-            var outputInventory = (NormalMachineOutputInventory)machineType.GetField("_normalMachineOutputInventory").GetValue(machine);
+            var outputInventory = (NormalMachineOutputInventory)machineType.GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
             outputInventory.SetItem(0,itemStackFactory.Create(1,1));
             outputInventory.SetItem(1,itemStackFactory.Create(3,2));
 
             
 
             var json = assembleSaveJsonText.AssembleSaveJson();
+            Console.WriteLine(json);
             //配置したブロックを削除
-            worldBlockDatastore.AddBlock(blockFactory.Create(1,0),0,0);
+            worldBlockDatastore.AddBlock(blockFactory.Create(0,0),0,0);
             
             
             
             
             //ロードした時に機械の状態が正しいことを確認
-            assembleSaveJsonText.LoadJson(json);
+            var (_,_,loadWorldBlockDatastore,_,loadAssembleSaveJsonText) = CreateBlockTestModule();
+            loadAssembleSaveJsonText.LoadJson(json);
             
-            var loadMachine = (NormalMachine)worldBlockDatastore.GetBlock(0,0);
+            var loadMachine = (NormalMachine)loadWorldBlockDatastore.GetBlock(0,0);
+            Console.WriteLine(machine.GetHashCode());
+            Console.WriteLine(loadMachine.GetHashCode());
             //ブロックID、intIDが同じであることを確認
             Assert.AreEqual(machine.GetBlockId(),loadMachine.GetBlockId());
             Assert.AreEqual(machine.GetIntId(),loadMachine.GetIntId());
@@ -108,11 +113,11 @@ namespace Test.UnitTest.Game
             var loadMachineType = loadMachine.GetType();
             
             //機械のレシピの残り時間のチェック
-            var loadRemainingMillSecond = loadMachineType.GetField("_remainingMillSecond");
-            Assert.AreEqual(300,(int)loadRemainingMillSecond.GetValue(loadMachine));
+            var loadRemainingMillSecond = loadMachineType.GetField("_remainingMillSecond",BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.AreEqual((double)300,(double)loadRemainingMillSecond.GetValue(loadMachine));
             
             //機械のステータスのチェック
-            var loadMachineStatus = loadMachineType.GetField("_state");
+            var loadMachineStatus = loadMachineType.GetField("_state",BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.AreEqual(ProcessState.Processing,(ProcessState)loadMachineStatus.GetValue(loadMachine));
             
             //インプットスロットのチェック
@@ -120,7 +125,7 @@ namespace Test.UnitTest.Game
             Assert.AreEqual(loadMachine.InputSlotWithoutEmptyItemStack[1],itemStackFactory.Create(2,4));
             
             //アウトプットスロットのチェック
-            var outputInventoryField = (NormalMachineOutputInventory)loadMachineType.GetField("_normalMachineOutputInventory").GetValue(loadMachineType);
+            var outputInventoryField = (NormalMachineOutputInventory)loadMachineType.GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachineType);
             Assert.AreEqual(outputInventoryField.OutputSlot[0],itemStackFactory.CreatEmpty());
             Assert.AreEqual(outputInventoryField.OutputSlot[1],itemStackFactory.Create(1,1));
             Assert.AreEqual(outputInventoryField.OutputSlot[2],itemStackFactory.Create(3,2));
