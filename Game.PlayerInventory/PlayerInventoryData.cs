@@ -30,11 +30,6 @@ namespace PlayerInventory
         
         public IItemStack InsertItem(int slot, IItemStack itemStack)
         {
-            if (slot < 0 || slot >= _mainInventory.Count)
-            {
-                throw new IndexOutOfRangeException();
-            }
-
             if (itemStack.Id == _mainInventory[slot].Id)
             {
                 var result = _mainInventory[slot].AddItem(itemStack);
@@ -52,11 +47,6 @@ namespace PlayerInventory
         
         public IItemStack DropItem(int slot, int count)
         {
-            if(slot < 0 || slot >= _mainInventory.Count)
-            {
-                throw new IndexOutOfRangeException();
-            }
-
             var result = _mainInventory[slot].SubItem(count);
             _mainInventory[slot] = result;
             
@@ -67,10 +57,6 @@ namespace PlayerInventory
 
         public IItemStack UseHotBar(int slot)
         {
-            if(slot < 0 || slot >= _mainInventory.Count)
-            {
-                throw new IndexOutOfRangeException();
-            }
             var result = _mainInventory[slot].SubItem(1);
             _mainInventory[slot] = result;
             
@@ -80,31 +66,17 @@ namespace PlayerInventory
         
         public IItemStack GetItem(int slot)
         {
-            if (slot < 0 || slot >= _mainInventory.Count)
-            {
-                throw new IndexOutOfRangeException();
-            }
-
             return _mainInventory[slot];
         }
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            if (slot < 0 || slot >= _mainInventory.Count)
-            {
-                throw new IndexOutOfRangeException();
-            }
-
             _mainInventory[slot] = itemStack;
             _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(_playerId,slot,_mainInventory[slot]));
         }
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
-            if (slot < 0 || slot >= _mainInventory.Count)
-            {
-                throw new IndexOutOfRangeException();
-            }
             //アイテムIDが同じの時はスタックして余ったものを返す
             var item = _mainInventory[slot];
             if (item.Id == itemStack.Id)
