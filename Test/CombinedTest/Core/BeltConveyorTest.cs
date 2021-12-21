@@ -1,17 +1,21 @@
 ﻿using System;
-using Core.Block;
-using Core.Block.BeltConveyor.util;
-using Core.Block.BlockInventory;
+using Core.Block.BeltConveyor.Generally;
+using Core.Block.BlockFactory;
 using Core.Block.Config;
+using Core.Block.Config.LoadConfig.Param;
 using Core.Item;
 using Core.Item.Config;
-using Core.Item.Util;
 using Core.Update;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server;
 using Test.Util;
 
 namespace Test.CombinedTest.Core
 {
+    /// <summary>
+    /// コンフィグが変わったらこのテストを変更に応じて変更してください
+    /// </summary>
     public class BeltConveyorTest
     {
         private ItemStackFactory _itemStackFactory;
@@ -26,15 +30,21 @@ namespace Test.CombinedTest.Core
         [Test]
         public void FullInsertAndChangeConnectorBeltConveyorTest()
         {
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            
+            var blockConfig = serviceProvider.GetService<IBlockConfig>();
+            var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            
             var random = new Random(4123);
             for (int i = 0; i < 5; i++)
             {
                 int id = random.Next(0, 10);
-                var conf = BeltConveyorConfig.GetBeltConveyorData(0);
-                var item = _itemStackFactory.Create(id, conf.BeltConveyorItemNum + 1);
-                var beltConveyor = BeltConveyorFactory.Create(1, Int32.MaxValue,new NullIBlockInventory(),_itemStackFactory);
+                
+                var item = _itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
+                var beltConveyor = (NormalBeltConveyor)blockFactory.Create(3, Int32.MaxValue);
 
-                var endTime = DateTime.Now.AddMilliseconds(conf.TimeOfItemEnterToExit);
+                var endTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
                 while ( DateTime.Now < endTime.AddSeconds(0.2))
                 { 
                     item = beltConveyor.InsertItem(item);
@@ -54,6 +64,13 @@ namespace Test.CombinedTest.Core
         [Test]
         public void InsertBeltConveyorTest()
         {
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            
+            var blockConfig = serviceProvider.GetService<IBlockConfig>();
+            var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            
+            
             var random = new Random(4123);
             for (int i = 0; i < 5; i++)
             {
@@ -61,10 +78,12 @@ namespace Test.CombinedTest.Core
                 int count = random.Next(1, 10);
                 var item = _itemStackFactory.Create(id, count);
                 var dummy = new DummyBlockInventory(1);
-                var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,dummy,_itemStackFactory);
+                var beltConveyor = (NormalBeltConveyor)blockFactory.Create(3, Int32.MaxValue);
+                beltConveyor.AddConnector(dummy);
+
 
                 var expectedEndTime = DateTime.Now.AddMilliseconds(
-                    BeltConveyorConfig.GetBeltConveyorData(0).TimeOfItemEnterToExit);
+                    config.TimeOfItemEnterToExit);
                 var outputItem = beltConveyor.InsertItem(item);
                 while (!dummy.IsItemExists)
                 {
@@ -83,14 +102,20 @@ namespace Test.CombinedTest.Core
         [Test]
         public void FullInsertBeltConveyorTest()
         {
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            
+            var blockConfig = serviceProvider.GetService<IBlockConfig>();
+            var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            
             var random = new Random(4123);
             for (int i = 0; i < 5; i++)
             {
                 int id = random.Next(1, 11);
-                var conf = BeltConveyorConfig.GetBeltConveyorData(0);
-                var item = _itemStackFactory.Create(id, conf.BeltConveyorItemNum + 1);
-                var dummy = new DummyBlockInventory(conf.BeltConveyorItemNum);
-                var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,dummy,_itemStackFactory);
+                var item = _itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
+                var dummy = new DummyBlockInventory(config.BeltConveyorItemNum);
+                var beltConveyor = (NormalBeltConveyor)blockFactory.Create(3, Int32.MaxValue);
+                beltConveyor.AddConnector(dummy);
 
                 while (!dummy.IsItemExists)
                 { 
@@ -99,7 +124,7 @@ namespace Test.CombinedTest.Core
                 }
                 
                 Assert.True(item.Equals(_itemStackFactory.Create(id,0)));
-                var tmp = _itemStackFactory.Create(id, conf.BeltConveyorItemNum);
+                var tmp = _itemStackFactory.Create(id, config.BeltConveyorItemNum);
                 Assert.True(dummy.InsertedItems[0].Equals(tmp));
             }
         }
@@ -107,6 +132,9 @@ namespace Test.CombinedTest.Core
         [Test]
         public void Insert2ItemBeltConveyorTest()
         {
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            
             var random = new Random(4123);
             for (int i = 0; i < 5; i++)
             {
@@ -114,7 +142,7 @@ namespace Test.CombinedTest.Core
                 var item1 = _itemStackFactory.Create(random.Next(1,11), random.Next(1,10));
                 var item2 = _itemStackFactory.Create(random.Next(1,11), random.Next(1,10));
 
-                var beltConveyor = BeltConveyorFactory.Create(0, Int32.MaxValue,new DummyBlockInventory(),_itemStackFactory);
+                var beltConveyor = (NormalBeltConveyor) blockFactory.Create(3, Int32.MaxValue);
 
                 var item1Out = beltConveyor.InsertItem(item1);
                 var item2Out = beltConveyor.InsertItem(item2);

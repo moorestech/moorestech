@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Core.Block.Config.LoadConfig.ConfigParamGenerator;
-using Core.Block.Config.Param;
+using Core.Block.Config.LoadConfig.Param;
 using Newtonsoft.Json.Linq;
 
 namespace Core.Block.Config.LoadConfig

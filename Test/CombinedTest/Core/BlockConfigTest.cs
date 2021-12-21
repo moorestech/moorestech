@@ -1,5 +1,5 @@
 ﻿using Core.Block.Config;
-using Core.Block.Config.Param;
+using Core.Block.Config.LoadConfig.Param;
 using NUnit.Framework;
 using Test.TestConfig;
 

@@ -1,7 +1,7 @@
 using Core.Block.BlockInventory;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig;
-using Core.Block.Config.Param;
+using Core.Block.Config.LoadConfig.Param;
 using Core.Block.Machine;
 using Core.Block.RecipeConfig;
 using Core.Item;
@@ -22,8 +22,8 @@ namespace Core.Block.BlockFactory.BlockTemplate
         public IBlock New(BlockConfigData param, int intId)
         {
             var machineParam = param.Param as MachineBlockConfigParam;
-            return new NormalMachine(param.Id,intId ,
-                new NormalMachineInputInventory(param.Id,machineParam.InputSlot,_machineRecipeConfig,_itemStackFactory),
+            return new NormalMachine(param.BlockId,intId ,
+                new NormalMachineInputInventory(param.BlockId,machineParam.InputSlot,_machineRecipeConfig,_itemStackFactory),
                 new NormalMachineOutputInventory(new NullIBlockInventory(),machineParam.OutputSlot,_itemStackFactory));
 
         }
@@ -31,10 +31,10 @@ namespace Core.Block.BlockFactory.BlockTemplate
         public IBlock Load(BlockConfigData param, int intId, string state)
         {
             var machineParam = param.Param as MachineBlockConfigParam;
-            return new NormalMachine(param.Id,intId ,state,
+            return new NormalMachine(param.BlockId,intId ,state,
                 _itemStackFactory,
                 _machineRecipeConfig,
-                new NormalMachineInputInventory(param.Id,machineParam.InputSlot,_machineRecipeConfig,_itemStackFactory),
+                new NormalMachineInputInventory(param.BlockId,machineParam.InputSlot,_machineRecipeConfig,_itemStackFactory),
                 new NormalMachineOutputInventory(new NullIBlockInventory(),machineParam.OutputSlot,_itemStackFactory));
         }
     }

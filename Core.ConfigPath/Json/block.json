@@ -12,8 +12,8 @@
     },
     {
       "name": "bb",
-      "type" : "Machine",
-      "param" : {"inputSlot": 22,"outputSlot": 1,"requiredPower": 100}
+      "type" : "BeltConveyor",
+      "param" : {"slot": 4,"time": 2000}
     },
     {
       "name": "ccccc",

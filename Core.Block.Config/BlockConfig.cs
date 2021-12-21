@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Core.Block.Config.LoadConfig;
-using Core.Block.Config.Param;
+using Core.Block.Config.LoadConfig.Param;
 
 namespace Core.Block.Config
 {

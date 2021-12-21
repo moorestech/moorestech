@@ -12,7 +12,7 @@ namespace Core.Block.BeltConveyor.Generally
     /// <summary>
     /// アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class GenericBeltConveyor :IBlock, IUpdate, IBlockInventory
+    public class NormalBeltConveyor :IBlock, IUpdate, IBlockInventory
     {
         private readonly int _inventoryItemNum;
         private readonly double _timeOfItemEnterToExit;//ベルトコンベアにアイテムが入って出るまでの時間
@@ -21,15 +21,25 @@ namespace Core.Block.BeltConveyor.Generally
         private IBlockInventory _connector;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public GenericBeltConveyor(int blockId, int intId, IBlockInventory connector, ItemStackFactory itemStackFactory)
+        public NormalBeltConveyor(int blockId, int intId, ItemStackFactory itemStackFactory,int inventoryItemNum,int timeOfItemEnterToExit)
         {
             _blockId = blockId;
             _intId = intId;
-            _connector = connector;
             _itemStackFactory = itemStackFactory;
-            var conf = BeltConveyorConfig.GetBeltConveyorData(blockId);
-            _inventoryItemNum = conf.BeltConveyorItemNum;
-            _timeOfItemEnterToExit = conf.TimeOfItemEnterToExit;
+            _inventoryItemNum = inventoryItemNum;
+            _timeOfItemEnterToExit = timeOfItemEnterToExit;
+            _connector = new NullIBlockInventory();
+            GameUpdate.AddUpdateObject(this);
+        }
+        public NormalBeltConveyor(int blockId, int intId,string state, ItemStackFactory itemStackFactory,int inventoryItemNum,int timeOfItemEnterToExit)
+        {
+            throw new NotImplementedException();
+            _blockId = blockId;
+            _intId = intId;
+            _itemStackFactory = itemStackFactory;
+            _inventoryItemNum = inventoryItemNum;
+            _timeOfItemEnterToExit = timeOfItemEnterToExit;
+            _connector = new NullIBlockInventory();
             GameUpdate.AddUpdateObject(this);
         }
 

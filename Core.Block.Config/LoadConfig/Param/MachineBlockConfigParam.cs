@@ -1,4 +1,4 @@
-namespace Core.Block.Config.Param
+namespace Core.Block.Config.LoadConfig.Param
 {
     public class MachineBlockConfigParam : BlockConfigParamBase
     {

@@ -14,6 +14,7 @@ namespace Core.Block.Config.LoadConfig
             var config = new Dictionary<string, IBlockConfigParamGenerator>();
             config.Add(VanillaBlockType.Machine, new MachineConfigParamGenerator());
             config.Add(VanillaBlockType.Block, new BlockConfigParamGenerator());
+            config.Add(VanillaBlockType.BeltConveyor, new BeltConveyorConfigParamGenerator());
 
             return config;
         }
