@@ -14,6 +14,7 @@ using NUnit.Framework;
 using Server;
 using Server.Util;
 using Test.TestConfig;
+using World;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -44,7 +45,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //ブロックの設置
             var blockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var block = CreateMachine(1,1);
-            blockDataStore.AddBlock(block, 0, 0);
+            blockDataStore.AddBlock(block, 0, 0,BlockDirection.North);
             //ブロックにアイテムを挿入
             block.InsertItem(_itemStackFactory.Create(1,5));
             Assert.AreEqual(1,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Id);

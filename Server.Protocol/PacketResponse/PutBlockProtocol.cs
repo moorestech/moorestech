@@ -11,6 +11,7 @@ using Game.World.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Server.PacketHandle.PacketResponse;
 using Server.Util;
+using World;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -42,7 +43,8 @@ namespace Server.Protocol.PacketResponse
 
             var block = blockFactory.Create(blockId, IntId.NewIntId());
             
-            _worldBlockDatastore.AddBlock(block, x, y);
+            //このプロトコルは確定で北向きに設置する
+            _worldBlockDatastore.AddBlock(block, x, y,BlockDirection.North);
             //返すものはない
             return new List<byte[]>();
         }

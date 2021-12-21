@@ -16,6 +16,7 @@ using Server;
 using Server.Protocol.PacketResponse.Const;
 using Server.Util;
 using Test.TestConfig;
+using World;
 using IntId = World.IntId;
 
 namespace Test.CombinedTest.Server.PacketTest
@@ -85,7 +86,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var random = new Random(13944156);
             //ブロックの設置
             var b = CreateMachine(5);
-            worldBlock.AddBlock(b, 0, 0);
+            worldBlock.AddBlock(b, 0, 0,BlockDirection.North);
             
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0))
                 .Select(PayloadToBlock).ToList();
@@ -138,7 +139,7 @@ namespace Test.CombinedTest.Server.PacketTest
                     b = CreateMachine(random.Next(0, 500));
                 }
 
-                worldBlock.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300));
+                worldBlock.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300),BlockDirection.North);
             }
 
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(25, 0, 0))

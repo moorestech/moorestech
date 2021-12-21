@@ -41,8 +41,8 @@ namespace Test.UnitTest.Game
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
 
-            worldBlockDatastore.AddBlock(new NormalBlock( 10, 10), 0, 0);
-            worldBlockDatastore.AddBlock(new NormalBlock( 15, 100), 10,-15);
+            worldBlockDatastore.AddBlock(new NormalBlock( 10, 10), 0, 0,BlockDirection.North);
+            worldBlockDatastore.AddBlock(new NormalBlock( 15, 100), 10,-15,BlockDirection.North);
             
             var json = assembleSaveJsonText.AssembleSaveJson();
             
@@ -67,7 +67,7 @@ namespace Test.UnitTest.Game
             //機械の追加
             var (itemStackFactory,blockFactory,worldBlockDatastore,_,assembleSaveJsonText) = CreateBlockTestModule();
             var machine = (NormalMachine)blockFactory.Create(2, 10);
-            worldBlockDatastore.AddBlock(machine, 0, 0);
+            worldBlockDatastore.AddBlock(machine, 0, 0,BlockDirection.North);
             
             
             //レシピ用のアイテムを追加
@@ -97,7 +97,7 @@ namespace Test.UnitTest.Game
             var json = assembleSaveJsonText.AssembleSaveJson();
             Console.WriteLine(json);
             //配置したブロックを削除
-            worldBlockDatastore.AddBlock(blockFactory.Create(0,0),0,0);
+            worldBlockDatastore.AddBlock(blockFactory.Create(0,0),0,0,BlockDirection.North);
             
             
             

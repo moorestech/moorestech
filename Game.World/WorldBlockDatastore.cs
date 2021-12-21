@@ -31,13 +31,13 @@ namespace World
             _blockPlaceEvent = (BlockPlaceEvent) blockPlaceEvent;
         }
 
-        public bool AddBlock(IBlock block,int x,int y)
+        public bool AddBlock(IBlock block,int x,int y,BlockDirection blockDirection)
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
             if (!_blockMasterDictionary.ContainsKey(block.GetIntId()) && !_coordinateDictionary.ContainsKey(CoordinateCreator.New(x,y)))
             {
                 var c = CoordinateCreator.New(x,y);
-                var data = new BlockWorldData(block, x, y);
+                var data = new BlockWorldData(block, x, y,blockDirection);
                 _blockMasterDictionary.Add(block.GetIntId(),data);
                 _coordinateDictionary.Add(c,block.GetIntId());
                 _blockPlaceEvent.OnBlockPutEventInvoke(new BlockPlaceEventProperties(c,data.Block));
@@ -58,7 +58,13 @@ namespace World
             var list = new List<SaveBlockData>();
             foreach (var block in _blockMasterDictionary)
             {
-                list.Add(new SaveBlockData(block.Value.X,block.Value.Y,block.Value.Block.GetBlockId(),block.Value.Block.GetIntId(),block.Value.Block.GetSaveState()));
+                list.Add(new SaveBlockData(
+                    block.Value.X,
+                    block.Value.Y,
+                    block.Value.Block.GetBlockId(),
+                    block.Value.Block.GetIntId(),
+                    block.Value.Block.GetSaveState(),
+                    (int)block.Value.Direction));
             }
 
             return list;
@@ -68,7 +74,11 @@ namespace World
         {
             foreach (var block in saveBlockDataList)
             {
-                AddBlock(_blockFactory.Create(block.BlockId,block.IntId,block.State),block.X,block.Y);
+                AddBlock(
+                    _blockFactory.Create(block.BlockId, block.IntId, block.State),
+                    block.X,
+                    block.Y,
+                    (BlockDirection)block.Direction);
             }
         }
     }

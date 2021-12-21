@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Test.TestConfig;
+using World;
 using IntId = World.IntId;
 
 namespace Test.UnitTest.Game
@@ -31,7 +32,7 @@ namespace Test.UnitTest.Game
                 int x = random.Next(-1000, 1000);
                 int y = random.Next(-1000, 1000);
                 
-                worldData.AddBlock(ins,x,y);
+                worldData.AddBlock(ins,x,y,BlockDirection.North);
                 var output = worldData.GetBlock(x,y);
                 Assert.AreEqual(intId, output.GetIntId());
             }
@@ -46,11 +47,11 @@ namespace Test.UnitTest.Game
             
             var intId = IntId.NewIntId();
             var i =  CreateMachine(1, intId);
-            worldData.AddBlock(i,1,1);
+            worldData.AddBlock(i,1,1,BlockDirection.North);
             
             //座標だけ変えてintIDは同じ
             var i2 =  CreateMachine(1, intId);
-            Assert.False(worldData.AddBlock(i2,10,10));
+            Assert.False(worldData.AddBlock(i2,10,10,BlockDirection.North));
         }
 
         [Test]
@@ -60,11 +61,11 @@ namespace Test.UnitTest.Game
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var i =  CreateMachine(1, IntId.NewIntId());
-            worldData.AddBlock(i,1,1);
+            worldData.AddBlock(i,1,1,BlockDirection.North);
             
             //座標だけ変えてintIDは同じ
             var i2 =  CreateMachine(1, IntId.NewIntId());
-            Assert.False(worldData.AddBlock(i2,1,1));
+            Assert.False(worldData.AddBlock(i2,1,1,BlockDirection.North));
         }
         
         private BlockFactory _blockFactory;

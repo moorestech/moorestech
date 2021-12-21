@@ -4,13 +4,14 @@ namespace Game.World.Interface
 {
     public class SaveBlockData
     {
-        public SaveBlockData(int x, int y, int blockId, int intId,string state)
+        public SaveBlockData(int x, int y, int blockId, int intId,string state,int direction)
         {
             X = x;
             Y = y;
             BlockId = blockId;
             IntId = intId;
             State = state;
+            Direction = direction;
         }
 
         [JsonProperty("X")]
@@ -23,6 +24,8 @@ namespace Game.World.Interface
         public int IntId { get; }
         [JsonProperty("state")]
         public string State { get;}
+        [JsonProperty("direction")]
+        public int Direction { get;}
         
     }
 }
