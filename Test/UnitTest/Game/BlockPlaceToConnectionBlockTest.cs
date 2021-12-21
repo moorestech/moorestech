@@ -16,10 +16,10 @@ namespace Test.UnitTest.Game
         const int MachineId = 1;
         const int BeltConveyorId = 3;
         /// <summary>
-        /// ブロックを設置した時、自動でつながるかをテストする
+        /// 機械にベルトコンベアが自動でつながるかをテストする
         /// </summary>
         [Test]
-        public void PlaceToConnectionBlockTest()
+        public void BeltConveyorConnectMachineTest()
         {
 
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
