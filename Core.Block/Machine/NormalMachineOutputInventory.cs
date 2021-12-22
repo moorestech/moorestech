@@ -92,6 +92,14 @@ namespace Core.Block.Machine
         public void AddConnectInventory(IBlockInventory blockInventory)
         {
             _connectInventory.Add(blockInventory);
+            //NullInventoryは削除しておく
+            for (int i = _connectInventory.Count - 1; i >= 0; i--)
+            {
+                if (_connectInventory[i] is NullIBlockInventory)
+                {
+                    _connectInventory.RemoveAt(i);
+                }
+            }
         }
 
         public void RemoveConnectInventory(IBlockInventory blockInventory)
