@@ -19,8 +19,8 @@ namespace World
                     new ConnectionPosition[]{new (1,0),new (-1,0),new (0,1),new (0,-1)})},
                 
                 {VanillaBlockType.BeltConveyor,new IoConnectionData(
-                    new ConnectionPosition[]{new (1,0)},
-                    new ConnectionPosition[]{new (-1,0),new (0,1),new (0,-1)})}
+                    new ConnectionPosition[]{new (-1,0),new (0,1),new (0,-1)},
+                    new ConnectionPosition[]{new (1,0)})}
             };
         }
     }
