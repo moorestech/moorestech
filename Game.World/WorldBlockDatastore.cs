@@ -40,7 +40,7 @@ namespace World
                 var data = new BlockWorldData(block, x, y,blockDirection);
                 _blockMasterDictionary.Add(block.GetIntId(),data);
                 _coordinateDictionary.Add(c,block.GetIntId());
-                _blockPlaceEvent.OnBlockPutEventInvoke(new BlockPlaceEventProperties(c,data.Block));
+                _blockPlaceEvent.OnBlockPutEventInvoke(new BlockPlaceEventProperties(c,data.Block,blockDirection));
                 
                 return true;
             }
