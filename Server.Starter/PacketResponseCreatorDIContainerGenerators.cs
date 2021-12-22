@@ -64,9 +64,9 @@ namespace Server
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
             
-            //イベントをインスタンス化する
+            //イベントレシーバーをインスタンス化する
             serviceProvider.GetService<ReceiveInventoryUpdateEvent>();
-            serviceProvider.GetService<ReceiveInventoryUpdateEvent>();
+            serviceProvider.GetService<ReceivePlaceBlockEvent>();
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             
             return (packetResponse,serviceProvider);

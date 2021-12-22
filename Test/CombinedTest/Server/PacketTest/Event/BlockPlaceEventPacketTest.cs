@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.World.Interface.Event;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
@@ -33,8 +34,6 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         public void BlockPlaceEvent()
         {
             var (packetResponse,serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
-            var blockPlace = serviceProvider.GetService<BlockPlaceEvent>();
-            var eventProtocol = serviceProvider.GetService<EventProtocolProvider>();
             
             //イベントキューにIDを登録する
             //詳細はコメントに記述

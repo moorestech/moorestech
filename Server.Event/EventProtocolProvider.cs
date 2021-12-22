@@ -4,7 +4,7 @@ namespace Server.Event
 {
     /// <summary>
     /// サーバー内で起こったイベントの中で、各プレイヤーに送る必要があるイベントを管理します。
-    /// 送る必要のある各イベントはEventReceive内に入っています
+    /// 送る必要のある各イベントはEventReceiveフォルダの中に入っています
     /// </summary>
     public class EventProtocolProvider
     {
