@@ -105,7 +105,7 @@ namespace Test.UnitTest.Game
             var _normalMachineOutputInventory = (NormalMachineOutputInventory)typeof(NormalMachine).GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(normalMachine);
             var _connectInventory = (List<IBlockInventory>)typeof(NormalMachineOutputInventory).GetField("_connectInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(_normalMachineOutputInventory);
             
-            Assert.True(_connectInventory.Count == 4);
+            Assert.AreEqual(4,_connectInventory.Count);
             
             //繋がっているコネクターの中身を確認
             var _connectInventoryItem = _connectInventory.Select(item => ((NormalBeltConveyor) item).GetIntId()).ToList();
