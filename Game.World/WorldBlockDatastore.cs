@@ -53,6 +53,13 @@ namespace World
             return _nullBlock;
         }
 
+        public BlockDirection GetBlockDirection(int x, int y)
+        {
+            var c = CoordinateCreator.New(x,y);
+            if (_coordinateDictionary.ContainsKey(c)) return _blockMasterDictionary[_coordinateDictionary[c]].Direction;
+            return BlockDirection.North;
+        }
+
         public List<SaveBlockData> GetSaveBlockDataList()
         {
             var list = new List<SaveBlockData>();

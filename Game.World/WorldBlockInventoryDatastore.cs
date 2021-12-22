@@ -12,6 +12,11 @@ namespace World
             _worldBlockDatastore = worldBlockDatastore;
         }
 
+        public bool ExistsBlockInventory(int x, int y)
+        {
+            return _worldBlockDatastore.GetBlock(x, y) is IBlockInventory;
+        }
+
         public IBlockInventory GetBlock(int x, int y)
         {
             var block = _worldBlockDatastore.GetBlock(x, y);
