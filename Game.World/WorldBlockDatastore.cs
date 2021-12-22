@@ -44,6 +44,12 @@ namespace World
             }
             return false;
         }
+
+        public bool RemoveBlock(int x, int y)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public IBlock GetBlock(int x,int y)
         {
             var c = CoordinateCreator.New(x,y);
