@@ -34,18 +34,21 @@ namespace World
             var (inputConnector, outputConnector) = GetConnectionPositions(config.Type,blockPlaceEvent.BlockDirection);
             
             //接続先のブロックを取得して接続する
-            foreach (var pos in inputConnector)
+            foreach (var pos in outputConnector)
             {
                 var connectX = blockPlaceEvent.Coordinate.X + pos.North;
                 var connectY = blockPlaceEvent.Coordinate.Y + pos.East;
-                //接続先にブロックがなければそのままスルー
+                //接続先にブロックがなければそのまま次へ
                 if (!_blockInventoryDatastore.ExistsBlockInventory(connectX, connectY)) continue;
+                
                 
                 //接続先のブロックのデータを取得
                 var outputBlockDirection = _blockDatastore.GetBlockDirection(connectX, connectY);
                 var outputBlockType = _blockConfig.GetBlockConfig(_blockDatastore.GetBlock(connectX, connectY).GetBlockId()).Type;
                 var (_,outputBlockOutputConnector) = GetConnectionPositions(outputBlockType,outputBlockDirection);
-                //接続しようとする方向が接続しようとするブロックのアウトプット可能な向きにない場合はスルー
+                
+                
+                //おいたブロックが接続しようとするブロックのアウトプット可能な向きにない場合は次へ
                 if (!outputBlockOutputConnector.Contains(new ConnectionPosition(-connectX,-connectY))) continue;
                 
                 //接続先のブロックと接続
@@ -53,7 +56,24 @@ namespace World
                 
             }
             
-            //TODO 周り4つのブロックを確認し、そのブロックがインプット可能なブロックであれば接続する
+            //おいたブロックへインプットされるいちのブロックを確認し、設置したブロックに接続できるのであれば接続する
+            foreach (var pos in inputConnector)
+            {
+                var connectX = blockPlaceEvent.Coordinate.X + pos.North;
+                var connectY = blockPlaceEvent.Coordinate.Y + pos.East;
+                if (!_blockInventoryDatastore.ExistsBlockInventory(connectX, connectY)) continue;
+                
+                //接続先のブロックのデータを取得
+                var inputBlockDirection = _blockDatastore.GetBlockDirection(connectX, connectY);
+                var inputBlockType = _blockConfig.GetBlockConfig(_blockDatastore.GetBlock(connectX, connectY).GetBlockId()).Type;
+                var (inputBlockInputConnector,_) = GetConnectionPositions(inputBlockType,inputBlockDirection);
+                
+                //おいたブロックが接続しようとするブロックのインプット可能な向きにない場合は次へ
+                if (!inputBlockInputConnector.Contains(new ConnectionPosition(-connectX,-connectY))) continue;
+                
+                //接続先のブロックと接続
+                _blockInventoryDatastore.GetBlock(connectX, connectY).AddConnector(_blockInventoryDatastore.GetBlock(blockPlaceEvent.Coordinate.X,blockPlaceEvent.Coordinate.Y));
+            }
         }
         
         /// <summary>
@@ -68,10 +88,14 @@ namespace World
             var rawOutputConnector = _connectionPositions[blockType].OutputConnector;
             var inputConnectionPositions = new List<ConnectionPosition>();
             var outputConnectionPositions = new List<ConnectionPosition>();
-            
+
             //デフォルトは北向きなので、北向き以外の時は値を変更
             switch (blockDirection)
             {
+                case BlockDirection.North:
+                    inputConnectionPositions = rawInputConnector.ToList();
+                    outputConnectionPositions = rawOutputConnector.ToList();
+                    break;
                 case BlockDirection.East:
                     inputConnectionPositions = rawInputConnector.Select(p => new ConnectionPosition(-p.East,p.North)).ToList();
                     outputConnectionPositions = rawOutputConnector.Select(p => new ConnectionPosition(-p.East,p.North)).ToList();
