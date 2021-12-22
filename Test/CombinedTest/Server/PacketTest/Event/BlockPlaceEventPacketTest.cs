@@ -15,6 +15,7 @@ using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
+    //TODO ブロックを消したらその情報がイベントで飛んでくるテスト
     public class BlockPlaceEventPacketTest
     {
         //ブロックを設置しなかった時何も返ってこないテスト

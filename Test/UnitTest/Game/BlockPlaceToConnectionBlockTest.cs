@@ -76,6 +76,7 @@ namespace Test.UnitTest.Game
         /// <summary>
         /// ベルトコンベアに機械が自動でつながるかをテストする
         /// 機械をあらかじめ設置しておき、後に機械からアイテムが出る方向でベルトコンベアをおく
+        /// TODO ブロックが削除されたらつながる機械が消えるので、それをテストする
         /// </summary>
         [Test]
         public void MachineConnectToBeltConveyorTest()
