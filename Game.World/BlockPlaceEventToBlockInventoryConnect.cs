@@ -12,16 +12,16 @@ namespace World
     /// </summary>
     public class BlockPlaceEventToBlockInventoryConnect
     {
-        private readonly IWorldBlockInventoryDatastore _blockInventoryDatastore;
-        private readonly IWorldBlockDatastore _blockDatastore;
+        private readonly IWorldBlockInventoryDatastore _worldBlockInventoryDatastore;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IBlockConfig _blockConfig;
         private readonly Dictionary<string, IoConnectionData> _connectionPositions;
 
-        public BlockPlaceEventToBlockInventoryConnect(IWorldBlockInventoryDatastore blockInventoryDatastore,IBlockPlaceEvent blockPlaceEvent, IBlockConfig blockConfig, IWorldBlockDatastore blockDatastore)
+        public BlockPlaceEventToBlockInventoryConnect(IWorldBlockInventoryDatastore worldBlockInventoryDatastore,IBlockPlaceEvent blockPlaceEvent, IBlockConfig blockConfig, IWorldBlockDatastore worldBlockDatastore)
         {
-            _blockInventoryDatastore = blockInventoryDatastore;
+            _worldBlockInventoryDatastore = worldBlockInventoryDatastore;
             _blockConfig = blockConfig;
-            _blockDatastore = blockDatastore;
+            _worldBlockDatastore = worldBlockDatastore;
             _connectionPositions = new VanillaBlockInventoryConnectionData().Get();
             blockPlaceEvent.Subscribe(OnBlockPlace);
         }
@@ -33,47 +33,72 @@ namespace World
             
             var (inputConnector, outputConnector) = GetConnectionPositions(config.Type,blockPlaceEvent.BlockDirection);
             
-            //接続先のブロックを取得して接続する
+            //コネクターを設定
+            SetOutputConnector(blockPlaceEvent, outputConnector);
+            SetInputConnector(blockPlaceEvent, inputConnector);
+        }
+
+
+        /// <summary>
+        /// ブロックのアウトプット先を取得して接続する
+        /// </summary>
+        private void SetOutputConnector(BlockPlaceEventProperties blockPlaceEvent, List<ConnectionPosition> outputConnector)
+        {
             foreach (var pos in outputConnector)
             {
                 var connectX = blockPlaceEvent.Coordinate.X + pos.North;
                 var connectY = blockPlaceEvent.Coordinate.Y + pos.East;
                 //接続先にブロックがなければそのまま次へ
-                if (!_blockInventoryDatastore.ExistsBlockInventory(connectX, connectY)) continue;
-                
-                
+                if (!_worldBlockInventoryDatastore.ExistsBlockInventory(connectX, connectY)) continue;
+
+
                 //接続先のブロックのデータを取得
-                var outputBlockDirection = _blockDatastore.GetBlockDirection(connectX, connectY);
-                var outputBlockType = _blockConfig.GetBlockConfig(_blockDatastore.GetBlock(connectX, connectY).GetBlockId()).Type;
-                var (_,outputBlockOutputConnector) = GetConnectionPositions(outputBlockType,outputBlockDirection);
-                
-                
+                var outputBlockDirection = _worldBlockDatastore.GetBlockDirection(connectX, connectY);
+                var outputBlockType =
+                    _blockConfig.GetBlockConfig(_worldBlockDatastore.GetBlock(connectX, connectY).GetBlockId()).Type;
+                var (_, outputBlockOutputConnector) = GetConnectionPositions(outputBlockType, outputBlockDirection);
+
+
                 //おいたブロックが接続しようとするブロックのアウトプット可能な向きにない場合は次へ
-                if (!outputBlockOutputConnector.Contains(new ConnectionPosition(-connectX,-connectY))) continue;
-                
+                if (!outputBlockOutputConnector.Contains(new ConnectionPosition(-connectX, -connectY))) continue;
+
                 //接続先のブロックと接続
-                _blockInventoryDatastore.GetBlock(blockPlaceEvent.Coordinate.X, blockPlaceEvent.Coordinate.Y).AddConnector(_blockInventoryDatastore.GetBlock(connectX,connectY));
-                
+                _worldBlockInventoryDatastore.GetBlock(blockPlaceEvent.Coordinate.X, blockPlaceEvent.Coordinate.Y)
+                    .AddConnector(_worldBlockInventoryDatastore.GetBlock(connectX, connectY));
             }
-            
-            //おいたブロックへインプットされるいちのブロックを確認し、設置したブロックに接続できるのであれば接続する
+        }
+        /// <summary>
+        /// ブロックのインプット元を取得して接続する
+        /// </summary>
+        private void SetInputConnector(BlockPlaceEventProperties blockPlaceEvent, List<ConnectionPosition> inputConnector)
+        {
             foreach (var pos in inputConnector)
             {
                 var connectX = blockPlaceEvent.Coordinate.X + pos.North;
                 var connectY = blockPlaceEvent.Coordinate.Y + pos.East;
-                if (!_blockInventoryDatastore.ExistsBlockInventory(connectX, connectY)) continue;
-                
+                if (!_worldBlockInventoryDatastore.ExistsBlockInventory(connectX, connectY)) continue;
+
                 //接続先のブロックのデータを取得
-                var inputBlockDirection = _blockDatastore.GetBlockDirection(connectX, connectY);
-                var inputBlockType = _blockConfig.GetBlockConfig(_blockDatastore.GetBlock(connectX, connectY).GetBlockId()).Type;
-                var (inputBlockInputConnector,_) = GetConnectionPositions(inputBlockType,inputBlockDirection);
-                
+                var inputBlockDirection = _worldBlockDatastore.GetBlockDirection(connectX, connectY);
+                var inputBlockType =
+                    _blockConfig.GetBlockConfig(_worldBlockDatastore.GetBlock(connectX, connectY).GetBlockId()).Type;
+                var (inputBlockInputConnector, _) = GetConnectionPositions(inputBlockType, inputBlockDirection);
+
                 //おいたブロックが接続しようとするブロックのインプット可能な向きにない場合は次へ
-                if (!inputBlockInputConnector.Contains(new ConnectionPosition(-connectX,-connectY))) continue;
-                
-                //接続先のブロックと接続
-                _blockInventoryDatastore.GetBlock(connectX, connectY).AddConnector(_blockInventoryDatastore.GetBlock(blockPlaceEvent.Coordinate.X,blockPlaceEvent.Coordinate.Y));
+                if (!inputBlockInputConnector.Contains(new ConnectionPosition(-connectX, -connectY))) continue;
+
+                //接続元のブロックと接続
+                _worldBlockInventoryDatastore.GetBlock(connectX, connectY).AddConnector(
+                    _worldBlockInventoryDatastore.GetBlock(blockPlaceEvent.Coordinate.X, blockPlaceEvent.Coordinate.Y));
             }
+        }
+
+
+        private void ConnectBlock(int sourceX, int sourceY, int destinationX, int destinationY)
+        {
+            //接続元のブロックデータを取得
+            var sourceBlock = _worldBlockDatastore.GetBlock(sourceX, sourceY);
+
         }
         
         /// <summary>
