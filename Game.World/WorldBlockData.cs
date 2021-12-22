@@ -1,12 +1,10 @@
-﻿
-using Core.Block;
-using Core.Block.BlockInventory;
+﻿using Core.Block;
 
 namespace World
 {
-    internal class BlockWorldData
+    public class WorldBlockData
     {
-        public BlockWorldData(IBlock block,int x, int y, BlockDirection direction)
+        public WorldBlockData(IBlock block,int x, int y, BlockDirection direction)
         {
             X = x;
             Y = y;

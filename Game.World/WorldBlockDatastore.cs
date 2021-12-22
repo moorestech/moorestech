@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Core.Block;
 using Core.Block.BlockFactory;
-using Core.Block.BlockInventory;
 using Game.World.Interface;
 using Game.World.Interface.Event;
 using Game.World.Interface.Util;
@@ -16,7 +14,7 @@ namespace World
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
         //メインのデータストア
-        private readonly Dictionary<int, BlockWorldData> _blockMasterDictionary = new();
+        private readonly Dictionary<int, WorldBlockData> _blockMasterDictionary = new();
         //座標とキーの紐づけ
         private readonly Dictionary<Coordinate,int> _coordinateDictionary = new();
 
@@ -37,7 +35,7 @@ namespace World
             if (!_blockMasterDictionary.ContainsKey(block.GetIntId()) && !_coordinateDictionary.ContainsKey(CoordinateCreator.New(x,y)))
             {
                 var c = CoordinateCreator.New(x,y);
-                var data = new BlockWorldData(block, x, y,blockDirection);
+                var data = new WorldBlockData(block, x, y,blockDirection);
                 _blockMasterDictionary.Add(block.GetIntId(),data);
                 _coordinateDictionary.Add(c,block.GetIntId());
                 _blockPlaceEvent.OnBlockPutEventInvoke(new BlockPlaceEventProperties(c,data.Block,blockDirection));
