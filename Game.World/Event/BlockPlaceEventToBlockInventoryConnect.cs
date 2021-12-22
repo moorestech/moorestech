@@ -29,7 +29,7 @@ namespace World.Event
             //置かれたブロックの東西南北にあるブロックと接続を試みる
             var connectOffsetBlockPositions = new List<(int,int)>(){(1,0),(-1,0),(0,1),(0,-1)};
             int x = blockPlaceEvent.Coordinate.X;
-            int y = blockPlaceEvent.Coordinate.X;
+            int y = blockPlaceEvent.Coordinate.Y;
             
             foreach (var (offsetX,offsetY) in connectOffsetBlockPositions)
             {
@@ -59,7 +59,7 @@ namespace World.Event
             //接続元のブロックタイプがDictionaryになければ処理を終了
             if (!_ioConnectionDataDictionary.ContainsKey(sourceBlockType)) return;
             
-            var (sourceBlockInputConnector, _) = 
+            var (_,sourceBlockOutputConnector) = 
                 GetConnectionPositions(
                     sourceBlockType, 
                     _worldBlockDatastore.GetBlockDirection(sourceX, sourceY));
@@ -72,7 +72,7 @@ namespace World.Event
             //接続先のブロックタイプがDictionaryになければ処理を終了
             if (!_ioConnectionDataDictionary.ContainsKey(destinationBlockType)) return;
             
-            var (_, destinationBlockOutputConnector) = 
+            var (destinationBlockInputConnector, _) = 
                 GetConnectionPositions(
                     destinationBlockType, 
                     _worldBlockDatastore.GetBlockDirection(destinationX, destinationY));
@@ -83,10 +83,10 @@ namespace World.Event
             var distanceX = destinationX - sourceX;
             var distanceY = destinationY - sourceY;
             
-            //接続元ブロックに対応するインプットがあるかチェック
-            if (!sourceBlockInputConnector.Contains(new ConnectionPosition(distanceX, distanceY))) return;
-            //接続先ブロックに対応するアウトプットがあるかチェック
-            if (!destinationBlockOutputConnector.Contains(new ConnectionPosition(-distanceX, -distanceY))) return;
+            //接続元ブロックに対応するアウトプット座標があるかチェック
+            if (!sourceBlockOutputConnector.Contains(new ConnectionPosition(distanceX, distanceY))) return;
+            //接続先ブロックに対応するインプット座標があるかチェック
+            if (!destinationBlockInputConnector.Contains(new ConnectionPosition(-distanceX, -distanceY))) return;
             
             
             //接続元ブロックと接続先ブロックを接続
