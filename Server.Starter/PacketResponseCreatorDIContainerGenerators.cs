@@ -37,7 +37,7 @@ namespace Server
             services.AddSingleton<BlockFactory, BlockFactory>();
             
             
-            //必要なクラスのインスタンスを生成
+            //ゲームプレイに必要なクラスのインスタンスを生成
             services.AddSingleton<EventProtocolProvider,EventProtocolProvider>();
             services.AddSingleton<IWorldBlockDatastore,WorldBlockDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore,PlayerInventoryDataStore>();
@@ -47,13 +47,14 @@ namespace Server
             //TODO ファイルパスを変更する
             services.AddSingleton(new SaveJsonFilePath(""));
             
-            //イベントを登録
+            //イベントハンドラを登録
             services.AddSingleton<IBlockPlaceEvent,BlockPlaceEvent>();
             services.AddSingleton<IPlayerInventoryUpdateEvent,PlayerInventoryUpdateEvent>();
-            
-            //イベントを実際に送信するクラスIPlayerInventoryDataStore
+
+            //イベントレシーバーを登録
             services.AddSingleton<ReceiveInventoryUpdateEvent,ReceiveInventoryUpdateEvent>();
             services.AddSingleton<ReceivePlaceBlockEvent,ReceivePlaceBlockEvent>();
+            services.AddSingleton<BlockPlaceEventToBlockInventoryConnect,BlockPlaceEventToBlockInventoryConnect>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText,AssembleSaveJsonText>();
@@ -64,7 +65,8 @@ namespace Server
             
             //イベントをインスタンス化する
             serviceProvider.GetService<ReceiveInventoryUpdateEvent>();
-            serviceProvider.GetService<ReceivePlaceBlockEvent>();
+            serviceProvider.GetService<ReceiveInventoryUpdateEvent>();
+            serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             
             return (packetResponse,serviceProvider);
         }
