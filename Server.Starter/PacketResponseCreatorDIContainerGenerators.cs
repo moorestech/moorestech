@@ -40,6 +40,7 @@ namespace Server
             //ゲームプレイに必要なクラスのインスタンスを生成
             services.AddSingleton<EventProtocolProvider,EventProtocolProvider>();
             services.AddSingleton<IWorldBlockDatastore,WorldBlockDatastore>();
+            services.AddSingleton<IWorldBlockInventoryDatastore,WorldBlockInventoryDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore,PlayerInventoryDataStore>();
             
             //JSONファイルのセーブシステムの読み込み
