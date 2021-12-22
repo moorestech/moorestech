@@ -20,6 +20,7 @@ namespace Test.UnitTest.Game
         const int BeltConveyorId = 3;
         /// <summary>
         /// 機械にベルトコンベアが自動でつながるかをテストする
+        /// 機械にアイテムを入れる向きでベルトコンベアのテストを行う
         /// </summary>
         [Test]
         public void BeltConveyorConnectMachineTest()
@@ -74,9 +75,10 @@ namespace Test.UnitTest.Game
 
         /// <summary>
         /// ベルトコンベアに機械が自動でつながるかをテストする
+        /// 機械をあらかじめ設置しておき、後に機械からアイテムが出る方向でベルトコンベアをおく
         /// </summary>
         [Test]
-        public void MachineConnectBeltConveyorTest()
+        public void MachineConnectToBeltConveyorTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var world =  serviceProvider.GetService<IWorldBlockDatastore>();
@@ -111,7 +113,6 @@ namespace Test.UnitTest.Game
             {
                 Assert.True(_connectInventoryItem.Contains(beltConveyor.GetIntId()));
             }
-            
         }
         
     }
