@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Core.Block.BeltConveyor.Generally;
 using Core.Block.BlockFactory;
+using Core.Block.BlockInventory;
 using Core.Block.Machine;
 using Game.World.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,14 +57,62 @@ namespace Test.UnitTest.Game
 
         private (int, int) BlockPlaceToGetMachineIdAndConnectorId(int machineX,int machineY,int conveyorX,int conveyorY,BlockDirection direction,BlockFactory blockFactory,IWorldBlockDatastore world)
         {
+            //機械の設置
             var normalMachine = blockFactory.Create(MachineId, IntId.NewIntId());
-            world.AddBlock(normalMachine, 10, 0, BlockDirection.North);
+            world.AddBlock(normalMachine, machineX, machineY, BlockDirection.North);
+            
+            //ベルトコンベアの設置
             var beltConveyor = (NormalBeltConveyor)blockFactory.Create(BeltConveyorId, IntId.NewIntId());
-            world.AddBlock(beltConveyor, 9, 0, BlockDirection.North);
+            world.AddBlock(beltConveyor, conveyorX, conveyorY, direction);
+            
             //繋がっているコネクターを取得
             var _connector = (NormalMachine)typeof(NormalBeltConveyor).GetField("_connector",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(beltConveyor);
             
+            //それぞれのintIdを返却
             return (normalMachine.GetIntId(), _connector.GetIntId());
         }
+
+        /// <summary>
+        /// ベルトコンベアに機械が自動でつながるかをテストする
+        /// </summary>
+        [Test]
+        public void MachineConnectBeltConveyorTest()
+        {
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var world =  serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            
+            //機械の設置
+            var normalMachine = (NormalMachine)blockFactory.Create(MachineId, IntId.NewIntId());
+            world.AddBlock(normalMachine, 0, 0, BlockDirection.North);
+            
+            //機械から4方向にベルトコンベアが出るように配置
+            var beltConveyors = new List<NormalBeltConveyor>
+            {
+                (NormalBeltConveyor) blockFactory.Create(BeltConveyorId, IntId.NewIntId()),
+                (NormalBeltConveyor) blockFactory.Create(BeltConveyorId, IntId.NewIntId()),
+                (NormalBeltConveyor) blockFactory.Create(BeltConveyorId, IntId.NewIntId()),
+                (NormalBeltConveyor) blockFactory.Create(BeltConveyorId, IntId.NewIntId()),
+            };
+            world.AddBlock(beltConveyors[0], 1, 0, BlockDirection.North);
+            world.AddBlock(beltConveyors[1], 0, 1, BlockDirection.East);
+            world.AddBlock(beltConveyors[2], -1, 0, BlockDirection.South);
+            world.AddBlock(beltConveyors[3], 0, -1, BlockDirection.West);
+            
+            //繋がっているコネクターを取得
+            var _normalMachineOutputInventory = (NormalMachineOutputInventory)typeof(NormalMachine).GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(normalMachine);
+            var _connectInventory = (List<IBlockInventory>)typeof(NormalMachineOutputInventory).GetField("_connectInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(_normalMachineOutputInventory);
+            
+            Assert.True(_connectInventory.Count == 4);
+            
+            //繋がっているコネクターの中身を確認
+            var _connectInventoryItem = _connectInventory.Select(item => ((NormalBeltConveyor) item).GetIntId()).ToList();
+            foreach (var beltConveyor in beltConveyors)
+            {
+                Assert.True(_connectInventoryItem.Contains(beltConveyor.GetIntId()));
+            }
+            
+        }
+        
     }
 }
