@@ -39,7 +39,7 @@ namespace World.DataStore
                 var data = new WorldBlockData(block, x, y,blockDirection);
                 _blockMasterDictionary.Add(block.GetIntId(),data);
                 _coordinateDictionary.Add(c,block.GetIntId());
-                _blockPlaceEvent.OnBlockPutEventInvoke(new BlockPlaceEventProperties(c,data.Block,blockDirection));
+                _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(c,data.Block,blockDirection));
                 
                 return true;
             }

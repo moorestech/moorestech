@@ -4,16 +4,16 @@ namespace World.Event
 {
     public class BlockPlaceEvent : IBlockPlaceEvent
     {
-        public event IBlockPlaceEvent.BlockPlaceEvent OnBlockPutEvent;
+        public event IBlockPlaceEvent.BlockPlaceEvent OnBlockPlaceEvent;
 
         public void Subscribe(IBlockPlaceEvent.BlockPlaceEvent blockPlaceEvent)
         {
-            OnBlockPutEvent += blockPlaceEvent;
+            OnBlockPlaceEvent += blockPlaceEvent;
         }
 
-        public void OnBlockPutEventInvoke(BlockPlaceEventProperties blockPlaceEventProperties)
+        public void OnBlockPlaceEventInvoke(BlockPlaceEventProperties blockPlaceEventProperties)
         {
-            OnBlockPutEvent?.Invoke(blockPlaceEventProperties);
+            OnBlockPlaceEvent?.Invoke(blockPlaceEventProperties);
         }
     }
 }
