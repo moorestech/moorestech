@@ -59,6 +59,7 @@ namespace Server
             //イベントレシーバーを登録
             services.AddSingleton<ReceiveInventoryUpdateEvent,ReceiveInventoryUpdateEvent>();
             services.AddSingleton<ReceivePlaceBlockEvent,ReceivePlaceBlockEvent>();
+            services.AddSingleton<ReceiveRemoveBlockEvent,ReceiveRemoveBlockEvent>();
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect,BlockPlaceEventToBlockInventoryConnect>();
             
             //データのセーブシステム
@@ -71,6 +72,7 @@ namespace Server
             //イベントレシーバーをインスタンス化する
             serviceProvider.GetService<ReceiveInventoryUpdateEvent>();
             serviceProvider.GetService<ReceivePlaceBlockEvent>();
+            serviceProvider.GetService<ReceiveRemoveBlockEvent>();
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             
             return (packetResponse,serviceProvider);
