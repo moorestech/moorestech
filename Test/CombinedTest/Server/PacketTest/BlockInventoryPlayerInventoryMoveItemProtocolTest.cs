@@ -9,6 +9,7 @@ using Core.Item.Config;
 using Core.Util;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface;
+using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;

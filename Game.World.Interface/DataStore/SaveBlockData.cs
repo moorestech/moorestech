@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Game.World.Interface
+namespace Game.World.Interface.DataStore
 {
     public class SaveBlockData
     {

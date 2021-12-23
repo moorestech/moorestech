@@ -6,6 +6,7 @@ using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 using Core.Block.Machine;
 using Game.World.Interface;
+using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;

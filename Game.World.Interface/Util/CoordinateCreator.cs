@@ -1,4 +1,6 @@
-﻿namespace Game.World.Interface.Util
+﻿using Game.World.Interface.DataStore;
+
+namespace Game.World.Interface.Util
 {
     public static class CoordinateCreator
     {

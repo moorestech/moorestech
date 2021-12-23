@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.World.Interface;
+using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;

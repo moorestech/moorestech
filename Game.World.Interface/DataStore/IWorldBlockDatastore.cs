@@ -1,15 +1,8 @@
 using System.Collections.Generic;
 using Core.Block;
-using Core.Block.BlockFactory;
-using Core.Block.BlockInventory;
-using World;
 
-namespace Game.World.Interface
+namespace Game.World.Interface.DataStore
 {
-    
-    /// <summary>
-    /// TODO IBlockInventoryの管理を他のクラスがするようにする
-    /// </summary>
     public interface IWorldBlockDatastore
     {
         public bool AddBlock(IBlock block, int x, int y,BlockDirection blockDirection);

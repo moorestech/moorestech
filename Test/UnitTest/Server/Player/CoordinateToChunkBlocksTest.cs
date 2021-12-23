@@ -8,6 +8,7 @@ using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
 using Game.World.Interface;
+using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;

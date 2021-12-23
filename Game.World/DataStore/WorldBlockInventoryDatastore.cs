@@ -1,5 +1,6 @@
 using Core.Block.BlockInventory;
 using Game.World.Interface;
+using Game.World.Interface.DataStore;
 
 namespace World.DataStore
 {
