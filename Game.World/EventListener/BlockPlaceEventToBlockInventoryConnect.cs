@@ -4,7 +4,7 @@ using Core.Block.Config;
 using Game.World.Interface;
 using Game.World.Interface.Event;
 
-namespace World.Event
+namespace World.EventListener
 {
     /// <summary>
     /// ブロックが設置された時、そのブロックの周囲にあるインベントリブロックと接続を行います

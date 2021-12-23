@@ -17,6 +17,7 @@ using PlayerInventory.Event;
 using Server;
 using Test.TestConfig;
 using World;
+using World.DataStore;
 using World.Event;
 
 namespace Test.UnitTest.Game

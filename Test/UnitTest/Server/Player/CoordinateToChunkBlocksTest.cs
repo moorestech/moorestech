@@ -17,7 +17,7 @@ using Server.Protocol.PacketResponse.Const;
 using Test.TestConfig;
 using World;
 using World.Event;
-using IntId = World.IntId;
+using IntId = World.Util.IntId;
 
 namespace Test.UnitTest.Server.Player
 {

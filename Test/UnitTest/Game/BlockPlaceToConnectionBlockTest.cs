@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using World;
+using World.Util;
 
 namespace Test.UnitTest.Game
 {

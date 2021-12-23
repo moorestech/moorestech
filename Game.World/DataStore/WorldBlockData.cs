@@ -1,6 +1,6 @@
 ﻿using Core.Block;
 
-namespace World
+namespace World.DataStore
 {
     public class WorldBlockData
     {

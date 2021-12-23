@@ -6,7 +6,7 @@ using Game.World.Interface.Event;
 using Game.World.Interface.Util;
 using World.Event;
 
-namespace World
+namespace World.DataStore
 {
     /// <summary>
     /// ワールドに存在するブロックとその座標の対応づけを行います。

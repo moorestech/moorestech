@@ -1,7 +1,7 @@
 using Core.Block.BlockInventory;
 using Game.World.Interface;
 
-namespace World
+namespace World.DataStore
 {
     public class WorldBlockInventoryDatastore : IWorldBlockInventoryDatastore
     {

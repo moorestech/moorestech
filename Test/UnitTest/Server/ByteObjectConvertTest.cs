@@ -4,7 +4,7 @@ using Core.Util;
 using NUnit.Framework;
 using Server.Util;
 using World;
-using IntId = World.IntId;
+using IntId = World.Util.IntId;
 
 namespace Test.UnitTest.Server
 {

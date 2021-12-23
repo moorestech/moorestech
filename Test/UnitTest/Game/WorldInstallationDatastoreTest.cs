@@ -10,7 +10,7 @@ using NUnit.Framework;
 using Server;
 using Test.TestConfig;
 using World;
-using IntId = World.IntId;
+using IntId = World.Util.IntId;
 
 namespace Test.UnitTest.Game
 {
