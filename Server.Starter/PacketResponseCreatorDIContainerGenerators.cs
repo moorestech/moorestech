@@ -49,7 +49,7 @@ namespace Server
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<ISaveRepository, SaveJsonFile>();
             services.AddSingleton<ILoadRepository, LoadJsonFile>();
-            services.AddSingleton(new SaveJsonFileName("save_1"));
+            services.AddSingleton(new SaveJsonFileName("save_1.json"));
             
             //イベントを登録
             services.AddSingleton<IBlockPlaceEvent,BlockPlaceEvent>();
