@@ -78,7 +78,7 @@ namespace Test.UnitTest.Game
         /// <summary>
         /// ベルトコンベアに機械が自動でつながるかをテストする
         /// 機械をあらかじめ設置しておき、後に機械からアイテムが出る方向でベルトコンベアをおく
-        /// TODO ブロックが削除されたらつながる機械が消えるので、それをテストする
+        /// ブロックが削除されたらつながる機械が消えるので、それをテストする
         /// </summary>
         [Test]
         public void MachineConnectToBeltConveyorTest()
@@ -116,6 +116,17 @@ namespace Test.UnitTest.Game
             {
                 Assert.True(_connectInventoryItem.Contains(beltConveyor.GetIntId()));
             }
+            
+            //ベルトコンベアを削除する
+            world.RemoveBlock(1,0);
+            world.RemoveBlock(-1,0);
+            //接続しているコネクターが消えているか確認
+            Assert.AreEqual(2,_connectInventory.Count);
+            world.RemoveBlock(0,1);
+            world.RemoveBlock(0,-1);
+            
+            //接続しているコネクターが消えているか確認
+            Assert.AreEqual(0,_connectInventory.Count);
         }
         
     }
