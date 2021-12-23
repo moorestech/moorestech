@@ -58,6 +58,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
                 
                 response = packetResponse.GetPacketResponse(EventRequestData(0));
                 Assert.AreEqual(cnt,response.Count);
+                //帰ってきたイベントが設置したブロックであることを確認
                 foreach (var r in response)
                 {
                     var b = AnalysisResponsePacket(r);
