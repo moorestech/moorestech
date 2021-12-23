@@ -61,6 +61,7 @@ namespace Server
             services.AddSingleton<ReceivePlaceBlockEvent,ReceivePlaceBlockEvent>();
             services.AddSingleton<ReceiveRemoveBlockEvent,ReceiveRemoveBlockEvent>();
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect,BlockPlaceEventToBlockInventoryConnect>();
+            services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect,BlockRemoveEventToBlockInventoryDisconnect>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText,AssembleSaveJsonText>();
@@ -74,6 +75,7 @@ namespace Server
             serviceProvider.GetService<ReceivePlaceBlockEvent>();
             serviceProvider.GetService<ReceiveRemoveBlockEvent>();
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
+            serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();
             
             return (packetResponse,serviceProvider);
         }
