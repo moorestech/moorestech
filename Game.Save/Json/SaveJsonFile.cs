@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Game.PlayerInventory.Interface;
 using Game.Save.Interface;
 using Game.World.Interface;
@@ -18,6 +19,7 @@ namespace Game.Save.Json
 
         public void Save()
         {
+            File.AppendAllText(_fileName.FullSaveFilePath, _assembleSaveJsonText.AssembleSaveJson());
         }
     }
 }
