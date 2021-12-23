@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.World.Interface;
 using Game.World.Interface.Event;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -15,7 +16,6 @@ using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
-    //TODO ブロックを消したらその情報がイベントで飛んでくるテスト
     public class BlockPlaceEventPacketTest
     {
         //ブロックを設置しなかった時何も返ってこないテスト
@@ -37,7 +37,6 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var (packetResponse,serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             
             //イベントキューにIDを登録する
-            //詳細はコメントに記述
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(0,response.Count);
             
