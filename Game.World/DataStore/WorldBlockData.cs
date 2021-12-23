@@ -5,17 +5,17 @@ namespace World.DataStore
 {
     public class WorldBlockData
     {
-        public WorldBlockData(IBlock block,int x, int y, BlockDirection direction)
+        public WorldBlockData(IBlock block,int x, int y, BlockDirection blockDirection)
         {
             X = x;
             Y = y;
-            Direction = direction;
+            BlockDirection = blockDirection;
             Block = block;
         }
 
         public int X { get; }
         public int Y { get; }
         public IBlock Block { get; }
-        public BlockDirection Direction { get; }
+        public BlockDirection BlockDirection { get; }
     }
 }

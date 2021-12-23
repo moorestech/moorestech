@@ -22,11 +22,13 @@ namespace World.DataStore
         
         readonly IBlock _nullBlock = new NullBlock();
         private readonly BlockPlaceEvent _blockPlaceEvent;
+        private readonly BlockRemoveEvent _blockRemoveEvent;
         private readonly BlockFactory _blockFactory;
 
-        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, BlockFactory blockFactory)
+        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, BlockFactory blockFactory,IBlockRemoveEvent blockRemoveEvent)
         {
             _blockFactory = blockFactory;
+            _blockRemoveEvent = (BlockRemoveEvent)blockRemoveEvent;
             _blockPlaceEvent = (BlockPlaceEvent) blockPlaceEvent;
         }
 
@@ -48,7 +50,23 @@ namespace World.DataStore
 
         public bool RemoveBlock(int x, int y)
         {
-            throw new System.NotImplementedException();
+            var intId = GetBlockId(x,y);
+            if (!_blockMasterDictionary.ContainsKey(intId)) return false;
+            
+            var data = _blockMasterDictionary[intId];
+                
+            _blockRemoveEvent.OnBlockRemoveEventInvoke(new BlockRemoveEventProperties(
+                CoordinateCreator.New(x,y),data.Block));
+                
+            _blockMasterDictionary.Remove(intId);
+            _coordinateDictionary.Remove(CoordinateCreator.New(x,y));
+            return true;
+
+        }
+
+        private int GetBlockId(int x, int y)
+        {
+            return _coordinateDictionary[CoordinateCreator.New(x,y)];
         }
 
         public IBlock GetBlock(int x,int y)
@@ -61,7 +79,7 @@ namespace World.DataStore
         public BlockDirection GetBlockDirection(int x, int y)
         {
             var c = CoordinateCreator.New(x,y);
-            if (_coordinateDictionary.ContainsKey(c)) return _blockMasterDictionary[_coordinateDictionary[c]].Direction;
+            if (_coordinateDictionary.ContainsKey(c)) return _blockMasterDictionary[_coordinateDictionary[c]].BlockDirection;
             return BlockDirection.North;
         }
 
@@ -76,7 +94,7 @@ namespace World.DataStore
                     block.Value.Block.GetBlockId(),
                     block.Value.Block.GetIntId(),
                     block.Value.Block.GetSaveState(),
-                    (int)block.Value.Direction));
+                    (int)block.Value.BlockDirection));
             }
 
             return list;

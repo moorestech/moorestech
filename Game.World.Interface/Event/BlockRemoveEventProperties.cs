@@ -7,13 +7,11 @@ namespace Game.World.Interface.Event
     {
         public readonly Coordinate Coordinate;
         public readonly IBlock Block;
-        public readonly BlockDirection BlockDirection;
 
-        public BlockRemoveEventProperties(Coordinate coordinate, IBlock block,BlockDirection blockDirection)
+        public BlockRemoveEventProperties(Coordinate coordinate, IBlock block)
         {
             Coordinate = coordinate;
             Block = block;
-            BlockDirection = blockDirection;
         }
     }
 }
