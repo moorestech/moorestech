@@ -49,7 +49,7 @@ namespace Server
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<ISaveRepository, SaveJsonFile>();
             //TODO ファイルパスを変更する
-            services.AddSingleton(new SaveJsonFilePath(""));
+            services.AddSingleton(new SaveJsonFileName(""));
             
             //イベントを登録
             services.AddSingleton<IBlockPlaceEvent,BlockPlaceEvent>();

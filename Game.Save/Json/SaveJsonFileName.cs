@@ -1,11 +1,11 @@
 namespace Game.Save.Json
 {
-    public class SaveJsonFilePath
+    public class SaveJsonFileName
     {
         public string FilePath => _filePath;
         private string _filePath;
 
-        public SaveJsonFilePath(string filePath)
+        public SaveJsonFileName(string filePath)
         {
             _filePath = filePath;
         }

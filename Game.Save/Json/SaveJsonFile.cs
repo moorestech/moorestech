@@ -7,12 +7,12 @@ namespace Game.Save.Json
 {
     public class SaveJsonFile : ISaveRepository
     {
-        private readonly SaveJsonFilePath _filePath;
+        private readonly SaveJsonFileName _fileName;
         private readonly AssembleSaveJsonText _assembleSaveJsonText;
 
-        public SaveJsonFile(SaveJsonFilePath filePath,AssembleSaveJsonText assembleSaveJsonText)
+        public SaveJsonFile(SaveJsonFileName fileName,AssembleSaveJsonText assembleSaveJsonText)
         {
-            _filePath = filePath;
+            _fileName = fileName;
             _assembleSaveJsonText = assembleSaveJsonText;
         }
 
