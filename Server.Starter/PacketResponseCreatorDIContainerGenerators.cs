@@ -51,8 +51,9 @@ namespace Server
             //TODO ファイルパスを変更する
             services.AddSingleton(new SaveJsonFilePath(""));
             
-            //イベントハンドラを登録
+            //イベントを登録
             services.AddSingleton<IBlockPlaceEvent,BlockPlaceEvent>();
+            services.AddSingleton<IBlockRemoveEvent,BlockRemoveEvent>();
             services.AddSingleton<IPlayerInventoryUpdateEvent,PlayerInventoryUpdateEvent>();
 
             //イベントレシーバーを登録
