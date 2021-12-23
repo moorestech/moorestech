@@ -1,7 +1,7 @@
 namespace Game.Save.Interface
 {
-    public class ILoadRepository
+    public interface ILoadRepository
     {
-        
+        public void Load();
     }
 }
