@@ -16,7 +16,7 @@ using NUnit.Framework;
 using PlayerInventory;
 using PlayerInventory.Event;
 using Server;
-using Test.TestConfig;
+using Test.Module.TestConfig;
 using World;
 using World.DataStore;
 using World.Event;

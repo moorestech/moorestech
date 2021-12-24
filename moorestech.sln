@@ -52,6 +52,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Protocol", "Server.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.PlayerInventory.Interface", "Game.PlayerInventory.Interface\Game.PlayerInventory.Interface.csproj", "{D3720EF1-5F73-4769-8CF4-1DBA0BA09D9C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Module", "Test.Module\Test.Module.csproj", "{1B91EC85-A5F2-4853-84DB-57F3FF14DC21}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -138,6 +140,10 @@ Global
 		{D3720EF1-5F73-4769-8CF4-1DBA0BA09D9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3720EF1-5F73-4769-8CF4-1DBA0BA09D9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3720EF1-5F73-4769-8CF4-1DBA0BA09D9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B91EC85-A5F2-4853-84DB-57F3FF14DC21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B91EC85-A5F2-4853-84DB-57F3FF14DC21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B91EC85-A5F2-4853-84DB-57F3FF14DC21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B91EC85-A5F2-4853-84DB-57F3FF14DC21}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A0A2C6F4-AAA1-430C-8DAF-034CF14D192E} = {6D142E32-204D-41A7-B121-423F9A073676}

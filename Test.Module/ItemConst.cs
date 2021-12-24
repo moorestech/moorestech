@@ -1,4 +1,4 @@
-namespace Test
+namespace Test.Module
 {
     public static class ItemConst
     {

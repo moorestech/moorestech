@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Test.TestConfig
+namespace Test.Module.TestConfig
 {
     public class TestConfigPath
     {
@@ -9,7 +9,7 @@ namespace Test.TestConfig
         {
             DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory); 
             DirectoryInfo diParent = di.Parent.Parent.Parent.Parent;
-            return Path.Combine(diParent.FullName, "Test","TestConfig","Json",fileName);
+            return Path.Combine(diParent.FullName, "Test.Module","TestConfig","Json",fileName);
         }
     }
 }

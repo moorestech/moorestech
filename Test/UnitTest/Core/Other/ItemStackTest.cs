@@ -4,6 +4,7 @@ using Core.Item.Config;
 using Core.Item.Implementation;
 using Core.Item.Util;
 using NUnit.Framework;
+using Test.Module;
 
 namespace Test.UnitTest.Core.Other
 {

@@ -14,7 +14,8 @@ using Core.Update;
 using Core.Util;
 using NUnit.Framework;
 using Test.CombinedTest.Core.Generate;
-using Test.TestConfig;
+using Test.Module;
+using Test.Module.TestConfig;
 using Test.Util;
 
 namespace Test.CombinedTest.Core

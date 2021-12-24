@@ -9,7 +9,7 @@ using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
-using Test.TestConfig;
+using Test.Module.TestConfig;
 using World;
 using IntId = World.Util.IntId;
 

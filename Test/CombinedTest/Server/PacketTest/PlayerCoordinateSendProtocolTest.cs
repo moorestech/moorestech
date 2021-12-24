@@ -16,7 +16,7 @@ using NUnit.Framework;
 using Server;
 using Server.Protocol.PacketResponse.Const;
 using Server.Util;
-using Test.TestConfig;
+using Test.Module.TestConfig;
 using World;
 using IntId = World.Util.IntId;
 

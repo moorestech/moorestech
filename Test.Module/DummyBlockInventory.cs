@@ -1,15 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Core.Block;
 using Core.Block.BlockInventory;
 using Core.Item;
 using Core.Item.Config;
-using Core.Item.Implementation;
 using Core.Item.Util;
-using Core.Util;
-using NUnit.Framework;
 
-namespace Test.Util
+namespace Test.Module
 {
     public class DummyBlockInventory : IBlockInventory
     {
@@ -56,32 +52,5 @@ namespace Test.Util
 
         public void AddConnector(IBlockInventory blockInventory) { }
         public void RemoveConnector(IBlockInventory blockInventory) { }
-    }
-
-    public class DummyBlockInventoryTest
-    {
-        
-        [Test]
-        public void InsertItemTest()
-        {
-            var _itemStackFactory = new ItemStackFactory(new TestItemConfig());
-            var d = new DummyBlockInventory();
-            for (int i = 1; i <= 100; i++)
-            {
-                d.InsertItem(_itemStackFactory.Create(i,1));
-            }
-            
-            var item = d.InsertItem(_itemStackFactory.Create(101,1));
-            Assert.True(item.Equals(_itemStackFactory.CreatEmpty()));
-        }
-
-        [Test]
-        public void ChangeConnectorTest()
-        {
-            var d = new DummyBlockInventory();
-            d.AddConnector(null);
-            d.RemoveConnector(null);
-            Assert.True(true);
-        }
     }
 }

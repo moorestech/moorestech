@@ -14,7 +14,8 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Util;
-using Test.TestConfig;
+using Test.Module;
+using Test.Module.TestConfig;
 using World;
 
 namespace Test.CombinedTest.Server.PacketTest

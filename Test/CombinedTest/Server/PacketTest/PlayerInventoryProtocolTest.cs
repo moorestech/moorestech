@@ -10,6 +10,7 @@ using PlayerInventory;
 using Server;
 using Server.PacketHandle;
 using Server.Util;
+using Test.Module;
 
 namespace Test.CombinedTest.Server.PacketTest
 {

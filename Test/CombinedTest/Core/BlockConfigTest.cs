@@ -1,7 +1,7 @@
 ﻿using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using NUnit.Framework;
-using Test.TestConfig;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Core
 {

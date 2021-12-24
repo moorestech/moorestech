@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig;
 using Core.Block.Config.LoadConfig.Param;
 
-namespace Test.TestConfig
+namespace Test.Module.TestConfig
 {
     public class AllMachineBlockConfig : IBlockConfig
     {
