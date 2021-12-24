@@ -31,9 +31,9 @@ namespace Core.Block.BeltConveyor.Generally
             _connector = new NullIBlockInventory();
             GameUpdate.AddUpdateObject(this);
         }
+        //TODO stateからデータを復元できるようにする
         public NormalBeltConveyor(int blockId, int intId,string state, ItemStackFactory itemStackFactory,int inventoryItemNum,int timeOfItemEnterToExit)
         {
-            throw new NotImplementedException();
             _blockId = blockId;
             _intId = intId;
             _itemStackFactory = itemStackFactory;
@@ -140,7 +140,8 @@ namespace Core.Block.BeltConveyor.Generally
 
         public string GetSaveState()
         {
-            throw new NotImplementedException();
+            //TODO ここ実装する
+            return "";
         }
     }
 }

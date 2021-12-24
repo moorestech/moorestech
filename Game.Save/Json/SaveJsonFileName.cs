@@ -9,6 +9,7 @@ namespace Game.Save.Json
     public class SaveJsonFileName
     {
         public string FullSaveFilePath => _filePath;
+        public string SaveFileDirectoryPath => Path.GetDirectoryName(_filePath);
         private string _filePath;
 
         public SaveJsonFileName(string fileName)
@@ -27,7 +28,7 @@ namespace Game.Save.Json
                     _filePath = Path.Combine("C:", "Users", Environment.UserName, "AppData","Roaming",".moorestech","saves",fileName);
                     break;
                 case PlatformID.Unix:
-                    _filePath = Path.Combine("Users", Environment.UserName, "Library","Application Support","moorestech","saves",fileName);
+                    _filePath = Path.Combine("/Users", Environment.UserName, "Library","Application Support","moorestech","saves",fileName);
                     break;
             }
         }

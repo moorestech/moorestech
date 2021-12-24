@@ -1,3 +1,4 @@
+using System;
 using Core.Block.BlockFactory;
 using Game.Save.Interface;
 using Game.Save.Json;
@@ -33,6 +34,7 @@ namespace Test.CombinedTest.Game
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             //テスト用にファイル名を変更
             loadServiceProvider.GetService<SaveJsonFileName>().ChangeFileName("SaveJsonAndLoadTest.json");
+            Console.WriteLine(loadServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
             
             loadServiceProvider.GetService<ILoadRepository>().Load();
             var loadWorldBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();

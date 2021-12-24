@@ -19,7 +19,12 @@ namespace Game.Save.Json
 
         public void Save()
         {
-            File.AppendAllText(_fileName.FullSaveFilePath, _assembleSaveJsonText.AssembleSaveJson());
+        
+            if (!Directory.Exists(_fileName.SaveFileDirectoryPath ) )
+            {
+                Directory.CreateDirectory(_fileName.SaveFileDirectoryPath);
+            }
+            File.WriteAllText(_fileName.FullSaveFilePath, _assembleSaveJsonText.AssembleSaveJson());
         }
     }
 }
