@@ -33,6 +33,7 @@ namespace Core.Block.Machine
         private readonly int _intId;
 
         public NormalMachine(int blockId, int intId,
+            IMachineRecipeConfig machineRecipeConfig,
             NormalMachineInputInventory normalMachineInputInventory,
             NormalMachineOutputInventory normalMachineOutputInventory )
         {
@@ -41,6 +42,7 @@ namespace Core.Block.Machine
             _normalMachineOutputInventory = normalMachineOutputInventory;
             _blockId = blockId;
             _intId = intId;
+            _processingRecipeData = machineRecipeConfig.GetNullRecipeData();
             GameUpdate.AddUpdateObject(this);
         }
         public NormalMachine(int blockId, int intId,string loadState,

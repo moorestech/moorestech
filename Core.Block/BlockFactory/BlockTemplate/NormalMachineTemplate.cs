@@ -23,6 +23,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
         {
             var machineParam = param.Param as MachineBlockConfigParam;
             return new NormalMachine(param.BlockId,intId ,
+                _machineRecipeConfig,
                 new NormalMachineInputInventory(param.BlockId,machineParam.InputSlot,_machineRecipeConfig,_itemStackFactory),
                 new NormalMachineOutputInventory(new NullIBlockInventory(),machineParam.OutputSlot,_itemStackFactory));
 
