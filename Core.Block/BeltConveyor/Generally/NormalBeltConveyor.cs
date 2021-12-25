@@ -141,6 +141,7 @@ namespace Core.Block.BeltConveyor.Generally
         public string GetSaveState()
         {
             //TODO ここ実装する
+            //stateの定義 itemid1,time1,itemid2,time2,itemid3,time3...
             return "";
         }
     }
