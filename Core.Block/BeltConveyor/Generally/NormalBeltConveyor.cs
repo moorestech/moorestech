@@ -42,7 +42,11 @@ namespace Core.Block.BeltConveyor.Generally
             _connector = new NullIBlockInventory();
             GameUpdate.AddUpdateObject(this);
             
+            Console.WriteLine("block Id " + state);
+            
             //stateから復元
+            //データがないときは何もしない
+            if (state == String.Empty) return;
             var stateList = state.Split(',');
             for (int i = 0; i < stateList.Length; i+=3)
             {
@@ -65,7 +69,10 @@ namespace Core.Block.BeltConveyor.Generally
                 else
                 {
                     //インデックスをずらす
-                    _inventoryItems.Add(_inventoryItems[0]);
+                    
+                    //indexエラーにならないためにダミーアイテムを追加しておく
+                    _inventoryItems.Add(new BeltConveyorInventoryItem(0, 0, 0));
+                    //アイテムをずらす
                     for (int i = _inventoryItems.Count - 1; i >= 1; i--)
                     {
                         _inventoryItems[i] = _inventoryItems[i - 1];
