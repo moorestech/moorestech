@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using Core.Block.BlockInventory;
 using Core.Block.Config;
 using Core.Config.Item;
@@ -31,7 +32,6 @@ namespace Core.Block.BeltConveyor.Generally
             _connector = new NullIBlockInventory();
             GameUpdate.AddUpdateObject(this);
         }
-        //TODO stateからデータを復元できるようにする
         public NormalBeltConveyor(int blockId, int intId,string state, ItemStackFactory itemStackFactory,int inventoryItemNum,int timeOfItemEnterToExit)
         {
             _blockId = blockId;
@@ -41,6 +41,13 @@ namespace Core.Block.BeltConveyor.Generally
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
             _connector = new NullIBlockInventory();
             GameUpdate.AddUpdateObject(this);
+            
+            //stateから復元
+            var stateList = state.Split(',');
+            for (int i = 0; i < stateList.Length; i+=3)
+            {
+                _inventoryItems.Add(new BeltConveyorInventoryItem(int.Parse(stateList[i]),int.Parse(stateList[i+1]),int.Parse(stateList[i+2])));
+            }
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
@@ -140,9 +147,18 @@ namespace Core.Block.BeltConveyor.Generally
 
         public string GetSaveState()
         {
-            //TODO ここ実装する
-            //stateの定義 itemid1,time1,itemid2,time2,itemid3,time3...
-            return "";
+            //stateの定義 itemid1,LimitTime1,RemainingTime1,itemid2,LimitTime2,RemainingTime2...
+            var state = new StringBuilder();
+            foreach (var t in _inventoryItems)
+            {
+                state.Append(t.ItemId);
+                state.Append(",");
+                state.Append(t.LimitTime);
+                state.Append(",");
+                state.Append(t.RemainingTime);
+                state.Append(",");
+            }
+            return state.ToString();
         }
     }
 }
