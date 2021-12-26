@@ -9,7 +9,6 @@ using Core.Item;
 using Core.Item.Config;
 using Core.Update;
 using Game.Save.Json;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -17,11 +16,10 @@ using PlayerInventory;
 using PlayerInventory.Event;
 using Server;
 using Test.Module.TestConfig;
-using World;
 using World.DataStore;
 using World.Event;
 
-namespace Test.UnitTest.Game
+namespace Test.UnitTest.Game.SaveLoad
 {
     public class AssembleSaveJsonTextTest
     {
