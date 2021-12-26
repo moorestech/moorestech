@@ -48,7 +48,10 @@ namespace Core.Block.BeltConveyor.Generally
             var stateList = state.Split(',');
             for (int i = 0; i < stateList.Length; i+=3)
             {
-                _inventoryItems.Add(new BeltConveyorInventoryItem(int.Parse(stateList[i]),int.Parse(stateList[i+1]),int.Parse(stateList[i+2])));
+                var id = int.Parse(stateList[i]);
+                var remainTime = double.Parse(stateList[i + 1]);
+                var limitTime = double.Parse(stateList[i + 2]);
+                _inventoryItems.Add(new BeltConveyorInventoryItem(id,remainTime,limitTime));
             }
         }
 
@@ -152,17 +155,19 @@ namespace Core.Block.BeltConveyor.Generally
 
         public string GetSaveState()
         {
-            //stateの定義 itemid1,LimitTime1,RemainingTime1,itemid2,LimitTime2,RemainingTime2...
+            //stateの定義 itemid1,RemainingTime1,LimitTime1,itemid2,RemainingTime2,LimitTime2,itemid3,RemainingTime3,LimitTime3...
             var state = new StringBuilder();
             foreach (var t in _inventoryItems)
             {
                 state.Append(t.ItemId);
-                state.Append(",");
-                state.Append(t.LimitTime);
-                state.Append(",");
+                state.Append(',');
                 state.Append(t.RemainingTime);
-                state.Append(",");
+                state.Append(',');
+                state.Append(t.LimitTime);
+                state.Append(',');
             }
+            //最後のカンマを削除
+            state.Remove(state.Length - 1, 1);
             return state.ToString();
         }
     }
