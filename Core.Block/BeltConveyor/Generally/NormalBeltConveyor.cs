@@ -41,9 +41,7 @@ namespace Core.Block.BeltConveyor.Generally
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
             _connector = new NullIBlockInventory();
             GameUpdate.AddUpdateObject(this);
-            
-            Console.WriteLine("block Id " + state);
-            
+
             //stateから復元
             //データがないときは何もしない
             if (state == String.Empty) return;
