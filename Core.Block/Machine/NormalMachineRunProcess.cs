@@ -1,3 +1,4 @@
+using Core.Block.Machine.Inventory;
 using Core.Block.RecipeConfig.Data;
 using Core.Update;
 
@@ -20,7 +21,10 @@ namespace Core.Block.Machine
         private readonly NormalMachineInputInventory _normalMachineInputInventory;
         private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
         
-        public NormalMachineRunProcess(NormalMachineInputInventory normalMachineInputInventory, NormalMachineOutputInventory normalMachineOutputInventory,IMachineRecipeData machineRecipeData)
+        public NormalMachineRunProcess(
+            NormalMachineInputInventory normalMachineInputInventory, 
+            NormalMachineOutputInventory normalMachineOutputInventory,
+            IMachineRecipeData machineRecipeData)
         {
             _normalMachineInputInventory = normalMachineInputInventory;
             _normalMachineOutputInventory = normalMachineOutputInventory;
@@ -28,7 +32,10 @@ namespace Core.Block.Machine
 
             GameUpdate.AddUpdateObject(this);
         }
-        public NormalMachineRunProcess(NormalMachineInputInventory normalMachineInputInventory, NormalMachineOutputInventory normalMachineOutputInventory,ProcessState state,double remainingMillSecond,IMachineRecipeData processingRecipeData)
+        public NormalMachineRunProcess(
+            NormalMachineInputInventory normalMachineInputInventory, 
+            NormalMachineOutputInventory normalMachineOutputInventory,
+            ProcessState state,double remainingMillSecond,IMachineRecipeData processingRecipeData)
         {
             _normalMachineInputInventory = normalMachineInputInventory;
             _normalMachineOutputInventory = normalMachineOutputInventory;

@@ -3,7 +3,7 @@ using Core.Block.Machine.Inventory;
 using Core.Block.RecipeConfig;
 using Core.Item;
 
-namespace Core.Block.Machine
+namespace Core.Block.Machine.SaveLoad
 {
     public class NormalMachineLoad
     {

@@ -5,7 +5,7 @@ using Core.Block.RecipeConfig.Data;
 using Core.Item;
 using Core.Item.Util;
 
-namespace Core.Block.Machine
+namespace Core.Block.Machine.Inventory
 {
     public class NormalMachineInputInventory
     {

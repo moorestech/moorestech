@@ -1,9 +1,7 @@
-using System;
 using System.Text;
 using Core.Block.Machine.Inventory;
-using Core.Item;
 
-namespace Core.Block.Machine
+namespace Core.Block.Machine.SaveLoad
 {
     public class NormalMachineSave
     {

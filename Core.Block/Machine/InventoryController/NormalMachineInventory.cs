@@ -2,7 +2,7 @@ using Core.Block.Machine.Inventory;
 using Core.Item;
 using Core.Item.Util;
 
-namespace Core.Block.Machine
+namespace Core.Block.Machine.InventoryController
 {
     public class NormalMachineInventory
     {

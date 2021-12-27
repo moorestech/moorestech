@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Block.BlockInventory;
-using Core.Block.Config;
 using Core.Block.RecipeConfig.Data;
 using Core.Item;
 using Core.Item.Util;
 using Core.Update;
 
-namespace Core.Block.Machine
+namespace Core.Block.Machine.Inventory
 {
     public class NormalMachineOutputInventory :IUpdate
     {

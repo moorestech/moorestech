@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Core.Block.BlockInventory;
-using Core.Block.RecipeConfig;
-using Core.Block.RecipeConfig.Data;
+using Core.Block.Machine.Inventory;
+using Core.Block.Machine.InventoryController;
+using Core.Block.Machine.SaveLoad;
 using Core.Electric;
 using Core.Inventory;
 using Core.Item;
-using Core.Item.Util;
-using Core.Update;
 
 namespace Core.Block.Machine
 {
@@ -16,8 +13,6 @@ namespace Core.Block.Machine
     /// 「機械」というオブジェクト(ドメイン)事態の責務が大きすぎて、クラス自体の責務も大きくなってしまっているう
     /// 単純に別のクラスに分けるのも手かも知れないが、本質的な解決になるのだろうか？
     /// 現状箱のままにしておくが、今後機械関係のクラスに修正をする場合、この機械のクラス全体をリファクタする必要があるような気がする
-    ///
-    /// TODO それぞれの要素（ブロックインベントリ、プロセスなど）をコンポーネントにする
     /// </summary>
     public class NormalMachine : IBlock,IBlockInventory,IBlockElectric,IInventory
     {
@@ -25,7 +20,7 @@ namespace Core.Block.Machine
         private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
         private readonly NormalMachineBlockInventory _normalMachineBlockInventory;
         private readonly NormalMachineInventory _normalMachineInventory;
-        private readonly NormalMachineSaveLoad _normalMachineSaveLoad;
+        private readonly NormalMachineSave _normalMachineSave;
         
         public List<IItemStack> InputSlotWithoutEmptyItemStack => _normalMachineInputInventory.InputSlotWithoutEmptyItemStack;
         public List<IItemStack> OutputSlotWithoutEmptyItemStack => _normalMachineOutputInventory.OutputSlotWithoutEmptyItemStack;
@@ -34,13 +29,16 @@ namespace Core.Block.Machine
         private readonly int _intId;
         public NormalMachine(int blockId, int intId,
             NormalMachineInputInventory normalMachineInputInventory,
-            NormalMachineOutputInventory normalMachineOutputInventory, NormalMachineBlockInventory normalMachineBlockInventory, NormalMachineInventory normalMachineInventory, NormalMachineSaveLoad normalMachineSaveLoad)
+            NormalMachineOutputInventory normalMachineOutputInventory, 
+            NormalMachineBlockInventory normalMachineBlockInventory, 
+            NormalMachineInventory normalMachineInventory, 
+            NormalMachineSave normalMachineSave)
         {
             _normalMachineInputInventory = normalMachineInputInventory;
             _normalMachineOutputInventory = normalMachineOutputInventory;
             _normalMachineBlockInventory = normalMachineBlockInventory;
             _normalMachineInventory = normalMachineInventory;
-            _normalMachineSaveLoad = normalMachineSaveLoad;
+            _normalMachineSave = normalMachineSave;
             _blockId = blockId;
             _intId = intId;
         }
@@ -64,7 +62,7 @@ namespace Core.Block.Machine
         public int GetBlockId() { return _blockId; }
         public string GetSaveState()
         {
-            return _normalMachineSaveLoad.Save();
+            return _normalMachineSave.Save();
         }
     }
 }

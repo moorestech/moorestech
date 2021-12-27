@@ -3,6 +3,7 @@ using System.Reflection;
 using Core.Block;
 using Core.Block.BlockFactory;
 using Core.Block.Machine;
+using Core.Block.Machine.Inventory;
 using Core.Block.RecipeConfig;
 using Core.Block.RecipeConfig.Data;
 using Core.Item;
