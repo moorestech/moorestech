@@ -155,6 +155,8 @@ namespace Core.Block.BeltConveyor.Generally
 
         public string GetSaveState()
         {
+            if (_inventoryItems.Count == 0) return String.Empty;
+            
             //stateの定義 itemid1,RemainingTime1,LimitTime1,itemid2,RemainingTime2,LimitTime2,itemid3,RemainingTime3,LimitTime3...
             var state = new StringBuilder();
             foreach (var t in _inventoryItems)
