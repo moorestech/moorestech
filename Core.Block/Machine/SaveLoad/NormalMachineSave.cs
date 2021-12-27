@@ -1,16 +1,20 @@
 using System;
 using System.Text;
+using Core.Block.Machine.Inventory;
 using Core.Item;
 
 namespace Core.Block.Machine
 {
-    public class NormalMachineSaveLoad
+    public class NormalMachineSave
     {
         private readonly NormalMachineInputInventory _normalMachineInputInventory;
         private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
         private readonly NormalMachineRunProcess _normalMachineRunProcess;
 
-        public NormalMachineSaveLoad(NormalMachineInputInventory normalMachineInputInventory, NormalMachineOutputInventory normalMachineOutputInventory, NormalMachineRunProcess normalMachineRunProcess, ItemStackFactory itemStackFactory)
+        public NormalMachineSave(
+            NormalMachineInputInventory normalMachineInputInventory, 
+            NormalMachineOutputInventory normalMachineOutputInventory, 
+            NormalMachineRunProcess normalMachineRunProcess)
         {
             _normalMachineInputInventory = normalMachineInputInventory;
             _normalMachineOutputInventory = normalMachineOutputInventory;

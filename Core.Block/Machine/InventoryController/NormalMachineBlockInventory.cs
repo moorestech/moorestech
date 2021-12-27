@@ -1,4 +1,5 @@
 using Core.Block.BlockInventory;
+using Core.Block.Machine.Inventory;
 using Core.Item;
 
 namespace Core.Block.Machine

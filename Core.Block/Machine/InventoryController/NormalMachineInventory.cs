@@ -1,3 +1,4 @@
+using Core.Block.Machine.Inventory;
 using Core.Item;
 using Core.Item.Util;
 
