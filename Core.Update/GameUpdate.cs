@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace Core.Update
 {
-    //TODO キウイ本のアップデーを参考にアップデートの処理を修正する
     public static class GameUpdate
     {
         private static List<IUpdate> _updates = new List<IUpdate>();
