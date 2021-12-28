@@ -4,6 +4,7 @@ using Core.Block;
 using Core.Block.BlockFactory;
 using Core.Block.Machine;
 using Core.Block.Machine.Inventory;
+using Core.Block.Machine.InventoryController;
 using Core.Block.RecipeConfig;
 using Core.Block.RecipeConfig.Data;
 using Core.Item;
@@ -81,13 +82,19 @@ namespace Test.UnitTest.Game.SaveLoad
             machine.InsertItem(itemStackFactory.Create(2,4));
             
             //リフレクションで機械の状態を設定
-            Type machineType = machine.GetType();
             //機械のレシピの残り時間設定
-            var normalMachineRunProcess = (NormalMachineRunProcess)machineType.GetField("_normalMachineRunProcess",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+            var normalMachineRunProcess = (NormalMachineRunProcess)typeof(NormalMachine).GetField("_normalMachineRunProcess",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
             typeof(NormalMachineRunProcess).GetField("_remainingMillSecond",BindingFlags.NonPublic | BindingFlags.Instance).SetValue(normalMachineRunProcess,300);
             
             //機械のアウトプットスロットの設定
-            var outputInventory = (NormalMachineOutputInventory)machineType.GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+            var _normalMachineInventory = (NormalMachineInventory)typeof(NormalMachine).
+                GetField("_normalMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).
+                GetValue(machine);
+            
+            var outputInventory = (NormalMachineOutputInventory)typeof(NormalMachineInventory)
+                .GetField("_normalMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_normalMachineInventory);
+            
             outputInventory.SetItem(1,itemStackFactory.Create(1,1));
             outputInventory.SetItem(2,itemStackFactory.Create(3,2));
             
@@ -113,23 +120,24 @@ namespace Test.UnitTest.Game.SaveLoad
             Assert.AreEqual(machine.GetBlockId(),loadMachine.GetBlockId());
             Assert.AreEqual(machine.GetIntId(),loadMachine.GetIntId());
             
-            var loadMachineType = loadMachine.GetType();
             
             //機械のレシピの残り時間のチェック
-            var loadNormalMachineRunProcess = (NormalMachineRunProcess)machineType.GetField("_normalMachineRunProcess",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachine);
+            var loadNormalMachineRunProcess = (NormalMachineRunProcess)typeof(NormalMachine).GetField("_normalMachineRunProcess",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachine);
             Assert.AreEqual((double)300,(double)loadNormalMachineRunProcess.RemainingMillSecond);
             //レシピIDのチェック
             Assert.AreEqual(recipeId,loadNormalMachineRunProcess.RecipeDataId);
             //機械のステータスのチェック
             Assert.AreEqual(ProcessState.Processing,loadNormalMachineRunProcess.State);
             
+            
+            var loadMachineInventory = (NormalMachineInventory)typeof(NormalMachine).GetField("_normalMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachine);
             //インプットスロットのチェック
-            var inputInventoryField = (NormalMachineInputInventory)loadMachineType.GetField("_normalMachineInputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachine);
+            var inputInventoryField = (NormalMachineInputInventory)typeof(NormalMachineInventory).GetField("_normalMachineInputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachineInventory);
             Assert.AreEqual(itemStackFactory.Create(5,6),inputInventoryField.InputSlot[0]);
             Assert.AreEqual(itemStackFactory.Create(2,4),inputInventoryField.InputSlot[1]);
             
             //アウトプットスロットのチェック
-            var outputInventoryField = (NormalMachineOutputInventory)loadMachineType.GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachine);
+            var outputInventoryField = (NormalMachineOutputInventory)typeof(NormalMachineInventory).GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachineInventory);
             Assert.AreEqual(itemStackFactory.CreatEmpty(),outputInventoryField.OutputSlot[0]);
             Assert.AreEqual(itemStackFactory.Create(1,1),outputInventoryField.OutputSlot[1]);
             Assert.AreEqual(itemStackFactory.Create(3,2),outputInventoryField.OutputSlot[2]);

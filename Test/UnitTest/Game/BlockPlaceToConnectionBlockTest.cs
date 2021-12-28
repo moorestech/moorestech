@@ -6,6 +6,7 @@ using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 using Core.Block.Machine;
 using Core.Block.Machine.Inventory;
+using Core.Block.Machine.InventoryController;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
@@ -106,13 +107,15 @@ namespace Test.UnitTest.Game
             world.AddBlock(beltConveyors[3], 0, -1, BlockDirection.West);
             
             //繋がっているコネクターを取得
-            var _normalMachineOutputInventory = (NormalMachineOutputInventory)typeof(NormalMachine).GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(normalMachine);
-            var _connectInventory = (List<IBlockInventory>)typeof(NormalMachineOutputInventory).GetField("_connectInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(_normalMachineOutputInventory);
             
-            Assert.AreEqual(4,_connectInventory.Count);
+            var machineInventory = (NormalMachineInventory)typeof(NormalMachine).GetField("_normalMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(normalMachine);
+            var normalMachineOutputInventory = (NormalMachineOutputInventory)typeof(NormalMachineInventory).GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machineInventory);
+            var connectInventory = (List<IBlockInventory>)typeof(NormalMachineOutputInventory).GetField("_connectInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(normalMachineOutputInventory);
+            
+            Assert.AreEqual(4,connectInventory.Count);
             
             //繋がっているコネクターの中身を確認
-            var _connectInventoryItem = _connectInventory.Select(item => ((NormalBeltConveyor) item).GetIntId()).ToList();
+            var _connectInventoryItem = connectInventory.Select(item => ((NormalBeltConveyor) item).GetIntId()).ToList();
             foreach (var beltConveyor in beltConveyors)
             {
                 Assert.True(_connectInventoryItem.Contains(beltConveyor.GetIntId()));
@@ -122,12 +125,12 @@ namespace Test.UnitTest.Game
             world.RemoveBlock(1,0);
             world.RemoveBlock(-1,0);
             //接続しているコネクターが消えているか確認
-            Assert.AreEqual(2,_connectInventory.Count);
+            Assert.AreEqual(2,connectInventory.Count);
             world.RemoveBlock(0,1);
             world.RemoveBlock(0,-1);
             
             //接続しているコネクターが消えているか確認
-            Assert.AreEqual(0,_connectInventory.Count);
+            Assert.AreEqual(0,connectInventory.Count);
         }
         
     }

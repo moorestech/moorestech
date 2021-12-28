@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 using Core.Block.Machine;
+using Core.Block.Machine.Inventory;
+using Core.Block.Machine.InventoryController;
 using Core.Block.RecipeConfig;
 using Core.Electric;
 using Core.Item;
@@ -39,51 +42,13 @@ namespace Test.CombinedTest.Core
             return machine;
         }
         
-        
-        [TestCase(new int[1]{1}, new int[1]{1})]
-        [TestCase(new int[2]{100,101}, new int[2]{10,10})]
-        [TestCase(new int[3]{10,11,15}, new int[3]{10,5,8})]
-        public void MachineInputTest(int[] id,int[] count)
-        {
-            var machine = CreateMachine(4);
-            var items = new List<IItemStack>();
-            for (int i = 0; i < id.Length; i++)
-            {
-                items.Add(_itemStackFactory.Create(id[i], count[i]));
-            }
-
-            foreach (var item in items)
-            {
-                machine.InsertItem(item);
-            }
-            
-            
-            var loadNormalMachineRunProcess = (NormalMachineRunProcess)machineType.GetField("_normalMachineRunProcess",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachine);
-            Assert.AreEqual((double)300,(double)loadNormalMachineRunProcess.RemainingMillSecond);
-            
-            Assert.AreEqual(items.ToArray(), machine.InputSlotWithoutEmptyItemStack.ToArray());   
-        }
-
-        [TestCase( new int[3] {0, 5, 1}, new int[3] {10, 5, 8})]
-        [TestCase( new int[2] {1, 0}, new int[2] {10, 5})]
-        [TestCase( new int[2] {0, 0}, new int[2] {10, 5})]
-        public void MachineInputNullItemTest(int[] id,int[] count)
-        {
-            var machine = CreateMachine(4);
-            var items = new List<IItemStack>();
-            for (int i = 0; i < id.Length; i++)
-            {
-                items.Add(_itemStackFactory.Create(id[i], count[i]));
-            }
-
-            foreach (var item in items)
-            {
-                machine.InsertItem(item);
-            }
-        }
-        
+        [TestCase(new int[1]{1}, new int[1]{1},new int[1]{1}, new int[1]{1})]
+        [TestCase(new int[2]{100,101}, new int[2]{10,10},new int[2]{100,101}, new int[2]{10,10})]
+        [TestCase(new int[3]{10,11,15}, new int[3]{10,5,8},new int[3]{10,11,15}, new int[3]{10,5,8})]
         [TestCase(new int[2]{1,1}, new int[2]{1,1}, new int[1]{1}, new int[1]{2})]
-        [TestCase(new int[2]{3,1}, new int[2]{1,1}, new int[2]{1,3}, new int[2]{1,1})]
+        [TestCase(new int[2]{3,1}, new int[2]{1,1}, new int[2]{3,1}, new int[2]{1,1})]
+        [TestCase( new int[3] {0, 5, 1}, new int[3] {10, 5, 8},new int[2]{5,1}, new int[2] { 5, 8})]
+        [TestCase( new int[2] {1, 0}, new int[2] {10, 5},new int[1]{1}, new int[1] {10})]
         public void MachineAddInputTest(int[] id,int[] count,int[] ansid,int[] anscount)
         {
             
@@ -100,11 +65,15 @@ namespace Test.CombinedTest.Core
                 ansItem.Add(_itemStackFactory.Create(ansid[i],anscount[i]));
             }
 
+            
+            var _normalMachineInventory = (NormalMachineInventory)typeof(NormalMachine).GetField("_normalMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+            var _normalMachineInputInventory = (NormalMachineInputInventory)typeof(NormalMachineInventory)
+                .GetField("_normalMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_normalMachineInventory);
+
             for (int i = 0; i < ansItem.Count; i++)
             {
-                var m = machine.InputSlotWithoutEmptyItemStack;
-                Console.WriteLine(m[i].ToString()+" "+ansItem[i].ToString());
-                Assert.AreEqual(ansItem[i],m[i]);
+                Assert.AreEqual(ansItem[i], _normalMachineInputInventory.InputSlot[i]);  
             }
             
         }
@@ -157,19 +126,21 @@ namespace Test.CombinedTest.Core
                 Console.WriteLine(i);
                 var machine = machineList[i];
                 var machineIoTest = recipes[i];
-                
-                Assert.False(machine.OutputSlotWithoutEmptyItemStack.Count <= 0);
 
-                for (int j = 0; j < machine.OutputSlotWithoutEmptyItemStack.Count; j++)
+                var (inputSlot, outputSlot) = GetInputOutputSlot(machine);
+                
+                Assert.True(0 < outputSlot.Count);
+
+                for (int j = 0; j < outputSlot.Count; j++)
                 {
-                    Assert.AreEqual(machineIoTest.output[j],machine.OutputSlotWithoutEmptyItemStack[j]);
+                    Assert.AreEqual(machineIoTest.output[j],outputSlot[j]);
                 }
                 
                 var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Count != 0).ToList();
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
-                for (int j = 0; j < machine.InputSlotWithoutEmptyItemStack.Count; j++)
+                for (int j = 0; j < inputSlot.Count; j++)
                 {
-                    Assert.True(inputRemainder[j].Equals(machine.InputSlotWithoutEmptyItemStack[j]));
+                    Assert.True(inputRemainder[j].Equals(inputSlot[j]));
                 }
             }
             
@@ -190,7 +161,9 @@ namespace Test.CombinedTest.Core
                 var dummy = dummyBlockList[i];
                 var machineIoTest = recipes[i];
                 
-                Assert.True(machine.OutputSlotWithoutEmptyItemStack.Count == 0);
+                var (inputSlot, outputSlot) = GetInputOutputSlot(machine);
+                
+                Assert.True(outputSlot.Count == 0);
 
                 for (int j = 0; j < machineIoTest.output.Count; j++)
                 {
@@ -201,7 +174,7 @@ namespace Test.CombinedTest.Core
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
                 for (int j = 0; j < inputRemainder.Count; j++)
                 {
-                    Assert.True(inputRemainder[j].Equals(machine.InputSlotWithoutEmptyItemStack[j]));
+                    Assert.True(inputRemainder[j].Equals(inputSlot[j]));
                 }
             }
         }
@@ -266,13 +239,35 @@ namespace Test.CombinedTest.Core
                     Assert.True(machineIoTest.output[j].Equals(output[j]));
                 }
                 
+                
+                var (inputSlot, outputSlot) = GetInputOutputSlot(machine);
+                
                 var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Count != 0).ToList();
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
-                for (int j = 0; j < machine.InputSlotWithoutEmptyItemStack.Count; j++)
+                for (int j = 0; j < inputSlot.Count; j++)
                 {
-                    Assert.True(inputRemainder[j].Equals(machine.InputSlotWithoutEmptyItemStack[j]));
+                    Assert.True(inputRemainder[j].Equals(inputSlot[j]));
                 }
             }
+        }
+        
+        public (List<IItemStack> , List<IItemStack>) GetInputOutputSlot(NormalMachine machine)
+        {
+            var _normalMachineInventory = (NormalMachineInventory)typeof(NormalMachine).GetField("_normalMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+            var _normalMachineInputInventory = (NormalMachineInputInventory)typeof(NormalMachineInventory)
+                .GetField("_normalMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_normalMachineInventory);
+            var _normalMachineOutputInventory = (NormalMachineOutputInventory)typeof(NormalMachineInventory)
+                .GetField("_normalMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_normalMachineInventory);
+
+            var inputSlot = _normalMachineInputInventory.InputSlot.Where(i => i.Count != 0).ToList();
+            inputSlot.Sort((a, b) => a.Id - b.Id);
+                
+            var outputSlot = _normalMachineOutputInventory.OutputSlot.Where(i => i.Count != 0).ToList();
+            outputSlot.Sort((a, b) => a.Id - b.Id);
+            
+            return (inputSlot,outputSlot);
         }
     }
 }

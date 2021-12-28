@@ -1,8 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Core.Block;
 using Core.Block.BlockFactory;
 using Core.Block.Config;
 using Core.Block.Machine;
+using Core.Block.Machine.Inventory;
+using Core.Block.Machine.InventoryController;
 using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
@@ -50,8 +54,9 @@ namespace Test.CombinedTest.Server.PacketTest
             blockDataStore.AddBlock(block, 0, 0,BlockDirection.North);
             //ブロックにアイテムを挿入
             block.InsertItem(_itemStackFactory.Create(1,5));
-            Assert.AreEqual(1,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Id);
-            Assert.AreEqual(5,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Count);
+            var input = GetInputSlot(block);
+            Assert.AreEqual(1,input[blockInventorySlotIndex].Id);
+            Assert.AreEqual(5,input[blockInventorySlotIndex].Count);
             
             //プレイヤーのインベントリの設定
             var payload = new List<byte>();
@@ -66,7 +71,8 @@ namespace Test.CombinedTest.Server.PacketTest
             //ブロックインベントリからプレイヤーインベントリへアイテムを移す
             packet.GetPacketResponse(CreateReplacePayload(1,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,5));
             //実際に移動できたか確認
-            Assert.AreEqual(0,block.InputSlotWithoutEmptyItemStack.Count);
+            input = GetInputSlot(block);
+            Assert.AreEqual(0,input.Count);
             Assert.AreEqual(1,playerInventoryData.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(5,playerInventoryData.GetItem(playerSlotIndex).Count);
             
@@ -75,8 +81,9 @@ namespace Test.CombinedTest.Server.PacketTest
             //プレイヤーインベントリからブロックインベントリへアイテムを移す
             packet.GetPacketResponse(CreateReplacePayload(0,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,5));
             //きちんと移動できたか確認
-            Assert.AreEqual(1,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Id);
-            Assert.AreEqual(5,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Count);
+            input = GetInputSlot(block);
+            Assert.AreEqual(1,input[blockInventorySlotIndex].Id);
+            Assert.AreEqual(5,input[blockInventorySlotIndex].Count);
             Assert.AreEqual(ItemConst.NullItemId,playerInventoryData.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(0,playerInventoryData.GetItem(playerSlotIndex).Count);
             
@@ -88,8 +95,9 @@ namespace Test.CombinedTest.Server.PacketTest
             //プレイヤーインベントリからブロックインベントリへ全てのアイテムを移す
             packet.GetPacketResponse(CreateReplacePayload(0,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,3));
             //きちんと移動できたか確認
-            Assert.AreEqual(2,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Id);
-            Assert.AreEqual(3,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Count);
+            input = GetInputSlot(block);
+            Assert.AreEqual(2,input[blockInventorySlotIndex].Id);
+            Assert.AreEqual(3,input[blockInventorySlotIndex].Count);
             Assert.AreEqual(1,playerInventoryData.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(5,playerInventoryData.GetItem(playerSlotIndex).Count);
             
@@ -98,16 +106,18 @@ namespace Test.CombinedTest.Server.PacketTest
             //ブロックから一部だけ移動させようとしても移動できないテスト
             packet.GetPacketResponse(CreateReplacePayload(0,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,3));
             //移動できてないかの確認
-            Assert.AreEqual(2,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Id);
-            Assert.AreEqual(3,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Count);
+            input = GetInputSlot(block);
+            Assert.AreEqual(2,input[blockInventorySlotIndex].Id);
+            Assert.AreEqual(3,input[blockInventorySlotIndex].Count);
             Assert.AreEqual(1,playerInventoryData.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(5,playerInventoryData.GetItem(playerSlotIndex).Count);
             
             //一部だけ移動させようとしても移動できないテスト
             packet.GetPacketResponse(CreateReplacePayload(1,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,2));
             //移動できてないかの確認
-            Assert.AreEqual(2,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Id);
-            Assert.AreEqual(3,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Count);
+            input = GetInputSlot(block);
+            Assert.AreEqual(2,input[blockInventorySlotIndex].Id);
+            Assert.AreEqual(3,input[blockInventorySlotIndex].Count);
             Assert.AreEqual(1,playerInventoryData.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(5,playerInventoryData.GetItem(playerSlotIndex).Count);
             
@@ -117,8 +127,9 @@ namespace Test.CombinedTest.Server.PacketTest
             //プレイヤーからアイテム2つを移す
             packet.GetPacketResponse(CreateReplacePayload(0,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,2));
             
-            Assert.AreEqual(2,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Id);
-            Assert.AreEqual(5,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Count);
+            input = GetInputSlot(block);
+            Assert.AreEqual(2,input[blockInventorySlotIndex].Id);
+            Assert.AreEqual(5,input[blockInventorySlotIndex].Count);
             Assert.AreEqual(2,playerInventoryData.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(1,playerInventoryData.GetItem(playerSlotIndex).Count);
             
@@ -128,15 +139,17 @@ namespace Test.CombinedTest.Server.PacketTest
             //プレイヤーからアイテムを全て移す
             packet.GetPacketResponse(CreateReplacePayload(0,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,max));
             
-            Assert.AreEqual(2,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Id);
-            Assert.AreEqual(max,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Count);
+            input = GetInputSlot(block);
+            Assert.AreEqual(2,input[blockInventorySlotIndex].Id);
+            Assert.AreEqual(max,input[blockInventorySlotIndex].Count);
             Assert.AreEqual(2,playerInventoryData.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(5,playerInventoryData.GetItem(playerSlotIndex).Count);
             //逆の場合
             packet.GetPacketResponse(CreateReplacePayload(1,playerId,playerSlotIndex,0,0,blockInventorySlotIndex,max));
             
-            Assert.AreEqual(2,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Id);
-            Assert.AreEqual(5,block.InputSlotWithoutEmptyItemStack[blockInventorySlotIndex].Count);
+            input = GetInputSlot(block);
+            Assert.AreEqual(2,input[blockInventorySlotIndex].Id);
+            Assert.AreEqual(5,input[blockInventorySlotIndex].Count);
             Assert.AreEqual(2,playerInventoryData.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(max,playerInventoryData.GetItem(playerSlotIndex).Count);
         }
@@ -153,6 +166,17 @@ namespace Test.CombinedTest.Server.PacketTest
             payload.AddRange(ByteListConverter.ToByteArray(blockSlotIndex)); //ブロックインベントリインデクス
             payload.AddRange(ByteListConverter.ToByteArray(moveItemNum)); //移動するアイテム数
             return payload;
+        }
+        
+        
+        public List<IItemStack> GetInputSlot(NormalMachine machine)
+        {
+            var _normalMachineInventory = (NormalMachineInventory)typeof(NormalMachine).GetField("_normalMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+            var _normalMachineInputInventory = (NormalMachineInputInventory)typeof(NormalMachineInventory)
+                .GetField("_normalMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_normalMachineInventory);
+
+            return _normalMachineInputInventory.InputSlot.Where(i => i.Count != 0).ToList();
         }
     }
 }
