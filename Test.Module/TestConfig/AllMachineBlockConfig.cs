@@ -9,7 +9,6 @@ namespace Test.Module.TestConfig
     {
         private readonly Dictionary<int, BlockConfigData> _blockConfigDictionary;
 
-        //TODO 機械レシピ用のテストコンフィグも作る
         public AllMachineBlockConfig()
         {
             var path = new TestConfigPath().GetPath("All Machine Block Config.json");
