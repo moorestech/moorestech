@@ -16,10 +16,5 @@ namespace Core.Block
         {
             return String.Empty;
         }
-
-        public IBlock New(BlockConfigData param, int intId)
-        {
-            return new NullBlock();
-        }
     }
 }

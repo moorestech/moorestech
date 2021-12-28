@@ -105,10 +105,5 @@ namespace Core.Block.Machine.Inventory
         {
             _outputSlot[slot] = itemStack;
         }
-
-        public NormalMachineOutputInventory New(IBlockInventory blockInventory,int outputSlot)
-        {
-            return new NormalMachineOutputInventory(blockInventory,outputSlot,_itemStackFactory);
-        }
     }
 }
