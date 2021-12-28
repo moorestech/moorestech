@@ -12,15 +12,6 @@ namespace Core.Block.Machine.Inventory
         private readonly int _blockId;
         private readonly List<IItemStack> _inputSlot;
         private readonly IMachineRecipeConfig _machineRecipeConfig;
-        public List<IItemStack> InputSlotWithoutEmptyItemStack 
-        {
-            get
-            {
-                var tmp = _inputSlot.Where(i => i.Count != 0).ToList();
-                tmp.Sort((a, b) => a.Id - b.Id);
-                return tmp.ToList();
-            }
-        }
         
         public List<IItemStack> InputSlot
         {
