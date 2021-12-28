@@ -5,6 +5,7 @@ using Game.World.Interface.DataStore;
 
 namespace World.DataStore
 {
+    //TODO ブロック設置を検知　そのブロックが電気系のブロックかどうか判定　電気系なら周りに電気系のブロックがないか探す　あったらそのブロックが所属している電力セグメントにそのブロックを追加
     public class WorldBlockElectricDatastore : IWorldBlockElectricDatastore
     {
         private readonly IWorldBlockDatastore _worldBlockDatastore;
