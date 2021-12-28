@@ -118,7 +118,7 @@ namespace Core.Block.BeltConveyor.Generally
                     _inventoryItems[i].LimitTime =
                         _inventoryItems[i + 1].RemainingTime + _timeOfItemEnterToExit / _inventoryItemNum;
                 }
-                _inventoryItems[_inventoryItems.Count - 1].LimitTime = 0;
+                _inventoryItems[^1].LimitTime = 0;
             }
 
             //時間を減らす
@@ -129,10 +129,9 @@ namespace Core.Block.BeltConveyor.Generally
 
 
             //最後のアイテムが0だったら接続先に渡す
-            var last = _inventoryItems.Count - 1;
-            if (1 <= _inventoryItems.Count && _inventoryItems[last].RemainingTime <= 0)
+            if (1 <= _inventoryItems.Count && _inventoryItems[^1].RemainingTime <= 0)
             {
-                var output = _connector.InsertItem(_itemStackFactory.Create(_inventoryItems[last].ItemId, 1));
+                var output = _connector.InsertItem(_itemStackFactory.Create(_inventoryItems[^1].ItemId, 1));
                 //渡した結果がnullItemだったらそのアイテムを消す
                 if (output.Count == 0)
                 {
