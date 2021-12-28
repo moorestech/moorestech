@@ -83,8 +83,8 @@ namespace Test.UnitTest.Game.SaveLoad
             //リフレクションで機械の状態を設定
             Type machineType = machine.GetType();
             //機械のレシピの残り時間設定
-            var remainingMillSecond = machineType.GetField("_remainingMillSecond",BindingFlags.NonPublic | BindingFlags.Instance);
-            remainingMillSecond.SetValue(machine,300);
+            var normalMachineRunProcess = (NormalMachineRunProcess)machineType.GetField("_normalMachineRunProcess",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+            typeof(NormalMachineRunProcess).GetField("_remainingMillSecond",BindingFlags.NonPublic | BindingFlags.Instance).SetValue(normalMachineRunProcess,300);
             
             //機械のアウトプットスロットの設定
             var outputInventory = (NormalMachineOutputInventory)machineType.GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
@@ -92,8 +92,7 @@ namespace Test.UnitTest.Game.SaveLoad
             outputInventory.SetItem(2,itemStackFactory.Create(3,2));
             
             //レシピIDを取得
-            var _processingRecipeData = (IMachineRecipeData)machineType.GetField("_processingRecipeData",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
-            var recipeId = _processingRecipeData.RecipeId;
+            var recipeId = normalMachineRunProcess.RecipeDataId;
 
             var json = assembleSaveJsonText.AssembleSaveJson();
             Console.WriteLine(json);
@@ -117,12 +116,12 @@ namespace Test.UnitTest.Game.SaveLoad
             var loadMachineType = loadMachine.GetType();
             
             //機械のレシピの残り時間のチェック
-            var loadRemainingMillSecond = loadMachineType.GetField("_remainingMillSecond",BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.AreEqual((double)300,(double)loadRemainingMillSecond.GetValue(loadMachine));
-            
+            var loadNormalMachineRunProcess = (NormalMachineRunProcess)machineType.GetField("_normalMachineRunProcess",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachine);
+            Assert.AreEqual((double)300,(double)loadNormalMachineRunProcess.RemainingMillSecond);
+            //レシピIDのチェック
+            Assert.AreEqual(recipeId,loadNormalMachineRunProcess.RecipeDataId);
             //機械のステータスのチェック
-            var loadMachineStatus = loadMachineType.GetField("_state",BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.AreEqual(ProcessState.Processing,(ProcessState)loadMachineStatus.GetValue(loadMachine));
+            Assert.AreEqual(ProcessState.Processing,loadNormalMachineRunProcess.State);
             
             //インプットスロットのチェック
             var inputInventoryField = (NormalMachineInputInventory)loadMachineType.GetField("_normalMachineInputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachine);
@@ -134,10 +133,6 @@ namespace Test.UnitTest.Game.SaveLoad
             Assert.AreEqual(itemStackFactory.CreatEmpty(),outputInventoryField.OutputSlot[0]);
             Assert.AreEqual(itemStackFactory.Create(1,1),outputInventoryField.OutputSlot[1]);
             Assert.AreEqual(itemStackFactory.Create(3,2),outputInventoryField.OutputSlot[2]);
-            
-            //レシピIDのチェック
-            var loadProcessingRecipeData = (IMachineRecipeData)loadMachineType.GetField("_processingRecipeData",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachine);
-            Assert.AreEqual(recipeId,loadProcessingRecipeData.RecipeId);
         }
 
         private (ItemStackFactory,BlockFactory,WorldBlockDatastore,PlayerInventoryDataStore,AssembleSaveJsonText) CreateBlockTestModule()
