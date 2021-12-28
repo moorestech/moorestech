@@ -10,9 +10,8 @@ using Core.Item;
 namespace Core.Block.Machine
 {
     /// <summary>
-    /// 「機械」というオブジェクト(ドメイン)事態の責務が大きすぎて、クラス自体の責務も大きくなってしまっているう
-    /// 単純に別のクラスに分けるのも手かも知れないが、本質的な解決になるのだろうか？
-    /// 現状箱のままにしておくが、今後機械関係のクラスに修正をする場合、この機械のクラス全体をリファクタする必要があるような気がする
+    /// 機械を表すクラス
+    /// 具体的な処理は各コンポーネントに任せて、このクラスはInterfaceの実装だけを行う
     /// </summary>
     public class NormalMachine : IBlock,IBlockInventory,IBlockElectric,IInventory
     {
@@ -45,18 +44,23 @@ namespace Core.Block.Machine
             _intId = intId;
         }
         
+        // IBlockInventoryのインターフェース実装
         public IItemStack InsertItem(IItemStack itemStack) { return _normalMachineBlockInventory.InsertItem(itemStack); }
         public void AddConnector(IBlockInventory blockInventory) { _normalMachineBlockInventory.AddConnector(blockInventory); }
         public void RemoveConnector(IBlockInventory blockInventory) { _normalMachineBlockInventory.RemoveConnector(blockInventory); }
 
 
+        //IInventoryのインターフェース実装
         public IItemStack GetItem(int slot) { return _normalMachineInventory.GetItem(slot); }
         public void SetItem(int slot, IItemStack itemStack) { _normalMachineInventory.SetItem(slot, itemStack); }
         public IItemStack ReplaceItem(int slot, IItemStack itemStack) { return _normalMachineInventory.ReplaceItem(slot, itemStack); }
         
         
+        //IBlockElectricのインターフェース実装
         public int GetRequestPower(){return _normalMachineRunProcess.GetRequestPower();}
         public void SupplyPower(int power){_normalMachineRunProcess.SupplyPower(power);}
+        
+        //IBlockのインターフェース実装
         public int GetIntId(){return _intId;}
         public int GetBlockId() { return _blockId; }
         public string GetSaveState()
