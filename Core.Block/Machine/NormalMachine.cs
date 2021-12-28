@@ -21,6 +21,7 @@ namespace Core.Block.Machine
         private readonly NormalMachineBlockInventory _normalMachineBlockInventory;
         private readonly NormalMachineInventory _normalMachineInventory;
         private readonly NormalMachineSave _normalMachineSave;
+        private readonly NormalMachineRunProcess _normalMachineRunProcess;
         
         public List<IItemStack> InputSlotWithoutEmptyItemStack => _normalMachineInputInventory.InputSlotWithoutEmptyItemStack;
         public List<IItemStack> OutputSlotWithoutEmptyItemStack => _normalMachineOutputInventory.OutputSlotWithoutEmptyItemStack;
@@ -32,13 +33,14 @@ namespace Core.Block.Machine
             NormalMachineOutputInventory normalMachineOutputInventory, 
             NormalMachineBlockInventory normalMachineBlockInventory, 
             NormalMachineInventory normalMachineInventory, 
-            NormalMachineSave normalMachineSave)
+            NormalMachineSave normalMachineSave, NormalMachineRunProcess normalMachineRunProcess)
         {
             _normalMachineInputInventory = normalMachineInputInventory;
             _normalMachineOutputInventory = normalMachineOutputInventory;
             _normalMachineBlockInventory = normalMachineBlockInventory;
             _normalMachineInventory = normalMachineInventory;
             _normalMachineSave = normalMachineSave;
+            _normalMachineRunProcess = normalMachineRunProcess;
             _blockId = blockId;
             _intId = intId;
         }
@@ -52,12 +54,9 @@ namespace Core.Block.Machine
         public void SetItem(int slot, IItemStack itemStack) { _normalMachineInventory.SetItem(slot, itemStack); }
         public IItemStack ReplaceItem(int slot, IItemStack itemStack) { return _normalMachineInventory.ReplaceItem(slot, itemStack); }
         
-
-
-        private const int RequestPower = 100;
-        private int _nowPower = 0;
-        public int GetRequestPower(){return RequestPower;}
-        public void SupplyPower(int power){_nowPower = power;}
+        
+        public int GetRequestPower(){return _normalMachineRunProcess.GetRequestPower();}
+        public void SupplyPower(int power){_normalMachineRunProcess.SupplyPower(power);}
         public int GetIntId(){return _intId;}
         public int GetBlockId() { return _blockId; }
         public string GetSaveState()

@@ -82,8 +82,6 @@ namespace Core.Block.Machine
                 _normalMachineOutputInventory.InsertOutputSlot(_processingRecipeData);
             }
         }
-        
-        
         private bool IsAllowedToStartProcess
         {
             get
@@ -94,6 +92,9 @@ namespace Core.Block.Machine
                        _normalMachineOutputInventory.IsAllowedToOutputItem(recipe);
             }
         }
+        
+        public int GetRequestPower(){return RequestPower;}
+        public void SupplyPower(int power){_nowPower = power;}
     }
 
     public enum ProcessState

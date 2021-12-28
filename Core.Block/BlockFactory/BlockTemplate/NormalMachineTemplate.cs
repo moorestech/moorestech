@@ -39,7 +39,8 @@ namespace Core.Block.BlockFactory.BlockTemplate
                 output,
                 new NormalMachineBlockInventory(input,output),
                 new NormalMachineInventory(input,output),
-                new NormalMachineSave(input,output,runProcess)
+                new NormalMachineSave(input,output,runProcess),
+                runProcess
                 );
 
         }
@@ -62,7 +63,8 @@ namespace Core.Block.BlockFactory.BlockTemplate
                 output,
                 new NormalMachineBlockInventory(input,output),
                 new NormalMachineInventory(input,output),
-                new NormalMachineSave(input,output,runProcess)
+                new NormalMachineSave(input,output,runProcess),
+                runProcess
             );
         }
     }
