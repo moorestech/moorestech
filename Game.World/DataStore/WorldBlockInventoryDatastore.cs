@@ -6,7 +6,7 @@ namespace World.DataStore
 {
     public class WorldBlockInventoryDatastore : IWorldBlockInventoryDatastore
     {
-        private IWorldBlockDatastore _worldBlockDatastore;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
 
         public WorldBlockInventoryDatastore(IWorldBlockDatastore worldBlockDatastore)
         {
