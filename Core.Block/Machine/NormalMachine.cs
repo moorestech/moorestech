@@ -15,27 +15,19 @@ namespace Core.Block.Machine
     /// </summary>
     public class NormalMachine : IBlock,IBlockInventory,IBlockElectric,IInventory
     {
-        private readonly NormalMachineInputInventory _normalMachineInputInventory;
-        private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
         private readonly NormalMachineBlockInventory _normalMachineBlockInventory;
         private readonly NormalMachineInventory _normalMachineInventory;
         private readonly NormalMachineSave _normalMachineSave;
         private readonly NormalMachineRunProcess _normalMachineRunProcess;
         
-        public List<IItemStack> InputSlotWithoutEmptyItemStack => _normalMachineInputInventory.InputSlotWithoutEmptyItemStack;
-        public List<IItemStack> OutputSlotWithoutEmptyItemStack => _normalMachineOutputInventory.OutputSlotWithoutEmptyItemStack;
         
         private readonly int _blockId;
         private readonly int _intId;
         public NormalMachine(int blockId, int intId,
-            NormalMachineInputInventory normalMachineInputInventory,
-            NormalMachineOutputInventory normalMachineOutputInventory, 
             NormalMachineBlockInventory normalMachineBlockInventory, 
             NormalMachineInventory normalMachineInventory, 
             NormalMachineSave normalMachineSave, NormalMachineRunProcess normalMachineRunProcess)
         {
-            _normalMachineInputInventory = normalMachineInputInventory;
-            _normalMachineOutputInventory = normalMachineOutputInventory;
             _normalMachineBlockInventory = normalMachineBlockInventory;
             _normalMachineInventory = normalMachineInventory;
             _normalMachineSave = normalMachineSave;

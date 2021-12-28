@@ -35,8 +35,6 @@ namespace Core.Block.BlockFactory.BlockTemplate
             var runProcess = new NormalMachineRunProcess(input,output,_machineRecipeConfig.GetNullRecipeData());
             
             return new NormalMachine(param.BlockId,intId , 
-                input,
-                output,
                 new NormalMachineBlockInventory(input,output),
                 new NormalMachineInventory(input,output),
                 new NormalMachineSave(input,output,runProcess),
@@ -59,8 +57,6 @@ namespace Core.Block.BlockFactory.BlockTemplate
            
             
             return new NormalMachine(param.BlockId,intId , 
-                input,
-                output,
                 new NormalMachineBlockInventory(input,output),
                 new NormalMachineInventory(input,output),
                 new NormalMachineSave(input,output,runProcess),

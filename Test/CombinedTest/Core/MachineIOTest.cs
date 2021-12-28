@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Block;
 using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
-using Core.Block.Config;
 using Core.Block.Machine;
 using Core.Block.RecipeConfig;
 using Core.Electric;
@@ -22,7 +20,7 @@ namespace Test.CombinedTest.Core
 {
     public class MachineIoTest
     {
-        private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
+        private readonly ItemStackFactory _itemStackFactory = new(new TestItemConfig());
         private BlockFactory _blockFactory;
         private NormalMachine CreateMachine(int id)
         {
@@ -42,13 +40,10 @@ namespace Test.CombinedTest.Core
         }
         
         
-        [TestCase(true,new int[1]{1}, new int[1]{1})]
-        [TestCase(true,new int[2]{100,101}, new int[2]{10,10})]
-        [TestCase(true,new int[3]{10,11,15}, new int[3]{10,5,8})]
-        [TestCase(false,new int[3]{0,5,1}, new int[3]{10,5,8})]
-        [TestCase(false,new int[2]{1,0}, new int[2]{10,5})]
-        [TestCase(false,new int[2]{0,0}, new int[2]{10,5})]
-        public void MachineInputTest(bool isEquals,int[] id,int[] count)
+        [TestCase(new int[1]{1}, new int[1]{1})]
+        [TestCase(new int[2]{100,101}, new int[2]{10,10})]
+        [TestCase(new int[3]{10,11,15}, new int[3]{10,5,8})]
+        public void MachineInputTest(int[] id,int[] count)
         {
             var machine = CreateMachine(4);
             var items = new List<IItemStack>();
@@ -61,17 +56,32 @@ namespace Test.CombinedTest.Core
             {
                 machine.InsertItem(item);
             }
-
-            if (isEquals)
-            {
-                Assert.AreEqual(items.ToArray(), machine.InputSlotWithoutEmptyItemStack.ToArray());   
-            }
-            else
-            {
-                Assert.AreNotEqual(items.ToArray(), machine.InputSlotWithoutEmptyItemStack.ToArray());
-            }
             
+            
+            var loadNormalMachineRunProcess = (NormalMachineRunProcess)machineType.GetField("_normalMachineRunProcess",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadMachine);
+            Assert.AreEqual((double)300,(double)loadNormalMachineRunProcess.RemainingMillSecond);
+            
+            Assert.AreEqual(items.ToArray(), machine.InputSlotWithoutEmptyItemStack.ToArray());   
         }
+
+        [TestCase( new int[3] {0, 5, 1}, new int[3] {10, 5, 8})]
+        [TestCase( new int[2] {1, 0}, new int[2] {10, 5})]
+        [TestCase( new int[2] {0, 0}, new int[2] {10, 5})]
+        public void MachineInputNullItemTest(int[] id,int[] count)
+        {
+            var machine = CreateMachine(4);
+            var items = new List<IItemStack>();
+            for (int i = 0; i < id.Length; i++)
+            {
+                items.Add(_itemStackFactory.Create(id[i], count[i]));
+            }
+
+            foreach (var item in items)
+            {
+                machine.InsertItem(item);
+            }
+        }
+        
         [TestCase(new int[2]{1,1}, new int[2]{1,1}, new int[1]{1}, new int[1]{2})]
         [TestCase(new int[2]{3,1}, new int[2]{1,1}, new int[2]{1,3}, new int[2]{1,1})]
         public void MachineAddInputTest(int[] id,int[] count,int[] ansid,int[] anscount)
