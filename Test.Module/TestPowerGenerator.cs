@@ -1,6 +1,6 @@
 ﻿using Core.Electric;
 
-namespace Test.Util
+namespace Test.Module
 {
     //デバック用で無限に電力を供給できる
     public class TestPowerGenerator : IPowerGenerator

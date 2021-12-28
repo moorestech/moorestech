@@ -1,7 +1,7 @@
 ﻿using Core.Electric;
 using Core.Update;
 using NUnit.Framework;
-using Test.Util;
+using Test.Module;
 
 namespace Test.UnitTest.Core.Block
 {

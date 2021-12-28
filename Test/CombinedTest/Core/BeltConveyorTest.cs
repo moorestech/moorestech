@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Test.Module;
-using Test.Util;
 
 namespace Test.CombinedTest.Core
 {
