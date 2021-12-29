@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Core.Block.BeltConveyor.Generally;
+using Core.Block.BeltConveyor;
 using Core.Item;
 using Core.Item.Config;
 using NUnit.Framework;

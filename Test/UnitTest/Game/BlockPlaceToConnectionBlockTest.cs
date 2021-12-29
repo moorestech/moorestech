@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Core.Block.BeltConveyor.Generally;
+using Core.Block.BeltConveyor;
 using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 using Core.Block.Machine;

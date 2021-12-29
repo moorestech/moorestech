@@ -1,5 +1,5 @@
 ﻿using System;
-using Core.Block.BeltConveyor.Generally;
+using Core.Block.BeltConveyor;
 using Core.Block.BlockFactory;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
