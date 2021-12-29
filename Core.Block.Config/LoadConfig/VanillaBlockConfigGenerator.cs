@@ -15,6 +15,7 @@ namespace Core.Block.Config.LoadConfig
             config.Add(VanillaBlockType.Machine, new MachineConfigParamGenerator());
             config.Add(VanillaBlockType.Block, new BlockConfigParamGenerator());
             config.Add(VanillaBlockType.BeltConveyor, new BeltConveyorConfigParamGenerator());
+            config.Add(VanillaBlockType.ElectricPole, new ElectricPoleConfigParamGenerator());
 
             return config;
         }
