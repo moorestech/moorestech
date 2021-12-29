@@ -98,6 +98,8 @@ namespace World.EventListener
                     }
                 }
             }
+            
+            //TODO 設置されたブロックが電力機械or発電機だった時の処理
         }
     }
 }
