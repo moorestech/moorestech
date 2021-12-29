@@ -12,5 +12,23 @@ namespace World.DataStore
         {
             
         }
+        
+        //TODO 電柱オブジェクトから所属している電力セグメントを取得する
+        public ElectricSegment GetElectricSegment(IElectricPole pole)
+        {
+            return null;
+        }
+
+        public ElectricSegment GetElectricSegment(IBlockElectric machine)
+        {
+            throw new System.NotImplementedException();
+        }
+        
+        public ElectricSegment CreateElectricSegment(int id)
+        {
+            var electricSegment = new ElectricSegment();
+            _segmentDictionary.Add(id,electricSegment);
+            return electricSegment;
+        }
     }
 }
