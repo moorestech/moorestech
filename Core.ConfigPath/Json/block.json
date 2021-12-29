@@ -1,23 +1,23 @@
 ﻿{
   "Blocks":[
     {
-      "name": "TestMachine1",
+      "name": "TestMachine",
       "type" : "Machine",
       "param" : {"inputSlot": 2,"outputSlot": 1,"requiredPower": 100}
     },
     {
-      "name": "aaa",
+      "name": "TestBlock",
       "type" : "Block",
       "param" : {}
     },
     {
-      "name": "bb",
+      "name": "TestBeltConveyor",
       "type" : "BeltConveyor",
       "param" : {"slot": 4,"time": 2000}
     },
     {
-      "name": "ccccc",
-      "type" : "Machine",
+      "name": "TestElectricPole",
+      "type" : "ElectricPole",
       "param" : {"inputSlot": 25,"outputSlot": 5,"requiredPower": 100}
     },
     {
