@@ -18,7 +18,7 @@
     {
       "name": "TestElectricPole",
       "type" : "ElectricPole",
-      "param" : {"inputSlot": 25,"outputSlot": 5,"requiredPower": 100}
+      "param" : {"poleConnectionRange": 6,"MachineConnectionRange": 5}
     },
     {
       "name": "aaa",
