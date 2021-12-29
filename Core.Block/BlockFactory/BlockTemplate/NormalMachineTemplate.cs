@@ -32,7 +32,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
             var output = new NormalMachineOutputInventory(new NullIBlockInventory(), machineParam.OutputSlot,
                 _itemStackFactory);
 
-            var runProcess = new NormalMachineRunProcess(input,output,_machineRecipeConfig.GetNullRecipeData());
+            var runProcess = new NormalMachineRunProcess(input,output,_machineRecipeConfig.GetNullRecipeData(),machineParam.RequiredPower);
             
             return new NormalMachine(param.BlockId,intId , 
                 new NormalMachineBlockInventory(input,output),
@@ -53,7 +53,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
             var output = new NormalMachineOutputInventory(new NullIBlockInventory(), machineParam.OutputSlot,
                 _itemStackFactory);
 
-            var runProcess =  new NormalMachineLoad(input,output,_itemStackFactory,_machineRecipeConfig).Load(state);
+            var runProcess =  new NormalMachineLoad(input,output,_itemStackFactory,_machineRecipeConfig,machineParam.RequiredPower).Load(state);
            
             
             return new NormalMachine(param.BlockId,intId , 

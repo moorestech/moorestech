@@ -14,7 +14,7 @@ namespace Core.Block.Machine
         public double RemainingMillSecond => _remainingMillSecond;
         public int RecipeDataId => _processingRecipeData.RecipeId;
 
-        private const int RequestPower = 100;
+        private readonly int RequestPower;
         private int _nowPower = 0;
         
         
@@ -24,23 +24,25 @@ namespace Core.Block.Machine
         public NormalMachineRunProcess(
             NormalMachineInputInventory normalMachineInputInventory, 
             NormalMachineOutputInventory normalMachineOutputInventory,
-            IMachineRecipeData machineRecipeData)
+            IMachineRecipeData machineRecipeData, int requestPower)
         {
             _normalMachineInputInventory = normalMachineInputInventory;
             _normalMachineOutputInventory = normalMachineOutputInventory;
             _processingRecipeData = machineRecipeData;
+            RequestPower = requestPower;
 
             GameUpdate.AddUpdateObject(this);
         }
         public NormalMachineRunProcess(
             NormalMachineInputInventory normalMachineInputInventory, 
             NormalMachineOutputInventory normalMachineOutputInventory,
-            ProcessState state,double remainingMillSecond,IMachineRecipeData processingRecipeData)
+            ProcessState state,double remainingMillSecond,IMachineRecipeData processingRecipeData, int requestPower)
         {
             _normalMachineInputInventory = normalMachineInputInventory;
             _normalMachineOutputInventory = normalMachineOutputInventory;
             
             _processingRecipeData = processingRecipeData;
+            RequestPower = requestPower;
             _state = state;
             _remainingMillSecond = remainingMillSecond;
 

@@ -12,17 +12,20 @@ namespace Core.Block.Machine.SaveLoad
         private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly IMachineRecipeConfig _machineRecipeConfig;
+        private readonly int _requestPower;
 
         public NormalMachineLoad(
             NormalMachineInputInventory normalMachineInputInventory, 
             NormalMachineOutputInventory normalMachineOutputInventory, 
             ItemStackFactory itemStackFactory, 
-            IMachineRecipeConfig machineRecipeConfig)
+            IMachineRecipeConfig machineRecipeConfig,
+            int requestPower)
         {
             _normalMachineInputInventory = normalMachineInputInventory;
             _normalMachineOutputInventory = normalMachineOutputInventory;
             _itemStackFactory = itemStackFactory;
             _machineRecipeConfig = machineRecipeConfig;
+            _requestPower = requestPower;
         }
 
         public NormalMachineRunProcess Load(string loadString)
@@ -56,7 +59,7 @@ namespace Core.Block.Machine.SaveLoad
             int recipeId = int.Parse(split[index]);
             var processingRecipeData = _machineRecipeConfig.GetRecipeData(recipeId);
 
-            return new NormalMachineRunProcess(_normalMachineInputInventory, _normalMachineOutputInventory, state, remainingMillSecond, processingRecipeData);
+            return new NormalMachineRunProcess(_normalMachineInputInventory, _normalMachineOutputInventory, state, remainingMillSecond, processingRecipeData,_requestPower);
         }
     }
 }
