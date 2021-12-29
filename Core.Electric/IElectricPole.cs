@@ -1,4 +1,4 @@
-namespace Core.Block.ElectricPole
+namespace Core.Electric
 {
     public interface IElectricPole
     {
