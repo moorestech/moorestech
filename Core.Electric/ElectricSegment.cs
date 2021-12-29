@@ -75,5 +75,21 @@ namespace Core.Electric
             }
         }
 
+        public void AddElectricPole(IElectricPole electricPole)
+        {
+            if (!_electricPoles.ContainsKey(electricPole.GetIntId()))
+            {
+                _electricPoles.Add(electricPole.GetIntId(),electricPole);
+            }
+        }
+
+        public void RemoveElectricPole(IElectricPole electricPole)
+        {
+            if (_electricPoles.ContainsKey(electricPole.GetIntId()))
+            {
+                _electricPoles.Remove(electricPole.GetIntId());
+            }
+        }
+
     }
 }
