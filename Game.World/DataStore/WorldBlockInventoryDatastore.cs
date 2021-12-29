@@ -4,7 +4,7 @@ using Game.World.Interface.DataStore;
 
 namespace World.DataStore
 {
-    public class WorldBlockInventoryDatastore : IWorldBlockInventoryDatastore
+    public class WorldBlockInventoryDatastore : IWorldBlockComponentDatastore<IBlockInventory>
     {
         private readonly IWorldBlockDatastore _worldBlockDatastore;
 
@@ -12,8 +12,7 @@ namespace World.DataStore
         {
             _worldBlockDatastore = worldBlockDatastore;
         }
-
-        public bool ExistsBlockInventory(int x, int y)
+        public bool ExistsComponentBlock(int x, int y)
         {
             return _worldBlockDatastore.GetBlock(x, y) is IBlockInventory;
         }

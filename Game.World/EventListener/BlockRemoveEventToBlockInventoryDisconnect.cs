@@ -7,9 +7,9 @@ namespace World.EventListener
 {
     public class BlockRemoveEventToBlockInventoryDisconnect
     {
-        private readonly IWorldBlockInventoryDatastore _worldBlockInventoryDatastore;
+        private readonly IWorldBlockComponentDatastore<IBlockInventory> _worldBlockInventoryDatastore;
 
-        public BlockRemoveEventToBlockInventoryDisconnect(IWorldBlockInventoryDatastore worldBlockInventoryDatastore,
+        public BlockRemoveEventToBlockInventoryDisconnect(IWorldBlockComponentDatastore<IBlockInventory> worldBlockInventoryDatastore,
             IBlockRemoveEvent blockRemoveEvent)
         {
             _worldBlockInventoryDatastore = worldBlockInventoryDatastore;
@@ -30,7 +30,7 @@ namespace World.EventListener
 
             foreach (var (offsetX, offsetY) in connectOffsetBlockPositions)
                 //削除されたブロックの周りのブロックがIBlockInventoryを持っている時
-                if (_worldBlockInventoryDatastore.ExistsBlockInventory(x + offsetX, y + offsetY))
+                if (_worldBlockInventoryDatastore.ExistsComponentBlock(x + offsetX, y + offsetY))
                     //そのブロックの接続を削除する
                     _worldBlockInventoryDatastore.GetBlock(x + offsetX, y + offsetY)
                         .RemoveConnector((IBlockInventory) blockRemoveEvent.Block);

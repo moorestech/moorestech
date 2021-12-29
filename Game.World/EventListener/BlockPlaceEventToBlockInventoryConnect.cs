@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Block.BlockInventory;
 using Core.Block.Config;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
@@ -12,12 +13,12 @@ namespace World.EventListener
     /// </summary>
     public class BlockPlaceEventToBlockInventoryConnect
     {
-        private readonly IWorldBlockInventoryDatastore _worldBlockInventoryDatastore;
+        private readonly IWorldBlockComponentDatastore<IBlockInventory> _worldBlockInventoryDatastore;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IBlockConfig _blockConfig;
         private readonly Dictionary<string, IoConnectionData> _ioConnectionDataDictionary;
 
-        public BlockPlaceEventToBlockInventoryConnect(IWorldBlockInventoryDatastore worldBlockInventoryDatastore,IBlockPlaceEvent blockPlaceEvent, IBlockConfig blockConfig, IWorldBlockDatastore worldBlockDatastore)
+        public BlockPlaceEventToBlockInventoryConnect(IWorldBlockComponentDatastore<IBlockInventory> worldBlockInventoryDatastore,IBlockPlaceEvent blockPlaceEvent, IBlockConfig blockConfig, IWorldBlockDatastore worldBlockDatastore)
         {
             _worldBlockInventoryDatastore = worldBlockInventoryDatastore;
             _blockConfig = blockConfig;
@@ -50,8 +51,8 @@ namespace World.EventListener
         private void ConnectBlock(int sourceX, int sourceY, int destinationX, int destinationY)
         {
             //接続元、接続先にBlockInventoryがなければ処理を終了
-            if (!_worldBlockInventoryDatastore.ExistsBlockInventory(sourceX, sourceY) ||
-                !_worldBlockInventoryDatastore.ExistsBlockInventory(destinationX, destinationY)) return;
+            if (!_worldBlockInventoryDatastore.ExistsComponentBlock(sourceX, sourceY) ||
+                !_worldBlockInventoryDatastore.ExistsComponentBlock(destinationX, destinationY)) return;
             
             
             //接続元のブロックデータを取得

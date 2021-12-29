@@ -1,7 +1,9 @@
 using Core.Block;
 using Core.Block.BlockFactory;
+using Core.Block.BlockInventory;
 using Core.Block.Config;
 using Core.Block.RecipeConfig;
+using Core.Inventory;
 using Core.Item;
 using Core.Item.Config;
 using Game.PlayerInventory.Interface;
@@ -43,7 +45,7 @@ namespace Server
             //ゲームプレイに必要なクラスのインスタンスを生成
             services.AddSingleton<EventProtocolProvider,EventProtocolProvider>();
             services.AddSingleton<IWorldBlockDatastore,WorldBlockDatastore>();
-            services.AddSingleton<IWorldBlockInventoryDatastore,WorldBlockInventoryDatastore>();
+            services.AddSingleton<IWorldBlockComponentDatastore<IBlockInventory>,WorldBlockInventoryDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore,PlayerInventoryDataStore>();
             
             //JSONファイルのセーブシステムの読み込み

@@ -6,7 +6,7 @@ using Game.World.Interface.DataStore;
 namespace World.DataStore
 {
     //TODO ブロック設置を検知　そのブロックが電気系のブロックかどうか判定　電気系なら周りに電気系のブロックがないか探す　あったらそのブロックが所属している電力セグメントにそのブロックを追加
-    public class WorldBlockElectricDatastore : IWorldBlockElectricDatastore
+    public class WorldBlockElectricDatastore : IWorldBlockComponentDatastore<IBlockElectric>
     {
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         
@@ -14,7 +14,7 @@ namespace World.DataStore
         {
             _worldBlockDatastore = worldBlockDatastore;
         }
-        public bool ExistsBlockElectric(int x, int y)
+        public bool ExistsComponentBlock(int x, int y)
         {
             return _worldBlockDatastore.GetBlock(x, y) is IBlockElectric;
         }
