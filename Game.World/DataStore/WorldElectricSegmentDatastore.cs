@@ -19,6 +19,12 @@ namespace World.DataStore
         {
             return null;
         }
+
+        public ElectricSegment GetElectricSegment(int index)
+        {
+            return _segmentDictionary[index];   
+        }
+
         public ElectricSegment CreateElectricSegment()
         {
             var electricSegment = new ElectricSegment();
