@@ -115,19 +115,17 @@ namespace World.EventListener
                     for (int j = startMachineY; j < startMachineY + _maxMachineConnectionRange; j++)
                     {
                         //範囲内に電柱がある場合
-                        if (_electricPoleDatastore.ExistsComponentBlock(i,j))
+                        if (!_electricPoleDatastore.ExistsComponentBlock(i, j)) continue;
+                        
+                        //電柱を取得
+                        var pole = _electricPoleDatastore.GetBlock(i,j);
+                        //その電柱から見て機械が範囲内に存在するか確認
+                        var configParam = _blockConfig.GetBlockConfig(((IBlock)pole).GetBlockId()).Param as ElectricPoleConfigParam;
+                        var range = configParam.machineConnectionRange;
+                        if (i - range / 2 <= x && x <= i + range / 2 && j - range / 2 <= y && y <= j + range / 2)
                         {
-                            //電柱を取得
-                            var pole = _electricPoleDatastore.GetBlock(i,j);
-                            //その電柱から見て機械が範囲内に存在するか確認
-                            var configParam = _blockConfig.GetBlockConfig(((IBlock)pole).GetBlockId()).Param as ElectricPoleConfigParam;
-                            var range = configParam.machineConnectionRange;
-                            if (i - range / 2 <= x && x <= i + range / 2 && j - range / 2 <= y && y <= j + range / 2)
-                            {
-                                //機械を電力セグメントに追加
-                                _worldElectricSegmentDatastore.GetElectricSegment(pole).AddBlockElectric(_electricDatastore.GetBlock(x,y));
-                            }
-
+                            //機械を電力セグメントに追加
+                            _worldElectricSegmentDatastore.GetElectricSegment(pole).AddBlockElectric(_electricDatastore.GetBlock(x,y));
                         }
                     }
                 }
