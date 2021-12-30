@@ -50,7 +50,7 @@ namespace World.EventListener
                 //他の電柱を探索して接続する
                 var poleRange = electric.poleConnectionRange;
                 _electricPoleDatastore.GetBlock(x, y);
-                var startElectricX = x - poleRange / 2 ;
+                var startElectricX = x - poleRange / 2;
                 var startElectricY = y - poleRange / 2;
                 for (int i = startElectricX; i < startElectricX + poleRange; i++)
                 {
@@ -88,8 +88,9 @@ namespace World.EventListener
 
                 //他の機械を探索して接続する
                 var machineRange = electric.machineConnectionRange;
-                var startMachineX = machineRange / 2 + x;
-                var startMachineY = machineRange / 2 + y;
+                
+                var startMachineX =  x - machineRange / 2;
+                var startMachineY = y - machineRange / 2;
                 for (int i = startMachineX; i < startMachineX + machineRange; i++)
                 {
                     for (int j = startMachineY; j < startMachineY + machineRange; j++)
@@ -108,8 +109,8 @@ namespace World.EventListener
             if (_electricDatastore.ExistsComponentBlock(x,y))
             {
                 //最大の電柱の接続範囲を取得探索して接続する
-                var startMachineX = _maxMachineConnectionRange / 2 + x;
-                var startMachineY = _maxMachineConnectionRange / 2 + y;
+                var startMachineX = x - _maxMachineConnectionRange / 2;
+                var startMachineY = y - _maxMachineConnectionRange / 2;
                 for (int i = startMachineX; i < startMachineX + _maxMachineConnectionRange; i++)
                 {
                     for (int j = startMachineY; j < startMachineY + _maxMachineConnectionRange; j++)
@@ -138,8 +139,8 @@ namespace World.EventListener
             if (_powerGeneratorDatastore.ExistsComponentBlock(x,y))
             {
                 //最大の電柱の接続範囲を取得探索して接続する
-                var startMachineX = _maxMachineConnectionRange / 2 + x;
-                var startMachineY = _maxMachineConnectionRange / 2 + y;
+                var startMachineX = x - _maxMachineConnectionRange / 2;
+                var startMachineY = y - _maxMachineConnectionRange / 2;
                 for (int i = startMachineX; i < startMachineX + _maxMachineConnectionRange; i++)
                 {
                     for (int j = startMachineY; j < startMachineY + _maxMachineConnectionRange; j++)
