@@ -14,6 +14,7 @@ namespace Test.CombinedTest.Game
         //ブロックIDが変わったらここを変える
         private const int ElectricPoleId = 4;
         private const int MachineId = 1;
+        private const int PowerGenerateId = 1;
         
         //電柱を設置し、電柱に接続するテスト
         [Test]
@@ -100,7 +101,7 @@ namespace Test.CombinedTest.Game
             }
         }
         
-        //電柱を設置した後に機械、発電機を設置するテスト
+        //機械、発電機を設置した後に電柱を設置するテスト
         [Test]
         public void PlaceMachineToPlaceElectricPoleTest()
         {
