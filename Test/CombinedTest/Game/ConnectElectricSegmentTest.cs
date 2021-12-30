@@ -56,7 +56,7 @@ namespace Test.CombinedTest.Game
             }
         }
         
-        //電柱を設置した後に機械を設置するテスト
+        //電柱を設置した後に機械、発電機を設置するテスト
         [Test]
         public void PlaceElectricPoleToPlaceMachineTest()
         {
@@ -100,8 +100,11 @@ namespace Test.CombinedTest.Game
             }
         }
         
-        //機械を設置した後に電柱を設置するテスト
+        //電柱を設置した後に機械、発電機を設置するテスト
         [Test]
-        public void 
+        public void PlaceMachineToPlaceElectricPoleTest()
+        {
+            
+        }
     }
 }
