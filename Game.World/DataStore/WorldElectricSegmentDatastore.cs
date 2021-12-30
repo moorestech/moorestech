@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Electric;
 using Game.World.Interface.DataStore;
@@ -14,10 +15,17 @@ namespace World.DataStore
             
         }
         
-        //TODO 電柱オブジェクトから所属している電力セグメントを取得する
+        //電柱オブジェクトから所属している電力セグメントを取得する
         public ElectricSegment GetElectricSegment(IElectricPole pole)
         {
-            return null;
+            foreach (var segment in _segmentDictionary)
+            {
+                if (segment.ExistElectricPole(pole.GetIntId()))
+                {
+                    return segment;
+                }
+            }
+            throw new Exception("電力セグメントが見つかりませんでした");
         }
 
         public ElectricSegment GetElectricSegment(int index)

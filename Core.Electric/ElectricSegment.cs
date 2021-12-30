@@ -42,7 +42,6 @@ namespace Core.Electric
                 _electrics[key].SupplyPower((int)(_electrics[key].GetRequestPower()*powerRate));
             }
         }
-
         public void AddBlockElectric(IBlockElectric blockElectric)
         {
             if (!_electrics.ContainsKey(blockElectric.GetIntId()))
@@ -50,7 +49,6 @@ namespace Core.Electric
                 _electrics.Add(blockElectric.GetIntId(),blockElectric);
             }
         }
-
         public void RemoveBlockElectric(IBlockElectric blockElectric)
         {
             if (_electrics.ContainsKey(blockElectric.GetIntId()))
@@ -58,7 +56,6 @@ namespace Core.Electric
                 _electrics.Remove(blockElectric.GetIntId());
             }
         }
-
         public void AddGenerator(IPowerGenerator powerGenerator)
         {
             if (!_generators.ContainsKey(powerGenerator.GetIntId()))
@@ -66,7 +63,6 @@ namespace Core.Electric
                 _generators.Add(powerGenerator.GetIntId(),powerGenerator);
             }
         }
-
         public void RemoveGenerator(IPowerGenerator powerGenerator)
         {
             if (_generators.ContainsKey(powerGenerator.GetIntId()))
@@ -74,7 +70,6 @@ namespace Core.Electric
                 _generators.Remove(powerGenerator.GetIntId());
             }
         }
-
         public void AddElectricPole(IElectricPole electricPole)
         {
             if (!_electricPoles.ContainsKey(electricPole.GetIntId()))
@@ -82,7 +77,6 @@ namespace Core.Electric
                 _electricPoles.Add(electricPole.GetIntId(),electricPole);
             }
         }
-
         public void RemoveElectricPole(IElectricPole electricPole)
         {
             if (_electricPoles.ContainsKey(electricPole.GetIntId()))
@@ -90,6 +84,10 @@ namespace Core.Electric
                 _electricPoles.Remove(electricPole.GetIntId());
             }
         }
-
+        
+        public bool ExistElectricPole(int id)
+        {
+            return _electricPoles.ContainsKey(id);
+        }
     }
 }
