@@ -40,7 +40,7 @@ namespace Test.CombinedTest.Game
 
             var worldElectricSegment = saveServiceProvider.GetService<IWorldElectricSegmentDatastore>();
             //セグメントの数を確認
-            Assert.AreEqual(5, worldElectricSegment.GetListCount());
+            Assert.AreEqual(5, worldElectricSegment.GetElectricSegmentListCount());
             
             var segment = worldElectricSegment.GetElectricSegment(0);
             //リフレクションで電柱を取得する
