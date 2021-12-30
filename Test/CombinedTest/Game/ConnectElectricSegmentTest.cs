@@ -14,7 +14,7 @@ namespace Test.CombinedTest.Game
         //ブロックIDが変わったらここを変える
         private const int ElectricPoleId = 4;
         private const int MachineId = 1;
-        private const int PowerGenerateId = 1;
+        private const int PowerGenerateId = 5;
         
         //電柱を設置し、電柱に接続するテスト
         [Test]
@@ -71,14 +71,16 @@ namespace Test.CombinedTest.Game
             //周りに機械を設置
             worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 1), 2, 0, BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 2), -2, 0, BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 3), 0, 2, BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 4), 0, -2, BlockDirection.North);
+            //周りに発電機を設置
+            worldBlockDatastore.AddBlock(blockFactory.Create(PowerGenerateId, 3), 0, 2, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(PowerGenerateId, 4), 0, -2, BlockDirection.North);
 
             //範囲外に機械を設置
             worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 10), 3, 0, BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 11), -3, 0, BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 12), 0, 3, BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 13), 0, -3, BlockDirection.North);
+            //範囲外に発電機を設置
+            worldBlockDatastore.AddBlock(blockFactory.Create(PowerGenerateId, 12), 0, 3, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(PowerGenerateId, 13), 0, -3, BlockDirection.North);
 
             //範囲内の設置
             var segment = saveServiceProvider.GetService<IWorldElectricSegmentDatastore>().GetElectricSegment(0);
