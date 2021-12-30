@@ -13,6 +13,7 @@ namespace Test.CombinedTest.Game
     {
         //ブロックIDが変わったらここを変える
         private const int ElectricPoleId = 4;
+        private const int MachineId = 1;
         
         //電柱を設置し、電柱に接続するテスト
         [Test]
@@ -56,5 +57,51 @@ namespace Test.CombinedTest.Game
         }
         
         //電柱を設置した後に機械を設置するテスト
+        [Test]
+        public void PlaceElectricPoleToPlaceMachineTest()
+        {
+            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = saveServiceProvider.GetService<BlockFactory>();
+
+            //起点となる電柱の設置
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0), 0, 0, BlockDirection.North);
+            
+            //周りに機械を設置
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 1), 2, 0, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 2), -2, 0, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 3), 0, 2, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 4), 0, -2, BlockDirection.North);
+
+            //範囲外に機械を設置
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 10), 3, 0, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 11), -3, 0, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 12), 0, 3, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 13), 0, -3, BlockDirection.North);
+
+            //範囲内の設置
+            var segment = saveServiceProvider.GetService<IWorldElectricSegmentDatastore>().GetElectricSegment(0);
+            //リフレクションで機械を取得する
+            var electricBlocks = (Dictionary<int,IBlockElectric>)typeof(ElectricSegment).GetField("_electrics", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(segment);
+            
+            
+            //存在する機械の数の確認
+            Assert.AreEqual(6,electricBlocks.Count);
+            //存在している機械のIDの確認
+            for (int i = 1; i < 5; i++)
+            {
+                Assert.AreEqual(i,electricBlocks[i].GetIntId());
+            }
+            
+            //存在しない機械のIDの確認
+            for (int i = 10; i < 14; i++)
+            {
+                Assert.AreEqual(false,electricBlocks.ContainsKey(i));
+            }
+        }
+        
+        //機械を設置した後に電柱を設置するテスト
+        [Test]
+        public void 
     }
 }
