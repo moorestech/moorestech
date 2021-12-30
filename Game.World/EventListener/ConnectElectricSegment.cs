@@ -82,6 +82,7 @@ namespace World.EventListener
                 else
                 {
                     electricSegment = _worldElectricSegmentDatastore.CreateElectricSegment();
+                    electricSegment.AddElectricPole(blockPlaceEvent.Block as IElectricPole);
                 }
 
 
