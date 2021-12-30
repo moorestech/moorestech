@@ -14,8 +14,9 @@ namespace Test.CombinedTest.Game
         //ブロックIDが変わったらここを変える
         private const int ElectricPoleId = 4;
         
+        //電柱を設置し、電柱に接続するテスト
         [Test]
-        public void ElectricPoleToElectricPoleTest()
+        public void PlaceElectricPoleToPlaceElectricPoleTest()
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
@@ -53,5 +54,7 @@ namespace Test.CombinedTest.Game
                 Assert.AreEqual(false,electricPole.ContainsKey(i));
             }
         }
+        
+        //電柱を設置した後に機械を設置するテスト
     }
 }
