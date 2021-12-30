@@ -3,6 +3,7 @@ using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 using Core.Block.Config;
 using Core.Block.RecipeConfig;
+using Core.Electric;
 using Core.Inventory;
 using Core.Item;
 using Core.Item.Config;
@@ -24,6 +25,7 @@ using World;
 using World.DataStore;
 using World.Event;
 using World.EventListener;
+using World.Service;
 
 namespace Server
 {
@@ -45,9 +47,13 @@ namespace Server
             //ゲームプレイに必要なクラスのインスタンスを生成
             services.AddSingleton<EventProtocolProvider,EventProtocolProvider>();
             services.AddSingleton<IWorldBlockDatastore,WorldBlockDatastore>();
-            services.AddSingleton<IWorldBlockComponentDatastore<IBlockInventory>,WorldBlockInventoryDatastore>();
+            services.AddSingleton<IWorldBlockComponentDatastore<IBlockElectric>,WorldBlockComponentDatastore<IBlockElectric>>();
+            services.AddSingleton<IWorldBlockComponentDatastore<IElectricPole>,WorldBlockComponentDatastore<IElectricPole>>();
+            services.AddSingleton<IWorldBlockComponentDatastore<IPowerGenerator>,WorldBlockComponentDatastore<IPowerGenerator>>();
+            services.AddSingleton<IWorldBlockComponentDatastore<IBlockInventory>,WorldBlockComponentDatastore<IBlockInventory>>();
             services.AddSingleton<IPlayerInventoryDataStore,PlayerInventoryDataStore>();
             services.AddSingleton<IWorldElectricSegmentDatastore,WorldElectricSegmentDatastore>();
+            services.AddSingleton<MaxElectricPoleMachineConnectionRange,MaxElectricPoleMachineConnectionRange>();
             
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<ISaveRepository, SaveJsonFile>();
@@ -65,6 +71,7 @@ namespace Server
             services.AddSingleton<ReceiveRemoveBlockEvent,ReceiveRemoveBlockEvent>();
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect,BlockPlaceEventToBlockInventoryConnect>();
             services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect,BlockRemoveEventToBlockInventoryDisconnect>();
+            services.AddSingleton<ConnectElectricSegment,ConnectElectricSegment>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText,AssembleSaveJsonText>();
@@ -79,6 +86,7 @@ namespace Server
             serviceProvider.GetService<ReceiveRemoveBlockEvent>();
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();
+            serviceProvider.GetService<ConnectElectricSegment>();
             
             return (packetResponse,serviceProvider);
         }
