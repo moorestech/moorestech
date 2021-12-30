@@ -90,21 +90,17 @@ namespace Test.CombinedTest.Game
             var segment = saveServiceProvider.GetService<IWorldElectricSegmentDatastore>().GetElectricSegment(0);
             //リフレクションで機械を取得する
             var electricBlocks = (Dictionary<int,IBlockElectric>)typeof(ElectricSegment).GetField("_electrics", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(segment);
+            var powerGeneratorBlocks = (Dictionary<int,IPowerGenerator>)typeof(ElectricSegment).GetField("_generators", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(segment);
             
             
             //存在する機械の数の確認
-            Assert.AreEqual(4,electricBlocks.Count);
+            Assert.AreEqual(2,electricBlocks.Count);
+            Assert.AreEqual(2,powerGeneratorBlocks.Count);
             //存在している機械のIDの確認
-            for (int i = 1; i < 4; i++)
-            {
-                Assert.AreEqual(i,electricBlocks[i].GetIntId());
-            }
-            
-            //存在しない機械のIDの確認
-            for (int i = 10; i < 13; i++)
-            {
-                Assert.AreEqual(false,electricBlocks.ContainsKey(i));
-            }
+            Assert.AreEqual(1,electricBlocks[1].GetIntId());
+            Assert.AreEqual(2,electricBlocks[2].GetIntId());
+            Assert.AreEqual(3,powerGeneratorBlocks[3].GetIntId());
+            Assert.AreEqual(4,powerGeneratorBlocks[4].GetIntId());
         }
         
         //機械、発電機を設置した後に電柱を設置するテスト
@@ -142,21 +138,17 @@ namespace Test.CombinedTest.Game
             var segment = saveServiceProvider.GetService<IWorldElectricSegmentDatastore>().GetElectricSegment(0);
             //リフレクションで機械を取得する
             var electricBlocks = (Dictionary<int,IBlockElectric>)typeof(ElectricSegment).GetField("_electrics", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(segment);
+            var powerGeneratorBlocks = (Dictionary<int,IPowerGenerator>)typeof(ElectricSegment).GetField("_generators", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(segment);
             
             
             //存在する機械の数の確認
-            Assert.AreEqual(4,electricBlocks.Count);
+            Assert.AreEqual(2,electricBlocks.Count);
+            Assert.AreEqual(2,powerGeneratorBlocks.Count);
             //存在している機械のIDの確認
-            for (int i = 1; i < 4; i++)
-            {
-                Assert.AreEqual(i,electricBlocks[i].GetIntId());
-            }
-            
-            //存在しない機械のIDの確認
-            for (int i = 10; i < 13; i++)
-            {
-                Assert.AreEqual(false,electricBlocks.ContainsKey(i));
-            }
+            Assert.AreEqual(1,electricBlocks[1].GetIntId());
+            Assert.AreEqual(2,electricBlocks[2].GetIntId());
+            Assert.AreEqual(3,powerGeneratorBlocks[3].GetIntId());
+            Assert.AreEqual(4,powerGeneratorBlocks[4].GetIntId());
         }
     }
 }
