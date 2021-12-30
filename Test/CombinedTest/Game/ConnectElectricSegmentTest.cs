@@ -45,13 +45,13 @@ namespace Test.CombinedTest.Game
             //存在する電柱の数の確認
             Assert.AreEqual(6,electricPole.Count);
             //存在している電柱のIDの確認
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < 6; i++)
             {
                 Assert.AreEqual(i,electricPole[i].GetIntId());
             }
             
             //存在しない電柱のIDの確認
-            for (int i = 10; i < 14; i++)
+            for (int i = 10; i < 13; i++)
             {
                 Assert.AreEqual(false,electricPole.ContainsKey(i));
             }
