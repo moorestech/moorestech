@@ -21,8 +21,8 @@
       "param" : {"poleConnectionRange": 7,"machineConnectionRange": 5}
     },
     {
-      "name": "aaa",
-      "type" : "Machine",
+      "name": "TestGenerator",
+      "type" : "Generator",
       "param" : {"inputSlot": 100,"outputSlot": 100,"requiredPower": 100}
     },
     {
