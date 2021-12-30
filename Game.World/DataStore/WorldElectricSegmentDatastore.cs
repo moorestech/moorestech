@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using Core.Electric;
+using Game.World.Interface.DataStore;
 using World.Event;
 
 namespace World.DataStore
 {
-    public class WorldElectricSegmentDatastore
+    public class WorldElectricSegmentDatastore : IWorldElectricSegmentDatastore
     {
         private readonly Dictionary<int,ElectricSegment> _segmentDictionary = new();
 
