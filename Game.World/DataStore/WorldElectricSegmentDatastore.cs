@@ -18,12 +18,6 @@ namespace World.DataStore
         {
             return null;
         }
-
-        public ElectricSegment GetElectricSegment(IBlockElectric machine)
-        {
-            throw new System.NotImplementedException();
-        }
-        
         public ElectricSegment CreateElectricSegment(int id)
         {
             var electricSegment = new ElectricSegment();
