@@ -47,6 +47,7 @@ namespace Server
             services.AddSingleton<IWorldBlockDatastore,WorldBlockDatastore>();
             services.AddSingleton<IWorldBlockComponentDatastore<IBlockInventory>,WorldBlockInventoryDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore,PlayerInventoryDataStore>();
+            services.AddSingleton<IWorldElectricSegmentDatastore,WorldElectricSegmentDatastore>();
             
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<ISaveRepository, SaveJsonFile>();
