@@ -50,14 +50,14 @@ namespace World.EventListener
                 //他の電柱を探索して接続する
                 var poleRange = electric.poleConnectionRange;
                 _electricPoleDatastore.GetBlock(x, y);
-                var startElectricX = poleRange / 2 + x;
-                var startElectricY = poleRange / 2 + y;
+                var startElectricX = x - poleRange / 2 ;
+                var startElectricY = y - poleRange / 2;
                 for (int i = startElectricX; i < startElectricX + poleRange; i++)
                 {
                     for (int j = startElectricY; j < startElectricY + poleRange; j++)
                     {
-                        //範囲内に電柱がある場合
-                        if (_electricPoleDatastore.ExistsComponentBlock(i,j))
+                        //範囲内に電柱がある場合、自身のブロックは除く
+                        if (_electricPoleDatastore.ExistsComponentBlock(i,j) && !(i == x && j == y))
                         {
                             //電柱を取得
                             var pole = _electricPoleDatastore.GetBlock(i,j);
