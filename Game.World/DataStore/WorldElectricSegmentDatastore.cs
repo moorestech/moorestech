@@ -39,6 +39,6 @@ namespace World.DataStore
             _segmentDictionary.Add(electricSegment);
             return electricSegment;
         }
-        public int GetListCount() { return _segmentDictionary.Count; }
+        public int GetElectricSegmentListCount() { return _segmentDictionary.Count; }
     }
 }
