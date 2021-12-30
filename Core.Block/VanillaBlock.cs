@@ -1,14 +1,13 @@
 using System;
-using Core.Electric;
 
-namespace Core.Block.ElectricPole
+namespace Core.Block
 {
-    public class NormalElectricPole : IElectricPole ,IBlock
+    public class VanillaBlock : IBlock
     {
-        private readonly int _intId;
         private readonly int _blockId;
+        private readonly int _intId;
 
-        public NormalElectricPole(int blockId,int intId)
+        public VanillaBlock(int blockId,int intId)
         {
             _intId = intId;
             _blockId = blockId;

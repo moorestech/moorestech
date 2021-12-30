@@ -130,7 +130,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //ブロックの設置
             for (int i = 0; i < 1000; i++)
             {
-                NormalMachine b = null;
+                VanillaMachine b = null;
                 if (random.Next(0, 3) == 1)
                 {
                     b = CreateMachine(random.Next(short.MaxValue, int.MaxValue));
@@ -174,14 +174,14 @@ namespace Test.CombinedTest.Server.PacketTest
         }
 
         private BlockFactory _blockFactory;
-        private NormalMachine CreateMachine(int id)
+        private VanillaMachine CreateMachine(int id)
         {
             if (_blockFactory == null)
             {
                 var itemStackFactory = new ItemStackFactory(new TestItemConfig());
                 _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory),itemStackFactory));
             }
-            var machine = _blockFactory.Create(id, IntId.NewIntId()) as NormalMachine;
+            var machine = _blockFactory.Create(id, IntId.NewIntId()) as VanillaMachine;
             return machine;
         }
 

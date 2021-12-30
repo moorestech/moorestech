@@ -7,7 +7,7 @@ using Core.Item.Util;
 
 namespace Core.Block.Machine.Inventory
 {
-    public class NormalMachineInputInventory
+    public class VanillaMachineInputInventory
     {
         private readonly int _blockId;
         private readonly List<IItemStack> _inputSlot;
@@ -27,7 +27,7 @@ namespace Core.Block.Machine.Inventory
             }
         }
 
-        public NormalMachineInputInventory(int blockId,int inputSlot,IMachineRecipeConfig machineRecipeConfig,ItemStackFactory itemStackFactory)
+        public VanillaMachineInputInventory(int blockId,int inputSlot,IMachineRecipeConfig machineRecipeConfig,ItemStackFactory itemStackFactory)
         {
             _blockId = blockId;
             _machineRecipeConfig = machineRecipeConfig;

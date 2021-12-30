@@ -10,7 +10,7 @@ namespace Core.Block.BeltConveyor
     /// <summary>
     /// アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class NormalBeltConveyor :IBlock, IUpdate, IBlockInventory
+    public class VanillaBeltConveyor :IBlock, IUpdate, IBlockInventory
     {
         private readonly int _inventoryItemNum;
         private readonly double _timeOfItemEnterToExit;//ベルトコンベアにアイテムが入って出るまでの時間
@@ -19,7 +19,7 @@ namespace Core.Block.BeltConveyor
         private IBlockInventory _connector;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public NormalBeltConveyor(int blockId, int intId, ItemStackFactory itemStackFactory,int inventoryItemNum,int timeOfItemEnterToExit)
+        public VanillaBeltConveyor(int blockId, int intId, ItemStackFactory itemStackFactory,int inventoryItemNum,int timeOfItemEnterToExit)
         {
             _blockId = blockId;
             _intId = intId;
@@ -29,7 +29,7 @@ namespace Core.Block.BeltConveyor
             _connector = new NullIBlockInventory();
             GameUpdate.AddUpdateObject(this);
         }
-        public NormalBeltConveyor(int blockId, int intId,string state, ItemStackFactory itemStackFactory,int inventoryItemNum,int timeOfItemEnterToExit)
+        public VanillaBeltConveyor(int blockId, int intId,string state, ItemStackFactory itemStackFactory,int inventoryItemNum,int timeOfItemEnterToExit)
         {
             _blockId = blockId;
             _intId = intId;

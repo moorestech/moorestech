@@ -42,7 +42,7 @@ namespace Test.CombinedTest.Core
                 int id = random.Next(0, 10);
                 
                 var item = _itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
-                var beltConveyor = (NormalBeltConveyor)blockFactory.Create(3, Int32.MaxValue);
+                var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, Int32.MaxValue);
 
                 var endTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
                 while ( DateTime.Now < endTime.AddSeconds(0.2))
@@ -78,7 +78,7 @@ namespace Test.CombinedTest.Core
                 int count = random.Next(1, 10);
                 var item = _itemStackFactory.Create(id, count);
                 var dummy = new DummyBlockInventory(1);
-                var beltConveyor = (NormalBeltConveyor)blockFactory.Create(3, Int32.MaxValue);
+                var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, Int32.MaxValue);
                 beltConveyor.AddConnector(dummy);
 
 
@@ -114,7 +114,7 @@ namespace Test.CombinedTest.Core
                 int id = random.Next(1, 11);
                 var item = _itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
                 var dummy = new DummyBlockInventory(config.BeltConveyorItemNum);
-                var beltConveyor = (NormalBeltConveyor)blockFactory.Create(3, Int32.MaxValue);
+                var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, Int32.MaxValue);
                 beltConveyor.AddConnector(dummy);
 
                 while (!dummy.IsItemExists)
@@ -142,7 +142,7 @@ namespace Test.CombinedTest.Core
                 var item1 = _itemStackFactory.Create(random.Next(1,11), random.Next(1,10));
                 var item2 = _itemStackFactory.Create(random.Next(1,11), random.Next(1,10));
 
-                var beltConveyor = (NormalBeltConveyor) blockFactory.Create(3, Int32.MaxValue);
+                var beltConveyor = (VanillaBeltConveyor) blockFactory.Create(3, Int32.MaxValue);
 
                 var item1Out = beltConveyor.InsertItem(item1);
                 var item2Out = beltConveyor.InsertItem(item2);

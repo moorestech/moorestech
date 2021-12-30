@@ -5,30 +5,30 @@ using Core.Item;
 
 namespace Core.Block.Machine.SaveLoad
 {
-    public class NormalMachineLoad
+    public class VanillaMachineLoad
     {
         
-        private readonly NormalMachineInputInventory _normalMachineInputInventory;
-        private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
+        private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
+        private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly IMachineRecipeConfig _machineRecipeConfig;
         private readonly int _requestPower;
 
-        public NormalMachineLoad(
-            NormalMachineInputInventory normalMachineInputInventory, 
-            NormalMachineOutputInventory normalMachineOutputInventory, 
+        public VanillaMachineLoad(
+            VanillaMachineInputInventory vanillaMachineInputInventory, 
+            VanillaMachineOutputInventory vanillaMachineOutputInventory, 
             ItemStackFactory itemStackFactory, 
             IMachineRecipeConfig machineRecipeConfig,
             int requestPower)
         {
-            _normalMachineInputInventory = normalMachineInputInventory;
-            _normalMachineOutputInventory = normalMachineOutputInventory;
+            _vanillaMachineInputInventory = vanillaMachineInputInventory;
+            _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _itemStackFactory = itemStackFactory;
             _machineRecipeConfig = machineRecipeConfig;
             _requestPower = requestPower;
         }
 
-        public NormalMachineRunProcess Load(string loadString)
+        public VanillaMachineRunProcess Load(string loadString)
         {
             var split = loadString.Split(',');
             
@@ -38,7 +38,7 @@ namespace Core.Block.Machine.SaveLoad
             {
                 var id = int.Parse(split[index]);
                 var count = int.Parse(split[index + 1]);
-                _normalMachineInputInventory.SetItem(inventorySlot,_itemStackFactory.Create(id, count));
+                _vanillaMachineInputInventory.SetItem(inventorySlot,_itemStackFactory.Create(id, count));
                 inventorySlot++;
             }
             
@@ -47,7 +47,7 @@ namespace Core.Block.Machine.SaveLoad
             {
                 var id = int.Parse(split[index]);
                 var count = int.Parse(split[index + 1]);
-                _normalMachineOutputInventory.SetItem(inventorySlot,_itemStackFactory.Create(id, count));
+                _vanillaMachineOutputInventory.SetItem(inventorySlot,_itemStackFactory.Create(id, count));
                 inventorySlot++;
             }
             
@@ -59,7 +59,7 @@ namespace Core.Block.Machine.SaveLoad
             int recipeId = int.Parse(split[index]);
             var processingRecipeData = _machineRecipeConfig.GetRecipeData(recipeId);
 
-            return new NormalMachineRunProcess(_normalMachineInputInventory, _normalMachineOutputInventory, state, remainingMillSecond, processingRecipeData,_requestPower);
+            return new VanillaMachineRunProcess(_vanillaMachineInputInventory, _vanillaMachineOutputInventory, state, remainingMillSecond, processingRecipeData,_requestPower);
         }
     }
 }

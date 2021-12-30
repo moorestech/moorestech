@@ -78,14 +78,14 @@ namespace Test.UnitTest.Server.Player
         
 
         private BlockFactory _blockFactory;
-        private NormalMachine CreateMachine(int id)
+        private VanillaMachine CreateMachine(int id)
         {
             if (_blockFactory == null)
             {
                 var itemStackFactory = new ItemStackFactory(new TestItemConfig());
                 _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory),itemStackFactory));
             }
-            var machine = _blockFactory.Create(id, IntId.NewIntId()) as NormalMachine;
+            var machine = _blockFactory.Create(id, IntId.NewIntId()) as VanillaMachine;
             return machine;
         }
     }

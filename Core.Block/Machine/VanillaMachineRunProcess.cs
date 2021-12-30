@@ -4,7 +4,7 @@ using Core.Update;
 
 namespace Core.Block.Machine
 {
-    public class NormalMachineRunProcess : IUpdate
+    public class VanillaMachineRunProcess : IUpdate
     {
         private IMachineRecipeData _processingRecipeData;
         private ProcessState _state = ProcessState.Idle;
@@ -18,28 +18,28 @@ namespace Core.Block.Machine
         private int _nowPower = 0;
         
         
-        private readonly NormalMachineInputInventory _normalMachineInputInventory;
-        private readonly NormalMachineOutputInventory _normalMachineOutputInventory;
+        private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
+        private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
         
-        public NormalMachineRunProcess(
-            NormalMachineInputInventory normalMachineInputInventory, 
-            NormalMachineOutputInventory normalMachineOutputInventory,
+        public VanillaMachineRunProcess(
+            VanillaMachineInputInventory vanillaMachineInputInventory, 
+            VanillaMachineOutputInventory vanillaMachineOutputInventory,
             IMachineRecipeData machineRecipeData, int requestPower)
         {
-            _normalMachineInputInventory = normalMachineInputInventory;
-            _normalMachineOutputInventory = normalMachineOutputInventory;
+            _vanillaMachineInputInventory = vanillaMachineInputInventory;
+            _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _processingRecipeData = machineRecipeData;
             RequestPower = requestPower;
 
             GameUpdate.AddUpdateObject(this);
         }
-        public NormalMachineRunProcess(
-            NormalMachineInputInventory normalMachineInputInventory, 
-            NormalMachineOutputInventory normalMachineOutputInventory,
+        public VanillaMachineRunProcess(
+            VanillaMachineInputInventory vanillaMachineInputInventory, 
+            VanillaMachineOutputInventory vanillaMachineOutputInventory,
             ProcessState state,double remainingMillSecond,IMachineRecipeData processingRecipeData, int requestPower)
         {
-            _normalMachineInputInventory = normalMachineInputInventory;
-            _normalMachineOutputInventory = normalMachineOutputInventory;
+            _vanillaMachineInputInventory = vanillaMachineInputInventory;
+            _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             
             _processingRecipeData = processingRecipeData;
             RequestPower = requestPower;
@@ -69,8 +69,8 @@ namespace Core.Block.Machine
         private void StartProcessing()
         {
             _state = ProcessState.Processing;
-            _processingRecipeData = _normalMachineInputInventory.GetRecipeData();
-            _normalMachineInputInventory.ReduceInputSlot(_processingRecipeData);
+            _processingRecipeData = _vanillaMachineInputInventory.GetRecipeData();
+            _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipeData);
             _remainingMillSecond = _processingRecipeData.Time;
         }
 
@@ -81,17 +81,17 @@ namespace Core.Block.Machine
             if (_remainingMillSecond <= 0)
             {
                 _state = ProcessState.Idle;
-                _normalMachineOutputInventory.InsertOutputSlot(_processingRecipeData);
+                _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipeData);
             }
         }
         private bool IsAllowedToStartProcess
         {
             get
             {
-                var recipe = _normalMachineInputInventory.GetRecipeData();
+                var recipe = _vanillaMachineInputInventory.GetRecipeData();
                 return _state == ProcessState.Idle && 
-                       _normalMachineInputInventory.IsAllowedToStartProcess && 
-                       _normalMachineOutputInventory.IsAllowedToOutputItem(recipe);
+                       _vanillaMachineInputInventory.IsAllowedToStartProcess && 
+                       _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
             }
         }
         

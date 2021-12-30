@@ -8,7 +8,7 @@ using Core.Update;
 
 namespace Core.Block.Machine.Inventory
 {
-    public class NormalMachineOutputInventory :IUpdate
+    public class VanillaMachineOutputInventory :IUpdate
     {
         private readonly List<IItemStack> _outputSlot;
         private readonly List<IBlockInventory> _connectInventory;
@@ -27,7 +27,7 @@ namespace Core.Block.Machine.Inventory
                 return a;
             }
         }
-        public NormalMachineOutputInventory(IBlockInventory connect,int outputSlot,ItemStackFactory itemStackFactory)
+        public VanillaMachineOutputInventory(IBlockInventory connect,int outputSlot,ItemStackFactory itemStackFactory)
         {
             _connectInventory = new List<IBlockInventory> {connect};
             _itemStackFactory = itemStackFactory;

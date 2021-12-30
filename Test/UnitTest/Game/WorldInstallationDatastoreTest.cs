@@ -70,14 +70,14 @@ namespace Test.UnitTest.Game
         }
         
         private BlockFactory _blockFactory;
-        private NormalMachine CreateMachine(int id,int indId)
+        private VanillaMachine CreateMachine(int id,int indId)
         {
             if (_blockFactory == null)
             {
                 var itemStackFactory = new ItemStackFactory(new TestItemConfig());
                 _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory),itemStackFactory));
             }
-            var machine = _blockFactory.Create(id, indId) as NormalMachine;
+            var machine = _blockFactory.Create(id, indId) as VanillaMachine;
             return machine;
         }
     }

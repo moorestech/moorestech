@@ -28,13 +28,13 @@ namespace Test.CombinedTest.Server.PacketTest
     {
         private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
         private BlockFactory _blockFactory;
-        private NormalMachine CreateMachine(int id,int indId)
+        private VanillaMachine CreateMachine(int id,int indId)
         {
             if (_blockFactory == null)
             {
                 _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(_itemStackFactory),_itemStackFactory));
             }
-            var machine = _blockFactory.Create(id, indId) as NormalMachine;
+            var machine = _blockFactory.Create(id, indId) as VanillaMachine;
             return machine;
         }
         
@@ -169,14 +169,14 @@ namespace Test.CombinedTest.Server.PacketTest
         }
         
         
-        public List<IItemStack> GetInputSlot(NormalMachine machine)
+        public List<IItemStack> GetInputSlot(VanillaMachine machine)
         {
-            var _normalMachineInventory = (NormalMachineInventory)typeof(NormalMachine).GetField("_normalMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
-            var _normalMachineInputInventory = (NormalMachineInputInventory)typeof(NormalMachineInventory)
-                .GetField("_normalMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(_normalMachineInventory);
+            var _vanillaMachineInventory = (VanillaMachineInventory)typeof(VanillaMachine).GetField("_vanillaMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+            var _vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineInventory)
+                .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_vanillaMachineInventory);
 
-            return _normalMachineInputInventory.InputSlot.Where(i => i.Count != 0).ToList();
+            return _vanillaMachineInputInventory.InputSlot.Where(i => i.Count != 0).ToList();
         }
     }
 }

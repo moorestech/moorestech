@@ -63,18 +63,18 @@ namespace Test.UnitTest.Game
         private (int, int) BlockPlaceToGetMachineIdAndConnectorId(int machineX,int machineY,int conveyorX,int conveyorY,BlockDirection direction,BlockFactory blockFactory,IWorldBlockDatastore world)
         {
             //機械の設置
-            var normalMachine = blockFactory.Create(MachineId, IntId.NewIntId());
-            world.AddBlock(normalMachine, machineX, machineY, BlockDirection.North);
+            var vanillaMachine = blockFactory.Create(MachineId, IntId.NewIntId());
+            world.AddBlock(vanillaMachine, machineX, machineY, BlockDirection.North);
             
             //ベルトコンベアの設置
-            var beltConveyor = (NormalBeltConveyor)blockFactory.Create(BeltConveyorId, IntId.NewIntId());
+            var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, IntId.NewIntId());
             world.AddBlock(beltConveyor, conveyorX, conveyorY, direction);
             
             //繋がっているコネクターを取得
-            var _connector = (NormalMachine)typeof(NormalBeltConveyor).GetField("_connector",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(beltConveyor);
+            var _connector = (VanillaMachine)typeof(VanillaBeltConveyor).GetField("_connector",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(beltConveyor);
             
             //それぞれのintIdを返却
-            return (normalMachine.GetIntId(), _connector.GetIntId());
+            return (vanillaMachine.GetIntId(), _connector.GetIntId());
         }
 
         /// <summary>
@@ -90,16 +90,16 @@ namespace Test.UnitTest.Game
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             
             //機械の設置
-            var normalMachine = (NormalMachine)blockFactory.Create(MachineId, IntId.NewIntId());
-            world.AddBlock(normalMachine, 0, 0, BlockDirection.North);
+            var vanillaMachine = (VanillaMachine)blockFactory.Create(MachineId, IntId.NewIntId());
+            world.AddBlock(vanillaMachine, 0, 0, BlockDirection.North);
             
             //機械から4方向にベルトコンベアが出るように配置
-            var beltConveyors = new List<NormalBeltConveyor>
+            var beltConveyors = new List<VanillaBeltConveyor>
             {
-                (NormalBeltConveyor) blockFactory.Create(BeltConveyorId, IntId.NewIntId()),
-                (NormalBeltConveyor) blockFactory.Create(BeltConveyorId, IntId.NewIntId()),
-                (NormalBeltConveyor) blockFactory.Create(BeltConveyorId, IntId.NewIntId()),
-                (NormalBeltConveyor) blockFactory.Create(BeltConveyorId, IntId.NewIntId()),
+                (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, IntId.NewIntId()),
+                (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, IntId.NewIntId()),
+                (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, IntId.NewIntId()),
+                (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, IntId.NewIntId()),
             };
             world.AddBlock(beltConveyors[0], 1, 0, BlockDirection.North);
             world.AddBlock(beltConveyors[1], 0, 1, BlockDirection.East);
@@ -108,14 +108,14 @@ namespace Test.UnitTest.Game
             
             //繋がっているコネクターを取得
             
-            var machineInventory = (NormalMachineInventory)typeof(NormalMachine).GetField("_normalMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(normalMachine);
-            var normalMachineOutputInventory = (NormalMachineOutputInventory)typeof(NormalMachineInventory).GetField("_normalMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machineInventory);
-            var connectInventory = (List<IBlockInventory>)typeof(NormalMachineOutputInventory).GetField("_connectInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(normalMachineOutputInventory);
+            var machineInventory = (VanillaMachineInventory)typeof(VanillaMachine).GetField("_vanillaMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(vanillaMachine);
+            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineInventory).GetField("_vanillaMachineOutputInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machineInventory);
+            var connectInventory = (List<IBlockInventory>)typeof(VanillaMachineOutputInventory).GetField("_connectInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(vanillaMachineOutputInventory);
             
             Assert.AreEqual(4,connectInventory.Count);
             
             //繋がっているコネクターの中身を確認
-            var _connectInventoryItem = connectInventory.Select(item => ((NormalBeltConveyor) item).GetIntId()).ToList();
+            var _connectInventoryItem = connectInventory.Select(item => ((VanillaBeltConveyor) item).GetIntId()).ToList();
             foreach (var beltConveyor in beltConveyors)
             {
                 Assert.True(_connectInventoryItem.Contains(beltConveyor.GetIntId()));

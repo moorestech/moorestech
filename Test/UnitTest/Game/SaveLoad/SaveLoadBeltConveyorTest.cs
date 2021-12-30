@@ -13,9 +13,9 @@ namespace Test.UnitTest.Game.SaveLoad
         [Test]
         public void SaveLoadTest()
         {
-            var belt = new NormalBeltConveyor(1,10,new ItemStackFactory(new TestItemConfig()),4,4000);
+            var belt = new VanillaBeltConveyor(1,10,new ItemStackFactory(new TestItemConfig()),4,4000);
             //リフレクションで_inventoryItemsを取得
-            var inventoryItemsField = typeof(NormalBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
+            var inventoryItemsField = typeof(VanillaBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (List<BeltConveyorInventoryItem>) inventoryItemsField.GetValue(belt);
             //アイテムを設定
             inventoryItems.Add(new BeltConveyorInventoryItem(1,10,0));
@@ -26,7 +26,7 @@ namespace Test.UnitTest.Game.SaveLoad
             var str = belt.GetSaveState();
             Console.WriteLine(str);
             //セーブデータをロード
-            var newBelt = new NormalBeltConveyor(1,10,str,new ItemStackFactory(new TestItemConfig()),4,4000);
+            var newBelt = new VanillaBeltConveyor(1,10,str,new ItemStackFactory(new TestItemConfig()),4,4000);
             var newInventoryItems = (List<BeltConveyorInventoryItem>) inventoryItemsField.GetValue(newBelt);
             
             //アイテムが一致するかチェック

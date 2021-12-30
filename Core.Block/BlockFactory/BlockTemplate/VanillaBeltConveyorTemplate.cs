@@ -5,11 +5,11 @@ using Core.Item;
 
 namespace Core.Block.BlockFactory.BlockTemplate
 {
-    public class NormalBeltConveyorTemplate : IBlockTemplate
+    public class VanillaBeltConveyorTemplate : IBlockTemplate
     {
         private readonly ItemStackFactory _itemStackFactory;
 
-        public NormalBeltConveyorTemplate(ItemStackFactory itemStackFactory)
+        public VanillaBeltConveyorTemplate(ItemStackFactory itemStackFactory)
         {
             _itemStackFactory = itemStackFactory;
         }
@@ -17,13 +17,13 @@ namespace Core.Block.BlockFactory.BlockTemplate
         public IBlock New(BlockConfigData param, int intId)
         {
             var beltConveyor = param.Param as BeltConveyorConfigParam;
-            return new NormalBeltConveyor(param.BlockId,intId,_itemStackFactory,beltConveyor.BeltConveyorItemNum,beltConveyor.TimeOfItemEnterToExit);
+            return new VanillaBeltConveyor(param.BlockId,intId,_itemStackFactory,beltConveyor.BeltConveyorItemNum,beltConveyor.TimeOfItemEnterToExit);
         }
 
         public IBlock Load(BlockConfigData param, int intId, string state)
         {
             var beltConveyor = param.Param as BeltConveyorConfigParam;
-            return new NormalBeltConveyor(param.BlockId,intId,state,_itemStackFactory,beltConveyor.BeltConveyorItemNum,beltConveyor.TimeOfItemEnterToExit);
+            return new VanillaBeltConveyor(param.BlockId,intId,state,_itemStackFactory,beltConveyor.BeltConveyorItemNum,beltConveyor.TimeOfItemEnterToExit);
         }
     }
 }

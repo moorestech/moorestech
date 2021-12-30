@@ -24,16 +24,16 @@ namespace Test.CombinedTest.Core
     {
         private readonly ItemStackFactory _itemStackFactory = new(new TestItemConfig());
         private BlockFactory _blockFactory;
-        private NormalMachine CreateMachine(int id)
+        private VanillaMachine CreateMachine(int id)
         {
             if (_blockFactory == null)
             {
                 _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(_itemStackFactory),_itemStackFactory));
             }
-            var machine = _blockFactory.Create(id, IntId.NewIntId()) as NormalMachine;
+            var machine = _blockFactory.Create(id, IntId.NewIntId()) as VanillaMachine;
             return machine;
         }
-        private NormalMachine CreateMachine(int id,IBlockInventory inventory)
+        private VanillaMachine CreateMachine(int id,IBlockInventory inventory)
         {
             var machine = CreateMachine(id);
             machine.AddConnector(inventory);
@@ -65,14 +65,14 @@ namespace Test.CombinedTest.Core
             }
 
             
-            var _normalMachineInventory = (NormalMachineInventory)typeof(NormalMachine).GetField("_normalMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
-            var _normalMachineInputInventory = (NormalMachineInputInventory)typeof(NormalMachineInventory)
-                .GetField("_normalMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(_normalMachineInventory);
+            var _vanillaMachineInventory = (VanillaMachineInventory)typeof(VanillaMachine).GetField("_vanillaMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+            var _vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineInventory)
+                .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_vanillaMachineInventory);
 
             for (int i = 0; i < ansItem.Count; i++)
             {
-                Assert.AreEqual(ansItem[i], _normalMachineInputInventory.InputSlot[i]);  
+                Assert.AreEqual(ansItem[i], _vanillaMachineInputInventory.InputSlot[i]);  
             }
             
         }
@@ -86,7 +86,7 @@ namespace Test.CombinedTest.Core
             var recipes = MachineIoGenerate.MachineIoTestCase(RecipeGenerate.MakeRecipe(seed,recipeNum), seed);
             
             
-            var machineList = new List<NormalMachine>();
+            var machineList = new List<VanillaMachine>();
             var MaxDateTime = DateTime.Now;
             
             //機械の作成とアイテムの挿入
@@ -187,7 +187,7 @@ namespace Test.CombinedTest.Core
             var recipes = MachineIoGenerate.MachineIoTestCase(RecipeGenerate.MakeRecipe(seed,recipeNum), seed);
             
             
-            var machineList = new List<NormalMachine>();
+            var machineList = new List<VanillaMachine>();
             var dummyBlockList = new List<DummyBlockInventory>();
             var MaxDateTime = DateTime.Now;
             
@@ -250,20 +250,20 @@ namespace Test.CombinedTest.Core
             }
         }
         
-        public (List<IItemStack> , List<IItemStack>) GetInputOutputSlot(NormalMachine machine)
+        public (List<IItemStack> , List<IItemStack>) GetInputOutputSlot(VanillaMachine machine)
         {
-            var _normalMachineInventory = (NormalMachineInventory)typeof(NormalMachine).GetField("_normalMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
-            var _normalMachineInputInventory = (NormalMachineInputInventory)typeof(NormalMachineInventory)
-                .GetField("_normalMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(_normalMachineInventory);
-            var _normalMachineOutputInventory = (NormalMachineOutputInventory)typeof(NormalMachineInventory)
-                .GetField("_normalMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(_normalMachineInventory);
+            var _vanillaMachineInventory = (VanillaMachineInventory)typeof(VanillaMachine).GetField("_vanillaMachineInventory",BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+            var _vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineInventory)
+                .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_vanillaMachineInventory);
+            var _vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineInventory)
+                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(_vanillaMachineInventory);
 
-            var inputSlot = _normalMachineInputInventory.InputSlot.Where(i => i.Count != 0).ToList();
+            var inputSlot = _vanillaMachineInputInventory.InputSlot.Where(i => i.Count != 0).ToList();
             inputSlot.Sort((a, b) => a.Id - b.Id);
                 
-            var outputSlot = _normalMachineOutputInventory.OutputSlot.Where(i => i.Count != 0).ToList();
+            var outputSlot = _vanillaMachineOutputInventory.OutputSlot.Where(i => i.Count != 0).ToList();
             outputSlot.Sort((a, b) => a.Id - b.Id);
             
             return (inputSlot,outputSlot);
