@@ -1,9 +1,11 @@
+using Core.Block;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 using World.DataStore;
+using World.Service;
 using World.Util;
 
 namespace World.EventListener
@@ -15,19 +17,22 @@ namespace World.EventListener
         private readonly IWorldBlockComponentDatastore<IPowerGenerator> _powerGeneratorDatastore;
         private readonly WorldElectricSegmentDatastore _worldElectricSegmentDatastore;
         private readonly IBlockConfig _blockConfig;
+        private readonly int _maxMachineConnectionRange;
 
         public ConnectElectricSegment(IBlockPlaceEvent blockPlaceEvent,
             IWorldBlockComponentDatastore<IBlockElectric> electricDatastore,
             IWorldBlockComponentDatastore<IElectricPole> electricPoleDatastore,
             IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore,
             WorldElectricSegmentDatastore worldElectricSegmentDatastore,
-            IBlockConfig blockConfig)
+            IBlockConfig blockConfig,
+            MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange)
         {
             _electricDatastore = electricDatastore;
             _electricPoleDatastore = electricPoleDatastore;
             _powerGeneratorDatastore = powerGeneratorDatastore;
             _worldElectricSegmentDatastore = worldElectricSegmentDatastore;
             _blockConfig = blockConfig;
+            _maxMachineConnectionRange = maxElectricPoleMachineConnectionRange.Get();
             blockPlaceEvent.Subscribe(OnBlockPlace);
         }
         
@@ -46,11 +51,11 @@ namespace World.EventListener
                 //他の電柱を探索して接続する
                 var poleRange = electric.poleConnectionRange;
                 _electricPoleDatastore.GetBlock(x, y);
-                var firstElectricX = poleRange / 2 + x;
-                var firstElectricY = poleRange / 2 + y;
-                for (int i = firstElectricX; i < firstElectricX + poleRange; i++)
+                var startElectricX = poleRange / 2 + x;
+                var startElectricY = poleRange / 2 + y;
+                for (int i = startElectricX; i < startElectricX + poleRange; i++)
                 {
-                    for (int j = firstElectricY; j < firstElectricY + poleRange; j++)
+                    for (int j = startElectricY; j < startElectricY + poleRange; j++)
                     {
                         //範囲内に電柱がある場合
                         if (_electricPoleDatastore.ExistsComponentBlock(i,j))
@@ -83,11 +88,11 @@ namespace World.EventListener
 
                 //他の機械を探索して接続する
                 var machineRange = electric.machineConnectionRange;
-                var firstMachineX = machineRange / 2 + x;
-                var firstMachineY = machineRange / 2 + y;
-                for (int i = firstMachineX; i < firstMachineX + machineRange; i++)
+                var startMachineX = machineRange / 2 + x;
+                var startMachineY = machineRange / 2 + y;
+                for (int i = startMachineX; i < startMachineX + machineRange; i++)
                 {
-                    for (int j = firstMachineY; j < firstMachineY + machineRange; j++)
+                    for (int j = startMachineY; j < startMachineY + machineRange; j++)
                     {
                         //範囲内に機械がある場合
                         if (_electricDatastore.ExistsComponentBlock(i,j))
@@ -99,12 +104,38 @@ namespace World.EventListener
                 }
             }
             
-            //TODO 設置されたブロックが電力機械だった時の処理
+            //設置されたブロックが電力機械だった時の処理
             if (_electricDatastore.ExistsComponentBlock(x,y))
             {
-                //最大の電柱の機械探索範囲を取得
+                //最大の電柱の接続範囲を取得探索して接続する
+                var startMachineX = _maxMachineConnectionRange / 2 + x;
+                var startMachineY = _maxMachineConnectionRange / 2 + y;
+                for (int i = startMachineX; i < startMachineX + _maxMachineConnectionRange; i++)
+                {
+                    for (int j = startMachineY; j < startMachineY + _maxMachineConnectionRange; j++)
+                    {
+                        //範囲内に電柱がある場合
+                        if (_electricPoleDatastore.ExistsComponentBlock(i,j))
+                        {
+                            //電柱を取得
+                            var pole = _electricPoleDatastore.GetBlock(i,j);
+                            //その電柱から見て機械が範囲内に存在するか確認
+                            var configParam = _blockConfig.GetBlockConfig(((IBlock)pole).GetBlockId()).Param as ElectricPoleConfigParam;
+                            var range = configParam.machineConnectionRange;
+                            if (i - range / 2 <= x && x <= i + range / 2 && j - range / 2 <= y && y <= j + range / 2)
+                            {
+                                //機械を電力セグメントに追加
+                                _worldElectricSegmentDatastore.GetElectricSegment(pole).AddBlockElectric(_electricDatastore.GetBlock(x,y));
+                            }
+
+                        }
+                    }
+                }
+                
                 
             }
+            
+            
             //TODO 設置されたブロックが発電機だった時の処理
         }
     }
