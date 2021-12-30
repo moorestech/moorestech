@@ -23,7 +23,18 @@
     {
       "name": "TestGenerator",
       "type" : "Generator",
-      "param" : {"inputSlot": 100,"outputSlot": 100,"requiredPower": 100}
+      "param" : {
+        "fuel": [
+          {
+            "id": 0, 
+            "power" : 100
+          },
+          {
+            "id": 1,
+            "power" : 200
+          }
+        ]
+      }
     },
     {
       "name": "bb",
