@@ -14,7 +14,7 @@ namespace World.EventListener
         private readonly IWorldBlockComponentDatastore<IBlockElectric> _electricDatastore;
         private readonly IWorldBlockComponentDatastore<IElectricPole> _electricPoleDatastore;
         private readonly IWorldBlockComponentDatastore<IPowerGenerator> _powerGeneratorDatastore;
-        private readonly WorldElectricSegmentDatastore _worldElectricSegmentDatastore;
+        private readonly IWorldElectricSegmentDatastore _worldElectricSegmentDatastore;
         private readonly IBlockConfig _blockConfig;
         private readonly int _maxMachineConnectionRange;
 
@@ -22,7 +22,7 @@ namespace World.EventListener
             IWorldBlockComponentDatastore<IBlockElectric> electricDatastore,
             IWorldBlockComponentDatastore<IElectricPole> electricPoleDatastore,
             IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore,
-            WorldElectricSegmentDatastore worldElectricSegmentDatastore,
+            IWorldElectricSegmentDatastore worldElectricSegmentDatastore,
             IBlockConfig blockConfig,
             MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange)
         {
