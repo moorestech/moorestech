@@ -10,9 +10,9 @@ namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
             var fuelSettings = new List<FuelSetting>();
             foreach (var fuel in blockParam.fuel)
             {
-                var id = fuel.id;
-                var time = fuel.time;
-                var power = fuel.power;
+                int id = fuel.id;
+                int time = fuel.time;
+                int power = fuel.power;
                 fuelSettings.Add(new FuelSetting(id,time,power));
             }
             
