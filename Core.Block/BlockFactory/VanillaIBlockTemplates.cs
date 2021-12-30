@@ -19,6 +19,7 @@ namespace Core.Block.BlockFactory
             BlockTypesDictionary.Add(VanillaBlockType.Machine,new VanillaMachineTemplate(machineRecipeConfig, itemStackFactory));
             BlockTypesDictionary.Add(VanillaBlockType.Block,new VanillaDefaultBlock());
             BlockTypesDictionary.Add(VanillaBlockType.BeltConveyor,new VanillaBeltConveyorTemplate(itemStackFactory));
+            BlockTypesDictionary.Add(VanillaBlockType.ElectricPole,new VanillaElectricPoleTemplate());
         }
     }
 }
