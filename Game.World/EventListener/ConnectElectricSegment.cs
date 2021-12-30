@@ -99,7 +99,13 @@ namespace World.EventListener
                 }
             }
             
-            //TODO 設置されたブロックが電力機械or発電機だった時の処理
+            //TODO 設置されたブロックが電力機械だった時の処理
+            if (_electricDatastore.ExistsComponentBlock(x,y))
+            {
+                //最大の電柱の機械探索範囲を取得
+                
+            }
+            //TODO 設置されたブロックが発電機だった時の処理
         }
     }
 }

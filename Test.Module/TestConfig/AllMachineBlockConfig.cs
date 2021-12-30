@@ -27,6 +27,10 @@ namespace Test.Module.TestConfig
                 "Machine",
                 new MachineBlockConfigParam(100,100,100));
         }
-        
+
+        public List<int> GetBlockIds()
+        {
+            return new List<int>(_blockConfigDictionary.Keys);
+        }
     }
 }

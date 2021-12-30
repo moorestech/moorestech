@@ -25,5 +25,9 @@ namespace Core.Block.Config
                 new NullBlockConfigParam());
         }
 
+        public List<int> GetBlockIds()
+        {
+            return new List<int>(_blockConfigDictionary.Keys);
+        }
     }
 }
