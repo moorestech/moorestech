@@ -38,7 +38,11 @@ namespace Test.CombinedTest.Game
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 12),0,7,BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 13),0,-7,BlockDirection.North);
 
-            var segment = saveServiceProvider.GetService<IWorldElectricSegmentDatastore>().GetElectricSegment(0);
+            var worldElectricSegment = saveServiceProvider.GetService<IWorldElectricSegmentDatastore>();
+            //セグメントの数を確認
+            Assert.AreEqual(5, worldElectricSegment.GetListCount());
+            
+            var segment = worldElectricSegment.GetElectricSegment(0);
             //リフレクションで電柱を取得する
             var electricPole = (Dictionary<int,IElectricPole>)typeof(ElectricSegment).GetField("_electricPoles", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(segment);
             
