@@ -6,7 +6,6 @@ using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 using World.DataStore;
 using World.Service;
-using World.Util;
 
 namespace World.EventListener
 {
@@ -82,7 +81,7 @@ namespace World.EventListener
                 }
                 else
                 {
-                    electricSegment = _worldElectricSegmentDatastore.CreateElectricSegment(IntId.NewIntId());
+                    electricSegment = _worldElectricSegmentDatastore.CreateElectricSegment();
                 }
 
 

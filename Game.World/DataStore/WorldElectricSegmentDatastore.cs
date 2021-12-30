@@ -7,7 +7,7 @@ namespace World.DataStore
 {
     public class WorldElectricSegmentDatastore : IWorldElectricSegmentDatastore
     {
-        private readonly Dictionary<int,ElectricSegment> _segmentDictionary = new();
+        private readonly List<ElectricSegment> _segmentDictionary = new();
 
         public WorldElectricSegmentDatastore()
         {
@@ -19,11 +19,12 @@ namespace World.DataStore
         {
             return null;
         }
-        public ElectricSegment CreateElectricSegment(int id)
+        public ElectricSegment CreateElectricSegment()
         {
             var electricSegment = new ElectricSegment();
-            _segmentDictionary.Add(id,electricSegment);
+            _segmentDictionary.Add(electricSegment);
             return electricSegment;
         }
+        public int GetListCount() { return _segmentDictionary.Count; }
     }
 }
