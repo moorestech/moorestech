@@ -67,7 +67,7 @@ namespace Test.CombinedTest.Core
             }
             //2個の燃料が入っていることを確認
             fuelItemId = (int)typeof(VanillaPowerGenerator).GetField("_fuelItemId", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(powerGenerator);
-            Assert.AreEqual(generatorConfigParam.FuelSettings[1].ItemId,fuelItemId);
+            Assert.AreEqual(generatorConfigParam.FuelSettings[FuelItem2Id].ItemId,fuelItemId);
             
             //燃料の2個目の枯渇までループ
             DateTime endTime2 = DateTime.Now.AddMilliseconds(generatorConfigParam.FuelSettings[FuelItem2Id].Time);
