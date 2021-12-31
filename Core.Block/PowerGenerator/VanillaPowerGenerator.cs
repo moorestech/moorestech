@@ -41,7 +41,7 @@ namespace Core.Block.PowerGenerator
             
             for (var i = 2; i < split.Length; i+=2)
             {
-                _fuelItemStacks[i] = itemStackFactory.Create(int.Parse(split[i]),int.Parse(split[i+1]));
+                _fuelItemStacks.Add(itemStackFactory.Create(int.Parse(split[i]),int.Parse(split[i+1])));
             }
         }
 
