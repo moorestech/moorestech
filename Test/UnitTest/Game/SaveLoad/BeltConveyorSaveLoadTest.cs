@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace Test.UnitTest.Game.SaveLoad
 {
-    public class SaveLoadBeltConveyorTest
+    public class BeltConveyorSaveLoadTest
     {
         [Test]
         public void SaveLoadTest()
