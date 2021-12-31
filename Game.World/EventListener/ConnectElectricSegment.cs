@@ -9,6 +9,8 @@ using World.Service;
 
 namespace World.EventListener
 {
+    //TODO リファクタ
+    //TODO 別々の電気セグメント同士が繋がるときの挙動
     public class ConnectElectricSegment
     {
         private readonly IWorldBlockComponentDatastore<IBlockElectric> _electricDatastore;
