@@ -46,7 +46,7 @@ namespace Test.UnitTest.Game.SaveLoad
             //発電機を再作成した結果を検証
             var loadedFuelItemId = (int)type.GetField("_fuelItemId", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadedPowerGenerator);
             Assert.AreEqual(fuelItemId,loadedFuelItemId);
-            var loadedRemainingFuelTime = (int)type.GetField("_remainingFuelTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadedPowerGenerator);
+            var loadedRemainingFuelTime = (double)type.GetField("_remainingFuelTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadedPowerGenerator);
             Assert.AreEqual(remainingFuelTime,loadedRemainingFuelTime);
             var loadedFuelItemStacks = (List<IItemStack>)type.GetField("_fuelItemStacks", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadedPowerGenerator);
