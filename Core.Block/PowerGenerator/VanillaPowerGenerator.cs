@@ -16,6 +16,7 @@ namespace Core.Block.PowerGenerator
         private readonly Dictionary<int,FuelSetting> _fuelSettings;
 
         private int _fuelItemId = ItemConst.NullItemId;
+        private double _remainingFuelTime = 0;
         private readonly List<IItemStack> _fuelItemStacks;
 
         public VanillaPowerGenerator(int blockId, int intId,int fuelItemSlot,ItemStackFactory itemStackFactory,Dictionary<int,FuelSetting> fuelSettings)
@@ -26,20 +27,35 @@ namespace Core.Block.PowerGenerator
             _fuelItemStacks = CreateEmptyItemStacksList.Create(fuelItemSlot,itemStackFactory);
             GameUpdate.AddUpdateObject(this);
         }
-
-        public int OutputPower()
+        public VanillaPowerGenerator(int blockId, int intId,string loadString,int fuelItemSlot,ItemStackFactory itemStackFactory,Dictionary<int,FuelSetting> fuelSettings)
         {
-            if (_fuelSettings.ContainsKey(_fuelItemId))
+            _blockId = blockId;
+            _intId = intId;
+            _fuelSettings = fuelSettings;
+            GameUpdate.AddUpdateObject(this);
+            _fuelItemStacks = new List<IItemStack>();
+            
+            var split = loadString.Split(',');
+            _fuelItemId = int.Parse(split[0]);
+            _remainingFuelTime = double.Parse(split[1]);
+            
+            for (var i = 2; i < split.Length; i+=2)
             {
-                return _fuelSettings[_fuelItemId].Power;
+                _fuelItemStacks[i] = itemStackFactory.Create(int.Parse(split[i]),int.Parse(split[i+1]));
             }
-            return 0;
         }
 
         //TODO セーブ、ロードのテストを作る
         public string GetSaveState()
         {
-            return "";
+            //フォーマット
+            //_fuelItemId,_remainingFuelTime,_fuelItemId1,_fuelItemCount1,_fuelItemId2,_fuelItemCount2,_fuelItemId3,_fuelItemCount3...
+            var saveState = $"{_fuelItemId},{_remainingFuelTime}";
+            foreach (var itemStack in _fuelItemStacks)
+            {
+                saveState += $",{itemStack.Id},{itemStack.Count}";
+            }
+            return saveState;
         }
 
         //アイテムを挿入するシステムを作る
@@ -59,17 +75,7 @@ namespace Core.Block.PowerGenerator
             return itemStack;
         }
 
-        public void AddConnector(IBlockInventory blockInventory)
-        {
-            throw new Exception("発電機にアイテム出力スロットはありません");
-        }
 
-        public void RemoveConnector(IBlockInventory blockInventory)
-        {
-            throw new Exception("発電機にアイテム出力スロットはありません");
-        }
-
-        private double _remainingFuelTime = 0;
         public void Update()
         {
             //現在燃料を消費しているか判定
@@ -101,8 +107,19 @@ namespace Core.Block.PowerGenerator
                 return;
             }
         }
+        
+        public int OutputPower()
+        {
+            if (_fuelSettings.ContainsKey(_fuelItemId))
+            {
+                return _fuelSettings[_fuelItemId].Power;
+            }
+            return 0;
+        }
 
         public int GetIntId() { return _intId; }
         public int GetBlockId() { return _blockId; }
+        public void AddConnector(IBlockInventory blockInventory) { throw new Exception("発電機にアイテム出力スロットはありません"); }
+        public void RemoveConnector(IBlockInventory blockInventory) { throw new Exception("発電機にアイテム出力スロットはありません"); }
     }
 }
