@@ -45,7 +45,6 @@ namespace Core.Block.PowerGenerator
             }
         }
 
-        //TODO セーブ、ロードのテストを作る
         public string GetSaveState()
         {
             //フォーマット
