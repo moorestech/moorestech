@@ -69,9 +69,37 @@ namespace Core.Block.PowerGenerator
             throw new Exception("発電機にアイテム出力スロットはありません");
         }
 
+        private double _remainingFuelTime = 0;
         public void Update()
         {
+            //現在燃料を消費しているか判定
+            //燃料が在る場合は燃料残り時間をUpdate時間分減らす
+            if (_fuelItemId != ItemConst.NullItemId)
+            {
+                _remainingFuelTime -= GameUpdate.UpdateTime;
+                
+                //残り時間が0以下の時は燃料の設定をNullItemIdにする
+                if (_remainingFuelTime <= 0)
+                {
+                    _fuelItemId = ItemConst.NullItemId;
+                }
+                return;
+            }
             
+            //燃料がない場合はスロットに燃料が在るか判定する
+            //スロットに燃料がある場合は燃料の設定し、アイテムを1個減らす
+            for (var i = 0; i < _fuelItemStacks.Count; i++)
+            {
+                //スロットに燃料がある場合
+                var slotId = _fuelItemStacks[i].Id;
+                if (!_fuelSettings.ContainsKey(slotId)) continue;
+                //ID、残り時間を設定
+                _fuelItemId = _fuelSettings[slotId].ItemId;
+                _remainingFuelTime = _fuelSettings[slotId].Time;
+                //アイテムを1個減らす
+                _fuelItemStacks[i] = _fuelItemStacks[i].SubItem(1);
+                return;
+            }
         }
 
         public int GetIntId() { return _intId; }
