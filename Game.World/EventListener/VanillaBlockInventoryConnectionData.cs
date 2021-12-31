@@ -7,7 +7,6 @@ namespace World.EventListener
     /// <summary>
     /// ベルトコンベアや機械などのインベントリのあるブロックが、どの方角にあるブロックとつながるかを指定するクラス
     /// 北向きを基準として、つながる方向を指定する
-    /// TODO configに記述する
     /// </summary>
     public class VanillaBlockInventoryConnectionData
     {
