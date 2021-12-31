@@ -34,16 +34,6 @@ namespace Core.Block.PowerGenerator
             return "";
         }
 
-        public int GetIntId()
-        {
-            return _intId;
-        }
-
-        public int GetBlockId()
-        {
-            return _blockId;
-        }
-
         public IItemStack InsertItem(IItemStack itemStack)
         {
             throw new System.NotImplementedException();
@@ -63,5 +53,8 @@ namespace Core.Block.PowerGenerator
         {
             
         }
+
+        public int GetIntId() { return _intId; }
+        public int GetBlockId() { return _blockId; }
     }
 }
