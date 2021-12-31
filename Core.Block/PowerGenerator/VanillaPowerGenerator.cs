@@ -28,6 +28,7 @@ namespace Core.Block.PowerGenerator
             return 100;
         }
 
+        //TODO セーブ、ロードのテストを作る
         public string GetSaveState()
         {
             return "";
