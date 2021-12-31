@@ -9,7 +9,6 @@ using Core.Update;
 
 namespace Core.Block.PowerGenerator
 {
-    //TODO アイテムを挿入して発電するシステムを作る
     public class VanillaPowerGenerator : IBlock,IPowerGenerator,IBlockInventory,IUpdate
     {
         private readonly int _blockId;
