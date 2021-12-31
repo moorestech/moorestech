@@ -16,14 +16,14 @@ namespace Core.Block.BlockFactory.BlockTemplate
 
         public IBlock New(BlockConfigData param, int intId)
         {
-            var powerGeneratorConfig = param.Param as PowerGeneratorConfigParam;
-            return new VanillaPowerGenerator(param.BlockId,intId,powerGeneratorConfig.FuelSlot,_itemStackFactory);
+            var generatorParam= param.Param as PowerGeneratorConfigParam;
+            return new VanillaPowerGenerator(param.BlockId,intId,generatorParam.FuelSlot,_itemStackFactory,generatorParam.FuelSettings);
         }
 
         public IBlock Load(BlockConfigData param, int intId, string state)
         {
-            var powerGeneratorConfig = param.Param as PowerGeneratorConfigParam;
-            return new VanillaPowerGenerator(param.BlockId,intId,powerGeneratorConfig.FuelSlot,_itemStackFactory);
+            var generatorParam = param.Param as PowerGeneratorConfigParam;
+            return new VanillaPowerGenerator(param.BlockId,intId,generatorParam.FuelSlot,_itemStackFactory,generatorParam.FuelSettings);
         }
     }
 }

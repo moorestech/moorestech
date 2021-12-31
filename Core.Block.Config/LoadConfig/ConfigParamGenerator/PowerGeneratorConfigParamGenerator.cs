@@ -7,13 +7,13 @@ namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
     {
         public BlockConfigParamBase Generate(dynamic blockParam)
         {
-            var fuelSettings = new List<FuelSetting>();
+            var fuelSettings = new Dictionary<int,FuelSetting>();
             foreach (var fuel in blockParam.fuel)
             {
                 int id = fuel.id;
                 int time = fuel.time;
                 int power = fuel.power;
-                fuelSettings.Add(new FuelSetting(id,time,power));
+                fuelSettings.Add(id,new FuelSetting(id,time,power));
             }
             
             int fuelSlot = blockParam.fuelSlot;
