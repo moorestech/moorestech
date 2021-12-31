@@ -25,6 +25,7 @@ namespace Core.Block.PowerGenerator
             _intId = intId;
             _fuelSettings = fuelSettings;
             _fuelItemStacks = CreateEmptyItemStacksList.Create(fuelItemSlot,itemStackFactory);
+            GameUpdate.AddUpdateObject(this);
         }
 
         public int OutputPower()
