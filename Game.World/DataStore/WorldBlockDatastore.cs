@@ -105,7 +105,7 @@ namespace World.DataStore
             foreach (var block in saveBlockDataList)
             {
                 AddBlock(
-                    _blockFactory.Create(block.BlockId, block.IntId, block.State),
+                    _blockFactory.Load(block.BlockId, block.IntId, block.State),
                     block.X,
                     block.Y,
                     (BlockDirection)block.Direction);

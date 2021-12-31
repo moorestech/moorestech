@@ -25,7 +25,7 @@ namespace Core.Block.BlockFactory
             }
             throw new Exception("Block type not found :" + type.Type);
         }
-        public IBlock Create(int blockId,int indId,string state)
+        public IBlock Load(int blockId,int indId,string state)
         {
             var type = _blockConfig.GetBlockConfig(blockId);
             if ( _blockTypesDictionary.ContainsKey(type.Type))
