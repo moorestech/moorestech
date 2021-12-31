@@ -24,6 +24,7 @@
       "name": "TestGenerator",
       "type" : "Generator",
       "param" : {
+        "fuelSlot" : 10,
         "fuel": [
           {
             "id": 0, 
