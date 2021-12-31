@@ -27,12 +27,12 @@
         "fuelSlot" : 10,
         "fuel": [
           {
-            "id": 0, 
+            "id": 1, 
             "time" : 1000,
             "power" : 100
           },
           {
-            "id": 1,
+            "id": 2,
             "time" : 2000,
             "power" : 200
           }
