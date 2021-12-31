@@ -16,7 +16,9 @@ namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
                 fuelSettings.Add(new FuelSetting(id,time,power));
             }
             
-            return new PowerGeneratorConfigParam(fuelSettings);
+            int fuelSlot = blockParam.fuelSlot;
+            
+            return new PowerGeneratorConfigParam(fuelSettings,fuelSlot);
         }
     }
 }
