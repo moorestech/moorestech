@@ -86,7 +86,7 @@ namespace World.EventListener
                 }
 
 
-                //他の機械を探索して接続する
+                //他の機械、発電機を探索して接続する
                 var machineRange = electric.machineConnectionRange;
                 
                 var startMachineX =  x - machineRange / 2;
@@ -100,6 +100,12 @@ namespace World.EventListener
                         {
                             //機械を電力セグメントに追加
                             electricSegment.AddBlockElectric(_electricDatastore.GetBlock(i,j));
+                        }
+                        //範囲内に発電機がある場合
+                        if (_powerGeneratorDatastore.ExistsComponentBlock(i,j))
+                        {
+                            //機械を電力セグメントに追加
+                            electricSegment.AddGenerator(_powerGeneratorDatastore.GetBlock(i,j));
                         }
                     }
                 }
