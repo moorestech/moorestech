@@ -89,5 +89,10 @@ namespace Core.Electric
         {
             return _electricPoles.ContainsKey(id);
         }
+
+        public ElectricSegment Merge(ElectricSegment electricSegment)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
