@@ -62,7 +62,7 @@ namespace Test.CombinedTest.Game
             
             //範囲外同士の接続確認
             //セグメント繋がる位置に電柱を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 10),7,0,BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 15),5,0,BlockDirection.North);
             //セグメントの数を確認
             Assert.AreEqual(4, worldElectricSegment.GetElectricSegmentListCount());
             
