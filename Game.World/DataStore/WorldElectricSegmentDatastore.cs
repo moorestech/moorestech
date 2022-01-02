@@ -39,6 +39,12 @@ namespace World.DataStore
             _segmentDictionary.Add(electricSegment);
             return electricSegment;
         }
+
+        public ElectricSegment MergedElectricSegments(List<IElectricPole> poles)
+        {
+            throw new NotImplementedException();
+        }
+
         public int GetElectricSegmentListCount() { return _segmentDictionary.Count; }
     }
 }

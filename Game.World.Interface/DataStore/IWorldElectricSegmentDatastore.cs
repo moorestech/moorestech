@@ -8,6 +8,7 @@ namespace Game.World.Interface.DataStore
         public ElectricSegment GetElectricSegment(IElectricPole pole);
         public ElectricSegment GetElectricSegment(int index);
         public ElectricSegment CreateElectricSegment();
+        public ElectricSegment MergedElectricSegments(List<IElectricPole> poles);
         public int GetElectricSegmentListCount();
     }
 }

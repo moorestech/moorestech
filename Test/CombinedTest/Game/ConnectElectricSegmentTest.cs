@@ -59,6 +59,13 @@ namespace Test.CombinedTest.Game
             {
                 Assert.AreEqual(false,electricPole.ContainsKey(i));
             }
+            
+            //範囲外同士の接続確認
+            //セグメント繋がる位置に電柱を設置
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 10),7,0,BlockDirection.North);
+            //セグメントの数を確認
+            Assert.AreEqual(4, worldElectricSegment.GetElectricSegmentListCount());
+            
         }
         
         //電柱を設置した後に機械、発電機を設置するテスト

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Block;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
@@ -47,45 +48,37 @@ namespace World.EventListener
                 var config = _blockConfig.GetBlockConfig(blockPlaceEvent.Block.GetBlockId());
                 var electric = config.Param as ElectricPoleConfigParam;
                 
-                var isConnect = false;
                 
                 //他の電柱を探索して接続する
+                //TODO 範囲内の電柱をリストアップする 電柱が１つであればそれに接続、複数ならマージする
                 var poleRange = electric.poleConnectionRange;
                 _electricPoleDatastore.GetBlock(x, y);
                 var startElectricX = x - poleRange / 2;
                 var startElectricY = y - poleRange / 2;
+                var electricPoles = new List<IElectricPole>();
                 for (int i = startElectricX; i < startElectricX + poleRange; i++)
                 {
                     for (int j = startElectricY; j < startElectricY + poleRange; j++)
                     {
                         //範囲内に電柱がある場合、自身のブロックは除く
-                        if (_electricPoleDatastore.ExistsComponentBlock(i,j) && !(i == x && j == y))
-                        {
-                            //電柱を取得
-                            var pole = _electricPoleDatastore.GetBlock(i,j);
-                            //電柱からその電柱が所属している電気セグメントを取得
-                            var segment = _worldElectricSegmentDatastore.GetElectricSegment(pole);
-                            //その電気セグメントに電柱を追加
-                            segment.AddElectricPole(blockPlaceEvent.Block as IElectricPole);
-
-                            isConnect = true;
-                        }
+                        if (!_electricPoleDatastore.ExistsComponentBlock(i, j) || i == x && j == y) continue;
+                        
+                        //電柱を追加
+                        electricPoles.Add(_electricPoleDatastore.GetBlock(i,j));
                     }
                 }
                 
                 //接続したセグメントを取得
-                ElectricSegment electricSegment = null;
-                //周りに電柱がないときは新たに電力セグメントを作成する
-                if (isConnect)
+                var electricSegment = electricPoles.Count switch
                 {
-                    electricSegment =
-                        _worldElectricSegmentDatastore.GetElectricSegment(blockPlaceEvent.Block as IElectricPole);
-                }
-                else
-                {
-                    electricSegment = _worldElectricSegmentDatastore.CreateElectricSegment();
-                    electricSegment.AddElectricPole(blockPlaceEvent.Block as IElectricPole);
-                }
+                    //周りに電柱がないときは新たに電力セグメントを作成する
+                    0 => _worldElectricSegmentDatastore.CreateElectricSegment(),
+                    //周りの電柱が1つの時は、その電力セグメントを取得する
+                    1 => _worldElectricSegmentDatastore.GetElectricSegment(electricPoles[0]),
+                    _ => _worldElectricSegmentDatastore.MergedElectricSegments(electricPoles)
+                };
+                //電柱と電力セグメントを接続する
+                electricSegment.AddElectricPole(blockPlaceEvent.Block as IElectricPole);
 
 
                 //他の機械、発電機を探索して接続する
