@@ -11,7 +11,6 @@ using World.Service;
 namespace World.EventListener
 {
     //TODO リファクタ
-    //TODO 別々の電気セグメント同士が繋がるときの挙動
     public class ConnectElectricSegment
     {
         private readonly IWorldBlockComponentDatastore<IBlockElectric> _electricDatastore;
@@ -50,7 +49,7 @@ namespace World.EventListener
                 
                 
                 //他の電柱を探索して接続する
-                //TODO 範囲内の電柱をリストアップする 電柱が１つであればそれに接続、複数ならマージする
+                //範囲内の電柱をリストアップする 電柱が１つであればそれに接続、複数ならマージする
                 var poleRange = electric.poleConnectionRange;
                 _electricPoleDatastore.GetBlock(x, y);
                 var startElectricX = x - poleRange / 2;
