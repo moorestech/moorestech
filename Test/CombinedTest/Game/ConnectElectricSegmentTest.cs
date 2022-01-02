@@ -43,8 +43,8 @@ namespace Test.CombinedTest.Game
             Assert.AreEqual(5, worldElectricSegment.GetElectricSegmentListCount());
             
             var segment = worldElectricSegment.GetElectricSegment(0);
-            //リフレクションで電柱を取得する
-            var electricPole = (Dictionary<int,IElectricPole>)typeof(ElectricSegment).GetField("_electricPoles", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(segment);
+            //電柱を取得する
+            var electricPole = segment.GetElectricPoles();
             
             //存在する電柱の数の確認
             Assert.AreEqual(6,electricPole.Count);
@@ -65,7 +65,15 @@ namespace Test.CombinedTest.Game
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 15),5,0,BlockDirection.North);
             //セグメントの数を確認
             Assert.AreEqual(4, worldElectricSegment.GetElectricSegmentListCount());
-            
+            //マージ後のセグメント、電柱を取得
+            segment = worldElectricSegment.GetElectricSegment(3);
+            electricPole = segment.GetElectricPoles();
+            //存在する電柱の数の確認
+            Assert.AreEqual(8,electricPole.Count);
+            //マージされた電柱のIDの確認
+            Assert.AreEqual(10,electricPole[10].GetIntId());
+            Assert.AreEqual(15,electricPole[15].GetIntId());
+
         }
         
         //電柱を設置した後に機械、発電機を設置するテスト
