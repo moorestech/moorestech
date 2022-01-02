@@ -43,7 +43,7 @@ namespace World.EventListener
             var y = blockPlaceEvent.Coordinate.Y;
 
             //設置されたブロックが発電機だった時の処理
-            if (!_powerGeneratorDatastore.ExistsComponentBlock(x, y) ||!_electricDatastore.ExistsComponentBlock(x, y) ) return;
+            if (!IsElectricMachine(x,y)) return;
             
             //最大の電柱の接続範囲を取得探索して接続する
             var startMachineX = x - _maxMachineConnectionRange / 2;
@@ -55,25 +55,38 @@ namespace World.EventListener
                     //範囲内に電柱がある場合
                     if (!_electricPoleDatastore.ExistsComponentBlock(i, j)) continue;
                     //電柱に接続
-                    ConnectGenerator(i, j);
+                    ConnectToElectricPole(i, j,x,y);
                 }
             }
         }
+        private bool IsElectricMachine(int x, int y) => _powerGeneratorDatastore.ExistsComponentBlock(x, y) || _electricDatastore.ExistsComponentBlock(x, y);
+
         
         /// <summary>
-        /// 電柱のセグメントに発電機を接続する
+        /// 電柱のセグメントに機械を接続する
         /// </summary>
-        private void ConnectGenerator(int x, int y)
+        private void ConnectToElectricPole(int poleX, int poleY,int machineX,int machineY)
         {
             //電柱を取得
-            var pole = _electricPoleDatastore.GetBlock(x,y);
-            //その電柱から見て機械が範囲内に存在するか確認
+            var pole = _electricPoleDatastore.GetBlock(poleX,poleY);
+            //その電柱の個んぃぐを取得
             var configParam = _blockConfig.GetBlockConfig(((IBlock)pole).GetBlockId()).Param as ElectricPoleConfigParam;
             var range = configParam.machineConnectionRange;
-            if (x - range / 2 <= x && x <= x + range / 2 && y - range / 2 <= y && y <= y + range / 2)
+            
+            //その電柱から見て機械が範囲内に存在するか確認
+            if (poleX - range / 2 > poleX || poleX > poleX + range / 2 || poleY - range / 2 > poleY ||
+                poleY > poleY + range / 2) return;
+            
+            //在る場合は発電機か機械かを判定して接続
+            //発電機を電力セグメントに追加
+            var segment = _worldElectricSegmentDatastore.GetElectricSegment(pole);
+            if (_powerGeneratorDatastore.ExistsComponentBlock(machineX, machineY))
             {
-                //発電機を電力セグメントに追加
-                _worldElectricSegmentDatastore.GetElectricSegment(pole).AddGenerator(_powerGeneratorDatastore.GetBlock(x,y));
+                segment.AddGenerator(_powerGeneratorDatastore.GetBlock(machineX, machineY));
+            }
+            else if (_electricDatastore.ExistsComponentBlock(machineX, machineY))
+            {
+                segment.AddBlockElectric(_electricDatastore.GetBlock(machineX, machineY));
             }
         }
     }
