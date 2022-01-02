@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Core.Update;
 
 namespace Core.Electric
@@ -14,8 +15,7 @@ namespace Core.Electric
         {
             GameUpdate.AddUpdateObject(this);
         }
-        
-        
+
         public void Update()
         {
             //合計電力量の算出
@@ -85,6 +85,10 @@ namespace Core.Electric
             }
         }
         
+        public Dictionary<int,IBlockElectric> GetElectrics() { return _electrics.Keys.ToDictionary(key => key, key => _electrics[key]); }
+        public Dictionary<int,IPowerGenerator> GetGenerators() { return _generators.Keys.ToDictionary(key => key, key => _generators[key]); }
+        public Dictionary<int,IElectricPole> GetElectricPoles() { return _electricPoles.Keys.ToDictionary(key => key, key => _electricPoles[key]); }
+
         public bool ExistElectricPole(int id)
         {
             return _electricPoles.ContainsKey(id);
