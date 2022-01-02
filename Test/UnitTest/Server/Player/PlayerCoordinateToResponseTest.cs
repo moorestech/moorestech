@@ -5,6 +5,7 @@ using Game.World.Interface.Util;
 using NUnit.Framework;
 using Server.PacketHandle.PacketResponse.Player;
 using Server.Protocol.PacketResponse.Const;
+using Server.Protocol.PacketResponse.Player;
 
 namespace Test.UnitTest.Server.Player
 {
