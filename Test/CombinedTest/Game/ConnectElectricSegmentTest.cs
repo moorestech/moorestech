@@ -183,5 +183,40 @@ namespace Test.CombinedTest.Game
             Assert.AreEqual(3,powerGeneratorBlocks[3].GetIntId());
             Assert.AreEqual(4,powerGeneratorBlocks[4].GetIntId());
         }
+        
+        //別々のセグメント同士を電柱でつなぐテスト
+        [Test]
+        public void SegmentConnectionTest()
+        {
+            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = saveServiceProvider.GetService<BlockFactory>();
+            
+            //一つ目のセグメントを設置
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0), 0, 0, BlockDirection.North);
+            //周りに機械と発電機を設置
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 1), 2, 0, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(PowerGenerateId, 2), -2, 0, BlockDirection.North);
+            
+            //二つ目のセグメントを設置
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 10), 6, 0, BlockDirection.North);
+            //周りに機械と発電機を設置
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 3), 7, 0, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(PowerGenerateId, 4), 7, 1, BlockDirection.North);
+
+            var segmentDatastore = saveServiceProvider.GetService<IWorldElectricSegmentDatastore>();
+            //セグメントの数を確認
+            Assert.AreEqual(2,segmentDatastore.GetElectricSegmentListCount());
+            
+            //セグメント同士をつなぐ電柱を設置
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 20), 3, 0, BlockDirection.North);
+            //セグメントの数を確認
+            Assert.AreEqual(1,segmentDatastore.GetElectricSegmentListCount());
+            //セグメントを取得
+            var segment = segmentDatastore.GetElectricSegment(0);
+            //機械、発電機の数を確認
+            Assert.AreEqual(2,segment.GetElectrics().Count);
+            Assert.AreEqual(2,segment.GetGenerators().Count);
+        }
     }
 }
