@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Core.Block.BlockInventory;
 using Core.Block.RecipeConfig.Data;
@@ -12,25 +13,12 @@ namespace Core.Block.Machine.Inventory
     {
         private readonly List<IItemStack> _outputSlot;
         private readonly List<IBlockInventory> _connectInventory;
-        private readonly ItemStackFactory _itemStackFactory;
         
-        public List<IItemStack> OutputSlot
-        {
-            get
-            {
-                //アウトプットスロットをディープコピー
-                var a = new List<IItemStack>();
-                foreach (var itemStack in _outputSlot)
-                {
-                    a.Add(itemStack.Clone());
-                }
-                return a;
-            }
-        }
+        
+        public ReadOnlyCollection<IItemStack> OutputSlot => new(_outputSlot);
         public VanillaMachineOutputInventory(IBlockInventory connect,int outputSlot,ItemStackFactory itemStackFactory)
         {
             _connectInventory = new List<IBlockInventory> {connect};
-            _itemStackFactory = itemStackFactory;
             _outputSlot = CreateEmptyItemStacksList.Create(outputSlot,itemStackFactory);
             GameUpdate.AddUpdateObject(this);
         }

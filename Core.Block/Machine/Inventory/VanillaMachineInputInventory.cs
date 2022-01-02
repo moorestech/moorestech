@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Core.Block.RecipeConfig;
 using Core.Block.RecipeConfig.Data;
@@ -13,19 +14,7 @@ namespace Core.Block.Machine.Inventory
         private readonly List<IItemStack> _inputSlot;
         private readonly IMachineRecipeConfig _machineRecipeConfig;
         
-        public List<IItemStack> InputSlot
-        {
-            get
-            {
-                //アウトプットスロットをディープコピー
-                var a = new List<IItemStack>();
-                foreach (var itemStack in _inputSlot)
-                {
-                    a.Add(itemStack.Clone());
-                }
-                return a;
-            }
-        }
+        public ReadOnlyCollection<IItemStack> InputSlot => new(_inputSlot);
 
         public VanillaMachineInputInventory(int blockId,int inputSlot,IMachineRecipeConfig machineRecipeConfig,ItemStackFactory itemStackFactory)
         {
