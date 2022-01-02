@@ -119,8 +119,8 @@ namespace Test.CombinedTest.Game
             Assert.AreEqual(4,powerGeneratorBlocks[4].GetIntId());
             
             //範囲外の機械、発電機が繋がるように電柱を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 20), 4, 0, BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 21), 0, 4, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 20), 3, 1, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 21), 1, 3, BlockDirection.North);
             
             //存在する機械の数の確認
             Assert.AreEqual(1,segmentDatastore.GetElectricSegmentListCount());
