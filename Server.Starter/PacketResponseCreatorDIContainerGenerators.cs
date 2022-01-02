@@ -71,7 +71,9 @@ namespace Server
             services.AddSingleton<ReceiveRemoveBlockEvent,ReceiveRemoveBlockEvent>();
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect,BlockPlaceEventToBlockInventoryConnect>();
             services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect,BlockRemoveEventToBlockInventoryDisconnect>();
-            services.AddSingleton<ConnectElectricSegment,ConnectElectricSegment>();
+            services.AddSingleton<ConnectBlockElectricToElectricSegment,ConnectBlockElectricToElectricSegment>();
+            services.AddSingleton<ConnectElectricPoleToElectricSegment,ConnectElectricPoleToElectricSegment>();
+            services.AddSingleton<ConnectPowerGeneratorToElectricSegment,ConnectPowerGeneratorToElectricSegment>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText,AssembleSaveJsonText>();
@@ -86,7 +88,9 @@ namespace Server
             serviceProvider.GetService<ReceiveRemoveBlockEvent>();
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();
-            serviceProvider.GetService<ConnectElectricSegment>();
+            serviceProvider.GetService<ConnectBlockElectricToElectricSegment>();
+            serviceProvider.GetService<ConnectElectricPoleToElectricSegment>();
+            serviceProvider.GetService<ConnectPowerGeneratorToElectricSegment>();
             
             return (packetResponse,serviceProvider);
         }
