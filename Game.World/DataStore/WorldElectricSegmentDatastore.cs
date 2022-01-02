@@ -51,10 +51,12 @@ namespace World.DataStore
             //電力セグメントをマージする
             var mergedElectricSegment = new ElectricMergeService().Merge(electricSegments);
             //マージ前のセグメントを削除する
-            foreach (var electricSegment in electricSegments)
+            for (int i = 0; i < electricSegments.Count; i++)
             {
-                _segmentDictionary.Remove(electricSegment);
+                _segmentDictionary.Remove(electricSegments[i]);
+                electricSegments[i] = null;
             }
+            
             //マージ後のセグメントを追加する
             _segmentDictionary.Add(mergedElectricSegment);
 
