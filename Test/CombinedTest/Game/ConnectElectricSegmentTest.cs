@@ -122,12 +122,15 @@ namespace Test.CombinedTest.Game
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 20), 3, 1, BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 21), 1, 3, BlockDirection.North);
             
+            segment = segmentDatastore.GetElectricSegment(0);
+            electricBlocks = segment.GetElectrics();
+            powerGeneratorBlocks = segment.GetGenerators();
             //存在する機械の数の確認
             Assert.AreEqual(1,segmentDatastore.GetElectricSegmentListCount());
             Assert.AreEqual(3,electricBlocks.Count);
             Assert.AreEqual(3,powerGeneratorBlocks.Count);
             //追加されたIDの確認
-            Assert.AreEqual(10,powerGeneratorBlocks[10].GetIntId());
+            Assert.AreEqual(10,electricBlocks[10].GetIntId());
             Assert.AreEqual(12,powerGeneratorBlocks[12].GetIntId());
             
             
