@@ -5,7 +5,7 @@ using Core.Block.BlockInventory;
 using Core.Item;
 using Core.Update;
 
-namespace Core.Block.BeltConveyor
+namespace Core.Block.Blocks.BeltConveyor
 {
     /// <summary>
     /// アイテムの搬出入とインベントリの管理を行う

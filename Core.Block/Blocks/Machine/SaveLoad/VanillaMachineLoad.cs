@@ -1,9 +1,9 @@
 using System;
-using Core.Block.Machine.Inventory;
+using Core.Block.Blocks.Machine.Inventory;
 using Core.Block.RecipeConfig;
 using Core.Item;
 
-namespace Core.Block.Machine.SaveLoad
+namespace Core.Block.Blocks.Machine.SaveLoad
 {
     public class VanillaMachineLoad
     {

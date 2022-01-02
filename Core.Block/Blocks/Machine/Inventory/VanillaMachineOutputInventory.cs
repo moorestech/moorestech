@@ -7,7 +7,7 @@ using Core.Item;
 using Core.Item.Util;
 using Core.Update;
 
-namespace Core.Block.Machine.Inventory
+namespace Core.Block.Blocks.Machine.Inventory
 {
     public class VanillaMachineOutputInventory :IUpdate
     {

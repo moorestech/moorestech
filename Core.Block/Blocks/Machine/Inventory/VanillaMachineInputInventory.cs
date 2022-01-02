@@ -6,7 +6,7 @@ using Core.Block.RecipeConfig.Data;
 using Core.Item;
 using Core.Item.Util;
 
-namespace Core.Block.Machine.Inventory
+namespace Core.Block.Blocks.Machine.Inventory
 {
     public class VanillaMachineInputInventory
     {

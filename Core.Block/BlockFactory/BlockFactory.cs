@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Block.BlockFactory.BlockTemplate;
+using Core.Block.Blocks;
 using Core.Block.Config;
 
 namespace Core.Block.BlockFactory

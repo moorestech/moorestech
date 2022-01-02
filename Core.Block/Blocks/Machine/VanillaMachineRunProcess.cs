@@ -1,8 +1,8 @@
-using Core.Block.Machine.Inventory;
+using Core.Block.Blocks.Machine.Inventory;
 using Core.Block.RecipeConfig.Data;
 using Core.Update;
 
-namespace Core.Block.Machine
+namespace Core.Block.Blocks.Machine
 {
     public class VanillaMachineRunProcess : IUpdate
     {

@@ -1,7 +1,6 @@
+using Core.Block.Blocks;
+using Core.Block.Blocks.ElectricPole;
 using Core.Block.Config.LoadConfig;
-using Core.Block.Config.LoadConfig.Param;
-using Core.Block.ElectricPole;
-using Core.Block.Machine;
 
 namespace Core.Block.BlockFactory.BlockTemplate
 {

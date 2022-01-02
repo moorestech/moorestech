@@ -1,11 +1,11 @@
 using Core.Block.BlockInventory;
-using Core.Block.Config;
+using Core.Block.Blocks;
+using Core.Block.Blocks.Machine;
+using Core.Block.Blocks.Machine.Inventory;
+using Core.Block.Blocks.Machine.InventoryController;
+using Core.Block.Blocks.Machine.SaveLoad;
 using Core.Block.Config.LoadConfig;
 using Core.Block.Config.LoadConfig.Param;
-using Core.Block.Machine;
-using Core.Block.Machine.Inventory;
-using Core.Block.Machine.InventoryController;
-using Core.Block.Machine.SaveLoad;
 using Core.Block.RecipeConfig;
 using Core.Item;
 

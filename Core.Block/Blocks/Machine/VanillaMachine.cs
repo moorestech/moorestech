@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-using Core.Block.BlockInventory;
-using Core.Block.Machine.Inventory;
-using Core.Block.Machine.InventoryController;
-using Core.Block.Machine.SaveLoad;
+﻿using Core.Block.BlockInventory;
+using Core.Block.Blocks.Machine.InventoryController;
+using Core.Block.Blocks.Machine.SaveLoad;
 using Core.Electric;
 using Core.Inventory;
 using Core.Item;
 
-namespace Core.Block.Machine
+namespace Core.Block.Blocks.Machine
 {
     /// <summary>
     /// 機械を表すクラス

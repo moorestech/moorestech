@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Block;
 using Core.Block.BlockFactory;
-using Core.Block.Config;
-using Core.Block.Machine;
+using Core.Block.Blocks.Machine;
 using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +14,6 @@ using Server;
 using Server.Protocol.PacketResponse.Const;
 using Server.Util;
 using Test.Module.TestConfig;
-using World;
 using IntId = World.Util.IntId;
 
 namespace Test.CombinedTest.Server.PacketTest

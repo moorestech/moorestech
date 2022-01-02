@@ -1,6 +1,6 @@
 ﻿using System;
-using Core.Block.BeltConveyor;
 using Core.Block.BlockFactory;
+using Core.Block.Blocks.BeltConveyor;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Item;

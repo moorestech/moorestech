@@ -7,7 +7,7 @@ using Core.Item;
 using Core.Item.Util;
 using Core.Update;
 
-namespace Core.Block.PowerGenerator
+namespace Core.Block.Blocks.PowerGenerator
 {
     public class VanillaPowerGenerator : IBlock,IPowerGenerator,IBlockInventory,IUpdate
     {

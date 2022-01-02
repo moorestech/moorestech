@@ -1,9 +1,9 @@
 using System;
 using System.Reflection;
 using Core.Block.BlockFactory;
-using Core.Block.Machine;
-using Core.Block.Machine.Inventory;
-using Core.Block.Machine.InventoryController;
+using Core.Block.Blocks.Machine;
+using Core.Block.Blocks.Machine.Inventory;
+using Core.Block.Blocks.Machine.InventoryController;
 using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;

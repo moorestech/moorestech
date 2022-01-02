@@ -1,6 +1,7 @@
+using Core.Block.Blocks;
+using Core.Block.Blocks.PowerGenerator;
 using Core.Block.Config.LoadConfig;
 using Core.Block.Config.LoadConfig.Param;
-using Core.Block.PowerGenerator;
 using Core.Item;
 
 namespace Core.Block.BlockFactory.BlockTemplate

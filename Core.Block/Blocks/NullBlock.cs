@@ -1,8 +1,6 @@
 ﻿using System;
-using Core.Block.Config;
-using Core.Block.Config.LoadConfig;
 
-namespace Core.Block
+namespace Core.Block.Blocks
 {
     public class NullBlock : IBlock
     {

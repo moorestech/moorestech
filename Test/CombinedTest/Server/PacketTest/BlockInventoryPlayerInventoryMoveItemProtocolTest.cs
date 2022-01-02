@@ -1,27 +1,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Core.Block;
 using Core.Block.BlockFactory;
-using Core.Block.Config;
-using Core.Block.Machine;
-using Core.Block.Machine.Inventory;
-using Core.Block.Machine.InventoryController;
+using Core.Block.Blocks.Machine;
+using Core.Block.Blocks.Machine.Inventory;
+using Core.Block.Blocks.Machine.InventoryController;
 using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
 using Core.Item.Util;
-using Core.Util;
 using Game.PlayerInventory.Interface;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Util;
-using Test.Module;
 using Test.Module.TestConfig;
-using World;
 
 namespace Test.CombinedTest.Server.PacketTest
 {

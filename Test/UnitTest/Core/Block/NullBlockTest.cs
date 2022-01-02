@@ -1,4 +1,5 @@
 using Core.Block;
+using Core.Block.Blocks;
 using NUnit.Framework;
 
 namespace Test.UnitTest.Core.Block

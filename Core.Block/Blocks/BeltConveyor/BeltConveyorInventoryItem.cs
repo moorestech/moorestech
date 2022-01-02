@@ -1,4 +1,4 @@
-﻿namespace Core.Block.BeltConveyor
+﻿namespace Core.Block.Blocks.BeltConveyor
 {
     public class BeltConveyorInventoryItem
     {

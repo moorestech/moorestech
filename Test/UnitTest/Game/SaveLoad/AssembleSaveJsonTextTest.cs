@@ -1,25 +1,9 @@
-using System;
-using System.Reflection;
-using Core.Block;
-using Core.Block.BlockFactory;
-using Core.Block.Machine;
-using Core.Block.Machine.Inventory;
-using Core.Block.Machine.InventoryController;
-using Core.Block.RecipeConfig;
-using Core.Block.RecipeConfig.Data;
-using Core.Item;
-using Core.Item.Config;
-using Core.Update;
+using Core.Block.Blocks;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using PlayerInventory;
-using PlayerInventory.Event;
 using Server;
-using Test.Module.TestConfig;
-using World.DataStore;
-using World.Event;
 
 namespace Test.UnitTest.Game.SaveLoad
 {

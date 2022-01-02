@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Core.Block.BlockFactory;
+using Core.Block.Blocks.PowerGenerator;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
-using Core.Block.PowerGenerator;
 using Core.Item;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;

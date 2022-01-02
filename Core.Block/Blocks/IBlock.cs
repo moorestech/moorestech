@@ -1,6 +1,4 @@
-﻿using Core.Block.Config;
-
-namespace Core.Block
+﻿namespace Core.Block.Blocks
 {
     public interface IBlock
     {

@@ -1,18 +1,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Core.Block.BeltConveyor;
 using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
-using Core.Block.Machine;
-using Core.Block.Machine.Inventory;
-using Core.Block.Machine.InventoryController;
-using Game.World.Interface;
+using Core.Block.Blocks.BeltConveyor;
+using Core.Block.Blocks.Machine;
+using Core.Block.Blocks.Machine.Inventory;
+using Core.Block.Blocks.Machine.InventoryController;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
-using World;
 using World.Util;
 
 namespace Test.UnitTest.Game

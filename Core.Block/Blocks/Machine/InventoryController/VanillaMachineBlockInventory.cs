@@ -1,8 +1,8 @@
 using Core.Block.BlockInventory;
-using Core.Block.Machine.Inventory;
+using Core.Block.Blocks.Machine.Inventory;
 using Core.Item;
 
-namespace Core.Block.Machine.InventoryController
+namespace Core.Block.Blocks.Machine.InventoryController
 {
     public class VanillaMachineBlockInventory
     {
