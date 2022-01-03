@@ -44,6 +44,7 @@
       "type" : "Miner",
       "param" : {
         "requiredPower": 100,
+        "outputSlot": 3,
         "oreSetting": [
           {"oreId": 1, "time": 1000}
         ]
