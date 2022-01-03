@@ -43,6 +43,7 @@
       "name": "TestMiner",
       "type" : "Miner",
       "param" : {
+        "requiredPower": 100,
         "oreSetting": [
           {"oreId": 1, "time": 1000}
         ]
