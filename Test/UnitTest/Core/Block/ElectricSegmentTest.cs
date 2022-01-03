@@ -7,6 +7,7 @@ namespace Test.UnitTest.Core.Block
 {
     public class ElectricSegmentTest
     {
+        //TODO 電柱が無くなったときにセグメントが切断される処理、テスト
         [Test]
         public void ElectricEnergyTest()
         {
