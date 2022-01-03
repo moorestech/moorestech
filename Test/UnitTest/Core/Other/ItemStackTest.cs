@@ -49,9 +49,9 @@ namespace Test.UnitTest.Core.Other
                 receivedItemStack = _itemStackFactory.Create(rid,ramo);
             }
             var result = mineItemStack.AddItem(receivedItemStack);
-            Assert.AreEqual(result.ProcessRemainderItemStack.Count, ansMAmo);
+            Assert.AreEqual(result.ProcessResultItemStack.Count, ansMAmo);
             Assert.AreEqual(result.RemainderItemStack.Count, ansRAmo);
-            Assert.AreEqual(result.ProcessRemainderItemStack.Id, ansMid);
+            Assert.AreEqual(result.ProcessResultItemStack.Id, ansMid);
             Assert.AreEqual(result.RemainderItemStack.Id, ansRID);
         }
 

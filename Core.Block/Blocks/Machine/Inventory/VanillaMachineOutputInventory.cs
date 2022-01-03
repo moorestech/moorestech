@@ -49,7 +49,7 @@ namespace Core.Block.Blocks.Machine.Inventory
                 {
                     if (!_outputSlot[i].IsAllowedToAdd(output.OutputItem)) continue;
                     
-                    _outputSlot[i] = _outputSlot[i].AddItem(output.OutputItem).ProcessRemainderItemStack;
+                    _outputSlot[i] = _outputSlot[i].AddItem(output.OutputItem).ProcessResultItemStack;
                     break;
                 }
             }

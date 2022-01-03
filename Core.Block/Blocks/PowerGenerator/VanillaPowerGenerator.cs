@@ -66,7 +66,7 @@ namespace Core.Block.Blocks.PowerGenerator
                 
                 //インベントリにアイテムを入れる
                 var r = _fuelItemStacks[i].AddItem(itemStack);
-                _fuelItemStacks[i] = r.ProcessRemainderItemStack;
+                _fuelItemStacks[i] = r.ProcessResultItemStack;
                 
                 //とった結果のアイテムを返す
                 return r.RemainderItemStack;

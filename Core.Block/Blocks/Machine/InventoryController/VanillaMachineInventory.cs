@@ -55,7 +55,7 @@ namespace Core.Block.Blocks.Machine.InventoryController
                 if (item.Id == itemStack.Id)
                 {
                     result = item.AddItem(itemStack);
-                    _vanillaMachineInputInventory.SetItem(slot, result.ProcessRemainderItemStack);
+                    _vanillaMachineInputInventory.SetItem(slot, result.ProcessResultItemStack);
                     return result.RemainderItemStack;
                 }
 
@@ -73,7 +73,7 @@ namespace Core.Block.Blocks.Machine.InventoryController
                 if (item.Id == itemStack.Id)
                 {
                     result = item.AddItem(itemStack);
-                    _vanillaMachineOutputInventory.SetItem(slot, result.ProcessRemainderItemStack);
+                    _vanillaMachineOutputInventory.SetItem(slot, result.ProcessResultItemStack);
                     return result.RemainderItemStack;
                 }
                 _vanillaMachineOutputInventory.SetItem(slot, itemStack);

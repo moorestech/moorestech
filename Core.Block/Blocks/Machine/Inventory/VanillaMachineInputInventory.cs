@@ -31,7 +31,7 @@ namespace Core.Block.Blocks.Machine.Inventory
                 
                 //インベントリにアイテムを入れる
                 var r = _inputSlot[i].AddItem(itemStack);
-                _inputSlot[i] = r.ProcessRemainderItemStack;
+                _inputSlot[i] = r.ProcessResultItemStack;
                 
                 //とった結果のアイテムを返す
                 return r.RemainderItemStack;

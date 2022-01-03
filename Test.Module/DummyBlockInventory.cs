@@ -41,7 +41,7 @@ namespace Test.Module
             {
                 if (!_insertedItems[i].IsAllowedToAdd(itemStack)) continue;
                 var r = _insertedItems[i].AddItem(itemStack);
-                _insertedItems[i] = r.ProcessRemainderItemStack;
+                _insertedItems[i] = r.ProcessResultItemStack;
                 _endInsertCnt++;
                 _isItemExists = InsertToEndNum <= _endInsertCnt;
 
