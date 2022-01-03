@@ -92,7 +92,7 @@ namespace World.EventListener
             
             
             //接続元ブロックと接続先ブロックを接続
-            _worldBlockInventoryDatastore.GetBlock(sourceX, sourceY).AddConnector(
+            _worldBlockInventoryDatastore.GetBlock(sourceX, sourceY).AddOutputConnector(
                 _worldBlockInventoryDatastore.GetBlock(destinationX, destinationY));
 
         }

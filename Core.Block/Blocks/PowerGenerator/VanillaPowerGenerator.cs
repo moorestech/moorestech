@@ -118,7 +118,7 @@ namespace Core.Block.Blocks.PowerGenerator
 
         public int GetIntId() { return _intId; }
         public int GetBlockId() { return _blockId; }
-        public void AddConnector(IBlockInventory blockInventory) { throw new Exception("発電機にアイテム出力スロットはありません"); }
-        public void RemoveConnector(IBlockInventory blockInventory) { throw new Exception("発電機にアイテム出力スロットはありません"); }
+        public void AddOutputConnector(IBlockInventory blockInventory) { throw new Exception("発電機にアイテム出力スロットはありません"); }
+        public void RemoveOutputConnector(IBlockInventory blockInventory) { throw new Exception("発電機にアイテム出力スロットはありません"); }
     }
 }

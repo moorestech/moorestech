@@ -31,12 +31,12 @@ namespace Core.Block.Blocks.Miner
         }
 
 
-        public void AddConnector(IBlockInventory blockInventory)
+        public void AddOutputConnector(IBlockInventory blockInventory)
         {
             throw new System.NotImplementedException();
         }
 
-        public void RemoveConnector(IBlockInventory blockInventory)
+        public void RemoveOutputConnector(IBlockInventory blockInventory)
         {
             throw new System.NotImplementedException();
         }

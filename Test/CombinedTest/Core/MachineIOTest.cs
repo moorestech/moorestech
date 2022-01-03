@@ -36,7 +36,7 @@ namespace Test.CombinedTest.Core
         private VanillaMachine CreateMachine(int id,IBlockInventory inventory)
         {
             var machine = CreateMachine(id);
-            machine.AddConnector(inventory);
+            machine.AddOutputConnector(inventory);
             
             return machine;
         }
@@ -148,7 +148,7 @@ namespace Test.CombinedTest.Core
             for (int i = 0; i < recipes.Length; i++)
             {
                 var dummy = new DummyBlockInventory(recipes[i].output.Count);
-                machineList[i].AddConnector(dummy);
+                machineList[i].AddOutputConnector(dummy);
                 dummyBlockList.Add(dummy);
             }
             GameUpdate.Update();

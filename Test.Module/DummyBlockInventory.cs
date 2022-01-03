@@ -50,7 +50,7 @@ namespace Test.Module
             return _itemStackFactory.CreatEmpty();
         }
 
-        public void AddConnector(IBlockInventory blockInventory) { }
-        public void RemoveConnector(IBlockInventory blockInventory) { }
+        public void AddOutputConnector(IBlockInventory blockInventory) { }
+        public void RemoveOutputConnector(IBlockInventory blockInventory) { }
     }
 }

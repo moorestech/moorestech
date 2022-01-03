@@ -33,7 +33,7 @@ namespace World.EventListener
                 if (_worldBlockInventoryDatastore.ExistsComponentBlock(x + offsetX, y + offsetY))
                     //そのブロックの接続を削除する
                     _worldBlockInventoryDatastore.GetBlock(x + offsetX, y + offsetY)
-                        .RemoveConnector((IBlockInventory) blockRemoveEvent.Block);
+                        .RemoveOutputConnector((IBlockInventory) blockRemoveEvent.Block);
         }
     }
 }

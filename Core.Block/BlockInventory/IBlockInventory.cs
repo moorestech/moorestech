@@ -5,7 +5,7 @@ namespace Core.Block.BlockInventory
     public interface IBlockInventory
     {
         public IItemStack InsertItem(IItemStack itemStack);
-        public void AddConnector(IBlockInventory blockInventory);
-        public void RemoveConnector(IBlockInventory blockInventory);
+        public void AddOutputConnector(IBlockInventory blockInventory);
+        public void RemoveOutputConnector(IBlockInventory blockInventory);
     }
 }

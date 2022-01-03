@@ -87,12 +87,12 @@ namespace Core.Block.Blocks.BeltConveyor
             return itemStack;
         }
 
-        public void AddConnector(IBlockInventory blockInventory)
+        public void AddOutputConnector(IBlockInventory blockInventory)
         {
             _connector = blockInventory;
         }
 
-        public void RemoveConnector(IBlockInventory blockInventory)
+        public void RemoveOutputConnector(IBlockInventory blockInventory)
         {
             if (_connector.GetHashCode() == blockInventory.GetHashCode())
             {
