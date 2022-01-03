@@ -17,3 +17,6 @@ https://github.com/JamesNK/Newtonsoft.Json
 
 .net core  
 https://github.com/dotnet/core  
+
+FastNoiseLite  
+https://github.com/Auburn/FastNoiseLite  
