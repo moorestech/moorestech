@@ -83,6 +83,8 @@ namespace Core.Block.Blocks.Machine
                 _state = ProcessState.Idle;
                 _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipeData);
             }
+            //電力を消費する　TODO ここが正しく機能するかテストでチェックする
+            _nowPower = 0;
         }
         private bool IsAllowedToStartProcess
         {
