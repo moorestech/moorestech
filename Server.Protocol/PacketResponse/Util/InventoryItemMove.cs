@@ -30,7 +30,7 @@ namespace Server.PacketHandle.PacketResponse.Util
                 //移動元インベントリに残るアイテムを計算
                 //ゼロの時は自動でNullItemになる
                 var playerItemCount = originItem.Count - itemCount;
-                var remainItem = replaceItem.AddItem(itemStackFactory.Create(originItem.Id,playerItemCount)).ProcessResultItemStack;
+                var remainItem = replaceItem.AddItem(itemStackFactory.Create(originItem.Id,playerItemCount)).ProcessRemainderItemStack;
                     
                 //移動元インベントリに残りのアイテムをセット
                 sourceInventory.SetItem(sourceSlot,remainItem);

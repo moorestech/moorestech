@@ -2,9 +2,9 @@
 {
     public class ItemProcessResult
     {
-        public ItemProcessResult(IItemStack processResultItemStack, IItemStack remainderItemStack)
+        public ItemProcessResult(IItemStack processRemainderItemStack, IItemStack remainderItemStack)
         {
-            ProcessResultItemStack = processResultItemStack;
+            ProcessRemainderItemStack = processRemainderItemStack;
             RemainderItemStack = remainderItemStack;
         }
 
@@ -16,6 +16,6 @@
         /// <summary>
         /// 処理した結果余ったアイテムスタック
         /// </summary>
-        public IItemStack ProcessResultItemStack { get; }
+        public IItemStack ProcessRemainderItemStack { get; }
     }
 }

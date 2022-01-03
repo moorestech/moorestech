@@ -33,7 +33,7 @@ namespace PlayerInventory
             if (itemStack.Id == _mainInventory[slot].Id)
             {
                 var result = _mainInventory[slot].AddItem(itemStack);
-                _mainInventory[slot] = result.ProcessResultItemStack;
+                _mainInventory[slot] = result.ProcessRemainderItemStack;
                 return result.RemainderItemStack;
             }else if( _mainInventory[slot].Count == 0)
             {
@@ -82,7 +82,7 @@ namespace PlayerInventory
             if (item.Id == itemStack.Id)
             {
                 var result = item.AddItem(itemStack);
-                _mainInventory[slot] = result.ProcessResultItemStack;
+                _mainInventory[slot] = result.ProcessRemainderItemStack;
                 _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(_playerId,slot,_mainInventory[slot]));
                 return result.RemainderItemStack;
             }
