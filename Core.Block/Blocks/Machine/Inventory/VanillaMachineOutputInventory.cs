@@ -43,7 +43,6 @@ namespace Core.Block.Blocks.Machine.Inventory
         public void InsertOutputSlot(IMachineRecipeData machineRecipeData)
         {
             //アウトプットスロットにアイテムを格納する
-            //TODO 複数アウトプットスロットがあるときは優先順位を順番に駆るロジックを組む
             foreach (var output in machineRecipeData.ItemOutputs)
             {
                 for (int i = 0; i < _outputSlot.Count; i++)
@@ -57,6 +56,7 @@ namespace Core.Block.Blocks.Machine.Inventory
 
         }
 
+        //TODO 複数アウトプットスロットがあるときは優先順位を順番に駆るロジックを組む
         void InsertConnectInventory()
         {
             for (int i = 0; i < _outputSlot.Count; i++)
