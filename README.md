@@ -15,5 +15,5 @@ https://github.com/nunit/nunit
 Json.NET  
 https://github.com/JamesNK/Newtonsoft.Json
 
-.net core
-https://github.com/dotnet/core
+.net core  
+https://github.com/dotnet/core  
