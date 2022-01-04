@@ -5,6 +5,7 @@ namespace Core.Block.Config.LoadConfig.Param
     public class MinerBlockConfigParam : BlockConfigParamBase
     {
         public readonly int RequiredPower;
+        public readonly int OutputSlot;
         public readonly List<OreSetting> OreSettings;
 
         public MinerBlockConfigParam(int requiredPower, List<OreSetting> oreSettings)
