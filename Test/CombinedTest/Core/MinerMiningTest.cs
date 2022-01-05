@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Core.Block.BlockFactory;
 using Core.Block.BlockFactory.BlockTemplate;
 using Core.Block.BlockInventory;
@@ -25,19 +26,21 @@ namespace Test.CombinedTest.Core
         public void MiningTest()
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var oreConfig = serviceProvider.GetService<IOreConfig>();
-            //TODo minerの鉱石チェックサービスをテスト用モジュールにする
-            //var miner = new VanillaMiner(MinerId,10);
-            VanillaMiner miner = null;
+            var minerBlockConfigParam = blockConfig.GetBlockConfig(MinerId).Param as MinerBlockConfigParam;
+            
+            //手動で鉱石の設定を行う
+            var miningTime = minerBlockConfigParam.OreSettings[0].MiningTime;
+            var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.OreSettings[0].OreId);
+            
+            var miner = new VanillaMiner(MinerId,10,100,miningItemId,miningTime,10,itemStackFactory);
             
             var dummyInventory = new DummyBlockInventory();
             ((IBlockInventory)miner).AddOutputConnector(dummyInventory);
-            var minerBlockConfigParam = blockConfig.GetBlockConfig(MinerId).Param as MinerBlockConfigParam;
-            var oreId = minerBlockConfigParam.OreSettings[0].OreId;
             
-            DateTime MineEndTime = DateTime.Now.AddMilliseconds(minerBlockConfigParam.OreSettings[0].MiningTime);
+            DateTime MineEndTime = DateTime.Now.AddMilliseconds(miningTime);
             
             //鉱石1個分の採掘時間待機
             while (MineEndTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
@@ -46,21 +49,23 @@ namespace Test.CombinedTest.Core
             }
             
             //鉱石1個が出力されているかチェック
-            Assert.AreEqual(oreConfig.OreIdToItemId(oreId),dummyInventory.InsertedItems[0].Id);
+            Assert.AreEqual(miningItemId,dummyInventory.InsertedItems[0].Id);
             Assert.AreEqual(1,dummyInventory.InsertedItems[0].Count);
             
             //コネクターを外す
             ((IBlockInventory)miner).RemoveOutputConnector(dummyInventory);
             
             //鉱石2個分の採掘時間待機
-            MineEndTime = DateTime.Now.AddMilliseconds(minerBlockConfigParam.OreSettings[0].MiningTime * 2);
+            MineEndTime = DateTime.Now.AddMilliseconds(miningTime * 2);
             while (MineEndTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
             {
                 GameUpdate.Update();
             }
             
             //鉱石2個が残っているかチェック
-            //TODO リフレクションを使ってチェック
+            var outputSlot = (List<IItemStack>)typeof(VanillaMiner).GetField("_outputSlot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(miner);
+            Assert.AreEqual(miningItemId,outputSlot[0].Id);
+            Assert.AreEqual(2,outputSlot[0].Count);
             
             //またコネクターをつなげる
             ((IBlockInventory)miner).AddOutputConnector(dummyInventory);
@@ -68,7 +73,7 @@ namespace Test.CombinedTest.Core
             //コネクターにアイテムを入れるためのアップデート
             GameUpdate.Update();
             //アイテムがさらに2個入っているかチェック
-            Assert.AreEqual(oreConfig.OreIdToItemId(oreId),dummyInventory.InsertedItems[0].Id);
+            Assert.AreEqual(miningItemId,dummyInventory.InsertedItems[0].Id);
             Assert.AreEqual(3,dummyInventory.InsertedItems[0].Count);
             
         } 
