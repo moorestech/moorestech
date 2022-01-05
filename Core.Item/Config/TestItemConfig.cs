@@ -27,7 +27,7 @@ namespace Core.Item.Config
             //アイテムが登録されてないときの仮
             if (_itemDatas.Length-1 < id)
             {
-                return new ItemConfigData("Null",id,MaxValue);
+                return new ItemConfigData("undefined id " + id,id,MaxValue);
             }
             
             return _itemDatas[id];
