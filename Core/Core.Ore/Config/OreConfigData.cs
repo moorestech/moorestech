@@ -3,6 +3,7 @@ using System.Runtime.Serialization;
 namespace Core.Ore.Config
 {
 
+    [DataContract] 
     public class OreConfigData
     {
         [DataMember(Name = "ores")]
