@@ -6,6 +6,7 @@ using Core.Block.BlockInventory;
 using Core.Block.Blocks.Miner;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
+using Core.Electric;
 using Core.Item;
 using Core.Ore;
 using Core.Update;
@@ -38,10 +39,20 @@ namespace Test.CombinedTest.Core
             var miner = new VanillaMiner(MinerId,10,100,miningItemId,miningTime,10,itemStackFactory);
             
             var dummyInventory = new DummyBlockInventory();
+            //接続先ブロックの設定
             ((IBlockInventory)miner).AddOutputConnector(dummyInventory);
+            //電力の設定
+            var segment = new ElectricSegment();
+            segment.AddBlockElectric(miner);
+            segment.AddGenerator(new TestPowerGenerator(10000,10));
             
             DateTime MineEndTime = DateTime.Now.AddMilliseconds(miningTime);
             
+            
+            
+            
+            
+            //テストコードの準備完了
             //鉱石1個分の採掘時間待機
             while (MineEndTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
             {
@@ -61,7 +72,7 @@ namespace Test.CombinedTest.Core
             {
                 GameUpdate.Update();
             }
-            
+            miner.Update();
             //鉱石2個が残っているかチェック
             var outputSlot = (List<IItemStack>)typeof(VanillaMiner).GetField("_outputSlot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(miner);
             Assert.AreEqual(miningItemId,outputSlot[0].Id);

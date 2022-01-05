@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Block.BlockInventory;
 using Core.Block.Config.LoadConfig.Param;
@@ -32,6 +33,7 @@ namespace Core.Block.Blocks.Miner
             _requestPower = requestPower;
             _miningItemId = miningItemId;
             _miningTime = miningTime;
+            _remainingMillSecond = miningTime;
             _itemStackFactory = itemStackFactory;
             GameUpdate.AddUpdateObject(this);
             _outputSlot = CreateEmptyItemStacksList.Create(outputSlot, itemStackFactory);
@@ -108,7 +110,7 @@ namespace Core.Block.Blocks.Miner
 
         public void SupplyPower(int power)
         {
-            power = _nowPower;
+            _nowPower = power;
         }
     }
 }
