@@ -7,6 +7,7 @@ using Core.Electric;
 using Core.Inventory;
 using Core.Item;
 using Core.Item.Config;
+using Core.Ore;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.Save.Interface;
@@ -54,6 +55,8 @@ namespace Server
             services.AddSingleton<IPlayerInventoryDataStore,PlayerInventoryDataStore>();
             services.AddSingleton<IWorldElectricSegmentDatastore,WorldElectricSegmentDatastore>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange,MaxElectricPoleMachineConnectionRange>();
+            services.AddSingleton<ICheckOreMining,CheckOreMining>();
+            services.AddSingleton<IOreConfig,OreConfig>();
             
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<ISaveRepository, SaveJsonFile>();
