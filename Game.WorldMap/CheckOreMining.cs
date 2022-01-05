@@ -1,4 +1,6 @@
-namespace Core.Ore
+using Core.Ore;
+
+namespace Game.WorldMap
 {
     public class CheckOreMining : ICheckOreMining
     {
