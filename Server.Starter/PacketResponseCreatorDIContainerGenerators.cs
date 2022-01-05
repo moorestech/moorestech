@@ -16,6 +16,7 @@ using Game.Save.Json;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
+using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
 using PlayerInventory;
 using PlayerInventory.Event;
