@@ -3,6 +3,7 @@ using Core.Block.BlockFactory.BlockTemplate;
 using Core.Block.Config;
 using Core.Block.RecipeConfig;
 using Core.Item;
+using Core.Ore;
 
 namespace Core.Block.BlockFactory
 {
@@ -13,7 +14,11 @@ namespace Core.Block.BlockFactory
     {
         public readonly Dictionary<string, IBlockTemplate> BlockTypesDictionary;
 
-        public VanillaIBlockTemplates(IMachineRecipeConfig machineRecipeConfig, ItemStackFactory itemStackFactory)
+        public VanillaIBlockTemplates(
+            IMachineRecipeConfig machineRecipeConfig, 
+            ItemStackFactory itemStackFactory,
+            ICheckOreMining checkOreMining,
+            IOreConfig oreConfig)
         {
             BlockTypesDictionary = new Dictionary<string, IBlockTemplate>();
             BlockTypesDictionary.Add(VanillaBlockType.Machine,new VanillaMachineTemplate(machineRecipeConfig, itemStackFactory));
@@ -21,7 +26,7 @@ namespace Core.Block.BlockFactory
             BlockTypesDictionary.Add(VanillaBlockType.BeltConveyor,new VanillaBeltConveyorTemplate(itemStackFactory));
             BlockTypesDictionary.Add(VanillaBlockType.ElectricPole,new VanillaElectricPoleTemplate());
             BlockTypesDictionary.Add(VanillaBlockType.Generator,new VanillaPowerGeneratorTemplate(itemStackFactory));
-            BlockTypesDictionary.Add(VanillaBlockType.Miner,new VanillaMinerTemplate());
+            BlockTypesDictionary.Add(VanillaBlockType.Miner,new VanillaMinerTemplate(checkOreMining,oreConfig,itemStackFactory));
         }
     }
 }

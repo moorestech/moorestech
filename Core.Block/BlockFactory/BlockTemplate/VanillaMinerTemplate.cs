@@ -10,9 +10,17 @@ namespace Core.Block.BlockFactory.BlockTemplate
 {
     public class VanillaMinerTemplate : IBlockTemplate
     {
-        private ICheckOreMining _checkOreMining;
-        private IOreConfig _oreConfig;
-        private ItemStackFactory _itemStackFactory;
+        private readonly ICheckOreMining _checkOreMining;
+        private readonly IOreConfig _oreConfig;
+        private readonly ItemStackFactory _itemStackFactory;
+
+        public VanillaMinerTemplate(ICheckOreMining checkOreMining, IOreConfig oreConfig, ItemStackFactory itemStackFactory)
+        {
+            _checkOreMining = checkOreMining;
+            _oreConfig = oreConfig;
+            _itemStackFactory = itemStackFactory;
+        }
+
         public IBlock New(BlockConfigData param, int intId)
         {
             //TODO 要リファクタ
