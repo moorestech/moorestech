@@ -1,9 +1,11 @@
 using System;
 using Core.Block.BlockFactory;
+using Core.Block.BlockFactory.BlockTemplate;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Miner;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
+using Core.Item;
 using Core.Ore;
 using Core.Update;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +29,8 @@ namespace Test.CombinedTest.Core
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var oreConfig = serviceProvider.GetService<IOreConfig>();
             //TODo minerの鉱石チェックサービスをテスト用モジュールにする
-            var miner = new VanillaMiner(MinerId,10);
+            //var miner = new VanillaMiner(MinerId,10);
+            VanillaMiner miner = null;
             
             var dummyInventory = new DummyBlockInventory();
             ((IBlockInventory)miner).AddOutputConnector(dummyInventory);

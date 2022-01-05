@@ -107,7 +107,7 @@ namespace Test.UnitTest.Game.SaveLoad
         private (ItemStackFactory,BlockFactory,WorldBlockDatastore,PlayerInventoryDataStore,AssembleSaveJsonText) CreateBlockTestModule()
         {
             var itemFactory = new ItemStackFactory(new TestItemConfig());
-            var blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemFactory),itemFactory));
+            var blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemFactory),itemFactory,null,null));
             var worldBlockDatastore = new WorldBlockDatastore(new BlockPlaceEvent(),blockFactory,new BlockRemoveEvent());
             var playerInventoryDataStore = new PlayerInventoryDataStore(new PlayerInventoryUpdateEvent(), itemFactory);
             var assembleSaveJsonText = new AssembleSaveJsonText(playerInventoryDataStore,worldBlockDatastore);

@@ -28,7 +28,7 @@ namespace Test.CombinedTest.Core
         {
             if (_blockFactory == null)
             {
-                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(_itemStackFactory),_itemStackFactory));
+                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(_itemStackFactory),_itemStackFactory,null,null));
             }
             var machine = _blockFactory.Create(id, IntId.NewIntId()) as VanillaMachine;
             return machine;

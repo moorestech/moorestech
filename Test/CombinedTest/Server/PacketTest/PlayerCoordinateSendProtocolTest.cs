@@ -175,7 +175,7 @@ namespace Test.CombinedTest.Server.PacketTest
             if (_blockFactory == null)
             {
                 var itemStackFactory = new ItemStackFactory(new TestItemConfig());
-                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory),itemStackFactory));
+                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory),itemStackFactory,null,null));
             }
             var machine = _blockFactory.Create(id, IntId.NewIntId()) as VanillaMachine;
             return machine;
