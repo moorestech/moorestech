@@ -1,12 +1,12 @@
 {
   "ores" : [
     {
-      "oreId":0 ,
+      "oreId":1 ,
       "name" : "iron",
       "miningItemId":3
     },
     {
-      "oreId":1 ,
+      "oreId":2 ,
       "name" : "copper",
       "miningItemId":4
     }
