@@ -5,40 +5,18 @@ namespace Core.ConfigPath
 {
     public class ConfigPath
     {
-        public static string RecipeConfigPath
-        {
-            get
-            {
-                if (recipeConfigPath == String.Empty)recipeConfigPath = GetConfigPath( "macineRecipe.json");
-                return recipeConfigPath;
-            }
-        }
-        private static string recipeConfigPath = String.Empty;
-        public static string BlockConfigPath
-        {
-            get
-            {
-                if (blockConfigPath == String.Empty)blockConfigPath = GetConfigPath( "block.json");
-                return blockConfigPath;
-            }
-        }
+        public static string RecipeConfigPath => GetConfigPath( "macineRecipe.json");
 
-        private static string blockConfigPath = String.Empty;
-        public static string ItemConfigPath 
-        {
-            get
-            {
-                if (itemConfigPath == String.Empty)itemConfigPath = GetConfigPath( "item.json");
-                return itemConfigPath;
-            }
-        }
-        
+        public static string BlockConfigPath => GetConfigPath( "block.json");
+
+        public static string ItemConfigPath => GetConfigPath( "item.json");
+        public static string OreConfigPath => GetConfigPath( "ore.json");
+
         private static string GetConfigPath(string fileName)
         {
             DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory); 
             DirectoryInfo diParent = di.Parent.Parent.Parent.Parent;
             return Path.Combine(diParent.FullName, "Core.ConfigPath", "Json",fileName);
         }
-        private static string itemConfigPath = String.Empty;
     }
 }
