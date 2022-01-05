@@ -8,10 +8,11 @@ namespace Core.Block.Config.LoadConfig.Param
         public readonly int OutputSlot;
         public readonly List<OreSetting> OreSettings;
 
-        public MinerBlockConfigParam(int requiredPower, List<OreSetting> oreSettings)
+        public MinerBlockConfigParam(int requiredPower, List<OreSetting> oreSettings, int outputSlot)
         {
             RequiredPower = requiredPower;
             OreSettings = oreSettings;
+            OutputSlot = outputSlot;
         }
     }
 

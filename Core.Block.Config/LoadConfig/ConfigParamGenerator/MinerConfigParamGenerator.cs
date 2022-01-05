@@ -8,6 +8,7 @@ namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
         public BlockConfigParamBase Generate(dynamic blockParam)
         {
             int requiredPower = blockParam.requiredPower;
+            int outputSlot = blockParam.outputSlot;
             var oreSetting = new List<OreSetting>();
             foreach (var ore in blockParam.oreSetting)
             {
@@ -15,7 +16,7 @@ namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
                 int time = ore.time;
                 oreSetting.Add(new OreSetting(id,time));
             }
-            return new MinerBlockConfigParam(requiredPower,oreSetting);
+            return new MinerBlockConfigParam(requiredPower,oreSetting,outputSlot);
         }
     }
 }
