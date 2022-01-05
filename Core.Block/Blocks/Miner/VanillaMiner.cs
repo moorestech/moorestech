@@ -10,7 +10,7 @@ using Core.Update;
 
 namespace Core.Block.Blocks.Miner
 {
-    public class VanillaMiner: IBlock,IBlockElectric,IBlockInventory,IUpdate
+    public class VanillaMiner : IBlock, IBlockElectric, IBlockInventory, IUpdate
     {
         private readonly int _blockId;
         private readonly int _intId;
@@ -23,8 +23,9 @@ namespace Core.Block.Blocks.Miner
         private int _nowPower = 0;
         private double _remainingMillSecond;
         private int _miningItemId;
-        
-        public VanillaMiner(int blockId, int intId, int requestPower, int miningItemId, int miningTime,int outputSlot,ItemStackFactory itemStackFactory)
+
+        public VanillaMiner(int blockId, int intId, int requestPower, int miningItemId, int miningTime, int outputSlot,
+            ItemStackFactory itemStackFactory)
         {
             _blockId = blockId;
             _intId = intId;
@@ -33,17 +34,17 @@ namespace Core.Block.Blocks.Miner
             _miningTime = miningTime;
             _itemStackFactory = itemStackFactory;
             GameUpdate.AddUpdateObject(this);
-            _outputSlot = CreateEmptyItemStacksList.Create(outputSlot,itemStackFactory);
+            _outputSlot = CreateEmptyItemStacksList.Create(outputSlot, itemStackFactory);
         }
 
         public void Update()
         {
-            _remainingMillSecond -= GameUpdate.UpdateTime * (_nowPower / (double)_requestPower);
-            
+            _remainingMillSecond -= GameUpdate.UpdateTime * (_nowPower / (double) _requestPower);
+
             if (_remainingMillSecond <= 0)
             {
                 _remainingMillSecond = _miningTime;
-                
+
                 //空きスロットを探索し、あるならアイテムを挿入
                 var addItem = _itemStackFactory.Create(_miningItemId, 1);
                 for (int i = 0; i < _outputSlot.Count; i++)
@@ -54,6 +55,7 @@ namespace Core.Block.Blocks.Miner
                     break;
                 }
             }
+
             InsertConnectInventory();
         }
 
@@ -73,6 +75,7 @@ namespace Core.Block.Blocks.Miner
         {
             throw new System.NotImplementedException();
         }
+
         public void AddOutputConnector(IBlockInventory blockInventory)
         {
             _connectInventory.Add(blockInventory);
@@ -82,13 +85,30 @@ namespace Core.Block.Blocks.Miner
         {
             _connectInventory.Remove(blockInventory);
         }
-        
-        public IItemStack InsertItem(IItemStack itemStack) { return itemStack; }
-        public int GetIntId() { return _intId; }
-        public int GetBlockId() { return _blockId; }
-        
-        public int GetRequestPower() { return _requestPower; }
 
-        public void SupplyPower(int power) { power = _nowPower; }
+        public IItemStack InsertItem(IItemStack itemStack)
+        {
+            return itemStack;
+        }
+
+        public int GetIntId()
+        {
+            return _intId;
+        }
+
+        public int GetBlockId()
+        {
+            return _blockId;
+        }
+
+        public int GetRequestPower()
+        {
+            return _requestPower;
+        }
+
+        public void SupplyPower(int power)
+        {
+            power = _nowPower;
+        }
     }
 }
