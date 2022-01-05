@@ -3,12 +3,12 @@
     {
       "oreId":0 ,
       "name" : "iron",
-      "miningItem":3
+      "miningItemId":3
     },
     {
       "oreId":1 ,
       "name" : "copper",
-      "miningItem":4
+      "miningItemId":4
     }
   ]
 }

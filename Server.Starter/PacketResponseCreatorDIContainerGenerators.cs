@@ -8,6 +8,7 @@ using Core.Inventory;
 using Core.Item;
 using Core.Item.Config;
 using Core.Ore;
+using Core.Ore.Config;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.Save.Interface;
