@@ -9,7 +9,8 @@ namespace Core.Block.Blocks.Machine.InventoryController
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
 
-        public VanillaMachineBlockInventory(VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory)
+        public VanillaMachineBlockInventory(VanillaMachineInputInventory vanillaMachineInputInventory,
+            VanillaMachineOutputInventory vanillaMachineOutputInventory)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
@@ -25,7 +26,6 @@ namespace Core.Block.Blocks.Machine.InventoryController
         public void AddConnector(IBlockInventory blockInventory)
         {
             _vanillaMachineOutputInventory.AddConnectInventory(blockInventory);
-            
         }
 
         public void RemoveConnector(IBlockInventory blockInventory)

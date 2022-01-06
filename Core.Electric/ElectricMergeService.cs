@@ -15,11 +15,13 @@ namespace Core.Electric
                 {
                     electricSegment.AddGenerator(generator.Value);
                 }
+
                 //電気ブロックの結合
                 foreach (var electricBlock in electric.GetElectrics())
                 {
                     electricSegment.AddBlockElectric(electricBlock.Value);
                 }
+
                 //電柱の結合
                 foreach (var electricPole in electric.GetElectricPoles())
                 {

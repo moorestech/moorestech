@@ -16,9 +16,9 @@ namespace Test.UnitTest.Game.SaveLoad
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var json = assembleSaveJsonText.AssembleSaveJson();
-            Assert.AreEqual("{\"world\":[],\"playerInventory\":[]}",json);
+            Assert.AreEqual("{\"world\":[],\"playerInventory\":[]}", json);
         }
-        
+
         //ブロックを追加した時のテスト
         [Test]
         public void SimpleBlockPlacedTest()
@@ -27,24 +27,22 @@ namespace Test.UnitTest.Game.SaveLoad
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
 
-            worldBlockDatastore.AddBlock(new VanillaBlock( 10, 10), 0, 0,BlockDirection.North);
-            worldBlockDatastore.AddBlock(new VanillaBlock( 15, 100), 10,-15,BlockDirection.North);
-            
+            worldBlockDatastore.AddBlock(new VanillaBlock(10, 10), 0, 0, BlockDirection.North);
+            worldBlockDatastore.AddBlock(new VanillaBlock(15, 100), 10, -15, BlockDirection.North);
+
             var json = assembleSaveJsonText.AssembleSaveJson();
-            
+
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             loadServiceProvider.GetService<AssembleSaveJsonText>().LoadJson(json);
             var worldLoadBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
-            
+
             var block1 = worldLoadBlockDatastore.GetBlock(0, 0);
             Assert.AreEqual(10, block1.GetBlockId());
             Assert.AreEqual(10, block1.GetIntId());
-            
+
             var block2 = worldLoadBlockDatastore.GetBlock(10, -15);
             Assert.AreEqual(15, block2.GetBlockId());
             Assert.AreEqual(100, block2.GetIntId());
         }
-        
-       
     }
 }

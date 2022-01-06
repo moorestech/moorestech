@@ -19,13 +19,15 @@ namespace Core.Item
             {
                 return CreatEmpty();
             }
+
             if (count < 1)
             {
                 return CreatEmpty();
             }
 
-            return new ItemStack(id, count,_itemConfig,this);
+            return new ItemStack(id, count, _itemConfig, this);
         }
+
         public IItemStack CreatEmpty()
         {
             return new NullItemStack(this);

@@ -18,13 +18,15 @@ namespace Core.Block.BlockFactory.BlockTemplate
         public IBlock New(BlockConfigData param, int intId)
         {
             var beltConveyor = param.Param as BeltConveyorConfigParam;
-            return new VanillaBeltConveyor(param.BlockId,intId,_itemStackFactory,beltConveyor.BeltConveyorItemNum,beltConveyor.TimeOfItemEnterToExit);
+            return new VanillaBeltConveyor(param.BlockId, intId, _itemStackFactory, beltConveyor.BeltConveyorItemNum,
+                beltConveyor.TimeOfItemEnterToExit);
         }
 
         public IBlock Load(BlockConfigData param, int intId, string state)
         {
             var beltConveyor = param.Param as BeltConveyorConfigParam;
-            return new VanillaBeltConveyor(param.BlockId,intId,state,_itemStackFactory,beltConveyor.BeltConveyorItemNum,beltConveyor.TimeOfItemEnterToExit);
+            return new VanillaBeltConveyor(param.BlockId, intId, state, _itemStackFactory,
+                beltConveyor.BeltConveyorItemNum, beltConveyor.TimeOfItemEnterToExit);
         }
     }
 }

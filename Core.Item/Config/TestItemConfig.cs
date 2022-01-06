@@ -13,7 +13,6 @@ namespace Core.Item.Config
 
         public TestItemConfig()
         {
-            
             var json = File.ReadAllText(ConfigPath.ConfigPath.ItemConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
@@ -25,24 +24,21 @@ namespace Core.Item.Config
         public ItemConfigData GetItemConfig(int id)
         {
             //アイテムが登録されてないときの仮
-            if (_itemDatas.Length-1 < id)
+            if (_itemDatas.Length - 1 < id)
             {
-                return new ItemConfigData("undefined id " + id,id,MaxValue);
+                return new ItemConfigData("undefined id " + id, id, MaxValue);
             }
-            
+
             return _itemDatas[id];
         }
     }
 
-    [DataContract] 
+    [DataContract]
     public class ItemConfigData
     {
-        [DataMember(Name = "name")]
-        private string _name;
-        [DataMember(Name = "id")]
-        private int _id;
-        [DataMember(Name = "stacks")]
-        private int _stack;
+        [DataMember(Name = "name")] private string _name;
+        [DataMember(Name = "id")] private int _id;
+        [DataMember(Name = "stacks")] private int _stack;
 
         public ItemConfigData(string name, int id, int stack)
         {

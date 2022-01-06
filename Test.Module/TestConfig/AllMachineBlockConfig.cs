@@ -19,13 +19,14 @@ namespace Test.Module.TestConfig
         {
             if (_blockConfigDictionary.ContainsKey(id))
             {
-                return _blockConfigDictionary[id];   
+                return _blockConfigDictionary[id];
             }
+
             //IDがなかったからインプット、アウトプットスロットが100のブロックを返す
             return new BlockConfigData(id,
                 "Generated Block from AllMachineBlockConfig.cs",
                 "Machine",
-                new MachineBlockConfigParam(100,100,100));
+                new MachineBlockConfigParam(100, 100, 100));
         }
 
         public List<int> GetBlockIds()

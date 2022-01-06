@@ -7,12 +7,12 @@ namespace Core.Block.BlockFactory.BlockTemplate
     {
         public IBlock New(BlockConfigData param, int intId)
         {
-            return new VanillaBlock(param.BlockId,intId);
+            return new VanillaBlock(param.BlockId, intId);
         }
 
         public IBlock Load(BlockConfigData param, int intId, string state)
         {
-            return new VanillaBlock(param.BlockId,intId);
+            return new VanillaBlock(param.BlockId, intId);
         }
     }
 }

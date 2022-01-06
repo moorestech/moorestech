@@ -9,7 +9,8 @@ namespace Core.Block.Blocks.Machine.InventoryController
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
 
-        public VanillaMachineInventory(VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory)
+        public VanillaMachineInventory(VanillaMachineInputInventory vanillaMachineInputInventory,
+            VanillaMachineOutputInventory vanillaMachineOutputInventory)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
@@ -21,16 +22,16 @@ namespace Core.Block.Blocks.Machine.InventoryController
             {
                 return _vanillaMachineInputInventory.InputSlot[slot];
             }
+
             slot -= _vanillaMachineInputInventory.InputSlot.Count;
             return _vanillaMachineOutputInventory.OutputSlot[slot];
-            
         }
 
         public void SetItem(int slot, IItemStack itemStack)
         {
             if (slot < _vanillaMachineInputInventory.InputSlot.Count)
             {
-                _vanillaMachineInputInventory.SetItem(slot,itemStack);
+                _vanillaMachineInputInventory.SetItem(slot, itemStack);
             }
             else
             {
@@ -76,6 +77,7 @@ namespace Core.Block.Blocks.Machine.InventoryController
                     _vanillaMachineOutputInventory.SetItem(slot, result.ProcessResultItemStack);
                     return result.RemainderItemStack;
                 }
+
                 _vanillaMachineOutputInventory.SetItem(slot, itemStack);
                 return item;
             }

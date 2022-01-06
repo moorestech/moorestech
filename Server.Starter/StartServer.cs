@@ -14,9 +14,9 @@ namespace Server
     {
         public static void Main(string[] args)
         {
-            var (packet,serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             PacketHandler packetHandler = null;
-            
+
             new Thread(() =>
             {
                 packetHandler = new PacketHandler();
@@ -30,17 +30,18 @@ namespace Server
                 var command = Console.ReadLine()?.Split(" ");
                 try
                 {
-                    if(command == null) continue;
-                    
+                    if (command == null) continue;
+
                     if (command[0] == "give")
                     {
                         var playerId = int.Parse(command[1]);
                         var slot = int.Parse(command[2]);
                         var itemId = int.Parse(command[3]);
                         var count = int.Parse(command[4]);
-                        
-                        var playerInventory = serviceProvider.GetService<PlayerInventoryDataStore>()?.GetInventoryData(playerId);
-                        playerInventory.SetItem(slot,itemStackFactory.Create(itemId,count));
+
+                        var playerInventory = serviceProvider.GetService<PlayerInventoryDataStore>()
+                            ?.GetInventoryData(playerId);
+                        playerInventory.SetItem(slot, itemStackFactory.Create(itemId, count));
                         Console.WriteLine("Gave item for player " + playerId);
                     }
                 }

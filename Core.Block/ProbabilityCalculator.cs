@@ -11,11 +11,11 @@ namespace Core.Block
             int digitNum = 0;
 
             //小数点以下を無くすように乱数の上限と判定の境界を上げる
-            int rate = (int)Math.Pow (10, digitNum);
+            int rate = (int) Math.Pow(10, digitNum);
 
             //乱数の上限と真と判定するボーダーを設定
             int randomValueLimit = 100 * rate;
-            int border = (int)(rate * percent);
+            int border = (int) (rate * percent);
             Random r = new System.Random();
             return r.Next(0, randomValueLimit) < border;
         }

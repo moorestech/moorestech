@@ -9,7 +9,12 @@ namespace Core.Block.BlockInventory
             return itemStack;
         }
 
-        public void AddOutputConnector(IBlockInventory blockInventory) { }
-        public void RemoveOutputConnector(IBlockInventory blockInventory) { }
+        public void AddOutputConnector(IBlockInventory blockInventory)
+        {
+        }
+
+        public void RemoveOutputConnector(IBlockInventory blockInventory)
+        {
+        }
     }
 }

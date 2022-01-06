@@ -1,4 +1,3 @@
-
 using Core.Config.Item;
 using Core.Item;
 using Core.Item.Config;
@@ -19,66 +18,62 @@ namespace Test.UnitTest.Game
         {
             var itemConfig = new TestItemConfig();
             var itemStackFactory = new ItemStackFactory(itemConfig);
-            
-            var playerInventory = new PlayerInventoryData(0,new PlayerInventoryUpdateEvent(),itemStackFactory);
+
+            var playerInventory = new PlayerInventoryData(0, new PlayerInventoryUpdateEvent(), itemStackFactory);
             int id = 5;
             var count = itemConfig.GetItemConfig(id).Stack;
             //Insert test
-            var result = playerInventory.InsertItem(0,itemStackFactory.Create(id,count));
-            Assert.AreEqual(ItemConst.NullItemId,result.Id);
-            
-            result = playerInventory.InsertItem(0,itemStackFactory.Create(id,count));
-            Assert.AreEqual(id,result.Id);
-            Assert.AreEqual(count,result.Count);
-            
-            result = playerInventory.InsertItem(0,itemStackFactory.Create(id+1,1));
-            Assert.AreEqual(id + 1,result.Id);
-            Assert.AreEqual(1,result.Count);
+            var result = playerInventory.InsertItem(0, itemStackFactory.Create(id, count));
+            Assert.AreEqual(ItemConst.NullItemId, result.Id);
+
+            result = playerInventory.InsertItem(0, itemStackFactory.Create(id, count));
+            Assert.AreEqual(id, result.Id);
+            Assert.AreEqual(count, result.Count);
+
+            result = playerInventory.InsertItem(0, itemStackFactory.Create(id + 1, 1));
+            Assert.AreEqual(id + 1, result.Id);
+            Assert.AreEqual(1, result.Count);
 
             //drop and inset item test
             result = playerInventory.DropItem(0, 3);
-            Assert.AreEqual(id,result.Id);
-            Assert.AreEqual(3,result.Count);
-            
+            Assert.AreEqual(id, result.Id);
+            Assert.AreEqual(3, result.Count);
+
             result = playerInventory.GetItem(0);
-            Assert.AreEqual(id,result.Id);
-            Assert.AreEqual(count - 3,result.Count);
-            
-            result = playerInventory.InsertItem(0,itemStackFactory.Create(id,count));
-            Assert.AreEqual(id,result.Id);
-            Assert.AreEqual(count - 3,result.Count);
-            
+            Assert.AreEqual(id, result.Id);
+            Assert.AreEqual(count - 3, result.Count);
+
+            result = playerInventory.InsertItem(0, itemStackFactory.Create(id, count));
+            Assert.AreEqual(id, result.Id);
+            Assert.AreEqual(count - 3, result.Count);
+
             result = playerInventory.DropItem(0, count - 3);
-            Assert.AreEqual(id,result.Id);
-            Assert.AreEqual(count - 3,result.Count);
-            
-
-
+            Assert.AreEqual(id, result.Id);
+            Assert.AreEqual(count - 3, result.Count);
         }
 
         [Test]
         public void UseHotBarTest()
         {
             var itemStackFactory = new ItemStackFactory(new TestItemConfig());
-            var playerInventory = new PlayerInventoryData(0,new PlayerInventoryUpdateEvent(),itemStackFactory);
+            var playerInventory = new PlayerInventoryData(0, new PlayerInventoryUpdateEvent(), itemStackFactory);
             int id = 5;
             int count = 3;
             int slot = 27;
-            
-            var result = playerInventory.InsertItem(slot,itemStackFactory.Create(id,count));
-            Assert.AreEqual(ItemConst.NullItemId,result.Id);
-            
+
+            var result = playerInventory.InsertItem(slot, itemStackFactory.Create(id, count));
+            Assert.AreEqual(ItemConst.NullItemId, result.Id);
+
             result = playerInventory.UseHotBar(slot);
-            Assert.AreEqual(id,result.Id);
-            Assert.AreEqual(1,result.Count);
+            Assert.AreEqual(id, result.Id);
+            Assert.AreEqual(1, result.Count);
             playerInventory.UseHotBar(slot);
             playerInventory.UseHotBar(slot);
             result = playerInventory.UseHotBar(slot);
-            Assert.AreEqual(ItemConst.NullItemId,result.Id);
+            Assert.AreEqual(ItemConst.NullItemId, result.Id);
 
             result = playerInventory.GetItem(slot);
-            Assert.AreEqual(ItemConst.NullItemId,result.Id);
-
+            Assert.AreEqual(ItemConst.NullItemId, result.Id);
         }
     }
 }

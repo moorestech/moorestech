@@ -8,12 +8,12 @@ namespace Core.Block.BlockFactory.BlockTemplate
     {
         public IBlock New(BlockConfigData param, int intId)
         {
-            return new VanillaElectricPole(param.BlockId,intId);
+            return new VanillaElectricPole(param.BlockId, intId);
         }
 
         public IBlock Load(BlockConfigData param, int intId, string state)
         {
-            return new VanillaElectricPole(param.BlockId,intId);
+            return new VanillaElectricPole(param.BlockId, intId);
         }
     }
 }

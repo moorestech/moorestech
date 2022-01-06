@@ -1,52 +1,65 @@
 ﻿{
-  "Blocks":[
+  "Blocks": [
     {
       "name": "TestMachine",
-      "type" : "Machine",
-      "param" : {"inputSlot": 2,"outputSlot": 1,"requiredPower": 100}
+      "type": "Machine",
+      "param": {
+        "inputSlot": 2,
+        "outputSlot": 1,
+        "requiredPower": 100
+      }
     },
     {
       "name": "TestBlock",
-      "type" : "Block",
-      "param" : {}
+      "type": "Block",
+      "param": {}
     },
     {
       "name": "TestBeltConveyor",
-      "type" : "BeltConveyor",
-      "param" : {"slot": 4,"time": 2000}
+      "type": "BeltConveyor",
+      "param": {
+        "slot": 4,
+        "time": 2000
+      }
     },
     {
       "name": "TestElectricPole",
-      "type" : "ElectricPole",
-      "param" : {"poleConnectionRange": 7,"machineConnectionRange": 5}
+      "type": "ElectricPole",
+      "param": {
+        "poleConnectionRange": 7,
+        "machineConnectionRange": 5
+      }
     },
     {
       "name": "TestGenerator",
-      "type" : "Generator",
-      "param" : {
-        "fuelSlot" : 10,
+      "type": "Generator",
+      "param": {
+        "fuelSlot": 10,
         "fuel": [
           {
-            "id": 1, 
-            "time" : 1000,
-            "power" : 100
+            "id": 1,
+            "time": 1000,
+            "power": 100
           },
           {
             "id": 2,
-            "time" : 2000,
-            "power" : 200
+            "time": 2000,
+            "power": 200
           }
         ]
       }
     },
     {
       "name": "TestMiner",
-      "type" : "Miner",
-      "param" : {
+      "type": "Miner",
+      "param": {
         "requiredPower": 100,
         "outputSlot": 3,
         "oreSetting": [
-          {"oreId": 1, "time": 1000}
+          {
+            "oreId": 1,
+            "time": 1000
+          }
         ]
       }
     }

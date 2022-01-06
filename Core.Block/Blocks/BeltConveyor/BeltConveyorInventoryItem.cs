@@ -4,6 +4,7 @@
     {
         public readonly int ItemId;
         public double LimitTime;
+
         public double RemainingTime
         {
             get => _remainingTime;
@@ -15,7 +16,9 @@
                 }
             }
         }
+
         private double _remainingTime;
+
         public BeltConveyorInventoryItem(int itemId, double remainingTime, double limitTime)
         {
             ItemId = itemId;

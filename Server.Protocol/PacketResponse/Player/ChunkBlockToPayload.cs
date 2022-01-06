@@ -11,8 +11,8 @@ namespace Server.PacketHandle.PacketResponse.Player
         public static byte[] Convert(int[,] blocks, Coordinate chunkCoordinate)
         {
             var payload = new List<bool>();
-            
-            payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray((short)1)));
+
+            payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray((short) 1)));
             payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray(chunkCoordinate.X)));
             payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray(chunkCoordinate.Y)));
             for (int i = 0; i < blocks.GetLength(0); i++)
@@ -33,24 +33,26 @@ namespace Server.PacketHandle.PacketResponse.Player
                     {
                         payload.Add(false);
                         payload.Add(false);
-                        payload.AddRange(ByteListToBitList.Convert((byte)id));
+                        payload.AddRange(ByteListToBitList.Convert((byte) id));
                         continue;
                     }
+
                     //short整数
-                    if (short.MinValue  <= id && id <= short.MaxValue)
+                    if (short.MinValue <= id && id <= short.MaxValue)
                     {
                         payload.Add(false);
                         payload.Add(true);
-                        payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray((short)id)));
+                        payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray((short) id)));
                         continue;
                     }
+
                     //int整数
                     payload.Add(true);
                     payload.Add(false);
                     payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray(id)));
                 }
             }
-            
+
             return BitListToByteList.Convert(payload).ToArray();
         }
     }

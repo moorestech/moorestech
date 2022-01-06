@@ -15,7 +15,8 @@ namespace PlayerInventory
         private readonly PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public PlayerInventoryData(int playerId,PlayerInventoryUpdateEvent playerInventoryUpdateEvent, ItemStackFactory itemStackFactory)
+        public PlayerInventoryData(int playerId, PlayerInventoryUpdateEvent playerInventoryUpdateEvent,
+            ItemStackFactory itemStackFactory)
         {
             _playerInventoryUpdateEvent = playerInventoryUpdateEvent;
             _itemStackFactory = itemStackFactory;
@@ -27,7 +28,7 @@ namespace PlayerInventory
                 _mainInventory.Add(_itemStackFactory.CreatEmpty());
             }
         }
-        
+
         public IItemStack InsertItem(int slot, IItemStack itemStack)
         {
             if (itemStack.Id == _mainInventory[slot].Id)
@@ -35,35 +36,39 @@ namespace PlayerInventory
                 var result = _mainInventory[slot].AddItem(itemStack);
                 _mainInventory[slot] = result.ProcessResultItemStack;
                 return result.RemainderItemStack;
-            }else if( _mainInventory[slot].Count == 0)
+            }
+            else if (_mainInventory[slot].Count == 0)
             {
                 _mainInventory[slot] = itemStack;
                 return _itemStackFactory.CreatEmpty();
             }
-            
-            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(_playerId,slot,_mainInventory[slot]));
+
+            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(
+                new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
             return itemStack;
         }
-        
+
         public IItemStack DropItem(int slot, int count)
         {
             var result = _mainInventory[slot].SubItem(count);
             _mainInventory[slot] = result;
-            
-            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(_playerId,slot,_mainInventory[slot]));
-            return _itemStackFactory.Create(_mainInventory[slot].Id,count);
+
+            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(
+                new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
+            return _itemStackFactory.Create(_mainInventory[slot].Id, count);
         }
-        
+
 
         public IItemStack UseHotBar(int slot)
         {
             var result = _mainInventory[slot].SubItem(1);
             _mainInventory[slot] = result;
-            
-            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(_playerId,slot,_mainInventory[slot]));
+
+            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(
+                new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
             return _itemStackFactory.Create(_mainInventory[slot].Id, 1);
         }
-        
+
         public IItemStack GetItem(int slot)
         {
             return _mainInventory[slot];
@@ -72,7 +77,8 @@ namespace PlayerInventory
         public void SetItem(int slot, IItemStack itemStack)
         {
             _mainInventory[slot] = itemStack;
-            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(_playerId,slot,_mainInventory[slot]));
+            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(
+                new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
         }
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
@@ -83,13 +89,15 @@ namespace PlayerInventory
             {
                 var result = item.AddItem(itemStack);
                 _mainInventory[slot] = result.ProcessResultItemStack;
-                _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(_playerId,slot,_mainInventory[slot]));
+                _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(
+                    new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
                 return result.RemainderItemStack;
             }
 
             //違う場合はそのまま入れ替える
             _mainInventory[slot] = itemStack;
-            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(_playerId,slot,_mainInventory[slot]));
+            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(
+                new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
             return item;
         }
     }

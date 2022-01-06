@@ -12,9 +12,8 @@ namespace World.DataStore
 
         public WorldElectricSegmentDatastore()
         {
-            
         }
-        
+
         //電柱オブジェクトから所属している電力セグメントを取得する
         public ElectricSegment GetElectricSegment(IElectricPole pole)
         {
@@ -23,12 +22,13 @@ namespace World.DataStore
                 if (!segment.ExistElectricPole(pole.GetIntId())) continue;
                 return segment;
             }
+
             throw new Exception("電力セグメントが見つかりませんでした");
         }
 
         public ElectricSegment GetElectricSegment(int index)
         {
-            return _segmentDictionary[index];   
+            return _segmentDictionary[index];
         }
 
         public ElectricSegment CreateElectricSegment()
@@ -47,7 +47,7 @@ namespace World.DataStore
                 var electricSegment = GetElectricSegment(pole);
                 electricSegments.Add(electricSegment);
             }
-            
+
             //電力セグメントをマージする
             var mergedElectricSegment = new ElectricMergeService().Merge(electricSegments);
             //マージ前のセグメントを削除する
@@ -56,13 +56,16 @@ namespace World.DataStore
                 _segmentDictionary.Remove(electricSegments[i]);
                 electricSegments[i] = null;
             }
-            
+
             //マージ後のセグメントを追加する
             _segmentDictionary.Add(mergedElectricSegment);
 
             return mergedElectricSegment;
         }
 
-        public int GetElectricSegmentListCount() { return _segmentDictionary.Count; }
+        public int GetElectricSegmentListCount()
+        {
+            return _segmentDictionary.Count;
+        }
     }
 }

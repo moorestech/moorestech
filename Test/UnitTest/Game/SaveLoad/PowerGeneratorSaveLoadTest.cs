@@ -14,7 +14,7 @@ namespace Test.UnitTest.Game.SaveLoad
     public class PowerGeneratorSaveLoadTest
     {
         private const int PowerGeneratorId = 5;
-        
+
         [Test]
         public void PowerGeneratorTest()
         {
@@ -28,34 +28,41 @@ namespace Test.UnitTest.Game.SaveLoad
 
             const int fuelItemId = 5;
             const int remainingFuelTime = 567;
-            
+
             //検証元の発電機を作成
             var type = powerGenerator.GetType();
-            type.GetField("_fuelItemId",BindingFlags.NonPublic | BindingFlags.Instance).SetValue(powerGenerator,fuelItemId);
-            type.GetField("_remainingFuelTime",BindingFlags.NonPublic | BindingFlags.Instance).SetValue(powerGenerator,remainingFuelTime);
-            var fuelItemStacks = (List<IItemStack>)type.GetField("_fuelItemStacks", BindingFlags.NonPublic | BindingFlags.Instance)
+            type.GetField("_fuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(powerGenerator, fuelItemId);
+            type.GetField("_remainingFuelTime", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(powerGenerator, remainingFuelTime);
+            var fuelItemStacks = (List<IItemStack>) type
+                .GetField("_fuelItemStacks", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(powerGenerator);
             fuelItemStacks[0] = itemStackFactory.Create(1, 5);
             fuelItemStacks[2] = itemStackFactory.Create(3, 5);
 
             //セーブのテキストを取得
             var saveText = powerGenerator.GetSaveState();
-            
+
             //発電機を再作成
-            var loadedPowerGenerator = (VanillaPowerGenerator) blockFactory.Load(PowerGeneratorId, 10,saveText);
+            var loadedPowerGenerator = (VanillaPowerGenerator) blockFactory.Load(PowerGeneratorId, 10, saveText);
             //発電機を再作成した結果を検証
-            var loadedFuelItemId = (int)type.GetField("_fuelItemId", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadedPowerGenerator);
-            Assert.AreEqual(fuelItemId,loadedFuelItemId);
-            var loadedRemainingFuelTime = (double)type.GetField("_remainingFuelTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(loadedPowerGenerator);
-            Assert.AreEqual(remainingFuelTime,loadedRemainingFuelTime);
-            var loadedFuelItemStacks = (List<IItemStack>)type.GetField("_fuelItemStacks", BindingFlags.NonPublic | BindingFlags.Instance)
+            var loadedFuelItemId = (int) type.GetField("_fuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(loadedPowerGenerator);
+            Assert.AreEqual(fuelItemId, loadedFuelItemId);
+            var loadedRemainingFuelTime = (double) type
+                .GetField("_remainingFuelTime", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(loadedPowerGenerator);
+            Assert.AreEqual(remainingFuelTime, loadedRemainingFuelTime);
+            var loadedFuelItemStacks = (List<IItemStack>) type
+                .GetField("_fuelItemStacks", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadedPowerGenerator);
 
             //燃料スロットの検証
-            Assert.AreEqual(fuelItemStacks.Count,loadedFuelItemStacks.Count);
+            Assert.AreEqual(fuelItemStacks.Count, loadedFuelItemStacks.Count);
             for (int i = 0; i < fuelSlotCount; i++)
             {
-                Assert.AreEqual(fuelItemStacks[i],loadedFuelItemStacks[i]);
+                Assert.AreEqual(fuelItemStacks[i], loadedFuelItemStacks[i]);
             }
         }
     }

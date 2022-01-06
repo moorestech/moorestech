@@ -8,7 +8,7 @@ namespace Test.Module
         private readonly int _power;
         private int id;
 
-        public TestPowerGenerator(int power,int id)
+        public TestPowerGenerator(int power, int id)
         {
             this._power = power;
             this.id = id;

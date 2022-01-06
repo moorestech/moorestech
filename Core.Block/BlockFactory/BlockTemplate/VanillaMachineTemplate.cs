@@ -25,41 +25,42 @@ namespace Core.Block.BlockFactory.BlockTemplate
         public IBlock New(BlockConfigData param, int intId)
         {
             var machineParam = param.Param as MachineBlockConfigParam;
-            
+
             var input = new VanillaMachineInputInventory(param.BlockId, machineParam.InputSlot, _machineRecipeConfig,
                 _itemStackFactory);
-            
+
             var output = new VanillaMachineOutputInventory(new NullIBlockInventory(), machineParam.OutputSlot,
                 _itemStackFactory);
 
-            var runProcess = new VanillaMachineRunProcess(input,output,_machineRecipeConfig.GetNullRecipeData(),machineParam.RequiredPower);
-            
-            return new VanillaMachine(param.BlockId,intId , 
-                new VanillaMachineBlockInventory(input,output),
-                new VanillaMachineInventory(input,output),
-                new VanillaMachineSave(input,output,runProcess),
-                runProcess
-                );
+            var runProcess = new VanillaMachineRunProcess(input, output, _machineRecipeConfig.GetNullRecipeData(),
+                machineParam.RequiredPower);
 
+            return new VanillaMachine(param.BlockId, intId,
+                new VanillaMachineBlockInventory(input, output),
+                new VanillaMachineInventory(input, output),
+                new VanillaMachineSave(input, output, runProcess),
+                runProcess
+            );
         }
 
         public IBlock Load(BlockConfigData param, int intId, string state)
         {
             var machineParam = param.Param as MachineBlockConfigParam;
-            
+
             var input = new VanillaMachineInputInventory(param.BlockId, machineParam.InputSlot, _machineRecipeConfig,
                 _itemStackFactory);
-            
+
             var output = new VanillaMachineOutputInventory(new NullIBlockInventory(), machineParam.OutputSlot,
                 _itemStackFactory);
 
-            var runProcess =  new VanillaMachineLoad(input,output,_itemStackFactory,_machineRecipeConfig,machineParam.RequiredPower).Load(state);
-           
-            
-            return new VanillaMachine(param.BlockId,intId , 
-                new VanillaMachineBlockInventory(input,output),
-                new VanillaMachineInventory(input,output),
-                new VanillaMachineSave(input,output,runProcess),
+            var runProcess = new VanillaMachineLoad(input, output, _itemStackFactory, _machineRecipeConfig,
+                machineParam.RequiredPower).Load(state);
+
+
+            return new VanillaMachine(param.BlockId, intId,
+                new VanillaMachineBlockInventory(input, output),
+                new VanillaMachineInventory(input, output),
+                new VanillaMachineSave(input, output, runProcess),
                 runProcess
             );
         }

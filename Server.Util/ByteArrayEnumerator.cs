@@ -9,6 +9,7 @@ namespace Server.Util
     {
         private readonly List<byte> _payload;
         private int index = 0;
+
         public ByteArrayEnumerator(List<byte> payload)
         {
             _payload = payload;
@@ -18,6 +19,7 @@ namespace Server.Util
         {
             return _payload[index++];
         }
+
         public int MoveNextToGetInt()
         {
             var b = new List<byte>();
@@ -25,8 +27,9 @@ namespace Server.Util
             {
                 b.Add(_payload[index++]);
             }
+
             if (BitConverter.IsLittleEndian) b.Reverse();
-            
+
             var data = BitConverter.ToInt32(b.ToArray(), 0);
             b.Clear();
             return data;
@@ -39,12 +42,14 @@ namespace Server.Util
             {
                 b.Add(_payload[index++]);
             }
+
             if (BitConverter.IsLittleEndian) b.Reverse();
-            
+
             var data = BitConverter.ToInt16(b.ToArray(), 0);
             b.Clear();
             return data;
         }
+
         public float MoveNextToGetFloat()
         {
             var b = new List<byte>();
@@ -52,12 +57,14 @@ namespace Server.Util
             {
                 b.Add(_payload[index++]);
             }
+
             if (BitConverter.IsLittleEndian) b.Reverse();
-            
+
             var data = BitConverter.ToSingle(b.ToArray(), 0);
             b.Clear();
             return data;
         }
+
         /// <summary>
         /// バイト数を指定してそのバイト数の文字列を取得します
         /// </summary>
@@ -70,6 +77,7 @@ namespace Server.Util
             {
                 throw new ArgumentOutOfRangeException($"指定バイト数:{byteNum} バイト数は0以上にしてください");
             }
+
             var b = new List<byte>();
             if (byteNum == 0)
             {
@@ -85,6 +93,7 @@ namespace Server.Util
                     b.Add(_payload[index++]);
                 }
             }
+
             return Encoding.UTF8.GetString(b.ToArray());
         }
     }

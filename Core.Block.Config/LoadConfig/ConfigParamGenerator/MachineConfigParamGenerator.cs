@@ -9,7 +9,7 @@ namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
             int inputSlot = blockParam.inputSlot;
             int outputSlot = blockParam.outputSlot;
             int requiredPower = blockParam.requiredPower;
-            return new MachineBlockConfigParam(inputSlot,outputSlot,requiredPower);
+            return new MachineBlockConfigParam(inputSlot, outputSlot, requiredPower);
         }
     }
 }

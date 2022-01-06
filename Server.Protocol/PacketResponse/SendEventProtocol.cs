@@ -8,6 +8,7 @@ namespace Server.Protocol.PacketResponse
     public class SendEventProtocol : IPacketResponse
     {
         private readonly EventProtocolProvider _eventProtocolProvider;
+
         public SendEventProtocol(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;

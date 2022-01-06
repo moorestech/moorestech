@@ -14,7 +14,8 @@ namespace Core.Block.BlockFactory.BlockTemplate
         private readonly IOreConfig _oreConfig;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public VanillaMinerTemplate(ICheckOreMining checkOreMining, IOreConfig oreConfig, ItemStackFactory itemStackFactory)
+        public VanillaMinerTemplate(ICheckOreMining checkOreMining, IOreConfig oreConfig,
+            ItemStackFactory itemStackFactory)
         {
             _checkOreMining = checkOreMining;
             _oreConfig = oreConfig;
@@ -29,15 +30,16 @@ namespace Core.Block.BlockFactory.BlockTemplate
             var oreItem = ItemConst.NullItemId;
             var requestPower = 0;
             var miningTime = int.MaxValue;
-            
+
             if (minerParam.OreSettings.Exists(o => o.OreId == oreId))
             {
                 requestPower = minerParam.RequiredPower;
                 miningTime = minerParam.OreSettings.Find(o => o.OreId == oreId).MiningTime;
                 oreItem = _oreConfig.OreIdToItemId(oreId);
             }
-            
-            return new VanillaMiner(param.BlockId, intId,requestPower,oreItem,miningTime,minerParam.OutputSlot,_itemStackFactory);
+
+            return new VanillaMiner(param.BlockId, intId, requestPower, oreItem, miningTime, minerParam.OutputSlot,
+                _itemStackFactory);
         }
 
         public IBlock Load(BlockConfigData param, int intId, string state)
@@ -47,15 +49,16 @@ namespace Core.Block.BlockFactory.BlockTemplate
             var oreItem = ItemConst.NullItemId;
             var requestPower = 0;
             var miningTime = int.MaxValue;
-            
+
             if (minerParam.OreSettings.Exists(o => o.OreId == oreId))
             {
                 requestPower = minerParam.RequiredPower;
                 miningTime = minerParam.OreSettings.Find(o => o.OreId == oreId).MiningTime;
                 oreItem = _oreConfig.OreIdToItemId(oreId);
             }
-            
-            return new VanillaMiner(param.BlockId, intId,requestPower,oreItem,miningTime,minerParam.OutputSlot,_itemStackFactory);
+
+            return new VanillaMiner(param.BlockId, intId, requestPower, oreItem, miningTime, minerParam.OutputSlot,
+                _itemStackFactory);
         }
     }
 }

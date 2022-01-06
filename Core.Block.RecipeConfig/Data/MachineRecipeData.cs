@@ -8,7 +8,8 @@ namespace Core.Block.RecipeConfig.Data
     {
         public int BlockId { get; }
 
-        public MachineRecipeData(int blockId,int time,List<IItemStack> itemInputs, List<ItemOutput> itemOutputs,int recipeId)
+        public MachineRecipeData(int blockId, int time, List<IItemStack> itemInputs, List<ItemOutput> itemOutputs,
+            int recipeId)
         {
             BlockId = blockId;
             ItemInputs = itemInputs;
@@ -25,7 +26,7 @@ namespace Core.Block.RecipeConfig.Data
         public int RecipeId { get; }
 
         public bool RecipeConfirmation(List<IItemStack> inputSlot)
-        { 
+        {
             int cnt = 0;
             foreach (var slot in inputSlot)
             {

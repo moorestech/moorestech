@@ -9,14 +9,14 @@ namespace Core.Block.RecipeConfig
     public class TestMachineRecipeConfig : IMachineRecipeConfig
     {
         private readonly List<IMachineRecipeData> _recipedatas;
-        
+
         private readonly Dictionary<string, IMachineRecipeData> _recipeDataCash;
 
         //IDからレシピデータを取得する
         public TestMachineRecipeConfig(ItemStackFactory itemStackFactory)
         {
             _recipedatas = new MachineRecipeJsonLoad().LoadConfig(itemStackFactory);
-            
+
             _recipeDataCash = new Dictionary<string, IMachineRecipeData>();
             _recipedatas.ToList().ForEach(recipe =>
             {
@@ -32,6 +32,7 @@ namespace Core.Block.RecipeConfig
             {
                 return new NullMachineRecipeData();
             }
+
             return _recipedatas[id];
         }
 

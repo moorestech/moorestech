@@ -83,8 +83,8 @@ namespace Test.CombinedTest.Server.PacketTest
             var random = new Random(13944156);
             //ブロックの設置
             var b = CreateMachine(5);
-            worldBlock.AddBlock(b, 0, 0,BlockDirection.North);
-            
+            worldBlock.AddBlock(b, 0, 0, BlockDirection.North);
+
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
@@ -136,7 +136,7 @@ namespace Test.CombinedTest.Server.PacketTest
                     b = CreateMachine(random.Next(0, 500));
                 }
 
-                worldBlock.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300),BlockDirection.North);
+                worldBlock.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300), BlockDirection.North);
             }
 
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(25, 0, 0))
@@ -170,13 +170,17 @@ namespace Test.CombinedTest.Server.PacketTest
         }
 
         private BlockFactory _blockFactory;
+
         private VanillaMachine CreateMachine(int id)
         {
             if (_blockFactory == null)
             {
                 var itemStackFactory = new ItemStackFactory(new TestItemConfig());
-                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory),itemStackFactory,null,null));
+                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
+                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory), itemStackFactory, null,
+                        null));
             }
+
             var machine = _blockFactory.Create(id, IntId.NewIntId()) as VanillaMachine;
             return machine;
         }

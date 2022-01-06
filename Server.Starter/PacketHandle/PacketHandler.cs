@@ -13,6 +13,7 @@ namespace Server.PacketHandle
     public class PacketHandler
     {
         const int port = 11564;
+
         public void StartServer(PacketResponseCreator packetResponseCreator)
         {
             //ソケットの作成
@@ -43,6 +44,7 @@ namespace Server.PacketHandle
                                 Console.WriteLine("切断されました");
                                 break;
                             }
+
                             //パケットを受信したら応答を返す
                             var result = packetResponseCreator.GetPacketResponse(bytes.ToList());
                             SendPackets(client, result);
@@ -57,7 +59,7 @@ namespace Server.PacketHandle
             }
         }
 
-        async void SendPackets(Socket client,List<byte[]> packets)
+        async void SendPackets(Socket client, List<byte[]> packets)
         {
             //一度にまとめて送るとクライアント側でさばき切れないので、0.1秒おきにパケットを送信する
             foreach (var packet in packets)

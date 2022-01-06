@@ -13,14 +13,15 @@ namespace Core.Block.Blocks.Machine.Inventory
         private readonly int _blockId;
         private readonly List<IItemStack> _inputSlot;
         private readonly IMachineRecipeConfig _machineRecipeConfig;
-        
+
         public ReadOnlyCollection<IItemStack> InputSlot => new(_inputSlot);
 
-        public VanillaMachineInputInventory(int blockId,int inputSlot,IMachineRecipeConfig machineRecipeConfig,ItemStackFactory itemStackFactory)
+        public VanillaMachineInputInventory(int blockId, int inputSlot, IMachineRecipeConfig machineRecipeConfig,
+            ItemStackFactory itemStackFactory)
         {
             _blockId = blockId;
             _machineRecipeConfig = machineRecipeConfig;
-            _inputSlot = CreateEmptyItemStacksList.Create(inputSlot,itemStackFactory);
+            _inputSlot = CreateEmptyItemStacksList.Create(inputSlot, itemStackFactory);
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
@@ -28,17 +29,18 @@ namespace Core.Block.Blocks.Machine.Inventory
             for (var i = 0; i < _inputSlot.Count; i++)
             {
                 if (!_inputSlot[i].IsAllowedToAdd(itemStack)) continue;
-                
+
                 //インベントリにアイテムを入れる
                 var r = _inputSlot[i].AddItem(itemStack);
                 _inputSlot[i] = r.ProcessResultItemStack;
-                
+
                 //とった結果のアイテムを返す
                 return r.RemainderItemStack;
             }
+
             return itemStack;
         }
-        
+
         public bool IsAllowedToStartProcess
         {
             get
@@ -57,7 +59,6 @@ namespace Core.Block.Blocks.Machine.Inventory
 
         public void ReduceInputSlot(IMachineRecipeData recipe)
         {
-            
             //inputスロットからアイテムを減らす
             foreach (var item in recipe.ItemInputs)
             {

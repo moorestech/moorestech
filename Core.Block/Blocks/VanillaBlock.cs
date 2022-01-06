@@ -7,7 +7,7 @@ namespace Core.Block.Blocks
         private readonly int _blockId;
         private readonly int _intId;
 
-        public VanillaBlock(int blockId,int intId)
+        public VanillaBlock(int blockId, int intId)
         {
             _intId = intId;
             _blockId = blockId;

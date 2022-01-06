@@ -16,13 +16,13 @@ namespace Core.Block.Blocks.Machine
 
         private readonly int _requestPower;
         private int _nowPower = 0;
-        
-        
+
+
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
-        
+
         public VanillaMachineRunProcess(
-            VanillaMachineInputInventory vanillaMachineInputInventory, 
+            VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             IMachineRecipeData machineRecipeData, int requestPower)
         {
@@ -33,14 +33,15 @@ namespace Core.Block.Blocks.Machine
 
             GameUpdate.AddUpdateObject(this);
         }
+
         public VanillaMachineRunProcess(
-            VanillaMachineInputInventory vanillaMachineInputInventory, 
+            VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            ProcessState state,double remainingMillSecond,IMachineRecipeData processingRecipeData, int requestPower)
+            ProcessState state, double remainingMillSecond, IMachineRecipeData processingRecipeData, int requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
-            
+
             _processingRecipeData = processingRecipeData;
             _requestPower = requestPower;
             _state = state;
@@ -53,19 +54,20 @@ namespace Core.Block.Blocks.Machine
         {
             switch (_state)
             {
-                case ProcessState.Idle :
+                case ProcessState.Idle:
                     Idle();
                     break;
-                case ProcessState.Processing :
+                case ProcessState.Processing:
                     Processing();
                     break;
             }
         }
-        
+
         private void Idle()
         {
             if (IsAllowedToStartProcess) StartProcessing();
         }
+
         private void StartProcessing()
         {
             _state = ProcessState.Processing;
@@ -75,30 +77,40 @@ namespace Core.Block.Blocks.Machine
         }
 
         private double _remainingMillSecond;
+
         private void Processing()
         {
-            _remainingMillSecond -= GameUpdate.UpdateTime * (_nowPower / (double)_requestPower);
+            _remainingMillSecond -= GameUpdate.UpdateTime * (_nowPower / (double) _requestPower);
             if (_remainingMillSecond <= 0)
             {
                 _state = ProcessState.Idle;
                 _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipeData);
             }
+
             //電力を消費する　TODO ここが正しく機能するかテストでチェックする
             _nowPower = 0;
         }
+
         private bool IsAllowedToStartProcess
         {
             get
             {
                 var recipe = _vanillaMachineInputInventory.GetRecipeData();
-                return _state == ProcessState.Idle && 
-                       _vanillaMachineInputInventory.IsAllowedToStartProcess && 
+                return _state == ProcessState.Idle &&
+                       _vanillaMachineInputInventory.IsAllowedToStartProcess &&
                        _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
             }
         }
-        
-        public int GetRequestPower(){return _requestPower;}
-        public void SupplyPower(int power){_nowPower = power;}
+
+        public int GetRequestPower()
+        {
+            return _requestPower;
+        }
+
+        public void SupplyPower(int power)
+        {
+            _nowPower = power;
+        }
     }
 
     public enum ProcessState

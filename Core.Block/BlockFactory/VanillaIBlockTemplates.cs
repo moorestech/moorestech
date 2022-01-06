@@ -15,18 +15,20 @@ namespace Core.Block.BlockFactory
         public readonly Dictionary<string, IBlockTemplate> BlockTypesDictionary;
 
         public VanillaIBlockTemplates(
-            IMachineRecipeConfig machineRecipeConfig, 
+            IMachineRecipeConfig machineRecipeConfig,
             ItemStackFactory itemStackFactory,
             ICheckOreMining checkOreMining,
             IOreConfig oreConfig)
         {
             BlockTypesDictionary = new Dictionary<string, IBlockTemplate>();
-            BlockTypesDictionary.Add(VanillaBlockType.Machine,new VanillaMachineTemplate(machineRecipeConfig, itemStackFactory));
-            BlockTypesDictionary.Add(VanillaBlockType.Block,new VanillaDefaultBlock());
-            BlockTypesDictionary.Add(VanillaBlockType.BeltConveyor,new VanillaBeltConveyorTemplate(itemStackFactory));
-            BlockTypesDictionary.Add(VanillaBlockType.ElectricPole,new VanillaElectricPoleTemplate());
-            BlockTypesDictionary.Add(VanillaBlockType.Generator,new VanillaPowerGeneratorTemplate(itemStackFactory));
-            BlockTypesDictionary.Add(VanillaBlockType.Miner,new VanillaMinerTemplate(checkOreMining,oreConfig,itemStackFactory));
+            BlockTypesDictionary.Add(VanillaBlockType.Machine,
+                new VanillaMachineTemplate(machineRecipeConfig, itemStackFactory));
+            BlockTypesDictionary.Add(VanillaBlockType.Block, new VanillaDefaultBlock());
+            BlockTypesDictionary.Add(VanillaBlockType.BeltConveyor, new VanillaBeltConveyorTemplate(itemStackFactory));
+            BlockTypesDictionary.Add(VanillaBlockType.ElectricPole, new VanillaElectricPoleTemplate());
+            BlockTypesDictionary.Add(VanillaBlockType.Generator, new VanillaPowerGeneratorTemplate(itemStackFactory));
+            BlockTypesDictionary.Add(VanillaBlockType.Miner,
+                new VanillaMinerTemplate(checkOreMining, oreConfig, itemStackFactory));
         }
     }
 }

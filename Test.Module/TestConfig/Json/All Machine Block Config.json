@@ -1,39 +1,67 @@
 {
-  "Blocks":[
+  "Blocks": [
     {
       "name": "TestMachine1",
-      "type" : "Machine",
-      "param" : {"inputSlot": 2,"outputSlot": 1,"requiredPower": 100}
+      "type": "Machine",
+      "param": {
+        "inputSlot": 2,
+        "outputSlot": 1,
+        "requiredPower": 100
+      }
     },
     {
       "name": "aaa",
-      "type" : "Machine",
-      "param" : {"inputSlot": 5,"outputSlot": 3,"requiredPower": 100}
+      "type": "Machine",
+      "param": {
+        "inputSlot": 5,
+        "outputSlot": 3,
+        "requiredPower": 100
+      }
     },
     {
       "name": "bb",
-      "type" : "Machine",
-      "param" : {"inputSlot": 22,"outputSlot": 1,"requiredPower": 100}
+      "type": "Machine",
+      "param": {
+        "inputSlot": 22,
+        "outputSlot": 1,
+        "requiredPower": 100
+      }
     },
     {
       "name": "ccccc",
-      "type" : "Machine",
-      "param" : {"inputSlot": 25,"outputSlot": 5,"requiredPower": 100}
+      "type": "Machine",
+      "param": {
+        "inputSlot": 25,
+        "outputSlot": 5,
+        "requiredPower": 100
+      }
     },
     {
       "name": "aaa",
-      "type" : "Machine",
-      "param" : {"inputSlot": 100,"outputSlot": 100,"requiredPower": 100}
+      "type": "Machine",
+      "param": {
+        "inputSlot": 100,
+        "outputSlot": 100,
+        "requiredPower": 100
+      }
     },
     {
       "name": "bb",
-      "type" : "Machine",
-      "param" : {"inputSlot": 100,"outputSlot": 100,"requiredPower": 100}
+      "type": "Machine",
+      "param": {
+        "inputSlot": 100,
+        "outputSlot": 100,
+        "requiredPower": 100
+      }
     },
     {
       "name": "ccccc",
-      "type" : "Machine",
-      "param" : {"inputSlot": 100,"outputSlot": 100,"requiredPower": 100}
+      "type": "Machine",
+      "param": {
+        "inputSlot": 100,
+        "outputSlot": 100,
+        "requiredPower": 100
+      }
     }
   ]
 }

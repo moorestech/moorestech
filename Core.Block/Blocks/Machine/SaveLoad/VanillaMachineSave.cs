@@ -10,8 +10,8 @@ namespace Core.Block.Blocks.Machine.SaveLoad
         private readonly VanillaMachineRunProcess _vanillaMachineRunProcess;
 
         public VanillaMachineSave(
-            VanillaMachineInputInventory vanillaMachineInputInventory, 
-            VanillaMachineOutputInventory vanillaMachineOutputInventory, 
+            VanillaMachineInputInventory vanillaMachineInputInventory,
+            VanillaMachineOutputInventory vanillaMachineOutputInventory,
             VanillaMachineRunProcess vanillaMachineRunProcess)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
@@ -29,19 +29,21 @@ namespace Core.Block.Blocks.Machine.SaveLoad
             {
                 saveState.Append(item.Id + "," + item.Count + ",");
             }
+
             saveState.Append("outputSlot,");
             //アウトプットスロットを保存
             foreach (var item in _vanillaMachineOutputInventory.OutputSlot)
             {
                 saveState.Append(item.Id + "," + item.Count + ",");
             }
+
             //状態を保存
-            saveState.Append("state,"+(int)_vanillaMachineRunProcess.State + ",");
+            saveState.Append("state," + (int) _vanillaMachineRunProcess.State + ",");
             //現在の残り時間を保存
-            saveState.Append("remainingTime,"+_vanillaMachineRunProcess.RemainingMillSecond + ",");
+            saveState.Append("remainingTime," + _vanillaMachineRunProcess.RemainingMillSecond + ",");
             //レシピIDを保存
-            saveState.Append("recipeId,"+_vanillaMachineRunProcess.RecipeDataId);
-            
+            saveState.Append("recipeId," + _vanillaMachineRunProcess.RecipeDataId);
+
             return saveState.ToString();
         }
     }

@@ -14,13 +14,17 @@ namespace World.EventListener
         {
             return new Dictionary<string, IoConnectionData>
             {
-                {VanillaBlockType.Machine,new IoConnectionData(
-                    new ConnectionPosition[]{new (1,0),new (-1,0),new (0,1),new (0,-1)},
-                    new ConnectionPosition[]{new (1,0),new (-1,0),new (0,1),new (0,-1)})},
-                
-                {VanillaBlockType.BeltConveyor,new IoConnectionData(
-                    new ConnectionPosition[]{new (-1,0),new (0,1),new (0,-1)},
-                    new ConnectionPosition[]{new (1,0)})}
+                {
+                    VanillaBlockType.Machine, new IoConnectionData(
+                        new ConnectionPosition[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)},
+                        new ConnectionPosition[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)})
+                },
+
+                {
+                    VanillaBlockType.BeltConveyor, new IoConnectionData(
+                        new ConnectionPosition[] {new(-1, 0), new(0, 1), new(0, -1)},
+                        new ConnectionPosition[] {new(1, 0)})
+                }
             };
         }
     }
@@ -40,6 +44,7 @@ namespace World.EventListener
             OutputConnector = outputConnector;
         }
     }
+
     public class ConnectionPosition : IEquatable<ConnectionPosition>
     {
         public ConnectionPosition(int north, int east)

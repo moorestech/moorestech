@@ -6,11 +6,10 @@ namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
     {
         public BlockConfigParamBase Generate(dynamic blockParam)
         {
-            
             int slot = blockParam.slot;
             int time = blockParam.time;
-            
-            return new BeltConveyorConfigParam(time,slot);
+
+            return new BeltConveyorConfigParam(time, slot);
         }
     }
 }

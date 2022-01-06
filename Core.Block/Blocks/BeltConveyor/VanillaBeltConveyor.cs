@@ -10,16 +10,17 @@ namespace Core.Block.Blocks.BeltConveyor
     /// <summary>
     /// アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class VanillaBeltConveyor :IBlock, IUpdate, IBlockInventory
+    public class VanillaBeltConveyor : IBlock, IUpdate, IBlockInventory
     {
         private readonly int _inventoryItemNum;
-        private readonly double _timeOfItemEnterToExit;//ベルトコンベアにアイテムが入って出るまでの時間
+        private readonly double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
 
         private readonly List<BeltConveyorInventoryItem> _inventoryItems = new List<BeltConveyorInventoryItem>();
         private IBlockInventory _connector;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public VanillaBeltConveyor(int blockId, int intId, ItemStackFactory itemStackFactory,int inventoryItemNum,int timeOfItemEnterToExit)
+        public VanillaBeltConveyor(int blockId, int intId, ItemStackFactory itemStackFactory, int inventoryItemNum,
+            int timeOfItemEnterToExit)
         {
             _blockId = blockId;
             _intId = intId;
@@ -29,7 +30,9 @@ namespace Core.Block.Blocks.BeltConveyor
             _connector = new NullIBlockInventory();
             GameUpdate.AddUpdateObject(this);
         }
-        public VanillaBeltConveyor(int blockId, int intId,string state, ItemStackFactory itemStackFactory,int inventoryItemNum,int timeOfItemEnterToExit)
+
+        public VanillaBeltConveyor(int blockId, int intId, string state, ItemStackFactory itemStackFactory,
+            int inventoryItemNum, int timeOfItemEnterToExit)
         {
             _blockId = blockId;
             _intId = intId;
@@ -43,12 +46,12 @@ namespace Core.Block.Blocks.BeltConveyor
             //データがないときは何もしない
             if (state == String.Empty) return;
             var stateList = state.Split(',');
-            for (int i = 0; i < stateList.Length; i+=3)
+            for (int i = 0; i < stateList.Length; i += 3)
             {
                 var id = int.Parse(stateList[i]);
                 var remainTime = double.Parse(stateList[i + 1]);
                 var limitTime = double.Parse(stateList[i + 2]);
-                _inventoryItems.Add(new BeltConveyorInventoryItem(id,remainTime,limitTime));
+                _inventoryItems.Add(new BeltConveyorInventoryItem(id, remainTime, limitTime));
             }
         }
 
@@ -56,7 +59,8 @@ namespace Core.Block.Blocks.BeltConveyor
         {
             //新しく挿入可能か
             if (1 <= _inventoryItems.Count && _inventoryItems.Count < _inventoryItemNum &&
-                _inventoryItems[0].RemainingTime < _timeOfItemEnterToExit - _timeOfItemEnterToExit / _inventoryItemNum ||
+                _inventoryItems[0].RemainingTime <
+                _timeOfItemEnterToExit - _timeOfItemEnterToExit / _inventoryItemNum ||
                 _inventoryItems.Count == 0)
             {
                 if (_inventoryItems.Count == 0)
@@ -67,7 +71,7 @@ namespace Core.Block.Blocks.BeltConveyor
                 else
                 {
                     //インデックスをずらす
-                    
+
                     //indexエラーにならないためにダミーアイテムを追加しておく
                     _inventoryItems.Add(new BeltConveyorInventoryItem(0, 0, 0));
                     //アイテムをずらす
@@ -84,6 +88,7 @@ namespace Core.Block.Blocks.BeltConveyor
 
                 return itemStack.SubItem(1);
             }
+
             return itemStack;
         }
 
@@ -110,11 +115,12 @@ namespace Core.Block.Blocks.BeltConveyor
             //リミットの更新
             if (2 <= _inventoryItems.Count)
             {
-                for (int i = 0; i < _inventoryItems.Count-1; i++)
+                for (int i = 0; i < _inventoryItems.Count - 1; i++)
                 {
                     _inventoryItems[i].LimitTime =
                         _inventoryItems[i + 1].RemainingTime + _timeOfItemEnterToExit / _inventoryItemNum;
                 }
+
                 _inventoryItems[^1].LimitTime = 0;
             }
 
@@ -139,6 +145,7 @@ namespace Core.Block.Blocks.BeltConveyor
 
         private int _blockId;
         private int _intId;
+
         public int GetIntId()
         {
             return _intId;
@@ -152,7 +159,7 @@ namespace Core.Block.Blocks.BeltConveyor
         public string GetSaveState()
         {
             if (_inventoryItems.Count == 0) return String.Empty;
-            
+
             //stateの定義 itemid1,RemainingTime1,LimitTime1,itemid2,RemainingTime2,LimitTime2,itemid3,RemainingTime3,LimitTime3...
             var state = new StringBuilder();
             foreach (var t in _inventoryItems)
@@ -164,6 +171,7 @@ namespace Core.Block.Blocks.BeltConveyor
                 state.Append(t.LimitTime);
                 state.Append(',');
             }
+
             //最後のカンマを削除
             state.Remove(state.Length - 1, 1);
             return state.ToString();

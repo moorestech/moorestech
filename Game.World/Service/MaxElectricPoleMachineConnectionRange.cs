@@ -13,7 +13,7 @@ namespace World.Service
             foreach (var id in blockConfig.GetBlockIds())
             {
                 if (blockConfig.GetBlockConfig(id).Type != VanillaBlockType.ElectricPole) continue;
-                
+
                 var param = blockConfig.GetBlockConfig(id).Param as ElectricPoleConfigParam;
                 if (maxElectricPoleMachineConnectionRange < param.machineConnectionRange)
                 {

@@ -12,6 +12,7 @@ namespace Server.Protocol.PacketResponse
     {
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ItemStackFactory _itemStackFactory;
+
         public PlayerInventoryMoveItemProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
@@ -26,10 +27,11 @@ namespace Server.Protocol.PacketResponse
             var fromSlot = payloadData.MoveNextToGetInt();
             var toSlot = payloadData.MoveNextToGetInt();
             var itemCount = payloadData.MoveNextToGetInt();
-            
+
             var playerInventory = _playerInventoryDataStore.GetInventoryData(playerId);
 
-            new InventoryItemMove().Move(_itemStackFactory,playerInventory,fromSlot,playerInventory,toSlot,itemCount);
+            new InventoryItemMove().Move(_itemStackFactory, playerInventory, fromSlot, playerInventory, toSlot,
+                itemCount);
 
             return new List<byte[]>();
         }

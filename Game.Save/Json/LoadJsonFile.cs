@@ -9,11 +9,12 @@ namespace Game.Save.Json
     public class LoadJsonFile : ILoadRepository
     {
         SaveJsonFileName _saveJsonFileName;
-        
+
         private IWorldBlockDatastore _worldBlockDatastore;
         private IPlayerInventoryDataStore _inventoryDataStore;
 
-        public LoadJsonFile(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore, IPlayerInventoryDataStore inventoryDataStore)
+        public LoadJsonFile(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore,
+            IPlayerInventoryDataStore inventoryDataStore)
         {
             _saveJsonFileName = saveJsonFileName;
             _worldBlockDatastore = worldBlockDatastore;
@@ -22,7 +23,7 @@ namespace Game.Save.Json
 
         public void Load()
         {
-            var load =  JsonConvert.DeserializeObject<SaveData>(File.ReadAllText(_saveJsonFileName.FullSaveFilePath));
+            var load = JsonConvert.DeserializeObject<SaveData>(File.ReadAllText(_saveJsonFileName.FullSaveFilePath));
             _worldBlockDatastore.LoadBlockDataList(load.World);
         }
     }

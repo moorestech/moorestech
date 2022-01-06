@@ -9,39 +9,42 @@ using Core.Update;
 
 namespace Core.Block.Blocks.PowerGenerator
 {
-    public class VanillaPowerGenerator : IBlock,IPowerGenerator,IBlockInventory,IUpdate
+    public class VanillaPowerGenerator : IBlock, IPowerGenerator, IBlockInventory, IUpdate
     {
         private readonly int _blockId;
         private readonly int _intId;
-        private readonly Dictionary<int,FuelSetting> _fuelSettings;
+        private readonly Dictionary<int, FuelSetting> _fuelSettings;
 
         private int _fuelItemId = ItemConst.NullItemId;
         private double _remainingFuelTime = 0;
         private readonly List<IItemStack> _fuelItemStacks;
 
-        public VanillaPowerGenerator(int blockId, int intId,int fuelItemSlot,ItemStackFactory itemStackFactory,Dictionary<int,FuelSetting> fuelSettings)
+        public VanillaPowerGenerator(int blockId, int intId, int fuelItemSlot, ItemStackFactory itemStackFactory,
+            Dictionary<int, FuelSetting> fuelSettings)
         {
             _blockId = blockId;
             _intId = intId;
             _fuelSettings = fuelSettings;
-            _fuelItemStacks = CreateEmptyItemStacksList.Create(fuelItemSlot,itemStackFactory);
+            _fuelItemStacks = CreateEmptyItemStacksList.Create(fuelItemSlot, itemStackFactory);
             GameUpdate.AddUpdateObject(this);
         }
-        public VanillaPowerGenerator(int blockId, int intId,string loadString,int fuelItemSlot,ItemStackFactory itemStackFactory,Dictionary<int,FuelSetting> fuelSettings)
+
+        public VanillaPowerGenerator(int blockId, int intId, string loadString, int fuelItemSlot,
+            ItemStackFactory itemStackFactory, Dictionary<int, FuelSetting> fuelSettings)
         {
             _blockId = blockId;
             _intId = intId;
             _fuelSettings = fuelSettings;
             GameUpdate.AddUpdateObject(this);
             _fuelItemStacks = new List<IItemStack>();
-            
+
             var split = loadString.Split(',');
             _fuelItemId = int.Parse(split[0]);
             _remainingFuelTime = double.Parse(split[1]);
-            
-            for (var i = 2; i < split.Length; i+=2)
+
+            for (var i = 2; i < split.Length; i += 2)
             {
-                _fuelItemStacks.Add(itemStackFactory.Create(int.Parse(split[i]),int.Parse(split[i+1])));
+                _fuelItemStacks.Add(itemStackFactory.Create(int.Parse(split[i]), int.Parse(split[i + 1])));
             }
         }
 
@@ -54,6 +57,7 @@ namespace Core.Block.Blocks.PowerGenerator
             {
                 saveState += $",{itemStack.Id},{itemStack.Count}";
             }
+
             return saveState;
         }
 
@@ -63,14 +67,15 @@ namespace Core.Block.Blocks.PowerGenerator
             for (var i = 0; i < _fuelItemStacks.Count; i++)
             {
                 if (!_fuelItemStacks[i].IsAllowedToAdd(itemStack)) continue;
-                
+
                 //インベントリにアイテムを入れる
                 var r = _fuelItemStacks[i].AddItem(itemStack);
                 _fuelItemStacks[i] = r.ProcessResultItemStack;
-                
+
                 //とった結果のアイテムを返す
                 return r.RemainderItemStack;
             }
+
             return itemStack;
         }
 
@@ -82,15 +87,16 @@ namespace Core.Block.Blocks.PowerGenerator
             if (_fuelItemId != ItemConst.NullItemId)
             {
                 _remainingFuelTime -= GameUpdate.UpdateTime;
-                
+
                 //残り時間が0以下の時は燃料の設定をNullItemIdにする
                 if (_remainingFuelTime <= 0)
                 {
                     _fuelItemId = ItemConst.NullItemId;
                 }
+
                 return;
             }
-            
+
             //燃料がない場合はスロットに燃料が在るか判定する
             //スロットに燃料がある場合は燃料の設定し、アイテムを1個減らす
             for (var i = 0; i < _fuelItemStacks.Count; i++)
@@ -106,19 +112,35 @@ namespace Core.Block.Blocks.PowerGenerator
                 return;
             }
         }
-        
+
         public int OutputPower()
         {
             if (_fuelSettings.ContainsKey(_fuelItemId))
             {
                 return _fuelSettings[_fuelItemId].Power;
             }
+
             return 0;
         }
 
-        public int GetIntId() { return _intId; }
-        public int GetBlockId() { return _blockId; }
-        public void AddOutputConnector(IBlockInventory blockInventory) { throw new Exception("発電機にアイテム出力スロットはありません"); }
-        public void RemoveOutputConnector(IBlockInventory blockInventory) { throw new Exception("発電機にアイテム出力スロットはありません"); }
+        public int GetIntId()
+        {
+            return _intId;
+        }
+
+        public int GetBlockId()
+        {
+            return _blockId;
+        }
+
+        public void AddOutputConnector(IBlockInventory blockInventory)
+        {
+            throw new Exception("発電機にアイテム出力スロットはありません");
+        }
+
+        public void RemoveOutputConnector(IBlockInventory blockInventory)
+        {
+            throw new Exception("発電機にアイテム出力スロットはありません");
+        }
     }
 }

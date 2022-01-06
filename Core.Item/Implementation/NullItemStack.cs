@@ -5,6 +5,7 @@ namespace Core.Item.Implementation
     internal class NullItemStack : IItemStack
     {
         ItemStackFactory _itemStackFactory;
+
         public NullItemStack(ItemStackFactory itemStackFactory)
         {
             _itemStackFactory = itemStackFactory;
@@ -15,7 +16,7 @@ namespace Core.Item.Implementation
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
-            return new ItemProcessResult(receiveItemStack,_itemStackFactory.CreatEmpty());
+            return new ItemProcessResult(receiveItemStack, _itemStackFactory.CreatEmpty());
         }
 
         public IItemStack SubItem(int subCount)
@@ -38,6 +39,7 @@ namespace Core.Item.Implementation
             if (typeof(NullItemStack) != obj.GetType()) return false;
             return ((NullItemStack) obj).Id == Id && ((NullItemStack) obj).Count == Count;
         }
+
         public override string ToString()
         {
             return $"ID:{Id} Count:{Count}";

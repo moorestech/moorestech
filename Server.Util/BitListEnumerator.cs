@@ -8,7 +8,7 @@ namespace Server.Util
     {
         private List<byte> bytesList;
         private int index = 0;
-        private readonly int[] BIT_MASK = {128 ,64, 32,16,8,4,2,1};
+        private readonly int[] BIT_MASK = {128, 64, 32, 16, 8, 4, 2, 1};
 
         public BitListEnumerator(List<byte> bytes)
         {
@@ -17,33 +17,37 @@ namespace Server.Util
 
         public bool MoveNextToBit()
         {
-            int r = bytesList[index/8] & BIT_MASK[index%8];
+            int r = bytesList[index / 8] & BIT_MASK[index % 8];
             index++;
-            if(r == 0)
+            if (r == 0)
             {
                 return false;
-            }else
+            }
+            else
             {
                 return true;
             }
         }
+
         public byte MoveNextToByte()
         {
             return GetByteArray(8)[0];
         }
+
         public short MoveNextToShort()
         {
-            return BitConverter.ToInt16(GetByteArray(16),0);
-        }
-        public float MoveNextToFloat()
-        {
-            return BitConverter.ToSingle(GetByteArray(32),0);
+            return BitConverter.ToInt16(GetByteArray(16), 0);
         }
 
-        
+        public float MoveNextToFloat()
+        {
+            return BitConverter.ToSingle(GetByteArray(32), 0);
+        }
+
+
         public int MoveNextToInt()
         {
-            return BitConverter.ToInt32(GetByteArray(32),0);
+            return BitConverter.ToInt32(GetByteArray(32), 0);
         }
 
         byte[] GetByteArray(int bitNum)
@@ -53,8 +57,9 @@ namespace Server.Util
             {
                 tmpBitArray.Add(MoveNextToBit());
             }
+
             var byteArray = BitListToByteList.Convert(tmpBitArray).ToArray();
-            if(BitConverter.IsLittleEndian)
+            if (BitConverter.IsLittleEndian)
                 Array.Reverse(byteArray);
             return byteArray;
         }

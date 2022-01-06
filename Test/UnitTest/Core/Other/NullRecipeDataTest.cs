@@ -11,11 +11,12 @@ namespace Test.UnitTest.Core.Other
         [Test]
         public void NullTest()
         {
-            IMachineRecipeData recipeData = new TestMachineRecipeConfig(new ItemStackFactory(new TestItemConfig())).GetNullRecipeData();
-            Assert.AreEqual(0,recipeData.ItemInputs.Count);
-            Assert.AreEqual(0,recipeData.ItemOutputs.Count);
-            Assert.AreEqual(0,recipeData.BlockId);
-            Assert.AreEqual(0,recipeData.Time);
+            IMachineRecipeData recipeData = new TestMachineRecipeConfig(new ItemStackFactory(new TestItemConfig()))
+                .GetNullRecipeData();
+            Assert.AreEqual(0, recipeData.ItemInputs.Count);
+            Assert.AreEqual(0, recipeData.ItemOutputs.Count);
+            Assert.AreEqual(0, recipeData.BlockId);
+            Assert.AreEqual(0, recipeData.Time);
         }
     }
 }

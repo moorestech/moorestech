@@ -11,7 +11,7 @@ namespace Game.Save.Json
         private readonly SaveJsonFileName _fileName;
         private readonly AssembleSaveJsonText _assembleSaveJsonText;
 
-        public SaveJsonFile(SaveJsonFileName fileName,AssembleSaveJsonText assembleSaveJsonText)
+        public SaveJsonFile(SaveJsonFileName fileName, AssembleSaveJsonText assembleSaveJsonText)
         {
             _fileName = fileName;
             _assembleSaveJsonText = assembleSaveJsonText;
@@ -19,11 +19,11 @@ namespace Game.Save.Json
 
         public void Save()
         {
-        
-            if (!Directory.Exists(_fileName.SaveFileDirectoryPath ) )
+            if (!Directory.Exists(_fileName.SaveFileDirectoryPath))
             {
                 Directory.CreateDirectory(_fileName.SaveFileDirectoryPath);
             }
+
             File.WriteAllText(_fileName.FullSaveFilePath, _assembleSaveJsonText.AssembleSaveJson());
         }
     }

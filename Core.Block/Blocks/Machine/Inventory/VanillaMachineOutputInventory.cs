@@ -9,18 +9,19 @@ using Core.Update;
 
 namespace Core.Block.Blocks.Machine.Inventory
 {
-    public class VanillaMachineOutputInventory :IUpdate
+    public class VanillaMachineOutputInventory : IUpdate
     {
         private readonly List<IItemStack> _outputSlot;
         private readonly List<IBlockInventory> _connectInventory;
-        
-        
+
+
         public ReadOnlyCollection<IItemStack> OutputSlot => new(_outputSlot);
-        public VanillaMachineOutputInventory(IBlockInventory connect,int outputSlot,ItemStackFactory itemStackFactory)
+
+        public VanillaMachineOutputInventory(IBlockInventory connect, int outputSlot, ItemStackFactory itemStackFactory)
         {
             //TODO このコンストラクタいる？
             _connectInventory = new List<IBlockInventory> {connect};
-            _outputSlot = CreateEmptyItemStacksList.Create(outputSlot,itemStackFactory);
+            _outputSlot = CreateEmptyItemStacksList.Create(outputSlot, itemStackFactory);
             GameUpdate.AddUpdateObject(this);
         }
 
@@ -33,10 +34,12 @@ namespace Core.Block.Blocks.Machine.Inventory
         {
             foreach (var itemOutput in machineRecipeData.ItemOutputs)
             {
-                var isAllowed = _outputSlot.Aggregate(false, (current, slot) => slot.IsAllowedToAdd(itemOutput.OutputItem) || current);
+                var isAllowed = _outputSlot.Aggregate(false,
+                    (current, slot) => slot.IsAllowedToAdd(itemOutput.OutputItem) || current);
 
                 if (!isAllowed) return false;
             }
+
             return true;
         }
 
@@ -48,12 +51,11 @@ namespace Core.Block.Blocks.Machine.Inventory
                 for (int i = 0; i < _outputSlot.Count; i++)
                 {
                     if (!_outputSlot[i].IsAllowedToAdd(output.OutputItem)) continue;
-                    
+
                     _outputSlot[i] = _outputSlot[i].AddItem(output.OutputItem).ProcessResultItemStack;
                     break;
                 }
             }
-
         }
 
         //TODO 複数アウトプットスロットがあるときは優先順位を順番に駆るロジックを組む

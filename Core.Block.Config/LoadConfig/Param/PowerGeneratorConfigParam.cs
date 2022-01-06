@@ -4,10 +4,10 @@ namespace Core.Block.Config.LoadConfig.Param
 {
     public class PowerGeneratorConfigParam : BlockConfigParamBase
     {
-        public readonly Dictionary<int,FuelSetting> FuelSettings;
+        public readonly Dictionary<int, FuelSetting> FuelSettings;
         public readonly int FuelSlot;
 
-        public PowerGeneratorConfigParam(Dictionary<int,FuelSetting> fuelSettings, int fuelSlot)
+        public PowerGeneratorConfigParam(Dictionary<int, FuelSetting> fuelSettings, int fuelSlot)
         {
             FuelSettings = fuelSettings;
             FuelSlot = fuelSlot;

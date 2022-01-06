@@ -21,7 +21,7 @@ namespace Core.Block.Config.LoadConfig.Param
         public readonly int OreId;
         public readonly int MiningTime;
 
-        public OreSetting( int oreId,int miningTime)
+        public OreSetting(int oreId, int miningTime)
         {
             MiningTime = miningTime;
             OreId = oreId;

@@ -16,6 +16,5 @@ namespace Core.Block.RecipeConfig.Data
         {
             return false;
         }
-
     }
 }

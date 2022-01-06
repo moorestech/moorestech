@@ -25,6 +25,7 @@ namespace World.DataStore
             {
                 return electric;
             }
+
             throw new Exception("Block is not " + typeof(T).ToString());
         }
     }

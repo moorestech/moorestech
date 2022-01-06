@@ -9,7 +9,6 @@ namespace Core.Block.Config.LoadConfig.Param
         }
 
         public int BeltConveyorItemNum { get; }
-        public int TimeOfItemEnterToExit{ get; }
-
+        public int TimeOfItemEnterToExit { get; }
     }
 }

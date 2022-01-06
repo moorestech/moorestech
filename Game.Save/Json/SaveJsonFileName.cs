@@ -25,10 +25,12 @@ namespace Game.Save.Json
                 case PlatformID.Win32S:
                 case PlatformID.Win32Windows:
                 case PlatformID.WinCE:
-                    _filePath = Path.Combine("C:", "Users", Environment.UserName, "AppData","Roaming",".moorestech","saves",fileName);
+                    _filePath = Path.Combine("C:", "Users", Environment.UserName, "AppData", "Roaming", ".moorestech",
+                        "saves", fileName);
                     break;
                 case PlatformID.Unix:
-                    _filePath = Path.Combine("/Users", Environment.UserName, "Library","Application Support","moorestech","saves",fileName);
+                    _filePath = Path.Combine("/Users", Environment.UserName, "Library", "Application Support",
+                        "moorestech", "saves", fileName);
                     break;
             }
         }

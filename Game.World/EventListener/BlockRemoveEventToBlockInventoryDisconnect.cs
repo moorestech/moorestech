@@ -9,7 +9,8 @@ namespace World.EventListener
     {
         private readonly IWorldBlockComponentDatastore<IBlockInventory> _worldBlockInventoryDatastore;
 
-        public BlockRemoveEventToBlockInventoryDisconnect(IWorldBlockComponentDatastore<IBlockInventory> worldBlockInventoryDatastore,
+        public BlockRemoveEventToBlockInventoryDisconnect(
+            IWorldBlockComponentDatastore<IBlockInventory> worldBlockInventoryDatastore,
             IBlockRemoveEvent blockRemoveEvent)
         {
             _worldBlockInventoryDatastore = worldBlockInventoryDatastore;

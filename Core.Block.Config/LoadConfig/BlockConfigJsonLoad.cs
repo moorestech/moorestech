@@ -9,7 +9,7 @@ namespace Core.Block.Config.LoadConfig
     public class BlockConfigJsonLoad
     {
         readonly string _jsonPath;
-        private readonly Dictionary<string,IBlockConfigParamGenerator> _generators;
+        private readonly Dictionary<string, IBlockConfigParamGenerator> _generators;
 
 
         public BlockConfigJsonLoad(string jsonPath)
@@ -24,9 +24,9 @@ namespace Core.Block.Config.LoadConfig
             var json = File.ReadAllText(_jsonPath);
             //JSONを動的にデシリアライズする
             dynamic person = JObject.Parse(json);
-            
+
             var blockDictionary = new Dictionary<int, BlockConfigData>();
-            
+
             //最初に設定されたIDの連番を設定していく
             //デフォルトはnull blockの次の値
             int id = BlockConst.BlockConst.NullBlockId;
@@ -43,11 +43,11 @@ namespace Core.Block.Config.LoadConfig
                 {
                     id = block.id;
                 }
-                
+
                 string name = block.name;
                 string type = block.type;
                 BlockConfigParamBase blockParam = _generators[type].Generate(block.param);
-                blockDictionary.Add(id,new BlockConfigData(id,name,type,blockParam));
+                blockDictionary.Add(id, new BlockConfigData(id, name, type, blockParam));
             }
 
             return blockDictionary;

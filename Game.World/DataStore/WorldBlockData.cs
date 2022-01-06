@@ -6,7 +6,7 @@ namespace World.DataStore
 {
     public class WorldBlockData
     {
-        public WorldBlockData(IBlock block,int x, int y, BlockDirection blockDirection)
+        public WorldBlockData(IBlock block, int x, int y, BlockDirection blockDirection)
         {
             X = x;
             Y = y;

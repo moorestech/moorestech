@@ -10,7 +10,7 @@ namespace Game.World.Interface.Event
         public readonly IBlock Block;
         public readonly BlockDirection BlockDirection;
 
-        public BlockPlaceEventProperties(Coordinate coordinate, IBlock block,BlockDirection blockDirection)
+        public BlockPlaceEventProperties(Coordinate coordinate, IBlock block, BlockDirection blockDirection)
         {
             Coordinate = coordinate;
             Block = block;

@@ -3,7 +3,7 @@ using Core.Block.Config.LoadConfig.Param;
 
 namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
 {
-    public class MinerConfigParamGenerator: IBlockConfigParamGenerator
+    public class MinerConfigParamGenerator : IBlockConfigParamGenerator
     {
         public BlockConfigParamBase Generate(dynamic blockParam)
         {
@@ -14,9 +14,10 @@ namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
             {
                 int id = ore.oreId;
                 int time = ore.time;
-                oreSetting.Add(new OreSetting(id,time));
+                oreSetting.Add(new OreSetting(id, time));
             }
-            return new MinerBlockConfigParam(requiredPower,oreSetting,outputSlot);
+
+            return new MinerBlockConfigParam(requiredPower, oreSetting, outputSlot);
         }
     }
 }

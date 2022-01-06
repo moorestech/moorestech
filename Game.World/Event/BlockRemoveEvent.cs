@@ -2,7 +2,6 @@ using Game.World.Interface.Event;
 
 namespace World.Event
 {
-    
     public class BlockRemoveEvent : IBlockRemoveEvent
     {
         public event IBlockRemoveEvent.BlockPlaceEvent OnBlockRemoveEvent;

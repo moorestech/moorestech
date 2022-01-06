@@ -7,9 +7,9 @@ namespace Test.Module.TestConfig
     {
         public string GetPath(string fileName)
         {
-            DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory); 
+            DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
             DirectoryInfo diParent = di.Parent.Parent.Parent.Parent;
-            return Path.Combine(diParent.FullName, "Test.Module","TestConfig","Json",fileName);
+            return Path.Combine(diParent.FullName, "Test.Module", "TestConfig", "Json", fileName);
         }
     }
 }

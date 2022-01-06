@@ -12,7 +12,8 @@ namespace PlayerInventory.Event
             OnPlayerInventoryUpdate += updateInventoryEvent;
         }
 
-        public void OnPlayerInventoryUpdateInvoke(PlayerInventoryUpdateEventProperties playerInventoryUpdateEventProperties)
+        public void OnPlayerInventoryUpdateInvoke(
+            PlayerInventoryUpdateEventProperties playerInventoryUpdateEventProperties)
         {
             OnPlayerInventoryUpdate?.Invoke(playerInventoryUpdateEventProperties);
         }

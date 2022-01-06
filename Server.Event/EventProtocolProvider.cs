@@ -10,19 +10,18 @@ namespace Server.Event
     {
         private Dictionary<int, List<byte[]>> _events = new Dictionary<int, List<byte[]>>();
 
-        public void AddEvent(int playerId,byte[] eventByteArray)
+        public void AddEvent(int playerId, byte[] eventByteArray)
         {
-        
             if (_events.ContainsKey(playerId))
             {
                 _events[playerId].Add(eventByteArray);
             }
             else
             {
-                _events.Add(playerId,new List<byte[]>(){eventByteArray});
+                _events.Add(playerId, new List<byte[]>() {eventByteArray});
             }
-            
         }
+
         public void AddBroadcastEvent(byte[] eventByteArray)
         {
             foreach (var key in _events.Keys)
@@ -42,7 +41,7 @@ namespace Server.Event
             else
             {
                 //ブロードキャストイベントの時に使うので、Dictionaryにキーを追加しておく
-                _events.Add(playerId,new List<byte[]>());
+                _events.Add(playerId, new List<byte[]>());
                 return _events[playerId];
             }
         }

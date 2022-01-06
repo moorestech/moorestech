@@ -1,5 +1,5 @@
 namespace Core.Block.Config
-{ 
+{
     public static class VanillaBlockType
     {
         public const string Block = "Block";

@@ -13,6 +13,7 @@ namespace Server.Util
                 Array.Reverse(result);
             return result.ToList();
         }
+
         public static List<byte> ToByteArray(short sendData)
         {
             var result = BitConverter.GetBytes(sendData);
@@ -20,6 +21,7 @@ namespace Server.Util
                 Array.Reverse(result);
             return result.ToList();
         }
+
         public static List<byte> ToByteArray(float sendData)
         {
             var result = BitConverter.GetBytes(sendData);
@@ -27,6 +29,7 @@ namespace Server.Util
                 Array.Reverse(result);
             return result.ToList();
         }
+
         public static List<byte> ToByteArray(string sendData)
         {
             return System.Text.Encoding.UTF8.GetBytes(sendData).ToList();

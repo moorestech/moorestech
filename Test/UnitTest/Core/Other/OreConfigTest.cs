@@ -14,8 +14,8 @@ namespace Test.UnitTest.Core.Other
         public void OreIdToItemIdTest()
         {
             IOreConfig oreConfig = new OreConfig();
-            Assert.AreEqual(3,oreConfig.OreIdToItemId(1));
-            Assert.AreEqual(4,oreConfig.OreIdToItemId(2));
+            Assert.AreEqual(3, oreConfig.OreIdToItemId(1));
+            Assert.AreEqual(4, oreConfig.OreIdToItemId(2));
         }
     }
 }

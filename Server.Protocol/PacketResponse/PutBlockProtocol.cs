@@ -42,9 +42,9 @@ namespace Server.Protocol.PacketResponse
             Console.WriteLine("Place Block blockID:" + blockId + " x:" + x + " y:" + y);
 
             var block = blockFactory.Create(blockId, IntId.NewIntId());
-            
+
             //このプロトコルは確定で北向きに設置する
-            _worldBlockDatastore.AddBlock(block, x, y,BlockDirection.North);
+            _worldBlockDatastore.AddBlock(block, x, y, BlockDirection.North);
             //返すものはない
             return new List<byte[]>();
         }

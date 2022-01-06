@@ -30,7 +30,8 @@ namespace Test.UnitTest.Core.Other
                     trueCnt++;
                 }
             }
-            double truePercent = trueCnt/10000.0;
+
+            double truePercent = trueCnt / 10000.0;
             Assert.True(percent - 0.5 < truePercent);
             Assert.True(truePercent < percent + 0.5);
         }

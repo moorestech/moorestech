@@ -17,7 +17,7 @@ namespace Test.CombinedTest.Core.Generate
             int seed = 2119350917;
             int recipeNum = 40;
             var recipe = RecipeGenerate.MakeRecipe(seed, recipeNum);
-            
+
             // データをJSON形式にシリアル化して、メモリーストリームに出力する。
             MemoryStream st = new MemoryStream(); // メモリーストリームを作成
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(recipe)); // シリアライザーを作成
@@ -27,8 +27,8 @@ namespace Test.CombinedTest.Core.Generate
             st.Position = 0;
             StreamReader reader = new StreamReader(st);
             Console.WriteLine(reader.ReadToEnd());
-            
-            
+
+
             Assert.True(true);
         }
     }

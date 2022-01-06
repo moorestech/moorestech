@@ -12,8 +12,8 @@ namespace Test.Module
         public bool IsItemExists => _isItemExists;
         private bool _isItemExists = false;
         private readonly List<IItemStack> _insertedItems;
-        
-        public List<IItemStack> InsertedItems 
+
+        public List<IItemStack> InsertedItems
         {
             get
             {
@@ -22,6 +22,7 @@ namespace Test.Module
                 return a.ToList();
             }
         }
+
         private int InsertToEndNum { get; }
         private int _endInsertCnt;
         private ItemStackFactory _itemStackFactory;
@@ -32,7 +33,7 @@ namespace Test.Module
             _isItemExists = false;
             this.InsertToEndNum = insertToEndNum;
             _endInsertCnt = 0;
-            _insertedItems = CreateEmptyItemStacksList.Create(100,_itemStackFactory).ToList();
+            _insertedItems = CreateEmptyItemStacksList.Create(100, _itemStackFactory).ToList();
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
@@ -47,10 +48,16 @@ namespace Test.Module
 
                 return r.RemainderItemStack;
             }
+
             return _itemStackFactory.CreatEmpty();
         }
 
-        public void AddOutputConnector(IBlockInventory blockInventory) { }
-        public void RemoveOutputConnector(IBlockInventory blockInventory) { }
+        public void AddOutputConnector(IBlockInventory blockInventory)
+        {
+        }
+
+        public void RemoveOutputConnector(IBlockInventory blockInventory)
+        {
+        }
     }
 }
