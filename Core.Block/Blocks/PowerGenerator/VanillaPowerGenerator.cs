@@ -14,10 +14,10 @@ namespace Core.Block.Blocks.PowerGenerator
         private readonly int _blockId;
         private readonly int _intId;
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
+        private readonly List<IItemStack> _fuelItemStacks;
 
         private int _fuelItemId = ItemConst.NullItemId;
         private double _remainingFuelTime = 0;
-        private readonly List<IItemStack> _fuelItemStacks;
 
         public VanillaPowerGenerator(int blockId, int intId, int fuelItemSlot, ItemStackFactory itemStackFactory,
             Dictionary<int, FuelSetting> fuelSettings)

@@ -24,13 +24,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
 
         public IBlock New(BlockConfigData param, int intId)
         {
-            var machineParam = param.Param as MachineBlockConfigParam;
-
-            var input = new VanillaMachineInputInventory(param.BlockId, machineParam.InputSlot, _machineRecipeConfig,
-                _itemStackFactory);
-
-            var output = new VanillaMachineOutputInventory( machineParam.OutputSlot,
-                _itemStackFactory);
+            var(input, output, machineParam) = GetData(param);
 
             var runProcess = new VanillaMachineRunProcess(input, output, _machineRecipeConfig.GetNullRecipeData(),
                 machineParam.RequiredPower);
@@ -45,13 +39,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
 
         public IBlock Load(BlockConfigData param, int intId, string state)
         {
-            var machineParam = param.Param as MachineBlockConfigParam;
-
-            var input = new VanillaMachineInputInventory(param.BlockId, machineParam.InputSlot, _machineRecipeConfig,
-                _itemStackFactory);
-
-            var output = new VanillaMachineOutputInventory( machineParam.OutputSlot,
-                _itemStackFactory);
+            var(input, output, machineParam) = GetData(param);
 
             var runProcess = new VanillaMachineLoad(input, output, _itemStackFactory, _machineRecipeConfig,
                 machineParam.RequiredPower).Load(state);
@@ -63,6 +51,19 @@ namespace Core.Block.BlockFactory.BlockTemplate
                 new VanillaMachineSave(input, output, runProcess),
                 runProcess
             );
+        }
+
+        private (VanillaMachineInputInventory, VanillaMachineOutputInventory,MachineBlockConfigParam) GetData(BlockConfigData param)
+        {
+            var machineParam = param.Param as MachineBlockConfigParam;
+            
+            var input = new VanillaMachineInputInventory(param.BlockId, machineParam.InputSlot, _machineRecipeConfig,
+                _itemStackFactory);
+
+            var output = new VanillaMachineOutputInventory( machineParam.OutputSlot,
+                _itemStackFactory);
+            
+            return (input, output, machineParam);
         }
     }
 }
