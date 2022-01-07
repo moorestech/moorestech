@@ -87,7 +87,7 @@ namespace Core.Block.Blocks.Machine
                 _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipeData);
             }
 
-            //電力を消費する　TODO ここが正しく機能するかテストでチェックする
+            //電力を消費する
             _nowPower = 0;
         }
 

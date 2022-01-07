@@ -12,15 +12,13 @@ namespace Core.Block.Blocks.Machine.Inventory
     public class VanillaMachineOutputInventory : IUpdate
     {
         private readonly List<IItemStack> _outputSlot;
-        private readonly List<IBlockInventory> _connectInventory;
+        private readonly List<IBlockInventory> _connectInventory = new();
 
 
         public ReadOnlyCollection<IItemStack> OutputSlot => new(_outputSlot);
 
-        public VanillaMachineOutputInventory(IBlockInventory connect, int outputSlot, ItemStackFactory itemStackFactory)
+        public VanillaMachineOutputInventory(int outputSlot, ItemStackFactory itemStackFactory)
         {
-            //TODO このコンストラクタいる？
-            _connectInventory = new List<IBlockInventory> {connect};
             _outputSlot = CreateEmptyItemStacksList.Create(outputSlot, itemStackFactory);
             GameUpdate.AddUpdateObject(this);
         }

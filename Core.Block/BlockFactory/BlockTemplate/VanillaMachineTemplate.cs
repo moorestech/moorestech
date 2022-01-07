@@ -29,7 +29,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
             var input = new VanillaMachineInputInventory(param.BlockId, machineParam.InputSlot, _machineRecipeConfig,
                 _itemStackFactory);
 
-            var output = new VanillaMachineOutputInventory(new NullIBlockInventory(), machineParam.OutputSlot,
+            var output = new VanillaMachineOutputInventory( machineParam.OutputSlot,
                 _itemStackFactory);
 
             var runProcess = new VanillaMachineRunProcess(input, output, _machineRecipeConfig.GetNullRecipeData(),
@@ -50,7 +50,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
             var input = new VanillaMachineInputInventory(param.BlockId, machineParam.InputSlot, _machineRecipeConfig,
                 _itemStackFactory);
 
-            var output = new VanillaMachineOutputInventory(new NullIBlockInventory(), machineParam.OutputSlot,
+            var output = new VanillaMachineOutputInventory( machineParam.OutputSlot,
                 _itemStackFactory);
 
             var runProcess = new VanillaMachineLoad(input, output, _itemStackFactory, _machineRecipeConfig,
