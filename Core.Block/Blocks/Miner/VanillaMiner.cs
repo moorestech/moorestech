@@ -17,13 +17,13 @@ namespace Core.Block.Blocks.Miner
         private readonly int _intId;
         private readonly int _requestPower;
         private readonly int _miningTime;
+        private readonly int _miningItemId;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly List<IItemStack> _outputSlot;
 
         private int _nowPower = 0;
         private double _remainingMillSecond;
-        private int _miningItemId;
 
         public VanillaMiner(int blockId, int intId, int requestPower, int miningItemId, int miningTime, int outputSlot,
             ItemStackFactory itemStackFactory)
@@ -58,6 +58,7 @@ namespace Core.Block.Blocks.Miner
                 }
             }
 
+            _nowPower = 0;
             InsertConnectInventory();
         }
 
