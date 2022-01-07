@@ -24,10 +24,10 @@ namespace Test.UnitTest.Core.Other
             
             //インベントリ1はインベントリのサイズを1にして、インベントリ2に入るか確認する
             var inventory1 = new DummyBlockInventory(1,1);
-            inventoryList.Add(inventory1);
             var inventory2 = new DummyBlockInventory();
-            inventoryList.Add(inventory2);
             var inventory3 = new DummyBlockInventory();
+            inventoryList.Add(inventory1);
+            inventoryList.Add(inventory2);
             inventoryList.Add(inventory3);
 
             var service = new ConnectingInventoryListPriorityInsertItemService(inventoryList);
