@@ -21,7 +21,6 @@ namespace Test.CombinedTest.Core
     {
         private int MinerId = 6;
 
-        //TODO マイナーを保存するテスト
         //一定時間たったら鉱石が出るテスト
         [Test]
         public void MiningTest()
