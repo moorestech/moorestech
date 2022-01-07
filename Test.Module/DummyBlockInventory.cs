@@ -49,7 +49,7 @@ namespace Test.Module
                 return r.RemainderItemStack;
             }
 
-            return _itemStackFactory.CreatEmpty();
+            return itemStack;
         }
 
         public void AddOutputConnector(IBlockInventory blockInventory)
