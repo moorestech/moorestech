@@ -58,6 +58,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.WorldMap", "Game.World
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Ore", "Core\Core.Ore\Core.Ore.csproj", "{3CB44705-91A6-493E-803F-43E290F7F3DC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassLibrary", "ClassLibrary\ClassLibrary.csproj", "{45E305AC-D816-47C7-9361-8B7A2593AE86}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -156,6 +158,10 @@ Global
 		{3CB44705-91A6-493E-803F-43E290F7F3DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3CB44705-91A6-493E-803F-43E290F7F3DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3CB44705-91A6-493E-803F-43E290F7F3DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45E305AC-D816-47C7-9361-8B7A2593AE86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45E305AC-D816-47C7-9361-8B7A2593AE86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45E305AC-D816-47C7-9361-8B7A2593AE86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45E305AC-D816-47C7-9361-8B7A2593AE86}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A0A2C6F4-AAA1-430C-8DAF-034CF14D192E} = {6D142E32-204D-41A7-B121-423F9A073676}
