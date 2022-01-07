@@ -27,13 +27,13 @@ namespace Test.Module
         private int _endInsertCnt;
         private ItemStackFactory _itemStackFactory;
 
-        public DummyBlockInventory(int insertToEndNum = 1)
+        public DummyBlockInventory(int insertToEndNum = 1,int maxSlot = 100)
         {
             _itemStackFactory = new ItemStackFactory(new TestItemConfig());
             _isItemExists = false;
             this.InsertToEndNum = insertToEndNum;
             _endInsertCnt = 0;
-            _insertedItems = CreateEmptyItemStacksList.Create(100, _itemStackFactory).ToList();
+            _insertedItems = CreateEmptyItemStacksList.Create(maxSlot, _itemStackFactory).ToList();
         }
 
         public IItemStack InsertItem(IItemStack itemStack)

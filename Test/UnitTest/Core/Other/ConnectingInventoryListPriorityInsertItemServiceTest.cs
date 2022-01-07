@@ -22,7 +22,8 @@ namespace Test.UnitTest.Core.Other
 
             var inventoryList = new List<IBlockInventory>();
             
-            var inventory1 = new DummyBlockInventory();
+            //インベントリ1はインベントリのサイズを1にして、インベントリ2に入るか確認する
+            var inventory1 = new DummyBlockInventory(1,1);
             inventoryList.Add(inventory1);
             var inventory2 = new DummyBlockInventory();
             inventoryList.Add(inventory2);
@@ -37,9 +38,9 @@ namespace Test.UnitTest.Core.Other
             service.InsertItem(itemStackFactory.Create(4, 1));
 
             Assert.AreEqual(itemStackFactory.Create(1, 4),inventory1.InsertedItems[0]);
-            Assert.AreEqual(itemStackFactory.Create(4, 1),inventory1.InsertedItems[1]);
             Assert.AreEqual(itemStackFactory.Create(2, 3),inventory2.InsertedItems[0]);
             Assert.AreEqual(itemStackFactory.Create(3, 2),inventory3.InsertedItems[0]);
+            Assert.AreEqual(itemStackFactory.Create(4, 1),inventory2.InsertedItems[1]);
 
         }
     }
