@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using Core.Block.BlockInventory;
+using Core.Block.Blocks.Service;
 using Core.Block.RecipeConfig.Data;
 using Core.Item;
 using Core.Item.Util;
@@ -13,6 +14,7 @@ namespace Core.Block.Blocks.Machine.Inventory
     {
         private readonly List<IItemStack> _outputSlot;
         private readonly List<IBlockInventory> _connectInventory = new();
+        private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
 
 
         public ReadOnlyCollection<IItemStack> OutputSlot => new(_outputSlot);
@@ -20,6 +22,7 @@ namespace Core.Block.Blocks.Machine.Inventory
         public VanillaMachineOutputInventory(int outputSlot, ItemStackFactory itemStackFactory)
         {
             _outputSlot = CreateEmptyItemStacksList.Create(outputSlot, itemStackFactory);
+            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdate.AddUpdateObject(this);
         }
 
@@ -56,15 +59,11 @@ namespace Core.Block.Blocks.Machine.Inventory
             }
         }
 
-        //TODO 複数アウトプットスロットがあるときは優先順位を順番に駆るロジックを組む
         void InsertConnectInventory()
         {
             for (int i = 0; i < _outputSlot.Count; i++)
             {
-                foreach (var connect in _connectInventory)
-                {
-                    _outputSlot[i] = connect.InsertItem(_outputSlot[i]);
-                }
+                _outputSlot[i] = _connectInventoryService.InsertItem(_outputSlot[i]);
             }
         }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Block.BlockInventory;
+using Core.Block.Blocks.Service;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
 using Core.Inventory;
@@ -21,6 +22,7 @@ namespace Core.Block.Blocks.Miner
         private readonly ItemStackFactory _itemStackFactory;
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly List<IItemStack> _outputSlot;
+        private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
 
         private int _nowPower = 0;
         private double _remainingMillSecond;
@@ -35,8 +37,9 @@ namespace Core.Block.Blocks.Miner
             _miningTime = miningTime;
             _remainingMillSecond = miningTime;
             _itemStackFactory = itemStackFactory;
-            GameUpdate.AddUpdateObject(this);
             _outputSlot = CreateEmptyItemStacksList.Create(outputSlot, itemStackFactory);
+            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
+            GameUpdate.AddUpdateObject(this);
         }
         public VanillaMiner(string saveData,int blockId, int intId, int requestPower, int miningItemId, int miningTime, int outputSlot,
             ItemStackFactory itemStackFactory)
@@ -48,6 +51,7 @@ namespace Core.Block.Blocks.Miner
             _miningTime = miningTime;
             _remainingMillSecond = miningTime;
             _itemStackFactory = itemStackFactory;
+            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdate.AddUpdateObject(this);
 
             _outputSlot = new List<IItemStack>();
@@ -85,15 +89,11 @@ namespace Core.Block.Blocks.Miner
             InsertConnectInventory();
         }
 
-        //TODO 複数アウトプットスロットがあるときは優先順位を順番に駆るロジックを組む
         void InsertConnectInventory()
         {
             for (int i = 0; i < _outputSlot.Count; i++)
             {
-                foreach (var connect in _connectInventory)
-                {
-                    _outputSlot[i] = connect.InsertItem(_outputSlot[i]);
-                }
+                _outputSlot[i] = _connectInventoryService.InsertItem(_outputSlot[i]);
             }
         }
 
