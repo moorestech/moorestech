@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Block.BlockInventory;
 using Core.Item;
@@ -16,9 +17,27 @@ namespace Core.Block.Blocks.Service
             _blockInventories = blockInventories;
         }
 
+        private int index = 0;
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            return null;
+            for (int i = 0; i < _blockInventories.Count; i++)
+            {
+                itemStack = _blockInventories[index].InsertItem(itemStack);
+                AddIndex();
+            }
+            //次に挿入するインベントリのインデックスを追加
+            AddIndex();
+
+            return itemStack;
+        }
+
+        private void AddIndex()
+        {
+            index++;
+            if (_blockInventories.Count <= index)
+            {
+                index = 0;
+            }
         }
     }
 }
