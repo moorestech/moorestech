@@ -57,7 +57,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
                 oreItem = _oreConfig.OreIdToItemId(oreId);
             }
 
-            return new VanillaMiner(param.BlockId, intId, requestPower, oreItem, miningTime, minerParam.OutputSlot,
+            return new VanillaMiner(state,param.BlockId, intId, requestPower, oreItem, miningTime, minerParam.OutputSlot,
                 _itemStackFactory);
         }
     }

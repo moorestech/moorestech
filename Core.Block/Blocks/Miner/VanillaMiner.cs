@@ -38,6 +38,29 @@ namespace Core.Block.Blocks.Miner
             GameUpdate.AddUpdateObject(this);
             _outputSlot = CreateEmptyItemStacksList.Create(outputSlot, itemStackFactory);
         }
+        public VanillaMiner(string saveData,int blockId, int intId, int requestPower, int miningItemId, int miningTime, int outputSlot,
+            ItemStackFactory itemStackFactory)
+        {
+            _blockId = blockId;
+            _intId = intId;
+            _requestPower = requestPower;
+            _miningItemId = miningItemId;
+            _miningTime = miningTime;
+            _remainingMillSecond = miningTime;
+            _itemStackFactory = itemStackFactory;
+            GameUpdate.AddUpdateObject(this);
+
+            _outputSlot = new List<IItemStack>();
+            //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
+            var split = saveData.Split(',');
+            _remainingMillSecond = int.Parse(split[0]);
+            for (var i = 1; i < split.Length; i += 2)
+            {
+                var itemId = int.Parse(split[i]);
+                var itemCount = int.Parse(split[i + 1]);
+                _outputSlot.Add(_itemStackFactory.Create(itemId, itemCount));
+            }
+        }
 
         public void Update()
         {
@@ -76,7 +99,14 @@ namespace Core.Block.Blocks.Miner
 
         public string GetSaveState()
         {
-            throw new System.NotImplementedException();
+            //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
+            var saveState = $"{_remainingMillSecond}";
+            foreach (var itemStack in _outputSlot)
+            {
+                saveState += $",{itemStack.Id},{itemStack.Count}";
+            }
+
+            return saveState;
         }
 
         public void AddOutputConnector(IBlockInventory blockInventory)

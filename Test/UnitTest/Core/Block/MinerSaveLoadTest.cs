@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Core.Block.BlockFactory;
@@ -34,6 +35,7 @@ namespace Test.UnitTest.Core.Block
                 SetValue(originalMiner,originalRemainingMillSecond);
 
             var json = originalMiner.GetSaveState();
+            Console.WriteLine(json);
             
             
             var loadedMiner = blockFactory.Load(MinerId, 1,json);
