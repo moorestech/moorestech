@@ -4,7 +4,7 @@
       "oreId": 1,
       "name": "iron",
       "miningItemId": 3,
-      "veinSize" : 10,
+      "veinSize" : 0.05,
       "veinFrequency" : 0.02,
       "priority" : 100
     },
@@ -12,7 +12,7 @@
       "oreId": 2,
       "name": "copper",
       "miningItemId": 4,
-      "veinSize" : 10,
+      "veinSize" : 0.05,
       "veinFrequency" : 0.02,
       "priority" : 90
     }
