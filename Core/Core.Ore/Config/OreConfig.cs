@@ -16,5 +16,20 @@ namespace Core.Ore.Config
         {
             return _oreConfigData.ContainsKey(oreId) ? _oreConfigData[oreId].MiningItemId : ItemConst.NullItemId;
         }
+
+        public List<int> GetIds()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public List<int> GetSortedIdsForPriority()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public OreConfigDataElement Get(int oreId)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
