@@ -8,7 +8,6 @@ using Game.World.Interface.Event;
 
 namespace Game.WorldMap.EventListener
 {
-    //TODO 功績のある場所にブロックを置いて採掘できるかテスト
     public class SetMiningItemToMiner
     {
         private readonly IWorldBlockComponentDatastore<IMiner> _minerDatastore;
