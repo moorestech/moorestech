@@ -18,6 +18,9 @@ namespace Core.Ore.Config
         [DataMember(Name = "miningItemId")] private int _miningItem;
         [DataMember(Name = "veinSize")] private int _veinSize;
         [DataMember(Name = "veinFrequency")] private int _veinFrequency;
+        [DataMember(Name = "priority")] private int _priority;
+
+        public int Priority => _priority;
 
         public int MiningItem => _miningItem;
 
