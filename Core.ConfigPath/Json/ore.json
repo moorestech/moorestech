@@ -3,12 +3,16 @@
     {
       "oreId": 1,
       "name": "iron",
-      "miningItemId": 3
+      "miningItemId": 3,
+      "veinSize" : 10,
+      "veinFrequency" : 1
     },
     {
       "oreId": 2,
       "name": "copper",
-      "miningItemId": 4
+      "miningItemId": 4,
+      "veinSize" : 10,
+      "veinFrequency" : 1
     }
   ]
 }
