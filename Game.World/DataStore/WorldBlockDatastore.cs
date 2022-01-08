@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Core.Block;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks;
@@ -78,6 +79,17 @@ namespace World.DataStore
             var c = CoordinateCreator.New(x, y);
             if (_coordinateDictionary.ContainsKey(c)) return _blockMasterDictionary[_coordinateDictionary[c]].Block;
             return _nullBlock;
+        }
+
+        public (int, int) GetBlockPosition(int intId)
+        {
+            if (_blockMasterDictionary.ContainsKey(intId))
+            {
+                var data = _blockMasterDictionary[intId];
+                return (data.X, data.Y);
+            }
+
+            throw new Exception("ブロックがありません");
         }
 
         public BlockDirection GetBlockDirection(int x, int y)
