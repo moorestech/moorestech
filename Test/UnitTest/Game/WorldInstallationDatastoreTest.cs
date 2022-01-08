@@ -74,8 +74,7 @@ namespace Test.UnitTest.Game
             {
                 var itemStackFactory = new ItemStackFactory(new TestItemConfig());
                 _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory), itemStackFactory, null,
-                        null));
+                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory), itemStackFactory));
             }
 
             var machine = _blockFactory.Create(id, indId) as VanillaMachine;

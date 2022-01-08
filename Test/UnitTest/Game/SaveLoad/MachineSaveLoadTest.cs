@@ -118,7 +118,7 @@ namespace Test.UnitTest.Game.SaveLoad
         {
             var itemFactory = new ItemStackFactory(new TestItemConfig());
             var blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemFactory), itemFactory, null, null));
+                new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemFactory), itemFactory));
             var worldBlockDatastore =
                 new WorldBlockDatastore(new BlockPlaceEvent(), blockFactory, new BlockRemoveEvent());
             var playerInventoryDataStore = new PlayerInventoryDataStore(new PlayerInventoryUpdateEvent(), itemFactory);

@@ -16,9 +16,7 @@ namespace Core.Block.BlockFactory
 
         public VanillaIBlockTemplates(
             IMachineRecipeConfig machineRecipeConfig,
-            ItemStackFactory itemStackFactory,
-            ICheckOreMining checkOreMining,
-            IOreConfig oreConfig)
+            ItemStackFactory itemStackFactory)
         {
             BlockTypesDictionary = new Dictionary<string, IBlockTemplate>();
             BlockTypesDictionary.Add(VanillaBlockType.Machine,
@@ -27,8 +25,7 @@ namespace Core.Block.BlockFactory
             BlockTypesDictionary.Add(VanillaBlockType.BeltConveyor, new VanillaBeltConveyorTemplate(itemStackFactory));
             BlockTypesDictionary.Add(VanillaBlockType.ElectricPole, new VanillaElectricPoleTemplate());
             BlockTypesDictionary.Add(VanillaBlockType.Generator, new VanillaPowerGeneratorTemplate(itemStackFactory));
-            BlockTypesDictionary.Add(VanillaBlockType.Miner,
-                new VanillaMinerTemplate(checkOreMining, oreConfig, itemStackFactory));
+            BlockTypesDictionary.Add(VanillaBlockType.Miner, new VanillaMinerTemplate(itemStackFactory));
         }
     }
 }

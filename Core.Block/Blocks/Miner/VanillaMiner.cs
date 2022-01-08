@@ -12,43 +12,39 @@ using Core.Update;
 
 namespace Core.Block.Blocks.Miner
 {
-    public class VanillaMiner : IBlock, IBlockElectric, IBlockInventory, IUpdate
+    public class VanillaMiner : IBlock, IBlockElectric, IBlockInventory, IUpdate,IMiner
     {
         private readonly int _blockId;
         private readonly int _intId;
         private readonly int _requestPower;
-        private readonly int _miningTime;
-        private readonly int _miningItemId;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly List<IItemStack> _outputSlot;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
 
+        private int _defaultMiningTime = int.MaxValue;
+        private int _miningItemId = ItemConst.NullItemId;
+        
         private int _nowPower = 0;
-        private double _remainingMillSecond;
+        private double _remainingMillSecond = int.MaxValue;
 
-        public VanillaMiner(int blockId, int intId, int requestPower, int miningItemId, int miningTime, int outputSlot,
+        public VanillaMiner(int blockId, int intId, int requestPower, int outputSlot,
             ItemStackFactory itemStackFactory)
         {
             _blockId = blockId;
             _intId = intId;
             _requestPower = requestPower;
-            _miningItemId = miningItemId;
-            _miningTime = miningTime;
-            _remainingMillSecond = miningTime;
             _itemStackFactory = itemStackFactory;
             _outputSlot = CreateEmptyItemStacksList.Create(outputSlot, itemStackFactory);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdate.AddUpdateObject(this);
         }
-        public VanillaMiner(string saveData,int blockId, int intId, int requestPower, int miningItemId, int miningTime, int outputSlot,
+        public VanillaMiner(string saveData,int blockId, int intId, int requestPower, int miningTime ,
             ItemStackFactory itemStackFactory)
         {
             _blockId = blockId;
             _intId = intId;
             _requestPower = requestPower;
-            _miningItemId = miningItemId;
-            _miningTime = miningTime;
             _remainingMillSecond = miningTime;
             _itemStackFactory = itemStackFactory;
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
@@ -72,7 +68,7 @@ namespace Core.Block.Blocks.Miner
 
             if (_remainingMillSecond <= 0)
             {
-                _remainingMillSecond = _miningTime;
+                _remainingMillSecond = _defaultMiningTime;
 
                 //空きスロットを探索し、あるならアイテムを挿入
                 var addItem = _itemStackFactory.Create(_miningItemId, 1);
@@ -142,6 +138,17 @@ namespace Core.Block.Blocks.Miner
         public void SupplyPower(int power)
         {
             _nowPower = power;
+        }
+
+        public void SetMiningItem(int miningItemId, int miningTime)
+        {
+            if (_defaultMiningTime == int.MaxValue)
+            {
+                throw new Exception("採掘機に鉱石の設定をできるのは1度だけです");
+            }
+            _miningItemId = miningItemId;
+            _defaultMiningTime = miningTime;
+            _remainingMillSecond = _defaultMiningTime;
         }
     }
 }
