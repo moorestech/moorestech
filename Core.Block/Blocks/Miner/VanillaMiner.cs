@@ -142,7 +142,7 @@ namespace Core.Block.Blocks.Miner
 
         public void SetMiningItem(int miningItemId, int miningTime)
         {
-            if (_defaultMiningTime == int.MaxValue)
+            if (_defaultMiningTime != int.MaxValue)
             {
                 throw new Exception("採掘機に鉱石の設定をできるのは1度だけです");
             }
