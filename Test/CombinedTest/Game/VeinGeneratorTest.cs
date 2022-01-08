@@ -11,7 +11,7 @@ namespace Test.CombinedTest.Game
         public void GenerateTest()
         {
             //直接生成してテストできないので、500x500の範囲で生成して100個以上鉱石があればOKとする
-            var veinGenerator = new VeinGenerator(500,new OreConfig());
+            var veinGenerator = new VeinGenerator(new Seed(5000),new OreConfig());
 
             var count = 0;
             for (int i = 0; i < 500; i++)

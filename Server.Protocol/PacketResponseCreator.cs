@@ -2,6 +2,7 @@
 using Game.PlayerInventory.Interface;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
+using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
 using Server.PacketHandle.PacketResponse;
@@ -15,18 +16,19 @@ namespace Server.Protocol
         private List<IPacketResponse> _packetResponseList;
 
 
+        //TODO 鉱石などマップ情報を送るパケットを作る
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
             _packetResponseList = new List<IPacketResponse>();
             _packetResponseList.Add(new DummyProtocol());
             _packetResponseList.Add(new PutBlockProtocol(serviceProvider));
-            _packetResponseList.Add(
-                new PlayerCoordinateSendProtocol(serviceProvider.GetService<IWorldBlockDatastore>()));
-            _packetResponseList.Add(
-                new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
+            _packetResponseList.Add(new PlayerCoordinateSendProtocol(serviceProvider.GetService<IWorldBlockDatastore>()));
+            _packetResponseList.Add(new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
             _packetResponseList.Add(new SendEventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseList.Add(new BlockInventoryPlayerInventoryMoveItemProtocol(serviceProvider));
             _packetResponseList.Add(new PlayerInventoryMoveItemProtocol(serviceProvider));
+            
+            serviceProvider.GetService<VeinGenerator>();
         }
 
         public List<byte[]> GetPacketResponse(List<byte> payload)

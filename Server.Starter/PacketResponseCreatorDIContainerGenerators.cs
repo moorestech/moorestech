@@ -61,6 +61,7 @@ namespace Server
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IOreConfig, OreConfig>();
             services.AddSingleton<VeinGenerator, VeinGenerator>();
+            services.AddSingleton(new Seed(1337));
 
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<ISaveRepository, SaveJsonFile>();

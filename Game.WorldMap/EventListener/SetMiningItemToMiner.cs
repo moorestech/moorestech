@@ -8,6 +8,7 @@ using Game.World.Interface.Event;
 
 namespace Game.WorldMap.EventListener
 {
+    //TODO 功績のある場所にブロックを置いて採掘できるかテスト
     public class SetMiningItemToMiner
     {
         private readonly IWorldBlockComponentDatastore<IMiner> _minerDatastore;
@@ -35,7 +36,11 @@ namespace Game.WorldMap.EventListener
             if (!_minerDatastore.ExistsComponentBlock(x, y)) return;
             
             //鉱石コンフィグを取得
-            var oreConfig = _oreConfig.Get(_veinGenerator.GetOreId(x, y));
+            var oreId = _veinGenerator.GetOreId(x, y);
+            if (oreId == OreConst.NoneOreId) return;
+            
+            
+            var oreConfig = _oreConfig.Get(oreId);
             var miner = _minerDatastore.GetBlock(x, y);
             var minerConfig = _blockConfig.GetBlockConfig(((IBlock) miner).GetBlockId()).Param as MinerBlockConfigParam;
             //鉱石IDから鉱石採掘時間を取得

@@ -11,9 +11,9 @@ namespace Game.WorldMap
         private readonly int _seed;
         private readonly IOreConfig _oreConfig;
 
-        public VeinGenerator(int seed, IOreConfig oreConfig)
+        public VeinGenerator(Seed seed, IOreConfig oreConfig)
         {
-            _seed = seed;
+            _seed = seed.SeedValue;
             _oreConfig = oreConfig;
         }
 
