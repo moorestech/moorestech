@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Core.Item.Util;
 
 namespace Core.Ore.Config
@@ -19,17 +20,19 @@ namespace Core.Ore.Config
 
         public List<int> GetIds()
         {
-            throw new System.NotImplementedException();
+            return _oreConfigData.Keys.ToList();
         }
 
         public List<int> GetSortedIdsForPriority()
         {
-            throw new System.NotImplementedException();
+            var values = _oreConfigData.Values.ToList();
+            values.Sort((a, b) => a.Priority.CompareTo(b.Priority));
+            return values.Select(x => x.OreId).ToList();
         }
 
         public OreConfigDataElement Get(int oreId)
         {
-            throw new System.NotImplementedException();
+            return _oreConfigData[oreId];
         }
     }
 }
