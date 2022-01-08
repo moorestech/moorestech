@@ -10,6 +10,7 @@ using Core.Electric;
 using Core.Item;
 using Core.Ore;
 using Core.Update;
+using Core.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
@@ -35,7 +36,7 @@ namespace Test.CombinedTest.Core
             var miningTime = minerBlockConfigParam.OreSettings[0].MiningTime;
             var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.OreSettings[0].OreId);
 
-            var miner = new VanillaMiner(MinerId, 10, 100, 10, itemStackFactory);
+            var miner = new VanillaMiner(MinerId, IntId.NewIntId(), 100, 10, itemStackFactory);
             miner.SetMiningItem(miningItemId, miningTime);
 
             var dummyInventory = new DummyBlockInventory();
@@ -65,7 +66,7 @@ namespace Test.CombinedTest.Core
 
             //鉱石2個分の採掘時間待機
             MineEndTime = DateTime.Now.AddMilliseconds(miningTime * 2);
-            while (MineEndTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
+            while (MineEndTime.AddSeconds(0.1).CompareTo(DateTime.Now) == 1)
             {
                 GameUpdate.Update();
             }
