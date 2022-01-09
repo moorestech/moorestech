@@ -36,13 +36,25 @@ namespace Game.World.EventHandler
             var x = blockPlaceEvent.Coordinate.X;
             var y = blockPlaceEvent.Coordinate.Y;
             if (!_electricPoleDatastore.ExistsComponentBlock(x, y)) return;
-            var config = _blockConfig.GetBlockConfig(blockPlaceEvent.Block.GetBlockId());
-            var electric = config.Param as ElectricPoleConfigParam;
+            
+            var electricPoleConfigParam = _blockConfig.GetBlockConfig(blockPlaceEvent.Block.GetBlockId()).Param as ElectricPoleConfigParam;
 
+            //電柱と電気セグメントを接続する
+            var electricSegment = GetAndConnectElectricSegment(x,y,electricPoleConfigParam,_electricPoleDatastore.GetBlock(x, y));
 
-            //他の電柱を探索して接続する
-            //範囲内の電柱をリストアップする 電柱が１つであればそれに接続、複数ならマージする
-            var poleRange = electric.poleConnectionRange;
+            //他の機械、発電機を探索して接続する
+            ConnectMachine(x, y, electricSegment, electricPoleConfigParam.machineConnectionRange);
+
+        }
+        /// <summary>
+        /// 他の電柱を探索して接続する
+        /// 範囲内の電柱をリストアップする 電柱が１つであればそれに接続、複数ならマージする
+        /// 接続したセグメントを返す
+        /// </summary>
+        private ElectricSegment GetAndConnectElectricSegment(int x,int y,ElectricPoleConfigParam electricPoleConfigParam,IElectricPole blockElectric)
+        {
+            //周りの電柱をリストアップする
+            var poleRange = electricPoleConfigParam.poleConnectionRange;
             _electricPoleDatastore.GetBlock(x, y);
             var startElectricX = x - poleRange / 2;
             var startElectricY = y - poleRange / 2;
@@ -51,7 +63,7 @@ namespace Game.World.EventHandler
             {
                 for (int j = startElectricY; j < startElectricY + poleRange; j++)
                 {
-                    //範囲内に電柱がある場合、自身のブロックは除く
+                    //範囲内に電柱がある場合 ただし自身のブロックは除く
                     if (!_electricPoleDatastore.ExistsComponentBlock(i, j) || i == x && j == y) continue;
 
                     //電柱を追加
@@ -66,15 +78,20 @@ namespace Game.World.EventHandler
                 0 => _worldElectricSegmentDatastore.CreateElectricSegment(),
                 //周りの電柱が1つの時は、その電力セグメントを取得する
                 1 => _worldElectricSegmentDatastore.GetElectricSegment(electricPoles[0]),
+                //電柱が2つ以上の時はマージする
                 _ => _worldElectricSegmentDatastore.MergedElectricSegments(electricPoles)
             };
             //電柱と電力セグメントを接続する
-            electricSegment.AddElectricPole(blockPlaceEvent.Block as IElectricPole);
+            electricSegment.AddElectricPole(blockElectric);
 
-
-            //他の機械、発電機を探索して接続する
-            var machineRange = electric.machineConnectionRange;
-
+            return electricSegment;
+        }
+        
+        /// <summary>
+        /// 設置した電柱の周辺にある機械、発電機を探索して接続する
+        /// </summary>
+        private void ConnectMachine(int x,int y,ElectricSegment electricSegment,int machineRange)
+        {
             var startMachineX = x - machineRange / 2;
             var startMachineY = y - machineRange / 2;
             for (int i = startMachineX; i < startMachineX + machineRange; i++)
