@@ -54,11 +54,12 @@ namespace Game.World.EventHandler
         private ElectricSegment GetAndConnectElectricSegment(int x,int y,ElectricPoleConfigParam electricPoleConfigParam,IElectricPole blockElectric)
         {
             //周りの電柱をリストアップする
+            var electricPoles = new List<IElectricPole>();
+            
             var poleRange = electricPoleConfigParam.poleConnectionRange;
             _electricPoleDatastore.GetBlock(x, y);
             var startElectricX = x - poleRange / 2;
             var startElectricY = y - poleRange / 2;
-            var electricPoles = new List<IElectricPole>();
             for (int i = startElectricX; i < startElectricX + poleRange; i++)
             {
                 for (int j = startElectricY; j < startElectricY + poleRange; j++)
@@ -70,6 +71,9 @@ namespace Game.World.EventHandler
                     electricPoles.Add(_electricPoleDatastore.GetBlock(i, j));
                 }
             }
+            
+            
+            
 
             //接続したセグメントを取得
             var electricSegment = electricPoles.Count switch
