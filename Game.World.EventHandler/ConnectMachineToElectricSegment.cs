@@ -1,14 +1,12 @@
-using System.Collections.Generic;
-using Core.Block;
 using Core.Block.Blocks;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
+using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
-using World.Service;
 
-namespace World.EventListener
+namespace Game.World.EventHandler
 {
     public class ConnectMachineToElectricSegment
     {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Block.Config;
 
-namespace World.EventListener
+namespace Game.World.EventHandler
 {
     /// <summary>
     /// ベルトコンベアや機械などのインベントリのあるブロックが、どの方角にあるブロックとつながるかを指定するクラス

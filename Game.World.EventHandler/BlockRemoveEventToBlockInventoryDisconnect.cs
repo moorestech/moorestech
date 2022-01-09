@@ -3,7 +3,7 @@ using Core.Block.BlockInventory;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 
-namespace World.EventListener
+namespace Game.World.EventHandler
 {
     public class BlockRemoveEventToBlockInventoryDisconnect
     {

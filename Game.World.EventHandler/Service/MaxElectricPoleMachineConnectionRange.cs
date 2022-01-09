@@ -2,11 +2,11 @@ using System;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 
-namespace World.Service
+namespace Game.World.EventHandler.Service
 {
     public class MaxElectricPoleMachineConnectionRange
     {
-        int maxElectricPoleMachineConnectionRange = Int32.MinValue;
+        private readonly int _maxElectricPoleMachineConnectionRange = Int32.MinValue;
 
         public MaxElectricPoleMachineConnectionRange(IBlockConfig blockConfig)
         {
@@ -15,16 +15,16 @@ namespace World.Service
                 if (blockConfig.GetBlockConfig(id).Type != VanillaBlockType.ElectricPole) continue;
 
                 var param = blockConfig.GetBlockConfig(id).Param as ElectricPoleConfigParam;
-                if (maxElectricPoleMachineConnectionRange < param.machineConnectionRange)
+                if (_maxElectricPoleMachineConnectionRange < param.machineConnectionRange)
                 {
-                    maxElectricPoleMachineConnectionRange = param.machineConnectionRange;
+                    _maxElectricPoleMachineConnectionRange = param.machineConnectionRange;
                 }
             }
         }
 
         public int Get()
         {
-            return maxElectricPoleMachineConnectionRange;
+            return _maxElectricPoleMachineConnectionRange;
         }
     }
 }

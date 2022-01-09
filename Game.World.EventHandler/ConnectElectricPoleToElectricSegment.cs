@@ -4,9 +4,8 @@ using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
-using World.Service;
 
-namespace World.EventListener
+namespace Game.World.EventHandler
 {
     public class ConnectElectricPoleToElectricSegment
     {
