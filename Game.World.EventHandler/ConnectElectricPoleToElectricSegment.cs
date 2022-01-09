@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
+using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 
@@ -54,26 +55,8 @@ namespace Game.World.EventHandler
         private ElectricSegment GetAndConnectElectricSegment(int x,int y,ElectricPoleConfigParam electricPoleConfigParam,IElectricPole blockElectric)
         {
             //周りの電柱をリストアップする
-            var electricPoles = new List<IElectricPole>();
-            
-            var poleRange = electricPoleConfigParam.poleConnectionRange;
-            _electricPoleDatastore.GetBlock(x, y);
-            var startElectricX = x - poleRange / 2;
-            var startElectricY = y - poleRange / 2;
-            for (int i = startElectricX; i < startElectricX + poleRange; i++)
-            {
-                for (int j = startElectricY; j < startElectricY + poleRange; j++)
-                {
-                    //範囲内に電柱がある場合 ただし自身のブロックは除く
-                    if (!_electricPoleDatastore.ExistsComponentBlock(i, j) || i == x && j == y) continue;
-
-                    //電柱を追加
-                    electricPoles.Add(_electricPoleDatastore.GetBlock(i, j));
-                }
-            }
-            
-            
-            
+            var electricPoles = 
+                new FindElectricPoleFromPeripheralService().Find(x,y,electricPoleConfigParam,_electricPoleDatastore);
 
             //接続したセグメントを取得
             var electricSegment = electricPoles.Count switch
