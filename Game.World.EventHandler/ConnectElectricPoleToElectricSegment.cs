@@ -10,8 +10,8 @@ namespace Game.World.EventHandler
 {
     public class ConnectElectricPoleToElectricSegment
     {
-        private readonly IWorldBlockComponentDatastore<IBlockElectric> _electricDatastore;
         private readonly IWorldBlockComponentDatastore<IElectricPole> _electricPoleDatastore;
+        private readonly IWorldBlockComponentDatastore<IBlockElectric> _electricDatastore;
         private readonly IWorldBlockComponentDatastore<IPowerGenerator> _powerGeneratorDatastore;
         private readonly IWorldElectricSegmentDatastore _worldElectricSegmentDatastore;
         private readonly IBlockConfig _blockConfig;
@@ -79,26 +79,19 @@ namespace Game.World.EventHandler
         /// </summary>
         private void ConnectMachine(int x,int y,ElectricSegment electricSegment,int machineRange)
         {
-            var startMachineX = x - machineRange / 2;
-            var startMachineY = y - machineRange / 2;
-            for (int i = startMachineX; i < startMachineX + machineRange; i++)
+            var (blocks, generators) = 
+                new FindMachineAndGeneratorFromPeripheralService().
+                    Find(x, y, 
+                machineRange, _electricDatastore, _powerGeneratorDatastore);
+            
+            //機械と発電機を電力セグメントを接続する
+            foreach (var block in blocks)
             {
-                for (int j = startMachineY; j < startMachineY + machineRange; j++)
-                {
-                    //範囲内に機械がある場合
-                    if (_electricDatastore.ExistsComponentBlock(i, j))
-                    {
-                        //機械を電力セグメントに追加
-                        electricSegment.AddBlockElectric(_electricDatastore.GetBlock(i, j));
-                    }
-
-                    //範囲内に発電機がある場合
-                    if (_powerGeneratorDatastore.ExistsComponentBlock(i, j))
-                    {
-                        //機械を電力セグメントに追加
-                        electricSegment.AddGenerator(_powerGeneratorDatastore.GetBlock(i, j));
-                    }
-                }
+                electricSegment.AddBlockElectric(block);
+            }
+            foreach (var generator in generators)
+            {
+                electricSegment.AddGenerator(generator);
             }
         }
     }
