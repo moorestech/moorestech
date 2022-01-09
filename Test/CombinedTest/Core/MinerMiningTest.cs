@@ -66,7 +66,7 @@ namespace Test.CombinedTest.Core
 
             //鉱石2個分の採掘時間待機
             MineEndTime = DateTime.Now.AddMilliseconds(miningTime * 2);
-            while (MineEndTime.AddSeconds(0.1).CompareTo(DateTime.Now) == 1)
+            while (MineEndTime.AddSeconds(0.02).CompareTo(DateTime.Now) == 1)
             {
                 GameUpdate.Update();
             }
