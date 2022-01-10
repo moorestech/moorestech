@@ -58,7 +58,10 @@ namespace Test.CombinedTest.Game
             
             Assert.AreNotEqual(segment1.GetHashCode(), segment2.GetHashCode());
             
-            
+            //右端の電柱を削除する
+            worldBlockDatastore.RemoveBlock(6, 0);
+            //セグメントが減っていることを確認する
+            Assert.AreEqual(1, worldElectricSegment.GetElectricSegmentListCount());
 
 
 
