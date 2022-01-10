@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
 using Game.World.Interface.DataStore;
 
@@ -7,12 +8,13 @@ namespace Game.World.EventHandler.Service
     public class FindMachineAndGeneratorFromPeripheralService
     {
         public (List<IBlockElectric>,List<IPowerGenerator>) Find(
-            int x,int y,int machineRange,
+            int x,int y,ElectricPoleConfigParam poleConfigParam,
             IWorldBlockComponentDatastore<IBlockElectric> electricDatastore,
             IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore)
         {
             var blocks = new List<IBlockElectric>();
             var generators = new List<IPowerGenerator>();
+            var machineRange = poleConfigParam.machineConnectionRange;
             
             var startMachineX = x - machineRange / 2;
             var startMachineY = y - machineRange / 2;

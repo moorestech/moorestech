@@ -44,7 +44,7 @@ namespace Game.World.EventHandler
             var electricSegment = GetAndConnectElectricSegment(x,y,electricPoleConfigParam,_electricPoleDatastore.GetBlock(x, y));
 
             //他の機械、発電機を探索して接続する
-            ConnectMachine(x, y, electricSegment, electricPoleConfigParam.machineConnectionRange);
+            ConnectMachine(x, y, electricSegment, electricPoleConfigParam);
 
         }
         /// <summary>
@@ -52,7 +52,8 @@ namespace Game.World.EventHandler
         /// 範囲内の電柱をリストアップする 電柱が１つであればそれに接続、複数ならマージする
         /// 接続したセグメントを返す
         /// </summary>
-        private ElectricSegment GetAndConnectElectricSegment(int x,int y,ElectricPoleConfigParam electricPoleConfigParam,IElectricPole blockElectric)
+        private ElectricSegment GetAndConnectElectricSegment(
+            int x,int y,ElectricPoleConfigParam electricPoleConfigParam,IElectricPole blockElectric)
         {
             //周りの電柱をリストアップする
             var electricPoles = 
@@ -77,22 +78,15 @@ namespace Game.World.EventHandler
         /// <summary>
         /// 設置した電柱の周辺にある機械、発電機を探索して接続する
         /// </summary>
-        private void ConnectMachine(int x,int y,ElectricSegment electricSegment,int machineRange)
+        private void ConnectMachine(int x,int y,ElectricSegment segment,ElectricPoleConfigParam poleConfigParam)
         {
             var (blocks, generators) = 
                 new FindMachineAndGeneratorFromPeripheralService().
-                    Find(x, y, 
-                machineRange, _electricDatastore, _powerGeneratorDatastore);
+                    Find(x, y, poleConfigParam, _electricDatastore, _powerGeneratorDatastore);
             
             //機械と発電機を電力セグメントを接続する
-            foreach (var block in blocks)
-            {
-                electricSegment.AddBlockElectric(block);
-            }
-            foreach (var generator in generators)
-            {
-                electricSegment.AddGenerator(generator);
-            }
+            blocks.ForEach(segment.AddBlockElectric);
+            generators.ForEach(segment.AddGenerator);
         }
     }
 }
