@@ -23,11 +23,17 @@ namespace Game.World.EventHandler
             IBlockRemoveEvent blockRemoveEvent,
             IWorldBlockComponentDatastore<IElectricPole> electricPoleDatastore, 
             IBlockConfig blockConfig,
-            IWorldElectricSegmentDatastore worldElectricSegmentDatastore)
+            IWorldElectricSegmentDatastore worldElectricSegmentDatastore, 
+            IWorldBlockComponentDatastore<IBlockElectric> electricDatastore, 
+            IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore, 
+            IWorldBlockDatastore worldBlockDatastore)
         {
             _electricPoleDatastore = electricPoleDatastore;
             _blockConfig = blockConfig;
             _worldElectricSegmentDatastore = worldElectricSegmentDatastore;
+            _electricDatastore = electricDatastore;
+            _powerGeneratorDatastore = powerGeneratorDatastore;
+            _worldBlockDatastore = worldBlockDatastore;
             blockRemoveEvent.Subscribe(OnBlockRemove);
         }
         
@@ -146,7 +152,6 @@ namespace Game.World.EventHandler
         //TODO これのテストにループしている電柱、複数の電柱を追加する
         
         //再帰的に電柱を探索する 
-        //TODO ブロック、発電機も探索する
         private (Dictionary<int,IElectricPole>,Dictionary<int,IBlockElectric>,Dictionary<int,IPowerGenerator>) GetElectricPoles(
             IElectricPole electricPole,
             Dictionary<int,IElectricPole> electricPoles,
