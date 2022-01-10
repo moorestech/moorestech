@@ -81,6 +81,8 @@ namespace Server
             services.AddSingleton<DisconnectElectricPoleToFromElectricSegment, DisconnectElectricPoleToFromElectricSegment>();
             services.AddSingleton<ConnectMachineToElectricSegment, ConnectMachineToElectricSegment>();
             services.AddSingleton<SetMiningItemToMiner, SetMiningItemToMiner>();
+            services.AddSingleton<DisconnectTwoOreMoreElectricPoleFromSegmentService, DisconnectTwoOreMoreElectricPoleFromSegmentService>();
+            services.AddSingleton<DisconnectOneElectricPoleFromSegmentService, DisconnectOneElectricPoleFromSegmentService>();
 
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
