@@ -16,6 +16,7 @@ using Game.World.EventHandler;
 using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
+using Game.World.Interface.Service;
 using Game.WorldMap;
 using Game.WorldMap.EventListener;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ using Server.Event.EventReceive;
 using Server.Protocol;
 using World.DataStore;
 using World.Event;
+using World.Service;
 
 namespace Server
 {
@@ -57,6 +59,7 @@ namespace Server
             services.AddSingleton<IOreConfig, OreConfig>();
             services.AddSingleton<VeinGenerator, VeinGenerator>();
             services.AddSingleton(new Seed(1337));
+            services.AddSingleton<IElectricSegmentMergeService, ElectricSegmentMergeService>();
 
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<ISaveRepository, SaveJsonFile>();

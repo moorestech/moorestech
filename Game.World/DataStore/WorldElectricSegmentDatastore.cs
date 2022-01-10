@@ -30,37 +30,16 @@ namespace World.DataStore
             _segmentDictionary.Add(electricSegment);
             return electricSegment;
         }
-        
+
+        public void SetElectricSegment(ElectricSegment electricSegment)
+        {
+            _segmentDictionary.Add(electricSegment);
+        }
+
         public void RemoveElectricSegment(ElectricSegment electricSegment)
         {
             _segmentDictionary.Remove(electricSegment);
             electricSegment = null;
-        }
-
-        //TODO マージサービスを分離
-        public ElectricSegment MergedElectricSegments(List<IElectricPole> poles)
-        {
-            //電力セグメントをリストアップ
-            var electricSegments = new List<ElectricSegment>();
-            foreach (var pole in poles)
-            {
-                var electricSegment = GetElectricSegment(pole);
-                electricSegments.Add(electricSegment);
-            }
-
-            //電力セグメントをマージする
-            var mergedElectricSegment = new ElectricMergeService().Merge(electricSegments);
-            //マージ前のセグメントを削除する
-            for (int i = 0; i < electricSegments.Count; i++)
-            {
-                _segmentDictionary.Remove(electricSegments[i]);
-                electricSegments[i] = null;
-            }
-
-            //マージ後のセグメントを追加する
-            _segmentDictionary.Add(mergedElectricSegment);
-
-            return mergedElectricSegment;
         }
 
         public int GetElectricSegmentListCount()

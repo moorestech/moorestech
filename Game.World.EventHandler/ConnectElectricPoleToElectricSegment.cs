@@ -5,6 +5,7 @@ using Core.Electric;
 using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
+using Game.World.Interface.Service;
 
 namespace Game.World.EventHandler
 {
@@ -14,6 +15,7 @@ namespace Game.World.EventHandler
         private readonly IWorldBlockComponentDatastore<IBlockElectric> _electricDatastore;
         private readonly IWorldBlockComponentDatastore<IPowerGenerator> _powerGeneratorDatastore;
         private readonly IWorldElectricSegmentDatastore _worldElectricSegmentDatastore;
+        private readonly IElectricSegmentMergeService _electricSegmentMergeService;
         private readonly IBlockConfig _blockConfig;
 
 
@@ -21,13 +23,16 @@ namespace Game.World.EventHandler
             IWorldBlockComponentDatastore<IElectricPole> electricPoleDatastore,
             IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore,
             IWorldElectricSegmentDatastore worldElectricSegmentDatastore,
-            IBlockConfig blockConfig, IWorldBlockComponentDatastore<IBlockElectric> electricDatastore)
+            IBlockConfig blockConfig, 
+            IWorldBlockComponentDatastore<IBlockElectric> electricDatastore, 
+            IElectricSegmentMergeService electricSegmentMergeService)
         {
             _electricPoleDatastore = electricPoleDatastore;
             _powerGeneratorDatastore = powerGeneratorDatastore;
             _worldElectricSegmentDatastore = worldElectricSegmentDatastore;
             _blockConfig = blockConfig;
             _electricDatastore = electricDatastore;
+            _electricSegmentMergeService = electricSegmentMergeService;
             blockPlaceEvent.Subscribe(OnBlockPlace);
         }
 
@@ -67,7 +72,7 @@ namespace Game.World.EventHandler
                 //周りの電柱が1つの時は、その電力セグメントを取得する
                 1 => _worldElectricSegmentDatastore.GetElectricSegment(electricPoles[0]),
                 //電柱が2つ以上の時はマージする
-                _ => _worldElectricSegmentDatastore.MergedElectricSegments(electricPoles)
+                _ => _electricSegmentMergeService.MergeAndSetDatastoreElectricSegments(electricPoles)
             };
             //電柱と電力セグメントを接続する
             electricSegment.AddElectricPole(blockElectric);
