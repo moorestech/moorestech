@@ -44,7 +44,7 @@ namespace Test.CombinedTest.Game
             Assert.AreEqual(1, worldElectricSegment.GetElectricSegmentListCount());
             
             //真ん中の電柱を削除
-            worldBlockDatastore.RemoveBlock(0, 0);
+            worldBlockDatastore.RemoveBlock(3, 0);
             //セグメントが増えていることを確認する
             Assert.AreEqual(2, worldElectricSegment.GetElectricSegmentListCount());
     
