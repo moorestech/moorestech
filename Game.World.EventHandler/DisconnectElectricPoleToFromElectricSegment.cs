@@ -55,10 +55,10 @@ namespace Game.World.EventHandler
                     x,y,
                     poleConfig,
                     _electricPoleDatastore);
-            var pole = _electricPoleDatastore.GetBlock(x, y);
+            var removedElectricPole = _electricPoleDatastore.GetBlock(x, y);
             
             //電柱のセグメントを取得
-            var segment = _worldElectricSegmentDatastore.GetElectricSegment(pole);
+            var segment = _worldElectricSegmentDatastore.GetElectricSegment(removedElectricPole);
             
             //周りに電柱がないとき
             if (electricPoles.Count == 0)
@@ -72,7 +72,7 @@ namespace Game.World.EventHandler
             if (electricPoles.Count == 1)
             {
                 //セグメントから電柱の接続状態を解除
-                segment.RemoveElectricPole(pole);
+                segment.RemoveElectricPole(removedElectricPole);
                 
                 //周辺の機械、発電機を取得
                 var (blocks, generators) = 
@@ -114,6 +114,9 @@ namespace Game.World.EventHandler
                 //元のセグメントを消す
                 _worldElectricSegmentDatastore.RemoveElectricSegment(segment);
                 
+                //自身を削除する
+                connectedElectricPoles.Remove(removedElectricPole);
+                
                 //それらの電柱を全て探索し、電力セグメントを再構成する
                 
                 //1個ずつ電柱を取り出し、電力セグメントに追加する
@@ -123,6 +126,7 @@ namespace Game.World.EventHandler
                     var (newElectricPoles,newBlocks, newGenerators) = 
                         GetElectricPoles(
                             connectedElectricPoles[0],
+                            removedElectricPole,
                             new Dictionary<int, IElectricPole>(),
                             new Dictionary<int, IBlockElectric>(),
                             new Dictionary<int, IPowerGenerator>());
@@ -154,6 +158,7 @@ namespace Game.World.EventHandler
         //再帰的に電柱を探索する 
         private (Dictionary<int,IElectricPole>,Dictionary<int,IBlockElectric>,Dictionary<int,IPowerGenerator>) GetElectricPoles(
             IElectricPole electricPole,
+            IElectricPole removedElectricPole,
             Dictionary<int,IElectricPole> electricPoles,
             Dictionary<int,IBlockElectric> blockElectrics,
             Dictionary<int,IPowerGenerator> powerGenerators) 
@@ -182,6 +187,10 @@ namespace Game.World.EventHandler
             
             //周辺の電柱を取得
             var newElectricPoles = new FindElectricPoleFromPeripheralService().Find(x,y,poleConfig,_electricPoleDatastore);
+            //削除された電柱は除く
+            newElectricPoles.Remove(removedElectricPole);
+            //自身の電柱は追加する
+            electricPoles.Add(electricPole.GetIntId(),electricPole);
             //周辺に電柱がない場合は終了
             if (newElectricPoles.Count == 0)return (electricPoles,blockElectrics,powerGenerators);
             
@@ -193,7 +202,7 @@ namespace Game.World.EventHandler
                 if (electricPoles.ContainsKey(newElectricPole.GetIntId()))continue;
                 //追加されていない電柱なら追加
                 (electricPoles,blockElectrics,powerGenerators) = 
-                    GetElectricPoles(newElectricPole,electricPoles,blockElectrics,powerGenerators);
+                    GetElectricPoles(newElectricPole,removedElectricPole,electricPoles,blockElectrics,powerGenerators);
                 
             }
             
