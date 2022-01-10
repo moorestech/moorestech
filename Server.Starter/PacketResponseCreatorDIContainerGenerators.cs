@@ -75,6 +75,7 @@ namespace Server
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect, BlockPlaceEventToBlockInventoryConnect>();
             services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect, BlockRemoveEventToBlockInventoryDisconnect>();
             services.AddSingleton<ConnectElectricPoleToElectricSegment, ConnectElectricPoleToElectricSegment>();
+            services.AddSingleton<DisconnectElectricPoleToFromElectricSegment, DisconnectElectricPoleToFromElectricSegment>();
             services.AddSingleton<ConnectMachineToElectricSegment, ConnectMachineToElectricSegment>();
             services.AddSingleton<SetMiningItemToMiner, SetMiningItemToMiner>();
 
@@ -92,6 +93,7 @@ namespace Server
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();
             serviceProvider.GetService<ConnectElectricPoleToElectricSegment>();
+            serviceProvider.GetService<DisconnectElectricPoleToFromElectricSegment>();
             serviceProvider.GetService<ConnectMachineToElectricSegment>();
             serviceProvider.GetService<SetMiningItemToMiner>();
 
