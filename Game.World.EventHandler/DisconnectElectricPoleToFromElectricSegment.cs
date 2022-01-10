@@ -153,7 +153,6 @@ namespace Game.World.EventHandler
             
             
         }
-        //TODO これのテストにループしている電柱、複数の電柱を追加する
         
         //再帰的に電柱を探索する 
         private (Dictionary<int,IElectricPole>,Dictionary<int,IBlockElectric>,Dictionary<int,IPowerGenerator>) GetElectricPoles(
