@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Block.Blocks;
 using Core.Block.Config;
@@ -11,6 +12,8 @@ namespace Game.World.EventHandler.Service
     {
         private readonly IWorldBlockComponentDatastore<IBlockElectric> _electricDatastore;
         private readonly IWorldBlockComponentDatastore<IPowerGenerator> _powerGeneratorDatastore;
+        private readonly IWorldBlockComponentDatastore<IElectricPole> _electricPoleDatastore;
+        private readonly IWorldElectricSegmentDatastore _worldElectricSegmentDatastore;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IBlockConfig _blockConfig;
 
@@ -18,21 +21,34 @@ namespace Game.World.EventHandler.Service
             IBlockConfig blockConfig, 
             IWorldBlockDatastore worldBlockDatastore, 
             IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore, 
-            IWorldBlockComponentDatastore<IBlockElectric> electricDatastore)
+            IWorldBlockComponentDatastore<IBlockElectric> electricDatastore, 
+            IWorldElectricSegmentDatastore worldElectricSegmentDatastore, 
+            IWorldBlockComponentDatastore<IElectricPole> electricPoleDatastore)
         {
             _blockConfig = blockConfig;
             _worldBlockDatastore = worldBlockDatastore;
             _powerGeneratorDatastore = powerGeneratorDatastore;
             _electricDatastore = electricDatastore;
+            _worldElectricSegmentDatastore = worldElectricSegmentDatastore;
+            _electricPoleDatastore = electricPoleDatastore;
         }
 
-        public void Disconnect(
-            ElectricSegment removedSegment,
-            IElectricPole removedElectricPole,
-            int x, int y,
-            ElectricPoleConfigParam poleConfig,
-            IReadOnlyList<IElectricPole> electricPoles)
+        public void Disconnect(IElectricPole removedElectricPole)
         {
+            //必要なデータを取得
+            var (x, y) = _worldBlockDatastore.GetBlockPosition(removedElectricPole.GetIntId());
+            var poleConfig =
+                _blockConfig.GetBlockConfig(((IBlock)removedElectricPole).GetBlockId()).Param as ElectricPoleConfigParam;
+            var removedSegment = _worldElectricSegmentDatastore.GetElectricSegment(removedElectricPole);
+            var electricPoles = new FindElectricPoleFromPeripheralService().Find(
+                x, y, poleConfig, _electricPoleDatastore);
+            
+            if (electricPoles.Count != 1)
+            {
+                throw new Exception("周辺の電柱が1つではありません");
+            }
+            
+            
             //セグメントから電柱の接続状態を解除
             removedSegment.RemoveElectricPole(removedElectricPole);
 

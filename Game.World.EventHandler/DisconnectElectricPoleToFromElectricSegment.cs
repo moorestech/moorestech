@@ -9,7 +9,6 @@ using Game.World.Interface.Event;
 
 namespace Game.World.EventHandler
 {
-    //TODO リファクタリングする
     public class DisconnectElectricPoleToFromElectricSegment
     {
         private readonly IWorldBlockComponentDatastore<IElectricPole> _electricPoleDatastore;
@@ -45,14 +44,11 @@ namespace Game.World.EventHandler
             //電柱だったら接続範囲内周りにある電柱を取得する
             if (!_electricPoleDatastore.ExistsComponentBlock(x, y)) return;
             
-            //削除した電柱のコンフィグ
-            var poleConfig =
-                _blockConfig.GetBlockConfig(blockRemoveEvent.Block.GetBlockId()).Param as ElectricPoleConfigParam;
 
 
             //接続範囲内の電柱を取得
             var electricPoles = new FindElectricPoleFromPeripheralService().Find(
-                    x, y, poleConfig, _electricPoleDatastore);
+                    x, y, _blockConfig.GetBlockConfig(blockRemoveEvent.Block.GetBlockId()).Param as ElectricPoleConfigParam, _electricPoleDatastore);
             var removedElectricPole = _electricPoleDatastore.GetBlock(x, y);
 
             //削除した電柱のセグメントを取得
@@ -68,11 +64,11 @@ namespace Game.World.EventHandler
                     return;
                 //周りの電柱が1つの時
                 case 1:
-                    _disconnectOne.Disconnect(removedSegment, removedElectricPole, x, y, poleConfig, electricPoles);
+                    _disconnectOne.Disconnect(removedElectricPole);
                     return;
                 //周りの電柱が2つ以上の時
                 case >= 2:
-                    _disconnectTwoOreMore.Disconnect(removedSegment, removedElectricPole);
+                    _disconnectTwoOreMore.Disconnect(removedElectricPole);
                     break;
             }
         }
