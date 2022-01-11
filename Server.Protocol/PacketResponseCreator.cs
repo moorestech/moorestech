@@ -14,9 +14,7 @@ namespace Server.Protocol
     public class PacketResponseCreator
     {
         private List<IPacketResponse> _packetResponseList;
-
-
-        //TODO 鉱石などマップ情報を送るパケットを作る
+        
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
             _packetResponseList = new List<IPacketResponse>();
