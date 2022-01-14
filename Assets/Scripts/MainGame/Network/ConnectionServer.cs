@@ -8,16 +8,16 @@ namespace MainGame.Network
     {
         private readonly string _ip;
         private readonly int _port;
-        private readonly ReceivePacketAnalysis _receivePacketAnalysis;
+        private readonly AllReceivePacketAnalysisService _allReceivePacketAnalysisService;
 
         
         private Socket _socket;
         
-        public ConnectionServer(ConnectionServerConfig connectionServerConfig,ReceivePacketAnalysis receivePacketAnalysis)
+        public ConnectionServer(ConnectionServerConfig connectionServerConfig,AllReceivePacketAnalysisService allReceivePacketAnalysisService)
         {
             _ip = connectionServerConfig.IP;
             _port = connectionServerConfig.Port;
-            _receivePacketAnalysis = receivePacketAnalysis;
+            _allReceivePacketAnalysisService = allReceivePacketAnalysisService;
         }
 
         public void Connect()
@@ -46,7 +46,7 @@ namespace MainGame.Network
                     break;
                 }
                 //解析を行う
-                _receivePacketAnalysis.Analysis(bytes);
+                _allReceivePacketAnalysisService.Analysis(bytes);
             }
         }
     }
