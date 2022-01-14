@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using MainGame.Constant;
 using MainGame.GameLogic.Interface;
+using MainGame.Network;
 using MainGame.Network.Receive;
 using MainGame.Network.Util;
 using NUnit.Framework;
@@ -17,10 +18,9 @@ namespace EditModeTest
             var protocol = new ReceiveChunkDataProtocol(dataStore);
             //チャンクの原点0,20に設定
             var chunkPosition = new Vector2(0, 20);
-            var payload = CreateBlockDataList(chunkPosition);
             
             //チャンクデータを受信
-            protocol.Analysis(payload.ToArray());
+            protocol.Analysis(CreateBlockDataList(chunkPosition).ToArray());
             
             //データの検証
             //そのチャンクのデータを受けているか
@@ -30,7 +30,7 @@ namespace EditModeTest
             Assert.AreEqual(ChunkConstant.ChunkSize, dataStore.Data[chunkPosition].GetLength(1));
             
             
-            //データの検証
+            //ブロックデータの検証
             for (int i = 0; i <ChunkConstant.ChunkSize; i++)
             {
                 for (int j = 0; j < ChunkConstant.ChunkSize; j++)
@@ -38,7 +38,35 @@ namespace EditModeTest
                     Assert.True(CheckBlockChunk( i, j,dataStore.Data[chunkPosition][i, j]));
                 }
             }
+        }
 
+        //上記のテストをAllReceivePacketAnalysisServiceを介して実行する
+        
+        
+        [Test]
+        public void ReceivePacketAnalysisViaAnalysisTest()
+        {
+            var dataStore = new TestDataStore();
+            var packetAnalysis = new AllReceivePacketAnalysisService(dataStore);
+            var chunkPosition = new Vector2(1000, 1240);
+            
+            packetAnalysis.Analysis(CreateBlockDataList(chunkPosition).ToArray());
+            
+            //データの検証
+            //そのチャンクのデータを受けているか
+            Assert.True(dataStore.Data.ContainsKey(chunkPosition));
+            //配列の大きさの検証
+            Assert.AreEqual(ChunkConstant.ChunkSize, dataStore.Data[chunkPosition].GetLength(0));
+            Assert.AreEqual(ChunkConstant.ChunkSize, dataStore.Data[chunkPosition].GetLength(1));
+            
+            //ブロックデータの検証
+            for (int i = 0; i <ChunkConstant.ChunkSize; i++)
+            {
+                for (int j = 0; j < ChunkConstant.ChunkSize; j++)
+                {
+                    Assert.True(CheckBlockChunk( i, j,dataStore.Data[chunkPosition][i, j]));
+                }
+            }
         }
 
 
