@@ -4,7 +4,9 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "MainGame.Network"
+        "GameLogic.Interface",
+        "Network",
+        "Network_Util"
     ],
     "includePlatforms": [
         "Editor"
