@@ -6,7 +6,8 @@
         "UnityEditor.TestRunner",
         "GameLogic.Interface",
         "Network",
-        "Network.Util"
+        "Network.Util",
+        "Constant"
     ],
     "includePlatforms": [
         "Editor"
