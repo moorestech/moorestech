@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace MainGame.Network.Util
 {
-    public static class ByteListConverter
+    public static class ToByteList
     {
         public static List<byte> Convert(int sendData)
         {
