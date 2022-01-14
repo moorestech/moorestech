@@ -2,7 +2,7 @@
     "name": "MainGame.Network",
     "rootNamespace": "",
     "references": [
-        "GUID:61494fc3e280cb9428779ad36c470cec"
+        "GUID:c10c1f477ce5a4a4cb66bf758e095307"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
