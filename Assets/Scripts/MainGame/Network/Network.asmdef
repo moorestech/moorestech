@@ -1,5 +1,5 @@
 {
-    "name": "MainGame.Network",
+    "name": "Network",
     "rootNamespace": "",
     "references": [
         "GUID:c10c1f477ce5a4a4cb66bf758e095307"
