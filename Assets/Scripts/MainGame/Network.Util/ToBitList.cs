@@ -2,7 +2,7 @@
 
 namespace MainGame.Network.Util
 {
-    public static class ByteListToBitList
+    public static class ToBitList
     {
         public static List<bool> Convert(List<byte> bytes)
         {
