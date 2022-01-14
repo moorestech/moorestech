@@ -63,21 +63,21 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         void BlockPlace(int x, int y, int id, PacketResponseCreator packetResponseCreator)
         {
             var bytes = new List<byte>();
-            bytes.AddRange(ByteListConverter.ToByteArray((short) 1));
-            bytes.AddRange(ByteListConverter.ToByteArray(id));
-            bytes.AddRange(ByteListConverter.ToByteArray((short) 0));
-            bytes.AddRange(ByteListConverter.ToByteArray(x));
-            bytes.AddRange(ByteListConverter.ToByteArray(y));
-            bytes.AddRange(ByteListConverter.ToByteArray(0));
-            bytes.AddRange(ByteListConverter.ToByteArray(0));
+            bytes.AddRange(ToByteList.Convert((short) 1));
+            bytes.AddRange(ToByteList.Convert(id));
+            bytes.AddRange(ToByteList.Convert((short) 0));
+            bytes.AddRange(ToByteList.Convert(x));
+            bytes.AddRange(ToByteList.Convert(y));
+            bytes.AddRange(ToByteList.Convert(0));
+            bytes.AddRange(ToByteList.Convert(0));
             packetResponseCreator.GetPacketResponse(bytes);
         }
 
         List<byte> EventRequestData(int plyaerID)
         {
             var payload = new List<byte>();
-            payload.AddRange(ByteListConverter.ToByteArray((short) 4));
-            payload.AddRange(ByteListConverter.ToByteArray(plyaerID));
+            payload.AddRange(ToByteList.Convert((short) 4));
+            payload.AddRange(ToByteList.Convert(plyaerID));
             return payload;
         }
 

@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace Server.Util
 {
-    public static class ByteListConverter
+    public static class ToByteList
     {
-        public static List<byte> ToByteArray(int sendData)
+        public static List<byte> Convert(int sendData)
         {
             var result = BitConverter.GetBytes(sendData);
             if (BitConverter.IsLittleEndian)
@@ -14,7 +14,7 @@ namespace Server.Util
             return result.ToList();
         }
 
-        public static List<byte> ToByteArray(short sendData)
+        public static List<byte> Convert(short sendData)
         {
             var result = BitConverter.GetBytes(sendData);
             if (BitConverter.IsLittleEndian)
@@ -22,7 +22,7 @@ namespace Server.Util
             return result.ToList();
         }
 
-        public static List<byte> ToByteArray(float sendData)
+        public static List<byte> Convert(float sendData)
         {
             var result = BitConverter.GetBytes(sendData);
             if (BitConverter.IsLittleEndian)
@@ -30,7 +30,7 @@ namespace Server.Util
             return result.ToList();
         }
 
-        public static List<byte> ToByteArray(string sendData)
+        public static List<byte> Convert(string sendData)
         {
             return System.Text.Encoding.UTF8.GetBytes(sendData).ToList();
         }

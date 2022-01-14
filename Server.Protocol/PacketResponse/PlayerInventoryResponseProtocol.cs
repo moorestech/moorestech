@@ -22,14 +22,14 @@ namespace Server.Protocol.PacketResponse
             var playerInventory = _playerInventoryDataStore.GetInventoryData(playerId);
 
             var response = new List<byte>();
-            response.AddRange(ByteListConverter.ToByteArray((short) 4));
-            response.AddRange(ByteListConverter.ToByteArray(playerId));
-            response.AddRange(ByteListConverter.ToByteArray((short) 0));
+            response.AddRange(ToByteList.Convert((short) 4));
+            response.AddRange(ToByteList.Convert(playerId));
+            response.AddRange(ToByteList.Convert((short) 0));
 
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
-                response.AddRange(ByteListConverter.ToByteArray(playerInventory.GetItem(i).Id));
-                response.AddRange(ByteListConverter.ToByteArray(playerInventory.GetItem(i).Count));
+                response.AddRange(ToByteList.Convert(playerInventory.GetItem(i).Id));
+                response.AddRange(ToByteList.Convert(playerInventory.GetItem(i).Count));
             }
 
             return new List<byte[]>() {response.ToArray()};

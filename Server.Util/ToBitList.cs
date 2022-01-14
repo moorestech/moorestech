@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Server.Util
 {
-    public static class ByteListToBitList
+    public static class ToBitList
     {
         public static List<bool> Convert(List<byte> bytes)
         {
@@ -24,12 +24,12 @@ namespace Server.Util
 
         public static List<bool> Convert(short @short)
         {
-            return Convert(ByteListConverter.ToByteArray(@short));
+            return Convert(ToByteList.Convert(@short));
         }
 
         public static List<bool> Convert(int @int)
         {
-            return Convert(ByteListConverter.ToByteArray(@int));
+            return Convert(ToByteList.Convert(@int));
         }
 
         public static List<bool> Convert(byte @byte)
@@ -39,7 +39,7 @@ namespace Server.Util
 
         public static List<bool> Convert(float @float)
         {
-            return Convert(ByteListConverter.ToByteArray(@float));
+            return Convert(ToByteList.Convert(@float));
         }
     }
 }

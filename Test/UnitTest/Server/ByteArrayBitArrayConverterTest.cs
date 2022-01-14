@@ -122,9 +122,9 @@ namespace Test.UnitTest.Server
         public void ByteArrayToBitArrayTest()
         {
             var byteList = new List<byte> {0, 10, 100};
-            byteList.AddRange(ByteListConverter.ToByteArray(1234546));
-            byteList.AddRange(ByteListConverter.ToByteArray(506.35f));
-            var bitEnum = new BitListEnumerator(BitListToByteList.Convert(ByteListToBitList.Convert(byteList)));
+            byteList.AddRange(ToByteList.Convert(1234546));
+            byteList.AddRange(ToByteList.Convert(506.35f));
+            var bitEnum = new BitListEnumerator(BitListToByteList.Convert(ToBitList.Convert(byteList)));
             Assert.AreEqual(bitEnum.MoveNextToByte(), 0);
             Assert.AreEqual(bitEnum.MoveNextToByte(), 10);
             Assert.AreEqual(bitEnum.MoveNextToByte(), 100);

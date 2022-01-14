@@ -26,8 +26,8 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //1回目のデータ要求
             var payload = new List<byte>();
-            payload.AddRange(ByteListConverter.ToByteArray((short) 3));
-            payload.AddRange(ByteListConverter.ToByteArray(playerId));
+            payload.AddRange(ToByteList.Convert((short) 3));
+            payload.AddRange(ToByteList.Convert(playerId));
 
             var response = new ByteArrayEnumerator(packet.GetPacketResponse(payload)[0].ToList());
 

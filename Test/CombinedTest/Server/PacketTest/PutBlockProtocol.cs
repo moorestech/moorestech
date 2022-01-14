@@ -36,13 +36,13 @@ namespace Test.CombinedTest.Server.PacketTest
         List<byte> BlockPlace(int id, int x, int y)
         {
             var bytes = new List<byte>();
-            bytes.AddRange(ByteListConverter.ToByteArray((short) 1));
-            bytes.AddRange(ByteListConverter.ToByteArray(id));
-            bytes.AddRange(ByteListConverter.ToByteArray((short) 0));
-            bytes.AddRange(ByteListConverter.ToByteArray(x));
-            bytes.AddRange(ByteListConverter.ToByteArray(y));
-            bytes.AddRange(ByteListConverter.ToByteArray(0));
-            bytes.AddRange(ByteListConverter.ToByteArray(0));
+            bytes.AddRange(ToByteList.Convert((short) 1));
+            bytes.AddRange(ToByteList.Convert(id));
+            bytes.AddRange(ToByteList.Convert((short) 0));
+            bytes.AddRange(ToByteList.Convert(x));
+            bytes.AddRange(ToByteList.Convert(y));
+            bytes.AddRange(ToByteList.Convert(0));
+            bytes.AddRange(ToByteList.Convert(0));
 
             return bytes;
         }

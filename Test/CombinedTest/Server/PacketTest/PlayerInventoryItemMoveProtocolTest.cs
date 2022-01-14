@@ -26,8 +26,8 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //プレイヤーのインベントリの設定
             var payload = new List<byte>();
-            payload.AddRange(ByteListConverter.ToByteArray((short) 3));
-            payload.AddRange(ByteListConverter.ToByteArray(playerId));
+            payload.AddRange(ToByteList.Convert((short) 3));
+            payload.AddRange(ToByteList.Convert(playerId));
             packet.GetPacketResponse(payload);
             var playerInventoryData =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
@@ -68,11 +68,11 @@ namespace Test.CombinedTest.Server.PacketTest
         private List<byte> PlayerInventoryItemMove(int fromSlot, int toSlot, int itemCount, int playerId)
         {
             var payload = new List<byte>();
-            payload.AddRange(ByteListConverter.ToByteArray((short) 6));
-            payload.AddRange(ByteListConverter.ToByteArray(playerId));
-            payload.AddRange(ByteListConverter.ToByteArray(fromSlot));
-            payload.AddRange(ByteListConverter.ToByteArray(toSlot));
-            payload.AddRange(ByteListConverter.ToByteArray(itemCount));
+            payload.AddRange(ToByteList.Convert((short) 6));
+            payload.AddRange(ToByteList.Convert(playerId));
+            payload.AddRange(ToByteList.Convert(fromSlot));
+            payload.AddRange(ToByteList.Convert(toSlot));
+            payload.AddRange(ToByteList.Convert(itemCount));
             return payload;
         }
     }

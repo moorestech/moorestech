@@ -20,10 +20,10 @@ namespace Server.Event.EventReceive
             var c = blockPlaceEventProperties.Coordinate;
             var payload = new List<byte>();
 
-            payload.AddRange(ByteListConverter.ToByteArray(ServerEventConst.EventPacketId));
-            payload.AddRange(ByteListConverter.ToByteArray(EventId));
-            payload.AddRange(ByteListConverter.ToByteArray(c.X));
-            payload.AddRange(ByteListConverter.ToByteArray(c.Y));
+            payload.AddRange(ToByteList.Convert(ServerEventConst.EventPacketId));
+            payload.AddRange(ToByteList.Convert(EventId));
+            payload.AddRange(ToByteList.Convert(c.X));
+            payload.AddRange(ToByteList.Convert(c.Y));
 
             _eventProtocolProvider.AddBroadcastEvent(payload.ToArray());
         }

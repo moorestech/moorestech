@@ -58,8 +58,8 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //プレイヤーのインベントリの設定
             var payload = new List<byte>();
-            payload.AddRange(ByteListConverter.ToByteArray((short) 3));
-            payload.AddRange(ByteListConverter.ToByteArray(playerId));
+            payload.AddRange(ToByteList.Convert((short) 3));
+            payload.AddRange(ToByteList.Convert(playerId));
             packet.GetPacketResponse(payload);
             var playerInventoryData =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
@@ -162,14 +162,14 @@ namespace Test.CombinedTest.Server.PacketTest
             int y, int blockSlotIndex, int moveItemNum)
         {
             var payload = new List<byte>();
-            payload.AddRange(ByteListConverter.ToByteArray((short) 5));
-            payload.AddRange(ByteListConverter.ToByteArray(blockToPlayerFlag)); //ブロック→プレイヤーのフラグ
-            payload.AddRange(ByteListConverter.ToByteArray(playerId));
-            payload.AddRange(ByteListConverter.ToByteArray(playerSlotIndex)); //プレイヤーインベントリの移動先スロット
-            payload.AddRange(ByteListConverter.ToByteArray(x)); //ブロックX座標
-            payload.AddRange(ByteListConverter.ToByteArray(y)); //ブロックY座標
-            payload.AddRange(ByteListConverter.ToByteArray(blockSlotIndex)); //ブロックインベントリインデクス
-            payload.AddRange(ByteListConverter.ToByteArray(moveItemNum)); //移動するアイテム数
+            payload.AddRange(ToByteList.Convert((short) 5));
+            payload.AddRange(ToByteList.Convert(blockToPlayerFlag)); //ブロック→プレイヤーのフラグ
+            payload.AddRange(ToByteList.Convert(playerId));
+            payload.AddRange(ToByteList.Convert(playerSlotIndex)); //プレイヤーインベントリの移動先スロット
+            payload.AddRange(ToByteList.Convert(x)); //ブロックX座標
+            payload.AddRange(ToByteList.Convert(y)); //ブロックY座標
+            payload.AddRange(ToByteList.Convert(blockSlotIndex)); //ブロックインベントリインデクス
+            payload.AddRange(ToByteList.Convert(moveItemNum)); //移動するアイテム数
             return payload;
         }
 

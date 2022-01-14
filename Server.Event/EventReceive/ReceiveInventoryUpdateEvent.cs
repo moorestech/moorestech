@@ -22,11 +22,11 @@ namespace Server.Event.EventReceive
             var payload = new List<byte>();
 
 
-            payload.AddRange(ByteListConverter.ToByteArray(ServerEventConst.EventPacketId));
-            payload.AddRange(ByteListConverter.ToByteArray(EventId));
-            payload.AddRange(ByteListConverter.ToByteArray(playerInventoryUpdateEvent.InventorySlot));
-            payload.AddRange(ByteListConverter.ToByteArray(playerInventoryUpdateEvent.ItemId));
-            payload.AddRange(ByteListConverter.ToByteArray(playerInventoryUpdateEvent.Count));
+            payload.AddRange(ToByteList.Convert(ServerEventConst.EventPacketId));
+            payload.AddRange(ToByteList.Convert(EventId));
+            payload.AddRange(ToByteList.Convert(playerInventoryUpdateEvent.InventorySlot));
+            payload.AddRange(ToByteList.Convert(playerInventoryUpdateEvent.ItemId));
+            payload.AddRange(ToByteList.Convert(playerInventoryUpdateEvent.Count));
 
             _eventProtocolProvider.AddEvent(playerInventoryUpdateEvent.PlayerId, payload.ToArray());
         }

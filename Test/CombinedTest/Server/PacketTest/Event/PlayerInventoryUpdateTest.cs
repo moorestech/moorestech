@@ -24,8 +24,8 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, response.Count);
 
             var payload = new List<byte>();
-            payload.AddRange(ByteListConverter.ToByteArray((short) 3));
-            payload.AddRange(ByteListConverter.ToByteArray(0));
+            payload.AddRange(ToByteList.Convert((short) 3));
+            payload.AddRange(ToByteList.Convert(0));
             packetResponse.GetPacketResponse(payload);
 
             //インベントリにアイテムを追加
@@ -97,8 +97,8 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         List<byte> EventRequestData(int plyaerID)
         {
             var payload = new List<byte>();
-            payload.AddRange(ByteListConverter.ToByteArray((short) 4));
-            payload.AddRange(ByteListConverter.ToByteArray(plyaerID));
+            payload.AddRange(ToByteList.Convert((short) 4));
+            payload.AddRange(ToByteList.Convert(plyaerID));
             return payload;
         }
 
@@ -106,11 +106,11 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         private List<byte> PlayerInventoryItemMove(int fromSlot, int toSlot, int itemCount, int playerId)
         {
             var payload = new List<byte>();
-            payload.AddRange(ByteListConverter.ToByteArray((short) 6));
-            payload.AddRange(ByteListConverter.ToByteArray(playerId));
-            payload.AddRange(ByteListConverter.ToByteArray(fromSlot));
-            payload.AddRange(ByteListConverter.ToByteArray(toSlot));
-            payload.AddRange(ByteListConverter.ToByteArray(itemCount));
+            payload.AddRange(ToByteList.Convert((short) 6));
+            payload.AddRange(ToByteList.Convert(playerId));
+            payload.AddRange(ToByteList.Convert(fromSlot));
+            payload.AddRange(ToByteList.Convert(toSlot));
+            payload.AddRange(ToByteList.Convert(itemCount));
             return payload;
         }
     }

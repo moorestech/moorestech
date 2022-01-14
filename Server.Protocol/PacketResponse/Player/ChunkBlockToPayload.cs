@@ -12,9 +12,9 @@ namespace Server.PacketHandle.PacketResponse.Player
         {
             var payload = new List<bool>();
 
-            payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray((short) 1)));
-            payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray(chunkCoordinate.X)));
-            payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray(chunkCoordinate.Y)));
+            payload.AddRange(ToBitList.Convert(ToByteList.Convert((short) 1)));
+            payload.AddRange(ToBitList.Convert(ToByteList.Convert(chunkCoordinate.X)));
+            payload.AddRange(ToBitList.Convert(ToByteList.Convert(chunkCoordinate.Y)));
             for (int i = 0; i < blocks.GetLength(0); i++)
             {
                 for (int j = 0; j < blocks.GetLength(1); j++)
@@ -33,7 +33,7 @@ namespace Server.PacketHandle.PacketResponse.Player
                     {
                         payload.Add(false);
                         payload.Add(false);
-                        payload.AddRange(ByteListToBitList.Convert((byte) id));
+                        payload.AddRange(ToBitList.Convert((byte) id));
                         continue;
                     }
 
@@ -42,14 +42,14 @@ namespace Server.PacketHandle.PacketResponse.Player
                     {
                         payload.Add(false);
                         payload.Add(true);
-                        payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray((short) id)));
+                        payload.AddRange(ToBitList.Convert(ToByteList.Convert((short) id)));
                         continue;
                     }
 
                     //int整数
                     payload.Add(true);
                     payload.Add(false);
-                    payload.AddRange(ByteListToBitList.Convert(ByteListConverter.ToByteArray(id)));
+                    payload.AddRange(ToBitList.Convert(ToByteList.Convert(id)));
                 }
             }
 

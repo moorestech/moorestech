@@ -187,10 +187,10 @@ namespace Test.CombinedTest.Server.PacketTest
         List<byte> PlayerCoordinatePayload(int playerId, float x, float y)
         {
             var p = new List<byte>();
-            p.AddRange(ByteListConverter.ToByteArray((short) 2));
-            p.AddRange(ByteListConverter.ToByteArray(x));
-            p.AddRange(ByteListConverter.ToByteArray(y));
-            p.AddRange(ByteListConverter.ToByteArray(playerId));
+            p.AddRange(ToByteList.Convert((short) 2));
+            p.AddRange(ToByteList.Convert(x));
+            p.AddRange(ToByteList.Convert(y));
+            p.AddRange(ToByteList.Convert(playerId));
             return p;
         }
 
