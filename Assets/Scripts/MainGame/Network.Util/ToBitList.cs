@@ -23,12 +23,12 @@ namespace MainGame.Network.Util
 
         public static List<bool> Convert(short @short)
         {
-            return Convert(ByteListConverter.ToByteArray(@short));
+            return Convert(ByteListConverter.Convert(@short));
         }
 
         public static List<bool> Convert(int @int)
         {
-            return Convert(ByteListConverter.ToByteArray(@int));
+            return Convert(ByteListConverter.Convert(@int));
         }
 
         public static List<bool> Convert(byte @byte)
@@ -38,7 +38,7 @@ namespace MainGame.Network.Util
 
         public static List<bool> Convert(float @float)
         {
-            return Convert(ByteListConverter.ToByteArray(@float));
+            return Convert(ByteListConverter.Convert(@float));
         }
     }
 }
