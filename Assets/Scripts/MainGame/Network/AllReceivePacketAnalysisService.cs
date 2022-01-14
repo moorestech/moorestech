@@ -3,11 +3,11 @@ using MainGame.Network.Receive;
 
 namespace MainGame.Network
 {
-    public class ReceivePacketAnalysis
+    public class AllReceivePacketAnalysisService
     {
         private readonly List<IAnalysisPacket> _analysisPacketList = new List<IAnalysisPacket>();
 
-        public ReceivePacketAnalysis()
+        public AllReceivePacketAnalysisService()
         {
             _analysisPacketList.Add(new DummyProtocol());
             _analysisPacketList.Add(new DummyProtocol());
