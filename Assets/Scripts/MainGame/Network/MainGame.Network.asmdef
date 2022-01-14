@@ -1,3 +1,16 @@
 {
-	"name": "MainGame.Network"
+    "name": "MainGame.Network",
+    "rootNamespace": "",
+    "references": [
+        "GUID:61494fc3e280cb9428779ad36c470cec"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
