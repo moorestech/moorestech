@@ -8,13 +8,13 @@ namespace Game.PlayerInventory.Interface
     {
         [JsonProperty("ItemId")] public List<int> ItemId { get; }
         [JsonProperty("ItemCount")] public List<int> ItemCount { get; }
-        [JsonProperty("PlayerGUID")] public string PlayerGuid { get; }
+        [JsonProperty("PlayerId")] public int PlayerId { get; }
 
-        public SaveInventoryData(List<int> itemId, List<int> itemCount,Guid playerGuid)
+        public SaveInventoryData(List<int> itemId, List<int> itemCount,int playerId)
         {
             ItemId = itemId;
             ItemCount = itemCount;
-            PlayerGuid = playerGuid.ToString();
+            PlayerId = playerId;
         }
     }
 }
