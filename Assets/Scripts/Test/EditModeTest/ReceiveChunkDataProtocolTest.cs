@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using MainGame.Constant;
-using MainGame.GameLogic.Interface;
 using MainGame.Network;
 using MainGame.Network.Receive;
 using MainGame.Network.Util;
@@ -8,7 +7,7 @@ using NUnit.Framework;
 using Test.TestModule;
 using UnityEngine;
 
-namespace EditModeTest
+namespace Test.EditModeTest
 {
     public class ReceiveChunkDataProtocolTest
     {
@@ -17,8 +16,8 @@ namespace EditModeTest
         {
             var dataStore = new TestDataStore();
             var protocol = new ReceiveChunkDataProtocol(dataStore);
-            //チャンクの原点0,20に設定
-            var chunkPosition = new Vector2Int(0, 20);
+            //チャンクの原点0,19に設定
+            var chunkPosition = new Vector2Int(0, 19);
             
             //チャンクデータを受信
             protocol.Analysis(CreateBlockDataList(chunkPosition));
@@ -71,7 +70,7 @@ namespace EditModeTest
         }
 
 
-        //0,0 0,20 20,0 20,20 10,14にブロックを設置する
+        //0,0 0,19 19,0 19,19 10,14にブロックを設置する
         private List<byte> CreateBlockDataList(Vector2Int chunkPosition)
         {
             
@@ -96,22 +95,22 @@ namespace EditModeTest
                             bits.Add(false);
                             bits.AddRange(ToBitList.Convert(byte.MaxValue));
                             break;
-                        case (0,20):
-                            //0,20の時はshortの最大値のIDのブロックを設置
+                        case (0,19):
+                            //0,19の時はshortの最大値のIDのブロックを設置
                             bits.Add(true);
                             bits.Add(false);
                             bits.Add(true);
                             bits.AddRange(ToBitList.Convert(short.MaxValue));
                             break;
-                        case (20,00):
-                            //20,00の時はintの最大値のIDのブロックを設置
+                        case (19,00):
+                            //19,00の時はintの最大値のIDのブロックを設置
                             bits.Add(true);
                             bits.Add(true);
                             bits.Add(false);
                             bits.AddRange(ToBitList.Convert(int.MaxValue));
                             break;
-                        case (20,20):
-                            //20,20の時はbyteの最大値+1のIDのブロックを設置
+                        case (19,19):
+                            //19,19の時はbyteの最大値+1のIDのブロックを設置
                             bits.Add(true);
                             bits.Add(false);
                             bits.Add(true);
@@ -135,7 +134,7 @@ namespace EditModeTest
             return BitListToByteList.Convert(bits);
         }
         
-        //0,0 0,20 20,0 20,20 10,14が設置したブロックに対応しているかチェックする
+        //0,0 0,19 19,0 19,19 10,14が設置したブロックに対応しているかチェックする
         private bool CheckBlockChunk(int x, int y,int id)
         {
             
@@ -144,14 +143,14 @@ namespace EditModeTest
                 case (0,0):
                     //0,0の時はbyteの最大値のIDのブロックを設置済み
                     return id == byte.MaxValue;
-                case (0,20):
-                    //0,20の時はshortの最大値のIDのブロックを設置済み
+                case (0,19):
+                    //0,19の時はshortの最大値のIDのブロックを設置済み
                     return id == short.MaxValue;
-                case (20,00):
-                    //20,00の時はintの最大値のIDのブロックを設置済み
+                case (19,00):
+                    //19,00の時はintの最大値のIDのブロックを設置済み
                     return id == int.MaxValue;
-                case (20,20):
-                    //20,20の時はbyteの最大値+1のIDのブロックを設置済み
+                case (19,19):
+                    //19,19の時はbyteの最大値+1のIDのブロックを設置済み
                     return id == byte.MaxValue + 1;
                 case (10,14):
                     //10,14の時はshortの最大値+1のIDのブロックを設置済み
