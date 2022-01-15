@@ -5,6 +5,7 @@ using MainGame.Network;
 using MainGame.Network.Receive;
 using MainGame.Network.Util;
 using NUnit.Framework;
+using Test.TestModule;
 using UnityEngine;
 
 namespace EditModeTest
@@ -160,20 +161,6 @@ namespace EditModeTest
                     return id == BlockConstant.NullBlockId;
                     break;
             }
-        }
-    }
-
-    class TestDataStore : IChunkDataStore
-    {
-        public Dictionary<Vector2Int, int[,]> Data = new Dictionary<Vector2Int, int[,]>();
-        public void SetChunk(Vector2Int chunkPosition, int[,] ids)
-        {
-            Data.Add(chunkPosition, ids);
-        }
-
-        public void SetBlock(Vector2Int blockPosition, int id)
-        {
-            throw new System.NotImplementedException();
         }
     }
 }

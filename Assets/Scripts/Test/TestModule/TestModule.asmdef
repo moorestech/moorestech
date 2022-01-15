@@ -1,3 +1,16 @@
 {
-	"name": "TestModule"
+    "name": "TestModule",
+    "rootNamespace": "",
+    "references": [
+        "GUID:c10c1f477ce5a4a4cb66bf758e095307"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
