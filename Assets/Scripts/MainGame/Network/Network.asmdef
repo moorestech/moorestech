@@ -2,7 +2,8 @@
     "name": "Network",
     "rootNamespace": "",
     "references": [
-        "GUID:c10c1f477ce5a4a4cb66bf758e095307"
+        "GUID:c10c1f477ce5a4a4cb66bf758e095307",
+        "GUID:f0fa2b8934b445498370735e3e498904"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
