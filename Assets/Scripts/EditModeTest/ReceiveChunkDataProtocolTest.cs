@@ -20,7 +20,7 @@ namespace EditModeTest
             var chunkPosition = new Vector2Int(0, 20);
             
             //チャンクデータを受信
-            protocol.Analysis(CreateBlockDataList(chunkPosition).ToArray());
+            protocol.Analysis(CreateBlockDataList(chunkPosition));
             
             //データの検証
             //そのチャンクのデータを受けているか

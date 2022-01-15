@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using MainGame.Constant;
 using MainGame.GameLogic.Interface;
 using MainGame.Network.Util;
@@ -15,7 +16,7 @@ namespace MainGame.Network.Receive
             _chunkDataStore = chunkDataStore;
         }
 
-        public void Analysis(byte[] data)
+        public void Analysis(List<byte> data)
         {
             var bits = new BitListEnumerator(data.ToList());
             //packet id

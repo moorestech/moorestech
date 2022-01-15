@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using MainGame.GameLogic.Interface;
 using MainGame.Network.Receive;
+using MainGame.Network.Util;
 
 namespace MainGame.Network
 {
@@ -16,7 +18,10 @@ namespace MainGame.Network
 
         public void Analysis(byte[] bytes)
         {
+            var bytesList = bytes.ToList();
             
+            //analysis packet
+            _analysisPacketList[new ByteArrayEnumerator(bytesList).MoveNextToGetShort()].Analysis(bytesList);
         }
     }
 }

@@ -1,7 +1,9 @@
-﻿namespace MainGame.Network
+﻿using System.Collections.Generic;
+
+namespace MainGame.Network
 {
     public interface IAnalysisPacket
     {
-        public void Analysis(byte[] data);
+        public void Analysis(List<byte> data);
     }
 }
