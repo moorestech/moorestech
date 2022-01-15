@@ -4,6 +4,6 @@ namespace MainGame.GameLogic.Interface
 {
     public interface IChunkDataStore
     {
-        public void SetChunk(Vector2 chunkPosition,int[,] ids);
+        public void SetChunk(Vector2Int chunkPosition,int[,] ids);
     }
 }
