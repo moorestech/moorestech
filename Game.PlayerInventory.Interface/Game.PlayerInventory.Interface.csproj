@@ -5,7 +5,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Core\Core.Inventory\Core.Inventory.csproj"/>
+        <ProjectReference Include="..\Core\Core.Inventory\Core.Inventory.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
     </ItemGroup>
 
 </Project>
