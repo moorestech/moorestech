@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using MainGame.GameLogic.Interface;
+using MainGame.Network.Interface;
 using MainGame.Network.Receive.Event;
 using MainGame.Network.Util;
 
@@ -9,9 +9,9 @@ namespace MainGame.Network.Receive
     {
         List<IAnalysisEventPacket> _eventPacketList = new List<IAnalysisEventPacket>();
 
-        public ReceiveEventProtocol(IChunkDataStore chunkDataStore)
+        public ReceiveEventProtocol(IChunkUpdateObserver chunkUpdateObserver)
         {
-            _eventPacketList.Add(new BlockPlaceEvent(chunkDataStore));
+            _eventPacketList.Add(new BlockPlaceEvent(chunkUpdateObserver));
         }
         
         /// <summary>

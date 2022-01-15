@@ -8,7 +8,8 @@
         "Network",
         "Network.Util",
         "Constant",
-        "TestModule"
+        "TestModule",
+        "Network.Interface"
     ],
     "includePlatforms": [
         "Editor"

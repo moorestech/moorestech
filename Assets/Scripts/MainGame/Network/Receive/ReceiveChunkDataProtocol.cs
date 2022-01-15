@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using MainGame.Constant;
-using MainGame.GameLogic.Interface;
+using MainGame.Network.Interface;
 using MainGame.Network.Util;
 using UnityEngine;
 
@@ -9,11 +9,11 @@ namespace MainGame.Network.Receive
 {
     public class ReceiveChunkDataProtocol : IAnalysisPacket
     {
-        private readonly IChunkDataStore _chunkDataStore;
+        private readonly IChunkUpdateObserver _chunkUpdateObserver;
 
-        public ReceiveChunkDataProtocol(IChunkDataStore chunkDataStore)
+        public ReceiveChunkDataProtocol(IChunkUpdateObserver chunkUpdateObserver)
         {
-            _chunkDataStore = chunkDataStore;
+            _chunkUpdateObserver = chunkUpdateObserver;
         }
 
         public void Analysis(List<byte> data)
@@ -37,7 +37,7 @@ namespace MainGame.Network.Receive
             }
             
             //Set chunk data
-            _chunkDataStore.SetChunk(chunkPos, chunkBlocks);
+            _chunkUpdateObserver.UpdateChunk(chunkPos, chunkBlocks);
         }
 
         private int GetBlockId(BitListEnumerator bits)

@@ -1,19 +1,21 @@
 ﻿using System.Collections.Generic;
 using MainGame.Constant;
 using MainGame.GameLogic.Interface;
+using MainGame.Network.Interface;
 using UnityEngine;
 
 namespace Test.TestModule
 {
-    public class TestDataStore : IChunkDataStore
+    public class TestDataStore : IChunkUpdateObserver
     {
         public readonly Dictionary<Vector2Int, int[,]> Data = new Dictionary<Vector2Int, int[,]>();
-        public void SetChunk(Vector2Int chunkPosition, int[,] ids)
+        
+        public void UpdateChunk(Vector2Int chunkPosition, int[,] ids)
         {
             Data.Add(chunkPosition, ids);
         }
 
-        public void SetBlock(Vector2Int blockPosition, int id)
+        public void UpdateBlock(Vector2Int blockPosition, int id)
         {
             var chunkPos = ChunkConstant.BlockPositionToChunkOriginPosition(blockPosition);
             if (!Data.ContainsKey(chunkPos))

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using MainGame.GameLogic.Interface;
+using MainGame.Network.Interface;
 using MainGame.Network.Receive;
 using MainGame.Network.Util;
 
@@ -10,7 +10,7 @@ namespace MainGame.Network
     {
         private readonly List<IAnalysisPacket> _analysisPacketList = new List<IAnalysisPacket>();
 
-        public AllReceivePacketAnalysisService(IChunkDataStore chunkDataStore)
+        public AllReceivePacketAnalysisService(IChunkUpdateObserver chunkDataStore)
         {
             _analysisPacketList.Add(new DummyProtocol());
             _analysisPacketList.Add(new ReceiveChunkDataProtocol(chunkDataStore));

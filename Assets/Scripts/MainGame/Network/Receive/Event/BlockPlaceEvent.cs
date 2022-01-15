@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using MainGame.GameLogic.Interface;
+using MainGame.Network.Interface;
 using MainGame.Network.Util;
 using UnityEngine;
 
@@ -7,11 +7,11 @@ namespace MainGame.Network.Receive.Event
 {
     public class BlockPlaceEvent : IAnalysisEventPacket
     {
-        IChunkDataStore _chunkDataStore;
+        IChunkUpdateObserver _chunkUpdateObserver;
 
-        public BlockPlaceEvent(IChunkDataStore chunkDataStore)
+        public BlockPlaceEvent(IChunkUpdateObserver chunkUpdateObserver)
         {
-            _chunkDataStore = chunkDataStore;
+            _chunkUpdateObserver = chunkUpdateObserver;
         }
 
         public void Analysis(List<byte> packet)
@@ -24,7 +24,7 @@ namespace MainGame.Network.Receive.Event
             var blockId = bytes.MoveNextToGetInt();
             
             //ブロックをセットする
-            _chunkDataStore.SetBlock(new Vector2Int(x,y), blockId);
+            _chunkUpdateObserver.UpdateBlock(new Vector2Int(x,y), blockId);
         }
     }
 }
