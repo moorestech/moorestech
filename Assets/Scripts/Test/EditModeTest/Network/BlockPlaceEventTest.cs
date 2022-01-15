@@ -7,7 +7,7 @@ using NUnit.Framework;
 using Test.TestModule;
 using UnityEngine;
 
-namespace Test.EditModeTest
+namespace Test.EditModeTest.Network
 {
     public class BlockPlaceEventTest
     {

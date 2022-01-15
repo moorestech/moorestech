@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using MainGame.Network.Util;
 using NUnit.Framework;
 
-namespace Test.EditModeTest.Util
+namespace Test.EditModeTest.Network.Util
 {
     /// <summary>
     /// サーバーサイドから持ってきたパケット解析のutil系のテスト
