@@ -23,7 +23,13 @@ namespace Game.Save.Json
 
         public void Load()
         {
-            var load = JsonConvert.DeserializeObject<SaveData>(File.ReadAllText(_saveJsonFileName.FullSaveFilePath));
+            var json = File.ReadAllText(_saveJsonFileName.FullSaveFilePath);
+            Load(json);
+        }
+
+        public void Load(string jsonText)
+        {
+            var load = JsonConvert.DeserializeObject<SaveData>(jsonText);
             _worldBlockDatastore.LoadBlockDataList(load.World);
         }
     }

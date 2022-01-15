@@ -1,4 +1,5 @@
 using Core.Block.Blocks;
+using Game.Save.Interface;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +34,8 @@ namespace Test.UnitTest.Game.SaveLoad
             var json = assembleSaveJsonText.AssembleSaveJson();
 
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
-            loadServiceProvider.GetService<AssembleSaveJsonText>().LoadJson(json);
+            (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
+            
             var worldLoadBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
 
             var block1 = worldLoadBlockDatastore.GetBlock(0, 0);

@@ -27,7 +27,7 @@ namespace Test.UnitTest.Game.SaveLoad
         public void InventoryBlockTest()
         {
             //機械の追加
-            var (itemStackFactory, blockFactory, worldBlockDatastore, _, assembleSaveJsonText) =
+            var (itemStackFactory, blockFactory, worldBlockDatastore, _, assembleSaveJsonText,_) =
                 CreateBlockTestModule();
             var machine = (VanillaMachine) blockFactory.Create(2, 10);
             worldBlockDatastore.AddBlock(machine, 0, 0, BlockDirection.North);
@@ -72,8 +72,8 @@ namespace Test.UnitTest.Game.SaveLoad
 
 
             //ロードした時に機械の状態が正しいことを確認
-            var (_, _, loadWorldBlockDatastore, _, loadAssembleSaveJsonText) = CreateBlockTestModule();
-            loadAssembleSaveJsonText.LoadJson(json);
+            var (_, _, loadWorldBlockDatastore, _, _,loadJsonFile) = CreateBlockTestModule();
+            loadJsonFile.Load(json);
 
             var loadMachine = (VanillaMachine) loadWorldBlockDatastore.GetBlock(0, 0);
             Console.WriteLine(machine.GetHashCode());
@@ -113,7 +113,7 @@ namespace Test.UnitTest.Game.SaveLoad
             Assert.AreEqual(itemStackFactory.Create(3, 2), outputInventoryField.OutputSlot[2]);
         }
 
-        private (ItemStackFactory, BlockFactory, WorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText)
+        private (ItemStackFactory, BlockFactory, WorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,LoadJsonFile)
             CreateBlockTestModule()
         {
             var itemFactory = new ItemStackFactory(new TestItemConfig());
@@ -123,8 +123,9 @@ namespace Test.UnitTest.Game.SaveLoad
                 new WorldBlockDatastore(new BlockPlaceEvent(), blockFactory, new BlockRemoveEvent());
             var playerInventoryDataStore = new PlayerInventoryDataStore(new PlayerInventoryUpdateEvent(), itemFactory);
             var assembleSaveJsonText = new AssembleSaveJsonText(playerInventoryDataStore, worldBlockDatastore);
+            var loadJsonText = new LoadJsonFile(new SaveJsonFileName(""), worldBlockDatastore,playerInventoryDataStore);
 
-            return (itemFactory, blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText);
+            return (itemFactory, blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText,loadJsonText);
         }
     }
 }

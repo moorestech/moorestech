@@ -25,12 +25,6 @@ namespace Game.Save.Json
                 _inventoryDataStore.GetSaveInventoryDataList());
             return JsonConvert.SerializeObject(saveData);
         }
-
-        public void LoadJson(string json)
-        {
-            var load = JsonConvert.DeserializeObject<SaveData>(json);
-            _worldBlockDatastore.LoadBlockDataList(load.World);
-        }
     }
 
     public class SaveData
