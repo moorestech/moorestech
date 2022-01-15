@@ -37,7 +37,52 @@ namespace PlayerInventory
 
         public List<SaveInventoryData> GetSaveInventoryDataList()
         {
-            return new List<SaveInventoryData>();
+            var savePlayerInventoryList =  new List<SaveInventoryData>();
+            //セーブデータに必要なデータをまとめる
+            foreach (var inventory in _playerInventoryData)
+            {
+                var itemIds = new List<int>();
+                var itemCounts = new List<int>();
+                for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+                {
+                    var item = inventory.Value.GetItem(i);
+                    itemIds.Add(item.Id);
+                    itemCounts.Add(item.Count);
+                }
+                var saveInventoryData = new SaveInventoryData(inventory.Key, itemIds, itemCounts);
+                savePlayerInventoryList.Add(saveInventoryData);
+            }
+            
+            return savePlayerInventoryList;
+        }
+
+        /// <summary>
+        /// プレイヤーのデータを置き換える
+        /// </summary>
+        public void LoadPlayerInventory(List<SaveInventoryData> saveInventoryDataList)
+        {
+            foreach (var saveInventory in saveInventoryDataList)
+            {
+                var playerId = saveInventory.PlayerId;
+
+                var inventory = new PlayerInventoryData(playerId, _playerInventoryUpdateEvent, _itemStackFactory);
+                //インベントリの追加を行う　既にあるなら置き換える
+                if (_playerInventoryData.ContainsKey(playerId))
+                {
+                    _playerInventoryData[playerId] = inventory;
+                }else
+                {
+                    _playerInventoryData.Add(playerId,inventory);
+                }
+                
+                //インベントリにアイテムを追加する
+                for (int i = 0; i < saveInventory.ItemCount.Count; i++)
+                {
+                    inventory.SetItem(i,_itemStackFactory.Create(
+                       saveInventory.ItemId[i],
+                       saveInventory.ItemCount[i]));
+                }
+            }
         }
     }
 }

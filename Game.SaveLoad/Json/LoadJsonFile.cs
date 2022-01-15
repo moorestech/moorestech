@@ -31,6 +31,7 @@ namespace Game.Save.Json
         {
             var load = JsonConvert.DeserializeObject<SaveData>(jsonText);
             _worldBlockDatastore.LoadBlockDataList(load.World);
+            _inventoryDataStore.LoadPlayerInventory(load.Inventory);
         }
     }
 }

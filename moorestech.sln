@@ -42,9 +42,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Game", "Game", "{F79506AA-F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Inventory", "Core\Core.Inventory\Core.Inventory.csproj", "{18B4AD12-1EC4-448F-AEB5-C4E241F44700}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Save", "Game.Save\Game.Save.csproj", "{EE93BBB2-9444-456F-9A8F-D9DA1CEB6381}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.SaveLoad", "Game.SaveLoad\Game.SaveLoad.csproj", "{EE93BBB2-9444-456F-9A8F-D9DA1CEB6381}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Save.Interface", "Game.Save.Interface\Game.Save.Interface.csproj", "{3629DF35-7393-485F-969C-0DC2304A77A1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.SaveLoad.Interface", "Game.SaveLoad.Interface\Game.SaveLoad.Interface.csproj", "{3629DF35-7393-485F-969C-0DC2304A77A1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.World.Interface", "Game.World.Interface\Game.World.Interface.csproj", "{0CD26A94-8433-4278-86C9-08F3BCE0B21B}"
 EndProject

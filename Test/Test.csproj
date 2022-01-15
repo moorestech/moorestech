@@ -16,7 +16,7 @@
         <ProjectReference Include="..\Core\Core.csproj" />
         <ProjectReference Include="..\Core\Core.Ore\Core.Ore.csproj" />
         <ProjectReference Include="..\Game.PlayerInventory\Game.PlayerInventory.csproj" />
-        <ProjectReference Include="..\Game.Save\Game.Save.csproj" />
+        <ProjectReference Include="..\Game.SaveLoad\Game.SaveLoad.csproj" />
         <ProjectReference Include="..\Server.Starter\Server.Starter.csproj" />
         <ProjectReference Include="..\Game.World\Game.World.csproj" />
         <ProjectReference Include="..\Test.Module\Test.Module.csproj" />

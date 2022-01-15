@@ -9,8 +9,8 @@
     <ItemGroup>
         <ProjectReference Include="..\Core\Core.csproj" />
         <ProjectReference Include="..\Game.PlayerInventory\Game.PlayerInventory.csproj" />
-        <ProjectReference Include="..\Game.Save.Interface\Game.Save.Interface.csproj" />
-        <ProjectReference Include="..\Game.Save\Game.Save.csproj" />
+        <ProjectReference Include="..\Game.SaveLoad.Interface\Game.SaveLoad.Interface.csproj" />
+        <ProjectReference Include="..\Game.SaveLoad\Game.SaveLoad.csproj" />
         <ProjectReference Include="..\Game.World.EventHandler\Game.World.EventHandler.csproj" />
         <ProjectReference Include="..\Game.WorldMap\Game.WorldMap.csproj" />
         <ProjectReference Include="..\Server.Event\Server.Event.csproj" />
