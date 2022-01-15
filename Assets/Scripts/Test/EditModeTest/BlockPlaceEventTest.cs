@@ -1,6 +1,4 @@
-﻿using MainGame.Network.Receive.Event;
-
-namespace EditModeTest
+﻿namespace Test.EditModeTest
 {
     public class BlockPlaceEventTest
     {
