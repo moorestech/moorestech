@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace MainGame.Network
+namespace MainGame.Network.Receive
 {
     public interface IAnalysisPacket
     {

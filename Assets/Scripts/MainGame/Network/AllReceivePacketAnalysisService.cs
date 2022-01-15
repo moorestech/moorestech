@@ -14,6 +14,7 @@ namespace MainGame.Network
         {
             _analysisPacketList.Add(new DummyProtocol());
             _analysisPacketList.Add(new ReceiveChunkDataProtocol(chunkDataStore));
+            _analysisPacketList.Add(new DummyProtocol());//将来的に他プレイヤー座標のパケットが入る
         }
 
         public void Analysis(byte[] bytes)
