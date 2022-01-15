@@ -1,3 +1,16 @@
-﻿{
-  "name": "GameLogic"
+{
+    "name": "GameLogic",
+    "rootNamespace": "",
+    "references": [
+        "GameLogic.Interface"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
