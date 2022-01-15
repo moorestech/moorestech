@@ -11,6 +11,9 @@ namespace Test.EditModeTest
 {
     public class ReceiveChunkDataProtocolTest
     {
+        /// <summary>
+        /// ReceiveChunkDataProtocolの単体のテスト
+        /// </summary>
         [Test]
         public void ReceiveChunkDataProtocolToRegisterDataStoreTest()
         {
@@ -40,11 +43,12 @@ namespace Test.EditModeTest
             }
         }
 
-        //上記のテストをAllReceivePacketAnalysisServiceを介して実行する
-        
-        
+        /// <summary>
+        /// 上記のテストをAllReceivePacketAnalysisServiceを介して実行する
+        /// </summary>
+
         [Test]
-        public void ReceivePacketAnalysisViaAnalysisTest()
+        public void ChunkDataAnalysisViaAllReceivePacketAnalysisServiceTest()
         {
             var dataStore = new TestDataStore();
             var packetAnalysis = new AllReceivePacketAnalysisService(dataStore);
