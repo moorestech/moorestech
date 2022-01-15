@@ -165,7 +165,7 @@ namespace EditModeTest
 
     class TestDataStore : IChunkDataStore
     {
-        public Dictionary<Vector2,int[,]> Data { get; set; }
+        public Dictionary<Vector2, int[,]> Data = new Dictionary<Vector2, int[,]>();
         public void SetChunk(Vector2Int chunkPosition, int[,] ids)
         {
             Data.Add(chunkPosition, ids);

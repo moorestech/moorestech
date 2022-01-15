@@ -8,7 +8,7 @@ namespace MainGame.Network.Receive
 {
     public class ReceiveChunkDataProtocol : IAnalysisPacket
     {
-        private IChunkDataStore _chunkDataStore;
+        private readonly IChunkDataStore _chunkDataStore;
 
         public ReceiveChunkDataProtocol(IChunkDataStore chunkDataStore)
         {
