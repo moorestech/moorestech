@@ -62,13 +62,15 @@ namespace Test.EditModeTest
             var chunkUpdateEvent = new ChunkUpdateEvent();
             var packetAnalysis = new AllReceivePacketAnalysisService(chunkUpdateEvent);
             var chunkPosition = new Vector2Int(1000, 1240);
-            
-            packetAnalysis.Analysis(CreateBlockDataList(chunkPosition).ToArray());
-            
+
             //イベントをサブスクライブする
             var dataStore = new TestDataStore();
             chunkUpdateEvent.Subscribe(dataStore.OnUpdateChunk,dataStore.OnUpdateBlock);
             
+            
+            
+            //データの受信
+            packetAnalysis.Analysis(CreateBlockDataList(chunkPosition).ToArray());
             
             
             
