@@ -9,9 +9,9 @@ namespace MainGame.Network.Receive
     {
         List<IAnalysisEventPacket> _eventPacketList = new List<IAnalysisEventPacket>();
 
-        public ReceiveEventProtocol(IChunkUpdateObserver chunkUpdateObserver)
+        public ReceiveEventProtocol(IChunkUpdateEvent chunkUpdateEvent)
         {
-            _eventPacketList.Add(new BlockPlaceEvent(chunkUpdateObserver));
+            _eventPacketList.Add(new BlockPlaceEvent(chunkUpdateEvent));
         }
         
         /// <summary>

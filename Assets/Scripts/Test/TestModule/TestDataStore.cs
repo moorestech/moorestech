@@ -6,16 +6,16 @@ using UnityEngine;
 
 namespace Test.TestModule
 {
-    public class TestDataStore : IChunkUpdateObserver
+    public class TestDataStore
     {
         public readonly Dictionary<Vector2Int, int[,]> Data = new Dictionary<Vector2Int, int[,]>();
         
-        public void UpdateChunk(Vector2Int chunkPosition, int[,] ids)
+        public void OnUpdateChunk(Vector2Int chunkPosition, int[,] ids)
         {
             Data.Add(chunkPosition, ids);
         }
 
-        public void UpdateBlock(Vector2Int blockPosition, int id)
+        public void OnUpdateBlock(Vector2Int blockPosition, int id)
         {
             var chunkPos = ChunkConstant.BlockPositionToChunkOriginPosition(blockPosition);
             if (!Data.ContainsKey(chunkPos))

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using MainGame.Constant;
 using MainGame.Network;
+using MainGame.Network.Event;
 using MainGame.Network.Receive;
 using MainGame.Network.Util;
 using NUnit.Framework;
@@ -17,10 +18,18 @@ namespace Test.EditModeTest
         [Test]
         public void ReceiveChunkDataProtocolToRegisterDataStoreTest()
         {
+            var chunkUpdateEvent = new ChunkUpdateEvent();
+            var protocol = new ReceiveChunkDataProtocol(chunkUpdateEvent);
+
+            //イベントをサブスクライブする
             var dataStore = new TestDataStore();
-            var protocol = new ReceiveChunkDataProtocol(dataStore);
+            chunkUpdateEvent.Subscribe(dataStore.OnUpdateChunk,dataStore.OnUpdateBlock);
+            
             //チャンクの原点0,19に設定
             var chunkPosition = new Vector2Int(0, 19);
+            
+            
+            
             
             //チャンクデータを受信
             protocol.Analysis(CreateBlockDataList(chunkPosition));
@@ -50,11 +59,19 @@ namespace Test.EditModeTest
         [Test]
         public void ChunkDataAnalysisViaAllReceivePacketAnalysisServiceTest()
         {
-            var dataStore = new TestDataStore();
-            var packetAnalysis = new AllReceivePacketAnalysisService(dataStore);
+            var chunkUpdateEvent = new ChunkUpdateEvent();
+            var packetAnalysis = new AllReceivePacketAnalysisService(chunkUpdateEvent);
             var chunkPosition = new Vector2Int(1000, 1240);
             
             packetAnalysis.Analysis(CreateBlockDataList(chunkPosition).ToArray());
+            
+            //イベントをサブスクライブする
+            var dataStore = new TestDataStore();
+            chunkUpdateEvent.Subscribe(dataStore.OnUpdateChunk,dataStore.OnUpdateBlock);
+            
+            
+            
+            
             
             //データの検証
             //そのチャンクのデータを受けているか

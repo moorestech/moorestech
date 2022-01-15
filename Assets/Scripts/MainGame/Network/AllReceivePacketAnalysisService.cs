@@ -10,7 +10,7 @@ namespace MainGame.Network
     {
         private readonly List<IAnalysisPacket> _analysisPacketList = new List<IAnalysisPacket>();
 
-        public AllReceivePacketAnalysisService(IChunkUpdateObserver chunkDataStore)
+        public AllReceivePacketAnalysisService(IChunkUpdateEvent chunkDataStore)
         {
             _analysisPacketList.Add(new DummyProtocol());
             _analysisPacketList.Add(new ReceiveChunkDataProtocol(chunkDataStore));

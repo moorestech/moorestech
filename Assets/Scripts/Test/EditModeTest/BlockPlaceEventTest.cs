@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using MainGame.Network;
+using MainGame.Network.Event;
 using MainGame.Network.Receive.Event;
 using MainGame.Network.Util;
 using NUnit.Framework;
@@ -16,12 +17,21 @@ namespace Test.EditModeTest
         [Test]
         public void BlockPlaceEventToSetDataStoreTest()
         {
+            //テスト用のBlockPlaceEventを生成
+            var chunkUpdateEvent = new ChunkUpdateEvent();
+            var blockPlaceEvent = new BlockPlaceEvent(chunkUpdateEvent);
+            
+            //イベントをサブスクライブする
             var dataStore = new TestDataStore();
-            var blockPlaceEvent = new BlockPlaceEvent(dataStore);
+            chunkUpdateEvent.Subscribe(dataStore.OnUpdateChunk,dataStore.OnUpdateBlock);
 
             var blockPosition = new Vector2Int(10,20);
             var blockId = 3;
             var chunkPosition = new Vector2Int(0, 20);
+            
+            
+            
+            
             
             //パケットの解析
             blockPlaceEvent.Analysis(GetBlockPlaceEventData(blockPosition,blockId));
@@ -38,12 +48,23 @@ namespace Test.EditModeTest
         [Test]
         public void BlockPlaceEventViaAllReceivePacketAnalysisServiceTest()
         {
-            var dataStore = new TestDataStore();
-            var packetAnalysis = new AllReceivePacketAnalysisService(dataStore);
+            //テスト用のBlockPlaceEventを生成
+            var chunkUpdateEvent = new ChunkUpdateEvent();
+            var packetAnalysis = new AllReceivePacketAnalysisService(chunkUpdateEvent);
             
             var blockPosition = new Vector2Int(10,20);
             var blockId = 3;
             var chunkPosition = new Vector2Int(0, 20);
+            
+            
+            //イベントをサブスクライブする
+            var dataStore = new TestDataStore();
+            chunkUpdateEvent.Subscribe(dataStore.OnUpdateChunk,dataStore.OnUpdateBlock);
+            
+            
+            
+            
+            
             
             //パケットの解析
             packetAnalysis.Analysis(GetBlockPlaceEventData(blockPosition,blockId).ToArray());

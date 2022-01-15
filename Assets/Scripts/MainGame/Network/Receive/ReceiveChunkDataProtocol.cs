@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using MainGame.Constant;
+using MainGame.Network.Event;
 using MainGame.Network.Interface;
 using MainGame.Network.Util;
 using UnityEngine;
@@ -9,11 +10,11 @@ namespace MainGame.Network.Receive
 {
     public class ReceiveChunkDataProtocol : IAnalysisPacket
     {
-        private readonly IChunkUpdateObserver _chunkUpdateObserver;
+        private readonly ChunkUpdateEvent _chunkUpdateEvent;
 
-        public ReceiveChunkDataProtocol(IChunkUpdateObserver chunkUpdateObserver)
+        public ReceiveChunkDataProtocol(IChunkUpdateEvent chunkUpdateEvent)
         {
-            _chunkUpdateObserver = chunkUpdateObserver;
+            _chunkUpdateEvent = chunkUpdateEvent as ChunkUpdateEvent;
         }
 
         public void Analysis(List<byte> data)
@@ -36,8 +37,8 @@ namespace MainGame.Network.Receive
                 }
             }
             
-            //Set chunk data
-            _chunkUpdateObserver.UpdateChunk(chunkPos, chunkBlocks);
+            //chunk data event
+            _chunkUpdateEvent.OnOnChunkUpdateEvent(chunkPos, chunkBlocks);
         }
 
         private int GetBlockId(BitListEnumerator bits)
