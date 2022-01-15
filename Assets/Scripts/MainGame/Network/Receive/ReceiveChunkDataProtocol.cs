@@ -38,7 +38,7 @@ namespace MainGame.Network.Receive
             }
             
             //chunk data event
-            _chunkUpdateEvent.OnOnChunkUpdateEvent(chunkPos, chunkBlocks);
+            _chunkUpdateEvent.InvokeChunkUpdateEvent(chunkPos, chunkBlocks);
         }
 
         private int GetBlockId(BitListEnumerator bits)

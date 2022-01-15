@@ -19,11 +19,11 @@ namespace MainGame.Network.Event
             OnBlockUpdateEvent -= onBlockUpdate;
         }
 
-        public void OnOnChunkUpdateEvent(Vector2Int chunkPos, int[,] blockIds)
+        public void InvokeChunkUpdateEvent(Vector2Int chunkPos, int[,] blockIds)
         {
             OnChunkUpdateEvent?.Invoke(chunkPos, blockIds);
         }
-        public void OnOnBlockUpdateEvent(Vector2Int blockPos, int blockId)
+        public void InvokeBlockUpdateEvent(Vector2Int blockPos, int blockId)
         {
             OnBlockUpdateEvent?.Invoke(blockPos, blockId);
         }
