@@ -17,7 +17,7 @@ namespace EditModeTest
             var dataStore = new TestDataStore();
             var protocol = new ReceiveChunkDataProtocol(dataStore);
             //チャンクの原点0,20に設定
-            var chunkPosition = new Vector2(0, 20);
+            var chunkPosition = new Vector2Int(0, 20);
             
             //チャンクデータを受信
             protocol.Analysis(CreateBlockDataList(chunkPosition).ToArray());
@@ -48,7 +48,7 @@ namespace EditModeTest
         {
             var dataStore = new TestDataStore();
             var packetAnalysis = new AllReceivePacketAnalysisService(dataStore);
-            var chunkPosition = new Vector2(1000, 1240);
+            var chunkPosition = new Vector2Int(1000, 1240);
             
             packetAnalysis.Analysis(CreateBlockDataList(chunkPosition).ToArray());
             
@@ -71,7 +71,7 @@ namespace EditModeTest
 
 
         //0,0 0,20 20,0 20,20 10,14にブロックを設置する
-        private List<byte> CreateBlockDataList(Vector2 chunkPosition)
+        private List<byte> CreateBlockDataList(Vector2Int chunkPosition)
         {
             
             //チャンクデータのプロトコルを作成
@@ -165,7 +165,7 @@ namespace EditModeTest
 
     class TestDataStore : IChunkDataStore
     {
-        public Dictionary<Vector2, int[,]> Data = new Dictionary<Vector2, int[,]>();
+        public Dictionary<Vector2Int, int[,]> Data = new Dictionary<Vector2Int, int[,]>();
         public void SetChunk(Vector2Int chunkPosition, int[,] ids)
         {
             Data.Add(chunkPosition, ids);
