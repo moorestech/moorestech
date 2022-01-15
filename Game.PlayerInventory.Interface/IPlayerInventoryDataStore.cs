@@ -7,5 +7,6 @@ namespace Game.PlayerInventory.Interface
     {
         public IInventory GetInventoryData(int playerId);
         public List<SaveInventoryData> GetSaveInventoryDataList();
+        public void LoadPlayerInventory(List<SaveInventoryData> saveInventoryDataList);
     }
 }
