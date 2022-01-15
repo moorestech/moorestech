@@ -170,5 +170,10 @@ namespace EditModeTest
         {
             Data.Add(chunkPosition, ids);
         }
+
+        public void SetBlock(Vector2Int blockPosition, int id)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
