@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using MainGame.Constant;
 using MainGame.GameLogic.Interface;
 using UnityEngine;
 
@@ -14,7 +15,12 @@ namespace Test.TestModule
 
         public void SetBlock(Vector2Int blockPosition, int id)
         {
-            throw new System.NotImplementedException();
+            var chunkPos = ChunkConstant.BlockPositionToChunkOriginPosition(blockPosition);
+            if (!Data.ContainsKey(chunkPos))
+            {
+                Data.Add(chunkPos, new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize]);
+            }
+            Data[chunkPos][blockPosition.x - chunkPos.x, blockPosition.y - chunkPos.y] = id;
         }
     }
 }
