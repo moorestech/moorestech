@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using MainGame.Constant;
+using MainGame.Network.Event;
+using MainGame.Network.Interface;
 using MainGame.Network.Util;
 using Maingame.Types;
 
@@ -10,6 +12,13 @@ namespace MainGame.Network.Receive
     /// </summary>
     public class ReceivePlayerInventoryProtocol : IAnalysisPacket
     {
+        private readonly PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
+
+        public ReceivePlayerInventoryProtocol(IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+        {
+            _playerInventoryUpdateEvent = playerInventoryUpdateEvent as PlayerInventoryUpdateEvent;
+        }
+
         public void Analysis(List<byte> data)
         {
             var bytes = new ByteArrayEnumerator(data);
@@ -27,7 +36,10 @@ namespace MainGame.Network.Receive
                 items.Add(new ItemStack(id, count));
             }
             
-            
+            _playerInventoryUpdateEvent.OnOnPlayerInventoryUpdateEvent(
+                new OnPlayerInventoryUpdateProperties(
+                    playerId,
+                    items));
         }
     }
 }
