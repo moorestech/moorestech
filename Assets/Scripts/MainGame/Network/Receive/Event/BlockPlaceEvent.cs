@@ -25,7 +25,7 @@ namespace MainGame.Network.Receive.Event
             var blockId = bytes.MoveNextToGetInt();
             
             //ブロックをセットする
-            _chunkUpdateEvent.InvokeBlockUpdateEvent(new Vector2Int(x,y), blockId);
+            _chunkUpdateEvent.InvokeBlockUpdateEvent(new OnBlockUpdateEventProperties(new Vector2Int(x,y), blockId));
         }
     }
 }

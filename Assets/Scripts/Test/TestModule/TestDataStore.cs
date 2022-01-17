@@ -10,13 +10,16 @@ namespace Test.TestModule
     {
         public readonly Dictionary<Vector2Int, int[,]> Data = new Dictionary<Vector2Int, int[,]>();
         
-        public void OnUpdateChunk(Vector2Int chunkPosition, int[,] ids)
+        public void OnUpdateChunk(OnChunkUpdateEventProperties properties)
         {
-            Data.Add(chunkPosition, ids);
+            Data.Add(properties.ChunkPos, properties.BlockIds);
         }
 
-        public void OnUpdateBlock(Vector2Int blockPosition, int id)
+        public void OnUpdateBlock(OnBlockUpdateEventProperties properties)
         {
+            Vector2Int blockPosition = properties.BlockPos;
+            int id = properties.BlockId;
+            
             var chunkPos = ChunkConstant.BlockPositionToChunkOriginPosition(blockPosition);
             if (!Data.ContainsKey(chunkPos))
             {
