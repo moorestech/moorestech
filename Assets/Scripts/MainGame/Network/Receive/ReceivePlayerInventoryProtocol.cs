@@ -32,7 +32,7 @@ namespace MainGame.Network.Receive
             for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
             {
                 var id = bytes.MoveNextToGetInt();
-                var count = bytes.MoveNextToGetShort();
+                var count = bytes.MoveNextToGetInt();
                 items.Add(new ItemStack(id, count));
             }
             
