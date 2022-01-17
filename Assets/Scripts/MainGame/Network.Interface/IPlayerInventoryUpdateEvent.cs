@@ -31,13 +31,11 @@ namespace MainGame.Network.Interface
 
     public class OnPlayerInventorySlotUpdateProperties
     {
-        public readonly int PlayerId;
         public readonly int SlotId;
         public readonly ItemStack ItemStack;
 
-        public OnPlayerInventorySlotUpdateProperties(int playerId, int slotId, ItemStack itemStack)
+        public OnPlayerInventorySlotUpdateProperties(int slotId, ItemStack itemStack)
         {
-            PlayerId = playerId;
             SlotId = slotId;
             ItemStack = itemStack;
         }
