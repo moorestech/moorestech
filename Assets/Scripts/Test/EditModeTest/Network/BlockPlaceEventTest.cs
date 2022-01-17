@@ -22,7 +22,7 @@ namespace Test.EditModeTest.Network
             var blockPlaceEvent = new BlockPlaceEvent(chunkUpdateEvent);
             
             //イベントをサブスクライブする
-            var dataStore = new TestDataStore();
+            var dataStore = new TestChunkDataStore();
             chunkUpdateEvent.Subscribe(dataStore.OnUpdateChunk,dataStore.OnUpdateBlock);
 
             var blockPosition = new Vector2Int(10,20);
@@ -58,7 +58,7 @@ namespace Test.EditModeTest.Network
             
             
             //イベントをサブスクライブする
-            var dataStore = new TestDataStore();
+            var dataStore = new TestChunkDataStore();
             chunkUpdateEvent.Subscribe(dataStore.OnUpdateChunk,dataStore.OnUpdateBlock);
             
             

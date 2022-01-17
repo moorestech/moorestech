@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Test.TestModule
 {
-    public class TestDataStore
+    public class TestChunkDataStore
     {
         public readonly Dictionary<Vector2Int, int[,]> Data = new Dictionary<Vector2Int, int[,]>();
         

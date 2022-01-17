@@ -22,7 +22,7 @@ namespace Test.EditModeTest.Network
             var protocol = new ReceiveChunkDataProtocol(chunkUpdateEvent);
 
             //イベントをサブスクライブする
-            var dataStore = new TestDataStore();
+            var dataStore = new TestChunkDataStore();
             chunkUpdateEvent.Subscribe(dataStore.OnUpdateChunk,dataStore.OnUpdateBlock);
             
             //チャンクの原点0,19に設定
@@ -64,7 +64,7 @@ namespace Test.EditModeTest.Network
             var chunkPosition = new Vector2Int(1000, 1240);
 
             //イベントをサブスクライブする
-            var dataStore = new TestDataStore();
+            var dataStore = new TestChunkDataStore();
             chunkUpdateEvent.Subscribe(dataStore.OnUpdateChunk,dataStore.OnUpdateBlock);
             
             
