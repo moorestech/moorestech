@@ -10,12 +10,15 @@ namespace MainGame.Network
     {
         private readonly List<IAnalysisPacket> _analysisPacketList = new List<IAnalysisPacket>();
 
-        public AllReceivePacketAnalysisService(IChunkUpdateEvent chunkDataStore)
+        public AllReceivePacketAnalysisService(
+            IChunkUpdateEvent chunkUpdateEvent,
+            IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
         {
             _analysisPacketList.Add(new DummyProtocol());
-            _analysisPacketList.Add(new ReceiveChunkDataProtocol(chunkDataStore));
+            _analysisPacketList.Add(new ReceiveChunkDataProtocol(chunkUpdateEvent));
             _analysisPacketList.Add(new DummyProtocol());//将来的に他プレイヤー座標のパケットが入る
-            _analysisPacketList.Add(new ReceiveEventProtocol(chunkDataStore));
+            _analysisPacketList.Add(new ReceiveEventProtocol(chunkUpdateEvent));
+            _analysisPacketList.Add(new ReceivePlayerInventoryProtocol(playerInventoryUpdateEvent));
         }
 
         public void Analysis(byte[] bytes)
