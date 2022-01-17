@@ -9,7 +9,8 @@
         "Network.Util",
         "Constant",
         "TestModule",
-        "Network.Interface"
+        "Network.Interface",
+        "Types"
     ],
     "includePlatforms": [
         "Editor"
