@@ -1,6 +1,6 @@
 ﻿namespace MainGame.Constant
 {
-    public static class PlayerInventory
+    public static class PlayerInventoryConstant
     {
         public const int MainInventoryColumns = 9;
         public const int MainInventoryRows = 5;

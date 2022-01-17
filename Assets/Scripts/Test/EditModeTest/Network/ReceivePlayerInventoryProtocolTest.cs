@@ -26,7 +26,7 @@ namespace Test.EditModeTest.Network
             setItems.Add(0,new ItemStack(1,10));
             setItems.Add(1,new ItemStack(2,5));
             setItems.Add(24,new ItemStack(3,23));
-            setItems.Add(PlayerInventory.MainInventorySize-1,new ItemStack(100,19));
+            setItems.Add(PlayerInventoryConstant.MainInventorySize-1,new ItemStack(100,19));
             
             
             
@@ -68,7 +68,7 @@ namespace Test.EditModeTest.Network
             {
                 var playerId = random.Next(0,100);
                 var setItems = new Dictionary<int,ItemStack>();
-                for (int j = 0; j < PlayerInventory.MainInventorySize; j++)
+                for (int j = 0; j < PlayerInventoryConstant.MainInventorySize; j++)
                 {
                     //1/2の確率でアイテムを設定
                     if (random.Next(0,2) == 0)
@@ -128,7 +128,7 @@ namespace Test.EditModeTest.Network
             packet.AddRange(ToByteList.Convert(playerId));
             packet.AddRange(ToByteList.Convert((short)0));
 
-            for (int i = 0; i < PlayerInventory.MainInventorySize; i++)
+            for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
             {
                 if (items.ContainsKey(i))
                 {

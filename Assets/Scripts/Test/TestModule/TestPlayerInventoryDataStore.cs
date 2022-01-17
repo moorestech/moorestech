@@ -42,7 +42,7 @@ namespace Test.TestModule
             else
             {
                 var items = new List<ItemStack>();
-                for (int i = 0; i < PlayerInventory.MainInventorySize; i++)
+                for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
                 {
                     items.Add(new ItemStack(
                         ItemConstant.NullItemId,
