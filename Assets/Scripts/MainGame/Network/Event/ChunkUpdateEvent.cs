@@ -20,11 +20,11 @@ namespace MainGame.Network.Event
             OnBlockUpdateEvent -= onBlockUpdate;
         }
 
-        public void InvokeChunkUpdateEvent(OnChunkUpdateEventProperties properties)
+        internal void InvokeChunkUpdateEvent(OnChunkUpdateEventProperties properties)
         {
             OnChunkUpdateEvent?.Invoke(properties);
         }
-        public void InvokeBlockUpdateEvent(OnBlockUpdateEventProperties properties)
+        internal void InvokeBlockUpdateEvent(OnBlockUpdateEventProperties properties)
         {
             OnBlockUpdateEvent?.Invoke(properties);
         }
