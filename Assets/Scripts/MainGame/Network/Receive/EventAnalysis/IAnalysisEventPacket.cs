@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace MainGame.Network.Receive.Event
+namespace MainGame.Network.Receive.EventAnalysis
 {
     public interface IAnalysisEventPacket
     {

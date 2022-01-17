@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using MainGame.Network.Interface;
-using MainGame.Network.Receive.Event;
+using MainGame.Network.Receive.EventAnalysis;
 using MainGame.Network.Util;
 
 namespace MainGame.Network.Receive
