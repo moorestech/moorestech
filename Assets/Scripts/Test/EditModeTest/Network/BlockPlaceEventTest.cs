@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using MainGame.Network;
 using MainGame.Network.Event;
-using MainGame.Network.Receive.EventAnalysis;
+using MainGame.Network.Receive.EventPacket;
 using MainGame.Network.Util;
 using NUnit.Framework;
 using Test.TestModule;
