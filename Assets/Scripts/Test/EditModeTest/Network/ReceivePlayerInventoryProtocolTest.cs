@@ -169,7 +169,7 @@ namespace Test.EditModeTest.Network
         }
 
         //アイテムからプレイヤーインベントリのパケットを作る
-        private List<byte> CreatePlayerInventoryPacket(int playerId,Dictionary<int, ItemStack> items)
+        public List<byte> CreatePlayerInventoryPacket(int playerId,Dictionary<int, ItemStack> items)
         {
             var packet = new List<byte>();
             packet.AddRange(ToByteList.Convert((short)4));
