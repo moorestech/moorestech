@@ -27,7 +27,6 @@ namespace Test.EditModeTest.Network
             setItems.Add(1,new ItemStack(2,5));
             setItems.Add(24,new ItemStack(3,23));
             setItems.Add(PlayerInventory.MainInventorySize-1,new ItemStack(100,19));
-            setItems.Add(PlayerInventory.MainInventorySize,new ItemStack(1053,30));
             
             
             
