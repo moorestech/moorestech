@@ -2,7 +2,8 @@
     "name": "GameLogic",
     "rootNamespace": "",
     "references": [
-        "GameLogic.Interface"
+        "GameLogic.Interface",
+        "Network.Interface"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
