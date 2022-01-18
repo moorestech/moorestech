@@ -23,13 +23,13 @@ namespace MainGame.Network.Event
             OnPlayerInventorySlotUpdateEvent -= onPlayerInventorySlotUpdate;
         }
 
-        internal void OnOnPlayerInventoryUpdateEvent(
+        public void OnOnPlayerInventoryUpdateEvent(
             OnPlayerInventoryUpdateProperties properties)
         {
             OnPlayerInventoryUpdateEvent?.Invoke(properties);
         }
 
-        internal void OnOnPlayerInventorySlotUpdateEvent(
+        public void OnOnPlayerInventorySlotUpdateEvent(
             OnPlayerInventorySlotUpdateProperties properties)
         {
             OnPlayerInventorySlotUpdateEvent?.Invoke(properties);
