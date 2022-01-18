@@ -10,7 +10,8 @@
         "Constant",
         "TestModule",
         "Network.Interface",
-        "Types"
+        "Types",
+        "GameLogic"
     ],
     "includePlatforms": [
         "Editor"
