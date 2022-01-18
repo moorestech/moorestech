@@ -35,7 +35,7 @@ namespace Test.EditModeTest.GameLogic
             
             chunkEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(
                 new Vector2Int(20,-100), EmptyBlockArray()));
-            Assert.True(chunk.ContainsKey(new Vector2Int(-20,-100)));
+            Assert.True(chunk.ContainsKey(new Vector2Int(20,-100)));
         }
 
 
