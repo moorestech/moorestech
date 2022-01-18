@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -44,9 +45,6 @@ namespace Test.EditModeTest.GameLogic
         {
             var chunkEvent = new ChunkUpdateEvent();
             var chunkDataStore = new ChunkDataStore(chunkEvent);
-            
-            //リフレクションでチャンクのデータを取得する
-            var chunk = (Dictionary<Vector2Int, int[,]>)chunkDataStore.GetType().GetField("_chunk", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(chunkDataStore);
 
             //検証するチャンク
             var setChunks = new List<Vector2Int>()
@@ -78,23 +76,31 @@ namespace Test.EditModeTest.GameLogic
             {
                 foreach (var block in blocks)
                 {
-                    var i = block.Key.Item1;
-                    var j = block.Key.Item2;
+                    var x = c.x + block.Key.Item1;
+                    var y = c.y + block.Key.Item2;
                     chunkEvent.InvokeBlockUpdateEvent(new OnBlockUpdateEventProperties(
-                        new Vector2Int(c.x + i,c.y + j),
+                        new Vector2Int( x,y),
                         block.Value));   
                 }
             });
             
+            //リフレクションでチャンクのデータを取得する
+            var chunk = (Dictionary<Vector2Int, int[,]>)chunkDataStore.GetType().GetField("_chunk", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(chunkDataStore);
             
             //ブロックが正しくセットできているかテストする
             setChunks.ForEach(c =>
             {
+                Debug.Log(c);
                 foreach (var block in blocks)
                 {
                     var i = block.Key.Item1;
                     var j = block.Key.Item2;
-                    Assert.AreEqual(block.Value, chunk[c][i,j]);
+                    if (c == new Vector2Int(-40,40))
+                    {
+                    
+                    }
+                    var cBlock = chunk[c];
+                    Assert.AreEqual(block.Value, cBlock[i,j]);
                 }
             });
         }
