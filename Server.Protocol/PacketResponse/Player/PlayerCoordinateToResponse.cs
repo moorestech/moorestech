@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Game.World.Interface.DataStore;
 using Server.Protocol.PacketResponse.Const;
+using Server.Protocol.PacketResponse.Util;
 
 namespace Server.Protocol.PacketResponse.Player
 {
@@ -28,8 +29,7 @@ namespace Server.Protocol.PacketResponse.Player
         {
             var chunkHalf = ChunkResponseConst.PlayerVisibleRangeChunk / 2;
             //その座標のチャンクの原点
-            var x = coordinate.X / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
-            var y = coordinate.Y / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;
+            var (x, y) = new BlockPositionToOriginChunkPosition().Convert(coordinate.X, coordinate.Y);
 
             var result = new List<Coordinate>();
             for (int i = -chunkHalf; i <= chunkHalf; i++)
