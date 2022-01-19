@@ -1,8 +1,7 @@
 using Core.Inventory;
 using Core.Item;
-using Core.Item.Util;
 
-namespace Server.PacketHandle.PacketResponse.Util
+namespace Server.Protocol.PacketResponse.Util
 {
     public class InventoryItemMove
     {

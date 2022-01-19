@@ -6,7 +6,7 @@ using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using Server.PacketHandle.PacketResponse;
-using Server.PacketHandle.PacketResponse.Util;
+using Server.Protocol.PacketResponse.Util;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
