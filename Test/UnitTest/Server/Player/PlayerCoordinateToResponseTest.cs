@@ -126,6 +126,7 @@ namespace Test.UnitTest.Server.Player
         }
 
 
+        //startXからendXまで移動した時にえられるx座標のチャンクのデータを返す
         [TestCase(0, 25, 60)]
         [TestCase(25, 45, 80)]
         [TestCase(1000, 1020, 1060)]
