@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Util;
-using Server.PacketHandle.PacketResponse;
 using Server.PacketHandle.PacketResponse.Player;
 using Server.Protocol.PacketResponse.Player;
 using Server.Util;
@@ -41,7 +38,7 @@ namespace Server.Protocol.PacketResponse
 
             //プレイヤーの座標から返すチャンクのブロックデータを取得をする
             //byte配列に変換して返す
-            return _responses[playerId].GetResponseCoordinate(CoordinateCreator.New((int) x, (int) y)).Select(c =>
+            return _responses[playerId].GetResponseCoordinate(new Coordinate((int) x, (int) y)).Select(c =>
                 ChunkBlockToPayload.Convert(CoordinateToChunkBlocks.Convert(c, _worldBlockDatastore), c)).ToList();
         }
     }

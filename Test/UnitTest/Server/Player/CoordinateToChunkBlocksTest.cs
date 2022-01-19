@@ -5,7 +5,6 @@ using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
@@ -23,7 +22,7 @@ namespace Test.UnitTest.Server.Player
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
-            var b = CoordinateToChunkBlocks.Convert(CoordinateCreator.New(0, 0), worldData);
+            var b = CoordinateToChunkBlocks.Convert(new Coordinate(0, 0), worldData);
 
             Assert.AreEqual(b.GetLength(0), ChunkResponseConst.ChunkSize);
             Assert.AreEqual(b.GetLength(1), ChunkResponseConst.ChunkSize);
@@ -53,7 +52,7 @@ namespace Test.UnitTest.Server.Player
             //レスポンスのチェック
             for (int l = 0; l < 100; l++)
             {
-                var c = CoordinateCreator.New(
+                var c = new Coordinate(
                     random.Next(-5, 5) * ChunkResponseConst.ChunkSize,
                     random.Next(-5, 5) * ChunkResponseConst.ChunkSize);
                 var b = CoordinateToChunkBlocks.Convert(c, worldData);

@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Util;
 using NUnit.Framework;
-using Server.PacketHandle.PacketResponse.Player;
 using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Player;
 
@@ -16,7 +13,7 @@ namespace Test.UnitTest.Server.Player
         {
             var p = new PlayerCoordinateToResponse();
             //1回目は全てを返す
-            var cList = p.GetResponseCoordinate(CoordinateCreator.New(0, 0));
+            var cList = p.GetResponseCoordinate(new Coordinate(0, 0));
 
             var ans = new List<Coordinate>();
             if (ChunkResponseConst.ChunkSize != 20 || ChunkResponseConst.PlayerVisibleRangeChunk != 5)
@@ -28,7 +25,7 @@ namespace Test.UnitTest.Server.Player
             {
                 for (int j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
                 {
-                    ans.Add(CoordinateCreator.New(i, j));
+                    ans.Add(new Coordinate(i, j));
                 }
             }
 
@@ -38,7 +35,7 @@ namespace Test.UnitTest.Server.Player
             }
 
             //2回目は何も返さない
-            cList = p.GetResponseCoordinate(CoordinateCreator.New(0, 0));
+            cList = p.GetResponseCoordinate(new Coordinate(0, 0));
             Assert.AreEqual(0, cList.Count);
         }
 
@@ -47,16 +44,16 @@ namespace Test.UnitTest.Server.Player
         {
             var p = new PlayerCoordinateToResponse();
             //1回目は全てを返す
-            var cList = p.GetResponseCoordinate(CoordinateCreator.New(0, 0));
+            var cList = p.GetResponseCoordinate(new Coordinate(0, 0));
             Assert.AreEqual(cList.Count,
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk);
 
             //2回目1チャンクx分を増加させる
-            cList = p.GetResponseCoordinate(CoordinateCreator.New(25, 0));
+            cList = p.GetResponseCoordinate(new Coordinate(25, 0));
             var ans = new List<Coordinate>();
             for (int i = -2; i < 3; i++)
             {
-                ans.Add(CoordinateCreator.New(60, i * ChunkResponseConst.ChunkSize));
+                ans.Add(new Coordinate(60, i * ChunkResponseConst.ChunkSize));
             }
 
             foreach (var a in ans)
@@ -70,22 +67,22 @@ namespace Test.UnitTest.Server.Player
         {
             var p = new PlayerCoordinateToResponse();
             //1回目は全てを返す
-            var cList = p.GetResponseCoordinate(CoordinateCreator.New(0, 0));
+            var cList = p.GetResponseCoordinate(new Coordinate(0, 0));
             Assert.AreEqual(cList.Count,
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk);
 
             //2回目1チャンクx分を増加させる
-            cList = p.GetResponseCoordinate(CoordinateCreator.New(25, 25));
+            cList = p.GetResponseCoordinate(new Coordinate(25, 25));
             var ans = new List<Coordinate>();
             for (int i = -1; i < 4; i++)
             {
-                ans.Add(CoordinateCreator.New(i * ChunkResponseConst.ChunkSize, 60));
+                ans.Add(new Coordinate(i * ChunkResponseConst.ChunkSize, 60));
             }
 
-            ans.Add(CoordinateCreator.New(-20, 60));
-            ans.Add(CoordinateCreator.New(0, 60));
-            ans.Add(CoordinateCreator.New(20, 60));
-            ans.Add(CoordinateCreator.New(40, 60));
+            ans.Add(new Coordinate(-20, 60));
+            ans.Add(new Coordinate(0, 60));
+            ans.Add(new Coordinate(20, 60));
+            ans.Add(new Coordinate(40, 60));
 
             foreach (var a in ans)
             {
@@ -105,16 +102,16 @@ namespace Test.UnitTest.Server.Player
         {
             var p = new PlayerCoordinateToResponse();
             //1回目は全てを返す
-            var cList = p.GetResponseCoordinate(CoordinateCreator.New(startX, 0));
+            var cList = p.GetResponseCoordinate(new Coordinate(startX, 0));
             Assert.AreEqual(cList.Count,
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk);
 
             //2回目1チャンクx分を増加させる
-            cList = p.GetResponseCoordinate(CoordinateCreator.New(endX, 0));
+            cList = p.GetResponseCoordinate(new Coordinate(endX, 0));
             var ans = new List<Coordinate>();
             for (int i = -2; i < 3; i++)
             {
-                ans.Add(CoordinateCreator.New(getChunkX, i * ChunkResponseConst.ChunkSize));
+                ans.Add(new Coordinate(getChunkX, i * ChunkResponseConst.ChunkSize));
             }
 
             foreach (var a in ans)

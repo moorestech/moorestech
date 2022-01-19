@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Util;
 using Server.Protocol.PacketResponse.Const;
 
 namespace Server.Protocol.PacketResponse.Player
@@ -37,7 +36,7 @@ namespace Server.Protocol.PacketResponse.Player
             {
                 for (int j = -chunkHalf; j <= chunkHalf; j++)
                 {
-                    result.Add(CoordinateCreator.New(
+                    result.Add(new Coordinate(
                         x + i * ChunkResponseConst.ChunkSize,
                         y + j * ChunkResponseConst.ChunkSize));
                 }

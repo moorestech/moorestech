@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Core.Block;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
-using Game.World.Interface.Util;
 using World.Event;
 
 namespace World.DataStore
@@ -40,9 +37,9 @@ namespace World.DataStore
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
             if (!_blockMasterDictionary.ContainsKey(block.GetIntId()) &&
-                !_coordinateDictionary.ContainsKey(CoordinateCreator.New(x, y)))
+                !_coordinateDictionary.ContainsKey(new Coordinate(x, y)))
             {
-                var c = CoordinateCreator.New(x, y);
+                var c = new Coordinate(x, y);
                 var data = new WorldBlockData(block, x, y, blockDirection);
                 _blockMasterDictionary.Add(block.GetIntId(), data);
                 _coordinateDictionary.Add(c, block.GetIntId());
@@ -62,21 +59,21 @@ namespace World.DataStore
             var data = _blockMasterDictionary[intId];
 
             _blockRemoveEvent.OnBlockRemoveEventInvoke(new BlockRemoveEventProperties(
-                CoordinateCreator.New(x, y), data.Block));
+                new Coordinate(x, y), data.Block));
 
             _blockMasterDictionary.Remove(intId);
-            _coordinateDictionary.Remove(CoordinateCreator.New(x, y));
+            _coordinateDictionary.Remove(new Coordinate(x, y));
             return true;
         }
 
         private int GetBlockId(int x, int y)
         {
-            return _coordinateDictionary[CoordinateCreator.New(x, y)];
+            return _coordinateDictionary[new Coordinate(x, y)];
         }
 
         public IBlock GetBlock(int x, int y)
         {
-            var c = CoordinateCreator.New(x, y);
+            var c = new Coordinate(x, y);
             if (_coordinateDictionary.ContainsKey(c)) return _blockMasterDictionary[_coordinateDictionary[c]].Block;
             return _nullBlock;
         }
@@ -94,7 +91,7 @@ namespace World.DataStore
 
         public BlockDirection GetBlockDirection(int x, int y)
         {
-            var c = CoordinateCreator.New(x, y);
+            var c = new Coordinate(x, y);
             if (_coordinateDictionary.ContainsKey(c))
                 return _blockMasterDictionary[_coordinateDictionary[c]].BlockDirection;
             return BlockDirection.North;

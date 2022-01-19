@@ -7,7 +7,6 @@ using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
@@ -34,7 +33,7 @@ namespace Test.CombinedTest.Server.PacketTest
             {
                 for (int j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
                 {
-                    ans.Add(CoordinateCreator.New(i, j));
+                    ans.Add(new Coordinate(i, j));
                 }
             }
 
@@ -94,7 +93,7 @@ namespace Test.CombinedTest.Server.PacketTest
             {
                 for (int j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
                 {
-                    ans.Add(CoordinateCreator.New(i, j));
+                    ans.Add(new Coordinate(i, j));
                 }
             }
 
@@ -148,7 +147,7 @@ namespace Test.CombinedTest.Server.PacketTest
             {
                 for (int j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
                 {
-                    ans.Add(CoordinateCreator.New(i, j));
+                    ans.Add(new Coordinate(i, j));
                 }
             }
 
@@ -236,7 +235,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 }
             }
 
-            return new ChunkData(blocks, CoordinateCreator.New(x, y));
+            return new ChunkData(blocks, new Coordinate(x, y));
         }
 
         private class ChunkData
