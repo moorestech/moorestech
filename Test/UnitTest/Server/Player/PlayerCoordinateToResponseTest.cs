@@ -131,7 +131,7 @@ namespace Test.UnitTest.Server.Player
         [TestCase(25, 45, 80)]
         [TestCase(1000, 1020, 1060)]
         [TestCase(0, -25, -60)]
-        [TestCase(-25, -45, -80)]
+        [TestCase(-25, -45, -100)]
         [TestCase(-1000, -1020, -1060)]
         [TestCase(-25, 0, 40)]
         public void ShiftOneChunkXToCoordinateResponseTest(int startX, int endX, int getChunkX)
