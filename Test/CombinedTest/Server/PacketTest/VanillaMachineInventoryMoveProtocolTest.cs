@@ -68,7 +68,7 @@ namespace Test.CombinedTest.Server.PacketTest
         private List<byte> BlockInventoryItemMove(int fromSlot,int toSlot,int itemCount,int x,int y)
         {
             var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 8));
+            payload.AddRange(ToByteList.Convert((short) 7));
             payload.AddRange(ToByteList.Convert(x));
             payload.AddRange(ToByteList.Convert(y));
             payload.AddRange(ToByteList.Convert(fromSlot));
