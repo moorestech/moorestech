@@ -61,7 +61,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //アイテムを加算するテスト
             packet.GetPacketResponse(BlockInventoryItemMove(2, 1, 2, x,y));
             Assert.AreEqual(blockInventoryData.GetItem(2), itemStackFactory.CreatEmpty());
-            Assert.AreEqual(blockInventoryData.GetItem(0), itemStackFactory.Create(1, 4));
+            Assert.AreEqual(blockInventoryData.GetItem(1), itemStackFactory.Create(1, 5));
         }
 
         private List<byte> BlockInventoryItemMove(int fromSlot,int toSlot,int itemCount,int x,int y)
