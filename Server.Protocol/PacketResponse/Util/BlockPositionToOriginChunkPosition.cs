@@ -6,21 +6,21 @@ namespace Server.Protocol.PacketResponse.Util
     {
         public (int,int) Convert(int x, int y)
         {
-            int chunkX = x / ChunkResponseConst.ChunkSize;
-	
-            if (x < 0)
-            {
-                chunkX -= 1;
-            }
-            int chunkY = y / ChunkResponseConst.ChunkSize;
-            if (y < 0)
-            {
-                chunkY -= 1;
-            }
-            int chunkXPosition = chunkX * ChunkResponseConst.ChunkSize;
-            int chunkYPosition = chunkY * ChunkResponseConst.ChunkSize;
-            
-            return (chunkXPosition,chunkYPosition);
+            return (GetChunk(x),GetChunk(y));
         }
+
+        private int GetChunk(int n)
+        {
+            int chunk = n / ChunkResponseConst.ChunkSize;
+            
+            
+            if (n < 0 && n % ChunkResponseConst.ChunkSize != 0)
+            {
+                chunk--;
+            }
+            int chunkPosition = chunk * ChunkResponseConst.ChunkSize;
+            return chunkPosition;
+        }
+        
     }
 }
