@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Machine;
+using Core.Inventory;
 using Core.Item;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Protocol;
 using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest
@@ -33,6 +35,15 @@ namespace Test.CombinedTest.Server.PacketTest
                 (VanillaMachine)serviceProvider.GetService<BlockFactory>().Create(MachineBlockId,1);
             serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(blockInventoryData,0,0,BlockDirection.East);
 
+            Check(blockInventoryData, itemStackFactory, packet, x, y);
+        }
+
+        private void Check(
+            IInventory blockInventoryData,
+            ItemStackFactory itemStackFactory,
+            PacketResponseCreator packet,
+            int x,int y)
+        {
             //アイテムの設定
             blockInventoryData.SetItem(0, itemStackFactory.Create(1, 5));
             blockInventoryData.SetItem(1, itemStackFactory.Create(2, 1));
@@ -62,7 +73,9 @@ namespace Test.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(BlockInventoryItemMove(2, 1, 2, x,y));
             Assert.AreEqual(blockInventoryData.GetItem(2), itemStackFactory.CreatEmpty());
             Assert.AreEqual(blockInventoryData.GetItem(1), itemStackFactory.Create(1, 5));
+            
         }
+        
 
         private List<byte> BlockInventoryItemMove(int fromSlot,int toSlot,int itemCount,int x,int y)
         {
