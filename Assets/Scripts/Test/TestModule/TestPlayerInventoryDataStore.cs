@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MainGame.Constant;
 using MainGame.Network.Interface;
+using MainGame.Network.Interface.Receive;
 using Maingame.Types;
 
 namespace Test.TestModule

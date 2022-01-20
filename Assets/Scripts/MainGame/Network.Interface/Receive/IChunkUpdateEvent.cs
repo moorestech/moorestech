@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace MainGame.Network.Interface
+namespace MainGame.Network.Interface.Receive
 {
     public interface IChunkUpdateEvent
     {

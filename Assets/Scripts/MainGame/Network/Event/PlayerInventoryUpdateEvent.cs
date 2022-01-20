@@ -1,5 +1,6 @@
 using MainGame.Network.Interface;
-using static MainGame.Network.Interface.IPlayerInventoryUpdateEvent;
+using MainGame.Network.Interface.Receive;
+using static MainGame.Network.Interface.Receive.IPlayerInventoryUpdateEvent;
 
 namespace MainGame.Network.Event
 {

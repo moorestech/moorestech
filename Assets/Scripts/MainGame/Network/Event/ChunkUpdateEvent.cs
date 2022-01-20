@@ -1,6 +1,7 @@
 ﻿using MainGame.Network.Interface;
+using MainGame.Network.Interface.Receive;
 using UnityEngine;
-using static MainGame.Network.Interface.IChunkUpdateEvent;
+using static MainGame.Network.Interface.Receive.IChunkUpdateEvent;
 
 namespace MainGame.Network.Event
 {

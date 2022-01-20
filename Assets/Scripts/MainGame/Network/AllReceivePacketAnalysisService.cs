@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using MainGame.Network.Interface;
+using MainGame.Network.Interface.Receive;
 using MainGame.Network.Receive;
 using MainGame.Network.Util;
 

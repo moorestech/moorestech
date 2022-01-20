@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Maingame.Types;
 
-namespace MainGame.Network.Interface
+namespace MainGame.Network.Interface.Receive
 {
     public interface IPlayerInventoryUpdateEvent
     {

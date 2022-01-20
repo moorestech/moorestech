@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using MainGame.Network.Interface;
+using MainGame.Network.Interface.Receive;
 using MainGame.Network.Receive.EventPacket;
 using MainGame.Network.Util;
 

@@ -6,6 +6,7 @@ using MainGame.Constant;
 using MainGame.GameLogic.Chunk;
 using MainGame.Network.Event;
 using MainGame.Network.Interface;
+using MainGame.Network.Interface.Receive;
 using NUnit.Framework;
 using UnityEngine;
 
