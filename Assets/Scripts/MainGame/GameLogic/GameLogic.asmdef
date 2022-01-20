@@ -5,7 +5,8 @@
         "GameLogic.Interface",
         "Network.Interface",
         "Constant",
-        "Types"
+        "Types",
+        "Constant"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
