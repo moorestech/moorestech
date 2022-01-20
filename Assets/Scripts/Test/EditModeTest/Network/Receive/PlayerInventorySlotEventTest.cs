@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using MainGame.Network;
 using MainGame.Network.Event;
-using MainGame.Network.Receive.EventPacket;
 using MainGame.Network.Util;
 using Maingame.Types;
 using NUnit.Framework;
 using Test.TestModule;
 
-namespace Test.EditModeTest.Network
+namespace Test.EditModeTest.Network.Receive
 {
     public class PlayerInventorySlotEventTest
     {

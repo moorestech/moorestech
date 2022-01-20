@@ -7,9 +7,8 @@ using MainGame.Network.Util;
 using Maingame.Types;
 using NUnit.Framework;
 using Test.TestModule;
-using UnityEditor;
 
-namespace Test.EditModeTest.Network
+namespace Test.EditModeTest.Network.Receive
 {
     public class ReceivePlayerInventoryProtocolTest
     {
