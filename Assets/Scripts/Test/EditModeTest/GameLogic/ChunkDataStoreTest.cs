@@ -95,10 +95,6 @@ namespace Test.EditModeTest.GameLogic
                 {
                     var i = block.Key.Item1;
                     var j = block.Key.Item2;
-                    if (c == new Vector2Int(-40,40))
-                    {
-                    
-                    }
                     var cBlock = chunk[c];
                     Assert.AreEqual(block.Value, cBlock[i,j]);
                 }
