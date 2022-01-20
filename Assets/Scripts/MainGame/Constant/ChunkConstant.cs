@@ -8,9 +8,20 @@ namespace MainGame.Constant
         
         public static Vector2Int BlockPositionToChunkOriginPosition(Vector2Int blockPosition)
         {
-            var x = blockPosition.x / ChunkConstant.ChunkSize * ChunkConstant.ChunkSize;
-            var y = blockPosition.y / ChunkConstant.ChunkSize * ChunkConstant.ChunkSize;
-            return new Vector2Int(x, y);
+            return new Vector2Int(GetChunk(blockPosition.x), GetChunk(blockPosition.y));
+        }
+        
+        private static int GetChunk(int n)
+        {
+            int chunk = n / ChunkSize;
+            
+            
+            if (n < 0 && n % ChunkSize != 0)
+            {
+                chunk--;
+            }
+            int chunkPosition = chunk * ChunkSize;
+            return chunkPosition;
         }
     }
 }
