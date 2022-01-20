@@ -4,6 +4,7 @@ using Core.Block.Blocks.Miner;
 using Core.Block.Config;
 using Core.Block.RecipeConfig;
 using Core.Electric;
+using Core.Inventory;
 using Core.Item;
 using Core.Item.Config;
 using Core.Ore;
@@ -52,6 +53,7 @@ namespace Server
             services.AddSingleton<IWorldBlockComponentDatastore<IElectricPole>, WorldBlockComponentDatastore<IElectricPole>>();
             services.AddSingleton<IWorldBlockComponentDatastore<IPowerGenerator>, WorldBlockComponentDatastore<IPowerGenerator>>();
             services.AddSingleton<IWorldBlockComponentDatastore<IBlockInventory>, WorldBlockComponentDatastore<IBlockInventory>>();
+            services.AddSingleton<IWorldBlockComponentDatastore<IInventory>, WorldBlockComponentDatastore<IInventory>>();
             services.AddSingleton<IWorldBlockComponentDatastore<IMiner>, WorldBlockComponentDatastore<IMiner>>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IWorldElectricSegmentDatastore, WorldElectricSegmentDatastore>();
