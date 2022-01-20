@@ -13,11 +13,11 @@ using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
-    public class VanillaMachineInventoryMoveProtocolTest
+    public class InventoryBlockInventoryMoveProtocolTest
     {
         private const int MachineBlockId = 1;
         [Test]
-        public void BlockInventoryItemMove()
+        public void VanillaMachineInventoryItemMove()
         {
             int playerId = 1;
             int playerSlotIndex = 2;
