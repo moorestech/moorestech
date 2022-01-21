@@ -26,7 +26,7 @@ namespace Test.Module.TestConfig
             return new BlockConfigData(id,
                 "Generated Block from AllMachineBlockConfig.cs",
                 "Machine",
-                new MachineBlockConfigParam(100, 100, 100));
+                new MachineBlockConfigParam(100, 100, 100),10);
         }
 
         public List<int> GetBlockIds()
