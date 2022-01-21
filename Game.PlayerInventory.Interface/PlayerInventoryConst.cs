@@ -13,7 +13,7 @@ namespace Game.PlayerInventory.Interface
             if (slot < 0 || MainInventoryColumns <= slot)
                 throw new Exception("ホットバーは0～8までです");
             //インベントリの一番したがホットバーとなる
-            return (MainInventoryColumns-1) * MainInventoryRows + slot;
+            return (MainInventoryRows-1) * MainInventoryColumns + slot;
         }
     }
 }
