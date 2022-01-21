@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Net.Sockets;
+using MainGame.Network.Interface;
 using MainGame.Network.Interface.Send;
 using MainGame.Network.Util;
 
@@ -8,7 +8,7 @@ namespace MainGame.Network.Send
     public class SendPlaceHotBarBlockProtocol : ISendPlaceHotBarBlockProtocol
     {
         private const short ProtocolId = 8;
-        private Socket _socket;
+        private ISocket _socket;
         
         public void Send(int x, int y, short hotBarSlot, int playerId)
         {
