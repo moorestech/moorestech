@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Block.Config.LoadConfig;
 using Core.Block.Config.LoadConfig.Param;
+using Core.Item.Util;
 
 namespace Core.Block.Config
 {
@@ -24,7 +25,8 @@ namespace Core.Block.Config
             return new BlockConfigData(id,
                 "ID " + id + " is undefined",
                 VanillaBlockType.Block,
-                new NullBlockConfigParam());
+                new NullBlockConfigParam(),
+                ItemConst.NullItemId);
         }
 
         public List<int> GetBlockIds()
