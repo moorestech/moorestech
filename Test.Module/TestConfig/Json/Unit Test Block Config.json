@@ -3,6 +3,7 @@
     {
       "name": "TestMachine1",
       "type": "Machine",
+      "itemId": 1,
       "param": {
         "inputSlot": 2,
         "outputSlot": 1,
@@ -12,6 +13,7 @@
     {
       "name": "TestMachine2",
       "type": "Machine",
+      "itemId": 2,
       "param": {
         "inputSlot": 3,
         "outputSlot": 1,
@@ -21,6 +23,7 @@
     {
       "name": "TestMachine3",
       "type": "Machine",
+      "itemId": 3,
       "param": {
         "inputSlot": 2,
         "outputSlot": 3,
@@ -31,6 +34,7 @@
       "id": 10,
       "name": "TestMachine10",
       "type": "Machine",
+      "itemId": 4,
       "param": {
         "inputSlot": 5,
         "outputSlot": 1,
@@ -40,6 +44,7 @@
     {
       "name": "TestMachine11",
       "type": "Machine",
+      "itemId": 5,
       "param": {
         "inputSlot": 2,
         "outputSlot": 6,
