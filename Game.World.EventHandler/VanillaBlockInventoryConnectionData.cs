@@ -22,7 +22,9 @@ namespace Game.World.EventHandler
 
                 {
                     VanillaBlockType.BeltConveyor, new IoConnectionData(
+                        // 南、西、東をからの接続を受け、アイテムをインプットする
                         new ConnectionPosition[] {new(-1, 0), new(0, 1), new(0, -1)},
+                        //北向きに出力する
                         new ConnectionPosition[] {new(1, 0)})
                 }
             };
