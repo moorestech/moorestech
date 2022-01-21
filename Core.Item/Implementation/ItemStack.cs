@@ -16,7 +16,7 @@ namespace Core.Item.Implementation
         {
             _itemConfig = itemConfig;
             _itemStackFactory = itemStackFactory;
-            if (id == ItemConst.NullItemId)
+            if (id == ItemConst.EmptyItemId)
             {
                 throw new ArgumentException("Item id cannot be null");
             }
@@ -78,7 +78,7 @@ namespace Core.Item.Implementation
         {
             var tmpStack = _itemConfig.GetItemConfig(Id).Stack;
 
-            return (Id == item.Id || item.Id == ItemConst.NullItemId) &&
+            return (Id == item.Id || item.Id == ItemConst.EmptyItemId) &&
                    item.Count + Count <= tmpStack;
         }
 

@@ -11,7 +11,7 @@ namespace Core.Item.Implementation
             _itemStackFactory = itemStackFactory;
         }
 
-        public int Id => ItemConst.NullItemId;
+        public int Id => ItemConst.EmptyItemId;
         public int Count => 0;
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)

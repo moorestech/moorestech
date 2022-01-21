@@ -23,7 +23,7 @@ namespace Core.Block.Blocks.Miner
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
 
         private int _defaultMiningTime = int.MaxValue;
-        private int _miningItemId = ItemConst.NullItemId;
+        private int _miningItemId = ItemConst.EmptyItemId;
         
         private int _nowPower = 0;
         private double _remainingMillSecond = int.MaxValue;

@@ -55,7 +55,7 @@ namespace Test.CombinedTest.Core
             var fuelItemId = (int) typeof(VanillaPowerGenerator).GetField("_fuelItemId",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 .GetValue(powerGenerator);
-            Assert.AreEqual(ItemConst.NullItemId, fuelItemId);
+            Assert.AreEqual(ItemConst.EmptyItemId, fuelItemId);
 
             //燃料を2個挿入
             powerGenerator.InsertItem(fuelItem1);
@@ -85,7 +85,7 @@ namespace Test.CombinedTest.Core
             fuelItemId = (int) typeof(VanillaPowerGenerator).GetField("_fuelItemId",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 .GetValue(powerGenerator);
-            Assert.AreEqual(ItemConst.NullItemId, fuelItemId);
+            Assert.AreEqual(ItemConst.EmptyItemId, fuelItemId);
         }
     }
 }

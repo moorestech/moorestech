@@ -36,7 +36,7 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, response.MoveNextToGetShort());
             for (int i = 0; i < PlayerInventoryConst.MainInventoryColumns; i++)
             {
-                Assert.AreEqual(ItemConst.NullItemId, response.MoveNextToGetInt());
+                Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
                 Assert.AreEqual(0, response.MoveNextToGetInt());
             }
 
@@ -73,7 +73,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 }
                 else
                 {
-                    Assert.AreEqual(ItemConst.NullItemId, response.MoveNextToGetInt());
+                    Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
                     Assert.AreEqual(0, response.MoveNextToGetInt());
                 }
             }

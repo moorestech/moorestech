@@ -16,7 +16,7 @@ namespace Core.Block.Blocks.PowerGenerator
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
         private readonly List<IItemStack> _fuelItemStacks;
 
-        private int _fuelItemId = ItemConst.NullItemId;
+        private int _fuelItemId = ItemConst.EmptyItemId;
         private double _remainingFuelTime = 0;
 
         public VanillaPowerGenerator(int blockId, int intId, int fuelItemSlot, ItemStackFactory itemStackFactory,
@@ -84,14 +84,14 @@ namespace Core.Block.Blocks.PowerGenerator
         {
             //現在燃料を消費しているか判定
             //燃料が在る場合は燃料残り時間をUpdate時間分減らす
-            if (_fuelItemId != ItemConst.NullItemId)
+            if (_fuelItemId != ItemConst.EmptyItemId)
             {
                 _remainingFuelTime -= GameUpdate.UpdateTime;
 
                 //残り時間が0以下の時は燃料の設定をNullItemIdにする
                 if (_remainingFuelTime <= 0)
                 {
-                    _fuelItemId = ItemConst.NullItemId;
+                    _fuelItemId = ItemConst.EmptyItemId;
                 }
 
                 return;

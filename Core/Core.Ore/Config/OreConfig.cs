@@ -15,7 +15,7 @@ namespace Core.Ore.Config
 
         public int OreIdToItemId(int oreId)
         {
-            return _oreConfigData.ContainsKey(oreId) ? _oreConfigData[oreId].MiningItemId : ItemConst.NullItemId;
+            return _oreConfigData.ContainsKey(oreId) ? _oreConfigData[oreId].MiningItemId : ItemConst.EmptyItemId;
         }
 
         public List<int> GetIds()

@@ -15,7 +15,7 @@ namespace Core.Item
 
         public IItemStack Create(int id, int count)
         {
-            if (id == ItemConst.NullItemId)
+            if (id == ItemConst.EmptyItemId)
             {
                 return CreatEmpty();
             }

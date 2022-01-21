@@ -38,7 +38,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
         {
             var minerParam = param.Param as MinerBlockConfigParam;
             
-            var oreItem = ItemConst.NullItemId;
+            var oreItem = ItemConst.EmptyItemId;
             var requestPower = 0;
             var miningTime = int.MaxValue;
             

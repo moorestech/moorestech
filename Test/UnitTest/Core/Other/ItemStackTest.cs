@@ -18,21 +18,21 @@ namespace Test.UnitTest.Core.Other
             _itemStackFactory = new ItemStackFactory(new TestItemConfig());
         }
 
-        [TestCase(1, 1, 1, 1, 2, 0, 1, ItemConst.NullItemId)]
-        [TestCase(1, 5, 1, 1, 6, 0, 1, ItemConst.NullItemId)]
-        [TestCase(ItemConst.NullItemId, 0, 1, 3, 3, 0, 1, ItemConst.NullItemId)]
-        [TestCase(ItemConst.NullItemId, 0, 2, 9, 9, 0, 2, ItemConst.NullItemId)]
-        [TestCase(ItemConst.NullItemId, 5, 1, 1, 1, 0, 1, ItemConst.NullItemId)]
-        [TestCase(1, 1, ItemConst.NullItemId, 0, 1, 0, 1, ItemConst.NullItemId)]
-        [TestCase(1, 1, ItemConst.NullItemId, 0, 1, 0, 1, ItemConst.NullItemId)]
-        [TestCase(1, 5, ItemConst.NullItemId, 0, 5, 0, 1, ItemConst.NullItemId)]
+        [TestCase(1, 1, 1, 1, 2, 0, 1, ItemConst.EmptyItemId)]
+        [TestCase(1, 5, 1, 1, 6, 0, 1, ItemConst.EmptyItemId)]
+        [TestCase(ItemConst.EmptyItemId, 0, 1, 3, 3, 0, 1, ItemConst.EmptyItemId)]
+        [TestCase(ItemConst.EmptyItemId, 0, 2, 9, 9, 0, 2, ItemConst.EmptyItemId)]
+        [TestCase(ItemConst.EmptyItemId, 5, 1, 1, 1, 0, 1, ItemConst.EmptyItemId)]
+        [TestCase(1, 1, ItemConst.EmptyItemId, 0, 1, 0, 1, ItemConst.EmptyItemId)]
+        [TestCase(1, 1, ItemConst.EmptyItemId, 0, 1, 0, 1, ItemConst.EmptyItemId)]
+        [TestCase(1, 5, ItemConst.EmptyItemId, 0, 5, 0, 1, ItemConst.EmptyItemId)]
         [TestCase(3, 1, 1, 8, 1, 8, 3, 1)]
         [TestCase(1, 1, 3, 1, 1, 1, 1, 3)]
         [TestCase(2, 5, 5, 3, 5, 3, 2, 5)]
         public void AddTest(int mid, int mamo, int rid, int ramo, int ansMAmo, int ansRAmo, int ansMid, int ansRID)
         {
             IItemStack mineItemStack;
-            if (mid == ItemConst.NullItemId)
+            if (mid == ItemConst.EmptyItemId)
             {
                 mineItemStack = _itemStackFactory.CreatEmpty();
             }
@@ -42,7 +42,7 @@ namespace Test.UnitTest.Core.Other
             }
 
             IItemStack receivedItemStack;
-            if (rid == ItemConst.NullItemId)
+            if (rid == ItemConst.EmptyItemId)
             {
                 receivedItemStack = _itemStackFactory.CreatEmpty();
             }
@@ -59,14 +59,14 @@ namespace Test.UnitTest.Core.Other
         }
 
         [TestCase(1, 5, 1, 4, 1)]
-        [TestCase(ItemConst.NullItemId, 5, 1, 0, ItemConst.NullItemId)]
-        [TestCase(1, 5, 10, 0, ItemConst.NullItemId)]
-        [TestCase(1, 8, 8, 0, ItemConst.NullItemId)]
-        [TestCase(1, 8, 9, 0, ItemConst.NullItemId)]
+        [TestCase(ItemConst.EmptyItemId, 5, 1, 0, ItemConst.EmptyItemId)]
+        [TestCase(1, 5, 10, 0, ItemConst.EmptyItemId)]
+        [TestCase(1, 8, 8, 0, ItemConst.EmptyItemId)]
+        [TestCase(1, 8, 9, 0, ItemConst.EmptyItemId)]
         public void SubTest(int mid, int mamo, int subamo, int ansamo, int ansID)
         {
             IItemStack mineItemStack;
-            if (mid == ItemConst.NullItemId)
+            if (mid == ItemConst.EmptyItemId)
             {
                 mineItemStack = _itemStackFactory.CreatEmpty();
             }

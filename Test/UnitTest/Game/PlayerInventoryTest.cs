@@ -24,7 +24,7 @@ namespace Test.UnitTest.Game
             var count = itemConfig.GetItemConfig(id).Stack;
             //Insert test
             var result = playerInventory.InsertItem(0, itemStackFactory.Create(id, count));
-            Assert.AreEqual(ItemConst.NullItemId, result.Id);
+            Assert.AreEqual(ItemConst.EmptyItemId, result.Id);
 
             result = playerInventory.InsertItem(0, itemStackFactory.Create(id, count));
             Assert.AreEqual(id, result.Id);
@@ -62,7 +62,7 @@ namespace Test.UnitTest.Game
             int slot = 27;
 
             var result = playerInventory.InsertItem(slot, itemStackFactory.Create(id, count));
-            Assert.AreEqual(ItemConst.NullItemId, result.Id);
+            Assert.AreEqual(ItemConst.EmptyItemId, result.Id);
 
             result = playerInventory.UseHotBar(slot);
             Assert.AreEqual(id, result.Id);
@@ -70,10 +70,10 @@ namespace Test.UnitTest.Game
             playerInventory.UseHotBar(slot);
             playerInventory.UseHotBar(slot);
             result = playerInventory.UseHotBar(slot);
-            Assert.AreEqual(ItemConst.NullItemId, result.Id);
+            Assert.AreEqual(ItemConst.EmptyItemId, result.Id);
 
             result = playerInventory.GetItem(slot);
-            Assert.AreEqual(ItemConst.NullItemId, result.Id);
+            Assert.AreEqual(ItemConst.EmptyItemId, result.Id);
         }
     }
 }

@@ -7,6 +7,6 @@
     public static class ItemConst
     {
         //ここの値を変更するときはTestアセンブリのItemConstも変更してください
-        public const int NullItemId = 0;
+        public const int EmptyItemId = 0;
     }
 }

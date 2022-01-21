@@ -26,7 +26,7 @@ namespace Core.Block.Config
                 "ID " + id + " is undefined",
                 VanillaBlockType.Block,
                 new NullBlockConfigParam(),
-                ItemConst.NullItemId);
+                ItemConst.EmptyItemId);
         }
 
         public List<int> GetBlockIds()

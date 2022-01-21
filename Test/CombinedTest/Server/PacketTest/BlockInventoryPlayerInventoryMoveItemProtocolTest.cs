@@ -84,7 +84,7 @@ namespace Test.CombinedTest.Server.PacketTest
             input = GetInputSlot(block);
             Assert.AreEqual(1, input[blockInventorySlotIndex].Id);
             Assert.AreEqual(5, input[blockInventorySlotIndex].Count);
-            Assert.AreEqual(ItemConst.NullItemId, playerInventoryData.GetItem(playerSlotIndex).Id);
+            Assert.AreEqual(ItemConst.EmptyItemId, playerInventoryData.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(0, playerInventoryData.GetItem(playerSlotIndex).Count);
 
 
