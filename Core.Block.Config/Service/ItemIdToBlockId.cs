@@ -25,8 +25,16 @@ namespace Core.Block.Config.Service
             
         }
         
+        public bool CanConvert(int itemId)
+        {
+            return _idTable.ContainsKey(itemId);
+        }
+        
         public int Convert(int itemId)
         {
+            if (!_idTable.ContainsKey(itemId))
+                throw new Exception("アイテムIDが存在しません");
+            
             return _idTable[itemId];
         }
     }
