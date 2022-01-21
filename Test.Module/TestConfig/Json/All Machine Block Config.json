@@ -3,6 +3,7 @@
     {
       "name": "TestMachine1",
       "type": "Machine",
+      "itemId": 1,
       "param": {
         "inputSlot": 2,
         "outputSlot": 1,
@@ -12,6 +13,7 @@
     {
       "name": "aaa",
       "type": "Machine",
+      "itemId": 2,
       "param": {
         "inputSlot": 5,
         "outputSlot": 3,
@@ -21,6 +23,7 @@
     {
       "name": "bb",
       "type": "Machine",
+      "itemId": 3,
       "param": {
         "inputSlot": 22,
         "outputSlot": 1,
@@ -30,6 +33,7 @@
     {
       "name": "ccccc",
       "type": "Machine",
+      "itemId": 4,
       "param": {
         "inputSlot": 25,
         "outputSlot": 5,
@@ -39,6 +43,7 @@
     {
       "name": "aaa",
       "type": "Machine",
+      "itemId": 5,
       "param": {
         "inputSlot": 100,
         "outputSlot": 100,
@@ -48,6 +53,7 @@
     {
       "name": "bb",
       "type": "Machine",
+      "itemId": 6,
       "param": {
         "inputSlot": 100,
         "outputSlot": 100,
@@ -57,6 +63,7 @@
     {
       "name": "ccccc",
       "type": "Machine",
+      "itemId": 7,
       "param": {
         "inputSlot": 100,
         "outputSlot": 100,
