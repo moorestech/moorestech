@@ -24,10 +24,6 @@ namespace Test.CombinedTest.Server.PacketTest
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             //パケットでプレイヤーインベントリを生成
-            var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 3));
-            payload.AddRange(ToByteList.Convert(PlayerId));
-            packet.GetPacketResponse(payload);
             
             //ホットバーにアイテムとしてのブロックをセットする
             var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
@@ -70,6 +66,7 @@ namespace Test.CombinedTest.Server.PacketTest
             payload.AddRange(ToByteList.Convert((short) HotBarSlot));
             payload.AddRange(ToByteList.Convert(x));
             payload.AddRange(ToByteList.Convert(y));
+            payload.AddRange(ToByteList.Convert(PlayerId));
             return payload;
         }
 
