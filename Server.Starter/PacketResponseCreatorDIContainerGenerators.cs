@@ -37,6 +37,8 @@ namespace Server
     {
         public (PacketResponseCreator, ServiceProvider) Create()
         {
+            //TODO コンフィグ周りを整理する
+            //テスト用のコンフィグをプロダクションのコンフィグに置き換える
             var services = new ServiceCollection();
             //テスト用のコンフィグ、ファクトリーのインスタンスを登録
             services.AddSingleton<IMachineRecipeConfig, TestMachineRecipeConfig>();
