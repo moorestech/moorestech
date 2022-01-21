@@ -13,12 +13,13 @@
     {
       "name": "TestBlock",
       "type": "Block",
+      "itemId": 3,
       "param": {}
     },
     {
       "name": "TestBeltConveyor",
       "type": "BeltConveyor",
-      "itemId": 2,
+      "itemId": 4,
       "param": {
         "slot": 4,
         "time": 2000
@@ -27,7 +28,7 @@
     {
       "name": "TestElectricPole",
       "type": "ElectricPole",
-      "itemId": 3,
+      "itemId": 5,
       "param": {
         "poleConnectionRange": 7,
         "machineConnectionRange": 5
@@ -36,7 +37,7 @@
     {
       "name": "TestGenerator",
       "type": "Generator",
-      "itemId": 4,
+      "itemId": 6,
       "param": {
         "fuelSlot": 10,
         "fuel": [
@@ -56,7 +57,7 @@
     {
       "name": "TestMiner",
       "type": "Miner",
-      "itemId": 5,
+      "itemId": 7,
       "param": {
         "requiredPower": 100,
         "outputSlot": 3,
