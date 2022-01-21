@@ -66,10 +66,6 @@ namespace World.DataStore
             return true;
         }
 
-        private int GetBlockId(int x, int y)
-        {
-            return _coordinateDictionary[new Coordinate(x, y)];
-        }
 
         public IBlock GetBlock(int x, int y)
         {
@@ -125,5 +121,8 @@ namespace World.DataStore
                     (BlockDirection) block.Direction);
             }
         }
+        
+        public bool Exists(int x, int y) { return GetBlock(x, y).GetBlockId() != BlockConst.BlockConst.EmptyBlockId; }
+        private int GetBlockId(int x, int y) { return _coordinateDictionary[new Coordinate(x, y)]; }
     }
 }
