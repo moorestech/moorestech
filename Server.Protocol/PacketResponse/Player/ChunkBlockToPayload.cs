@@ -21,7 +21,7 @@ namespace Server.PacketHandle.PacketResponse.Player
                 {
                     var id = blocks[i, j];
                     //空気ブロックの追加
-                    if (id == BlockConst.BlockConst.NullBlockId)
+                    if (id == BlockConst.BlockConst.EmptyBlockId)
                     {
                         payload.Add(false);
                         continue;

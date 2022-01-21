@@ -31,7 +31,7 @@ namespace Test.UnitTest.Server.Player
             {
                 for (int j = 0; j < b.GetLength(1); j++)
                 {
-                    Assert.AreEqual(BlockConst.BlockConst.NullBlockId, b[i, j]);
+                    Assert.AreEqual(BlockConst.BlockConst.EmptyBlockId, b[i, j]);
                 }
             }
         }

@@ -46,7 +46,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 {
                     for (int j = 0; j < r.Blocks.GetLength(1); j++)
                     {
-                        Assert.AreEqual(BlockConst.BlockConst.NullBlockId, r.Blocks[i, j]);
+                        Assert.AreEqual(BlockConst.BlockConst.EmptyBlockId, r.Blocks[i, j]);
                     }
                 }
             }
@@ -230,7 +230,7 @@ namespace Test.CombinedTest.Server.PacketTest
                     else
                     {
                         //空気ブロック
-                        blocks[i, j] = BlockConst.BlockConst.NullBlockId;
+                        blocks[i, j] = BlockConst.BlockConst.EmptyBlockId;
                     }
                 }
             }

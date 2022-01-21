@@ -29,7 +29,7 @@ namespace Core.Block.Config.LoadConfig
 
             //最初に設定されたIDの連番を設定していく
             //デフォルトはnull blockの次の値
-            int id = BlockConst.BlockConst.NullBlockId;
+            int id = BlockConst.BlockConst.EmptyBlockId;
 
             foreach (var block in person.Blocks)
             {

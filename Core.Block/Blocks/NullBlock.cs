@@ -15,7 +15,7 @@ namespace Core.Block.Blocks
 
         public int GetBlockId()
         {
-            return BlockConst.BlockConst.NullBlockId;
+            return BlockConst.BlockConst.EmptyBlockId;
         }
 
         public string GetSaveState()
