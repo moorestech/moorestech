@@ -11,20 +11,18 @@ namespace Server.Protocol.PacketResponse
     public class SendPlaceHotBarBlockProtocol : IPacketResponse
     {
         private ItemIdToBlockId _itemIdToBlockId;
-        private IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private IWorldBlockDatastore _worldBlockDatastore;
         private BlockFactory _blockFactory;
-        private ItemIdToBlockId _blockIdToItemId;
 
         public SendPlaceHotBarBlockProtocol(
             ItemIdToBlockId itemIdToBlockId, IPlayerInventoryDataStore playerInventoryDataStore, 
-            IWorldBlockDatastore worldBlockDatastore, BlockFactory blockFactory, ItemIdToBlockId blockIdToItemId)
+            IWorldBlockDatastore worldBlockDatastore, BlockFactory blockFactory)
         {
             _itemIdToBlockId = itemIdToBlockId;
             _playerInventoryDataStore = playerInventoryDataStore;
             _worldBlockDatastore = worldBlockDatastore;
             _blockFactory = blockFactory;
-            _blockIdToItemId = blockIdToItemId;
         }
 
         public List<byte[]> GetResponse(List<byte> payload)
@@ -40,10 +38,10 @@ namespace Server.Protocol.PacketResponse
             
             var item = _playerInventoryDataStore.GetInventoryData(playerId).GetItem(inventorySlot);
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
-            if (!_blockIdToItemId.CanConvert(item.Id)) return new List<byte[]>();
+            if (!_itemIdToBlockId.CanConvert(item.Id)) return new List<byte[]>();
             
             //ブロックの作成
-            var block = _blockFactory.Create(_blockIdToItemId.Convert(item.Id), IntId.NewIntId());
+            var block = _blockFactory.Create(_itemIdToBlockId.Convert(item.Id), IntId.NewIntId());
             //ブロックの設置
             _worldBlockDatastore.AddBlock(block, x, y,BlockDirection.North);
             
