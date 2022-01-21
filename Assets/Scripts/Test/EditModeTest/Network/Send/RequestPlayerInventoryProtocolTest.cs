@@ -1,4 +1,9 @@
-﻿using NUnit.Framework;
+﻿using System.Linq;
+using MainGame.Network.Interface.Send;
+using MainGame.Network.Send;
+using MainGame.Network.Util;
+using NUnit.Framework;
+using Test.TestModule;
 
 namespace Test.EditModeTest.Network.Send
 {
@@ -7,7 +12,19 @@ namespace Test.EditModeTest.Network.Send
         [Test]
         public void SendTest()
         {
-            var protocol = new requestplayer
+            var socket = new TestSocketModule();
+            IRequestPlayerInventoryProtocol protocol = new RequestPlayerInventoryProtocol();
+
+            int playerId = 10;
+            
+            protocol.Send(playerId);
+             
+            //データの検証
+            var bytes = new ByteArrayEnumerator(socket.SentData.ToList());
+            Assert.AreEqual(4,  bytes.MoveNextToGetShort()); 
+            Assert.AreEqual(playerId,  bytes.MoveNextToGetInt()); 
+            
+            
         }
     }
 }
