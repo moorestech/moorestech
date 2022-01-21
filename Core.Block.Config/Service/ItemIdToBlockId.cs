@@ -6,7 +6,7 @@ namespace Core.Block.Config.Service
     public class ItemIdToBlockId
     {
 
-        private readonly Dictionary<int, int> _idTable;
+        private readonly Dictionary<int, int> _idTable = new Dictionary<int, int>();
         
         /// <summary>
         /// アイテムIDからブロックIDへ変換するテーブルを作成する
