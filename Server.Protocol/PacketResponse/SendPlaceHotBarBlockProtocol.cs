@@ -4,6 +4,7 @@ using Core.Block.Config.Service;
 using Core.Util;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
@@ -15,14 +16,12 @@ namespace Server.Protocol.PacketResponse
         private IWorldBlockDatastore _worldBlockDatastore;
         private BlockFactory _blockFactory;
 
-        public SendPlaceHotBarBlockProtocol(
-            ItemIdToBlockId itemIdToBlockId, IPlayerInventoryDataStore playerInventoryDataStore, 
-            IWorldBlockDatastore worldBlockDatastore, BlockFactory blockFactory)
+        public SendPlaceHotBarBlockProtocol(ServiceProvider serviceProvider)
         {
-            _itemIdToBlockId = itemIdToBlockId;
-            _playerInventoryDataStore = playerInventoryDataStore;
-            _worldBlockDatastore = worldBlockDatastore;
-            _blockFactory = blockFactory;
+            _itemIdToBlockId = serviceProvider.GetService<ItemIdToBlockId>();
+            _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+            _blockFactory = serviceProvider.GetService<BlockFactory>();
         }
 
         public List<byte[]> GetResponse(List<byte> payload)
