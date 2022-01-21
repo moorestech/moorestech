@@ -8,7 +8,7 @@ namespace Game.PlayerInventory.Interface
         public const int MainInventoryRows = 5;
         public const int MainInventorySize = MainInventoryColumns * MainInventoryRows;
 
-        private static int HotBarSlotToInventorySlot(int slot)
+        public static int HotBarSlotToInventorySlot(int slot)
         {
             if (slot < 0 || MainInventoryColumns <= slot)
                 throw new Exception("ホットバーは0～8までです");
