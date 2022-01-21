@@ -4,7 +4,7 @@ namespace MainGame.Network.Send
 {
     public class SendPlaceHotBarBlockProtocol : ISendPlaceHotBarBlockProtocol
     {
-        public void Send(int x, int y, int hotBarSlot, int playerId)
+        public void Send(int x, int y, short hotBarSlot, int playerId)
         {
             
         }
