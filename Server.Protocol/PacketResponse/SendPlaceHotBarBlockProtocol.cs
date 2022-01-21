@@ -36,8 +36,13 @@ namespace Server.Protocol.PacketResponse
             var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(slot);
             
             var item = _playerInventoryDataStore.GetInventoryData(playerId).GetItem(inventorySlot);
+            
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
             if (!_itemIdToBlockId.CanConvert(item.Id)) return new List<byte[]>();
+            //すでにブロックがある場合はそもまま処理を終了
+            if (_worldBlockDatastore.Exists(x,y))  return new List<byte[]>();
+            
+            
             
             //ブロックの作成
             var block = _blockFactory.Create(_itemIdToBlockId.Convert(item.Id), IntId.NewIntId());
