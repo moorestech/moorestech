@@ -15,6 +15,7 @@ namespace Server.Protocol
     {
         private List<IPacketResponse> _packetResponseList;
         
+        //この辺もDIコンテナに載せる?
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
             _packetResponseList = new List<IPacketResponse>();
@@ -26,7 +27,8 @@ namespace Server.Protocol
             _packetResponseList.Add(new BlockInventoryPlayerInventoryMoveItemProtocol(serviceProvider));
             _packetResponseList.Add(new PlayerInventoryMoveItemProtocol(serviceProvider));
             _packetResponseList.Add(new BlockInventoryMoveItemProtocol(serviceProvider));
-            
+            _packetResponseList.Add(new SendPlaceHotBarBlockProtocol(serviceProvider));
+
             serviceProvider.GetService<VeinGenerator>();
         }
 
