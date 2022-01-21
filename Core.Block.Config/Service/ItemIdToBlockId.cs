@@ -11,7 +11,7 @@ namespace Core.Block.Config.Service
         /// <summary>
         /// アイテムIDからブロックIDへ変換するテーブルを作成する
         /// </summary>
-        public ItemIdToBlockId(BlockConfig blockConfig)
+        public ItemIdToBlockId(IBlockConfig blockConfig)
         {
             foreach (var id in blockConfig.GetBlockIds())
             {
