@@ -8,13 +8,15 @@ namespace Core.Block.Config.LoadConfig
         public readonly string Name;
         public readonly string Type;
         public readonly BlockConfigParamBase Param;
+        public readonly int ItemId;
 
-        public BlockConfigData(int blockId, string name, string type, BlockConfigParamBase param)
+        public BlockConfigData(int blockId, string name, string type, BlockConfigParamBase param, int itemId)
         {
-            this.BlockId = blockId;
-            this.Name = name;
-            this.Type = type;
-            this.Param = param;
+            BlockId = blockId;
+            Name = name;
+            Type = type;
+            Param = param;
+            ItemId = itemId;
         }
     }
 }
