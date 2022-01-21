@@ -14,7 +14,7 @@ namespace Test.EditModeTest.Network.Send
         public void SendTest()
         {
             var socket = new TestSocketModule();
-            ISendPlaceHotBarBlockProtocol placeHotBarBlockProtocol = new SendPlaceHotBarBlockProtocol();
+            ISendPlaceHotBarBlockProtocol placeHotBarBlockProtocol = new SendPlaceHotBarBlockProtocol(socket);
             
             //送信する
             int x = 3;
