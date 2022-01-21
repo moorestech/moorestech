@@ -15,7 +15,18 @@ namespace Server.Protocol.PacketResponse
         private IWorldBlockDatastore _worldBlockDatastore;
         private BlockFactory _blockFactory;
         private ItemIdToBlockId _blockIdToItemId;
-        
+
+        public SendPlaceHotBarBlockProtocol(
+            ItemIdToBlockId itemIdToBlockId, IPlayerInventoryDataStore playerInventoryDataStore, 
+            IWorldBlockDatastore worldBlockDatastore, BlockFactory blockFactory, ItemIdToBlockId blockIdToItemId)
+        {
+            _itemIdToBlockId = itemIdToBlockId;
+            _playerInventoryDataStore = playerInventoryDataStore;
+            _worldBlockDatastore = worldBlockDatastore;
+            _blockFactory = blockFactory;
+            _blockIdToItemId = blockIdToItemId;
+        }
+
         public List<byte[]> GetResponse(List<byte> payload)
         {
             var packet = new ByteArrayEnumerator(payload);
