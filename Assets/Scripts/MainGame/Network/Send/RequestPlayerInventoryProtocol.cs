@@ -21,6 +21,8 @@ namespace MainGame.Network.Send
             
             packet.AddRange(ToByteList.Convert(ProtocolId));
             packet.AddRange(ToByteList.Convert(playerId));
+            
+            _socket.Send(packet.ToArray());
         }
     }
 }
