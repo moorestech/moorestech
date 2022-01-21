@@ -2,6 +2,7 @@ using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Miner;
 using Core.Block.Config;
+using Core.Block.Config.Service;
 using Core.Block.RecipeConfig;
 using Core.Electric;
 using Core.Inventory;
@@ -44,6 +45,7 @@ namespace Server
             services.AddSingleton<IBlockConfig, BlockConfig>();
             services.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             services.AddSingleton<BlockFactory, BlockFactory>();
+            services.AddSingleton<ItemIdToBlockId, ItemIdToBlockId>();
 
 
             //ゲームプレイに必要なクラスのインスタンスを生成
