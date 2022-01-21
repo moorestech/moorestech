@@ -13,7 +13,7 @@ namespace Test.EditModeTest.Network.Send
         public void SendTest()
         {
             var socket = new TestSocketModule();
-            IRequestPlayerInventoryProtocol protocol = new RequestPlayerInventoryProtocol();
+            IRequestPlayerInventoryProtocol protocol = new RequestPlayerInventoryProtocol(socket);
 
             int playerId = 10;
             
