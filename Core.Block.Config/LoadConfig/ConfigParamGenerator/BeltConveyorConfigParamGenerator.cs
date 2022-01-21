@@ -4,7 +4,7 @@ namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
 {
     public class BeltConveyorConfigParamGenerator : IBlockConfigParamGenerator
     {
-        public BlockConfigParamBase Generate(dynamic blockParam)
+        public IBlockConfigParam Generate(dynamic blockParam)
         {
             int slot = blockParam.slot;
             int time = blockParam.time;

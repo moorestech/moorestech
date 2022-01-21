@@ -1,6 +1,6 @@
 namespace Core.Block.Config.LoadConfig.Param
 {
-    public class MachineBlockConfigParam : BlockConfigParamBase
+    public class MachineBlockConfigParam : IBlockConfigParam
     {
         public readonly int InputSlot;
         public readonly int OutputSlot;

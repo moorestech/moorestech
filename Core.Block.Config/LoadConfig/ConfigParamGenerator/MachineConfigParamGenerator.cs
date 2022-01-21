@@ -4,7 +4,7 @@ namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
 {
     public class MachineConfigParamGenerator : IBlockConfigParamGenerator
     {
-        public BlockConfigParamBase Generate(dynamic blockParam)
+        public IBlockConfigParam Generate(dynamic blockParam)
         {
             int inputSlot = blockParam.inputSlot;
             int outputSlot = blockParam.outputSlot;

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Core.Block.Config.LoadConfig.Param
 {
-    public class PowerGeneratorConfigParam : BlockConfigParamBase
+    public class PowerGeneratorConfigParam : IBlockConfigParam
     {
         public readonly Dictionary<int, FuelSetting> FuelSettings;
         public readonly int FuelSlot;

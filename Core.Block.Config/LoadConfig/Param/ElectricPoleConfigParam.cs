@@ -1,6 +1,6 @@
 namespace Core.Block.Config.LoadConfig.Param
 {
-    public class ElectricPoleConfigParam : BlockConfigParamBase
+    public class ElectricPoleConfigParam : IBlockConfigParam
     {
         public readonly int poleConnectionRange;
         public readonly int machineConnectionRange;

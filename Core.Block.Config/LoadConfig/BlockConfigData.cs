@@ -7,10 +7,10 @@ namespace Core.Block.Config.LoadConfig
         public readonly int BlockId;
         public readonly string Name;
         public readonly string Type;
-        public readonly BlockConfigParamBase Param;
+        public readonly IBlockConfigParam Param;
         public readonly int ItemId;
 
-        public BlockConfigData(int blockId, string name, string type, BlockConfigParamBase param, int itemId)
+        public BlockConfigData(int blockId, string name, string type, IBlockConfigParam param, int itemId)
         {
             BlockId = blockId;
             Name = name;

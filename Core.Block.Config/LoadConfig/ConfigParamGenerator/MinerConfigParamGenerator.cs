@@ -5,7 +5,7 @@ namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
 {
     public class MinerConfigParamGenerator : IBlockConfigParamGenerator
     {
-        public BlockConfigParamBase Generate(dynamic blockParam)
+        public IBlockConfigParam Generate(dynamic blockParam)
         {
             int requiredPower = blockParam.requiredPower;
             int outputSlot = blockParam.outputSlot;

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Core.Block.Config.LoadConfig.Param
 {
-    public class MinerBlockConfigParam : BlockConfigParamBase
+    public class MinerBlockConfigParam : IBlockConfigParam
     {
         public readonly int RequiredPower;
         public readonly int OutputSlot;

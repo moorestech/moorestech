@@ -1,6 +1,6 @@
 namespace Core.Block.Config.LoadConfig.Param
 {
-    public class BeltConveyorConfigParam : BlockConfigParamBase
+    public class BeltConveyorConfigParam : IBlockConfigParam
     {
         public BeltConveyorConfigParam(int timeOfItemEnterToExit, int beltConveyorItemNum)
         {

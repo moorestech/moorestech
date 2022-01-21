@@ -5,7 +5,7 @@ namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
 {
     public class PowerGeneratorConfigParamGenerator : IBlockConfigParamGenerator
     {
-        public BlockConfigParamBase Generate(dynamic blockParam)
+        public IBlockConfigParam Generate(dynamic blockParam)
         {
             var fuelSettings = new Dictionary<int, FuelSetting>();
             foreach (var fuel in blockParam.fuel)
