@@ -2,6 +2,6 @@
 {
     public interface IPlayerInventoryMoveItemProtocol
     {
-        //TODO 
+        public void Send(int playerId, int fromSlot, int toSlot,int itemCount);
     }
 }

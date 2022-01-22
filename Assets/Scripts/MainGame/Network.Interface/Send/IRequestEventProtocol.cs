@@ -2,7 +2,6 @@
 {
     public interface IRequestEventProtocol
     {
-        //TODO
-        
+        public void Send(int playerId);
     }
 }

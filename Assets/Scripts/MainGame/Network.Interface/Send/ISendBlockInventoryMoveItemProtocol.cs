@@ -2,6 +2,6 @@
 {
     public interface ISendBlockInventoryMoveItemProtocol
     {
-        //TODO
+        public void Send(int x,int y,int fromSlot,int toSlot,int itemCount);
     }
 }
