@@ -1,5 +1,6 @@
 using System.Linq;
 using MainGame.Network.Interface.Send;
+using MainGame.Network.Send;
 using MainGame.Network.Util;
 using NUnit.Framework;
 using Test.TestModule;
@@ -10,13 +11,14 @@ namespace Test.EditModeTest.Network.Send
     /// <summary>
     /// プレイヤーインベントリとブロックインベントリのアイテムの移動のプロトコルのテスト
     /// </summary>
-    public class SendBlockInventoryPlayerInventoryMoveItemProtocol
+    public class SendBlockInventoryPlayerInventoryMoveItemProtocolTest
     {
         [Test]
         public void SendTest()
         {
             var socket = new TestSocketModule();
-            ISendBlockInventoryPlayerInventoryMoveItemProtocol protocol = null;
+            ISendBlockInventoryPlayerInventoryMoveItemProtocol protocol = 
+                    new SendBlockInventoryPlayerInventoryMoveItemProtocol(socket);
             bool toBlock = true;
             int playerId = 10;
             int playerInventorySlot = 3;

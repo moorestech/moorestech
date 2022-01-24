@@ -8,7 +8,7 @@ namespace MainGame.Network.Send
 {
     public class SendPlayerPositionProtocolProtocol : ISendPlayerPositionProtocol
     {
-        private const short ProtocolId = 6;
+        private const short ProtocolId = 2;
         private readonly ISocket _socket;
 
         public SendPlayerPositionProtocolProtocol(ISocket socket)
@@ -20,9 +20,9 @@ namespace MainGame.Network.Send
             var packet = new List<byte>();
             
             packet.AddRange(ToByteList.Convert(ProtocolId));
-            packet.AddRange(ToByteList.Convert(playerId));
             packet.AddRange(ToByteList.Convert(position.x));
             packet.AddRange(ToByteList.Convert(position.y));
+            packet.AddRange(ToByteList.Convert(playerId));
             
             _socket.Send(packet.ToArray());
         }

@@ -16,9 +16,9 @@ namespace MainGame.Network.Send
         {
             _socket = socket;
         }
-        public void Send(bool toBlock, 
+        public void Send(bool toBlock,
             int playerId, int playerInventorySlot,
-            Vector2 blockPosition, int blockInventorySlot,
+            Vector2Int blockPosition, int blockInventorySlot,
             int itemCount)
         {
             var packet = new List<byte>();

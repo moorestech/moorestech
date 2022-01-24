@@ -1,5 +1,6 @@
 using System.Linq;
 using MainGame.Network.Interface.Send;
+using MainGame.Network.Send;
 using MainGame.Network.Util;
 using NUnit.Framework;
 using Test.TestModule;
@@ -15,7 +16,8 @@ namespace Test.EditModeTest.Network.Send
         public void SendTest()
         {
             var socket = new TestSocketModule();
-            ISendPlayerInventoryMoveItemProtocol protocol = null;
+            ISendPlayerInventoryMoveItemProtocol protocol = 
+                    new SendPlayerInventoryMoveItemProtocol(socket);
             var playerId = 1;
             var fromSlot = 10;
             var toSlot = 20;

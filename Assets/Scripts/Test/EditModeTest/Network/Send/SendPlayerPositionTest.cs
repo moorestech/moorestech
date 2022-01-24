@@ -1,5 +1,6 @@
 using System.Linq;
 using MainGame.Network.Interface.Send;
+using MainGame.Network.Send;
 using MainGame.Network.Util;
 using NUnit.Framework;
 using Test.TestModule;
@@ -17,7 +18,8 @@ namespace Test.EditModeTest.Network.Send
         public void SendTest()
         {
             var socket = new TestSocketModule();
-            ISendPlayerPositionProtocol protocol = null;
+            ISendPlayerPositionProtocol protocol = 
+                    new SendPlayerPositionProtocolProtocol(socket);
             var playerId = 1;
             var pos = new Vector2(123.4f, 567.8f);
             
@@ -27,7 +29,7 @@ namespace Test.EditModeTest.Network.Send
             
             //データの検証
             var bytes = new ByteArrayEnumerator(socket.SentData.ToList());
-            Assert.AreEqual(3,  bytes.MoveNextToGetShort()); 
+            Assert.AreEqual(2,  bytes.MoveNextToGetShort()); 
             Assert.AreEqual(pos.x,  bytes.MoveNextToGetFloat()); 
             Assert.AreEqual(pos.y,  bytes.MoveNextToGetFloat()); 
             Assert.AreEqual(playerId,  bytes.MoveNextToGetInt()); 
