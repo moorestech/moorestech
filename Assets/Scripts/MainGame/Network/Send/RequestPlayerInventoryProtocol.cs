@@ -7,7 +7,7 @@ namespace MainGame.Network.Send
 {
     public class RequestPlayerInventoryProtocol : IRequestPlayerInventoryProtocol
     {
-        private const short ProtocolId = 4;
+        private const short ProtocolId = 3;
         private readonly ISocket _socket;
 
         public RequestPlayerInventoryProtocol(ISocket socket)

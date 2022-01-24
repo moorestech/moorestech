@@ -21,7 +21,7 @@ namespace Test.EditModeTest.Network.Send
              
             //データの検証
             var bytes = new ByteArrayEnumerator(socket.SentData.ToList());
-            Assert.AreEqual(4,  bytes.MoveNextToGetShort()); 
+            Assert.AreEqual(3,  bytes.MoveNextToGetShort()); 
             Assert.AreEqual(playerId,  bytes.MoveNextToGetInt()); 
             
             
