@@ -1,7 +1,9 @@
-﻿namespace MainGame.Network.Interface.Send
+﻿using UnityEngine;
+
+namespace MainGame.Network.Interface.Send
 {
     public interface ISendPlayerPosition
     {
-        //TODO
+        public void Send(int playerId,Vector2 position);
     }
 }
