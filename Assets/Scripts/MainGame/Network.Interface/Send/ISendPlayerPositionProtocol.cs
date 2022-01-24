@@ -2,7 +2,7 @@
 
 namespace MainGame.Network.Interface.Send
 {
-    public interface ISendPlayerPosition
+    public interface ISendPlayerPositionProtocol
     {
         public void Send(int playerId,Vector2 position);
     }

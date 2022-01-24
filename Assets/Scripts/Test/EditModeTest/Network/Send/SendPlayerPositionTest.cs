@@ -17,7 +17,7 @@ namespace Test.EditModeTest.Network.Send
         public void SendTest()
         {
             var socket = new TestSocketModule();
-            ISendPlayerPosition protocol = null;
+            ISendPlayerPositionProtocol protocol = null;
             var playerId = 1;
             var pos = new Vector2(123.4f, 567.8f);
             
