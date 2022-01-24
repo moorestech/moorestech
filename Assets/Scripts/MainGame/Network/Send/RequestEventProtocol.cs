@@ -9,7 +9,12 @@ namespace MainGame.Network.Send
     {
         private const short ProtocolId = 4;
         private readonly ISocket _socket;
-        
+
+        public RequestEventProtocol(ISocket socket)
+        {
+            _socket = socket;
+        }
+
         public void Send(int playerId)
         {
             var packet = new List<byte>();
