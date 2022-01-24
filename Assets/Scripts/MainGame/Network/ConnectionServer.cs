@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
+using MainGame.Network.Interface;
+using MainGame.Network.Send;
 using UnityEngine;
 
 namespace MainGame.Network
@@ -10,14 +12,17 @@ namespace MainGame.Network
         private readonly int _port;
         private readonly AllReceivePacketAnalysisService _allReceivePacketAnalysisService;
 
+        private readonly SocketObject _socketObject;
         
-        private Socket _socket;
-        
-        public ConnectionServer(ConnectionServerConfig connectionServerConfig,AllReceivePacketAnalysisService allReceivePacketAnalysisService)
+        public ConnectionServer(
+            ConnectionServerConfig connectionServerConfig,
+            AllReceivePacketAnalysisService allReceivePacketAnalysisService,
+            ISocket socket)
         {
             _ip = connectionServerConfig.IP;
             _port = connectionServerConfig.Port;
             _allReceivePacketAnalysisService = allReceivePacketAnalysisService;
+            _socketObject = socket as SocketObject;
         }
 
         public void Connect()
@@ -30,16 +35,17 @@ namespace MainGame.Network
 
             Debug.Log("サーバーに接続します");
             //ソケットを作成
-            _socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            var socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            _socketObject.SetSocket(socket);
             //接続する。失敗するとエラーで落ちる。
-            _socket.Connect(remoteEP);
+            socket.Connect(remoteEP);
             
             Debug.Log("サーバーに接続しました");
             byte[] bytes = new byte[4096];
             while (true)
             {
                 //Receiveで受信
-                var len = _socket.Receive(bytes);
+                var len = socket.Receive(bytes);
                 if (len == 0)
                 {
                     Debug.Log("サーバーから切断されました");
