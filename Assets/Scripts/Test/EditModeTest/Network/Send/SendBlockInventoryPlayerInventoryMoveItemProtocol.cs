@@ -32,7 +32,7 @@ namespace Test.EditModeTest.Network.Send
             //データの検証
             var bytes = new ByteArrayEnumerator(socket.SentData.ToList());
             Assert.AreEqual(5,  bytes.MoveNextToGetShort()); 
-            Assert.AreEqual(toBlock,  bytes.MoveNextToGetShort() == 1); 
+            Assert.AreEqual(toBlock,  bytes.MoveNextToGetShort() == 0); 
             Assert.AreEqual(playerId,  bytes.MoveNextToGetInt()); 
             Assert.AreEqual(playerInventorySlot,  bytes.MoveNextToGetInt()); 
             Assert.AreEqual(blockPos.x,  bytes.MoveNextToGetInt()); 
