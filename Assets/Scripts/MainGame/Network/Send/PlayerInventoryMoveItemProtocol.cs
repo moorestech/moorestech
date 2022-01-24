@@ -5,12 +5,12 @@ using MainGame.Network.Util;
 
 namespace MainGame.Network.Send
 {
-    public class PlayerInventoryMoveItemProtocol : IPlayerInventoryMoveItemProtocol
+    public class SendPlayerInventoryMoveItemProtocol : ISendPlayerInventoryMoveItemProtocol
     {
         private const short ProtocolId = 6;
         private readonly ISocket _socket;
 
-        public PlayerInventoryMoveItemProtocol(ISocket socket)
+        public SendPlayerInventoryMoveItemProtocol(ISocket socket)
         {
             _socket = socket;
         }
