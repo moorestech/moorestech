@@ -1,7 +1,6 @@
-using System.Net.Sockets;
 using UnityEngine;
 
-namespace MainGame
+namespace MainGame.Starter
 {
     public class Starter : MonoBehaviour
     {
