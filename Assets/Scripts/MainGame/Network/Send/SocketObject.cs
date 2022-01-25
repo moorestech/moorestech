@@ -1,6 +1,7 @@
 using System;
 using System.Net.Sockets;
 using MainGame.Network.Interface;
+using MainGame.Network.Send.SocketUtil;
 
 namespace MainGame.Network.Send
 {
@@ -10,17 +11,11 @@ namespace MainGame.Network.Send
     /// </summary>
     public class SocketObject : ISocket
     {
-        private Socket _socket = null;
+        private readonly Socket _socket = null;
 
-        internal void SetSocket(Socket socket)
+        public SocketObject(SocketInstanceCreate socketInstanceCreate)
         {
-            if (socket == null)
-                throw new ArgumentNullException("socket");
-
-            if (_socket != null) 
-                throw new InvalidOperationException("Socket is already set.");
-            
-            _socket = socket;
+            _socket = socketInstanceCreate.GetSocket();
         }
 
         public void Send(byte[] data)
