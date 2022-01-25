@@ -1,3 +1,4 @@
+using System;
 using MainGame.GameLogic.Chunk;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network;
@@ -9,6 +10,7 @@ using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
 namespace MainGame.Starter
 {
@@ -16,7 +18,8 @@ namespace MainGame.Starter
     {
         private const string DefaultIp = "127.0.0.1";
         private const int DefaultPort = 11564;
-        
+
+        private IObjectResolver _resolver;
         
         void Start()
         {
@@ -42,19 +45,19 @@ namespace MainGame.Starter
             builder.Register<ISendPlayerPositionProtocol, SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
             
             //データストア
-            builder.Register<ChunkDataStore, ChunkDataStore>(Lifetime.Singleton);
-            builder.Register<InventoryDataStore, InventoryDataStore>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<ChunkDataStore>();
+            builder.RegisterEntryPoint<InventoryDataStore>();
             
             
             
             //依存関係を解決
-            var resolver = builder.Build();
-            
-            
-            
-            //データストアのインスタンスを生成する
-            resolver.Resolve<ChunkDataStore>();
-            resolver.Resolve<InventoryDataStore>();
+            _resolver = builder.Build();
+            ;
+        }
+
+        private void OnDestroy()
+        {
+            _resolver.Dispose();
         }
     }
 }

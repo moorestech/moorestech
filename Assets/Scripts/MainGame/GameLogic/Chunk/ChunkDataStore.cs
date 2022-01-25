@@ -3,10 +3,12 @@ using MainGame.Constant;
 using MainGame.Network.Interface;
 using MainGame.Network.Interface.Receive;
 using UnityEngine;
+using VContainer.Unity;
 
 namespace MainGame.GameLogic.Chunk
 {
-    public class ChunkDataStore
+    //IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しておく
+    public class ChunkDataStore : IInitializable
     { 
         private readonly Dictionary<Vector2Int, int[,]> _chunk = new Dictionary<Vector2Int, int[,]>();
         public ChunkDataStore(IChunkUpdateEvent chunkUpdateEvent)
@@ -42,5 +44,7 @@ namespace MainGame.GameLogic.Chunk
             if ( 0 <= chunkPos) return blockPos - chunkPos;
             return (-chunkPos) - (-blockPos);
         }
+
+        public void Initialize() { }
     }
 }

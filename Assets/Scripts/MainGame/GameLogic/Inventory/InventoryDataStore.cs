@@ -3,10 +3,12 @@ using MainGame.Constant;
 using MainGame.Network.Interface;
 using MainGame.Network.Interface.Receive;
 using Maingame.Types;
+using VContainer.Unity;
 
 namespace MainGame.GameLogic.Inventory
 {
-    public class InventoryDataStore
+    //IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しておく
+    public class InventoryDataStore : IInitializable
     {
         private List<ItemStack> _items = new List<ItemStack>();
         public InventoryDataStore(IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
@@ -23,5 +25,7 @@ namespace MainGame.GameLogic.Inventory
         {
             _items[properties.SlotId] = properties.ItemStack;
         }
+
+        public void Initialize() { }
     }
 }
