@@ -98,6 +98,7 @@ namespace Server
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
             //イベントレシーバーをインスタンス化する
+            //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
             serviceProvider.GetService<ReceiveInventoryUpdateEvent>();
             serviceProvider.GetService<ReceivePlaceBlockEvent>();
             serviceProvider.GetService<ReceiveRemoveBlockEvent>();
