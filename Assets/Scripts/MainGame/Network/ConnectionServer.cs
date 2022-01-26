@@ -1,12 +1,14 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using UnityEngine;
+using VContainer.Unity;
 
 namespace MainGame.Network
 {
-    public class ConnectionServer
+    public class ConnectionServer : IPostStartable
     {
         private readonly AllReceivePacketAnalysisService _allReceivePacketAnalysisService;
         private readonly SocketInstanceCreate _socketInstanceCreate;
@@ -18,6 +20,12 @@ namespace MainGame.Network
         {
             _allReceivePacketAnalysisService = allReceivePacketAnalysisService;
             _socketInstanceCreate = socketInstanceCreate;
+        }
+
+        //MonoBehaviourのStartが終わり、全ての初期化が完了した後、サーバーに接続する
+        public void PostStart()
+        {
+            Task.Run(Connect);
         }
 
         public void Connect()
