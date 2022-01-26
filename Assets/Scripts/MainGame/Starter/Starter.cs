@@ -26,7 +26,7 @@ namespace MainGame.Starter
             var builder = new ContainerBuilder();
             //サーバーに接続するためのインスタンス
             builder.RegisterInstance(new ConnectionServerConfig(DefaultIp,DefaultPort));
-            builder.Register<ConnectionServer, ConnectionServer>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<ConnectionServer>();
             builder.Register<SocketInstanceCreate, SocketInstanceCreate>(Lifetime.Singleton);
             builder.Register<AllReceivePacketAnalysisService, AllReceivePacketAnalysisService>(Lifetime.Singleton);
             builder.Register<ISocket, SocketObject>(Lifetime.Singleton);
