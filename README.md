@@ -1,6 +1,6 @@
 # moorestech
 FactorioやSatisfactoryみたいな工業ゲーのサーバー
-[クライアントはこっち](https://github.com/sakastudio/moorestech_client)
+[クライアントはこっち](https://github.com/moorestech/moorestech_client)
 
 ## OSSに関する表記
 Microsoft.Extensions.DependencyInjection  
