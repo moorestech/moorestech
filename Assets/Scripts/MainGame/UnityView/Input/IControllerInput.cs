@@ -1,4 +1,4 @@
-namespace MainGame.UnityView.InputType
+namespace MainGame.UnityView.Input
 {
     public interface IControllerInput
     {

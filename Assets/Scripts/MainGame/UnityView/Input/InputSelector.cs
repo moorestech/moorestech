@@ -1,4 +1,4 @@
-namespace MainGame.UnityView
+namespace MainGame.UnityView.Input
 {
     public class InputSelector
     {
