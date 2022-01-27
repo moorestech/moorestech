@@ -52,7 +52,7 @@ namespace MainGame.Starter
             
             //依存関係を解決
             _resolver = builder.Build();
-            ;
+            
         }
 
         private void OnDestroy()
