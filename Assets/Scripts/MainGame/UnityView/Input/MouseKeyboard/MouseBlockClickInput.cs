@@ -1,6 +1,8 @@
+using UnityEngine;
+
 namespace MainGame.UnityView.Input.MouseKeyboard
 {
-    public class MouseBlockClickInput
+    public class MouseBlockClickInput : MonoBehaviour
     {
         
     }
