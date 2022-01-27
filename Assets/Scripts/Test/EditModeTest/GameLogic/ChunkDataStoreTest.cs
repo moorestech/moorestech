@@ -19,7 +19,7 @@ namespace Test.EditModeTest.GameLogic
         public void SetChunkTest()
         {
             var chunkEvent = new ChunkUpdateEvent();
-            var chunkDataStore = new ChunkDataStore(chunkEvent);
+            var chunkDataStore = new ChunkDataStoreCache(chunkEvent);
             
             //リフレクションでチャンクのデータを取得する
             var chunk = (Dictionary<Vector2Int, int[,]>)chunkDataStore.GetType().GetField("_chunk", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(chunkDataStore);
@@ -45,7 +45,7 @@ namespace Test.EditModeTest.GameLogic
         public void SetBlockTest()
         {
             var chunkEvent = new ChunkUpdateEvent();
-            var chunkDataStore = new ChunkDataStore(chunkEvent);
+            var chunkDataStore = new ChunkDataStoreCache(chunkEvent);
 
             //検証するチャンク
             var setChunks = new List<Vector2Int>()

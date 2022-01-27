@@ -8,10 +8,10 @@ using VContainer.Unity;
 namespace MainGame.GameLogic.Inventory
 {
     //IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しておく
-    public class InventoryDataStore : IInitializable
+    public class InventoryDataStoreCache : IInitializable
     {
         private List<ItemStack> _items = new List<ItemStack>();
-        public InventoryDataStore(IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+        public InventoryDataStoreCache(IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
         {
             playerInventoryUpdateEvent.Subscribe(UpdateInventory,UpdateSlotInventory);
         }

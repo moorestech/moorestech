@@ -16,7 +16,7 @@ namespace Test.EditModeTest.GameLogic
         public void SetInventoryTest()
         {
             var inventoryEvent = new PlayerInventoryUpdateEvent();
-            var inventoryDataStore = new InventoryDataStore(inventoryEvent);
+            var inventoryDataStore = new InventoryDataStoreCache(inventoryEvent);
             
             //インベントリの設定
             var inventory = new List<ItemStack>();
@@ -29,7 +29,7 @@ namespace Test.EditModeTest.GameLogic
             inventoryEvent.OnOnPlayerInventoryUpdateEvent(
                 new OnPlayerInventoryUpdateProperties(10,inventory));
 
-            var inventoryItems = (List<ItemStack>)typeof(InventoryDataStore).GetField("_items",
+            var inventoryItems = (List<ItemStack>)typeof(InventoryDataStoreCache).GetField("_items",
                 BindingFlags.NonPublic | BindingFlags.Instance).GetValue(inventoryDataStore);
             
             //アイテムの検証

@@ -45,8 +45,8 @@ namespace MainGame.Starter
             builder.Register<ISendPlayerPositionProtocol, SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
             
             //データストア
-            builder.RegisterEntryPoint<ChunkDataStore>();
-            builder.RegisterEntryPoint<InventoryDataStore>();
+            builder.RegisterEntryPoint<ChunkDataStoreCache>();
+            builder.RegisterEntryPoint<InventoryDataStoreCache>();
             
             
             

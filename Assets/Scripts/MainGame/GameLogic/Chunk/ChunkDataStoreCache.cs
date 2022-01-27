@@ -8,10 +8,10 @@ using VContainer.Unity;
 namespace MainGame.GameLogic.Chunk
 {
     //IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しておく
-    public class ChunkDataStore : IInitializable
+    public class ChunkDataStoreCache : IInitializable
     { 
         private readonly Dictionary<Vector2Int, int[,]> _chunk = new Dictionary<Vector2Int, int[,]>();
-        public ChunkDataStore(IChunkUpdateEvent chunkUpdateEvent)
+        public ChunkDataStoreCache(IChunkUpdateEvent chunkUpdateEvent)
         {
             //イベントをサブスクライブする
             chunkUpdateEvent.Subscribe(OnChunkUpdate,OnBlockUpdate);
