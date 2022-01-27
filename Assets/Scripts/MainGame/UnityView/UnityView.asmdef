@@ -2,7 +2,8 @@
     "name": "UnityView",
     "rootNamespace": "",
     "references": [
-        ""
+        "Unity.InputSystem",
+        "Cinemachine"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
