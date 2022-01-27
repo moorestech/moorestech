@@ -6,3 +6,6 @@
 
 VContainer
 https://github.com/hadashiA/VContainer
+
+NaughtyCharacter
+https://github.com/dbrizov/NaughtyCharacter
