@@ -4,14 +4,15 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "GameLogic.Interface",
         "Network",
         "Network.Util",
         "Constant",
         "TestModule",
         "Network.Interface",
         "Types",
-        "GameLogic"
+        "GameLogic",
+        "UnityView.Interface",
+        "UnityView"
     ],
     "includePlatforms": [
         "Editor"

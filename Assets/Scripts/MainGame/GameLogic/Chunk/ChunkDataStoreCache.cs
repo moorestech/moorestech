@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using MainGame.Constant;
 using MainGame.Network.Interface;
 using MainGame.Network.Interface.Receive;
+using MainGame.UnityView.Interface;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -11,7 +12,7 @@ namespace MainGame.GameLogic.Chunk
     public class ChunkDataStoreCache : IInitializable
     { 
         private readonly Dictionary<Vector2Int, int[,]> _chunk = new Dictionary<Vector2Int, int[,]>();
-        public ChunkDataStoreCache(IChunkUpdateEvent chunkUpdateEvent)
+        public ChunkDataStoreCache(IChunkUpdateEvent chunkUpdateEvent,IBlockUpdateEvent blockUpdateEvent)
         {
             //イベントをサブスクライブする
             chunkUpdateEvent.Subscribe(OnChunkUpdate,OnBlockUpdate);

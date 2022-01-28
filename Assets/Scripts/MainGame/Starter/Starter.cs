@@ -64,7 +64,8 @@ namespace MainGame.Starter
 
             //依存関係を解決
             _resolver = builder.Build();
-            
+            _resolver.Resolve<ChunkBlockGameObjectDataStore>();
+
         }
 
         private void OnDestroy()

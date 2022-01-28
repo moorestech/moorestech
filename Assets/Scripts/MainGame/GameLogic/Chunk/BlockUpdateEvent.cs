@@ -4,7 +4,7 @@ using static MainGame.UnityView.Interface.IBlockUpdateEvent;
 
 namespace MainGame.GameLogic.Chunk
 {
-    public class PlaceBlockGameObject : IBlockUpdateEvent
+    public class BlockUpdateEvent : IBlockUpdateEvent
     {
         private event OnBlockPlaceEvent OnBlockPlace;
         private event OnBlockRemoveEvent OnBlockRemove;
