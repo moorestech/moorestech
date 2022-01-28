@@ -1,22 +1,29 @@
 using MainGame.UnityView.Interface;
 using UnityEngine;
+using VContainer;
 
 namespace MainGame.UnityView.Chunk
 {
     public class ChunkBlockGameObjectDataStore : MonoBehaviour
     {
-        //TODO vcontainerでのインジェクトの方法を探す
         private IPlaceBlockGameObject _placeBlockGameObject;
-        // Start is called before the first frame update
-        void Start()
+
+        [Inject]
+        public void Construct(IPlaceBlockGameObject placeBlockGameObject)
         {
-        
+            _placeBlockGameObject = placeBlockGameObject;
+            placeBlockGameObject.Subscribe(OnBlockPlaceEvent,OnBlockRemoveEvent);
         }
 
-        // Update is called once per frame
-        void Update()
+
+        private void OnBlockPlaceEvent(Vector2Int blockPosition, int blockId)
         {
-        
+            
+        }
+
+        private void OnBlockRemoveEvent(Vector2Int blockPosition)
+        {
+            
         }
     }
 }
