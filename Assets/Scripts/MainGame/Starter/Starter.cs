@@ -8,7 +8,9 @@ using MainGame.Network.Interface.Receive;
 using MainGame.Network.Interface.Send;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
+using MainGame.UnityView.Chunk;
 using UnityEngine;
+using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
@@ -20,6 +22,8 @@ namespace MainGame.Starter
         private const int DefaultPort = 11564;
 
         private IObjectResolver _resolver;
+        [SerializeField] ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
+        [SerializeField] BlockObjects blockObjects;
         
         void Start()
         {
@@ -48,8 +52,16 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
             builder.RegisterEntryPoint<InventoryDataStoreCache>();
             
+            //ScriptableObjectの登録
+            builder.RegisterInstance(blockObjects);
             
             
+            //MonoBehaviourのprefabの登録
+            builder.RegisterComponentInNewPrefab(chunkBlockGameObjectDataStore, Lifetime.Singleton);
+            
+
+
+
             //依存関係を解決
             _resolver = builder.Build();
             
