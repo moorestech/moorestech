@@ -8,12 +8,17 @@ using VContainer.Unity;
 
 namespace MainGame.GameLogic.Chunk
 {
+    /// <summary>
+    /// サーバーからのパケットを受け取り、Viewにブロックの更新情報を渡す
+    /// </summary>
     //IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しておく
     public class ChunkDataStoreCache : IInitializable
-    { 
+    {
+        private readonly BlockUpdateEvent _blockUpdateEvent;
         private readonly Dictionary<Vector2Int, int[,]> _chunk = new Dictionary<Vector2Int, int[,]>();
         public ChunkDataStoreCache(IChunkUpdateEvent chunkUpdateEvent,IBlockUpdateEvent blockUpdateEvent)
         {
+            _blockUpdateEvent = blockUpdateEvent as BlockUpdateEvent;
             //イベントをサブスクライブする
             chunkUpdateEvent.Subscribe(OnChunkUpdate,OnBlockUpdate);
         }
@@ -25,10 +30,39 @@ namespace MainGame.GameLogic.Chunk
         {
             if (_chunk.ContainsKey(properties.ChunkPos))
             {
+                DiffChunkUpdate(properties.ChunkPos, properties.BlockIds,_chunk[properties.ChunkPos]);
                 _chunk[properties.ChunkPos] = properties.BlockIds;
                 return;
             }
             _chunk.Add(properties.ChunkPos, properties.BlockIds);
+            DiffChunkUpdate(properties.ChunkPos, properties.BlockIds);
+        }
+        
+        
+        private int[,] _nullBlockIds = new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize];
+        
+        /// <summary>
+        /// IDが違う時だけイベントを発火する
+        /// </summary>
+        private void DiffChunkUpdate(Vector2Int chunkPos,int[,] newBlockIds,int[,] oldBlockIds = null)
+        {
+            oldBlockIds ??= _nullBlockIds;
+            for (int i = 0; i < ChunkConstant.ChunkSize; i++)
+            {
+                for (int j = 0; j < ChunkConstant.ChunkSize; j++)
+                {
+                    if (newBlockIds[i,j] == oldBlockIds[i,j]) continue;
+                    //IDが違うのでイベントを発火する
+                    var x = chunkPos.x + i;
+                    var y = chunkPos.y + j;
+                    if (newBlockIds[i,j] == BlockConstant.NullBlockId)
+                    {
+                        _blockUpdateEvent.OnOnBlockRemove(new Vector2Int(x,y));
+                        return;
+                    }
+                    _blockUpdateEvent.OnOnBlockPlace(new Vector2Int(x,y),newBlockIds[i,j]);
+                }
+            }
         }
         
         /// <summary>
@@ -45,6 +79,14 @@ namespace MainGame.GameLogic.Chunk
                 GetBlockArrayIndex(chunkPos.x, blockPos.x),
                 GetBlockArrayIndex(chunkPos.y, blockPos.y));
             _chunk[chunkPos][i, j] = properties.BlockId;
+            
+            //ブロックの更新イベントを発火する
+            if (properties.BlockId == BlockConstant.NullBlockId)
+            {
+                _blockUpdateEvent.OnOnBlockRemove(blockPos);
+                return;
+            }
+            _blockUpdateEvent.OnOnBlockPlace(blockPos,properties.BlockId);
         }
 
         private int GetBlockArrayIndex(int chunkPos, int blockPos)

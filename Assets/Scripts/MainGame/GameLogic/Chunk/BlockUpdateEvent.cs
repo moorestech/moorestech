@@ -22,12 +22,12 @@ namespace MainGame.GameLogic.Chunk
             OnBlockRemove -= onBlockRemoveEvent;
         }
 
-        protected virtual void OnOnBlockPlace(Vector2Int blockposition, int blockid)
+        internal void OnOnBlockPlace(Vector2Int blockposition, int blockid)
         {
             OnBlockPlace?.Invoke(blockposition, blockid);
         }
 
-        protected virtual void OnOnBlockRemove(Vector2Int blockposition)
+        internal void OnOnBlockRemove(Vector2Int blockposition)
         {
             OnBlockRemove?.Invoke(blockposition);
         }
