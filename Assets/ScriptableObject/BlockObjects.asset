@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: BlockObjects
   m_EditorClassIdentifier: 
   BlockObjectList: []
-  NothingIndexBlockObject: {fileID: 0}
+  NothingIndexBlockObject: {fileID: 7122685573967743707, guid: c297eff442e9c419db5659a81dba7084, type: 3}
