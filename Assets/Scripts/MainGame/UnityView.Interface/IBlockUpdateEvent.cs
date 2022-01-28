@@ -2,7 +2,7 @@
 
 namespace MainGame.UnityView.Interface
 {
-    public interface IPlaceBlockGameObject
+    public interface IBlockUpdateEvent
     {
         public delegate void OnBlockPlaceEvent(Vector2Int blockPosition,int blockId);
         public delegate void OnBlockRemoveEvent(Vector2Int blockPosition);
