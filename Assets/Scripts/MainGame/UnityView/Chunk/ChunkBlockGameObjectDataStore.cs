@@ -12,10 +12,10 @@ namespace MainGame.UnityView.Chunk
         private Dictionary<Vector2Int,GameObject> _blockObjectsDictionary = new Dictionary<Vector2Int, GameObject>();
 
         [Inject]
-        public void Construct(IPlaceBlockGameObject placeBlockGameObject,BlockObjects blockObjects)
+        public void Construct(IBlockUpdateEvent blockUpdateEvent,BlockObjects blockObjects)
         {
             _blockObjects = blockObjects;
-            placeBlockGameObject.Subscribe(OnBlockPlaceEvent,OnBlockRemoveEvent);
+            blockUpdateEvent.Subscribe(OnBlockPlaceEvent,OnBlockRemoveEvent);
         }
 
 
