@@ -9,6 +9,7 @@ using MainGame.Network.Interface.Send;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.UnityView.Chunk;
+using MainGame.UnityView.Interface;
 using UnityEngine;
 using UnityEngine.Serialization;
 using VContainer;
@@ -50,6 +51,7 @@ namespace MainGame.Starter
             
             //データストア
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
+            builder.Register<IBlockUpdateEvent, BlockUpdateEvent>(Lifetime.Singleton);
             builder.RegisterEntryPoint<InventoryDataStoreCache>();
             
             //ScriptableObjectの登録
