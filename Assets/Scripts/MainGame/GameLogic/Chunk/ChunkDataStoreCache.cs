@@ -18,6 +18,9 @@ namespace MainGame.GameLogic.Chunk
             chunkUpdateEvent.Subscribe(OnChunkUpdate,OnBlockUpdate);
         }
 
+        /// <summary>
+        /// チャンクの更新イベント
+        /// </summary>
         private void OnChunkUpdate(OnChunkUpdateEventProperties properties)
         {
             if (_chunk.ContainsKey(properties.ChunkPos))
@@ -27,6 +30,10 @@ namespace MainGame.GameLogic.Chunk
             }
             _chunk.Add(properties.ChunkPos, properties.BlockIds);
         }
+        
+        /// <summary>
+        /// 単一のブロックの更新イベント
+        /// </summary>
         private void OnBlockUpdate(OnBlockUpdateEventProperties properties)
         {
             var blockPos = properties.BlockPos;
