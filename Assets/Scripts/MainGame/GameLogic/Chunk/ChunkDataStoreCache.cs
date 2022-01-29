@@ -3,6 +3,7 @@ using MainGame.Constant;
 using MainGame.Network.Interface;
 using MainGame.Network.Interface.Receive;
 using MainGame.UnityView.Interface;
+using MainGame.UnityView.Interface.Chunk;
 using UnityEngine;
 using VContainer.Unity;
 

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace MainGame.UnityView.Interface
+namespace MainGame.UnityView.Interface.Chunk
 {
     public interface IBlockUpdateEvent
     {

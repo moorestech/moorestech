@@ -1,7 +1,8 @@
 using MainGame.Constant;
 using MainGame.UnityView.Interface;
+using MainGame.UnityView.Interface.Chunk;
 using UnityEngine;
-using static MainGame.UnityView.Interface.IBlockUpdateEvent;
+using static MainGame.UnityView.Interface.Chunk.IBlockUpdateEvent;
 
 namespace MainGame.GameLogic.Chunk
 {

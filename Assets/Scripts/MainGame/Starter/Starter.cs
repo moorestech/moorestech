@@ -10,6 +10,7 @@ using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Interface;
+using MainGame.UnityView.Interface.Chunk;
 using UnityEngine;
 using UnityEngine.Serialization;
 using VContainer;
