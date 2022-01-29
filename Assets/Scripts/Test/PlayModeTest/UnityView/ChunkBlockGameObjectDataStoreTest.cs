@@ -58,6 +58,7 @@ namespace Test.PlayModeTest.UnityView
             newIds[5, 5] = 1;
             //イベントを発火
             blockUpdateEvent.DiffChunkUpdate(chunkPosition,newIds,ids);
+            blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(5,blocks.Count);
             Assert.True(blocks.Any(block => block.transform.position == new Vector3(-20, 0, 20)));
             
@@ -72,6 +73,7 @@ namespace Test.PlayModeTest.UnityView
             //一つのブロックの設置
             blockUpdateEvent.OnBlockUpdate(new Vector2Int(0,0),1);
             //チェック
+            blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(6,blocks.Count);
             Assert.True(blocks.Any(block => block.transform.position == new Vector3(0, 0, 0)));
             
@@ -79,6 +81,7 @@ namespace Test.PlayModeTest.UnityView
             
             //一つのブロックの削除
             blockUpdateEvent.OnBlockUpdate(new Vector2Int(-20,20),BlockConstant.NullBlockId);
+            blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(5,blocks.Count);
             Assert.False(blocks.Any(block => block.transform.position == new Vector3(-20, 0,20)));
             
