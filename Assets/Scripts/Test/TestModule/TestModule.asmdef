@@ -2,10 +2,10 @@
     "name": "TestModule",
     "rootNamespace": "",
     "references": [
-        "GUID:c10c1f477ce5a4a4cb66bf758e095307",
         "GUID:eb2ba2dc67f21164a92339337bd0d55d",
         "GUID:9aa2d10e25277114bae000fd1327faca",
-        "GUID:737782c6d87634042887e5fa24f9ba3d"
+        "GUID:737782c6d87634042887e5fa24f9ba3d",
+        "GUID:61494fc3e280cb9428779ad36c470cec"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
