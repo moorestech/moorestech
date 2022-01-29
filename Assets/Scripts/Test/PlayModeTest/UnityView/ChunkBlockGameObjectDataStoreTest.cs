@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MainGame.Constant;
@@ -50,6 +51,17 @@ namespace Test.PlayModeTest.UnityView
             
             
             
+            
+            //ブロックがもう一個増えた時のテスト
+            var newIds = new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize];
+            Array.Copy(ids,newIds,0);
+            newIds[5, 5] = 1;
+            //イベントを発火
+            blockUpdateEvent.DiffChunkUpdate(chunkPosition,newIds,ids);
+            Assert.AreEqual(5,blocks.Count);
+            Assert.True(blocks.Any(block => block.transform.position == new Vector3(-20, 0, 20)));
+            
+            
             //何もないチャンクが発火され、ブロックがなくなるテスト
             blockUpdateEvent.DiffChunkUpdate(chunkPosition,new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize],ids);
             blocks = GetBlocks(dataStore.transform);
@@ -57,8 +69,22 @@ namespace Test.PlayModeTest.UnityView
             
             
             
+            //一つのブロックの設置
+            blockUpdateEvent.OnBlockUpdate(new Vector2Int(0,0),1);
+            //チェック
+            Assert.AreEqual(6,blocks.Count);
+            Assert.True(blocks.Any(block => block.transform.position == new Vector3(0, 0, 0)));
             
-
+            
+            
+            //一つのブロックの削除
+            blockUpdateEvent.OnBlockUpdate(new Vector2Int(-20,20),BlockConstant.NullBlockId);
+            Assert.AreEqual(5,blocks.Count);
+            Assert.False(blocks.Any(block => block.transform.position == new Vector3(-20, 0,20)));
+            
+            
+            
+            
         }
 
         private List<Transform> GetBlocks(Transform dataStore)
