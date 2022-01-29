@@ -31,7 +31,10 @@ namespace Test.PlayModeTest.UnityView
             //チャンクの情報を作成
             var ids = new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize];
             ids[0, 0] = 1;
-            var chunkPosition = new Vector2Int(0,0);
+            ids[2, 0] = 1;
+            ids[10, 10] = 1;
+            ids[13, 4] = 1;
+            var chunkPosition = new Vector2Int(-20,20);
             //イベントを発火
             blockUpdateEvent.DiffChunkUpdate(chunkPosition,ids);
             
@@ -39,8 +42,22 @@ namespace Test.PlayModeTest.UnityView
             
             //ブロックが置かれているか確認する
             blocks = GetBlocks(dataStore.transform);
-            Assert.AreEqual(1,blocks.Count);
-            Assert.AreEqual(new Vector3(0,0,0),blocks[0].position);
+            Assert.AreEqual(4,blocks.Count);
+            Assert.True(blocks.Any(block => block.transform.position == new Vector3(-20, 0, 20)));
+            Assert.True(blocks.Any(block => block.transform.position == new Vector3(-18, 0, 20)));
+            Assert.True(blocks.Any(block => block.transform.position == new Vector3(-10, 0, 30)));
+            Assert.True(blocks.Any(block => block.transform.position == new Vector3(-7, 0, 24)));
+            
+            
+            
+            //何もないチャンクが発火され、ブロックがなくなるテスト
+            blockUpdateEvent.DiffChunkUpdate(chunkPosition,new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize],ids);
+            blocks = GetBlocks(dataStore.transform);
+            Assert.AreEqual(0,blocks.Count);
+            
+            
+            
+            
 
         }
 
