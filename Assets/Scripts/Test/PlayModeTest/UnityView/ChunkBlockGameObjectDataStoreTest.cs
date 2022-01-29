@@ -3,7 +3,7 @@ using MainGame.UnityView.Chunk;
 using NUnit.Framework;
 using UnityEditor;
 
-namespace Test.EditModeTest.UnityView
+namespace Test.PlayModeTest.UnityView
 {
     public class ChunkBlockGameObjectDataStoreTest
     {
