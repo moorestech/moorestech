@@ -6,7 +6,8 @@
         "UnityEditor.TestRunner",
         "UnityView",
         "UnityView.Interface",
-        "GameLogic"
+        "GameLogic",
+        "Constant"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
