@@ -51,7 +51,7 @@ namespace MainGame.GameLogic.Chunk
                     if (newBlockIds[i,j] == BlockConstant.NullBlockId)
                     {
                         OnBlockRemove?.Invoke(pos);
-                        return;
+                        continue;
                     }
                     OnBlockPlace?.Invoke(pos, newBlockIds[i,j]);
                 }
