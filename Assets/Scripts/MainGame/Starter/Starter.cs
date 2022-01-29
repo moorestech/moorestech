@@ -9,8 +9,10 @@ using MainGame.Network.Interface.Send;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.UnityView.Chunk;
+using MainGame.UnityView.ControllerInput.Event;
 using MainGame.UnityView.Interface;
 using MainGame.UnityView.Interface.Chunk;
+using MainGame.UnityView.Interface.PlayerInput;
 using UnityEngine;
 using UnityEngine.Serialization;
 using VContainer;
@@ -18,7 +20,7 @@ using VContainer.Unity;
 
 namespace MainGame.Starter
 {
-    public class Starter : MonoBehaviour
+    public class Starter : LifetimeScope
     {
         private const string DefaultIp = "127.0.0.1";
         private const int DefaultPort = 11564;
@@ -57,6 +59,10 @@ namespace MainGame.Starter
             
             //ScriptableObjectの登録
             builder.RegisterInstance(blockObjects);
+            
+            
+            //Viewのイベント登録
+            builder.Register<IBlockPlaceEvent, BlockPlaceEvent>(Lifetime.Singleton);
             
             
             //MonoBehaviourのprefabの登録

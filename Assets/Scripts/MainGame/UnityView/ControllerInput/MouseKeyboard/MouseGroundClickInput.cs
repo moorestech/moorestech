@@ -25,6 +25,7 @@ namespace MainGame.UnityView.ControllerInput.MouseKeyboard
 
         private void Update()
         {
+            //TODO input systemに書き換える
             if (!Input.GetMouseButtonDown(0)) return;
             
             var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
