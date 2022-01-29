@@ -34,7 +34,7 @@ namespace MainGame.GameLogic.Chunk
             OnBlockPlace?.Invoke(blockPosition, blockId);
         }
         
-        private int[,] _nullBlockIds = new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize];
+        private readonly int[,] _nullBlockIds = new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize];
         /// <summary>
         /// IDが違う時だけイベントを発火する
         /// </summary>
