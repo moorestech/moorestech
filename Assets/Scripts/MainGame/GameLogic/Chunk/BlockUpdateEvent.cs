@@ -24,11 +24,7 @@ namespace MainGame.GameLogic.Chunk
             OnBlockRemove -= onBlockRemoveEvent;
         }
 
-        internal void OnOnBlockRemove(Vector2Int blockPosition)
-        {
-        }
-
-        internal void OnBlockUpdate(Vector2Int blockPosition,int blockId)
+        public void OnBlockUpdate(Vector2Int blockPosition,int blockId)
         {
             if (blockId == BlockConstant.NullBlockId)
             {
@@ -42,7 +38,7 @@ namespace MainGame.GameLogic.Chunk
         /// <summary>
         /// IDが違う時だけイベントを発火する
         /// </summary>
-        internal void DiffChunkUpdate(Vector2Int chunkPos,int[,] newBlockIds,int[,] oldBlockIds = null)
+        public void DiffChunkUpdate(Vector2Int chunkPos,int[,] newBlockIds,int[,] oldBlockIds = null)
         {
             oldBlockIds ??= _nullBlockIds;
             for (int i = 0; i < ChunkConstant.ChunkSize; i++)
