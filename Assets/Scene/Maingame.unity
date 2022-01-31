@@ -137,7 +137,7 @@ GameObject:
   - component: {fileID: 367739784}
   - component: {fileID: 367739780}
   m_Layer: 0
-  m_Name: Plane
+  m_Name: GroundPlane
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -534,6 +534,7 @@ MonoBehaviour:
   autoInjectGameObjects:
   - {fileID: 1991806008}
   - {fileID: 1221041500}
+  - {fileID: 367739779}
   chunkBlockGameObjectDataStore: {fileID: 5365914811176455016, guid: eb9da167e98584171895e4493b9fe661, type: 3}
   blockObjects: {fileID: 11400000, guid: db5bae58745d342e7bde18cd5a2830be, type: 2}
 --- !u!4 &1255688096
