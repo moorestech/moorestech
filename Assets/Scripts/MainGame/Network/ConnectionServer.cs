@@ -32,7 +32,7 @@ namespace MainGame.Network
         {
 
             Debug.Log("サーバーに接続します");
-            //接続する。失敗するとエラーで落ちる。
+            //接続を試行する
             _socketInstanceCreate.GetSocket().Connect(_socketInstanceCreate.GetRemoteEndPoint());
             
             Debug.Log("サーバーに接続しました");
