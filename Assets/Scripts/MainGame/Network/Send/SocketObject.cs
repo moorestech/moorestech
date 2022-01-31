@@ -7,7 +7,6 @@ namespace MainGame.Network.Send
 {
     /// <summary>
     /// ソケットをDIコンテナで直接作ることはできないのでサーバー接続クラスで作ってセットしてもらう
-    /// TODO ソケット作成クラスを作るのもアリかもしれない
     /// </summary>
     public class SocketObject : ISocket
     {
