@@ -248,13 +248,22 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
             ""id"": ""3b8c937a-e56c-4355-8df4-4b18aebda850"",
             ""actions"": [
                 {
-                    ""name"": ""BlockPlace"",
+                    ""name"": ""ScreenClick"",
                     ""type"": ""Button"",
                     ""id"": ""2daa6d31-e71b-44fb-a02c-1a3022394306"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": false
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""ClickPosition"",
+                    ""type"": ""Value"",
+                    ""id"": ""bc0681b1-9b67-4790-9cea-db84f7866f18"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -264,8 +273,19 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""path"": ""<Mouse>/leftButton"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""BlockPlace"",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""ScreenClick"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""76a36c78-8aec-409f-95fd-d65c19c90c78"",
+                    ""path"": ""<Mouse>/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""ClickPosition"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -330,7 +350,8 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
         // Playable
         m_Playable = asset.FindActionMap("Playable", throwIfNotFound: true);
-        m_Playable_BlockPlace = m_Playable.FindAction("BlockPlace", throwIfNotFound: true);
+        m_Playable_ScreenClick = m_Playable.FindAction("ScreenClick", throwIfNotFound: true);
+        m_Playable_ClickPosition = m_Playable.FindAction("ClickPosition", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -447,12 +468,14 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     // Playable
     private readonly InputActionMap m_Playable;
     private IPlayableActions m_PlayableActionsCallbackInterface;
-    private readonly InputAction m_Playable_BlockPlace;
+    private readonly InputAction m_Playable_ScreenClick;
+    private readonly InputAction m_Playable_ClickPosition;
     public struct PlayableActions
     {
         private @MoorestechInputSettings m_Wrapper;
         public PlayableActions(@MoorestechInputSettings wrapper) { m_Wrapper = wrapper; }
-        public InputAction @BlockPlace => m_Wrapper.m_Playable_BlockPlace;
+        public InputAction @ScreenClick => m_Wrapper.m_Playable_ScreenClick;
+        public InputAction @ClickPosition => m_Wrapper.m_Playable_ClickPosition;
         public InputActionMap Get() { return m_Wrapper.m_Playable; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -462,16 +485,22 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         {
             if (m_Wrapper.m_PlayableActionsCallbackInterface != null)
             {
-                @BlockPlace.started -= m_Wrapper.m_PlayableActionsCallbackInterface.OnBlockPlace;
-                @BlockPlace.performed -= m_Wrapper.m_PlayableActionsCallbackInterface.OnBlockPlace;
-                @BlockPlace.canceled -= m_Wrapper.m_PlayableActionsCallbackInterface.OnBlockPlace;
+                @ScreenClick.started -= m_Wrapper.m_PlayableActionsCallbackInterface.OnScreenClick;
+                @ScreenClick.performed -= m_Wrapper.m_PlayableActionsCallbackInterface.OnScreenClick;
+                @ScreenClick.canceled -= m_Wrapper.m_PlayableActionsCallbackInterface.OnScreenClick;
+                @ClickPosition.started -= m_Wrapper.m_PlayableActionsCallbackInterface.OnClickPosition;
+                @ClickPosition.performed -= m_Wrapper.m_PlayableActionsCallbackInterface.OnClickPosition;
+                @ClickPosition.canceled -= m_Wrapper.m_PlayableActionsCallbackInterface.OnClickPosition;
             }
             m_Wrapper.m_PlayableActionsCallbackInterface = instance;
             if (instance != null)
             {
-                @BlockPlace.started += instance.OnBlockPlace;
-                @BlockPlace.performed += instance.OnBlockPlace;
-                @BlockPlace.canceled += instance.OnBlockPlace;
+                @ScreenClick.started += instance.OnScreenClick;
+                @ScreenClick.performed += instance.OnScreenClick;
+                @ScreenClick.canceled += instance.OnScreenClick;
+                @ClickPosition.started += instance.OnClickPosition;
+                @ClickPosition.performed += instance.OnClickPosition;
+                @ClickPosition.canceled += instance.OnClickPosition;
             }
         }
     }
@@ -521,6 +550,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     }
     public interface IPlayableActions
     {
-        void OnBlockPlace(InputAction.CallbackContext context);
+        void OnScreenClick(InputAction.CallbackContext context);
+        void OnClickPosition(InputAction.CallbackContext context);
     }
 }

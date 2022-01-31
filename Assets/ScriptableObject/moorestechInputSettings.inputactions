@@ -1,5 +1,5 @@
 {
-    "name": "moorestech Input Settings",
+    "name": "moorestechInputSettings",
     "maps": [
         {
             "name": "Player",
@@ -226,13 +226,22 @@
             "id": "3b8c937a-e56c-4355-8df4-4b18aebda850",
             "actions": [
                 {
-                    "name": "BlockPlace",
+                    "name": "ScreenClick",
                     "type": "Button",
                     "id": "2daa6d31-e71b-44fb-a02c-1a3022394306",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": false
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "ClickPosition",
+                    "type": "Value",
+                    "id": "bc0681b1-9b67-4790-9cea-db84f7866f18",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -242,8 +251,19 @@
                     "path": "<Mouse>/leftButton",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
-                    "action": "BlockPlace",
+                    "groups": "KeyboardMouse",
+                    "action": "ScreenClick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "76a36c78-8aec-409f-95fd-d65c19c90c78",
+                    "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "ClickPosition",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
