@@ -10,6 +10,7 @@ using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.ControllerInput.Event;
+using MainGame.UnityView.ControllerInput.MouseKeyboard;
 using MainGame.UnityView.Interface;
 using MainGame.UnityView.Interface.Chunk;
 using MainGame.UnityView.Interface.PlayerInput;
@@ -28,6 +29,11 @@ namespace MainGame.Starter
         private IObjectResolver _resolver;
         [SerializeField] ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
         [SerializeField] BlockObjects blockObjects;
+        
+        [Header("InHierarchy")]
+        [SerializeField] Camera mainCamera;
+
+        [SerializeField] private GroundPlane groundPlane;
         
         void Start()
         {
@@ -68,12 +74,21 @@ namespace MainGame.Starter
             //MonoBehaviourのprefabの登録
             builder.RegisterComponentInNewPrefab(chunkBlockGameObjectDataStore, Lifetime.Singleton);
             
+            //MonoBehaviourのインスタンスの登録
+            builder.RegisterComponentOnNewGameObject<MouseGroundClickInput>(Lifetime.Singleton);
+            
+            //Hierarchy上にあるcomponent
+            builder.RegisterInstance(mainCamera);
+            builder.RegisterInstance(groundPlane);
+            
+            
 
 
 
             //依存関係を解決
             _resolver = builder.Build();
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();
+            _resolver.Resolve<MouseGroundClickInput>();
 
         }
 
