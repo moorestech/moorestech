@@ -1,5 +1,6 @@
 ﻿using MainGame.UnityView.ControllerInput;
 using MainGame.UnityView.UI.Inventory.Element;
+using MainGame.UnityView.UI.Inventory.View;
 using VContainer;
 using VContainer.Unity;
 
