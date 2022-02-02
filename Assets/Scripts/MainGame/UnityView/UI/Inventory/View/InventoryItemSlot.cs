@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MainGame.UnityView.UI.Inventory
+namespace MainGame.UnityView.UI.Inventory.View
 {
     public class InventoryItemSlot: MonoBehaviour
     {

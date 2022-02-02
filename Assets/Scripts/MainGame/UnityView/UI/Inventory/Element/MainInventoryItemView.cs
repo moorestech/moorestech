@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using MainGame.Constant;
 using MainGame.UnityView.Interface;
+using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.UnityView.UI.Inventory
+namespace MainGame.UnityView.UI.Inventory.Element
 {
     public class MainInventoryItemView : MonoBehaviour
     {

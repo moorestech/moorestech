@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace MainGame.UnityView.UI.Inventory
+namespace MainGame.UnityView.UI.Inventory.Element
 {
     [CreateAssetMenu(fileName = "ItemImages", menuName = "ItemImages", order = 0)]
     public class ItemImages : ScriptableObject
