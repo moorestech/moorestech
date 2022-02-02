@@ -6,7 +6,8 @@
         "Cinemachine",
         "UnityView.Interface",
         "VContainer",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "Constant"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
