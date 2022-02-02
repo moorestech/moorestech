@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Text.RegularExpressions;
+using UnityEngine;
 
 namespace MainGame.Network.Send.SocketUtil
 {
@@ -9,13 +11,23 @@ namespace MainGame.Network.Send.SocketUtil
         private readonly IPEndPoint _remoteEndPoint;
         public SocketInstanceCreate(ConnectionServerConfig config)
         {
-            
             //IPアドレスやポートを設定
-            IPHostEntry ipHostInfo = Dns.GetHostEntry(config.IP);
-            IPAddress ipAddress = ipHostInfo.AddressList[0];
-            _remoteEndPoint = new IPEndPoint(ipAddress, config.Port);
-
+            IPAddress ipAddress = null;
+            if (IPAddress.TryParse(config.IP,out ipAddress))
+            {
+            }
+            else if(IsUrl(config.IP))
+            {
+                ipAddress = Dns.GetHostEntry(config.IP).AddressList[0].MapToIPv4();
+            }
+            else
+            {
+                Debug.LogError("IP解析失敗");
+                return;
+            }
+            Debug.Log(ipAddress);
             //ソケットを作成
+            _remoteEndPoint = new IPEndPoint(ipAddress, config.Port);
             _socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
         }
         
@@ -27,6 +39,19 @@ namespace MainGame.Network.Send.SocketUtil
         public IPEndPoint GetRemoteEndPoint()
         {
             return _remoteEndPoint;
+        }
+        
+        
+        private static bool IsUrl( string input )
+        {
+            if ( string.IsNullOrEmpty( input ) )
+            {
+                return false;
+            }
+            return Regex.IsMatch( 
+                input, 
+                @"[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+$" 
+            );
         }
         
     }
