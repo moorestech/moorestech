@@ -6,10 +6,10 @@ using VContainer;
 
 namespace MainGame.UnityView.UI.Inventory
 {
-    public class MainInventoryView : MonoBehaviour
+    public class MainInventoryItemView : MonoBehaviour
     {
-        [SerializeField] private InventorySlot inventorySlot;
-        List<InventorySlot> _slots;
+        [SerializeField] private InventoryItemSlot inventoryItemSlot;
+        List<InventoryItemSlot> _slots;
         private ItemImages _itemImages;
         
         
@@ -21,7 +21,7 @@ namespace MainGame.UnityView.UI.Inventory
             
             for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
             {
-                _slots.Add(Instantiate(inventorySlot.gameObject,transform).GetComponent<InventorySlot>());
+                _slots.Add(Instantiate(inventoryItemSlot.gameObject,transform).GetComponent<InventoryItemSlot>());
             }
         }
 

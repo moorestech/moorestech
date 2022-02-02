@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace MainGame.UnityView.UI.Inventory
 {
-    public class InventorySlot: MonoBehaviour
+    public class InventoryItemSlot: MonoBehaviour
     {
         [SerializeField] private Image image;
         [SerializeField] private TextMeshProUGUI countText;
