@@ -5,7 +5,8 @@
         "Unity.InputSystem",
         "Cinemachine",
         "UnityView.Interface",
-        "VContainer"
+        "VContainer",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

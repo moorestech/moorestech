@@ -7,7 +7,7 @@ namespace MainGame.UnityView.UI.Inventory
     public class InventorySlot: MonoBehaviour
     {
         [SerializeField] private Image image;
-        [SerializeField] private TextMeshPro countText;
+        [SerializeField] private TextMeshProUGUI countText;
         
         public void SetItem(Sprite sprite, int count)
         {
