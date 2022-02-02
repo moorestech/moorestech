@@ -7,7 +7,7 @@ namespace MainGame.GameLogic.Send
     public class BlockPlaceEventToSendProtocol
     {
         private readonly ISendPlaceHotBarBlockProtocol _sendPlaceHotBarBlockProtocol;
-        public readonly int playerId;
+        private readonly int _playerId;
 
         public BlockPlaceEventToSendProtocol(
             ISendPlaceHotBarBlockProtocol sendPlaceHotBarBlockProtocol,
@@ -16,12 +16,12 @@ namespace MainGame.GameLogic.Send
         {
             _sendPlaceHotBarBlockProtocol = sendPlaceHotBarBlockProtocol;
             blockPlaceEvent.Subscribe(OnBlockPlace);
-            playerId = connectionPlayerSetting.PlayerId;
+            _playerId = connectionPlayerSetting.PlayerId;
         }
 
         public void OnBlockPlace(Vector2Int position, short hotBar)
         {
-            _sendPlaceHotBarBlockProtocol.Send(position.x,position.y,hotBar,playerId);
+            _sendPlaceHotBarBlockProtocol.Send(position.x,position.y,hotBar,_playerId);
         }
     }
 }
