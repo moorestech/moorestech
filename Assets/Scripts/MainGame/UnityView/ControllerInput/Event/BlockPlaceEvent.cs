@@ -12,7 +12,7 @@ namespace MainGame.UnityView.ControllerInput.Event
             OnBlockPlaceEvent += onBlockPlace;
         }
 
-        public virtual void OnOnBlockPlaceEvent(Vector2Int position, int hotBarIndex)
+        public virtual void OnOnBlockPlaceEvent(Vector2Int position, short hotBarIndex)
         {
             OnBlockPlaceEvent?.Invoke(position, hotBarIndex);
         }

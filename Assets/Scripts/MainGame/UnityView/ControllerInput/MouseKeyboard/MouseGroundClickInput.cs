@@ -43,6 +43,7 @@ namespace MainGame.UnityView.ControllerInput.MouseKeyboard
             //イベントを発火
             var x = Mathf.RoundToInt(hit.point.x);
             var y = Mathf.RoundToInt(hit.point.z);
+            //TODO ホットバーのindexを取得する
             _blockPlaceEvent.OnOnBlockPlaceEvent(new Vector2Int(x,y),0);
         }
 
