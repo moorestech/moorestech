@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
@@ -25,7 +26,8 @@ namespace MainGame.Network
         //MonoBehaviourのStartが終わり、全ての初期化が完了した後、サーバーに接続する
         public void PostStart()
         {
-            Task.Run(Connect);
+            var t = new Thread(Connect);
+            t.Start();
         }
 
         public void Connect()
