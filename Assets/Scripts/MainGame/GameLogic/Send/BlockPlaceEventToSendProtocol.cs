@@ -1,10 +1,11 @@
 ﻿using MainGame.Network.Interface.Send;
 using MainGame.UnityView.Interface.PlayerInput;
 using UnityEngine;
+using VContainer.Unity;
 
 namespace MainGame.GameLogic.Send
 {
-    public class BlockPlaceEventToSendProtocol
+    public class BlockPlaceEventToSendProtocol : IInitializable
     {
         private readonly ISendPlaceHotBarBlockProtocol _sendPlaceHotBarBlockProtocol;
         private readonly int _playerId;
@@ -23,5 +24,6 @@ namespace MainGame.GameLogic.Send
         {
             _sendPlaceHotBarBlockProtocol.Send(position.x,position.y,hotBar,_playerId);
         }
+        public void Initialize() { }
     }
 }

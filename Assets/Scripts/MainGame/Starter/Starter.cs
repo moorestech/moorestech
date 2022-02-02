@@ -2,6 +2,7 @@ using System;
 using MainGame.GameLogic;
 using MainGame.GameLogic.Chunk;
 using MainGame.GameLogic.Inventory;
+using MainGame.GameLogic.Send;
 using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Interface;
@@ -61,6 +62,9 @@ namespace MainGame.Starter
             builder.Register<ISendPlaceHotBarBlockProtocol, SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);
             builder.Register<ISendPlayerInventoryMoveItemProtocol, SendPlayerInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<ISendPlayerPositionProtocol, SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
+            
+            //GameLogicのPresenterの作成
+            builder.RegisterEntryPoint<BlockPlaceEventToSendProtocol>();
             
             //データストア
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
