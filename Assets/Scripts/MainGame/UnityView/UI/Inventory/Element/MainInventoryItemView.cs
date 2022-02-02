@@ -22,7 +22,9 @@ namespace MainGame.UnityView.UI.Inventory.Element
             
             for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
             {
-                _slots.Add(Instantiate(inventoryItemSlot.gameObject,transform).GetComponent<InventoryItemSlot>());
+                var s = Instantiate(inventoryItemSlot.gameObject, transform).GetComponent<InventoryItemSlot>();
+                s.Construct(i);
+                _slots.Add(s);
             }
         }
 
@@ -30,6 +32,11 @@ namespace MainGame.UnityView.UI.Inventory.Element
         {
             var sprite = _itemImages.GetItemImage(itemId);
             _slots[slot].SetItem(sprite,count);
+        }
+        
+        public List<InventoryItemSlot> GetInventoryItemSlots()
+        {
+            return _slots;
         }
     }
 }
