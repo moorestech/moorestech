@@ -1,4 +1,5 @@
 using System;
+using MainGame.GameLogic;
 using MainGame.GameLogic.Chunk;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network;
@@ -25,6 +26,8 @@ namespace MainGame.Starter
     {
         private const string DefaultIp = "127.0.0.1";
         private const int DefaultPort = 11564;
+        private const int PlayerId = 1;
+        
 
         private IObjectResolver _resolver;
         [SerializeField] ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
@@ -40,11 +43,12 @@ namespace MainGame.Starter
             var builder = new ContainerBuilder();
             //サーバーに接続するためのインスタンス
             builder.RegisterInstance(new ConnectionServerConfig(DefaultIp,DefaultPort));
+            builder.RegisterInstance(new ConnectionPlayerSetting(PlayerId));
             builder.RegisterEntryPoint<ConnectionServer>();
             builder.Register<SocketInstanceCreate, SocketInstanceCreate>(Lifetime.Singleton);
             builder.Register<AllReceivePacketAnalysisService, AllReceivePacketAnalysisService>(Lifetime.Singleton);
             builder.Register<ISocket, SocketObject>(Lifetime.Singleton);
-            
+
             //パケット受け取りイベント
             builder.Register<IChunkUpdateEvent, ChunkUpdateEvent>(Lifetime.Singleton);
             builder.Register<IPlayerInventoryUpdateEvent, PlayerInventoryUpdateEvent>(Lifetime.Singleton);
