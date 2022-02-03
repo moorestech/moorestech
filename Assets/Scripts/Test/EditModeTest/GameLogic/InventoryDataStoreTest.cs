@@ -16,7 +16,7 @@ namespace Test.EditModeTest.GameLogic
         public void SetInventoryTest()
         {
             var inventoryEvent = new PlayerInventoryUpdateEvent();
-            var inventoryDataStore = new InventoryDataStoreCache(inventoryEvent);
+            var inventoryDataStore = new InventoryDataStoreCache(inventoryEvent,new InventoryUpdateEvent());
             
             //インベントリの設定
             var inventory = new List<ItemStack>();
