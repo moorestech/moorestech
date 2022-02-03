@@ -10,7 +10,7 @@ namespace MainGame.UnityView.UI.Inventory.View
     public class MainInventoryItemView : MonoBehaviour
     {
         [SerializeField] private InventoryItemSlot inventoryItemSlot;
-        List<InventoryItemSlot> _slots;
+        List<InventoryItemSlot> _slots = new();
         private ItemImages _itemImages;
         
         
