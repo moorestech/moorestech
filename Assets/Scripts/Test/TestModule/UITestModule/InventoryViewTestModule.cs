@@ -3,6 +3,7 @@ using MainGame.GameLogic.Inventory;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Serialization;
 
 namespace Test.TestModule.UITestModule
@@ -23,6 +24,9 @@ namespace Test.TestModule.UITestModule
             update.OnOnInventoryUpdate(10,2,1);
             update.OnOnInventoryUpdate(40,2,1);
             update.OnOnInventoryUpdate(44,2,1);
+            
+            
+            Assert.IsTrue(true);
         }
     }
 }
