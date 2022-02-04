@@ -242,6 +242,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "InventoryItemHalve",
+                    "type": "Button",
+                    "id": "b9b62fe6-3d68-4bba-9213-82161cd7b026",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "InventoryItemOnePut",
+                    "type": "Button",
+                    "id": "57ad66fe-b7c5-4470-90d2-9ac809887509",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -264,6 +282,28 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "ClickPosition",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "468e409c-4610-4e38-8afa-b11c50b409f7",
+                    "path": "<Keyboard>/shift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "InventoryItemHalve",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f070e294-633a-49b0-9c74-df7887d3f76b",
+                    "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "InventoryItemOnePut",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
