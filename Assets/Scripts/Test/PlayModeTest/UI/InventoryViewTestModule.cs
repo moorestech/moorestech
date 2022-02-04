@@ -26,7 +26,7 @@ namespace Test.TestModule.UITestModule
             update.OnOnInventoryUpdate(44,2,1);
             
             
-            Assert.IsTrue(true);
+            Assert.IsTrue(false);
         }
     }
 }
