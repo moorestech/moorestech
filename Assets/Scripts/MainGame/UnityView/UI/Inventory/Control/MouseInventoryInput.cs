@@ -20,7 +20,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
         private IPlayerInventoryItemMove _playerInventoryItemMove;
         private ItemImages _itemImages;
         
-        private MoorestechInputSettings _inputSettings = new();
+        private MoorestechInputSettings _inputSettings;
 
         [Inject]
         public void Construct(
@@ -30,8 +30,10 @@ namespace MainGame.UnityView.UI.Inventory.Control
             _mainInventoryItemView = mainInventoryItemView;
             _playerInventoryItemMove = playerInventoryItemMove;
             _itemImages = itemImages;
-            equippedItem.gameObject.SetActive(false);
             
+            equippedItem.gameObject.SetActive(false);
+            _inputSettings = new();
+                
             inventoryUpdateEvent.Subscribe(InventoryUpdate);
         }
         
