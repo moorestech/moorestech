@@ -9,7 +9,11 @@ namespace MainGame.UnityView.UI.Inventory.View
         public delegate void OnItemSlotClicked(int slotIndex);
 
         [SerializeField] private Image image;
+        public Image Image => image;
+
         [SerializeField] private TextMeshProUGUI countText;
+        public TextMeshProUGUI CountText => countText;
+
         private Button _button;
         private int _slotIndex = -1;
         public void Construct(int slotIndex)
@@ -30,6 +34,12 @@ namespace MainGame.UnityView.UI.Inventory.View
             {
                 countText.text = count.ToString();
             }
+        }
+        
+        public void CopyItem(InventoryItemSlot other)
+        {
+            image.sprite = other.image.sprite;
+            countText.text = other.countText.text;
         }
 
         public void SubscribeOnItemSlotClick(OnItemSlotClicked onItemSlotClicked)

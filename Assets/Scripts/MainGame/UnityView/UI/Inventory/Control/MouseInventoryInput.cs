@@ -1,17 +1,19 @@
 ﻿using MainGame.UnityView.ControllerInput;
+using MainGame.UnityView.Interface;
 using MainGame.UnityView.Interface.PlayerInput;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using VContainer;
 using VContainer.Unity;
 
 namespace MainGame.UnityView.UI.Inventory.Control
 {
-    public class MouseInventoryInput : IControllerInput,IPostStartable
+    public class MouseInventoryInput : MonoBehaviour,IControllerInput,IPostStartable
     {
-        [SerializeField] private Image _equippedItem;
+        [SerializeField] private InventoryItemSlot equippedItem;
         
         private int _equippedItemIndex = -1;
         private MainInventoryItemView _mainInventoryItemView;
@@ -23,11 +25,14 @@ namespace MainGame.UnityView.UI.Inventory.Control
         [Inject]
         public void Construct(
             MainInventoryItemView mainInventoryItemView,
-            IPlayerInventoryItemMove playerInventoryItemMove,ItemImages itemImages)
+            IPlayerInventoryItemMove playerInventoryItemMove,ItemImages itemImages,IInventoryUpdateEvent inventoryUpdateEvent)
         {
             _mainInventoryItemView = mainInventoryItemView;
             _playerInventoryItemMove = playerInventoryItemMove;
             _itemImages = itemImages;
+            equippedItem.gameObject.SetActive(false);
+            
+            inventoryUpdateEvent.Subscribe(InventoryUpdate);
         }
         
         public void PostStart()
@@ -42,9 +47,11 @@ namespace MainGame.UnityView.UI.Inventory.Control
         {
             if (_equippedItemIndex == -1)
             {
+                var fromItem = _mainInventoryItemView.GetInventoryItemSlots()[slot];
+                equippedItem.CopyItem(fromItem);
+                
                 _equippedItemIndex = slot;
-                _equippedItem.sprite = _itemImages.GetItemImage(slot);
-                _equippedItem.gameObject.SetActive(true);
+                equippedItem.gameObject.SetActive(true);
                 return;
             }
 
@@ -64,8 +71,18 @@ namespace MainGame.UnityView.UI.Inventory.Control
             
             //アイテムを全部おく
             _playerInventoryItemMove.MoveAllItemStack(_equippedItemIndex,slot);
+            _equippedItemIndex = -1;
+            equippedItem.gameObject.SetActive(true);
             
             
+        }
+
+        //equippedItemの更新を行う
+        private void InventoryUpdate(int slot, int itemId, int count)
+        {
+            if (slot != _equippedItemIndex) return;
+            var fromItem = _mainInventoryItemView.GetInventoryItemSlots()[slot];
+            equippedItem.CopyItem(fromItem);
         }
         
         public void OnInput()
