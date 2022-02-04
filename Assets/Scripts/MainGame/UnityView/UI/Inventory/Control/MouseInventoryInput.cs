@@ -35,6 +35,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
             inventoryUpdateEvent.Subscribe(InventoryUpdate);
         }
         
+        //イベントをボタンに登録する
         public void PostStart()
         {
             foreach (var slot in _mainInventoryItemView.GetInventoryItemSlots())
@@ -42,7 +43,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 slot.SubscribeOnItemSlotClick(OnSlotClick);
             }
         }
-
+        //ボタンがクリックされた時に呼び出される
         private void OnSlotClick(int slot)
         {
             if (_equippedItemIndex == -1)
