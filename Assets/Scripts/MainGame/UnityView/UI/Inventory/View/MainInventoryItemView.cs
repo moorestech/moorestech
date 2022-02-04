@@ -34,7 +34,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             _slots[slot].SetItem(sprite,count);
         }
         
-        public List<InventoryItemSlot> GetInventoryItemSlots()
+        public IReadOnlyList<InventoryItemSlot> GetInventoryItemSlots()
         {
             return _slots;
         }
