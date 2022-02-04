@@ -1,12 +1,10 @@
-using System;
 using MainGame.GameLogic.Inventory;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Serialization;
 
-namespace Test.TestModule.UITestModule
+namespace Test.PlayModeTest.UI
 {
     public class InventoryViewTestModule : MonoBehaviour
     {
