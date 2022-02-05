@@ -18,18 +18,16 @@ namespace MainGame.UnityView.UI.Inventory.Control
         private int _equippedItemIndex = -1;
         private MainInventoryItemView _mainInventoryItemView;
         private IPlayerInventoryItemMove _playerInventoryItemMove;
-        private ItemImages _itemImages;
         
         private MoorestechInputSettings _inputSettings;
 
         [Inject]
         public void Construct(
             MainInventoryItemView mainInventoryItemView,
-            IPlayerInventoryItemMove playerInventoryItemMove,ItemImages itemImages,IInventoryUpdateEvent inventoryUpdateEvent)
+            IPlayerInventoryItemMove playerInventoryItemMove,IInventoryUpdateEvent inventoryUpdateEvent)
         {
             _mainInventoryItemView = mainInventoryItemView;
             _playerInventoryItemMove = playerInventoryItemMove;
-            _itemImages = itemImages;
             
             equippedItem.gameObject.SetActive(false);
             _inputSettings = new();
