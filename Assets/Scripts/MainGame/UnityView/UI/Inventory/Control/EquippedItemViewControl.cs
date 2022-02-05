@@ -7,28 +7,30 @@ namespace MainGame.UnityView.UI.Inventory.Control
     public class EquippedItemViewControl : MonoBehaviour
     {
          Camera _mainCamera;
-         RectTransform _parent;
+         RectTransform _canvasRect;
          RectTransform _target;
 
          [Inject]
          public void Construct(Camera mainCamera)
          {
              _mainCamera = mainCamera;
-             _parent = transform.parent.GetComponent<RectTransform>();
+             _canvasRect = transform.root.GetComponentsInChildren<RectTransform>()[0];
              _target = GetComponent<RectTransform>();
          }
 
         void Update()
         {
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _parent,
-                Input.mousePosition ,
-                _mainCamera,
-                out var mousePos);
+            var magnification = _canvasRect.sizeDelta.x / Screen.width;
+
+            var itemPos = new Vector3();
             
-            _target.anchoredPosition = new Vector2(
-                mousePos.x,
-                mousePos.y);
+            itemPos.x = Input.mousePosition.x * magnification - _canvasRect.sizeDelta.x / 2;
+            itemPos.y = Input.mousePosition.y * magnification - _canvasRect.sizeDelta.y / 2;
+            itemPos.z = transform.localPosition.z;
+
+            transform.localPosition = itemPos;
         }
+        
+        
     }
 }
