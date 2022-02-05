@@ -11,7 +11,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
          RectTransform _target;
 
          [Inject]
-         private void Construct(Camera mainCamera)
+         public void Construct(Camera mainCamera)
          {
              _mainCamera = mainCamera;
              _parent = transform.parent.GetComponent<RectTransform>();
