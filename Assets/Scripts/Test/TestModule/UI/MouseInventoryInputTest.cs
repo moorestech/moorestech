@@ -17,7 +17,7 @@ namespace Test.TestModule.UI
         private void Start()
         {
             equippedItemViewControl.Construct(camera);
-            mouseInventoryInput.Construct(mainInventoryItem,null,new InventoryUpdateEvent());
+            mouseInventoryInput.Construct(mainInventoryItem,new PlayerInventoryItemMoveTest(),new InventoryUpdateEvent());
         }
     }
 }
