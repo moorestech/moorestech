@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using MainGame.GameLogic.Inventory;
 using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.View;
@@ -18,6 +19,14 @@ namespace Test.TestModule.UI
         {
             equippedItemViewControl.Construct(camera);
             mouseInventoryInput.Construct(mainInventoryItem,new PlayerInventoryItemMoveTest(),new InventoryUpdateEvent());
+
+            StartCoroutine(PostStart());
+        }
+
+        private IEnumerator PostStart()
+        {
+            yield return new WaitForSeconds(0.1f);
+            mouseInventoryInput.PostStart();
         }
     }
 }

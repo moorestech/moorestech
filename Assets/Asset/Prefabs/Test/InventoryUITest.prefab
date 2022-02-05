@@ -43,6 +43,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7789463816143227917}
   - component: {fileID: 7789463816143227918}
+  - component: {fileID: 2407636907828000943}
   m_Layer: 0
   m_Name: TestModule
   m_TagString: Untagged
@@ -79,6 +80,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainInventoryItemView: {fileID: 9199618560218924157}
   itemImages: {fileID: 11400000, guid: f3f5e541a0fc649389c5ffefa1f0082a, type: 2}
+--- !u!114 &2407636907828000943
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7789463816143227919}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d86b8a45199148e9a1c17895c1c1dbfa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  equippedItemViewControl: {fileID: 2640343440944161289}
+  mouseInventoryInput: {fileID: 5167269284045728299}
+  mainInventoryItem: {fileID: 9199618560218924157}
+  camera: {fileID: 0}
 --- !u!1001 &7789463816664185484
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -176,6 +193,28 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+--- !u!114 &2640343440944161289 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5241589963447113861, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 7789463816664185484}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 782514829e3049d2be9e9cf6cfbde95b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5167269284045728299 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3147004706699858087, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 7789463816664185484}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32acd88976c94f13a6ecedf9934ebbdd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &9199618560218924157 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1419232311588060913, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
