@@ -272,7 +272,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": false
+                    ""initialStateCheck"": true
                 },
                 {
                     ""name"": ""InventoryItemOnePut"",
@@ -281,7 +281,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": false
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -310,10 +310,10 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 {
                     ""name"": """",
                     ""id"": ""468e409c-4610-4e38-8afa-b11c50b409f7"",
-                    ""path"": ""<Keyboard>/shift"",
+                    ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""KeyboardMouse"",
                     ""action"": ""InventoryItemHalve"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -321,10 +321,10 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 {
                     ""name"": """",
                     ""id"": ""f070e294-633a-49b0-9c74-df7887d3f76b"",
-                    ""path"": ""<Keyboard>/ctrl"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""KeyboardMouse"",
                     ""action"": ""InventoryItemOnePut"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false

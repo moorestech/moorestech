@@ -1,9 +1,11 @@
-﻿using MainGame.UnityView.ControllerInput;
+﻿using System;
+using MainGame.UnityView.ControllerInput;
 using MainGame.UnityView.Interface;
 using MainGame.UnityView.Interface.PlayerInput;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 using VContainer;
@@ -31,7 +33,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
             
             equippedItem.gameObject.SetActive(false);
             _inputSettings = new();
-                
+            _inputSettings.Enable();
             inventoryUpdateEvent.Subscribe(InventoryUpdate);
         }
         
@@ -73,7 +75,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
             //アイテムを全部おく
             _playerInventoryItemMove.MoveAllItemStack(_equippedItemIndex,slot);
             _equippedItemIndex = -1;
-            equippedItem.gameObject.SetActive(true);
+            equippedItem.gameObject.SetActive(false);
             
             
         }
