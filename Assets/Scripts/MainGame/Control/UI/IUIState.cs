@@ -5,5 +5,6 @@
         public bool IsNext();
         public IUIState GetNext();
         public void OnEnter();
+        public void OnExit();
     }
 }
