@@ -1,26 +1,47 @@
-﻿namespace MainGame.Control.UI
+﻿using UnityEngine;
+
+namespace MainGame.Control.UI
 {
     public class GameScreen : IUIState
     {
-        
+        private MoorestechInputSettings _input;
+        private IUIState _inventoryState;
+        private IUIState _pauseState;
+        public void Construct(IUIState inventoryState, IUIState pauseState,MoorestechInputSettings input)
+        {
+            _input = input;
+            _inventoryState = inventoryState;
+            _pauseState = pauseState;
+        }
+
         public bool IsNext()
         {
-            throw new System.NotImplementedException();
+            if (_input.UI.OpenInventory.triggered)
+            {
+                return true;
+            }else if (_input.UI.OpenMenu.triggered)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public IUIState GetNext()
         {
-            throw new System.NotImplementedException();
+            if (_input.UI.OpenInventory.triggered)
+            {
+                return _inventoryState;
+            }
+            if (_input.UI.OpenMenu.triggered)
+            {
+                return _pauseState;
+            }
+
+            return this;
         }
 
-        public void OnEnter()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void OnExit()
-        {
-            throw new System.NotImplementedException();
-        }
+        public void OnEnter() { }
+        public void OnExit() { }
     }
 }
