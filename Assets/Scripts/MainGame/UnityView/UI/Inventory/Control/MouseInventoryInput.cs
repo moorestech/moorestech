@@ -60,14 +60,14 @@ namespace MainGame.UnityView.UI.Inventory.Control
             }
 
             //アイテムを半分だけおく
-            if (_inputSettings.Playable.InventoryItemHalve.inProgress)
+            if (_inputSettings.UI.InventoryItemHalve.inProgress)
             {
                 _playerInventoryItemMove.MoveHalfItemStack(_equippedItemIndex,slot);
                 return;
             }
             
             //アイテムを一個だけおく
-            if (_inputSettings.Playable.InventoryItemOnePut.inProgress)
+            if (_inputSettings.UI.InventoryItemOnePut.inProgress)
             {
                 _playerInventoryItemMove.MoveOneItemStack(_equippedItemIndex,slot);
                 return;

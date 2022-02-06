@@ -242,24 +242,6 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
-                },
-                {
-                    "name": "InventoryItemHalve",
-                    "type": "Button",
-                    "id": "b9b62fe6-3d68-4bba-9213-82161cd7b026",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "InventoryItemOnePut",
-                    "type": "Button",
-                    "id": "57ad66fe-b7c5-4470-90d2-9ac809887509",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -284,10 +266,56 @@
                     "action": "ClickPosition",
                     "isComposite": false,
                     "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "UI",
+            "id": "a5b83090-4129-4641-9269-ed030245dfb4",
+            "actions": [
+                {
+                    "name": "OpenInventory",
+                    "type": "Button",
+                    "id": "17545790-f73d-43a1-8cf7-6a7a14e5f0a6",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "InventoryItemOnePut",
+                    "type": "Button",
+                    "id": "d5b7c844-d220-4349-8215-850781d15821",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "InventoryItemHalve",
+                    "type": "Button",
+                    "id": "4e16a79f-7adf-46ea-912e-883f895d6760",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "1541a9fa-f950-453c-bbcd-9a3a24057279",
+                    "path": "<Keyboard>/leftCtrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "InventoryItemOnePut",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "468e409c-4610-4e38-8afa-b11c50b409f7",
+                    "id": "28f13127-1302-42a6-acf5-88ff169cec76",
                     "path": "<Keyboard>/leftShift",
                     "interactions": "",
                     "processors": "",
@@ -298,12 +326,12 @@
                 },
                 {
                     "name": "",
-                    "id": "f070e294-633a-49b0-9c74-df7887d3f76b",
-                    "path": "<Keyboard>/leftCtrl",
+                    "id": "a29f8259-bf97-43fc-8ea0-90be9df5ba4b",
+                    "path": "<Keyboard>/tab",
                     "interactions": "",
                     "processors": "",
                     "groups": "KeyboardMouse",
-                    "action": "InventoryItemOnePut",
+                    "action": "OpenInventory",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

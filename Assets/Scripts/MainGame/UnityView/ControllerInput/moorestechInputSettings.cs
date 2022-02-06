@@ -264,24 +264,6 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""InventoryItemHalve"",
-                    ""type"": ""Button"",
-                    ""id"": ""b9b62fe6-3d68-4bba-9213-82161cd7b026"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""InventoryItemOnePut"",
-                    ""type"": ""Button"",
-                    ""id"": ""57ad66fe-b7c5-4470-90d2-9ac809887509"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -306,10 +288,56 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""action"": ""ClickPosition"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""UI"",
+            ""id"": ""a5b83090-4129-4641-9269-ed030245dfb4"",
+            ""actions"": [
+                {
+                    ""name"": ""OpenInventory"",
+                    ""type"": ""Button"",
+                    ""id"": ""17545790-f73d-43a1-8cf7-6a7a14e5f0a6"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""InventoryItemOnePut"",
+                    ""type"": ""Button"",
+                    ""id"": ""d5b7c844-d220-4349-8215-850781d15821"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""InventoryItemHalve"",
+                    ""type"": ""Button"",
+                    ""id"": ""4e16a79f-7adf-46ea-912e-883f895d6760"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""1541a9fa-f950-453c-bbcd-9a3a24057279"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""InventoryItemOnePut"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
-                    ""id"": ""468e409c-4610-4e38-8afa-b11c50b409f7"",
+                    ""id"": ""28f13127-1302-42a6-acf5-88ff169cec76"",
                     ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -320,12 +348,12 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 },
                 {
                     ""name"": """",
-                    ""id"": ""f070e294-633a-49b0-9c74-df7887d3f76b"",
-                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""id"": ""a29f8259-bf97-43fc-8ea0-90be9df5ba4b"",
+                    ""path"": ""<Keyboard>/tab"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""InventoryItemOnePut"",
+                    ""action"": ""OpenInventory"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -392,8 +420,11 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         m_Playable = asset.FindActionMap("Playable", throwIfNotFound: true);
         m_Playable_ScreenClick = m_Playable.FindAction("ScreenClick", throwIfNotFound: true);
         m_Playable_ClickPosition = m_Playable.FindAction("ClickPosition", throwIfNotFound: true);
-        m_Playable_InventoryItemHalve = m_Playable.FindAction("InventoryItemHalve", throwIfNotFound: true);
-        m_Playable_InventoryItemOnePut = m_Playable.FindAction("InventoryItemOnePut", throwIfNotFound: true);
+        // UI
+        m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
+        m_UI_OpenInventory = m_UI.FindAction("OpenInventory", throwIfNotFound: true);
+        m_UI_InventoryItemOnePut = m_UI.FindAction("InventoryItemOnePut", throwIfNotFound: true);
+        m_UI_InventoryItemHalve = m_UI.FindAction("InventoryItemHalve", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -512,16 +543,12 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     private IPlayableActions m_PlayableActionsCallbackInterface;
     private readonly InputAction m_Playable_ScreenClick;
     private readonly InputAction m_Playable_ClickPosition;
-    private readonly InputAction m_Playable_InventoryItemHalve;
-    private readonly InputAction m_Playable_InventoryItemOnePut;
     public struct PlayableActions
     {
         private @MoorestechInputSettings m_Wrapper;
         public PlayableActions(@MoorestechInputSettings wrapper) { m_Wrapper = wrapper; }
         public InputAction @ScreenClick => m_Wrapper.m_Playable_ScreenClick;
         public InputAction @ClickPosition => m_Wrapper.m_Playable_ClickPosition;
-        public InputAction @InventoryItemHalve => m_Wrapper.m_Playable_InventoryItemHalve;
-        public InputAction @InventoryItemOnePut => m_Wrapper.m_Playable_InventoryItemOnePut;
         public InputActionMap Get() { return m_Wrapper.m_Playable; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -537,12 +564,6 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 @ClickPosition.started -= m_Wrapper.m_PlayableActionsCallbackInterface.OnClickPosition;
                 @ClickPosition.performed -= m_Wrapper.m_PlayableActionsCallbackInterface.OnClickPosition;
                 @ClickPosition.canceled -= m_Wrapper.m_PlayableActionsCallbackInterface.OnClickPosition;
-                @InventoryItemHalve.started -= m_Wrapper.m_PlayableActionsCallbackInterface.OnInventoryItemHalve;
-                @InventoryItemHalve.performed -= m_Wrapper.m_PlayableActionsCallbackInterface.OnInventoryItemHalve;
-                @InventoryItemHalve.canceled -= m_Wrapper.m_PlayableActionsCallbackInterface.OnInventoryItemHalve;
-                @InventoryItemOnePut.started -= m_Wrapper.m_PlayableActionsCallbackInterface.OnInventoryItemOnePut;
-                @InventoryItemOnePut.performed -= m_Wrapper.m_PlayableActionsCallbackInterface.OnInventoryItemOnePut;
-                @InventoryItemOnePut.canceled -= m_Wrapper.m_PlayableActionsCallbackInterface.OnInventoryItemOnePut;
             }
             m_Wrapper.m_PlayableActionsCallbackInterface = instance;
             if (instance != null)
@@ -553,16 +574,59 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 @ClickPosition.started += instance.OnClickPosition;
                 @ClickPosition.performed += instance.OnClickPosition;
                 @ClickPosition.canceled += instance.OnClickPosition;
-                @InventoryItemHalve.started += instance.OnInventoryItemHalve;
-                @InventoryItemHalve.performed += instance.OnInventoryItemHalve;
-                @InventoryItemHalve.canceled += instance.OnInventoryItemHalve;
-                @InventoryItemOnePut.started += instance.OnInventoryItemOnePut;
-                @InventoryItemOnePut.performed += instance.OnInventoryItemOnePut;
-                @InventoryItemOnePut.canceled += instance.OnInventoryItemOnePut;
             }
         }
     }
     public PlayableActions @Playable => new PlayableActions(this);
+
+    // UI
+    private readonly InputActionMap m_UI;
+    private IUIActions m_UIActionsCallbackInterface;
+    private readonly InputAction m_UI_OpenInventory;
+    private readonly InputAction m_UI_InventoryItemOnePut;
+    private readonly InputAction m_UI_InventoryItemHalve;
+    public struct UIActions
+    {
+        private @MoorestechInputSettings m_Wrapper;
+        public UIActions(@MoorestechInputSettings wrapper) { m_Wrapper = wrapper; }
+        public InputAction @OpenInventory => m_Wrapper.m_UI_OpenInventory;
+        public InputAction @InventoryItemOnePut => m_Wrapper.m_UI_InventoryItemOnePut;
+        public InputAction @InventoryItemHalve => m_Wrapper.m_UI_InventoryItemHalve;
+        public InputActionMap Get() { return m_Wrapper.m_UI; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(UIActions set) { return set.Get(); }
+        public void SetCallbacks(IUIActions instance)
+        {
+            if (m_Wrapper.m_UIActionsCallbackInterface != null)
+            {
+                @OpenInventory.started -= m_Wrapper.m_UIActionsCallbackInterface.OnOpenInventory;
+                @OpenInventory.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnOpenInventory;
+                @OpenInventory.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnOpenInventory;
+                @InventoryItemOnePut.started -= m_Wrapper.m_UIActionsCallbackInterface.OnInventoryItemOnePut;
+                @InventoryItemOnePut.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnInventoryItemOnePut;
+                @InventoryItemOnePut.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnInventoryItemOnePut;
+                @InventoryItemHalve.started -= m_Wrapper.m_UIActionsCallbackInterface.OnInventoryItemHalve;
+                @InventoryItemHalve.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnInventoryItemHalve;
+                @InventoryItemHalve.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnInventoryItemHalve;
+            }
+            m_Wrapper.m_UIActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @OpenInventory.started += instance.OnOpenInventory;
+                @OpenInventory.performed += instance.OnOpenInventory;
+                @OpenInventory.canceled += instance.OnOpenInventory;
+                @InventoryItemOnePut.started += instance.OnInventoryItemOnePut;
+                @InventoryItemOnePut.performed += instance.OnInventoryItemOnePut;
+                @InventoryItemOnePut.canceled += instance.OnInventoryItemOnePut;
+                @InventoryItemHalve.started += instance.OnInventoryItemHalve;
+                @InventoryItemHalve.performed += instance.OnInventoryItemHalve;
+                @InventoryItemHalve.canceled += instance.OnInventoryItemHalve;
+            }
+        }
+    }
+    public UIActions @UI => new UIActions(this);
     private int m_KeyboardMouseSchemeIndex = -1;
     public InputControlScheme KeyboardMouseScheme
     {
@@ -610,7 +674,11 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     {
         void OnScreenClick(InputAction.CallbackContext context);
         void OnClickPosition(InputAction.CallbackContext context);
-        void OnInventoryItemHalve(InputAction.CallbackContext context);
+    }
+    public interface IUIActions
+    {
+        void OnOpenInventory(InputAction.CallbackContext context);
         void OnInventoryItemOnePut(InputAction.CallbackContext context);
+        void OnInventoryItemHalve(InputAction.CallbackContext context);
     }
 }

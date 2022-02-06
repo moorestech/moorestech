@@ -93,9 +93,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   equippedItemViewControl: {fileID: 2640343440944161289}
-  mouseInventoryInput: {fileID: 5167269284045728299}
+  mouseInventoryInput: {fileID: 3444686217624259995}
   mainInventoryItem: {fileID: 9199618560218924157}
-  camera: {fileID: 0}
 --- !u!1001 &7789463816664185484
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -204,9 +203,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 782514829e3049d2be9e9cf6cfbde95b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &5167269284045728299 stripped
+--- !u!114 &3444686217624259995 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3147004706699858087, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_CorrespondingSourceObject: {fileID: 4887610450443466519, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
   m_PrefabInstance: {fileID: 7789463816664185484}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
