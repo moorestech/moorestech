@@ -1,4 +1,5 @@
 using System;
+using MainGame.UnityView.Interface.PlayerInput;
 using UnityEngine;
 using VContainer;
 
@@ -6,16 +7,13 @@ namespace MainGame.UnityView.UI.Inventory.Control
 {
     public class EquippedItemViewControl : MonoBehaviour
     {
-         Camera _mainCamera;
          RectTransform _canvasRect;
-         RectTransform _target;
 
          [Inject]
-         public void Construct(Camera mainCamera)
+         public void Construct()
          {
-             _mainCamera = mainCamera;
+             Debug.Log("EquippedItemViewControl");
              _canvasRect = transform.root.GetComponentsInChildren<RectTransform>()[0];
-             _target = GetComponent<RectTransform>();
          }
 
         void Update()

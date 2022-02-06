@@ -16,6 +16,7 @@ using MainGame.UnityView.Interface;
 using MainGame.UnityView.Interface.Chunk;
 using MainGame.UnityView.Interface.PlayerInput;
 using MainGame.UnityView.UI.Inventory.Control;
+using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -42,6 +43,7 @@ namespace MainGame.Starter
         [SerializeField] private EquippedItemViewControl equippedItemViewControl;
         [SerializeField] private MainInventoryItemView mainInventoryItemView;
         [SerializeField] private MouseInventoryInput mouseInventoryInput;
+        [SerializeField] private ItemImages itemImages;
         
         void Start()
         {
@@ -75,7 +77,7 @@ namespace MainGame.Starter
             //データストア
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
             builder.Register<IBlockUpdateEvent, BlockUpdateEvent>(Lifetime.Singleton);
-            builder.RegisterEntryPoint<InventoryDataStoreCache>();
+            builder.Register<InventoryDataStoreCache>(Lifetime.Singleton);
             
             //ScriptableObjectの登録
             builder.RegisterInstance(blockObjects);
@@ -92,11 +94,12 @@ namespace MainGame.Starter
             builder.RegisterComponentOnNewGameObject<MouseGroundClickInput>(Lifetime.Singleton);
             
             //Hierarchy上にあるcomponent
-            builder.RegisterInstance(mainCamera);
-            builder.RegisterInstance(groundPlane);
-            builder.RegisterInstance(equippedItemViewControl);
-            builder.RegisterInstance(mainInventoryItemView);
-            builder.RegisterInstance(mouseInventoryInput);
+            builder.RegisterComponent(mainCamera);
+            builder.RegisterComponent(groundPlane);
+            builder.RegisterComponent(equippedItemViewControl);
+            builder.RegisterComponent(mainInventoryItemView);
+            builder.RegisterComponent(mouseInventoryInput);
+            builder.RegisterInstance(itemImages);
             
             
 
@@ -106,6 +109,10 @@ namespace MainGame.Starter
             _resolver = builder.Build();
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();
             _resolver.Resolve<MouseGroundClickInput>();
+            _resolver.Resolve<MainInventoryItemView>();
+            _resolver.Resolve<EquippedItemViewControl>();
+            _resolver.Resolve<MouseInventoryInput>();
+            _resolver.Resolve<IPlayerInventoryItemMove>();
 
         }
 

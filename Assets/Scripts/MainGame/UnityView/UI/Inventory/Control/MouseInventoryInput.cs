@@ -26,10 +26,11 @@ namespace MainGame.UnityView.UI.Inventory.Control
         [Inject]
         public void Construct(
             MainInventoryItemView mainInventoryItemView,
-            IPlayerInventoryItemMove playerInventoryItemMove,IInventoryUpdateEvent inventoryUpdateEvent)
+            //IPlayerInventoryItemMove playerInventoryItemMove,
+            IInventoryUpdateEvent inventoryUpdateEvent)
         {
             _mainInventoryItemView = mainInventoryItemView;
-            _playerInventoryItemMove = playerInventoryItemMove;
+            //_playerInventoryItemMove = playerInventoryItemMove;
             
             equippedItem.gameObject.SetActive(false);
             _inputSettings = new();

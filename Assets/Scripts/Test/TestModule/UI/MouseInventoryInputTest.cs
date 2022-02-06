@@ -13,12 +13,11 @@ namespace Test.TestModule.UI
         [SerializeField] private MouseInventoryInput mouseInventoryInput;
 
         [SerializeField] private MainInventoryItemView mainInventoryItem;
-        [SerializeField] private Camera camera;
 
         private void Start()
         {
-            equippedItemViewControl.Construct(camera);
-            mouseInventoryInput.Construct(mainInventoryItem,new PlayerInventoryItemMoveTest(),new InventoryUpdateEvent());
+            equippedItemViewControl.Construct();
+            mouseInventoryInput.Construct(mainInventoryItem,new InventoryUpdateEvent());
 
             StartCoroutine(PostStart());
         }
