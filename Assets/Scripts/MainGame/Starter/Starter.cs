@@ -1,4 +1,3 @@
-using System;
 using MainGame.GameLogic;
 using MainGame.GameLogic.Chunk;
 using MainGame.GameLogic.Inventory;
@@ -16,8 +15,9 @@ using MainGame.UnityView.ControllerInput.MouseKeyboard;
 using MainGame.UnityView.Interface;
 using MainGame.UnityView.Interface.Chunk;
 using MainGame.UnityView.Interface.PlayerInput;
+using MainGame.UnityView.UI.Inventory.Control;
+using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
-using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
@@ -38,6 +38,10 @@ namespace MainGame.Starter
         [SerializeField] Camera mainCamera;
 
         [SerializeField] private GroundPlane groundPlane;
+
+        [SerializeField] private EquippedItemViewControl equippedItemViewControl;
+        [SerializeField] private MainInventoryItemView mainInventoryItemView;
+        [SerializeField] private MouseInventoryInput mouseInventoryInput;
         
         void Start()
         {
@@ -65,6 +69,8 @@ namespace MainGame.Starter
             
             //GameLogicのPresenterの作成
             builder.RegisterEntryPoint<BlockPlaceEventToSendProtocol>();
+            builder.Register<IInventoryUpdateEvent,InventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<IPlayerInventoryItemMove,PlayerInventoryItemMove>(Lifetime.Singleton);
             
             //データストア
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
@@ -88,6 +94,9 @@ namespace MainGame.Starter
             //Hierarchy上にあるcomponent
             builder.RegisterInstance(mainCamera);
             builder.RegisterInstance(groundPlane);
+            builder.RegisterInstance(equippedItemViewControl);
+            builder.RegisterInstance(mainInventoryItemView);
+            builder.RegisterInstance(mouseInventoryInput);
             
             
 
