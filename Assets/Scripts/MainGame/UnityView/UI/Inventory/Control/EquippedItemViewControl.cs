@@ -12,7 +12,6 @@ namespace MainGame.UnityView.UI.Inventory.Control
          [Inject]
          public void Construct()
          {
-             Debug.Log("EquippedItemViewControl");
              _canvasRect = transform.root.GetComponentsInChildren<RectTransform>()[0];
          }
 
