@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028305, g: 0.22571313, b: 0.3069213, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -220,6 +220,39 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+--- !u!114 &135985973 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5241589963447113861, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 782514829e3049d2be9e9cf6cfbde95b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &135985974 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3147004706699858087, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32acd88976c94f13a6ecedf9934ebbdd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &135985975 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1419232311588060913, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9b6d1bda453412fb6e6caae1662cf57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &367739779
 GameObject:
   m_ObjectHideFlags: 0
@@ -550,7 +583,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8944336655422409503, guid: f6d148d888ffbf54b9afe9936dfaec1f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -3.2870617
+      value: -3.287062
       objectReference: {fileID: 0}
     - target: {fileID: 8944336655422409503, guid: f6d148d888ffbf54b9afe9936dfaec1f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -640,6 +673,9 @@ MonoBehaviour:
   blockObjects: {fileID: 11400000, guid: db5bae58745d342e7bde18cd5a2830be, type: 2}
   mainCamera: {fileID: 1240479239}
   groundPlane: {fileID: 367739784}
+  equippedItemViewControl: {fileID: 135985973}
+  mainInventoryItemView: {fileID: 135985975}
+  mouseInventoryInput: {fileID: 135985974}
 --- !u!4 &1255688096
 Transform:
   m_ObjectHideFlags: 0
@@ -751,7 +787,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2070925441746177912, guid: a1a802ecaf6775746bb2a929fb554ad8, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -3.2870617
+      value: -3.287062
       objectReference: {fileID: 0}
     - target: {fileID: 2070925441746177912, guid: a1a802ecaf6775746bb2a929fb554ad8, type: 3}
       propertyPath: m_LocalRotation.w
