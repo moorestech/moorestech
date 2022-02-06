@@ -274,6 +274,24 @@
             "id": "a5b83090-4129-4641-9269-ed030245dfb4",
             "actions": [
                 {
+                    "name": "OpenMenu",
+                    "type": "Button",
+                    "id": "d05b5bb9-2c20-4891-9da9-7b462f4ac170",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "CloseUI",
+                    "type": "Button",
+                    "id": "36b3d4de-bd2d-438c-9e4c-df3e938816ab",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
                     "name": "OpenInventory",
                     "type": "Button",
                     "id": "17545790-f73d-43a1-8cf7-6a7a14e5f0a6",
@@ -332,6 +350,28 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "OpenInventory",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c032cecf-09c5-4a01-8337-4f455fb210a3",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "OpenMenu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "56a2af2c-e73c-4e4c-8634-444c9cfdc0f4",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "CloseUI",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

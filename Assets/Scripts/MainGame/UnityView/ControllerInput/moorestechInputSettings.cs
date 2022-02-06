@@ -296,6 +296,24 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
             ""id"": ""a5b83090-4129-4641-9269-ed030245dfb4"",
             ""actions"": [
                 {
+                    ""name"": ""OpenMenu"",
+                    ""type"": ""Button"",
+                    ""id"": ""d05b5bb9-2c20-4891-9da9-7b462f4ac170"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""CloseUI"",
+                    ""type"": ""Button"",
+                    ""id"": ""36b3d4de-bd2d-438c-9e4c-df3e938816ab"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
                     ""name"": ""OpenInventory"",
                     ""type"": ""Button"",
                     ""id"": ""17545790-f73d-43a1-8cf7-6a7a14e5f0a6"",
@@ -354,6 +372,28 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",
                     ""action"": ""OpenInventory"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c032cecf-09c5-4a01-8337-4f455fb210a3"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""OpenMenu"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""56a2af2c-e73c-4e4c-8634-444c9cfdc0f4"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""CloseUI"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -422,6 +462,8 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         m_Playable_ClickPosition = m_Playable.FindAction("ClickPosition", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
+        m_UI_OpenMenu = m_UI.FindAction("OpenMenu", throwIfNotFound: true);
+        m_UI_CloseUI = m_UI.FindAction("CloseUI", throwIfNotFound: true);
         m_UI_OpenInventory = m_UI.FindAction("OpenInventory", throwIfNotFound: true);
         m_UI_InventoryItemOnePut = m_UI.FindAction("InventoryItemOnePut", throwIfNotFound: true);
         m_UI_InventoryItemHalve = m_UI.FindAction("InventoryItemHalve", throwIfNotFound: true);
@@ -582,6 +624,8 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     // UI
     private readonly InputActionMap m_UI;
     private IUIActions m_UIActionsCallbackInterface;
+    private readonly InputAction m_UI_OpenMenu;
+    private readonly InputAction m_UI_CloseUI;
     private readonly InputAction m_UI_OpenInventory;
     private readonly InputAction m_UI_InventoryItemOnePut;
     private readonly InputAction m_UI_InventoryItemHalve;
@@ -589,6 +633,8 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     {
         private @MoorestechInputSettings m_Wrapper;
         public UIActions(@MoorestechInputSettings wrapper) { m_Wrapper = wrapper; }
+        public InputAction @OpenMenu => m_Wrapper.m_UI_OpenMenu;
+        public InputAction @CloseUI => m_Wrapper.m_UI_CloseUI;
         public InputAction @OpenInventory => m_Wrapper.m_UI_OpenInventory;
         public InputAction @InventoryItemOnePut => m_Wrapper.m_UI_InventoryItemOnePut;
         public InputAction @InventoryItemHalve => m_Wrapper.m_UI_InventoryItemHalve;
@@ -601,6 +647,12 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         {
             if (m_Wrapper.m_UIActionsCallbackInterface != null)
             {
+                @OpenMenu.started -= m_Wrapper.m_UIActionsCallbackInterface.OnOpenMenu;
+                @OpenMenu.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnOpenMenu;
+                @OpenMenu.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnOpenMenu;
+                @CloseUI.started -= m_Wrapper.m_UIActionsCallbackInterface.OnCloseUI;
+                @CloseUI.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnCloseUI;
+                @CloseUI.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnCloseUI;
                 @OpenInventory.started -= m_Wrapper.m_UIActionsCallbackInterface.OnOpenInventory;
                 @OpenInventory.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnOpenInventory;
                 @OpenInventory.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnOpenInventory;
@@ -614,6 +666,12 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
             m_Wrapper.m_UIActionsCallbackInterface = instance;
             if (instance != null)
             {
+                @OpenMenu.started += instance.OnOpenMenu;
+                @OpenMenu.performed += instance.OnOpenMenu;
+                @OpenMenu.canceled += instance.OnOpenMenu;
+                @CloseUI.started += instance.OnCloseUI;
+                @CloseUI.performed += instance.OnCloseUI;
+                @CloseUI.canceled += instance.OnCloseUI;
                 @OpenInventory.started += instance.OnOpenInventory;
                 @OpenInventory.performed += instance.OnOpenInventory;
                 @OpenInventory.canceled += instance.OnOpenInventory;
@@ -677,6 +735,8 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     }
     public interface IUIActions
     {
+        void OnOpenMenu(InputAction.CallbackContext context);
+        void OnCloseUI(InputAction.CallbackContext context);
         void OnOpenInventory(InputAction.CallbackContext context);
         void OnInventoryItemOnePut(InputAction.CallbackContext context);
         void OnInventoryItemHalve(InputAction.CallbackContext context);
