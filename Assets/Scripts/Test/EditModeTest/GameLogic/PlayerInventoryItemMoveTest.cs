@@ -1,4 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using MainGame.Constant;
+using MainGame.GameLogic;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network.Event;
 using MainGame.Network.Interface.Receive;
@@ -16,12 +19,11 @@ namespace Test.EditModeTest.GameLogic
             var sendItem = new SendItemMove();
             var items = new InventoryDataStoreCache(new PlayerInventoryUpdateEvent(),new InventoryUpdateEvent());
             
-            var itemMove = new PlayerInventoryItemMove(sendItem,items);
+            var itemMove = new PlayerInventoryItemMove(sendItem,items,new ConnectionPlayerSetting(0));
             
-            //移動アイテムを追加する
-            items.UpdateSlotInventory(new OnPlayerInventorySlotUpdateProperties(0,new ItemStack(1,10)));
-            items.UpdateSlotInventory(new OnPlayerInventorySlotUpdateProperties(1,new ItemStack(1,5)));
-            items.UpdateSlotInventory(new OnPlayerInventorySlotUpdateProperties(2,new ItemStack(1,1)));
+            //移動するアイテムを追加する
+            items.UpdateInventory(new OnPlayerInventoryUpdateProperties(0,new ItemStack[PlayerInventoryConstant.MainInventorySize].ToList()));
+            items.UpdateSlotInventory(new OnPlayerInventorySlotUpdateProperties(1,new ItemStack(1,10)));
             
             
             //アイテムを移動する
@@ -56,6 +58,9 @@ namespace Test.EditModeTest.GameLogic
         
         public void Send(int playerId, int fromSlot, int toSlot, int itemCount)
         {
+            FromSlot = fromSlot;
+            ToSlot = toSlot;
+            ItemCount = itemCount;
         }
     }
 }

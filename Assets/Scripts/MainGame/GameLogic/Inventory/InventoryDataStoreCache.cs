@@ -38,6 +38,11 @@ namespace MainGame.GameLogic.Inventory
             //イベントの発火
             _inventoryUpdateEvent.OnOnInventoryUpdate(s,_items[s].ID,_items[s].Count);
         }
+        
+        public ItemStack GetItem(int slot)
+        {
+            return _items[slot];
+        }
 
         public void Initialize() { }
     }
