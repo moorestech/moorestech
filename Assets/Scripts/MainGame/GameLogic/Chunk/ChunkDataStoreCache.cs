@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Numerics;
 using MainGame.Constant;
 using MainGame.Network.Interface;
 using MainGame.Network.Interface.Receive;
@@ -24,6 +25,18 @@ namespace MainGame.GameLogic.Chunk
             chunkUpdateEvent.Subscribe(OnChunkUpdate,OnBlockUpdate);
         }
 
+        public int GetBlock(Vector2Int blockPos)
+        {
+            var chunk = ChunkConstant.BlockPositionToChunkOriginPosition(blockPos);
+            
+            if (!_chunk.ContainsKey(chunk)) return BlockConstant.NullBlockId;
+            
+            var pos = GetBlockArrayIndex(chunk, blockPos);
+            return _chunk[chunk][pos.x, pos.y];
+
+        }
+        
+        
         /// <summary>
         /// チャンクの更新イベント
         /// </summary>
@@ -61,6 +74,14 @@ namespace MainGame.GameLogic.Chunk
             _blockUpdateEvent.OnBlockUpdate(blockPos,properties.BlockId);
         }
 
+        private Vector2Int GetBlockArrayIndex(Vector2Int chunkPos, Vector2Int blockPos)
+        {
+            var (x, y) = (
+                GetBlockArrayIndex(chunkPos.x, blockPos.x),
+                GetBlockArrayIndex(chunkPos.y, blockPos.y));
+            return new Vector2Int(x, y);
+        }
+        
         private int GetBlockArrayIndex(int chunkPos, int blockPos)
         {
             if ( 0 <= chunkPos) return blockPos - chunkPos;
