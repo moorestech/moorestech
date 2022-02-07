@@ -1,6 +1,6 @@
 ﻿namespace MainGame.Control.UI
 {
-    public class Inventory : IUIState
+    public class PlayerInventory : IUIState
     {
         public bool IsNext()
         {

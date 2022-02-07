@@ -1,6 +1,6 @@
 ﻿namespace MainGame.Control.UI
 {
-    public class PoseMenu : IUIState
+    public class PauseMenu : IUIState
     {
         public bool IsNext()
         {
