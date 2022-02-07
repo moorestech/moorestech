@@ -13,6 +13,7 @@ namespace MainGame.Control.UI
             _gameScreen = gameScreen;
             _inputSettings = inputSettings;
             _pauseMenu = pauseMenu;
+            pauseMenu.SetActive(false);
         }
 
         public bool IsNext()

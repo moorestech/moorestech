@@ -14,6 +14,7 @@ namespace MainGame.Control.UI
             _gameScreen = gameScreen;
             _inputSettings = inputSettings;
             _playerInventory = playerInventory;
+            playerInventory.SetActive(false);
         }
 
         public bool IsNext()
