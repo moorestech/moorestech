@@ -52,7 +52,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             }
         }
 
-        public void SetIOItemSlot(int input, int output)
+        public void OpenInventory(int input, int output)
         {
             //全て非表示
             _inputInventorySlots.ForEach(i => i.gameObject.SetActive(false));
