@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Runtime.Serialization.Json;
-using System.Text.Json;
 using NUnit.Framework;
 
 namespace Test.CombinedTest.Core.Generate
