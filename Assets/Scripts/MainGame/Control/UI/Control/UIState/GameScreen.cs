@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace MainGame.Control.UI
+﻿namespace MainGame.Control.UI.Control.UIState
 {
     public class GameScreen : IUIState
     {

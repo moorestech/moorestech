@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace MainGame.Control.UI
+namespace MainGame.Control.UI.Control.UIState
 {
     public class PlayerInventory : IUIState
     {

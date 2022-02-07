@@ -1,8 +1,7 @@
-﻿using System;
+﻿using MainGame.Control.UI.Control.UIState;
 using UnityEngine;
-using UnityEngine.Serialization;
 
-namespace MainGame.Control.UI
+namespace MainGame.Control.UI.Control
 {
     public class UIControl : MonoBehaviour
     {

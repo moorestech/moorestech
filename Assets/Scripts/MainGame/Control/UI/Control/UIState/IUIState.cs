@@ -1,4 +1,4 @@
-﻿namespace MainGame.Control.UI
+﻿namespace MainGame.Control.UI.Control.UIState
 {
     public interface IUIState
     {
