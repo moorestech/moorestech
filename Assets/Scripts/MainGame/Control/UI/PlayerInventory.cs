@@ -19,12 +19,12 @@ namespace MainGame.Control.UI
 
         public bool IsNext()
         {
-            return _inputSettings.UI.CloseUI.triggered;
+            return _inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered;
         }
 
         public IUIState GetNext()
         {
-            if (_inputSettings.UI.CloseUI.triggered)
+            if (_inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered)
             {
                 return _gameScreen;
             }
