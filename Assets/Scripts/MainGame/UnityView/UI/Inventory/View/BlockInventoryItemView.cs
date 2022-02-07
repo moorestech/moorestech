@@ -42,11 +42,33 @@ namespace MainGame.UnityView.UI.Inventory.View
             {
                 //inputの設定
                 var s = Instantiate(inventoryItemSlot.gameObject, inputItems).GetComponent<InventoryItemSlot>();
+                s.gameObject.SetActive(false);
                 _inputInventorySlots.Add(s);
                 
                 //outputの設定
                 s = Instantiate(inventoryItemSlot.gameObject, outputItems).GetComponent<InventoryItemSlot>();
+                s.gameObject.SetActive(false);
                 _outputInventorySlots.Add(s);
+            }
+        }
+
+        public void SetIOItemSlot(int input, int output)
+        {
+            //全て非表示
+            _inputInventorySlots.ForEach(i => i.gameObject.SetActive(false));
+            _outputInventorySlots.ForEach(i => i.gameObject.SetActive(false));
+            
+            //必要な分だけ表示し、indexを設定する
+            for (int i = 0; i < input; i++)
+            {
+                _inputInventorySlots[i].gameObject.SetActive(true);
+                _inputInventorySlots[i].Construct(i);
+            }
+
+            for (int i = 0; i < output; i++)
+            {
+                _outputInventorySlots[i].gameObject.SetActive(true);
+                _outputInventorySlots[i].Construct(input + i);
             }
         }
 
