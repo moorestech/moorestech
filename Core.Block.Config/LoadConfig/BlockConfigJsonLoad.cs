@@ -12,18 +12,22 @@ namespace Core.Block.Config.LoadConfig
         private readonly Dictionary<string, IBlockConfigParamGenerator> _generators;
 
 
-        public BlockConfigJsonLoad(string jsonPath)
+        public BlockConfigJsonLoad()
         {
-            _jsonPath = jsonPath;
             _generators = new VanillaBlockConfigGenerator().Generate();
         }
 
-        public Dictionary<int, BlockConfigData> LoadJson()
+        public Dictionary<int, BlockConfigData> LoadJsonFromPath(string jsonPath)
         {
             //JSONファイルを読み込む
-            var json = File.ReadAllText(_jsonPath);
+            var json = File.ReadAllText(jsonPath);
+            return LoadJsonFromText(json);
+        }
+
+        public Dictionary<int, BlockConfigData> LoadJsonFromText(string jsonText)
+        {
             //JSONを動的にデシリアライズする
-            dynamic person = JObject.Parse(json);
+            dynamic person = JObject.Parse(jsonText);
 
             var blockDictionary = new Dictionary<int, BlockConfigData>();
 

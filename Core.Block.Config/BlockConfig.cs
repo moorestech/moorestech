@@ -11,11 +11,11 @@ namespace Core.Block.Config
 
         public BlockConfig()
         {
-            _blockConfigDictionary = new BlockConfigJsonLoad(ConfigPath.ConfigPath.BlockConfigPath).LoadJson();
+            _blockConfigDictionary = new BlockConfigJsonLoad().LoadJsonFromPath(ConfigPath.ConfigPath.BlockConfigPath);
         }
-        public BlockConfig(string path)
+        public BlockConfig(string jsonText)
         {
-            _blockConfigDictionary = new BlockConfigJsonLoad(path).LoadJson();
+            _blockConfigDictionary = new BlockConfigJsonLoad().LoadJsonFromText(jsonText);
         }
 
         public BlockConfigData GetBlockConfig(int id)
