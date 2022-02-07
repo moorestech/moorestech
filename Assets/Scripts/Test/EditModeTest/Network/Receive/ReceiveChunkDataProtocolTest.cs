@@ -181,7 +181,6 @@ namespace Test.EditModeTest.Network.Receive
                 default:
                     //それ以外はデフォルトの空気ブロック
                     return id == BlockConstant.NullBlockId;
-                    break;
             }
         }
     }

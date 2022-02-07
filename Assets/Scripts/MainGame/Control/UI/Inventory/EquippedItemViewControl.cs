@@ -1,9 +1,7 @@
-using System;
-using MainGame.UnityView.Interface.PlayerInput;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.UnityView.UI.Inventory.Control
+namespace MainGame.Control.UI.Inventory
 {
     public class EquippedItemViewControl : MonoBehaviour
     {

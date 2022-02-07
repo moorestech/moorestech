@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
+using MainGame.Control.UI.Inventory;
 using MainGame.GameLogic.Inventory;
-using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 

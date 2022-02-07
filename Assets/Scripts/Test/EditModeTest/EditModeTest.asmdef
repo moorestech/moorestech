@@ -12,7 +12,8 @@
         "Types",
         "GameLogic",
         "UnityView.Interface",
-        "UnityView"
+        "UnityView",
+        "Control"
     ],
     "includePlatforms": [
         "Editor"

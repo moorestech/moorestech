@@ -8,7 +8,8 @@
         "UnityView.Interface",
         "GameLogic",
         "Constant",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "Control"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

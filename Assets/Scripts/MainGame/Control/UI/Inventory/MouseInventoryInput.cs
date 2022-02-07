@@ -1,17 +1,12 @@
-﻿using System;
-using MainGame.UnityView.ControllerInput;
+﻿using MainGame.UnityView.ControllerInput;
 using MainGame.UnityView.Interface;
 using MainGame.UnityView.Interface.PlayerInput;
-using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
-using UnityEngine.UI;
 using VContainer;
 using VContainer.Unity;
 
-namespace MainGame.UnityView.UI.Inventory.Control
+namespace MainGame.Control.UI.Inventory
 {
     public class MouseInventoryInput : MonoBehaviour,IControllerInput,IPostStartable
     {

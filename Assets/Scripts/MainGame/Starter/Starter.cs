@@ -1,3 +1,4 @@
+using MainGame.Control.UI.Inventory;
 using MainGame.GameLogic;
 using MainGame.GameLogic.Chunk;
 using MainGame.GameLogic.Inventory;
@@ -15,7 +16,6 @@ using MainGame.UnityView.ControllerInput.MouseKeyboard;
 using MainGame.UnityView.Interface;
 using MainGame.UnityView.Interface.Chunk;
 using MainGame.UnityView.Interface.PlayerInput;
-using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
