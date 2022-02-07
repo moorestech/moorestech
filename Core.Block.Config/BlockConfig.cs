@@ -13,6 +13,10 @@ namespace Core.Block.Config
         {
             _blockConfigDictionary = new BlockConfigJsonLoad(ConfigPath.ConfigPath.BlockConfigPath).LoadJson();
         }
+        public BlockConfig(string path)
+        {
+            _blockConfigDictionary = new BlockConfigJsonLoad(path).LoadJson();
+        }
 
         public BlockConfigData GetBlockConfig(int id)
         {
