@@ -2,6 +2,12 @@
 {
     public class PlayerInventory : IUIState
     {
+        private IUIState _gameScreen;
+
+        public PlayerInventory(IUIState gameScreen)
+        {
+            _gameScreen = gameScreen;
+        }
         public bool IsNext()
         {
             throw new System.NotImplementedException();
