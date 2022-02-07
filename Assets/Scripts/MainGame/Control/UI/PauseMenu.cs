@@ -30,14 +30,8 @@ namespace MainGame.Control.UI
             return this;
         }
 
-        public void OnEnter()
-        {
-            _pauseMenu.SetActive(true);
-        }
+        public void OnEnter() { _pauseMenu.SetActive(true); }
 
-        public void OnExit()
-        {
-            _pauseMenu.SetActive(false);
-        }
+        public void OnExit() { _pauseMenu.SetActive(false); }
     }
 }

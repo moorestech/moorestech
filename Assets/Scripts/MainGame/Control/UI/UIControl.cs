@@ -19,8 +19,9 @@ namespace MainGame.Control.UI
 
             //ステートマシンの設定
             var gameScreen = new GameScreen();
-            var inventory = new PlayerInventory(gameScreen);
+            var inventory = new PlayerInventory(gameScreen,_inputSettings,playerInventory);
             var pause = new PauseMenu(gameScreen,_inputSettings,pauseMenu);
+            
             gameScreen.Construct(inventory,pause,_inputSettings);
             _currentState = gameScreen;
         }
