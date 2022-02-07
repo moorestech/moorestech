@@ -9,3 +9,6 @@ https://github.com/hadashiA/VContainer
 
 NaughtyCharacter
 https://github.com/dbrizov/NaughtyCharacter
+
+NuGetForUnity
+https://github.com/GlitchEnzo/NuGetForUnity
