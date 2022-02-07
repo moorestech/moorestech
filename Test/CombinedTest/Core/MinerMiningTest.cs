@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Core.Block.BlockFactory;
-using Core.Block.BlockFactory.BlockTemplate;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Miner;
 using Core.Block.Config;
@@ -10,7 +8,7 @@ using Core.Electric;
 using Core.Item;
 using Core.Ore;
 using Core.Update;
-using Core.Util;
+using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;

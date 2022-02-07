@@ -1,6 +1,4 @@
-﻿using Core.Block;
-using Core.Util;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using ProbabilityCalculator = Core.Block.ProbabilityCalculator;
 
 namespace Test.UnitTest.Core.Other

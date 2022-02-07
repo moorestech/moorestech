@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Block;
 using Core.Item;
 using Core.Item.Config;
 using Core.Item.Util;
-using Core.Util;
 
 namespace Test.CombinedTest.Core.Generate
 {

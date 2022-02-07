@@ -12,7 +12,7 @@ using Core.Electric;
 using Core.Item;
 using Core.Item.Config;
 using Core.Update;
-using Core.Util;
+using Game.World.Interface.Util;
 using NUnit.Framework;
 using Test.CombinedTest.Core.Generate;
 using Test.Module;

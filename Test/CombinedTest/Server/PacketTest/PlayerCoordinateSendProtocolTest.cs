@@ -13,7 +13,7 @@ using Server;
 using Server.Protocol.PacketResponse.Const;
 using Server.Util;
 using Test.Module.TestConfig;
-using IntId = World.Util.IntId;
+using IntId = Game.World.Interface.Util.IntId;
 
 namespace Test.CombinedTest.Server.PacketTest
 {

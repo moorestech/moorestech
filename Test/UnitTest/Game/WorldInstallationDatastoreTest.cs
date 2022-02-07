@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Test.Module.TestConfig;
-using IntId = World.Util.IntId;
+using IntId = Game.World.Interface.Util.IntId;
 
 namespace Test.UnitTest.Game
 {

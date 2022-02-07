@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Core.Block.BlockFactory;
 using Core.Block.Config.Service;
-using Core.Util;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
+using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util;
 

@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Core.Block;
 using Core.Block.BlockFactory;
-using Core.Block.BlockInventory;
-using Core.Block.Config;
 using Core.Block.RecipeConfig;
 using Core.Item;
-using Core.Util;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
+using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
-using Server.PacketHandle.PacketResponse;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
@@ -43,7 +38,7 @@ namespace Server.Protocol.PacketResponse
 
             var block = blockFactory.Create(blockId, IntId.NewIntId());
 
-            //このプロトコルは確定で北向きに設置する
+            //TODO このプロトコルは確定で北向きに設置する　今後向にも対応させる
             _worldBlockDatastore.AddBlock(block, x, y, BlockDirection.North);
             //返すものはない
             return new List<byte[]>();

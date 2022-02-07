@@ -11,7 +11,7 @@ using Server;
 using Server.PacketHandle.PacketResponse.Player;
 using Server.Protocol.PacketResponse.Const;
 using Test.Module.TestConfig;
-using IntId = World.Util.IntId;
+using IntId = Game.World.Interface.Util.IntId;
 
 namespace Test.UnitTest.Server.Player
 {
