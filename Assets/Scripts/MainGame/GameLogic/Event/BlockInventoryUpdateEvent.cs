@@ -14,14 +14,15 @@ namespace MainGame.GameLogic.Event
             OnOpenInventory += openInventory;
         }
 
-        protected virtual void OnOnOpenInventory()
+
+        public void OnInventoryUpdateInvoke(int slot, int itemId, int count)
         {
-            OnOpenInventory?.Invoke();
+            OnInventoryUpdate?.Invoke(slot, itemId, count);
         }
 
-        protected virtual void OnOnInventoryUpdate(int slot, int itemid, int count)
+        public void OnOpenInventoryInvoke(string uiType,params short[] param)
         {
-            OnInventoryUpdate?.Invoke(slot, itemid, count);
+            OnOpenInventory?.Invoke(uiType,param);
         }
     }
 }
