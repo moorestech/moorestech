@@ -100,5 +100,7 @@ namespace PlayerInventory
                 new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
             return item;
         }
+
+        public int GetSlotSize() { return PlayerInventoryConst.MainInventorySize; }
     }
 }
