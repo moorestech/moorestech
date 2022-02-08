@@ -1,6 +1,7 @@
 using MainGame.Control.UI.Inventory;
 using MainGame.GameLogic;
 using MainGame.GameLogic.Chunk;
+using MainGame.GameLogic.Event;
 using MainGame.GameLogic.Inventory;
 using MainGame.GameLogic.Send;
 using MainGame.Network;

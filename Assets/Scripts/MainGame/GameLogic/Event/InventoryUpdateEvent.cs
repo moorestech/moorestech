@@ -1,7 +1,7 @@
 using MainGame.UnityView.Interface;
 using static MainGame.UnityView.Interface.IInventoryUpdateEvent;
 
-namespace MainGame.GameLogic.Inventory
+namespace MainGame.GameLogic.Event
 {
     public class InventoryUpdateEvent : IInventoryUpdateEvent
     {

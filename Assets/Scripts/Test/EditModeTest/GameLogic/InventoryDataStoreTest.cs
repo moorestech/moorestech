@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 using MainGame.Constant;
+using MainGame.GameLogic.Event;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network.Event;
 using MainGame.Network.Interface;

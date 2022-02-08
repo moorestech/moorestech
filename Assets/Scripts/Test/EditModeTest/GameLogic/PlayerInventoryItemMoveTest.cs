@@ -2,6 +2,7 @@
 using System.Linq;
 using MainGame.Constant;
 using MainGame.GameLogic;
+using MainGame.GameLogic.Event;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network.Event;
 using MainGame.Network.Interface.Receive;

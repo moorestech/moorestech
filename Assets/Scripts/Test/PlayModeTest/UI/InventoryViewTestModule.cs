@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using MainGame.GameLogic.Event;
 using MainGame.GameLogic.Inventory;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
