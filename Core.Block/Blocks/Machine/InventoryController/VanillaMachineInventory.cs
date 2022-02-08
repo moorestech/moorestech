@@ -40,6 +40,11 @@ namespace Core.Block.Blocks.Machine.InventoryController
             }
         }
 
+        public int GetSlotSize()
+        {
+            return _vanillaMachineInputInventory.InputSlot.Count + _vanillaMachineOutputInventory.OutputSlot.Count;
+        }
+
         /// <summary>
         /// アイテムの置き換えを実行しますが、同じアイテムIDの場合はそのまま現在のアイテムにスタックされ、スタックしきらなかったらその分を返します。
         /// </summary>

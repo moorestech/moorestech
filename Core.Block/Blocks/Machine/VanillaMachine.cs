@@ -53,20 +53,13 @@ namespace Core.Block.Blocks.Machine
 
 
         //IInventoryのインターフェース実装
-        public IItemStack GetItem(int slot)
-        {
-            return _vanillaMachineInventory.GetItem(slot);
-        }
-
-        public void SetItem(int slot, IItemStack itemStack)
-        {
-            _vanillaMachineInventory.SetItem(slot, itemStack);
-        }
-
-        public IItemStack ReplaceItem(int slot, IItemStack itemStack)
-        {
-            return _vanillaMachineInventory.ReplaceItem(slot, itemStack);
-        }
+        #region IInventory
+        public IItemStack GetItem(int slot) { return _vanillaMachineInventory.GetItem(slot); }
+        public void SetItem(int slot, IItemStack itemStack) { _vanillaMachineInventory.SetItem(slot, itemStack); }
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack) { return _vanillaMachineInventory.ReplaceItem(slot, itemStack); }
+        public int GetSlotSize() { return _vanillaMachineInventory.GetSlotSize(); }
+        
+        #endregion
 
 
         //IBlockElectricのインターフェース実装
