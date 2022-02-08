@@ -1,15 +1,23 @@
-﻿namespace MainGame.Control.UI.Control.UIState
+﻿using MainGame.Control.Game;
+
+namespace MainGame.Control.UI.Control.UIState
 {
     public class GameScreenState : IUIState
     {
         private MoorestechInputSettings _input;
+        private BlockClickDetect _blockClickDetect;
         private IUIState _inventoryState;
         private IUIState _pauseState;
-        public void Construct(IUIState inventoryState, IUIState pauseState,MoorestechInputSettings input)
+        private IUIState _blockInventoryState;
+        public void Construct(
+            IUIState inventoryState, IUIState pauseState,IUIState blockInventoryState,
+            MoorestechInputSettings input,BlockClickDetect blockClickDetect)
         {
             _input = input;
             _inventoryState = inventoryState;
             _pauseState = pauseState;
+            _blockClickDetect = blockClickDetect;
+            _blockInventoryState = blockInventoryState;
         }
 
         public bool IsNext()
@@ -17,7 +25,13 @@
             if (_input.UI.OpenInventory.triggered)
             {
                 return true;
-            }else if (_input.UI.OpenMenu.triggered)
+            }
+            if (_input.UI.OpenMenu.triggered)
+            {
+                return true;
+            }
+
+            if (_blockClickDetect.IsClicked())
             {
                 return true;
             }
@@ -35,6 +49,12 @@
             {
                 return _pauseState;
             }
+
+            if (_blockClickDetect.IsClicked())
+            {
+                return _blockInventoryState;
+            }
+
 
             return this;
         }

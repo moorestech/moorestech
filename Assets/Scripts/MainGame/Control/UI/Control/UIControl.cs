@@ -1,4 +1,5 @@
-﻿using MainGame.Control.UI.Control.UIState;
+﻿using MainGame.Control.Game;
+using MainGame.Control.UI.Control.UIState;
 using UnityEngine;
 
 namespace MainGame.Control.UI.Control
@@ -7,6 +8,8 @@ namespace MainGame.Control.UI.Control
     {
         private  IUIState _currentState;
         private MoorestechInputSettings _inputSettings;
+
+        [SerializeField] private BlockClickDetect _blockClickDetect;
         
         [SerializeField] private GameObject pauseMenu;
         [SerializeField] private GameObject playerInventory;
@@ -19,10 +22,11 @@ namespace MainGame.Control.UI.Control
 
             //ステートマシンの設定
             var gameScreen = new GameScreenState();
-            var inventory = new UIState.PlayerInventoryState(gameScreen,_inputSettings,playerInventory);
+            var inventory = new PlayerInventoryState(gameScreen,_inputSettings,playerInventory);
+            var blockInventoryState = new BlockInventoryState(gameScreen,_inputSettings,blockInventory);
             var pause = new PauseMenuState(gameScreen,_inputSettings,pauseMenu);
             
-            gameScreen.Construct(inventory,pause,_inputSettings);
+            gameScreen.Construct(inventory,pause,blockInventoryState,_inputSettings,_blockClickDetect);
             _currentState = gameScreen;
         }
         
