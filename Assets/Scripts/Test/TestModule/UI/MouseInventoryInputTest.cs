@@ -4,6 +4,7 @@ using MainGame.GameLogic.Event;
 using MainGame.GameLogic.Inventory;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Test.TestModule.UI
 {
@@ -12,12 +13,12 @@ namespace Test.TestModule.UI
         [SerializeField] private EquippedItemViewControl equippedItemViewControl;
         [SerializeField] private MouseInventoryInput mouseInventoryInput;
 
-        [SerializeField] private MainInventoryItemView mainInventoryItem;
+        [FormerlySerializedAs("mainInventoryItem")] [SerializeField] private PlayerInventoryItemView playerInventoryItem;
 
         private void Start()
         {
             equippedItemViewControl.Construct();
-            mouseInventoryInput.Construct(mainInventoryItem,new PlayerInventoryItemMoveTest(),new InventoryUpdateEvent());
+            mouseInventoryInput.Construct(playerInventoryItem,new PlayerInventoryItemMoveTest(),new InventoryUpdateEvent());
 
             StartCoroutine(PostStart());
         }

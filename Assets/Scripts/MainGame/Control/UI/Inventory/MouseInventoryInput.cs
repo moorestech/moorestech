@@ -13,18 +13,18 @@ namespace MainGame.Control.UI.Inventory
         [SerializeField] private InventoryItemSlot equippedItem;
         
         private int _equippedItemIndex = -1;
-        private MainInventoryItemView _mainInventoryItemView;
+        private PlayerInventoryItemView _playerInventoryItemView;
         private IPlayerInventoryItemMove _playerInventoryItemMove;
         
         private MoorestechInputSettings _inputSettings;
 
         [Inject]
         public void Construct(
-            MainInventoryItemView mainInventoryItemView,
+            PlayerInventoryItemView playerInventoryItemView,
             IPlayerInventoryItemMove playerInventoryItemMove,
             IInventoryUpdateEvent inventoryUpdateEvent)
         {
-            _mainInventoryItemView = mainInventoryItemView;
+            _playerInventoryItemView = playerInventoryItemView;
             _playerInventoryItemMove = playerInventoryItemMove;
             
             equippedItem.gameObject.SetActive(false);
@@ -36,7 +36,7 @@ namespace MainGame.Control.UI.Inventory
         //イベントをボタンに登録する
         public void PostStart()
         {
-            foreach (var slot in _mainInventoryItemView.GetInventoryItemSlots())
+            foreach (var slot in _playerInventoryItemView.GetInventoryItemSlots())
             {
                 slot.SubscribeOnItemSlotClick(OnSlotClick);
             }
@@ -46,7 +46,7 @@ namespace MainGame.Control.UI.Inventory
         {
             if (_equippedItemIndex == -1)
             {
-                var fromItem = _mainInventoryItemView.GetInventoryItemSlots()[slot];
+                var fromItem = _playerInventoryItemView.GetInventoryItemSlots()[slot];
                 equippedItem.CopyItem(fromItem);
                 
                 _equippedItemIndex = slot;
@@ -80,7 +80,7 @@ namespace MainGame.Control.UI.Inventory
         private void InventoryUpdate(int slot, int itemId, int count)
         {
             if (slot != _equippedItemIndex) return;
-            var fromItem = _mainInventoryItemView.GetInventoryItemSlots()[slot];
+            var fromItem = _playerInventoryItemView.GetInventoryItemSlots()[slot];
             equippedItem.CopyItem(fromItem);
         }
         

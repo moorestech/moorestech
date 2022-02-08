@@ -7,7 +7,7 @@ using VContainer;
 
 namespace MainGame.UnityView.UI.Inventory.View
 {
-    public class MainInventoryItemView : MonoBehaviour
+    public class PlayerInventoryItemView : MonoBehaviour
     {
         [SerializeField] private InventoryItemSlot inventoryItemSlot;
         List<InventoryItemSlot> _slots = new();

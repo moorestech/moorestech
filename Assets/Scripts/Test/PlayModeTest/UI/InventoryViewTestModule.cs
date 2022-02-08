@@ -7,19 +7,20 @@ using MainGame.UnityView.UI.Inventory.View;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Test.PlayModeTest.UI
 {
     public class InventoryViewTestModule : MonoBehaviour
     {
-        [SerializeField] private MainInventoryItemView mainInventoryItemView;
+        [FormerlySerializedAs("mainInventoryItemView")] [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
         [SerializeField] private ItemImages itemImages;
 
         private void Start()
         {
             var update = new InventoryUpdateEvent();
-            mainInventoryItemView.Construct(update,itemImages);
+            playerInventoryItemView.Construct(update,itemImages);
             
             //slot id count
             List<(int,int,int)> items = new List<(int,int,int)>();
@@ -38,7 +39,7 @@ namespace Test.PlayModeTest.UI
             }
             
             //アイテムのUIの取得
-            var slots = mainInventoryItemView.GetInventoryItemSlots();
+            var slots = playerInventoryItemView.GetInventoryItemSlots();
 
             
             //チェック

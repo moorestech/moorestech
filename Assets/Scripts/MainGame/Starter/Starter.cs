@@ -20,6 +20,7 @@ using MainGame.UnityView.Interface.PlayerInput;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
+using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
@@ -42,7 +43,7 @@ namespace MainGame.Starter
         [SerializeField] private GroundPlane groundPlane;
 
         [SerializeField] private EquippedItemViewControl equippedItemViewControl;
-        [SerializeField] private MainInventoryItemView mainInventoryItemView;
+        [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
         [SerializeField] private MouseInventoryInput mouseInventoryInput;
         [SerializeField] private ItemImages itemImages;
         
@@ -98,7 +99,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(groundPlane);
             builder.RegisterComponent(equippedItemViewControl);
-            builder.RegisterComponent(mainInventoryItemView);
+            builder.RegisterComponent(playerInventoryItemView);
             builder.RegisterComponent(mouseInventoryInput);
             builder.RegisterInstance(itemImages);
             
@@ -110,7 +111,7 @@ namespace MainGame.Starter
             _resolver = builder.Build();
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();
             _resolver.Resolve<MouseGroundClickInput>();
-            _resolver.Resolve<MainInventoryItemView>();
+            _resolver.Resolve<PlayerInventoryItemView>();
             _resolver.Resolve<EquippedItemViewControl>();
             _resolver.Resolve<MouseInventoryInput>();
             _resolver.Resolve<IPlayerInventoryItemMove>();
