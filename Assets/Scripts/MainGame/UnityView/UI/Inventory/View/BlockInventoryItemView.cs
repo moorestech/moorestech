@@ -15,18 +15,22 @@ namespace MainGame.UnityView.UI.Inventory.View
         
         [SerializeField] private RectTransform inputItems;
         [SerializeField] private RectTransform outputItems;
-        
+
         [SerializeField] private InventoryItemSlot inventoryItemSlot;
         private readonly List<InventoryItemSlot> _playerInventorySlots = new();
         private readonly List<InventoryItemSlot> _inputInventorySlots = new();
         private readonly List<InventoryItemSlot> _outputInventorySlots = new();
         private ItemImages _itemImages;
-        
+        private int inputSlotCount;
+        private int outputSlotCount;
         
         [Inject]
-        public void Construct(IInventoryUpdateEvent inventoryUpdateEvent,ItemImages itemImages)
+        public void Construct(IInventoryUpdateEvent inventoryUpdateEvent,ItemImages itemImages,
+            IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             inventoryUpdateEvent.Subscribe(OnInventoryUpdate);
+            blockInventoryUpdateEvent.Subscribe(BlockInventoryUpdate,OpenBlockInventory);
+            
             _itemImages = itemImages;
             
             //プレイヤーインベントリの表示
@@ -54,6 +58,8 @@ namespace MainGame.UnityView.UI.Inventory.View
 
         public void OpenInventory(int input, int output)
         {
+            inputSlotCount = input;
+            outputSlotCount = output;
             //全て非表示
             _inputInventorySlots.ForEach(i => i.gameObject.SetActive(false));
             _outputInventorySlots.ForEach(i => i.gameObject.SetActive(false));
@@ -77,6 +83,29 @@ namespace MainGame.UnityView.UI.Inventory.View
             var sprite = _itemImages.GetItemImage(itemId);
             _playerInventorySlots[slot].SetItem(sprite,count);
         }
+
+
+        
+        //ブロックのインベントリを開く
+        public void OpenBlockInventory(string uiType, params short[] param)
+        {
+            //TODO ステータスとステUitypeを渡しているけど、ここは共通インベントリ基盤を作成する
+            OpenInventory(param[0],param[1]);
+        }
+
+        public void BlockInventoryUpdate(int slot, int itemId, int count)
+        {
+            var sprite = _itemImages.GetItemImage(itemId);
+            if (slot < inputSlotCount)
+            {
+                _inputInventorySlots[slot].SetItem(sprite,count);
+            }
+            else
+            {
+                _outputInventorySlots[slot - inputSlotCount].SetItem(sprite,count);
+            }
+        }
+        
         
         public IReadOnlyList<InventoryItemSlot> GetInventoryItemSlots()
         {
