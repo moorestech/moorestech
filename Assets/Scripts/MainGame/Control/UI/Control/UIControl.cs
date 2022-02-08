@@ -10,6 +10,7 @@ namespace MainGame.Control.UI.Control
         
         [SerializeField] private GameObject pauseMenu;
         [SerializeField] private GameObject playerInventory;
+        [SerializeField] private GameObject blockInventory;
 
         private void Start()
         {
@@ -17,9 +18,9 @@ namespace MainGame.Control.UI.Control
             _inputSettings.Enable();
 
             //ステートマシンの設定
-            var gameScreen = new GameScreen();
-            var inventory = new UIState.PlayerInventory(gameScreen,_inputSettings,playerInventory);
-            var pause = new PauseMenu(gameScreen,_inputSettings,pauseMenu);
+            var gameScreen = new GameScreenState();
+            var inventory = new UIState.PlayerInventoryState(gameScreen,_inputSettings,playerInventory);
+            var pause = new PauseMenuState(gameScreen,_inputSettings,pauseMenu);
             
             gameScreen.Construct(inventory,pause,_inputSettings);
             _currentState = gameScreen;

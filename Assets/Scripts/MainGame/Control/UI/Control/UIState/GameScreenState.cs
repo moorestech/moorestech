@@ -1,6 +1,6 @@
 ﻿namespace MainGame.Control.UI.Control.UIState
 {
-    public class GameScreen : IUIState
+    public class GameScreenState : IUIState
     {
         private MoorestechInputSettings _input;
         private IUIState _inventoryState;

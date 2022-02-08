@@ -2,14 +2,14 @@
 
 namespace MainGame.Control.UI.Control.UIState
 {
-    public class PlayerInventory : IUIState
+    public class PlayerInventoryState : IUIState
     {
         private IUIState _gameScreen;
         private readonly MoorestechInputSettings _inputSettings;
         private readonly GameObject _playerInventory;
 
 
-        public PlayerInventory(IUIState gameScreen, MoorestechInputSettings inputSettings, GameObject playerInventory)
+        public PlayerInventoryState(IUIState gameScreen, MoorestechInputSettings inputSettings, GameObject playerInventory)
         {
             _gameScreen = gameScreen;
             _inputSettings = inputSettings;
