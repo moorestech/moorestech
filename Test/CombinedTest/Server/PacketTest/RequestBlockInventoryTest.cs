@@ -26,9 +26,9 @@ namespace Test.CombinedTest.Server.PacketTest
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             
-            var machine = serviceProvider.GetService<BlockFactory>().Create(MachineBlockId,0) as VanillaMachine;
+            var machine = serviceProvider.GetService<BlockFactory>().Create(MachineBlockId,5) as VanillaMachine;
             machine.SetItem(0,itemStackFactory.Create(1,2));
-            machine.SetItem(3,itemStackFactory.Create(4,5));
+            machine.SetItem(2,itemStackFactory.Create(4,5));
             
             serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine,5,10,BlockDirection.North);
 
@@ -56,7 +56,7 @@ namespace Test.CombinedTest.Server.PacketTest
         private List<byte> RequestBlock(int x, int y)
         {
             var bytes = new List<byte>();
-            bytes.AddRange(ToByteList.Convert((short) 12));
+            bytes.AddRange(ToByteList.Convert((short) 9));
             bytes.AddRange(ToByteList.Convert(x));
             bytes.AddRange(ToByteList.Convert(y));
 

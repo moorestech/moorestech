@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using Core.Block.Blocks;
@@ -8,6 +9,7 @@ using Core.Block.Config.LoadConfig.ConfigParamGenerator;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Inventory;
 using Game.World.Interface.DataStore;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
@@ -17,16 +19,16 @@ namespace Server.Protocol.PacketResponse
     {
         private const int ProtocolId = 6;
         private IWorldBlockDatastore _blockDatastore;
-        private BlockConfig _blockConfig;
+        private IBlockConfig _blockConfig;
 
         //データのレスポンスを実行するdelegateを設定する
         private delegate byte[] InventoryResponse(int x, int y,IBlockConfigParam config);
         private Dictionary<string,InventoryResponse> _inventoryResponseDictionary = new();
 
-        public BlockInventoryRequestProtocol(IWorldBlockDatastore blockDatastore, BlockConfig blockConfig)
+        public BlockInventoryRequestProtocol(ServiceProvider serviceProvider)
         {
-            _blockDatastore = blockDatastore;
-            _blockConfig = blockConfig;
+            _blockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+            _blockConfig = serviceProvider.GetService<IBlockConfig>();
             
             //インベントリがあるブロックのレスポンスの設定
             _inventoryResponseDictionary.Add(VanillaBlockType.Machine,MachineInventoryResponse);
@@ -38,8 +40,9 @@ namespace Server.Protocol.PacketResponse
             enumerator.MoveNextToGetShort();
             var x = enumerator.MoveNextToGetInt();
             var y = enumerator.MoveNextToGetInt();
-            
-            var blockConfig = _blockConfig.GetBlockConfig(_blockDatastore.GetBlock(x, y).GetBlockId());
+
+            var blockId = _blockDatastore.GetBlock(x, y).GetBlockId();
+            var blockConfig = _blockConfig.GetBlockConfig(blockId);
             
             //そのブロックがDictionaryに登録されてたらdelegateを実行して返す
             if (_inventoryResponseDictionary.ContainsKey(blockConfig.Type))

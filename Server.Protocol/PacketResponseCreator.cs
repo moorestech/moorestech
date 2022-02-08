@@ -28,6 +28,7 @@ namespace Server.Protocol
             _packetResponseList.Add(new PlayerInventoryMoveItemProtocol(serviceProvider));
             _packetResponseList.Add(new BlockInventoryMoveItemProtocol(serviceProvider));
             _packetResponseList.Add(new SendPlaceHotBarBlockProtocol(serviceProvider));
+            _packetResponseList.Add(new BlockInventoryRequestProtocol(serviceProvider));
 
             serviceProvider.GetService<VeinGenerator>();
         }
