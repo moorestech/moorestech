@@ -4,7 +4,7 @@ namespace MainGame.Control.UI.Control.UIState
 {
     public class PauseMenuState : IUIState
     {
-        private IUIState _gameScreen;
+        private readonly IUIState _gameScreen;
         private readonly MoorestechInputSettings _inputSettings;
         private readonly GameObject _pauseMenu;
 
