@@ -30,6 +30,7 @@ namespace Server.Protocol.PacketResponse
             var blockType = _blockConfig.GetBlockConfig(_blockDatastore.GetBlock(x, y).GetBlockId()).Type;
             var response = new List<byte>();
             
+            //そのブロックが機械かチェストだったらデータを入れて返す
             if (blockType == VanillaBlockType.Machine)
             {
                 response.AddRange(ToByteList.Convert((short) 6));
