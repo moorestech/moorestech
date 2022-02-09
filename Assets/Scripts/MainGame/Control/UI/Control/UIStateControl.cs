@@ -17,7 +17,7 @@ namespace MainGame.Control.UI.Control
 
         
         [Inject]
-        private void Construct(BlockClickDetect blockClickDetect)
+        public void Construct(IBlockClickDetect blockClickDetect)
         {
             _inputSettings = new MoorestechInputSettings();
             _inputSettings.Enable();

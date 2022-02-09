@@ -11,7 +11,7 @@ namespace MainGame.Control.UI.Control.UIState
         private IUIState _blockInventoryState;
         public void Construct(
             IUIState inventoryState, IUIState pauseState,IUIState blockInventoryState,
-            MoorestechInputSettings input,BlockClickDetect blockClickDetect)
+            MoorestechInputSettings input,IBlockClickDetect blockClickDetect)
         {
             _input = input;
             _inventoryState = inventoryState;
