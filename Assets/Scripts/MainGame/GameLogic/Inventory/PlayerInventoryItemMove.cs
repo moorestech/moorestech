@@ -1,5 +1,6 @@
 ﻿using MainGame.Network.Interface.Send;
 using MainGame.UnityView.Interface.PlayerInput;
+using VContainer.Unity;
 
 namespace MainGame.GameLogic.Inventory
 {
@@ -36,6 +37,11 @@ namespace MainGame.GameLogic.Inventory
         public void MoveOneItemStack(int fromSlot, int toSlot)
         {
             _sendPlayerInventoryMoveItemProtocol.Send(_playerId, fromSlot, toSlot, 1);
+        }
+
+        public void Initialize()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

@@ -1,3 +1,4 @@
+using MainGame.Control.Game;
 using MainGame.Control.UI.Inventory;
 using MainGame.GameLogic;
 using MainGame.GameLogic.Chunk;
@@ -42,9 +43,11 @@ namespace MainGame.Starter
 
         [SerializeField] private GroundPlane groundPlane;
 
-        [SerializeField] private EquippedItemViewControl equippedItemViewControl;
         [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
         [SerializeField] private MouseInventoryInput mouseInventoryInput;
+        [SerializeField] private BlockInventoryItemView blockInventoryItemView;
+        [SerializeField] private BlockInventoryInput blockInventoryInput;
+        [SerializeField] private BlockClickDetect blockClickDetect;
         [SerializeField] private ItemImages itemImages;
         
         void Start()
@@ -70,6 +73,7 @@ namespace MainGame.Starter
             builder.Register<ISendPlaceHotBarBlockProtocol, SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);
             builder.Register<ISendPlayerInventoryMoveItemProtocol, SendPlayerInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<ISendPlayerPositionProtocol, SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
+            builder.Register<IRequestBlockInventoryProtocol, RequestBlockInventoryProtocol>(Lifetime.Singleton);
             
             //GameLogicのPresenterの作成
             builder.RegisterEntryPoint<BlockPlaceEventToSendProtocol>();
@@ -98,10 +102,13 @@ namespace MainGame.Starter
             //Hierarchy上にあるcomponent
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(groundPlane);
-            builder.RegisterComponent(equippedItemViewControl);
             builder.RegisterComponent(playerInventoryItemView);
             builder.RegisterComponent(mouseInventoryInput);
+            builder.RegisterComponent(blockInventoryItemView);
+            builder.RegisterComponent(blockInventoryInput);
             builder.RegisterInstance(itemImages);
+
+            builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             
             
 
@@ -112,9 +119,10 @@ namespace MainGame.Starter
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();
             _resolver.Resolve<MouseGroundClickInput>();
             _resolver.Resolve<PlayerInventoryItemView>();
-            _resolver.Resolve<EquippedItemViewControl>();
             _resolver.Resolve<MouseInventoryInput>();
-            _resolver.Resolve<IPlayerInventoryItemMove>();
+            _resolver.Resolve<IPlayerInventoryItemMove>();//TODO　これをIInitializableにする
+            _resolver.Resolve<BlockInventoryItemView>();
+            _resolver.Resolve<BlockInventoryInput>();
 
         }
 
