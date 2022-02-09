@@ -46,7 +46,7 @@ namespace MainGame.Starter
         [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
         [SerializeField] private MouseInventoryInput mouseInventoryInput;
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
-        [SerializeField] private BlockInventoryInput blockInventoryInput;
+        [SerializeField] private MouseBlockInventoryInput blockInventoryInput;
         [SerializeField] private BlockClickDetect blockClickDetect;
         [SerializeField] private ItemImages itemImages;
         
@@ -122,7 +122,7 @@ namespace MainGame.Starter
             _resolver.Resolve<MouseInventoryInput>();
             _resolver.Resolve<IPlayerInventoryItemMove>();//TODO　これをIInitializableにする
             _resolver.Resolve<BlockInventoryItemView>();
-            _resolver.Resolve<BlockInventoryInput>();
+            _resolver.Resolve<MouseBlockInventoryInput>();
 
         }
 
