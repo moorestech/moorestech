@@ -25,10 +25,10 @@ namespace MainGame.UnityView.UI.Inventory.View
         private int outputSlotCount;
         
         [Inject]
-        public void Construct(IInventoryUpdateEvent inventoryUpdateEvent,ItemImages itemImages,
+        public void Construct(IPlayerInventoryViewUpdateEvent playerInventoryViewUpdateEvent,ItemImages itemImages,
             IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
         {
-            inventoryUpdateEvent.Subscribe(OnInventoryUpdate);
+            playerInventoryViewUpdateEvent.Subscribe(OnInventoryUpdate);
             blockInventoryUpdateEvent.Subscribe(BlockInventoryUpdate,OpenBlockInventory);
             
             _itemImages = itemImages;

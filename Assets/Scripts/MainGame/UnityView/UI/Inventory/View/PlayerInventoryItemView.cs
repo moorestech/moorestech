@@ -15,9 +15,9 @@ namespace MainGame.UnityView.UI.Inventory.View
         
         
         [Inject]
-        public void Construct(IInventoryUpdateEvent inventoryUpdateEvent,ItemImages itemImages)
+        public void Construct(IPlayerInventoryViewUpdateEvent playerInventoryViewUpdateEvent,ItemImages itemImages)
         {
-            inventoryUpdateEvent.Subscribe(OnInventoryUpdate);
+            playerInventoryViewUpdateEvent.Subscribe(OnInventoryUpdate);
             _itemImages = itemImages;
             
             for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)

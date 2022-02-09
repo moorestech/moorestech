@@ -16,7 +16,7 @@ namespace Test.TestModule.UI
 
         private void Start()
         {
-            mouseInventoryInput.Construct(playerInventoryItem,new PlayerInventoryItemMoveTest(),new InventoryUpdateEvent());
+            mouseInventoryInput.Construct(playerInventoryItem,new PlayerInventoryItemMoveTest(),new PlayerInventoryViewUpdateEvent());
 
             StartCoroutine(PostStart());
         }

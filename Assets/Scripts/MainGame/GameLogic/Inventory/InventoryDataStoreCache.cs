@@ -13,12 +13,12 @@ namespace MainGame.GameLogic.Inventory
     public class InventoryDataStoreCache : IInitializable
     {
         private List<ItemStack> _items = new List<ItemStack>();
-        private InventoryUpdateEvent _inventoryUpdateEvent;
+        private PlayerInventoryViewUpdateEvent _playerInventoryViewUpdateEvent;
         
         public InventoryDataStoreCache(IPlayerInventoryUpdateEvent playerInventoryUpdateEvent,
-            IInventoryUpdateEvent inventoryUpdateEvent)
+            IPlayerInventoryViewUpdateEvent playerInventoryViewUpdateEvent)
         {
-            _inventoryUpdateEvent = inventoryUpdateEvent as InventoryUpdateEvent;
+            _playerInventoryViewUpdateEvent = playerInventoryViewUpdateEvent as PlayerInventoryViewUpdateEvent;
             playerInventoryUpdateEvent.Subscribe(UpdateInventory,UpdateSlotInventory);
         }
 
@@ -28,7 +28,7 @@ namespace MainGame.GameLogic.Inventory
             //イベントの発火
             for (int i = 0; i < _items.Count; i++)
             {
-                _inventoryUpdateEvent.OnOnInventoryUpdate(i,_items[i].ID,_items[i].Count);
+                _playerInventoryViewUpdateEvent.OnOnInventoryUpdate(i,_items[i].ID,_items[i].Count);
             }
         }
 
@@ -37,7 +37,7 @@ namespace MainGame.GameLogic.Inventory
             var s = properties.SlotId;
             _items[s] = properties.ItemStack;
             //イベントの発火
-            _inventoryUpdateEvent.OnOnInventoryUpdate(s,_items[s].ID,_items[s].Count);
+            _playerInventoryViewUpdateEvent.OnOnInventoryUpdate(s,_items[s].ID,_items[s].Count);
         }
         
         public ItemStack GetItem(int slot)

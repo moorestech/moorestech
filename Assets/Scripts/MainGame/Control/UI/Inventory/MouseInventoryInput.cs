@@ -22,7 +22,7 @@ namespace MainGame.Control.UI.Inventory
         public void Construct(
             PlayerInventoryItemView playerInventoryItemView,
             IPlayerInventoryItemMove playerInventoryItemMove,
-            IInventoryUpdateEvent inventoryUpdateEvent)
+            IPlayerInventoryViewUpdateEvent playerInventoryViewUpdateEvent)
         {
             _playerInventoryItemView = playerInventoryItemView;
             _playerInventoryItemMove = playerInventoryItemMove;
@@ -30,7 +30,7 @@ namespace MainGame.Control.UI.Inventory
             equippedItem.gameObject.SetActive(false);
             _inputSettings = new();
             _inputSettings.Enable();
-            inventoryUpdateEvent.Subscribe(InventoryUpdate);
+            playerInventoryViewUpdateEvent.Subscribe(InventoryUpdate);
         }
         
         //イベントをボタンに登録する

@@ -19,7 +19,7 @@ namespace Test.PlayModeTest.UI
 
         private void Start()
         {
-            var update = new InventoryUpdateEvent();
+            var update = new PlayerInventoryViewUpdateEvent();
             playerInventoryItemView.Construct(update,itemImages);
             
             //slot id count

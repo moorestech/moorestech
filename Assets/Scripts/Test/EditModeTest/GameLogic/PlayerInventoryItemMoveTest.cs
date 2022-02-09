@@ -18,7 +18,7 @@ namespace Test.EditModeTest.GameLogic
         public void ItemMoveCountTest()
         {
             var sendItem = new SendItemMove();
-            var items = new InventoryDataStoreCache(new PlayerInventoryUpdateEvent(),new InventoryUpdateEvent());
+            var items = new InventoryDataStoreCache(new MainGame.Network.Event.PlayerInventoryUpdateEvent(),new PlayerInventoryViewUpdateEvent());
             
             var itemMove = new PlayerInventoryItemMove(sendItem,items,new ConnectionPlayerSetting(0));
             

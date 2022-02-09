@@ -73,7 +73,7 @@ namespace MainGame.Starter
             
             //GameLogicのPresenterの作成
             builder.RegisterEntryPoint<BlockPlaceEventToSendProtocol>();
-            builder.Register<IInventoryUpdateEvent,InventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<IPlayerInventoryViewUpdateEvent,PlayerInventoryViewUpdateEvent>(Lifetime.Singleton);
             builder.Register<IPlayerInventoryItemMove,PlayerInventoryItemMove>(Lifetime.Singleton);
             
             //データストア
@@ -118,7 +118,7 @@ namespace MainGame.Starter
 
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             _resolver.Dispose();
         }
