@@ -16,9 +16,9 @@ namespace MainGame.Network.Event
             OnSettingBlock += onSettingBlock;
         }
 
-        public void OnOnSettingBlock(Vector2Int pos, List<ItemStack> items, string uitype, short[] uiparams)
+        public void OnOnSettingBlock(List<ItemStack> items, string uitype, params short[] uiparams)
         {
-            OnSettingBlock?.Invoke(pos, items, uitype, uiparams);
+            OnSettingBlock?.Invoke(items, uitype, uiparams);
         }
 
         public void OnOnBlockInventorySlotUpdate(Vector2Int pos, int slot, int id, int count)

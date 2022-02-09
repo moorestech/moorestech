@@ -10,8 +10,6 @@ namespace MainGame.GameLogic.Inventory
     public class BlockInventoryDataCache
     {
         private readonly BlockInventoryUpdateEvent _blockInventoryView;
-        
-        private Vector2Int _openingPos;
         public BlockInventoryDataCache(IBlockInventoryUpdateEvent blockInventoryView,IReceiveBlockInventoryUpdateEvent blockInventory)
         {
             _blockInventoryView = blockInventoryView as BlockInventoryUpdateEvent;
@@ -20,14 +18,11 @@ namespace MainGame.GameLogic.Inventory
 
         private void OnBlockInventorySlotUpdate(Vector2Int pos,int slot,int id,int count)
         {
-            if (_openingPos != pos) return;
-            
             _blockInventoryView.OnInventoryUpdateInvoke(slot,id,count);
         }
 
-        private void OnSettingBlockInventory(Vector2Int pos,List<ItemStack> items,string uiType,params short[] uiParams)
+        private void OnSettingBlockInventory(List<ItemStack> items,string uiType,params short[] uiParams)
         {
-            _openingPos = pos;
             //UIを開く
             _blockInventoryView.OnSettingInventoryInvoke(uiType,uiParams);
             //UIを更新する
