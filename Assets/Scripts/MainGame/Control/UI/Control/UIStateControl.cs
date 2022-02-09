@@ -5,7 +5,7 @@ using VContainer;
 
 namespace MainGame.Control.UI.Control
 {
-    public class UIControl : MonoBehaviour
+    public class UIStateControl : MonoBehaviour
     {
         [SerializeField] private GameObject pauseMenu;
         [SerializeField] private GameObject playerInventory;

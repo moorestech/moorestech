@@ -155,6 +155,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pauseMenu: {fileID: 1262886464744272085}
   playerInventory: {fileID: 1728070040841118535}
+  blockInventory: {fileID: 8252762405252807592}
 --- !u!1 &6417248260981107632
 GameObject:
   m_ObjectHideFlags: 0
@@ -595,5 +596,10 @@ GameObject:
 --- !u!224 &7838307011636010673 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8630061561060983024, guid: da7afb3e6138a8541a7b158b007399d2, type: 3}
+  m_PrefabInstance: {fileID: 1946507175925882433}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &8252762405252807592 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7603433346726962665, guid: da7afb3e6138a8541a7b158b007399d2, type: 3}
   m_PrefabInstance: {fileID: 1946507175925882433}
   m_PrefabAsset: {fileID: 0}
