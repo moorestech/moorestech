@@ -13,7 +13,7 @@ namespace Test.TestModule.UI
         [SerializeField] private EquippedItemViewControl equippedItemViewControl;
         [SerializeField] private MouseInventoryInput mouseInventoryInput;
 
-        [FormerlySerializedAs("mainInventoryItem")] [SerializeField] private PlayerInventoryItemView playerInventoryItem;
+        [SerializeField] private PlayerInventoryItemView playerInventoryItem;
 
         private void Start()
         {

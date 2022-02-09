@@ -14,7 +14,7 @@ namespace MainGame.Control.UI.Inventory
         [SerializeField] private InventoryItemSlot equippedItem;
         
         private int _equippedItemIndex = -1;
-        private BlockInventoryItemView _mainInventoryItemView;
+        private BlockInventoryItemView _blockInventoryItemView;
         private IBlockInventoryItemMove _blockInventoryItemMove;
         
         private MoorestechInputSettings _inputSettings;
@@ -24,7 +24,7 @@ namespace MainGame.Control.UI.Inventory
             BlockInventoryItemView blockInventoryItemView,
             IBlockInventoryItemMove blockInventory)
         {
-            _mainInventoryItemView = blockInventoryItemView;
+            _blockInventoryItemView = blockInventoryItemView;
             _blockInventoryItemMove = blockInventory;
             
             equippedItem.gameObject.SetActive(false);
@@ -35,7 +35,7 @@ namespace MainGame.Control.UI.Inventory
         //イベントをボタンに登録する
         public void PostStart()
         {
-            foreach (var slot in _mainInventoryItemView.GetInventoryItemSlots())
+            foreach (var slot in _blockInventoryItemView.GetInventoryItemSlots())
             {
                 slot.SubscribeOnItemSlotClick(OnSlotClick);
             }
@@ -45,7 +45,7 @@ namespace MainGame.Control.UI.Inventory
         {
             if (_equippedItemIndex == -1)
             {
-                var fromItem = _mainInventoryItemView.GetInventoryItemSlots()[slot];
+                var fromItem = _blockInventoryItemView.GetInventoryItemSlots()[slot];
                 equippedItem.CopyItem(fromItem);
                 
                 _equippedItemIndex = slot;

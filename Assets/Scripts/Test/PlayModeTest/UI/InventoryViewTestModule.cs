@@ -14,7 +14,7 @@ namespace Test.PlayModeTest.UI
 {
     public class InventoryViewTestModule : MonoBehaviour
     {
-        [FormerlySerializedAs("mainInventoryItemView")] [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
+        [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
         [SerializeField] private ItemImages itemImages;
 
         private void Start()
