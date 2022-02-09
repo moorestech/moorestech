@@ -46,16 +46,25 @@ namespace MainGame.UnityView.UI.Inventory.View
             {
                 //inputの設定
                 var s = Instantiate(inventoryItemSlot.gameObject, inputItems).GetComponent<InventoryItemSlot>();
+                s.Construct(i);
                 s.gameObject.SetActive(false);
                 _inputInventorySlots.Add(s);
                 
                 //outputの設定
                 s = Instantiate(inventoryItemSlot.gameObject, outputItems).GetComponent<InventoryItemSlot>();
+                s.Construct(i);
                 s.gameObject.SetActive(false);
                 _outputInventorySlots.Add(s);
             }
         }
 
+        //ブロックのインベントリを開く
+        public void OpenBlockInventory(string uiType, params short[] param)
+        {
+            //TODO ステータスとステUitypeを渡しているけど、ここは共通インベントリ基盤を作成する
+            OpenInventory(param[0],param[1]);
+        }
+        
         public void OpenInventory(int input, int output)
         {
             inputSlotCount = input;
@@ -68,13 +77,13 @@ namespace MainGame.UnityView.UI.Inventory.View
             for (int i = 0; i < input; i++)
             {
                 _inputInventorySlots[i].gameObject.SetActive(true);
-                _inputInventorySlots[i].Construct(i);
+                _inputInventorySlots[i].Construct(PlayerInventoryConstant.MainInventorySize + i);
             }
 
             for (int i = 0; i < output; i++)
             {
                 _outputInventorySlots[i].gameObject.SetActive(true);
-                _outputInventorySlots[i].Construct(input + i);
+                _outputInventorySlots[i].Construct(PlayerInventoryConstant.MainInventorySize + input + i);
             }
         }
 
@@ -83,15 +92,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             var sprite = _itemImages.GetItemImage(itemId);
             _playerInventorySlots[slot].SetItem(sprite,count);
         }
-
-
         
-        //ブロックのインベントリを開く
-        public void OpenBlockInventory(string uiType, params short[] param)
-        {
-            //TODO ステータスとステUitypeを渡しているけど、ここは共通インベントリ基盤を作成する
-            OpenInventory(param[0],param[1]);
-        }
 
         public void BlockInventoryUpdate(int slot, int itemId, int count)
         {
@@ -107,9 +108,28 @@ namespace MainGame.UnityView.UI.Inventory.View
         }
         
         
-        public IReadOnlyList<InventoryItemSlot> GetInventoryItemSlots()
+        public IReadOnlyList<InventoryItemSlot> GetAllInventoryItemSlots()
         {
-            return _playerInventorySlots;
+            var merged = new List<InventoryItemSlot>();
+            merged.AddRange(_playerInventorySlots);
+            merged.AddRange(_inputInventorySlots);
+            merged.AddRange(_outputInventorySlots);
+            return merged;
+        }
+        
+        public InventoryItemSlot GetOpenedInventoryItemSlot(int index)
+        {
+            if (index < PlayerInventoryConstant.MainInventorySize)
+            {
+                return _playerInventorySlots[index];
+            }
+            
+            if (index < PlayerInventoryConstant.MainInventorySize + inputSlotCount)
+            {
+                return _inputInventorySlots[index];
+            }
+
+            return _outputInventorySlots[index - inputSlotCount];
         }
     }
 }

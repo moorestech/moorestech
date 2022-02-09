@@ -35,7 +35,7 @@ namespace MainGame.Control.UI.Inventory
         //イベントをボタンに登録する
         public void PostStart()
         {
-            foreach (var slot in _blockInventoryItemView.GetInventoryItemSlots())
+            foreach (var slot in _blockInventoryItemView.GetAllInventoryItemSlots())
             {
                 slot.SubscribeOnItemSlotClick(OnSlotClick);
             }
@@ -45,7 +45,7 @@ namespace MainGame.Control.UI.Inventory
         {
             if (_equippedItemIndex == -1)
             {
-                var fromItem = _blockInventoryItemView.GetInventoryItemSlots()[slot];
+                var fromItem = _blockInventoryItemView.GetAllInventoryItemSlots()[slot];
                 equippedItem.CopyItem(fromItem);
                 
                 _equippedItemIndex = slot;

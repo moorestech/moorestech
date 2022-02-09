@@ -21,6 +21,7 @@ namespace Test.TestModule.UI
             blockInventoryItemView.Construct(playerInventory,itemImages,blockInventory);
             
             mouseBlockInventoryInput.Construct(blockInventoryItemView,new BlockInventoryItemMoveTest());
+            mouseBlockInventoryInput.PostStart();
             
             //プレイヤーインベントリのアイテム設定
             
@@ -44,8 +45,8 @@ namespace Test.TestModule.UI
             //blockInventoryを開く
             blockInventory.OnSettingInventoryInvoke("",3,1);
             //BlockInventoryのアイテム設定
-            blockInventory.OnInventoryUpdateInvoke(0,2,5);
-            blockInventory.OnInventoryUpdateInvoke(3,1,5);
+            blockInventory.OnInventoryUpdateInvoke(0,2,6);
+            blockInventory.OnInventoryUpdateInvoke(3,1,7);
         }
     }
 }
