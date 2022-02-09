@@ -44,6 +44,8 @@ GameObject:
   - component: {fileID: 7789463816143227917}
   - component: {fileID: 7789463816143227918}
   - component: {fileID: 2407636907828000943}
+  - component: {fileID: 2081080828784532788}
+  - component: {fileID: 7473477974037748790}
   m_Layer: 0
   m_Name: TestModule
   m_TagString: Untagged
@@ -78,7 +80,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32c9240aaa4d494094366b708564c080, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainInventoryItemView: {fileID: 9199618560218924157}
+  playerInventoryItemView: {fileID: 9199618560218924157}
   itemImages: {fileID: 11400000, guid: f3f5e541a0fc649389c5ffefa1f0082a, type: 2}
 --- !u!114 &2407636907828000943
 MonoBehaviour:
@@ -94,7 +96,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   equippedItemViewControl: {fileID: 2640343440944161289}
   mouseInventoryInput: {fileID: 3444686217624259995}
-  mainInventoryItem: {fileID: 9199618560218924157}
+  playerInventoryItem: {fileID: 9199618560218924157}
+--- !u!114 &2081080828784532788
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7789463816143227919}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f926f0ee26e04fb8b060a5ea5a510f93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiStateControl: {fileID: 687691383439858915}
+  blockClickDetectTest: {fileID: 7473477974037748790}
+--- !u!114 &7473477974037748790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7789463816143227919}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d13eb6d46c644c23a6a09b5f3d174d41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &7789463816664185484
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -192,6 +220,17 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+--- !u!114 &687691383439858915 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7319079166698153583, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 7789463816664185484}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ffecd04600843da92d113e894a03701, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &2640343440944161289 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5241589963447113861, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
