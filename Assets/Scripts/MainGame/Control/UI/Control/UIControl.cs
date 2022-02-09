@@ -1,21 +1,23 @@
 ﻿using MainGame.Control.Game;
 using MainGame.Control.UI.Control.UIState;
 using UnityEngine;
+using VContainer;
 
 namespace MainGame.Control.UI.Control
 {
     public class UIControl : MonoBehaviour
     {
-        private  IUIState _currentState;
-        private MoorestechInputSettings _inputSettings;
-
-        [SerializeField] private BlockClickDetect _blockClickDetect;
-        
         [SerializeField] private GameObject pauseMenu;
         [SerializeField] private GameObject playerInventory;
         [SerializeField] private GameObject blockInventory;
 
-        private void Start()
+        
+        private  IUIState _currentState;
+        private MoorestechInputSettings _inputSettings;
+
+        
+        [Inject]
+        private void Construct(BlockClickDetect blockClickDetect)
         {
             _inputSettings = new MoorestechInputSettings();
             _inputSettings.Enable();
@@ -26,7 +28,7 @@ namespace MainGame.Control.UI.Control
             var blockInventoryState = new BlockInventoryState(gameScreen,_inputSettings,blockInventory);
             var pause = new PauseMenuState(gameScreen,_inputSettings,pauseMenu);
             
-            gameScreen.Construct(inventory,pause,blockInventoryState,_inputSettings,_blockClickDetect);
+            gameScreen.Construct(inventory,pause,blockInventoryState,_inputSettings,blockClickDetect);
             _currentState = gameScreen;
         }
         

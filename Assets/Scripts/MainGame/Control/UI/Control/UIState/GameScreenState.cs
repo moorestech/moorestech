@@ -5,7 +5,7 @@ namespace MainGame.Control.UI.Control.UIState
     public class GameScreenState : IUIState
     {
         private MoorestechInputSettings _input;
-        private BlockClickDetect _blockClickDetect;
+        private IBlockClickDetect _blockClickDetect;
         private IUIState _inventoryState;
         private IUIState _pauseState;
         private IUIState _blockInventoryState;
@@ -31,7 +31,7 @@ namespace MainGame.Control.UI.Control.UIState
                 return true;
             }
 
-            if (_blockClickDetect.IsClicked())
+            if (_blockClickDetect.IsBlockClicked())
             {
                 return true;
             }
@@ -50,7 +50,7 @@ namespace MainGame.Control.UI.Control.UIState
                 return _pauseState;
             }
 
-            if (_blockClickDetect.IsClicked())
+            if (_blockClickDetect.IsBlockClicked())
             {
                 return _blockInventoryState;
             }
