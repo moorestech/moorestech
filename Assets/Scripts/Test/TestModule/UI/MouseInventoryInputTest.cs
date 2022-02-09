@@ -10,14 +10,12 @@ namespace Test.TestModule.UI
 {
     public class MouseInventoryInputTest : MonoBehaviour
     {
-        [SerializeField] private EquippedItemViewControl equippedItemViewControl;
         [SerializeField] private MouseInventoryInput mouseInventoryInput;
 
         [SerializeField] private PlayerInventoryItemView playerInventoryItem;
 
         private void Start()
         {
-            equippedItemViewControl.Construct();
             mouseInventoryInput.Construct(playerInventoryItem,new PlayerInventoryItemMoveTest(),new InventoryUpdateEvent());
 
             StartCoroutine(PostStart());

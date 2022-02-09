@@ -7,8 +7,7 @@ namespace MainGame.Control.UI.Inventory
     {
          RectTransform _canvasRect;
 
-         [Inject]
-         public void Construct()
+         private void Start()
          {
              _canvasRect = transform.root.GetComponentsInChildren<RectTransform>()[0];
          }
