@@ -1,0 +1,29 @@
+using System.Collections.Generic;
+using MainGame.Network.Interface.Receive;
+using Maingame.Types;
+using UnityEngine;
+using static MainGame.Network.Interface.Receive.IReceiveBlockInventoryUpdateEvent;
+
+namespace MainGame.Network.Event
+{
+    public class ReceiveBlockInventoryUpdateEvent : IReceiveBlockInventoryUpdateEvent
+    {
+        private event OnBlockInventorySlotUpdate OnBlockInventorySlotUpdate;
+        private event OnSettingBlockInventory OnSettingBlock;
+        public void Subscribe(OnBlockInventorySlotUpdate onBlockInventorySlot, OnSettingBlockInventory onSettingBlock)
+        {
+            OnBlockInventorySlotUpdate += onBlockInventorySlot;
+            OnSettingBlock += onSettingBlock;
+        }
+
+        public void OnOnSettingBlock(Vector2Int pos, List<ItemStack> items, string uitype, short[] uiparams)
+        {
+            OnSettingBlock?.Invoke(pos, items, uitype, uiparams);
+        }
+
+        public void OnOnBlockInventorySlotUpdate(Vector2Int pos, int slot, int id, int count)
+        {
+            OnBlockInventorySlotUpdate?.Invoke(pos, slot, id, count);
+        }
+    }
+}

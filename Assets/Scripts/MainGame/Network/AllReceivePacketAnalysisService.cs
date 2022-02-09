@@ -20,6 +20,8 @@ namespace MainGame.Network
             _analysisPacketList.Add(new DummyProtocol());//TODO 将来的に他プレイヤー座標のパケットが入る
             _analysisPacketList.Add(new ReceiveEventProtocol(chunkUpdateEvent,playerInventoryUpdateEvent));
             _analysisPacketList.Add(new ReceivePlayerInventoryProtocol(playerInventoryUpdateEvent));
+            _analysisPacketList.Add(new DummyProtocol()); //TODO 地面のマップデータのパケットが入る
+            
         }
 
         public void Analysis(byte[] bytes)

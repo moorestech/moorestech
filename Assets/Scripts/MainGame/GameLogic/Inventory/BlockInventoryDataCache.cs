@@ -15,7 +15,7 @@ namespace MainGame.GameLogic.Inventory
         public BlockInventoryDataCache(IBlockInventoryUpdateEvent blockInventoryView,IReceiveBlockInventoryUpdateEvent blockInventory)
         {
             _blockInventoryView = blockInventoryView as BlockInventoryUpdateEvent;
-            blockInventory.Subscribe(OnBlockInventorySlotUpdate,OnBlockInventoryUpdate);
+            blockInventory.Subscribe(OnBlockInventorySlotUpdate,OnSettingBlockInventory);
         }
 
         private void OnBlockInventorySlotUpdate(Vector2Int pos,int slot,int id,int count)
@@ -25,7 +25,7 @@ namespace MainGame.GameLogic.Inventory
             _blockInventoryView.OnInventoryUpdateInvoke(slot,id,count);
         }
 
-        private void OnBlockInventoryUpdate(Vector2Int pos,List<ItemStack> items,string uiType,params short[] uiParams)
+        private void OnSettingBlockInventory(Vector2Int pos,List<ItemStack> items,string uiType,params short[] uiParams)
         {
             _openingPos = pos;
             //UIを開く
