@@ -29,7 +29,7 @@ namespace MainGame.GameLogic.Inventory
         {
             _openingPos = pos;
             //UIを開く
-            _blockInventoryView.OnOpenInventoryInvoke(uiType,uiParams);
+            _blockInventoryView.OnSettingInventoryInvoke(uiType,uiParams);
             //UIを更新する
             for (var i = 0; i < items.Count; i++)
             {

@@ -42,7 +42,7 @@ namespace Test.TestModule.UI
             
             
             //blockInventoryを開く
-            blockInventory.OnOpenInventoryInvoke("",3,1);
+            blockInventory.OnSettingInventoryInvoke("",3,1);
             //BlockInventoryのアイテム設定
             blockInventory.OnInventoryUpdateInvoke(0,2,5);
             blockInventory.OnInventoryUpdateInvoke(3,1,5);
