@@ -5,8 +5,6 @@ using System.Reflection;
 using MainGame.Basic;
 using MainGame.GameLogic.Chunk;
 using MainGame.Network.Event;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
 using MainGame.Network.Receive.EventPacket;
 using NUnit.Framework;
 using UnityEngine;

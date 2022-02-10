@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
+using MainGame.Network.Event;
 using UnityEngine;
 
 namespace Test.TestModule

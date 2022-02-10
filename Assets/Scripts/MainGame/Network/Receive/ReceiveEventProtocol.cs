@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
+using MainGame.Network.Event;
 using MainGame.Network.Receive.EventPacket;
 using MainGame.Network.Util;
 
@@ -10,7 +9,7 @@ namespace MainGame.Network.Receive
     {
         List<IAnalysisEventPacket> _eventPacketList = new List<IAnalysisEventPacket>();
 
-        public ReceiveEventProtocol(IChunkUpdateEvent chunkUpdateEvent,IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+        public ReceiveEventProtocol(ChunkUpdateEvent chunkUpdateEvent,PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
         {
             _eventPacketList.Add(new BlockPlaceEvent(chunkUpdateEvent));
             _eventPacketList.Add(new PlayerInventorySlotEvent(playerInventoryUpdateEvent));

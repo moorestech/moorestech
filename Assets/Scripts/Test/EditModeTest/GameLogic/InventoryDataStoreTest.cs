@@ -2,7 +2,7 @@
 using System.Reflection;
 using MainGame.Basic;
 using MainGame.GameLogic.Inventory;
-using MainGame.Network.Interface.Receive;
+using MainGame.Network.Event;
 using NUnit.Framework;
 
 namespace Test.EditModeTest.GameLogic

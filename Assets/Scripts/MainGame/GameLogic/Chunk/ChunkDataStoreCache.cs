@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.Network.Interface.Receive;
+using MainGame.Network.Event;
 using UnityEngine;
 using VContainer.Unity;
 

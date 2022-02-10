@@ -7,8 +7,6 @@ using MainGame.GameLogic.Chunk;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network;
 using MainGame.Network.Event;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.UnityView.Chunk;
@@ -56,8 +54,8 @@ namespace MainGame.Starter
             builder.Register<ISocket, SocketObject>(Lifetime.Singleton);
 
             //パケット受け取りイベント
-            builder.Register<IChunkUpdateEvent, ChunkUpdateEvent>(Lifetime.Singleton);
-            builder.Register<IPlayerInventoryUpdateEvent, PlayerInventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<ChunkUpdateEvent>(Lifetime.Singleton);
+            builder.Register<PlayerInventoryUpdateEvent>(Lifetime.Singleton);
             
             //パケット送信インスタンス
             builder.Register<RequestEventProtocol>(Lifetime.Singleton);

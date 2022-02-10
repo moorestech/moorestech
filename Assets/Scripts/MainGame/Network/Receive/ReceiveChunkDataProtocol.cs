@@ -2,8 +2,6 @@
 using System.Linq;
 using MainGame.Basic;
 using MainGame.Network.Event;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
 using MainGame.Network.Util;
 using UnityEngine;
 
@@ -13,9 +11,9 @@ namespace MainGame.Network.Receive
     {
         private readonly ChunkUpdateEvent _chunkUpdateEvent;
 
-        public ReceiveChunkDataProtocol(IChunkUpdateEvent chunkUpdateEvent)
+        public ReceiveChunkDataProtocol(ChunkUpdateEvent chunkUpdateEvent)
         {
-            _chunkUpdateEvent = chunkUpdateEvent as ChunkUpdateEvent;
+            _chunkUpdateEvent = chunkUpdateEvent;
         }
 
         public void Analysis(List<byte> data)

@@ -1,12 +1,11 @@
-﻿using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
-using UnityEngine;
-using static MainGame.Network.Interface.Receive.IChunkUpdateEvent;
+﻿using UnityEngine;
 
 namespace MainGame.Network.Event
 {
-    public class ChunkUpdateEvent : IChunkUpdateEvent
+    public class ChunkUpdateEvent
     {
+        public delegate void OnChunkUpdate(OnChunkUpdateEventProperties properties);
+        public delegate void OnBlockUpdate(OnBlockUpdateEventProperties properties);
         private event OnChunkUpdate OnChunkUpdateEvent;
         private event OnBlockUpdate OnBlockUpdateEvent;
         public void Subscribe(OnChunkUpdate onChunkUpdate, OnBlockUpdate onBlockUpdate)
@@ -30,5 +29,31 @@ namespace MainGame.Network.Event
             OnBlockUpdateEvent?.Invoke(properties);
         }
 
+    }
+    
+    
+
+    public class OnChunkUpdateEventProperties
+    {
+        public readonly Vector2Int ChunkPos;
+        public readonly int[,] BlockIds;
+
+        public OnChunkUpdateEventProperties(Vector2Int chunkPos, int[,] blockIds)
+        {
+            this.ChunkPos = chunkPos;
+            this.BlockIds = blockIds;
+        }
+    }
+
+    public class OnBlockUpdateEventProperties
+    {
+        public readonly Vector2Int BlockPos;
+        public readonly  int BlockId;
+
+        public OnBlockUpdateEventProperties(Vector2Int blockPos, int blockId)
+        {
+            this.BlockPos = blockPos;
+            this.BlockId = blockId;
+        }
     }
 }

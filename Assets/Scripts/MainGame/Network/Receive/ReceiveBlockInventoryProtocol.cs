@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Network.Event;
-using MainGame.Network.Interface.Receive;
 using MainGame.Network.Util;
 
 namespace MainGame.Network.Receive
@@ -10,9 +9,9 @@ namespace MainGame.Network.Receive
     {
         private readonly ReceiveBlockInventoryUpdateEvent _receiveBlockInventoryUpdateEvent;
 
-        public ReceiveBlockInventoryProtocol(IReceiveBlockInventoryUpdateEvent receiveBlockInventoryUpdateEvent)
+        public ReceiveBlockInventoryProtocol(ReceiveBlockInventoryUpdateEvent receiveBlockInventoryUpdateEvent)
         {
-            _receiveBlockInventoryUpdateEvent = receiveBlockInventoryUpdateEvent as ReceiveBlockInventoryUpdateEvent;
+            _receiveBlockInventoryUpdateEvent = receiveBlockInventoryUpdateEvent;
         }
 
         public void Analysis(List<byte> data)

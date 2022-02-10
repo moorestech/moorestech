@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
+using MainGame.Network.Event;
 
 namespace Test.TestModule
 {
@@ -9,7 +8,7 @@ namespace Test.TestModule
     {
         public Dictionary<int,List<ItemStack>> playerInventory = new Dictionary<int, List<ItemStack>>();
 
-        public TestPlayerInventoryDataStore(IPlayerInventoryUpdateEvent @event)
+        public TestPlayerInventoryDataStore(PlayerInventoryUpdateEvent @event)
         {
             @event.Subscribe(OnPlayerInventoryUpdate,OnPlayerInventorySlotUpdate);
         }

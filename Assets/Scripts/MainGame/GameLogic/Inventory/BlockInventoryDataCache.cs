@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.Network.Interface.Receive;
+using MainGame.Network.Event;
 using UnityEngine;
 
 namespace MainGame.GameLogic.Inventory
@@ -8,7 +8,7 @@ namespace MainGame.GameLogic.Inventory
     //TODO blockInventoryを開いたり、UIを更新する
     public class BlockInventoryDataCache
     {
-        public BlockInventoryDataCache(IReceiveBlockInventoryUpdateEvent blockInventory)
+        public BlockInventoryDataCache(ReceiveBlockInventoryUpdateEvent blockInventory)
         {
             blockInventory.Subscribe(OnBlockInventorySlotUpdate,OnSettingBlockInventory);
         }

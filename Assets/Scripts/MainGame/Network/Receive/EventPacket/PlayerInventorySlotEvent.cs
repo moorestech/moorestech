@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Network.Event;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
 using MainGame.Network.Util;
 
 namespace MainGame.Network.Receive.EventPacket
@@ -11,9 +9,9 @@ namespace MainGame.Network.Receive.EventPacket
     {
         private PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
 
-        public PlayerInventorySlotEvent(IPlayerInventoryUpdateEvent playerInventorySlotEvent)
+        public PlayerInventorySlotEvent(PlayerInventoryUpdateEvent playerInventorySlotEvent)
         {
-            _playerInventoryUpdateEvent = playerInventorySlotEvent as PlayerInventoryUpdateEvent;
+            _playerInventoryUpdateEvent = playerInventorySlotEvent;
         }
 
         public void Analysis(List<byte> packet)

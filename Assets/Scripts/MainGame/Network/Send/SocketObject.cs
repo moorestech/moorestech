@@ -1,6 +1,5 @@
 using System;
 using System.Net.Sockets;
-using MainGame.Network.Interface;
 using MainGame.Network.Send.SocketUtil;
 
 namespace MainGame.Network.Send

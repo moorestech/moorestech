@@ -2,9 +2,9 @@
     "name": "GameLogic",
     "rootNamespace": "",
     "references": [
-        "Network.Interface",
         "Constant",
-        "VContainer"
+        "VContainer",
+        "Network"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

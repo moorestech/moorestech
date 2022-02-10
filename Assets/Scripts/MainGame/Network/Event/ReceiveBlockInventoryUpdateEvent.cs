@@ -1,16 +1,17 @@
 using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.Network.Interface.Receive;
 using UnityEngine;
-using static MainGame.Network.Interface.Receive.IReceiveBlockInventoryUpdateEvent;
 
 namespace MainGame.Network.Event
 {
-    public class ReceiveBlockInventoryUpdateEvent : IReceiveBlockInventoryUpdateEvent
+    //TODO この辺は共通UI基盤に移行する
+    public class ReceiveBlockInventoryUpdateEvent 
     {
-        private event OnBlockInventorySlotUpdate OnBlockInventorySlotUpdate;
-        private event OnSettingBlockInventory OnSettingBlock;
-        public void Subscribe(OnBlockInventorySlotUpdate onBlockInventorySlot, OnSettingBlockInventory onSettingBlock)
+        public delegate void BlockInventorySlotUpdate(Vector2Int pos,int slot,int id,int count);
+        public delegate void SettingBlockInventory(List<ItemStack> items,string uiType,params short[] uiParams);
+        private event BlockInventorySlotUpdate OnBlockInventorySlotUpdate;
+        private event SettingBlockInventory OnSettingBlock;
+        public void Subscribe(BlockInventorySlotUpdate onBlockInventorySlot, SettingBlockInventory onSettingBlock)
         {
             OnBlockInventorySlotUpdate += onBlockInventorySlot;
             OnSettingBlock += onSettingBlock;

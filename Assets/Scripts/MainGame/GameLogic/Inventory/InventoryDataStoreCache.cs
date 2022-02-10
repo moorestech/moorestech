@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.Network.Interface.Receive;
+using MainGame.Network.Event;
 using VContainer.Unity;
 
 namespace MainGame.GameLogic.Inventory
@@ -10,7 +10,7 @@ namespace MainGame.GameLogic.Inventory
     {
         private List<ItemStack> _items = new List<ItemStack>();
         
-        public InventoryDataStoreCache(IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+        public InventoryDataStoreCache(PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
         {
             playerInventoryUpdateEvent.Subscribe(UpdateInventory,UpdateSlotInventory);
         }

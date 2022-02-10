@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using MainGame.Network.Interface;
 using MainGame.Network.Util;
 
 namespace MainGame.Network.Send
