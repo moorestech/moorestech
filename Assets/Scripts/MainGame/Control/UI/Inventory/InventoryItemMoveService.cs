@@ -10,7 +10,7 @@ namespace MainGame.Control.UI.Inventory
         private readonly int _playerId;
         
         private readonly BlockInventoryDataCache _blockInventoryDataCache;
-        private readonly InventoryDataCache _inventoryDataCache;
+        private readonly PlayerInventoryDataCache _playerInventoryDataCache;
         
         private readonly SendBlockInventoryMoveItemProtocol _blockInventoryMove;
         private readonly SendBlockInventoryPlayerInventoryMoveItemProtocol _blockInventoryPlayerInventoryMove;
@@ -18,14 +18,14 @@ namespace MainGame.Control.UI.Inventory
 
         public InventoryItemMoveService(
             PlayerConnectionSetting setting, 
-            BlockInventoryDataCache blockInventoryDataCache, InventoryDataCache inventoryDataCache, 
+            BlockInventoryDataCache blockInventoryDataCache, PlayerInventoryDataCache playerInventoryDataCache, 
             SendBlockInventoryMoveItemProtocol blockInventoryMove, 
             SendBlockInventoryPlayerInventoryMoveItemProtocol blockInventoryPlayerInventoryMove, 
             SendPlayerInventoryMoveItemProtocol playerInventoryMove)
         {
             _playerId = setting.PlayerId;
             _blockInventoryDataCache = blockInventoryDataCache;
-            _inventoryDataCache = inventoryDataCache;
+            _playerInventoryDataCache = playerInventoryDataCache;
             _blockInventoryMove = blockInventoryMove;
             _blockInventoryPlayerInventoryMove = blockInventoryPlayerInventoryMove;
             _playerInventoryMove = playerInventoryMove;
@@ -52,7 +52,7 @@ namespace MainGame.Control.UI.Inventory
         {
             if (isBlock) return _blockInventoryDataCache.GetItemStack(slot).Count;
             
-            return _inventoryDataCache.GetItemStack(slot).Count;
+            return _playerInventoryDataCache.GetItemStack(slot).Count;
         }
 
         private void SendItemMove(int fromSlot, bool fromIsBlock, int toSlot, bool toIsBlock, int itemCount)

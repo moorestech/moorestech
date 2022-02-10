@@ -7,6 +7,7 @@ using MainGame.Network.Send;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Test.TestModule.UI
 {
@@ -15,22 +16,22 @@ namespace Test.TestModule.UI
     {
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
         [SerializeField] private ItemImages itemImages;
-        [SerializeField] private MouseBlockInventoryInput mouseBlockInventoryInput;
+        [SerializeField] private BlockInventoryInput blockInventoryInput;
 
         private void Start()
         {
             blockInventoryItemView.Construct(itemImages);
+            var blockInventory = new BlockInventoryDataCache(new ReceiveBlockInventoryUpdateEvent());
             var itemMove = new InventoryItemMoveService(
                 new PlayerConnectionSetting(0),
-                new BlockInventoryDataCache(new ReceiveBlockInventoryUpdateEvent()),
-                new InventoryDataCache(new PlayerInventoryUpdateEvent()),
+                blockInventory,
+                new PlayerInventoryDataCache(new PlayerInventoryUpdateEvent()),
                 new SendBlockInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendBlockInventoryPlayerInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendPlayerInventoryMoveItemProtocol(new TestSocketModule()));
-            
-            
-            mouseBlockInventoryInput.Construct(blockInventoryItemView,itemMove);
-            mouseBlockInventoryInput.PostStart();
+
+            blockInventoryInput.Construct(blockInventoryItemView,itemMove,blockInventory);
+            blockInventoryInput.PostStart();
             
             //プレイヤーインベントリのアイテム設定
             

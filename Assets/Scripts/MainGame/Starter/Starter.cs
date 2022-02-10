@@ -35,9 +35,9 @@ namespace MainGame.Starter
         [SerializeField] private GroundPlane groundPlane;
 
         [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
-        [SerializeField] private MouseInventoryInput mouseInventoryInput;
+        [SerializeField] private PlayerInventoryInput playerInventoryInput;
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
-        [SerializeField] private MouseBlockInventoryInput blockInventoryInput;
+        [SerializeField] private BlockInventoryInput blockInventoryInput;
         [SerializeField] private BlockClickDetect blockClickDetect;
         [SerializeField] private ItemImages itemImages;
         [SerializeField] private UIStateControl uIStateControl; 
@@ -70,7 +70,7 @@ namespace MainGame.Starter
             
             //データストア
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
-            builder.Register<InventoryDataCache>(Lifetime.Singleton);
+            builder.Register<PlayerInventoryDataCache>(Lifetime.Singleton);
             
             //ScriptableObjectの登録
             builder.RegisterInstance(blockObjects);
@@ -85,7 +85,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(groundPlane);
             builder.RegisterComponent(playerInventoryItemView);
-            builder.RegisterComponent(mouseInventoryInput);
+            builder.RegisterComponent(playerInventoryInput);
             builder.RegisterComponent(blockInventoryItemView);
             builder.RegisterComponent(blockInventoryInput);
             builder.RegisterInstance(itemImages);
@@ -102,9 +102,9 @@ namespace MainGame.Starter
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();
             _resolver.Resolve<MouseGroundClickInput>();
             _resolver.Resolve<PlayerInventoryItemView>();
-            _resolver.Resolve<MouseInventoryInput>();
+            _resolver.Resolve<PlayerInventoryInput>();
             _resolver.Resolve<BlockInventoryItemView>();
-            _resolver.Resolve<MouseBlockInventoryInput>();
+            _resolver.Resolve<BlockInventoryInput>();
             _resolver.Resolve<UIStateControl>();
 
         }

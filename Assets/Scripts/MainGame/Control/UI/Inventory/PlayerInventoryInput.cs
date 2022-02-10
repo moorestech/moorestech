@@ -6,7 +6,7 @@ using VContainer.Unity;
 
 namespace MainGame.Control.UI.Inventory
 {
-    public class MouseInventoryInput : MonoBehaviour,IPostStartable
+    public class PlayerInventoryInput : MonoBehaviour,IPostStartable
     {
         [SerializeField] private InventoryItemSlot equippedItem;
         

@@ -8,13 +8,13 @@ namespace Test.TestModule.UI
     //TODO ここのテストコードも修正する
     public class MouseInventoryInputTest : MonoBehaviour
     {
-        [SerializeField] private MouseInventoryInput mouseInventoryInput;
+        [SerializeField] private PlayerInventoryInput playerInventoryInput;
 
         [SerializeField] private PlayerInventoryItemView playerInventoryItem;
 
         private void Start()
         {
-            mouseInventoryInput.Construct(playerInventoryItem);
+            playerInventoryInput.Construct(playerInventoryItem);
 
             StartCoroutine(PostStart());
         }
@@ -22,7 +22,7 @@ namespace Test.TestModule.UI
         private IEnumerator PostStart()
         {
             yield return new WaitForSeconds(0.1f);
-            mouseInventoryInput.PostStart();
+            playerInventoryInput.PostStart();
         }
     }
 }
