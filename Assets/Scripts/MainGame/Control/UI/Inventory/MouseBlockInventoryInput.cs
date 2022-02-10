@@ -1,5 +1,5 @@
 using Game.PlayerInventory.Interface;
-using MainGame.UnityView.ControllerInput;
+using MainGame.Control.Game;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -7,7 +7,7 @@ using VContainer.Unity;
 
 namespace MainGame.Control.UI.Inventory
 {
-    public class MouseBlockInventoryInput : MonoBehaviour,IControllerInput,IPostStartable
+    public class MouseBlockInventoryInput : MonoBehaviour,IPostStartable
     {
         [SerializeField] private InventoryItemSlot equippedItem;
         
@@ -78,16 +78,6 @@ namespace MainGame.Control.UI.Inventory
             equippedItem.gameObject.SetActive(false);
             
             
-        }
-
-        public void OnInput()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void OffInput()
-        {
-            throw new System.NotImplementedException();
         }
     }
 }

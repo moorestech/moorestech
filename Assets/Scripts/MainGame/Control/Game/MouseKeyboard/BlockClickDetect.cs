@@ -1,10 +1,9 @@
 using MainGame.Network.Send;
 using MainGame.UnityView.Chunk;
-using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.Control.Game
+namespace MainGame.Control.Game.MouseKeyboard
 {
     public class BlockClickDetect : MonoBehaviour,IBlockClickDetect
     {
@@ -19,15 +18,6 @@ namespace MainGame.Control.Game
             _mainCamera = mainCamera;
             _input = new MoorestechInputSettings();
             _input.Enable();
-        }
-
-        public void OnInput()
-        {
-        }
-
-        public void OffInput()
-        {
-            
         }
         
         public bool IsBlockClicked()

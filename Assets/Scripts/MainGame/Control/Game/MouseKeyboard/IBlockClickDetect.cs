@@ -1,4 +1,4 @@
-namespace MainGame.Control.Game
+namespace MainGame.Control.Game.MouseKeyboard
 {
     public interface IBlockClickDetect
     {

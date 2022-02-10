@@ -1,5 +1,4 @@
 using MainGame.UnityView.Chunk;
-using MainGame.UnityView.ControllerInput;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
@@ -9,7 +8,7 @@ namespace MainGame.Control.Game.MouseKeyboard
     /// <summary>
     /// マウスで地面をクリックしたときに発生するイベント
     /// </summary>
-    public class MouseGroundClickInput : MonoBehaviour,IControllerInput
+    public class MouseGroundClickInput : MonoBehaviour
     {
         private Camera _mainCamera;
         private GroundPlane _groundPlane;

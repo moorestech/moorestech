@@ -1,4 +1,4 @@
-﻿using MainGame.UnityView.ControllerInput;
+﻿using MainGame.Control.Game;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -6,7 +6,7 @@ using VContainer.Unity;
 
 namespace MainGame.Control.UI.Inventory
 {
-    public class MouseInventoryInput : MonoBehaviour,IControllerInput,IPostStartable
+    public class MouseInventoryInput : MonoBehaviour,IPostStartable
     {
         [SerializeField] private InventoryItemSlot equippedItem;
         
@@ -75,16 +75,6 @@ namespace MainGame.Control.UI.Inventory
             if (slot != _equippedItemIndex) return;
             var fromItem = _playerInventoryItemView.GetInventoryItemSlots()[slot];
             equippedItem.CopyItem(fromItem);
-        }
-        
-        public void OnInput()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void OffInput()
-        {
-            throw new System.NotImplementedException();
         }
 
     }
