@@ -25,7 +25,6 @@ namespace MainGame.Network.Send.SocketUtil
                 Debug.LogError("IP解析失敗");
                 return;
             }
-            Debug.Log(ipAddress);
             //ソケットを作成
             _remoteEndPoint = new IPEndPoint(ipAddress, config.Port);
             _socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);

@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -35,7 +36,15 @@ namespace MainGame.Network
 
             Debug.Log("サーバーに接続します");
             //接続を試行する
-            _socketInstanceCreate.GetSocket().Connect(_socketInstanceCreate.GetRemoteEndPoint());
+            try
+            {
+                _socketInstanceCreate.GetSocket().Connect(_socketInstanceCreate.GetRemoteEndPoint());
+            }
+            catch (SocketException e)
+            {
+                Debug.LogError("サーバーへの接続に失敗しました");
+                return;
+            }
             
             Debug.Log("サーバーに接続しました");
             byte[] bytes = new byte[4096];
