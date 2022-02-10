@@ -2,7 +2,6 @@ using Core.Item.Util;
 using Game.PlayerInventory.Interface;
 using MainGame.GameLogic.Inventory;
 using MainGame.UnityView.UI.Inventory.View;
-using UnityEditor;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -52,7 +51,7 @@ namespace MainGame.Control.UI.Inventory
         //ボタンがクリックされた時に呼び出される
         private void OnSlotClick(int slot)
         {
-            if (_equippedItemIndex == -1 && !isSlotEmpty(slot))
+            if (_equippedItemIndex == -1 && !IsSlotEmpty(slot))
             {
                 var fromItem = _blockInventoryItemView.GetAllInventoryItemSlots()[slot];
                 equippedItem.CopyItem(fromItem);
@@ -100,9 +99,11 @@ namespace MainGame.Control.UI.Inventory
             
         }
 
-        private bool isSlotEmpty(int slot)
+        private bool IsSlotEmpty(int slot)
         {
             return _blockInventoryDataCache.GetItemStack(slot).ID == ItemConst.EmptyItemId;
         }
+        
+        //TODO　equippedItemの更新を行うためにイベントを登録　これを外に出す
     }
 }

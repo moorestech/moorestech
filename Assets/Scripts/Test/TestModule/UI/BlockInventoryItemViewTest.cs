@@ -11,7 +11,6 @@ using UnityEngine.Serialization;
 
 namespace Test.TestModule.UI
 {
-    //TODO ここのテストコードも修正する
     public class BlockInventoryItemViewTest : MonoBehaviour
     {
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
@@ -21,7 +20,7 @@ namespace Test.TestModule.UI
         private void Start()
         {
             blockInventoryItemView.Construct(itemImages);
-            var blockInventory = new BlockInventoryDataCache(new ReceiveBlockInventoryUpdateEvent());
+            var blockInventory = new BlockInventoryDataCache(new BlockInventoryUpdateEvent());
             var itemMove = new InventoryItemMoveService(
                 new PlayerConnectionSetting(0),
                 blockInventory,

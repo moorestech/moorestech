@@ -1,4 +1,6 @@
-﻿using MainGame.Control.Game;
+﻿using Core.Item.Util;
+using MainGame.GameLogic.Inventory;
+using MainGame.Network.Event;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -11,15 +13,21 @@ namespace MainGame.Control.UI.Inventory
         [SerializeField] private InventoryItemSlot equippedItem;
         
         private int _equippedItemIndex = -1;
-        private PlayerInventoryItemView _playerInventoryItemView;
-        
         private MoorestechInputSettings _inputSettings;
+        
+        private PlayerInventoryItemView _playerInventoryItemView;
+        private InventoryItemMoveService _inventoryItemMoveService;
+        private PlayerInventoryDataCache _playerInventoryDataCache;
 
         [Inject]
         public void Construct(
-            PlayerInventoryItemView playerInventoryItemView)
+            PlayerInventoryItemView playerInventoryItemView,
+            InventoryItemMoveService inventoryItemMoveService,
+            PlayerInventoryDataCache playerInventoryDataCache)
         {
+            _playerInventoryDataCache = playerInventoryDataCache;
             _playerInventoryItemView = playerInventoryItemView;
+            _inventoryItemMoveService = inventoryItemMoveService;
             
             equippedItem.gameObject.SetActive(false);
             _inputSettings = new();
@@ -34,10 +42,11 @@ namespace MainGame.Control.UI.Inventory
                 slot.SubscribeOnItemSlotClick(OnSlotClick);
             }
         }
+        
         //ボタンがクリックされた時に呼び出される
         private void OnSlotClick(int slot)
         {
-            if (_equippedItemIndex == -1)
+            if (_equippedItemIndex == -1 && !IsSlotEmpty(slot))
             {
                 var fromItem = _playerInventoryItemView.GetInventoryItemSlots()[slot];
                 equippedItem.CopyItem(fromItem);
@@ -50,32 +59,36 @@ namespace MainGame.Control.UI.Inventory
             //アイテムを半分だけおく
             if (_inputSettings.UI.InventoryItemHalve.inProgress)
             {
-                //ここはInventoryItemMoveService.csに統合
-                //TODO _playerInventoryItemMove.MoveHalfItemStack(_equippedItemIndex,slot);
+                _inventoryItemMoveService.MoveHalfItemStack(_equippedItemIndex,false,slot,false);
                 return;
             }
             
             //アイテムを一個だけおく
             if (_inputSettings.UI.InventoryItemOnePut.inProgress)
             {
-                //TODO _playerInventoryItemMove.MoveOneItemStack(_equippedItemIndex,slot);
+                _inventoryItemMoveService.MoveOneItemStack(_equippedItemIndex,false,slot,false);
                 return;
             }
             
             //アイテムを全部おく
-            //TODO _playerInventoryItemMove.MoveAllItemStack(_equippedItemIndex,slot);
+            _inventoryItemMoveService.MoveAllItemStack(_equippedItemIndex,false,slot,false);
             _equippedItemIndex = -1;
             equippedItem.gameObject.SetActive(false);
-            
-            
         }
 
-        //equippedItemの更新を行う
-        private void InventoryUpdate(int slot, int itemId, int count)
+        //TODO　equippedItemの更新を行うためにイベントを登録　これを外に出す
+        private void PlayerInventoryUpdate(OnPlayerInventoryUpdateProperties properties) { }
+        private void PlayerInventorySlotUpdate(OnPlayerInventorySlotUpdateProperties properties)
         {
-            if (slot != _equippedItemIndex) return;
-            var fromItem = _playerInventoryItemView.GetInventoryItemSlots()[slot];
+            if (properties.SlotId != _equippedItemIndex) return;
+            var fromItem = _playerInventoryItemView.GetInventoryItemSlots()[properties.SlotId];
             equippedItem.CopyItem(fromItem);
+        }
+        
+
+        private bool IsSlotEmpty(int slot)
+        {
+            return _playerInventoryDataCache.GetItemStack(slot).ID == ItemConst.EmptyItemId;
         }
 
     }

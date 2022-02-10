@@ -8,7 +8,7 @@ namespace MainGame.GameLogic.Inventory
     //TODO blockInventoryを開いたり、UIを更新する
     public class BlockInventoryDataCache
     {
-        public BlockInventoryDataCache(ReceiveBlockInventoryUpdateEvent blockInventory)
+        public BlockInventoryDataCache(BlockInventoryUpdateEvent blockInventory)
         {
             blockInventory.Subscribe(OnBlockInventorySlotUpdate,OnSettingBlockInventory);
         }
