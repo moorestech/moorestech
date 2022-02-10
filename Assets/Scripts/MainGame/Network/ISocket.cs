@@ -1,4 +1,4 @@
-﻿namespace MainGame.Network.Interface
+﻿namespace MainGame.Network
 {
     public interface ISocket
     {
