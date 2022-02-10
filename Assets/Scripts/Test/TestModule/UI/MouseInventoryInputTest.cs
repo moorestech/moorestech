@@ -14,13 +14,14 @@ namespace Test.TestModule.UI
         [SerializeField] private PlayerInventoryInput playerInventoryInput;
 
         [SerializeField] private PlayerInventoryItemView playerInventoryItem;
+        [SerializeField] private BlockInventoryItemView blockInventoryItem;
 
         private void Start()
         {
             var playerInventory = new PlayerInventoryDataCache(new PlayerInventoryUpdateEvent());
             var itemMove = new InventoryItemMoveService(
                 new PlayerConnectionSetting(0),
-                new BlockInventoryDataCache(new BlockInventoryUpdateEvent()),
+                new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItem),
                 playerInventory,
                 new SendBlockInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendBlockInventoryPlayerInventoryMoveItemProtocol(new TestSocketModule()),

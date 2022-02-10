@@ -20,7 +20,7 @@ namespace Test.TestModule.UI
         private void Start()
         {
             blockInventoryItemView.Construct(itemImages);
-            var blockInventory = new BlockInventoryDataCache(new BlockInventoryUpdateEvent());
+            var blockInventory = new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItemView);
             var itemMove = new InventoryItemMoveService(
                 new PlayerConnectionSetting(0),
                 blockInventory,

@@ -1,39 +1,51 @@
 using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Network.Event;
+using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 
 namespace MainGame.GameLogic.Inventory
 {
-    //TODO blockInventoryを開いたり、UIを更新する
     public class BlockInventoryDataCache
     {
-        public BlockInventoryDataCache(BlockInventoryUpdateEvent blockInventory)
+        private readonly BlockInventoryItemView _blockInventoryItemView;
+        private List<ItemStack> _itemStackList;
+
+
+        public BlockInventoryDataCache(BlockInventoryUpdateEvent blockInventory,BlockInventoryItemView blockInventoryItemView)
         {
+            _blockInventoryItemView = blockInventoryItemView;
             blockInventory.Subscribe(OnBlockInventorySlotUpdate,OnSettingBlockInventory);
         }
 
         private void OnBlockInventorySlotUpdate(Vector2Int pos,int slot,int id,int count)
         {
-            //TODO スロットのアップデートを伝える_blockInventoryView.OnInventoryUpdateInvoke(slot,id,count);
+            _blockInventoryItemView.BlockInventoryUpdate(slot,id,count);
+            if (slot < _itemStackList.Count)
+            {
+                _itemStackList[slot] = new ItemStack(id,count);
+            }
         }
 
         private void OnSettingBlockInventory(List<ItemStack> items,string uiType,params short[] uiParams)
         {
-            //TODO UIを開いて更新する
+            _itemStackList = items;
             //UIを開く
-            //_blockInventoryView.OnSettingInventoryInvoke(uiType,uiParams);
+            _blockInventoryItemView.OpenBlockInventory(uiType,uiParams);
             //UIを更新する
             for (var i = 0; i < items.Count; i++)
             {
                 var item = items[i];
-                //_blockInventoryView.OnInventoryUpdateInvoke(i,item.ID,item.Count);
+                _blockInventoryItemView.BlockInventoryUpdate(i,item.ID,item.Count);
             }
         }
         
         public ItemStack GetItemStack(int slot)
         {
-            //TODO スロットのアイテムを取得する
+            if (slot < _itemStackList.Count)
+            {
+                return _itemStackList[slot];
+            }
             return new ItemStack();
         }
         
