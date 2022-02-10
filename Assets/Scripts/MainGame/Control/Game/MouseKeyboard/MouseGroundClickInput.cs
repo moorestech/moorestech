@@ -42,16 +42,5 @@ namespace MainGame.Control.Game.MouseKeyboard
             //TODO ホットバーのindexを取得する
             //TODO ブロックの設置をnetworkに伝える
         }
-
-        public void OnInput()
-        {
-        }
-
-        public void OffInput()
-        {
-            
-        }
-        
-        
     }
 }
