@@ -7,10 +7,10 @@ namespace MainGame.UnityView.Chunk
     [CreateAssetMenu(fileName = "BlockObjects", menuName = "BlockObjects", order = 0)]
     public class BlockObjects : ScriptableObject
     {
-        [SerializeField] private List<GameObject> BlockObjectList;
-        [SerializeField] private GameObject NothingIndexBlockObject;
+        [SerializeField] private List<BlockGameObject> BlockObjectList;
+        [SerializeField] private BlockGameObject NothingIndexBlockObject;
 
-        public GameObject GetBlock(int index)
+        public BlockGameObject GetBlock(int index)
         {
             if (BlockObjectList.Count <= index)
             {

@@ -1,4 +1,5 @@
 using MainGame.Network.Interface.Send;
+using MainGame.UnityView.Chunk;
 using UnityEngine;
 using VContainer;
 
@@ -38,8 +39,7 @@ namespace MainGame.Control.Game
             
             // マウスでクリックした位置が地面なら
             if (!Physics.Raycast(ray, out var hit)) return false;
-            //TODO tagをやめる
-            if (!hit.transform.gameObject.CompareTag("Block"))return false;
+            if (hit.collider.gameObject.GetComponent<BlockGameObject>() == null) return false;
             
             
             var x = Mathf.RoundToInt(hit.point.x);

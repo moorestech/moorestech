@@ -8,7 +8,7 @@ namespace MainGame.UnityView.Chunk
     {
         private BlockObjects _blockObjects;
         
-        private Dictionary<Vector2Int,GameObject> _blockObjectsDictionary = new Dictionary<Vector2Int, GameObject>();
+        private Dictionary<Vector2Int,BlockGameObject> _blockObjectsDictionary = new();
 
         [Inject]
         public void Construct(BlockObjects blockObjects)
@@ -32,7 +32,7 @@ namespace MainGame.UnityView.Chunk
                 _blockObjects.GetBlock(blockId),
                 new Vector3(blockPosition.x, 0, blockPosition.y), Quaternion.identity,
                 transform);
-            _blockObjectsDictionary.Add(blockPosition,block);
+            _blockObjectsDictionary.Add(blockPosition,block.GetComponent<BlockGameObject>());
         }
 
         public void OnBlockRemoveEvent(Vector2Int blockPosition)
