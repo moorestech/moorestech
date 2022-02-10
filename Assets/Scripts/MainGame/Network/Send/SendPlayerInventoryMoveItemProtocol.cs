@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using MainGame.Network.Interface;
-using MainGame.Network.Interface.Send;
 using MainGame.Network.Util;
 
 namespace MainGame.Network.Send
 {
-    public class SendPlayerInventoryMoveItemProtocol : ISendPlayerInventoryMoveItemProtocol
+    public class SendPlayerInventoryMoveItemProtocol
     {
         private const short ProtocolId = 6;
         private readonly ISocket _socket;

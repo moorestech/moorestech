@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using MainGame.Network.Interface.Send;
 using MainGame.Network.Send;
 using MainGame.Network.Util;
 using NUnit.Framework;
@@ -13,7 +12,7 @@ namespace Test.EditModeTest.Network.Send
         public void SendTest()
         {
             var socket = new TestSocketModule();
-            IRequestPlayerInventoryProtocol protocol = new RequestPlayerInventoryProtocol(socket);
+            var protocol = new RequestPlayerInventoryProtocol(socket);
 
             int playerId = 10;
             

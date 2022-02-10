@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using MainGame.Network.Interface;
-using MainGame.Network.Interface.Send;
 using MainGame.Network.Util;
 
 namespace MainGame.Network.Send
 {
-    public class RequestBlockInventoryProtocol : IRequestBlockInventoryProtocol
+    public class RequestBlockInventoryProtocol
     {
         private const short ProtocolId = 9;
         private readonly ISocket _socket;

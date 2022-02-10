@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using MainGame.Network.Interface;
-using MainGame.Network.Interface.Send;
 using MainGame.Network.Util;
 
 namespace MainGame.Network.Send
 {
-    public class SendPlaceHotBarBlockProtocol : ISendPlaceHotBarBlockProtocol
+    public class SendPlaceHotBarBlockProtocol
     {
         private const short ProtocolId = 8;
         private readonly ISocket _socket;

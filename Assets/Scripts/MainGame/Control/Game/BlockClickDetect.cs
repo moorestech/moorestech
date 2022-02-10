@@ -1,4 +1,3 @@
-using MainGame.Network.Interface.Send;
 using MainGame.UnityView.Chunk;
 using UnityEngine;
 using VContainer;
@@ -9,12 +8,10 @@ namespace MainGame.Control.Game
     {
         private Camera _mainCamera;
         private MoorestechInputSettings _input;
-        private IRequestBlockInventoryProtocol _requestBlockInventoryProtocol;
         
         [Inject]
-        public void Construct(Camera mainCamera,IRequestBlockInventoryProtocol requestBlockInventoryProtocol)
+        public void Construct(Camera mainCamera)
         {
-            _requestBlockInventoryProtocol = requestBlockInventoryProtocol;
             _mainCamera = mainCamera;
             _input = new MoorestechInputSettings();
             _input.Enable();
@@ -46,7 +43,7 @@ namespace MainGame.Control.Game
             var y = Mathf.RoundToInt(hit.point.z);
             
             //その位置のブロックインベントリを取得する
-            _requestBlockInventoryProtocol.Send(x,y);
+            //TODO ブロックインベントリのパケットをリクエストする
             
             
             return true;

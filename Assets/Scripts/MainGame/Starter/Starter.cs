@@ -9,7 +9,6 @@ using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Interface;
 using MainGame.Network.Interface.Receive;
-using MainGame.Network.Interface.Send;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.UnityView.Chunk;
@@ -61,14 +60,14 @@ namespace MainGame.Starter
             builder.Register<IPlayerInventoryUpdateEvent, PlayerInventoryUpdateEvent>(Lifetime.Singleton);
             
             //パケット送信インスタンス
-            builder.Register<IRequestEventProtocol, RequestEventProtocol>(Lifetime.Singleton);
-            builder.Register<IRequestPlayerInventoryProtocol, RequestPlayerInventoryProtocol>(Lifetime.Singleton);
-            builder.Register<ISendBlockInventoryMoveItemProtocol, SendBlockInventoryMoveItemProtocol>(Lifetime.Singleton);
-            builder.Register<ISendBlockInventoryPlayerInventoryMoveItemProtocol, SendBlockInventoryPlayerInventoryMoveItemProtocol>(Lifetime.Singleton);
-            builder.Register<ISendPlaceHotBarBlockProtocol, SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);
-            builder.Register<ISendPlayerInventoryMoveItemProtocol, SendPlayerInventoryMoveItemProtocol>(Lifetime.Singleton);
-            builder.Register<ISendPlayerPositionProtocol, SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
-            builder.Register<IRequestBlockInventoryProtocol, RequestBlockInventoryProtocol>(Lifetime.Singleton);
+            builder.Register<RequestEventProtocol>(Lifetime.Singleton);
+            builder.Register<RequestPlayerInventoryProtocol>(Lifetime.Singleton);
+            builder.Register<SendBlockInventoryMoveItemProtocol>(Lifetime.Singleton);
+            builder.Register<SendBlockInventoryPlayerInventoryMoveItemProtocol>(Lifetime.Singleton);
+            builder.Register<SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);
+            builder.Register<SendPlayerInventoryMoveItemProtocol>(Lifetime.Singleton);
+            builder.Register<SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
+            builder.Register<RequestBlockInventoryProtocol>(Lifetime.Singleton);
             
             
             //データストア
