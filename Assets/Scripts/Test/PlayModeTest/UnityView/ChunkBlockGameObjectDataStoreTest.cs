@@ -12,6 +12,7 @@ using UnityEngine.TestTools;
 
 namespace Test.PlayModeTest.UnityView
 {
+    //TODO ここのテストコードも修正する
     public class ChunkBlockGameObjectDataStoreTest
     {
         [UnityTest]
@@ -19,9 +20,8 @@ namespace Test.PlayModeTest.UnityView
         {
             //初期設定
             var dataStore = new GameObject().AddComponent<ChunkBlockGameObjectDataStore>();
-            var blockUpdateEvent = new BlockUpdateEvent();
             var blocksData = AssetDatabase.LoadAssetAtPath<BlockObjects>("Assets/ScriptableObject/BlockObjects.asset");
-            dataStore.Construct(blockUpdateEvent,blocksData);
+            dataStore.Construct(blocksData);
             
             
             
@@ -39,7 +39,7 @@ namespace Test.PlayModeTest.UnityView
             ids[13, 4] = 1;
             var chunkPosition = new Vector2Int(-20,20);
             //イベントを発火
-            blockUpdateEvent.DiffChunkUpdate(chunkPosition,ids);
+            //blockUpdateEvent.DiffChunkUpdate(chunkPosition,ids);
             
             
             
@@ -62,14 +62,14 @@ namespace Test.PlayModeTest.UnityView
             newIds[13, 4] = 1;
             newIds[5, 5] = 1;
             //イベントを発火
-            blockUpdateEvent.DiffChunkUpdate(chunkPosition,newIds,ids);
+            //blockUpdateEvent.DiffChunkUpdate(chunkPosition,newIds,ids);
             blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(5,blocks.Count);
             Assert.True(blocks.Any(block => block.transform.position == new Vector3(-15, 0, 25)));
             
             
             //何もないチャンクが発火され、ブロックがなくなるテスト
-            blockUpdateEvent.DiffChunkUpdate(chunkPosition,new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize],newIds);
+            //blockUpdateEvent.DiffChunkUpdate(chunkPosition,new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize],newIds);
             //Destoryのために1フレーム待機
             yield return null;
             blocks = GetBlocks(dataStore.transform);
@@ -78,7 +78,7 @@ namespace Test.PlayModeTest.UnityView
             
             
             //一つのブロックの設置
-            blockUpdateEvent.OnBlockUpdate(new Vector2Int(0,0),1);
+            //blockUpdateEvent.OnBlockUpdate(new Vector2Int(0,0),1);
             //チェック
             blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(1,blocks.Count);
@@ -87,7 +87,7 @@ namespace Test.PlayModeTest.UnityView
             
             
             //一つのブロックの削除
-            blockUpdateEvent.OnBlockUpdate(new Vector2Int(0,0),BlockConstant.NullBlockId);
+            //blockUpdateEvent.OnBlockUpdate(new Vector2Int(0,0),BlockConstant.NullBlockId);
             //Destoryのために1フレーム待機
             yield return null;
             blocks = GetBlocks(dataStore.transform);

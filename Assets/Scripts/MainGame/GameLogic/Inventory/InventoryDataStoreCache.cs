@@ -1,10 +1,6 @@
 ﻿using System.Collections.Generic;
-using MainGame.Constant;
-using MainGame.GameLogic.Event;
-using MainGame.Network.Interface;
 using MainGame.Network.Interface.Receive;
 using Maingame.Types;
-using MainGame.UnityView.Interface;
 using VContainer.Unity;
 
 namespace MainGame.GameLogic.Inventory
@@ -13,12 +9,9 @@ namespace MainGame.GameLogic.Inventory
     public class InventoryDataStoreCache : IInitializable
     {
         private List<ItemStack> _items = new List<ItemStack>();
-        private PlayerInventoryViewUpdateEvent _playerInventoryViewUpdateEvent;
         
-        public InventoryDataStoreCache(IPlayerInventoryUpdateEvent playerInventoryUpdateEvent,
-            IPlayerInventoryViewUpdateEvent playerInventoryViewUpdateEvent)
+        public InventoryDataStoreCache(IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
         {
-            _playerInventoryViewUpdateEvent = playerInventoryViewUpdateEvent as PlayerInventoryViewUpdateEvent;
             playerInventoryUpdateEvent.Subscribe(UpdateInventory,UpdateSlotInventory);
         }
 
@@ -28,7 +21,8 @@ namespace MainGame.GameLogic.Inventory
             //イベントの発火
             for (int i = 0; i < _items.Count; i++)
             {
-                _playerInventoryViewUpdateEvent.OnOnInventoryUpdate(i,_items[i].ID,_items[i].Count);
+                //TODO viewのUIにインベントリが更新されたことを通知する
+                //_playerInventoryViewUpdateEvent.OnOnInventoryUpdate(i,_items[i].ID,_items[i].Count);
             }
         }
 
@@ -37,7 +31,9 @@ namespace MainGame.GameLogic.Inventory
             var s = properties.SlotId;
             _items[s] = properties.ItemStack;
             //イベントの発火
-            _playerInventoryViewUpdateEvent.OnOnInventoryUpdate(s,_items[s].ID,_items[s].Count);
+            
+            //TODO viewのUIにインベントリが更新されたことを通知する
+            //_playerInventoryViewUpdateEvent.OnOnInventoryUpdate(s,_items[s].ID,_items[s].Count);
         }
         
         public ItemStack GetItem(int slot)

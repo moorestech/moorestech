@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using MainGame.Constant;
-using MainGame.UnityView.Interface;
 using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
 using VContainer;
@@ -8,6 +7,7 @@ using VContainer;
 namespace MainGame.UnityView.UI.Inventory.View
 {
     //TODO ブロックインベントリを開くシステム
+    //TODO modelから呼び出されるようにする？　UI共通基盤ことを考えると削除した方がいいかも
     public class BlockInventoryItemView : MonoBehaviour
     {
         private const int SlotCount = 5;
@@ -25,11 +25,8 @@ namespace MainGame.UnityView.UI.Inventory.View
         private int outputSlotCount;
         
         [Inject]
-        public void Construct(IPlayerInventoryViewUpdateEvent playerInventoryViewUpdateEvent,ItemImages itemImages,
-            IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
+        public void Construct(ItemImages itemImages)
         {
-            playerInventoryViewUpdateEvent.Subscribe(OnInventoryUpdate);
-            blockInventoryUpdateEvent.Subscribe(BlockInventoryUpdate,OpenBlockInventory);
             
             _itemImages = itemImages;
             

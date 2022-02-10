@@ -1,11 +1,10 @@
 using MainGame.Control.Game;
+using MainGame.Control.Game.MouseKeyboard;
 using MainGame.Control.UI.Control;
 using MainGame.Control.UI.Inventory;
 using MainGame.GameLogic;
 using MainGame.GameLogic.Chunk;
-using MainGame.GameLogic.Event;
 using MainGame.GameLogic.Inventory;
-using MainGame.GameLogic.Send;
 using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Interface;
@@ -14,15 +13,9 @@ using MainGame.Network.Interface.Send;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.UnityView.Chunk;
-using MainGame.UnityView.ControllerInput.Event;
-using MainGame.UnityView.ControllerInput.MouseKeyboard;
-using MainGame.UnityView.Interface;
-using MainGame.UnityView.Interface.Chunk;
-using MainGame.UnityView.Interface.PlayerInput;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
-using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
@@ -77,23 +70,13 @@ namespace MainGame.Starter
             builder.Register<ISendPlayerPositionProtocol, SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
             builder.Register<IRequestBlockInventoryProtocol, RequestBlockInventoryProtocol>(Lifetime.Singleton);
             
-            //GameLogicのPresenterの作成
-            builder.RegisterEntryPoint<BlockPlaceEventToSendProtocol>();
-            builder.Register<IPlayerInventoryViewUpdateEvent,PlayerInventoryViewUpdateEvent>(Lifetime.Singleton);
-            builder.Register<IPlayerInventoryItemMove,PlayerInventoryItemMove>(Lifetime.Singleton);
             
             //データストア
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
-            builder.Register<IBlockUpdateEvent, BlockUpdateEvent>(Lifetime.Singleton);
             builder.Register<InventoryDataStoreCache>(Lifetime.Singleton);
             
             //ScriptableObjectの登録
             builder.RegisterInstance(blockObjects);
-            
-            
-            //Viewのイベント登録
-            builder.Register<IBlockPlaceEvent, BlockPlaceEvent>(Lifetime.Singleton);
-            
             
             //MonoBehaviourのprefabの登録
             builder.RegisterComponentInNewPrefab(chunkBlockGameObjectDataStore, Lifetime.Singleton);

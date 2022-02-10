@@ -1,13 +1,11 @@
 ﻿using System.Collections;
 using MainGame.Control.UI.Inventory;
-using MainGame.GameLogic.Event;
-using MainGame.GameLogic.Inventory;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Test.TestModule.UI
 {
+    //TODO ここのテストコードも修正する
     public class MouseInventoryInputTest : MonoBehaviour
     {
         [SerializeField] private MouseInventoryInput mouseInventoryInput;
@@ -16,7 +14,7 @@ namespace Test.TestModule.UI
 
         private void Start()
         {
-            mouseInventoryInput.Construct(playerInventoryItem,new PlayerInventoryItemMoveTest(),new PlayerInventoryViewUpdateEvent());
+            mouseInventoryInput.Construct(playerInventoryItem);
 
             StartCoroutine(PostStart());
         }

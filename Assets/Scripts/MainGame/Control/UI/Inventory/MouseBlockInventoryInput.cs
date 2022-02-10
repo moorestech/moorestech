@@ -1,7 +1,5 @@
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.ControllerInput;
-using MainGame.UnityView.Interface;
-using MainGame.UnityView.Interface.PlayerInput;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -15,17 +13,14 @@ namespace MainGame.Control.UI.Inventory
         
         private int _equippedItemIndex = -1;
         private BlockInventoryItemView _blockInventoryItemView;
-        private IBlockInventoryItemMove _blockInventoryItemMove;
         
         private MoorestechInputSettings _inputSettings;
 
         [Inject]
         public void Construct(
-            BlockInventoryItemView blockInventoryItemView,
-            IBlockInventoryItemMove blockInventory)
+            BlockInventoryItemView blockInventoryItemView)
         {
             _blockInventoryItemView = blockInventoryItemView;
-            _blockInventoryItemMove = blockInventory;
             
             equippedItem.gameObject.SetActive(false);
             _inputSettings = new();
@@ -66,19 +61,19 @@ namespace MainGame.Control.UI.Inventory
             //アイテムを半分だけおく
             if (_inputSettings.UI.InventoryItemHalve.inProgress)
             {
-                _blockInventoryItemMove.MoveHalfItemStack(fromSlot,toSlot,toBlock);
+                //TODO _blockInventoryItemMove.MoveHalfItemStack(fromSlot,toSlot,toBlock);
                 return;
             }
             
             //アイテムを一個だけおく
             if (_inputSettings.UI.InventoryItemOnePut.inProgress)
             {
-                _blockInventoryItemMove.MoveHalfItemStack(fromSlot,toSlot,toBlock);
+                //TODO _blockInventoryItemMove.MoveHalfItemStack(fromSlot,toSlot,toBlock);
                 return;
             }
             
             //アイテムを全部おく
-            _blockInventoryItemMove.MoveHalfItemStack(fromSlot,toSlot,toBlock);
+            //TODO _blockInventoryItemMove.MoveHalfItemStack(fromSlot,toSlot,toBlock);
             _equippedItemIndex = -1;
             equippedItem.gameObject.SetActive(false);
             

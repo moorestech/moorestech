@@ -15,13 +15,13 @@ namespace Test.EditModeTest.GameLogic
 {
     public class ChunkDataStoreTest
     {
+        //TODO ここのテストコードも修正する
         //正しくチャンクがセットできるかのテスト
         [Test]
         public void SetChunkTest()
         {
             var chunkEvent = new ChunkUpdateEvent();
-            var blockUpdateEvent = new BlockUpdateEvent();
-            var chunkDataStore = new ChunkDataStoreCache(chunkEvent,blockUpdateEvent);
+            var chunkDataStore = new ChunkDataStoreCache();
             
             //リフレクションでチャンクのデータを取得する
             var chunk = (Dictionary<Vector2Int, int[,]>)chunkDataStore.GetType().GetField("_chunk", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(chunkDataStore);
@@ -47,7 +47,7 @@ namespace Test.EditModeTest.GameLogic
         public void SetBlockTest()
         {
             var chunkEvent = new ChunkUpdateEvent();
-            var chunkDataStore = new ChunkDataStoreCache(chunkEvent,new BlockUpdateEvent());
+            var chunkDataStore = new ChunkDataStoreCache();
 
             //検証するチャンク
             var setChunks = new List<Vector2Int>()

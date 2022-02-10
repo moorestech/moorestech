@@ -1,23 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 using MainGame.Constant;
-using MainGame.GameLogic.Event;
 using MainGame.GameLogic.Inventory;
-using MainGame.Network.Event;
-using MainGame.Network.Interface;
 using MainGame.Network.Interface.Receive;
 using Maingame.Types;
 using NUnit.Framework;
 
 namespace Test.EditModeTest.GameLogic
 {
+    //TODO ここのテストコードも修正する
     public class InventoryDataStoreTest
     {
         [Test]
         public void SetInventoryTest()
         {
             var inventoryEvent = new MainGame.Network.Event.PlayerInventoryUpdateEvent();
-            var inventoryDataStore = new InventoryDataStoreCache(inventoryEvent,new PlayerInventoryViewUpdateEvent());
+            var inventoryDataStore = new InventoryDataStoreCache(inventoryEvent);
             
             //インベントリの設定
             var inventory = new List<ItemStack>();

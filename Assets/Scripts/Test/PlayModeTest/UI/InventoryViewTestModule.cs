@@ -1,17 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
-using MainGame.GameLogic.Event;
-using MainGame.GameLogic.Inventory;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Test.PlayModeTest.UI
 {
+    //TODO ここのテストコードも修正する
     public class InventoryViewTestModule : MonoBehaviour
     {
         [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
@@ -19,8 +17,7 @@ namespace Test.PlayModeTest.UI
 
         private void Start()
         {
-            var update = new PlayerInventoryViewUpdateEvent();
-            playerInventoryItemView.Construct(update,itemImages);
+            playerInventoryItemView.Construct(itemImages);
             
             //slot id count
             List<(int,int,int)> items = new List<(int,int,int)>();
@@ -35,7 +32,7 @@ namespace Test.PlayModeTest.UI
             //イベントを発火
             foreach (var item in items)
             {
-                update.OnOnInventoryUpdate(item.Item1,item.Item2,item.Item3);
+                //TODO update.OnOnInventoryUpdate(item.Item1,item.Item2,item.Item3);
             }
             
             //アイテムのUIの取得

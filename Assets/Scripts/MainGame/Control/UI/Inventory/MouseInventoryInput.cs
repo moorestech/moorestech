@@ -1,6 +1,4 @@
 ﻿using MainGame.UnityView.ControllerInput;
-using MainGame.UnityView.Interface;
-using MainGame.UnityView.Interface.PlayerInput;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -14,23 +12,18 @@ namespace MainGame.Control.UI.Inventory
         
         private int _equippedItemIndex = -1;
         private PlayerInventoryItemView _playerInventoryItemView;
-        private IPlayerInventoryItemMove _playerInventoryItemMove;
         
         private MoorestechInputSettings _inputSettings;
 
         [Inject]
         public void Construct(
-            PlayerInventoryItemView playerInventoryItemView,
-            IPlayerInventoryItemMove playerInventoryItemMove,
-            IPlayerInventoryViewUpdateEvent playerInventoryViewUpdateEvent)
+            PlayerInventoryItemView playerInventoryItemView)
         {
             _playerInventoryItemView = playerInventoryItemView;
-            _playerInventoryItemMove = playerInventoryItemMove;
             
             equippedItem.gameObject.SetActive(false);
             _inputSettings = new();
             _inputSettings.Enable();
-            playerInventoryViewUpdateEvent.Subscribe(InventoryUpdate);
         }
         
         //イベントをボタンに登録する
@@ -57,19 +50,19 @@ namespace MainGame.Control.UI.Inventory
             //アイテムを半分だけおく
             if (_inputSettings.UI.InventoryItemHalve.inProgress)
             {
-                _playerInventoryItemMove.MoveHalfItemStack(_equippedItemIndex,slot);
+                //TODO _playerInventoryItemMove.MoveHalfItemStack(_equippedItemIndex,slot);
                 return;
             }
             
             //アイテムを一個だけおく
             if (_inputSettings.UI.InventoryItemOnePut.inProgress)
             {
-                _playerInventoryItemMove.MoveOneItemStack(_equippedItemIndex,slot);
+                //TODO _playerInventoryItemMove.MoveOneItemStack(_equippedItemIndex,slot);
                 return;
             }
             
             //アイテムを全部おく
-            _playerInventoryItemMove.MoveAllItemStack(_equippedItemIndex,slot);
+            //TODO _playerInventoryItemMove.MoveAllItemStack(_equippedItemIndex,slot);
             _equippedItemIndex = -1;
             equippedItem.gameObject.SetActive(false);
             

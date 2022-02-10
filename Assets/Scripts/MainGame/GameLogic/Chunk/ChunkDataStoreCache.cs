@@ -1,10 +1,6 @@
 using System.Collections.Generic;
-using System.Numerics;
 using MainGame.Constant;
-using MainGame.Network.Interface;
 using MainGame.Network.Interface.Receive;
-using MainGame.UnityView.Interface;
-using MainGame.UnityView.Interface.Chunk;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -16,13 +12,10 @@ namespace MainGame.GameLogic.Chunk
     //IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しておく
     public class ChunkDataStoreCache : IInitializable
     {
-        private readonly BlockUpdateEvent _blockUpdateEvent;
         private readonly Dictionary<Vector2Int, int[,]> _chunk = new Dictionary<Vector2Int, int[,]>();
-        public ChunkDataStoreCache(IChunkUpdateEvent chunkUpdateEvent,IBlockUpdateEvent blockUpdateEvent)
+        public ChunkDataStoreCache()
         {
-            _blockUpdateEvent = blockUpdateEvent as BlockUpdateEvent;
             //イベントをサブスクライブする
-            chunkUpdateEvent.Subscribe(OnChunkUpdate,OnBlockUpdate);
         }
 
         public int GetBlock(Vector2Int blockPos)
@@ -45,13 +38,10 @@ namespace MainGame.GameLogic.Chunk
             if (_chunk.ContainsKey(properties.ChunkPos))
             {
                 //チャンクのアップデートを発火させる
-                _blockUpdateEvent.DiffChunkUpdate(
-                    properties.ChunkPos, properties.BlockIds,_chunk[properties.ChunkPos]);
-                _chunk[properties.ChunkPos] = properties.BlockIds;
                 return;
             }
             _chunk.Add(properties.ChunkPos, properties.BlockIds);
-            _blockUpdateEvent.DiffChunkUpdate(properties.ChunkPos, properties.BlockIds);
+            //TODO viewにブロックがおかれたことを通知する
         }
 
         /// <summary>
@@ -71,7 +61,7 @@ namespace MainGame.GameLogic.Chunk
             _chunk[chunkPos][i, j] = properties.BlockId;
             
             //ブロックの更新イベントを発火する
-            _blockUpdateEvent.OnBlockUpdate(blockPos,properties.BlockId);
+            //TODO viewにブロックがおかれたことを通知する
         }
 
         private Vector2Int GetBlockArrayIndex(Vector2Int chunkPos, Vector2Int blockPos)

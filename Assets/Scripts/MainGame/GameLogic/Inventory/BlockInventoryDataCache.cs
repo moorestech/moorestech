@@ -1,35 +1,33 @@
 using System.Collections.Generic;
-using MainGame.GameLogic.Event;
 using MainGame.Network.Interface.Receive;
 using Maingame.Types;
 using UnityEngine;
-using IBlockInventoryUpdateEvent = MainGame.UnityView.Interface.IBlockInventoryUpdateEvent;
 
 namespace MainGame.GameLogic.Inventory
 {
+    //TODO blockInventoryを開いたり、UIを更新する
     public class BlockInventoryDataCache
     {
-        private readonly BlockInventoryUpdateEvent _blockInventoryView;
-        public BlockInventoryDataCache(IBlockInventoryUpdateEvent blockInventoryView,IReceiveBlockInventoryUpdateEvent blockInventory)
+        public BlockInventoryDataCache(IReceiveBlockInventoryUpdateEvent blockInventory)
         {
-            _blockInventoryView = blockInventoryView as BlockInventoryUpdateEvent;
             blockInventory.Subscribe(OnBlockInventorySlotUpdate,OnSettingBlockInventory);
         }
 
         private void OnBlockInventorySlotUpdate(Vector2Int pos,int slot,int id,int count)
         {
-            _blockInventoryView.OnInventoryUpdateInvoke(slot,id,count);
+            //TODO スロットのアップデートを伝える_blockInventoryView.OnInventoryUpdateInvoke(slot,id,count);
         }
 
         private void OnSettingBlockInventory(List<ItemStack> items,string uiType,params short[] uiParams)
         {
+            //TODO UIを開いて更新する
             //UIを開く
-            _blockInventoryView.OnSettingInventoryInvoke(uiType,uiParams);
+            //_blockInventoryView.OnSettingInventoryInvoke(uiType,uiParams);
             //UIを更新する
             for (var i = 0; i < items.Count; i++)
             {
                 var item = items[i];
-                _blockInventoryView.OnInventoryUpdateInvoke(i,item.ID,item.Count);
+                //_blockInventoryView.OnInventoryUpdateInvoke(i,item.ID,item.Count);
             }
         }
         

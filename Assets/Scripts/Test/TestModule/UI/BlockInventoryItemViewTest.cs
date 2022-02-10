@@ -1,13 +1,12 @@
-using System;
 using System.Collections.Generic;
 using MainGame.Control.UI.Inventory;
-using MainGame.GameLogic.Event;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 
 namespace Test.TestModule.UI
 {
+    //TODO ここのテストコードも修正する
     public class BlockInventoryItemViewTest : MonoBehaviour
     {
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
@@ -16,11 +15,9 @@ namespace Test.TestModule.UI
 
         private void Start()
         {
-            var playerInventory = new PlayerInventoryViewUpdateEvent();
-            var blockInventory = new BlockInventoryUpdateEvent();
-            blockInventoryItemView.Construct(playerInventory,itemImages,blockInventory);
+            blockInventoryItemView.Construct(itemImages);
             
-            mouseBlockInventoryInput.Construct(blockInventoryItemView,new BlockInventoryItemMoveTest());
+            mouseBlockInventoryInput.Construct(blockInventoryItemView);
             mouseBlockInventoryInput.PostStart();
             
             //プレイヤーインベントリのアイテム設定
@@ -38,15 +35,15 @@ namespace Test.TestModule.UI
             //イベントを発火
             foreach (var item in items)
             {
-                playerInventory.OnOnInventoryUpdate(item.Item1,item.Item2,item.Item3);
+                //playerInventory.OnOnInventoryUpdate(item.Item1,item.Item2,item.Item3);
             }
             
             
             //blockInventoryを開く
-            blockInventory.OnSettingInventoryInvoke("",3,1);
+            //blockInventory.OnSettingInventoryInvoke("",3,1);
             //BlockInventoryのアイテム設定
-            blockInventory.OnInventoryUpdateInvoke(0,2,6);
-            blockInventory.OnInventoryUpdateInvoke(3,1,7);
+            //blockInventory.OnInventoryUpdateInvoke(0,2,6);
+            //blockInventory.OnInventoryUpdateInvoke(3,1,7);
         }
     }
 }
