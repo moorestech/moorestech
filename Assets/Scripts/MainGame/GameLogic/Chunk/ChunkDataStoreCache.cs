@@ -13,9 +13,10 @@ namespace MainGame.GameLogic.Chunk
     public class ChunkDataStoreCache : IInitializable
     {
         private readonly Dictionary<Vector2Int, int[,]> _chunk = new Dictionary<Vector2Int, int[,]>();
-        public ChunkDataStoreCache()
+        public ChunkDataStoreCache(ChunkUpdateEvent chunkUpdateEvent)
         {
             //イベントをサブスクライブする
+            chunkUpdateEvent.Subscribe(OnChunkUpdate,OnBlockUpdate);
         }
 
         public int GetBlock(Vector2Int blockPos)
