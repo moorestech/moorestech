@@ -1,5 +1,4 @@
 using Game.PlayerInventory.Interface;
-using MainGame.Control.Game;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -13,14 +12,17 @@ namespace MainGame.Control.UI.Inventory
         
         private int _equippedItemIndex = -1;
         private BlockInventoryItemView _blockInventoryItemView;
+        private BlockInventoryItemMoveService _blockInventoryItemMoveService;
         
         private MoorestechInputSettings _inputSettings;
 
         [Inject]
         public void Construct(
-            BlockInventoryItemView blockInventoryItemView)
+            BlockInventoryItemView blockInventoryItemView,
+            BlockInventoryItemMoveService blockInventoryItemMoveService)
         {
             _blockInventoryItemView = blockInventoryItemView;
+            _blockInventoryItemMoveService = blockInventoryItemMoveService;
             
             equippedItem.gameObject.SetActive(false);
             _inputSettings = new();
@@ -61,19 +63,19 @@ namespace MainGame.Control.UI.Inventory
             //アイテムを半分だけおく
             if (_inputSettings.UI.InventoryItemHalve.inProgress)
             {
-                //TODO _blockInventoryItemMove.MoveHalfItemStack(fromSlot,toSlot,toBlock);
+               _blockInventoryItemMoveService.MoveHalfItemStack(fromSlot,toSlot,toBlock);
                 return;
             }
             
             //アイテムを一個だけおく
             if (_inputSettings.UI.InventoryItemOnePut.inProgress)
             {
-                //TODO _blockInventoryItemMove.MoveHalfItemStack(fromSlot,toSlot,toBlock);
+                _blockInventoryItemMoveService.MoveOneItemStack(fromSlot,toSlot,toBlock);
                 return;
             }
             
             //アイテムを全部おく
-            //TODO _blockInventoryItemMove.MoveHalfItemStack(fromSlot,toSlot,toBlock);
+           _blockInventoryItemMoveService.MoveAllItemStack(fromSlot,toSlot,toBlock);
             _equippedItemIndex = -1;
             equippedItem.gameObject.SetActive(false);
             

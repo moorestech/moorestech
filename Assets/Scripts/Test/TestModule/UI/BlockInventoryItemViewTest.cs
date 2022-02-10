@@ -17,7 +17,7 @@ namespace Test.TestModule.UI
         {
             blockInventoryItemView.Construct(itemImages);
             
-            mouseBlockInventoryInput.Construct(blockInventoryItemView);
+            mouseBlockInventoryInput.Construct(blockInventoryItemView,new BlockInventoryItemMoveService());
             mouseBlockInventoryInput.PostStart();
             
             //プレイヤーインベントリのアイテム設定
