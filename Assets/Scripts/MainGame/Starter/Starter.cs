@@ -1,4 +1,5 @@
 using MainGame.Control.Game;
+using MainGame.Control.UI.Control;
 using MainGame.Control.UI.Inventory;
 using MainGame.GameLogic;
 using MainGame.GameLogic.Chunk;
@@ -49,7 +50,8 @@ namespace MainGame.Starter
         [SerializeField] private MouseBlockInventoryInput blockInventoryInput;
         [SerializeField] private BlockClickDetect blockClickDetect;
         [SerializeField] private ItemImages itemImages;
-        
+        [SerializeField] private UIStateControl uIStateControl; 
+
         void Start()
         {
             var builder = new ContainerBuilder();
@@ -107,6 +109,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(blockInventoryItemView);
             builder.RegisterComponent(blockInventoryInput);
             builder.RegisterInstance(itemImages);
+            builder.RegisterInstance(uIStateControl);
 
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             
@@ -120,9 +123,9 @@ namespace MainGame.Starter
             _resolver.Resolve<MouseGroundClickInput>();
             _resolver.Resolve<PlayerInventoryItemView>();
             _resolver.Resolve<MouseInventoryInput>();
-            _resolver.Resolve<IPlayerInventoryItemMove>();//TODO　これをIInitializableにする
             _resolver.Resolve<BlockInventoryItemView>();
             _resolver.Resolve<MouseBlockInventoryInput>();
+            _resolver.Resolve<UIStateControl>();
 
         }
 
