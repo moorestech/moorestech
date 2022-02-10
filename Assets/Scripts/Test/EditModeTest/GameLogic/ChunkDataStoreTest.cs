@@ -13,7 +13,6 @@ namespace Test.EditModeTest.GameLogic
 {
     public class ChunkDataStoreTest
     {
-        //TODO ここのテストコードも修正する
         //正しくチャンクがセットできるかのテスト
         [Test]
         public void SetChunkTest()

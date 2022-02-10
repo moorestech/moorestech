@@ -7,7 +7,6 @@ using NUnit.Framework;
 
 namespace Test.EditModeTest.GameLogic
 {
-    //TODO ここのテストコードも修正する
     public class InventoryDataStoreTest
     {
         [Test]
