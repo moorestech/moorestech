@@ -12,7 +12,6 @@ using UnityEngine.TestTools;
 
 namespace Test.PlayModeTest.UnityView
 {
-    //TODO ここのテストコードも修正する
     public class ChunkBlockGameObjectDataStoreTest
     {
         [UnityTest]

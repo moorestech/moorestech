@@ -9,7 +9,6 @@ using UnityEngine.UI;
 
 namespace Test.PlayModeTest.UI
 {
-    //TODO ここのテストコードも修正する
     public class InventoryViewTestModule : MonoBehaviour
     {
         [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
@@ -32,7 +31,7 @@ namespace Test.PlayModeTest.UI
             //イベントを発火
             foreach (var item in items)
             {
-                //TODO update.OnOnInventoryUpdate(item.Item1,item.Item2,item.Item3);
+                playerInventoryItemView.OnInventoryUpdate(item.Item1,item.Item2,item.Item3);
             }
             
             //アイテムのUIの取得
