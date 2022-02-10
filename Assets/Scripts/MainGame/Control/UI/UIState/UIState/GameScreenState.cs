@@ -1,7 +1,6 @@
-﻿using MainGame.Control.Game;
-using MainGame.Control.Game.MouseKeyboard;
+﻿using MainGame.Control.Game.MouseKeyboard;
 
-namespace MainGame.Control.UI.Control.UIState
+namespace MainGame.Control.UI.UIState.UIState
 {
     public class GameScreenState : IUIState
     {

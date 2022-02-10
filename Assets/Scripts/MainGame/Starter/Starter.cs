@@ -1,7 +1,6 @@
-using MainGame.Control.Game;
 using MainGame.Control.Game.MouseKeyboard;
-using MainGame.Control.UI.Control;
 using MainGame.Control.UI.Inventory;
+using MainGame.Control.UI.UIState;
 using MainGame.GameLogic;
 using MainGame.GameLogic.Chunk;
 using MainGame.GameLogic.Inventory;

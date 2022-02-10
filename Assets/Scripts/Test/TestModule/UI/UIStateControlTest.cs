@@ -1,7 +1,5 @@
-using System;
-using MainGame.Control.UI.Control;
+using MainGame.Control.UI.UIState;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Test.TestModule.UI
 {

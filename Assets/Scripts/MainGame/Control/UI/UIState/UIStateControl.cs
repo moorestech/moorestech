@@ -1,10 +1,9 @@
-﻿using MainGame.Control.Game;
-using MainGame.Control.Game.MouseKeyboard;
-using MainGame.Control.UI.Control.UIState;
+﻿using MainGame.Control.Game.MouseKeyboard;
+using MainGame.Control.UI.UIState.UIState;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.Control.UI.Control
+namespace MainGame.Control.UI.UIState
 {
     public class UIStateControl : MonoBehaviour
     {

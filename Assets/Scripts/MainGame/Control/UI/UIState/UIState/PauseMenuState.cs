@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace MainGame.Control.UI.Control.UIState
+namespace MainGame.Control.UI.UIState.UIState
 {
     public class PauseMenuState : IUIState
     {

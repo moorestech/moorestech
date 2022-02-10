@@ -1,20 +1,20 @@
-using MainGame.Control.Game;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace MainGame.Control.UI.Control.UIState
+namespace MainGame.Control.UI.UIState.UIState
 {
-    public class BlockInventoryState : IUIState
+    public class PlayerInventoryState : IUIState
     {
         private readonly IUIState _gameScreen;
         private readonly MoorestechInputSettings _inputSettings;
-        private readonly GameObject _blockInventory;
+        private readonly GameObject _playerInventory;
 
-        public BlockInventoryState(IUIState gameScreen, MoorestechInputSettings inputSettings, GameObject blockInventory)
+
+        public PlayerInventoryState(IUIState gameScreen, MoorestechInputSettings inputSettings, GameObject playerInventory)
         {
             _gameScreen = gameScreen;
             _inputSettings = inputSettings;
-            _blockInventory = blockInventory;
-            blockInventory.SetActive(false);
+            _playerInventory = playerInventory;
+            playerInventory.SetActive(false);
         }
 
         public bool IsNext()
@@ -32,8 +32,8 @@ namespace MainGame.Control.UI.Control.UIState
             return this;
         }
 
-        public void OnEnter() { _blockInventory.SetActive(true); }
+        public void OnEnter() { _playerInventory.SetActive(true); }
 
-        public void OnExit() { _blockInventory.SetActive(false); }
+        public void OnExit() { _playerInventory.SetActive(false); }
     }
 }
