@@ -4,9 +4,7 @@
     "references": [
         "Network.Interface",
         "Constant",
-        "Types",
-        "VContainer",
-        "UnityView.Interface"
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
