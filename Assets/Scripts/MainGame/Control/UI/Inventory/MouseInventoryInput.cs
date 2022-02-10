@@ -50,6 +50,7 @@ namespace MainGame.Control.UI.Inventory
             //アイテムを半分だけおく
             if (_inputSettings.UI.InventoryItemHalve.inProgress)
             {
+                //ここはInventoryItemMoveService.csに統合
                 //TODO _playerInventoryItemMove.MoveHalfItemStack(_equippedItemIndex,slot);
                 return;
             }

@@ -47,7 +47,7 @@ namespace MainGame.Starter
             var builder = new ContainerBuilder();
             //サーバーに接続するためのインスタンス
             builder.RegisterInstance(new ConnectionServerConfig(DefaultIp,DefaultPort));
-            builder.RegisterInstance(new ConnectionPlayerSetting(PlayerId));
+            builder.RegisterInstance(new PlayerConnectionSetting(PlayerId));
             builder.RegisterEntryPoint<ConnectionServer>();
             builder.Register<SocketInstanceCreate, SocketInstanceCreate>(Lifetime.Singleton);
             builder.Register<AllReceivePacketAnalysisService, AllReceivePacketAnalysisService>(Lifetime.Singleton);
@@ -70,7 +70,7 @@ namespace MainGame.Starter
             
             //データストア
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
-            builder.Register<InventoryDataStoreCache>(Lifetime.Singleton);
+            builder.Register<InventoryDataCache>(Lifetime.Singleton);
             
             //ScriptableObjectの登録
             builder.RegisterInstance(blockObjects);

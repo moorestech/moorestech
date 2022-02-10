@@ -1,5 +1,9 @@
 using System.Collections.Generic;
 using MainGame.Control.UI.Inventory;
+using MainGame.GameLogic;
+using MainGame.GameLogic.Inventory;
+using MainGame.Network.Event;
+using MainGame.Network.Send;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
@@ -16,8 +20,16 @@ namespace Test.TestModule.UI
         private void Start()
         {
             blockInventoryItemView.Construct(itemImages);
+            var itemMove = new InventoryItemMoveService(
+                new PlayerConnectionSetting(0),
+                new BlockInventoryDataCache(new ReceiveBlockInventoryUpdateEvent()),
+                new InventoryDataCache(new PlayerInventoryUpdateEvent()),
+                new SendBlockInventoryMoveItemProtocol(new TestSocketModule()),
+                new SendBlockInventoryPlayerInventoryMoveItemProtocol(new TestSocketModule()),
+                new SendPlayerInventoryMoveItemProtocol(new TestSocketModule()));
             
-            mouseBlockInventoryInput.Construct(blockInventoryItemView,new BlockInventoryItemMoveService());
+            
+            mouseBlockInventoryInput.Construct(blockInventoryItemView,itemMove);
             mouseBlockInventoryInput.PostStart();
             
             //プレイヤーインベントリのアイテム設定

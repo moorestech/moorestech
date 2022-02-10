@@ -12,17 +12,17 @@ namespace MainGame.Control.UI.Inventory
         
         private int _equippedItemIndex = -1;
         private BlockInventoryItemView _blockInventoryItemView;
-        private BlockInventoryItemMoveService _blockInventoryItemMoveService;
+        private InventoryItemMoveService _inventoryItemMoveService;
         
         private MoorestechInputSettings _inputSettings;
 
         [Inject]
         public void Construct(
             BlockInventoryItemView blockInventoryItemView,
-            BlockInventoryItemMoveService blockInventoryItemMoveService)
+            InventoryItemMoveService inventoryItemMoveService)
         {
             _blockInventoryItemView = blockInventoryItemView;
-            _blockInventoryItemMoveService = blockInventoryItemMoveService;
+            _inventoryItemMoveService = inventoryItemMoveService;
             
             equippedItem.gameObject.SetActive(false);
             _inputSettings = new();
@@ -63,19 +63,19 @@ namespace MainGame.Control.UI.Inventory
             //アイテムを半分だけおく
             if (_inputSettings.UI.InventoryItemHalve.inProgress)
             {
-               _blockInventoryItemMoveService.MoveHalfItemStack(fromSlot,toSlot,toBlock);
+               //TODO _blockInventoryItemMoveService.MoveHalfItemStack(fromSlot,toSlot,toBlock);
                 return;
             }
             
             //アイテムを一個だけおく
             if (_inputSettings.UI.InventoryItemOnePut.inProgress)
             {
-                _blockInventoryItemMoveService.MoveOneItemStack(fromSlot,toSlot,toBlock);
+                //TODO _blockInventoryItemMoveService.MoveOneItemStack(fromSlot,toSlot,toBlock);
                 return;
             }
             
             //アイテムを全部おく
-           _blockInventoryItemMoveService.MoveAllItemStack(fromSlot,toSlot,toBlock);
+            //TODO _blockInventoryItemMoveService.MoveAllItemStack(fromSlot,toSlot,toBlock);
             _equippedItemIndex = -1;
             equippedItem.gameObject.SetActive(false);
             

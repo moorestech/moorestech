@@ -25,9 +25,7 @@ namespace Test.EditModeTest.Network.Send
             int itemCount = 23;
             
             
-            protocol.Send(toBlock, playerId, playerInventorySlot, blockPos, blockInventorySlot, itemCount);
-            
-            
+            protocol.Send(playerId,toBlock, blockPos,playerInventorySlot, blockInventorySlot, itemCount);
             
             //データの検証
             var bytes = new ByteArrayEnumerator(socket.SentData.ToList());

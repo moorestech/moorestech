@@ -1,10 +1,10 @@
 ﻿namespace MainGame.GameLogic
 {
-    public class ConnectionPlayerSetting
+    public class PlayerConnectionSetting
     {
         public readonly int PlayerId;
 
-        public ConnectionPlayerSetting(int playerId)
+        public PlayerConnectionSetting(int playerId)
         {
             PlayerId = playerId;
         }

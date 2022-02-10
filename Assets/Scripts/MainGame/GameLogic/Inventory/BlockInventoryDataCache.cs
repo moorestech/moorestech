@@ -31,5 +31,11 @@ namespace MainGame.GameLogic.Inventory
             }
         }
         
+        public ItemStack GetItemStack(int slot)
+        {
+            //TODO スロットのアイテムを取得する
+            return new ItemStack();
+        }
+        
     }
 }
