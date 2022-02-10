@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using MainGame.Constant;
+using MainGame.Basic;
 using MainGame.GameLogic.Chunk;
 using MainGame.UnityView.Chunk;
 using NUnit.Framework;

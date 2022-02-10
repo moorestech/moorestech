@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using MainGame.Constant;
+using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.Network.Interface;
 using MainGame.Network.Interface.Receive;
 using MainGame.Network.Util;
-using Maingame.Types;
 
 namespace MainGame.Network.Receive
 {

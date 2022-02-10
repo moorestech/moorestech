@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using MainGame.Constant;
+using MainGame.Basic;
 using MainGame.Network.Interface;
 using MainGame.Network.Interface.Receive;
 using UnityEngine;

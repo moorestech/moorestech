@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using MainGame.Constant;
+using MainGame.Basic;
 using MainGame.GameLogic.Chunk;
 using MainGame.Network.Event;
 using MainGame.Network.Interface;

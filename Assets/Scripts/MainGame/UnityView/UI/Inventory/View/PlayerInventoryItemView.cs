@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using MainGame.Constant;
+using MainGame.Basic;
 using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
 using VContainer;

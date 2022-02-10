@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using MainGame.Basic;
 using MainGame.Network.Interface.Receive;
-using Maingame.Types;
 using UnityEngine;
 using static MainGame.Network.Interface.Receive.IReceiveBlockInventoryUpdateEvent;
 

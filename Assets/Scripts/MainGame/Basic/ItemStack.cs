@@ -1,4 +1,4 @@
-namespace Maingame.Types
+namespace MainGame.Basic
 {
     public struct ItemStack
     {

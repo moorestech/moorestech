@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using MainGame.Constant;
+using MainGame.Basic;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network.Interface.Receive;
-using Maingame.Types;
 using NUnit.Framework;
 
 namespace Test.EditModeTest.GameLogic

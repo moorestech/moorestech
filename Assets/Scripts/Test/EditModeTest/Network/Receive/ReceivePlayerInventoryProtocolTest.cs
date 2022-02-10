@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using MainGame.Constant;
+using MainGame.Basic;
 using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Receive;
 using MainGame.Network.Util;
-using Maingame.Types;
 using NUnit.Framework;
 using Test.TestModule;
 

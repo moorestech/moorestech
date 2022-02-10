@@ -1,4 +1,4 @@
-﻿namespace MainGame.Constant
+﻿namespace MainGame.Basic
 {
     public static class PlayerInventoryConstant
     {

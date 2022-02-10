@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using MainGame.Basic;
 using MainGame.Network.Interface.Receive;
-using Maingame.Types;
 using VContainer.Unity;
 
 namespace MainGame.GameLogic.Inventory
