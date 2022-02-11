@@ -14,7 +14,6 @@ using Server.Util;
 
 namespace Server.Protocol.PacketResponse
 {
-    //TODO BlockInventoryRequestProtocolを作る
     public class BlockInventoryRequestProtocol : IPacketResponse
     {
         private const int ProtocolId = 6;
