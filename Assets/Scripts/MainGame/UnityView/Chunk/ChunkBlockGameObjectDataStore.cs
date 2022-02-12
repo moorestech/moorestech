@@ -18,7 +18,7 @@ namespace MainGame.UnityView.Chunk
 
 
         //TODO modelから直接呼び出されるようにする
-        public void OnBlockPlaceEvent(Vector2Int blockPosition, int blockId)
+        public void GameObjectBlockPlace(Vector2Int blockPosition, int blockId)
         {
             //すでにブロックがある場合はそっちのブロックに置き換える
             if (_blockObjectsDictionary.ContainsKey(blockPosition))
@@ -35,7 +35,7 @@ namespace MainGame.UnityView.Chunk
             _blockObjectsDictionary.Add(blockPosition,block.GetComponent<BlockGameObject>());
         }
 
-        public void OnBlockRemoveEvent(Vector2Int blockPosition)
+        public void GameObjectBlockRemove(Vector2Int blockPosition)
         {
             //すでにブロックが置かれている時のみブロックを削除する
             if (!_blockObjectsDictionary.ContainsKey(blockPosition)) return;

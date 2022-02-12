@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Network.Event;
+using MainGame.UnityView.Chunk;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -8,41 +9,43 @@ namespace MainGame.GameLogic.Chunk
 {
     /// <summary>
     /// サーバーからのパケットを受け取り、Viewにブロックの更新情報を渡す
+    /// IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しています
     /// </summary>
-    //IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しておく
     public class ChunkDataStoreCache : IInitializable
     {
-        private readonly Dictionary<Vector2Int, int[,]> _chunk = new Dictionary<Vector2Int, int[,]>();
-        public ChunkDataStoreCache(ChunkUpdateEvent chunkUpdateEvent)
+        private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
+        private readonly Dictionary<Vector2Int, int[,]> _chunk = new();
+        public ChunkDataStoreCache(ChunkUpdateEvent chunkUpdateEvent,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
         {
+            _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             //イベントをサブスクライブする
             chunkUpdateEvent.Subscribe(OnChunkUpdate,OnBlockUpdate);
         }
-
-        public int GetBlock(Vector2Int blockPos)
-        {
-            var chunk = ChunkConstant.BlockPositionToChunkOriginPosition(blockPos);
-            
-            if (!_chunk.ContainsKey(chunk)) return BlockConstant.NullBlockId;
-            
-            var pos = GetBlockArrayIndex(chunk, blockPos);
-            return _chunk[chunk][pos.x, pos.y];
-
-        }
-        
         
         /// <summary>
         /// チャンクの更新イベント
         /// </summary>
         private void OnChunkUpdate(OnChunkUpdateEventProperties properties)
         {
-            if (_chunk.ContainsKey(properties.ChunkPos))
+            var chunkPos = properties.ChunkPos;
+            //チャンクの情報を追加か更新
+            if (_chunk.ContainsKey(chunkPos))
             {
-                //チャンクのアップデートを発火させる
-                return;
+                _chunk[chunkPos] = properties.BlockIds;
             }
-            _chunk.Add(properties.ChunkPos, properties.BlockIds);
-            //TODO viewにブロックがおかれたことを通知する
+            else
+            {
+                _chunk.Add(chunkPos, properties.BlockIds);
+            }
+            
+            //viewにブロックがおかれたことを通知する
+            for (int i = 0; i < ChunkConstant.ChunkSize; i++)
+            {
+                for (int j = 0; j < ChunkConstant.ChunkSize; j++)
+                {
+                    ViewReflectBlock(chunkPos + new Vector2Int(i,j),properties.BlockIds[i,j]);
+                }
+            }
         }
 
         /// <summary>
@@ -61,10 +64,24 @@ namespace MainGame.GameLogic.Chunk
                 GetBlockArrayIndex(chunkPos.y, blockPos.y));
             _chunk[chunkPos][i, j] = properties.BlockId;
             
-            //ブロックの更新イベントを発火する
-            //TODO viewにブロックがおかれたことを通知する
+            //viewにブロックがおかれたことを通知する
+            ViewReflectBlock(blockPos, properties.BlockId);
         }
 
+        private void ViewReflectBlock(Vector2Int position,int id)
+        {
+            if (id == BlockConstant.NullBlockId)
+            {
+                _chunkBlockGameObjectDataStore.GameObjectBlockRemove(position);
+                return;
+            }
+            _chunkBlockGameObjectDataStore.GameObjectBlockPlace(position,id);
+        }
+
+
+        /// <summary>
+        /// ブロックの座標とチャンクの座標から、IDの配列のインデックスを取得する
+        /// </summary>
         private Vector2Int GetBlockArrayIndex(Vector2Int chunkPos, Vector2Int blockPos)
         {
             var (x, y) = (

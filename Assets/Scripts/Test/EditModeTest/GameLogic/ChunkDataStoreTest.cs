@@ -6,6 +6,7 @@ using MainGame.Basic;
 using MainGame.GameLogic.Chunk;
 using MainGame.Network.Event;
 using MainGame.Network.Receive.EventPacket;
+using MainGame.UnityView.Chunk;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -18,7 +19,8 @@ namespace Test.EditModeTest.GameLogic
         public void SetChunkTest()
         {
             var chunkEvent = new ChunkUpdateEvent();
-            var chunkDataStore = new ChunkDataStoreCache(chunkEvent);
+            var chunkGameObjects = new GameObject().AddComponent<ChunkBlockGameObjectDataStore>();
+            var chunkDataStore = new ChunkDataStoreCache(chunkEvent,chunkGameObjects);
             
             //リフレクションでチャンクのデータを取得する
             var chunk = (Dictionary<Vector2Int, int[,]>)chunkDataStore.GetType().GetField("_chunk", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(chunkDataStore);
@@ -44,7 +46,8 @@ namespace Test.EditModeTest.GameLogic
         public void SetBlockTest()
         {
             var chunkEvent = new ChunkUpdateEvent();
-            var chunkDataStore = new ChunkDataStoreCache(chunkEvent);
+            var chunkGameObjects = new GameObject().AddComponent<ChunkBlockGameObjectDataStore>();
+            var chunkDataStore = new ChunkDataStoreCache(chunkEvent,chunkGameObjects);
 
             //検証するチャンク
             var setChunks = new List<Vector2Int>()
