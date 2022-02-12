@@ -14,6 +14,7 @@ namespace Test.TestModule.UI
     public class BlockInventoryItemViewTest : MonoBehaviour
     {
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
+        [SerializeField] private BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet;
         [SerializeField] private ItemImages itemImages;
         [SerializeField] private BlockInventoryInput blockInventoryInput;
 
@@ -29,7 +30,8 @@ namespace Test.TestModule.UI
                 new SendBlockInventoryPlayerInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendPlayerInventoryMoveItemProtocol(new TestSocketModule()));
 
-            blockInventoryInput.Construct(blockInventoryItemView,itemMove,blockInventory);
+            blockInventoryInput.Construct(blockInventoryItemView,itemMove,blockInventory,blockInventoryEquippedItemImageSet);
+            blockInventoryEquippedItemImageSet.Construct(blockInventoryItemView,new PlayerInventoryUpdateEvent(),new BlockInventoryUpdateEvent());
             blockInventoryInput.PostStart();
             
             //プレイヤーインベントリのアイテム設定

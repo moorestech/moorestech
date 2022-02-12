@@ -1,4 +1,5 @@
-﻿using MainGame.Network.Event;
+﻿using Game.PlayerInventory.Interface;
+using MainGame.Network.Event;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -24,6 +25,7 @@ namespace MainGame.Control.UI.Inventory
             equippedItem = GetComponent<InventoryItemSlot>();
             
             playerInventoryUpdateEvent.Subscribe(p=>{},PlayerInventorySlotUpdate);
+            blockInventoryUpdateEvent.Subscribe(BlockInventorySlotUpdate,p => {});
         }
         
 
@@ -35,9 +37,11 @@ namespace MainGame.Control.UI.Inventory
         }
         
         //ブロックインベントリが更新したときにequippedItemの更新を行うためにイベントを登録
-        private void BlockInventorySlotUpdate()
+        private void BlockInventorySlotUpdate(BlockInventorySlotUpdateProperties properties)
         {
-            
+            var blockSlot = properties.Slot + PlayerInventoryConst.MainInventorySize;
+            if (blockSlot != _equippedItemIndex) return;
+            SetItem(blockSlot);
         }
 
 

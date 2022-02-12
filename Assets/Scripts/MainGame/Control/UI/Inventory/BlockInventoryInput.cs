@@ -10,27 +10,29 @@ namespace MainGame.Control.UI.Inventory
 {
     public class BlockInventoryInput : MonoBehaviour,IPostStartable
     {
-        [SerializeField] private InventoryItemSlot equippedItem;
-        
         private int _equippedItemIndex = -1;
         private BlockInventoryItemView _blockInventoryItemView;
         private InventoryItemMoveService _inventoryItemMoveService;
         private BlockInventoryDataCache _blockInventoryDataCache;
+        private BlockInventoryEquippedItemImageSet _blockInventoryEquippedItemImageSet;
         
         private MoorestechInputSettings _inputSettings;
+
 
 
         [Inject]
         public void Construct(
             BlockInventoryItemView blockInventoryItemView,
             InventoryItemMoveService inventoryItemMoveService,
-            BlockInventoryDataCache blockInventoryDataCache)
+            BlockInventoryDataCache blockInventoryDataCache,
+            BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet)
         {
             _blockInventoryItemView = blockInventoryItemView;
             _inventoryItemMoveService = inventoryItemMoveService;
             _blockInventoryDataCache = blockInventoryDataCache;
+            _blockInventoryEquippedItemImageSet = blockInventoryEquippedItemImageSet;
             
-            equippedItem.gameObject.SetActive(false);
+            _blockInventoryEquippedItemImageSet.gameObject.SetActive(false);
             _inputSettings = new();
             _inputSettings.Enable();
         }
@@ -53,11 +55,10 @@ namespace MainGame.Control.UI.Inventory
         {
             if (_equippedItemIndex == -1 && !IsSlotEmpty(slot))
             {
-                var fromItem = _blockInventoryItemView.GetAllInventoryItemSlots()[slot];
-                equippedItem.CopyItem(fromItem);
-                
                 _equippedItemIndex = slot;
-                equippedItem.gameObject.SetActive(true);
+                //アイテムをクリックしたときに追従する画像の設定
+                _blockInventoryEquippedItemImageSet.SetEquippedItemIndex(slot);
+                _blockInventoryEquippedItemImageSet.gameObject.SetActive(true);
                 return;
             }
 
@@ -94,7 +95,7 @@ namespace MainGame.Control.UI.Inventory
             //アイテムを全部おく
             _inventoryItemMoveService.MoveAllItemStack(fromSlot,fromIsBlock,toSlot,toIsBlock);
             _equippedItemIndex = -1;
-            equippedItem.gameObject.SetActive(false);
+            _blockInventoryEquippedItemImageSet.gameObject.SetActive(false);
             
             
         }
@@ -103,7 +104,5 @@ namespace MainGame.Control.UI.Inventory
         {
             return _blockInventoryDataCache.GetItemStack(slot).ID == ItemConst.EmptyItemId;
         }
-        
-        //TODO　equippedItemの更新を行うためにイベントを登録　これを外に出す
     }
 }

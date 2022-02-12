@@ -38,8 +38,9 @@ namespace MainGame.Control.Game.MouseKeyboard
             
             //その位置のブロックインベントリを取得するパケットを送信する
             //実際にインベントリのパケットを取得できてからUIを開くため、実際の開く処理はNetworkアセンブリで行う
+            //ここで呼び出す処理が多くなった場合イベントを使うことを検討する
             _requestBlockInventoryProtocol.Send(x,y);
-            _inventoryItemMoveService.SetBlockPosition(x,y);//TODO この辺はイベントにする
+            _inventoryItemMoveService.SetBlockPosition(x,y);
                 
             
             return true;
