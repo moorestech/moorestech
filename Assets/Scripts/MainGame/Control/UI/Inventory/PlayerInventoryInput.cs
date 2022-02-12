@@ -1,6 +1,5 @@
-﻿using Core.Item.Util;
+﻿using MainGame.Basic;
 using MainGame.GameLogic.Inventory;
-using MainGame.Network.Event;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -47,7 +46,7 @@ namespace MainGame.Control.UI.Inventory
         //ボタンがクリックされた時に呼び出される
         private void OnSlotClick(int slot)
         {
-            var slotEmpty = _playerInventoryDataCache.GetItemStack(slot).ID == ItemConst.EmptyItemId;
+            var slotEmpty = _playerInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
             if (_equippedItemIndex == -1 && !slotEmpty)
             {
                 var fromItem = _playerInventoryItemView.GetInventoryItemSlots()[slot];

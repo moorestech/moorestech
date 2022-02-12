@@ -1,5 +1,4 @@
-using Core.Item.Util;
-using Game.PlayerInventory.Interface;
+using MainGame.Basic;
 using MainGame.GameLogic.Inventory;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
@@ -53,7 +52,8 @@ namespace MainGame.Control.UI.Inventory
         //ボタンがクリックされた時に呼び出される
         private void OnSlotClick(int slot)
         {
-            if (_equippedItemIndex == -1 && !IsSlotEmpty(slot))
+            var isSlotEmpty = _blockInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
+            if (_equippedItemIndex == -1 && !isSlotEmpty)
             {
                 _equippedItemIndex = slot;
                 //アイテムをクリックしたときに追従する画像の設定
@@ -67,14 +67,14 @@ namespace MainGame.Control.UI.Inventory
             var toSlot = slot;
             var toIsBlock = false;
             //slot数がプレイヤーインベントリのslot数よりも多いときはブロックないのインベントリと判断する
-            if (PlayerInventoryConst.MainInventorySize <= fromSlot)
+            if (PlayerInventoryConstant.MainInventorySize <= fromSlot)
             {
-                fromSlot -= PlayerInventoryConst.MainInventorySize;
+                fromSlot -= PlayerInventoryConstant.MainInventorySize;
                 fromIsBlock = true;
             }
-            if (PlayerInventoryConst.MainInventorySize <= toSlot)
+            if (PlayerInventoryConstant.MainInventorySize <= toSlot)
             {
-                toSlot -= PlayerInventoryConst.MainInventorySize;
+                toSlot -= PlayerInventoryConstant.MainInventorySize;
                 toIsBlock = true;
             }
             
@@ -96,13 +96,6 @@ namespace MainGame.Control.UI.Inventory
             _inventoryItemMoveService.MoveAllItemStack(fromSlot,fromIsBlock,toSlot,toIsBlock);
             _equippedItemIndex = -1;
             _blockInventoryEquippedItemImageSet.gameObject.SetActive(false);
-            
-            
-        }
-
-        private bool IsSlotEmpty(int slot)
-        {
-            return _blockInventoryDataCache.GetItemStack(slot).ID == ItemConst.EmptyItemId;
         }
     }
 }

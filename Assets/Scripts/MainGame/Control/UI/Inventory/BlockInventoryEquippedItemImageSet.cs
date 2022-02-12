@@ -1,4 +1,4 @@
-﻿using Game.PlayerInventory.Interface;
+﻿using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
@@ -39,7 +39,7 @@ namespace MainGame.Control.UI.Inventory
         //ブロックインベントリが更新したときにequippedItemの更新を行うためにイベントを登録
         private void BlockInventorySlotUpdate(BlockInventorySlotUpdateProperties properties)
         {
-            var blockSlot = properties.Slot + PlayerInventoryConst.MainInventorySize;
+            var blockSlot = properties.Slot + PlayerInventoryConstant.MainInventorySize;
             if (blockSlot != _equippedItemIndex) return;
             SetItem(blockSlot);
         }
