@@ -26,7 +26,6 @@ namespace MainGame.UnityView.UI.Inventory.View
             }
         }
 
-        // TODO modelからの呼び出しに変更する？UI共通基盤を作るまで放置？
         public void OnInventoryUpdate(int slot, int itemId, int count)
         {
             var sprite = _itemImages.GetItemImage(itemId);
