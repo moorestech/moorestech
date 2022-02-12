@@ -25,21 +25,27 @@ namespace MainGame.Starter
         
 
         private IObjectResolver _resolver;
-        [SerializeField] ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
-        [SerializeField] BlockObjects blockObjects;
+        
+        [Header("ScriptableObjects")]
+        [SerializeField] private BlockObjects blockObjects;
+        [SerializeField] private ItemImages itemImages;
         
         [Header("InHierarchy")]
         [SerializeField] Camera mainCamera;
 
         [SerializeField] private GroundPlane groundPlane;
 
+        [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
         [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
         [SerializeField] private PlayerInventoryInput playerInventoryInput;
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
         [SerializeField] private BlockInventoryInput blockInventoryInput;
         [SerializeField] private BlockClickDetect blockClickDetect;
-        [SerializeField] private ItemImages itemImages;
-        [SerializeField] private UIStateControl uIStateControl; 
+        [SerializeField] private UIStateControl uIStateControl;
+        [SerializeField] private MouseGroundClickInput mouseGroundClickInput;
+        
+        [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
+        [SerializeField] private BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet;
 
         void Start()
         {
@@ -55,6 +61,7 @@ namespace MainGame.Starter
             //パケット受け取りイベント
             builder.Register<ChunkUpdateEvent>(Lifetime.Singleton);
             builder.Register<PlayerInventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<BlockInventoryUpdateEvent>(Lifetime.Singleton);
             
             //パケット送信インスタンス
             builder.Register<RequestEventProtocol>(Lifetime.Singleton);
@@ -67,28 +74,29 @@ namespace MainGame.Starter
             builder.Register<RequestBlockInventoryProtocol>(Lifetime.Singleton);
             
             
-            //データストア
+            //データストア、ゲームロジック系
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
             builder.Register<PlayerInventoryDataCache>(Lifetime.Singleton);
+            builder.Register<BlockInventoryDataCache>(Lifetime.Singleton);
+            builder.Register<InventoryItemMoveService>(Lifetime.Singleton);
+            
             
             //ScriptableObjectの登録
             builder.RegisterInstance(blockObjects);
-            
-            //MonoBehaviourのprefabの登録
-            builder.RegisterComponentInNewPrefab(chunkBlockGameObjectDataStore, Lifetime.Singleton);
-            
-            //MonoBehaviourのインスタンスの登録
-            builder.RegisterComponentOnNewGameObject<MouseGroundClickInput>(Lifetime.Singleton);
-            
+            builder.RegisterInstance(itemImages);
+
             //Hierarchy上にあるcomponent
+            builder.RegisterComponent(chunkBlockGameObjectDataStore);
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(groundPlane);
             builder.RegisterComponent(playerInventoryItemView);
             builder.RegisterComponent(playerInventoryInput);
             builder.RegisterComponent(blockInventoryItemView);
             builder.RegisterComponent(blockInventoryInput);
-            builder.RegisterInstance(itemImages);
-            builder.RegisterInstance(uIStateControl);
+            builder.RegisterComponent(mouseGroundClickInput);
+            builder.RegisterComponent(playerInventoryEquippedItemImageSet);
+            builder.RegisterComponent(blockInventoryEquippedItemImageSet);
+            builder.RegisterComponent(uIStateControl);
 
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             
