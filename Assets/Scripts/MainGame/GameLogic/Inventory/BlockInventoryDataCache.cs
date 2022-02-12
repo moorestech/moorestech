@@ -37,7 +37,7 @@ namespace MainGame.GameLogic.Inventory
             
             _itemStackList = items;
             //UIを開く
-            _blockInventoryItemView.OpenBlockInventory(onSettingBlock.uiType,onSettingBlock.uiParams);
+            _blockInventoryItemView.SettingBlockInventory(onSettingBlock.uiType,onSettingBlock.uiParams);
             //UIを更新する
             for (var i = 0; i < items.Count; i++)
             {
