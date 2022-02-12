@@ -5,6 +5,9 @@ using VContainer;
 
 namespace MainGame.Control.UI.Inventory
 {
+    /// <summary>
+    /// プレイヤーインベントリのEquippedItem（インベントリでスロットをクリックしたときにマウスカーソルについてくる画像）の画像や数字の更新を行います
+    /// </summary>
     public class PlayerInventoryEquippedItemImageSet : MonoBehaviour
     {
         [SerializeField] private InventoryItemSlot equippedItem;

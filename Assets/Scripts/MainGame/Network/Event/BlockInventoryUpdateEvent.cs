@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace MainGame.Network.Event
 {
-    //TODO この辺は共通UI基盤に移行する
     public class BlockInventoryUpdateEvent 
     {
         public delegate void BlockInventorySlotUpdate(Vector2Int pos,int slot,int id,int count);
@@ -27,4 +26,6 @@ namespace MainGame.Network.Event
             OnBlockInventorySlotUpdate?.Invoke(pos, slot, id, count);
         }
     }
+    
+    public 
 }
