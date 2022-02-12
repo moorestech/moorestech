@@ -1,5 +1,4 @@
 using System.Linq;
-using MainGame.Network.Interface.Send;
 using MainGame.Network.Send;
 using MainGame.Network.Util;
 using NUnit.Framework;
@@ -18,8 +17,7 @@ namespace Test.EditModeTest.Network.Send
         public void SendTest()
         {
             var socket = new TestSocketModule();
-            ISendPlayerPositionProtocol protocol = 
-                    new SendPlayerPositionProtocolProtocol(socket);
+            var protocol = new SendPlayerPositionProtocolProtocol(socket);
             var playerId = 1;
             var pos = new Vector2(123.4f, 567.8f);
             

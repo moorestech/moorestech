@@ -1,13 +1,13 @@
 using System.Collections.Generic;
-using MainGame.Constant;
-using MainGame.UnityView.Interface;
+using MainGame.Basic;
 using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
 using VContainer;
 
 namespace MainGame.UnityView.UI.Inventory.View
 {
-    //TODO ブロックインベントリを開くシステム
+    //ブロックインベントリを開くシステム
+    //共通UI基盤にしたら消す
     public class BlockInventoryItemView : MonoBehaviour
     {
         private const int SlotCount = 5;
@@ -25,11 +25,8 @@ namespace MainGame.UnityView.UI.Inventory.View
         private int outputSlotCount;
         
         [Inject]
-        public void Construct(IPlayerInventoryViewUpdateEvent playerInventoryViewUpdateEvent,ItemImages itemImages,
-            IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
+        public void Construct(ItemImages itemImages)
         {
-            playerInventoryViewUpdateEvent.Subscribe(OnInventoryUpdate);
-            blockInventoryUpdateEvent.Subscribe(BlockInventoryUpdate,OpenBlockInventory);
             
             _itemImages = itemImages;
             
@@ -59,14 +56,13 @@ namespace MainGame.UnityView.UI.Inventory.View
         }
 
         //ブロックのインベントリを開く
-        public void OpenBlockInventory(string uiType, params short[] param)
+        public void SettingBlockInventory(string uiType, params short[] param)
         {
-            //TODO ステータスとステUitypeを渡しているけど、ここは共通インベントリ基盤を作成する
-            OpenInventory(param[0],param[1]);
-        }
-        
-        public void OpenInventory(int input, int output)
-        {
+            //ステータスとステUitypeを渡しているけど現在は使っていない
+            //ここは共通インベントリ基盤を作成する
+            var input = param[0];
+            var output = param[1];
+            
             inputSlotCount = input;
             outputSlotCount = output;
             //全て非表示
@@ -87,13 +83,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             }
         }
 
-        private void OnInventoryUpdate(int slot, int itemId, int count)
-        {
-            var sprite = _itemImages.GetItemImage(itemId);
-            _playerInventorySlots[slot].SetItem(sprite,count);
-        }
-        
-
+        //スロットをアップデートする
         public void BlockInventoryUpdate(int slot, int itemId, int count)
         {
             var sprite = _itemImages.GetItemImage(itemId);

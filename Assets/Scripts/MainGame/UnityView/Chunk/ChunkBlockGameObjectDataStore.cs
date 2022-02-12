@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using MainGame.UnityView.Interface;
-using MainGame.UnityView.Interface.Chunk;
 using UnityEngine;
 using VContainer;
 
@@ -10,17 +8,15 @@ namespace MainGame.UnityView.Chunk
     {
         private BlockObjects _blockObjects;
         
-        private Dictionary<Vector2Int,GameObject> _blockObjectsDictionary = new Dictionary<Vector2Int, GameObject>();
+        private Dictionary<Vector2Int,BlockGameObject> _blockObjectsDictionary = new();
 
         [Inject]
-        public void Construct(IBlockUpdateEvent blockUpdateEvent,BlockObjects blockObjects)
+        public void Construct(BlockObjects blockObjects)
         {
             _blockObjects = blockObjects;
-            blockUpdateEvent.Subscribe(OnBlockPlaceEvent,OnBlockRemoveEvent);
         }
-
-
-        private void OnBlockPlaceEvent(Vector2Int blockPosition, int blockId)
+        
+        public void GameObjectBlockPlace(Vector2Int blockPosition, int blockId)
         {
             //すでにブロックがある場合はそっちのブロックに置き換える
             if (_blockObjectsDictionary.ContainsKey(blockPosition))
@@ -34,10 +30,10 @@ namespace MainGame.UnityView.Chunk
                 _blockObjects.GetBlock(blockId),
                 new Vector3(blockPosition.x, 0, blockPosition.y), Quaternion.identity,
                 transform);
-            _blockObjectsDictionary.Add(blockPosition,block);
+            _blockObjectsDictionary.Add(blockPosition,block.GetComponent<BlockGameObject>());
         }
 
-        private void OnBlockRemoveEvent(Vector2Int blockPosition)
+        public void GameObjectBlockRemove(Vector2Int blockPosition)
         {
             //すでにブロックが置かれている時のみブロックを削除する
             if (!_blockObjectsDictionary.ContainsKey(blockPosition)) return;

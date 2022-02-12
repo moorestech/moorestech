@@ -1,27 +1,39 @@
-using System;
 using System.Collections.Generic;
 using MainGame.Control.UI.Inventory;
-using MainGame.GameLogic.Event;
+using MainGame.GameLogic;
+using MainGame.GameLogic.Inventory;
+using MainGame.Network.Event;
+using MainGame.Network.Send;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Test.TestModule.UI
 {
     public class BlockInventoryItemViewTest : MonoBehaviour
     {
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
+        [SerializeField] private BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet;
         [SerializeField] private ItemImages itemImages;
-        [SerializeField] private MouseBlockInventoryInput mouseBlockInventoryInput;
+        [SerializeField] private BlockInventoryInput blockInventoryInput;
 
         private void Start()
         {
-            var playerInventory = new PlayerInventoryViewUpdateEvent();
-            var blockInventory = new BlockInventoryUpdateEvent();
-            blockInventoryItemView.Construct(playerInventory,itemImages,blockInventory);
-            
-            mouseBlockInventoryInput.Construct(blockInventoryItemView,new BlockInventoryItemMoveTest());
-            mouseBlockInventoryInput.PostStart();
+            blockInventoryItemView.Construct(itemImages);
+            var blockInventory = new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItemView);
+            var playerInventoryItemView = new GameObject().AddComponent<PlayerInventoryItemView>();
+            var itemMove = new InventoryItemMoveService(
+                new PlayerConnectionSetting(0),
+                blockInventory,
+                new PlayerInventoryDataCache(new PlayerInventoryUpdateEvent(),playerInventoryItemView),
+                new SendBlockInventoryMoveItemProtocol(new TestSocketModule()),
+                new SendBlockInventoryPlayerInventoryMoveItemProtocol(new TestSocketModule()),
+                new SendPlayerInventoryMoveItemProtocol(new TestSocketModule()));
+
+            blockInventoryInput.Construct(blockInventoryItemView,itemMove,blockInventory,blockInventoryEquippedItemImageSet);
+            blockInventoryEquippedItemImageSet.Construct(blockInventoryItemView,new PlayerInventoryUpdateEvent(),new BlockInventoryUpdateEvent());
+            blockInventoryInput.PostStart();
             
             //プレイヤーインベントリのアイテム設定
             
@@ -38,15 +50,15 @@ namespace Test.TestModule.UI
             //イベントを発火
             foreach (var item in items)
             {
-                playerInventory.OnOnInventoryUpdate(item.Item1,item.Item2,item.Item3);
+                //playerInventory.OnOnInventoryUpdate(item.Item1,item.Item2,item.Item3);
             }
             
             
             //blockInventoryを開く
-            blockInventory.OnSettingInventoryInvoke("",3,1);
+            //blockInventory.OnSettingInventoryInvoke("",3,1);
             //BlockInventoryのアイテム設定
-            blockInventory.OnInventoryUpdateInvoke(0,2,6);
-            blockInventory.OnInventoryUpdateInvoke(3,1,7);
+            //blockInventory.OnInventoryUpdateInvoke(0,2,6);
+            //blockInventory.OnInventoryUpdateInvoke(3,1,7);
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Net.Sockets;
-using MainGame.Network.Interface;
+﻿using MainGame.Network;
 
 namespace Test.TestModule
 {

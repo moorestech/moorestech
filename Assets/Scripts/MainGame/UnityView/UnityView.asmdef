@@ -4,7 +4,6 @@
     "references": [
         "Unity.InputSystem",
         "Cinemachine",
-        "UnityView.Interface",
         "VContainer",
         "Unity.TextMeshPro",
         "Constant"

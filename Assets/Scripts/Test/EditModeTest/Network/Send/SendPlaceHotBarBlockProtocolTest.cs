@@ -1,6 +1,4 @@
 ﻿using System.Linq;
-using System.Net.Sockets;
-using MainGame.Network.Interface.Send;
 using MainGame.Network.Send;
 using MainGame.Network.Util;
 using NUnit.Framework;
@@ -14,7 +12,7 @@ namespace Test.EditModeTest.Network.Send
         public void SendTest()
         {
             var socket = new TestSocketModule();
-            ISendPlaceHotBarBlockProtocol placeHotBarBlockProtocol = new SendPlaceHotBarBlockProtocol(socket);
+            var placeHotBarBlockProtocol = new SendPlaceHotBarBlockProtocol(socket);
             
             //送信する
             int x = 3;

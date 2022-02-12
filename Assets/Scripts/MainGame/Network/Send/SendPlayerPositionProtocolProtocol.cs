@@ -1,12 +1,10 @@
 using System.Collections.Generic;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Send;
 using MainGame.Network.Util;
 using UnityEngine;
 
 namespace MainGame.Network.Send
 {
-    public class SendPlayerPositionProtocolProtocol : ISendPlayerPositionProtocol
+    public class SendPlayerPositionProtocolProtocol
     {
         private const short ProtocolId = 2;
         private readonly ISocket _socket;

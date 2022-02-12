@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
+using MainGame.Network.Event;
 using MainGame.Network.Receive;
 using MainGame.Network.Util;
 
@@ -12,8 +11,8 @@ namespace MainGame.Network
         private readonly List<IAnalysisPacket> _analysisPacketList = new List<IAnalysisPacket>();
 
         public AllReceivePacketAnalysisService(
-            IChunkUpdateEvent chunkUpdateEvent,
-            IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+            ChunkUpdateEvent chunkUpdateEvent,
+            PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
         {
             _analysisPacketList.Add(new DummyProtocol());
             _analysisPacketList.Add(new ReceiveChunkDataProtocol(chunkUpdateEvent));

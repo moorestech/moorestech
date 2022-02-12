@@ -1,10 +1,7 @@
 using System.Collections.Generic;
-using System.Numerics;
-using MainGame.Constant;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
-using MainGame.UnityView.Interface;
-using MainGame.UnityView.Interface.Chunk;
+using MainGame.Basic;
+using MainGame.Network.Event;
+using MainGame.UnityView.Chunk;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -12,46 +9,43 @@ namespace MainGame.GameLogic.Chunk
 {
     /// <summary>
     /// サーバーからのパケットを受け取り、Viewにブロックの更新情報を渡す
+    /// IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しています
     /// </summary>
-    //IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しておく
     public class ChunkDataStoreCache : IInitializable
     {
-        private readonly BlockUpdateEvent _blockUpdateEvent;
-        private readonly Dictionary<Vector2Int, int[,]> _chunk = new Dictionary<Vector2Int, int[,]>();
-        public ChunkDataStoreCache(IChunkUpdateEvent chunkUpdateEvent,IBlockUpdateEvent blockUpdateEvent)
+        private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
+        private readonly Dictionary<Vector2Int, int[,]> _chunk = new();
+        public ChunkDataStoreCache(ChunkUpdateEvent chunkUpdateEvent,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
         {
-            _blockUpdateEvent = blockUpdateEvent as BlockUpdateEvent;
+            _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             //イベントをサブスクライブする
             chunkUpdateEvent.Subscribe(OnChunkUpdate,OnBlockUpdate);
         }
-
-        public int GetBlock(Vector2Int blockPos)
-        {
-            var chunk = ChunkConstant.BlockPositionToChunkOriginPosition(blockPos);
-            
-            if (!_chunk.ContainsKey(chunk)) return BlockConstant.NullBlockId;
-            
-            var pos = GetBlockArrayIndex(chunk, blockPos);
-            return _chunk[chunk][pos.x, pos.y];
-
-        }
-        
         
         /// <summary>
         /// チャンクの更新イベント
         /// </summary>
         private void OnChunkUpdate(OnChunkUpdateEventProperties properties)
         {
-            if (_chunk.ContainsKey(properties.ChunkPos))
+            var chunkPos = properties.ChunkPos;
+            //チャンクの情報を追加か更新
+            if (_chunk.ContainsKey(chunkPos))
             {
-                //チャンクのアップデートを発火させる
-                _blockUpdateEvent.DiffChunkUpdate(
-                    properties.ChunkPos, properties.BlockIds,_chunk[properties.ChunkPos]);
-                _chunk[properties.ChunkPos] = properties.BlockIds;
-                return;
+                _chunk[chunkPos] = properties.BlockIds;
             }
-            _chunk.Add(properties.ChunkPos, properties.BlockIds);
-            _blockUpdateEvent.DiffChunkUpdate(properties.ChunkPos, properties.BlockIds);
+            else
+            {
+                _chunk.Add(chunkPos, properties.BlockIds);
+            }
+            
+            //viewにブロックがおかれたことを通知する
+            for (int i = 0; i < ChunkConstant.ChunkSize; i++)
+            {
+                for (int j = 0; j < ChunkConstant.ChunkSize; j++)
+                {
+                    ViewReflectBlock(chunkPos + new Vector2Int(i,j),properties.BlockIds[i,j]);
+                }
+            }
         }
 
         /// <summary>
@@ -70,10 +64,24 @@ namespace MainGame.GameLogic.Chunk
                 GetBlockArrayIndex(chunkPos.y, blockPos.y));
             _chunk[chunkPos][i, j] = properties.BlockId;
             
-            //ブロックの更新イベントを発火する
-            _blockUpdateEvent.OnBlockUpdate(blockPos,properties.BlockId);
+            //viewにブロックがおかれたことを通知する
+            ViewReflectBlock(blockPos, properties.BlockId);
         }
 
+        private void ViewReflectBlock(Vector2Int position,int id)
+        {
+            if (id == BlockConstant.NullBlockId)
+            {
+                _chunkBlockGameObjectDataStore.GameObjectBlockRemove(position);
+                return;
+            }
+            _chunkBlockGameObjectDataStore.GameObjectBlockPlace(position,id);
+        }
+
+
+        /// <summary>
+        /// ブロックの座標とチャンクの座標から、IDの配列のインデックスを取得する
+        /// </summary>
         private Vector2Int GetBlockArrayIndex(Vector2Int chunkPos, Vector2Int blockPos)
         {
             var (x, y) = (

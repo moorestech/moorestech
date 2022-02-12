@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using MainGame.Constant;
-using MainGame.GameLogic.Event;
+using MainGame.Basic;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network.Event;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
-using Maingame.Types;
+using MainGame.UnityView.Chunk;
+using MainGame.UnityView.UI.Inventory.View;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Test.EditModeTest.GameLogic
 {
@@ -16,8 +15,9 @@ namespace Test.EditModeTest.GameLogic
         [Test]
         public void SetInventoryTest()
         {
-            var inventoryEvent = new MainGame.Network.Event.PlayerInventoryUpdateEvent();
-            var inventoryDataStore = new InventoryDataStoreCache(inventoryEvent,new PlayerInventoryViewUpdateEvent());
+            var inventoryEvent = new PlayerInventoryUpdateEvent();
+            var playerInventoryItemView = new GameObject().AddComponent<PlayerInventoryItemView>();
+            var inventoryDataStore = new PlayerInventoryDataCache(inventoryEvent,playerInventoryItemView);
             
             //インベントリの設定
             var inventory = new List<ItemStack>();
@@ -30,7 +30,7 @@ namespace Test.EditModeTest.GameLogic
             inventoryEvent.OnOnPlayerInventoryUpdateEvent(
                 new OnPlayerInventoryUpdateProperties(10,inventory));
 
-            var inventoryItems = (List<ItemStack>)typeof(InventoryDataStoreCache).GetField("_items",
+            var inventoryItems = (List<ItemStack>)typeof(PlayerInventoryDataCache).GetField("_items",
                 BindingFlags.NonPublic | BindingFlags.Instance).GetValue(inventoryDataStore);
             
             //アイテムの検証

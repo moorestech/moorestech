@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028305, g: 0.22571313, b: 0.3069213, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -262,6 +262,28 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f65215c5c7cd42bca7ac426d26d505ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &135985977 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2339503538876319992, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dea73c13e9c24570a0047611624b20be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &135985978 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9018774100698221473, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2107544fb6a94656872abd8a095603b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &367739779
@@ -599,7 +621,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8944336655422409503, guid: f6d148d888ffbf54b9afe9936dfaec1f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -3.2870617
+      value: -3.287062
       objectReference: {fileID: 0}
     - target: {fileID: 8944336655422409503, guid: f6d148d888ffbf54b9afe9936dfaec1f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -635,11 +657,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f6d148d888ffbf54b9afe9936dfaec1f, type: 3}
---- !u!1 &1221041500 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8944336655422409498, guid: f6d148d888ffbf54b9afe9936dfaec1f, type: 3}
-  m_PrefabInstance: {fileID: 1221041499}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1240479235 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8944336655422409503, guid: f6d148d888ffbf54b9afe9936dfaec1f, type: 3}
@@ -682,20 +699,21 @@ MonoBehaviour:
   parentReference:
     TypeName: MainGame.Starter.Starter
   autoRun: 1
-  autoInjectGameObjects:
-  - {fileID: 1221041500}
-  - {fileID: 367739779}
-  chunkBlockGameObjectDataStore: {fileID: 5365914811176455016, guid: eb9da167e98584171895e4493b9fe661, type: 3}
+  autoInjectGameObjects: []
   blockObjects: {fileID: 11400000, guid: db5bae58745d342e7bde18cd5a2830be, type: 2}
+  itemImages: {fileID: 11400000, guid: f3f5e541a0fc649389c5ffefa1f0082a, type: 2}
   mainCamera: {fileID: 1240479239}
   groundPlane: {fileID: 367739784}
+  chunkBlockGameObjectDataStore: {fileID: 5365914811176455016, guid: eb9da167e98584171895e4493b9fe661, type: 3}
   playerInventoryItemView: {fileID: 135985975}
-  mouseInventoryInput: {fileID: 135985974}
+  playerInventoryInput: {fileID: 135985974}
   blockInventoryItemView: {fileID: 135985976}
   blockInventoryInput: {fileID: 135985973}
   blockClickDetect: {fileID: 1684657582}
-  itemImages: {fileID: 11400000, guid: f3f5e541a0fc649389c5ffefa1f0082a, type: 2}
   uIStateControl: {fileID: 1520253678}
+  mouseGroundClickInput: {fileID: 1684657584}
+  playerInventoryEquippedItemImageSet: {fileID: 135985978}
+  blockInventoryEquippedItemImageSet: {fileID: 135985977}
 --- !u!4 &1255688096
 Transform:
   m_ObjectHideFlags: 0
@@ -811,7 +829,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2070925441746177912, guid: a1a802ecaf6775746bb2a929fb554ad8, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -3.2870617
+      value: -3.287062
       objectReference: {fileID: 0}
     - target: {fileID: 2070925441746177912, guid: a1a802ecaf6775746bb2a929fb554ad8, type: 3}
       propertyPath: m_LocalRotation.w
@@ -915,6 +933,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1684657583}
   - component: {fileID: 1684657582}
+  - component: {fileID: 1684657584}
   m_Layer: 0
   m_Name: Controller
   m_TagString: Untagged
@@ -949,6 +968,18 @@ Transform:
   m_Father: {fileID: 1255688096}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1684657584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684657581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbe0bd8b61ed48bface9c481ec026095, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1762682258
 PrefabInstance:
   m_ObjectHideFlags: 0

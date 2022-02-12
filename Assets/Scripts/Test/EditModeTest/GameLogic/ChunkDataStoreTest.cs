@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using MainGame.Constant;
+using MainGame.Basic;
 using MainGame.GameLogic.Chunk;
 using MainGame.Network.Event;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
 using MainGame.Network.Receive.EventPacket;
+using MainGame.UnityView.Chunk;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -20,8 +19,8 @@ namespace Test.EditModeTest.GameLogic
         public void SetChunkTest()
         {
             var chunkEvent = new ChunkUpdateEvent();
-            var blockUpdateEvent = new BlockUpdateEvent();
-            var chunkDataStore = new ChunkDataStoreCache(chunkEvent,blockUpdateEvent);
+            var chunkGameObjects = new GameObject().AddComponent<ChunkBlockGameObjectDataStore>();
+            var chunkDataStore = new ChunkDataStoreCache(chunkEvent,chunkGameObjects);
             
             //リフレクションでチャンクのデータを取得する
             var chunk = (Dictionary<Vector2Int, int[,]>)chunkDataStore.GetType().GetField("_chunk", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(chunkDataStore);
@@ -47,7 +46,8 @@ namespace Test.EditModeTest.GameLogic
         public void SetBlockTest()
         {
             var chunkEvent = new ChunkUpdateEvent();
-            var chunkDataStore = new ChunkDataStoreCache(chunkEvent,new BlockUpdateEvent());
+            var chunkGameObjects = new GameObject().AddComponent<ChunkBlockGameObjectDataStore>();
+            var chunkDataStore = new ChunkDataStoreCache(chunkEvent,chunkGameObjects);
 
             //検証するチャンク
             var setChunks = new List<Vector2Int>()
@@ -93,7 +93,6 @@ namespace Test.EditModeTest.GameLogic
             //ブロックが正しくセットできているかテストする
             setChunks.ForEach(c =>
             {
-                Debug.Log(c);
                 foreach (var block in blocks)
                 {
                     var i = block.Key.Item1;

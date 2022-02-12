@@ -1,18 +1,17 @@
 using System.Collections.Generic;
+using MainGame.Basic;
 using MainGame.Network.Event;
-using MainGame.Network.Interface.Receive;
 using MainGame.Network.Util;
-using Maingame.Types;
 
 namespace MainGame.Network.Receive
 {
     public class ReceiveBlockInventoryProtocol : IAnalysisPacket
     {
-        private readonly ReceiveBlockInventoryUpdateEvent _receiveBlockInventoryUpdateEvent;
+        private readonly BlockInventoryUpdateEvent _blockInventoryUpdateEvent;
 
-        public ReceiveBlockInventoryProtocol(IReceiveBlockInventoryUpdateEvent receiveBlockInventoryUpdateEvent)
+        public ReceiveBlockInventoryProtocol(BlockInventoryUpdateEvent blockInventoryUpdateEvent)
         {
-            _receiveBlockInventoryUpdateEvent = receiveBlockInventoryUpdateEvent as ReceiveBlockInventoryUpdateEvent;
+            _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
         }
 
         public void Analysis(List<byte> data)
@@ -33,7 +32,7 @@ namespace MainGame.Network.Receive
             var inputNum = bytes.MoveNextToGetShort();
             var outputNum = bytes.MoveNextToGetShort();
             
-            _receiveBlockInventoryUpdateEvent.OnOnSettingBlock(items,"",inputNum,outputNum);
+            _blockInventoryUpdateEvent.OnOnSettingBlock(items,"",inputNum,outputNum);
         }
     }
 }

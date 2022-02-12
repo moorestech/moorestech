@@ -2,11 +2,10 @@
     "name": "GameLogic",
     "rootNamespace": "",
     "references": [
-        "Network.Interface",
         "Constant",
-        "Types",
         "VContainer",
-        "UnityView.Interface"
+        "Network",
+        "UnityView"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

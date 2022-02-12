@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using MainGame.Network.Event;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
 using MainGame.Network.Util;
 using UnityEngine;
 
@@ -11,9 +9,9 @@ namespace MainGame.Network.Receive.EventPacket
     {
         readonly ChunkUpdateEvent _chunkUpdateEvent;
 
-        public BlockPlaceEvent(IChunkUpdateEvent chunkUpdateEvent)
+        public BlockPlaceEvent(ChunkUpdateEvent chunkUpdateEvent)
         {
-            _chunkUpdateEvent = chunkUpdateEvent as ChunkUpdateEvent;
+            _chunkUpdateEvent = chunkUpdateEvent;
         }
 
         public void Analysis(List<byte> packet)

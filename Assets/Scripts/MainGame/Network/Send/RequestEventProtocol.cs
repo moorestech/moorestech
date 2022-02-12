@@ -1,11 +1,9 @@
 using System.Collections.Generic;
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Send;
 using MainGame.Network.Util;
 
 namespace MainGame.Network.Send
 {
-    public class RequestEventProtocol:IRequestEventProtocol
+    public class RequestEventProtocol
     {
         private const short ProtocolId = 4;
         private readonly ISocket _socket;

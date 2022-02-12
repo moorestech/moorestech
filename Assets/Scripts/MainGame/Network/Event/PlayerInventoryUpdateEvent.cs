@@ -1,11 +1,12 @@
-using MainGame.Network.Interface;
-using MainGame.Network.Interface.Receive;
-using static MainGame.Network.Interface.Receive.IPlayerInventoryUpdateEvent;
+using System.Collections.Generic;
+using MainGame.Basic;
 
 namespace MainGame.Network.Event
 {
-    public class PlayerInventoryUpdateEvent : IPlayerInventoryUpdateEvent
+    public class PlayerInventoryUpdateEvent 
     {
+        public delegate void OnPlayerInventoryUpdate(OnPlayerInventoryUpdateProperties properties);
+        public delegate void OnPlayerInventorySlotUpdate(OnPlayerInventorySlotUpdateProperties properties);
         private event OnPlayerInventoryUpdate OnPlayerInventoryUpdateEvent;
         private event OnPlayerInventorySlotUpdate OnPlayerInventorySlotUpdateEvent;
         public void Subscribe(
@@ -34,6 +35,32 @@ namespace MainGame.Network.Event
             OnPlayerInventorySlotUpdateProperties properties)
         {
             OnPlayerInventorySlotUpdateEvent?.Invoke(properties);
+        }
+    }
+    
+    
+
+    public class OnPlayerInventoryUpdateProperties
+    {
+        public readonly int PlayerId;
+        public readonly List<ItemStack> ItemStacks;
+
+        public OnPlayerInventoryUpdateProperties(int playerId, List<ItemStack> itemStacks)
+        {
+            PlayerId = playerId;
+            ItemStacks = itemStacks;
+        }
+    }
+
+    public class OnPlayerInventorySlotUpdateProperties
+    {
+        public readonly int SlotId;
+        public readonly ItemStack ItemStack;
+
+        public OnPlayerInventorySlotUpdateProperties(int slotId, ItemStack itemStack)
+        {
+            SlotId = slotId;
+            ItemStack = itemStack;
         }
     }
 }

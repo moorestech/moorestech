@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using MainGame.Basic;
 using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
-using Maingame.Types;
 using NUnit.Framework;
 using Test.TestModule;
 
