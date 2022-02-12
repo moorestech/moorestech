@@ -11,7 +11,7 @@ namespace MainGame.Control.UI.Inventory
     /// </summary>
     public class BlockInventoryEquippedItemImageSet : MonoBehaviour
     {
-        [SerializeField] private InventoryItemSlot equippedItem;
+        private InventoryItemSlot _equippedItem;
         private int _equippedItemIndex = 0;
         
         private BlockInventoryItemView _blockInventoryItemView;
@@ -22,7 +22,7 @@ namespace MainGame.Control.UI.Inventory
             BlockInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             _blockInventoryItemView = playerInventoryItemView;
-            equippedItem = GetComponent<InventoryItemSlot>();
+            _equippedItem = GetComponent<InventoryItemSlot>();
             
             playerInventoryUpdateEvent.Subscribe(p=>{},PlayerInventorySlotUpdate);
             blockInventoryUpdateEvent.Subscribe(BlockInventorySlotUpdate,p => {});
@@ -54,7 +54,7 @@ namespace MainGame.Control.UI.Inventory
         private void SetItem(int slot)
         {
             var fromItem = _blockInventoryItemView.GetOpenedInventoryItemSlot(slot);
-            equippedItem.CopyItem(fromItem);
+            _equippedItem.CopyItem(fromItem);
         }
     }
 }
