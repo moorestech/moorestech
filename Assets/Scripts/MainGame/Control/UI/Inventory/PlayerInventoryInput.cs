@@ -10,7 +10,6 @@ namespace MainGame.Control.UI.Inventory
 {
     public class PlayerInventoryInput : MonoBehaviour,IPostStartable
     {
-        [SerializeField] private InventoryItemSlot equippedItem;
         
         private int _equippedItemIndex = -1;
         private MoorestechInputSettings _inputSettings;
@@ -18,18 +17,20 @@ namespace MainGame.Control.UI.Inventory
         private PlayerInventoryItemView _playerInventoryItemView;
         private InventoryItemMoveService _inventoryItemMoveService;
         private PlayerInventoryDataCache _playerInventoryDataCache;
+        
+        private PlayerInventoryEquippedItemImageSet _equippedItem;
 
         [Inject]
         public void Construct(
-            PlayerInventoryItemView playerInventoryItemView,
-            InventoryItemMoveService inventoryItemMoveService,
-            PlayerInventoryDataCache playerInventoryDataCache)
+            PlayerInventoryItemView playerInventoryItemView, InventoryItemMoveService inventoryItemMoveService,
+            PlayerInventoryDataCache playerInventoryDataCache,PlayerInventoryEquippedItemImageSet equippedItem)
         {
             _playerInventoryDataCache = playerInventoryDataCache;
             _playerInventoryItemView = playerInventoryItemView;
             _inventoryItemMoveService = inventoryItemMoveService;
+            _equippedItem = equippedItem;
             
-            equippedItem.gameObject.SetActive(false);
+            _equippedItem.gameObject.SetActive(false);
             _inputSettings = new();
             _inputSettings.Enable();
         }
@@ -46,13 +47,14 @@ namespace MainGame.Control.UI.Inventory
         //ボタンがクリックされた時に呼び出される
         private void OnSlotClick(int slot)
         {
-            if (_equippedItemIndex == -1 && !IsSlotEmpty(slot))
+            var slotEmpty = _playerInventoryDataCache.GetItemStack(slot).ID == ItemConst.EmptyItemId;
+            if (_equippedItemIndex == -1 && !slotEmpty)
             {
                 var fromItem = _playerInventoryItemView.GetInventoryItemSlots()[slot];
-                equippedItem.CopyItem(fromItem);
                 
                 _equippedItemIndex = slot;
-                equippedItem.gameObject.SetActive(true);
+                _equippedItem.gameObject.SetActive(true);
+                _equippedItem.SetEquippedItemIndex(slot);
                 return;
             }
 
@@ -73,23 +75,7 @@ namespace MainGame.Control.UI.Inventory
             //アイテムを全部おく
             _inventoryItemMoveService.MoveAllItemStack(_equippedItemIndex,false,slot,false);
             _equippedItemIndex = -1;
-            equippedItem.gameObject.SetActive(false);
+            _equippedItem.gameObject.SetActive(false);
         }
-
-        //TODO　equippedItemの更新を行うためにイベントを登録　これを外に出す
-        private void PlayerInventoryUpdate(OnPlayerInventoryUpdateProperties properties) { }
-        private void PlayerInventorySlotUpdate(OnPlayerInventorySlotUpdateProperties properties)
-        {
-            if (properties.SlotId != _equippedItemIndex) return;
-            var fromItem = _playerInventoryItemView.GetInventoryItemSlots()[properties.SlotId];
-            equippedItem.CopyItem(fromItem);
-        }
-        
-
-        private bool IsSlotEmpty(int slot)
-        {
-            return _playerInventoryDataCache.GetItemStack(slot).ID == ItemConst.EmptyItemId;
-        }
-
     }
 }

@@ -12,6 +12,7 @@ namespace Test.TestModule.UI
     public class MouseInventoryInputTest : MonoBehaviour
     {
         [SerializeField] private PlayerInventoryInput playerInventoryInput;
+        [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
 
         [SerializeField] private PlayerInventoryItemView playerInventoryItem;
         [SerializeField] private BlockInventoryItemView blockInventoryItem;
@@ -26,7 +27,7 @@ namespace Test.TestModule.UI
                 new SendBlockInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendBlockInventoryPlayerInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendPlayerInventoryMoveItemProtocol(new TestSocketModule()));
-            playerInventoryInput.Construct(playerInventoryItem,itemMove,playerInventory);
+            playerInventoryInput.Construct(playerInventoryItem,itemMove,playerInventory,playerInventoryEquippedItemImageSet);
 
             StartCoroutine(PostStart());
         }
