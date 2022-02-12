@@ -15,9 +15,7 @@ namespace MainGame.UnityView.Chunk
         {
             _blockObjects = blockObjects;
         }
-
-
-        //TODO modelから直接呼び出されるようにする
+        
         public void GameObjectBlockPlace(Vector2Int blockPosition, int blockId)
         {
             //すでにブロックがある場合はそっちのブロックに置き換える
