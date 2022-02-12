@@ -3,7 +3,10 @@ using System.Reflection;
 using MainGame.Basic;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network.Event;
+using MainGame.UnityView.Chunk;
+using MainGame.UnityView.UI.Inventory.View;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Test.EditModeTest.GameLogic
 {
@@ -12,8 +15,9 @@ namespace Test.EditModeTest.GameLogic
         [Test]
         public void SetInventoryTest()
         {
-            var inventoryEvent = new MainGame.Network.Event.PlayerInventoryUpdateEvent();
-            var inventoryDataStore = new PlayerInventoryDataCache(inventoryEvent);
+            var inventoryEvent = new PlayerInventoryUpdateEvent();
+            var playerInventoryItemView = new GameObject().AddComponent<PlayerInventoryItemView>();
+            var inventoryDataStore = new PlayerInventoryDataCache(inventoryEvent,playerInventoryItemView);
             
             //インベントリの設定
             var inventory = new List<ItemStack>();

@@ -22,10 +22,11 @@ namespace Test.TestModule.UI
         {
             blockInventoryItemView.Construct(itemImages);
             var blockInventory = new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItemView);
+            var playerInventoryItemView = new GameObject().AddComponent<PlayerInventoryItemView>();
             var itemMove = new InventoryItemMoveService(
                 new PlayerConnectionSetting(0),
                 blockInventory,
-                new PlayerInventoryDataCache(new PlayerInventoryUpdateEvent()),
+                new PlayerInventoryDataCache(new PlayerInventoryUpdateEvent(),playerInventoryItemView),
                 new SendBlockInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendBlockInventoryPlayerInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendPlayerInventoryMoveItemProtocol(new TestSocketModule()));
