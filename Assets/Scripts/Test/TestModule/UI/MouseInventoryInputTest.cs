@@ -27,6 +27,8 @@ namespace Test.TestModule.UI
                 new SendBlockInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendBlockInventoryPlayerInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendPlayerInventoryMoveItemProtocol(new TestSocketModule()));
+            
+            playerInventoryEquippedItemImageSet.Construct(playerInventoryItem,new PlayerInventoryUpdateEvent());
             playerInventoryInput.Construct(playerInventoryItem,itemMove,playerInventory,playerInventoryEquippedItemImageSet);
 
             StartCoroutine(PostStart());
