@@ -18,8 +18,12 @@ namespace MainGame.GameLogic.Inventory
             blockInventory.Subscribe(OnBlockInventorySlotUpdate,OnSettingBlockInventory);
         }
 
-        private void OnBlockInventorySlotUpdate(Vector2Int pos,int slot,int id,int count)
+        private void OnBlockInventorySlotUpdate(BlockInventorySlotUpdateProperties properties)
         {
+            var slot = properties.Slot;
+            var id = properties.Id;
+            var count = properties.Count;
+            
             _blockInventoryItemView.BlockInventoryUpdate(slot,id,count);
             if (slot < _itemStackList.Count)
             {
@@ -27,11 +31,13 @@ namespace MainGame.GameLogic.Inventory
             }
         }
 
-        private void OnSettingBlockInventory(List<ItemStack> items,string uiType,params short[] uiParams)
+        private void OnSettingBlockInventory(SettingBlockInventoryProperties onSettingBlock)
         {
+            var items = onSettingBlock.items;
+            
             _itemStackList = items;
             //UIを開く
-            _blockInventoryItemView.OpenBlockInventory(uiType,uiParams);
+            _blockInventoryItemView.OpenBlockInventory(onSettingBlock.uiType,onSettingBlock.uiParams);
             //UIを更新する
             for (var i = 0; i < items.Count; i++)
             {
