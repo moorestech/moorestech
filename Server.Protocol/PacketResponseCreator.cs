@@ -29,7 +29,7 @@ namespace Server.Protocol
             _packetResponseList.Add(new BlockInventoryMoveItemProtocol(serviceProvider));
             _packetResponseList.Add(new SendPlaceHotBarBlockProtocol(serviceProvider));
             _packetResponseList.Add(new BlockInventoryRequestProtocol(serviceProvider));
-            _packetResponseList.Add(new RemoveBlockProtocol());
+            _packetResponseList.Add(new RemoveBlockProtocol(serviceProvider));
 
             serviceProvider.GetService<VeinGenerator>();
         }
