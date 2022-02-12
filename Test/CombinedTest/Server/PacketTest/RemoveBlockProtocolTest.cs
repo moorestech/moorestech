@@ -28,7 +28,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //プロトコルを使ってブロックを削除
             packet.GetPacketResponse(RemoveBlock(0, 0, 0));
-            
+
             Assert.False(worldBlock.Exists(0,0));
 
         }
