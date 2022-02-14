@@ -66,7 +66,7 @@ namespace MainGame.Starter
             builder.Register<BlockInventoryUpdateEvent>(Lifetime.Singleton);
             
             //パケット送信インスタンス
-            builder.Register<RequestEventProtocol>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
             builder.Register<RequestPlayerInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockInventoryPlayerInventoryMoveItemProtocol>(Lifetime.Singleton);

@@ -1,5 +1,6 @@
 using MainGame.GameLogic;
 using MainGame.GameLogic.Inventory;
+using MainGame.Network;
 using MainGame.Network.Send;
 using UnityEngine;
 

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using MainGame.Control.UI.Inventory;
 using MainGame.GameLogic;
 using MainGame.GameLogic.Inventory;
+using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Send;
 using MainGame.UnityView.UI.Inventory.Element;
