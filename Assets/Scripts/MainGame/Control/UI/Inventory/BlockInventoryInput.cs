@@ -52,9 +52,12 @@ namespace MainGame.Control.UI.Inventory
         //ボタンがクリックされた時に呼び出される
         private void OnSlotClick(int slot)
         {
-            var isSlotEmpty = _blockInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
-            if (_equippedItemIndex == -1 && !isSlotEmpty)
+            if (_equippedItemIndex == -1)
             {
+                //スロットがからの時はそのまま処理を終了
+                var isSlotEmpty = _blockInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
+                if (isSlotEmpty)return;
+                
                 _equippedItemIndex = slot;
                 //アイテムをクリックしたときに追従する画像の設定
                 _blockInventoryEquippedItemImageSet.SetEquippedItemIndex(slot);

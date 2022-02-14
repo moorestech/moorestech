@@ -46,11 +46,12 @@ namespace MainGame.Control.UI.Inventory
         //ボタンがクリックされた時に呼び出される
         private void OnSlotClick(int slot)
         {
-            var slotEmpty = _playerInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
-            if (_equippedItemIndex == -1 && !slotEmpty)
+            if (_equippedItemIndex == -1)
             {
-                var fromItem = _playerInventoryItemView.GetInventoryItemSlots()[slot];
-                
+                //スロットがからの時はそのまま処理を終了
+                var slotEmpty = _playerInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
+                if (slotEmpty)return;
+
                 _equippedItemIndex = slot;
                 _equippedItem.gameObject.SetActive(true);
                 _equippedItem.SetEquippedItemIndex(slot);

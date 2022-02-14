@@ -21,7 +21,9 @@ namespace Test.TestModule.UI
 
         private void Start()
         {
-            var playerInventory = new PlayerInventoryDataCache(new PlayerInventoryUpdateEvent(),playerInventoryItem,new QueueInsertionMainThreadByExecution());
+            var queue = new GameObject().AddComponent<QueueInsertionMainThreadByExecution>();
+            var playerInventory = new PlayerInventoryDataCache(new PlayerInventoryUpdateEvent(),playerInventoryItem,queue);
+            playerInventory.Initialize();
             var itemMove = new InventoryItemMoveService(
                 new PlayerConnectionSetting(0),
                 new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItem),
