@@ -29,7 +29,7 @@ namespace Test.TestModule.UI
             var itemMove = new InventoryItemMoveService(
                 new PlayerConnectionSetting(0),
                 blockInventory,
-                new PlayerInventoryDataCache(new PlayerInventoryUpdateEvent(),playerInventoryItemView,queue),
+                GetComponent<InventoryViewTestModule>().PlayerInventoryDataCache,
                 new SendBlockInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendBlockInventoryPlayerInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendPlayerInventoryMoveItemProtocol(new TestSocketModule()));

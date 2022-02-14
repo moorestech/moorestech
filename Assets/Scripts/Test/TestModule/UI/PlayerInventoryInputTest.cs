@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Test.TestModule.UI
 {
-    public class MouseInventoryInputTest : MonoBehaviour
+    public class PlayerInventoryInputTest : MonoBehaviour
     {
         [SerializeField] private PlayerInventoryInput playerInventoryInput;
         [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
@@ -21,9 +21,7 @@ namespace Test.TestModule.UI
 
         private void Start()
         {
-            var queue = new GameObject().AddComponent<QueueInsertionMainThreadByExecution>();
-            var playerInventory = new PlayerInventoryDataCache(new PlayerInventoryUpdateEvent(),playerInventoryItem,queue);
-            playerInventory.Initialize();
+            var playerInventory = GetComponent<InventoryViewTestModule>().PlayerInventoryDataCache;
             var itemMove = new InventoryItemMoveService(
                 new PlayerConnectionSetting(0),
                 new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItem),
