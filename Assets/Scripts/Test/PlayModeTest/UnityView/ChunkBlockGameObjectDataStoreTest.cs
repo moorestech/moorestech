@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MainGame.Basic;
 using MainGame.GameLogic.Chunk;
+using MainGame.Network.Event;
 using MainGame.UnityView.Chunk;
 using NUnit.Framework;
 using UnityEditor;
@@ -19,6 +20,8 @@ namespace Test.PlayModeTest.UnityView
         {
             //初期設定
             var dataStore = new GameObject().AddComponent<ChunkBlockGameObjectDataStore>();
+            var chunkReceivedEvent = new NetworkReceivedChunkDataEvent();
+            new ChunkDataStoreCache(chunkReceivedEvent,dataStore);
             var blocksData = AssetDatabase.LoadAssetAtPath<BlockObjects>("Assets/ScriptableObject/BlockObjects.asset");
             dataStore.Construct(blocksData);
             
@@ -38,7 +41,7 @@ namespace Test.PlayModeTest.UnityView
             ids[13, 4] = 1;
             var chunkPosition = new Vector2Int(-20,20);
             //イベントを発火
-            //blockUpdateEvent.DiffChunkUpdate(chunkPosition,ids);
+            chunkReceivedEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(chunkPosition,ids));
             
             
             
@@ -61,14 +64,15 @@ namespace Test.PlayModeTest.UnityView
             newIds[13, 4] = 1;
             newIds[5, 5] = 1;
             //イベントを発火
-            //blockUpdateEvent.DiffChunkUpdate(chunkPosition,newIds,ids);
+            chunkReceivedEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(chunkPosition,newIds));
             blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(5,blocks.Count);
             Assert.True(blocks.Any(block => block.transform.position == new Vector3(-15, 0, 25)));
             
             
             //何もないチャンクが発火され、ブロックがなくなるテスト
-            //blockUpdateEvent.DiffChunkUpdate(chunkPosition,new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize],newIds);
+            chunkReceivedEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(
+                chunkPosition,new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize]));
             //Destoryのために1フレーム待機
             yield return null;
             blocks = GetBlocks(dataStore.transform);
@@ -77,7 +81,8 @@ namespace Test.PlayModeTest.UnityView
             
             
             //一つのブロックの設置
-            //blockUpdateEvent.OnBlockUpdate(new Vector2Int(0,0),1);
+            chunkReceivedEvent.InvokeBlockUpdateEvent(
+                new OnBlockUpdateEventProperties(new Vector2Int(0,0),1));
             //チェック
             blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(1,blocks.Count);
@@ -86,15 +91,12 @@ namespace Test.PlayModeTest.UnityView
             
             
             //一つのブロックの削除
-            //blockUpdateEvent.OnBlockUpdate(new Vector2Int(0,0),BlockConstant.NullBlockId);
+            chunkReceivedEvent.InvokeBlockUpdateEvent(
+                new OnBlockUpdateEventProperties(new Vector2Int(0,0),BlockConstant.NullBlockId));
             //Destoryのために1フレーム待機
             yield return null;
             blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(0,blocks.Count);
-            
-            
-            
-            
         }
 
         private List<Transform> GetBlocks(Transform dataStore)
