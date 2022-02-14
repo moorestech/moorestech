@@ -8,6 +8,7 @@ namespace Core.Inventory
         void SetItem(int slot, IItemStack itemStack);
         public IItemStack ReplaceItem(int slot, IItemStack itemStack);
         
+        public IItemStack InsertItem(IItemStack itemStack);
         public int GetSlotSize();
     }
 }
