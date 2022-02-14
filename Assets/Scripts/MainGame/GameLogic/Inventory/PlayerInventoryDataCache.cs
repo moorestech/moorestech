@@ -10,7 +10,7 @@ namespace MainGame.GameLogic.Inventory
     public class PlayerInventoryDataCache : IInitializable
     {
         private readonly PlayerInventoryItemView _playerInventoryItemView;
-        private List<ItemStack> _items = new();
+        private List<ItemStack> _items = new(new ItemStack[PlayerInventoryConstant.MainInventorySize]);
         
         public PlayerInventoryDataCache(PlayerInventoryUpdateEvent playerInventoryUpdateEvent,PlayerInventoryItemView playerInventoryItemView)
         {
