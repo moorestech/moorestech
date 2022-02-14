@@ -22,34 +22,6 @@ namespace Server
                 packetHandler = new PacketHandler();
                 packetHandler.StartServer(packet);
             }).Start();
-
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            //ここはデバッグ用の仮コマンドコードです。今後きちんとしたコマンドのコードを別に記述します。
-            while (true)
-            {
-                var command = Console.ReadLine()?.Split(" ");
-                try
-                {
-                    if (command == null) continue;
-
-                    if (command[0] == "give")
-                    {
-                        var playerId = int.Parse(command[1]);
-                        var slot = int.Parse(command[2]);
-                        var itemId = int.Parse(command[3]);
-                        var count = int.Parse(command[4]);
-
-                        var playerInventory = serviceProvider.GetService<PlayerInventoryDataStore>()
-                            ?.GetInventoryData(playerId);
-                        playerInventory.SetItem(slot, itemStackFactory.Create(itemId, count));
-                        Console.WriteLine("Gave item for player " + playerId);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-            }
         }
     }
 }
