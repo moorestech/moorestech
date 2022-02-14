@@ -7,13 +7,15 @@ namespace MainGame.Network.Send
     {
         private const short ProtocolId = 3;
         private readonly ISocket _socket;
+        private readonly int playerId;
 
-        public RequestPlayerInventoryProtocol(ISocket socket)
+        public RequestPlayerInventoryProtocol(ISocket socket,PlayerConnectionSetting playerConnectionSetting)
         {
+            playerId = playerConnectionSetting.PlayerId;
             _socket = socket;
         }
         
-        public void Send(int playerId)
+        public void Send()
         {
             var packet = new List<byte>();
             
