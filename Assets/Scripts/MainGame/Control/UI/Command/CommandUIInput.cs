@@ -1,6 +1,8 @@
 using System;
+using MainGame.Network.Send;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 namespace MainGame.Control.UI.Command
 {
@@ -8,8 +10,15 @@ namespace MainGame.Control.UI.Command
     {
         [SerializeField] private InputField commandInputField;
         [SerializeField] private Button submitButton;
-        
-        
+
+        private SendCommandProtocol _sendCommandProtocol;
+
+
+        [Inject]
+        public void Construct(SendCommandProtocol sendCommandProtocol)
+        {
+            _sendCommandProtocol = sendCommandProtocol;
+        }
 
         private void Start()
         {
@@ -18,7 +27,7 @@ namespace MainGame.Control.UI.Command
 
         private void SubmitCommand()
         {
-            
+            _sendCommandProtocol.SendCommand(commandInputField.text);
         }
     }
 }
