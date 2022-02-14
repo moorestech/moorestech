@@ -9,9 +9,14 @@ namespace MainGame.UnityView
     /// ネットワークからviewの変更要求が来た時、メインスレッド出ないとメソッドを実行できません
     /// そのため、このオブジェクトのキューに入れ、Updateで呼び出します
     /// </summary>
-    public class QueueInsertionMainThreadByExecution : ITickable
+    public class QueueInsertionMainThreadByExecution : MonoBehaviour
     {
-        Queue<Action> _actionQueue = new();
+        Queue<Action> _actionQueue;
+
+        private void Awake()
+        {
+            _actionQueue = new Queue<Action>();
+        }
 
         public void Insert(Action action)
         {
@@ -21,7 +26,7 @@ namespace MainGame.UnityView
             }
         }
 
-        public void Tick()
+        private void Update()
         {
             lock (_actionQueue)
             {

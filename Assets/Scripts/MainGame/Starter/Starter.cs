@@ -50,6 +50,8 @@ namespace MainGame.Starter
         [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
         [SerializeField] private BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet;
 
+        [SerializeField] private QueueInsertionMainThreadByExecution queueInsertionMainThreadByExecution;
+
         void Start()
         {
             var builder = new ContainerBuilder();
@@ -83,7 +85,6 @@ namespace MainGame.Starter
             builder.Register<PlayerInventoryDataCache>(Lifetime.Singleton);
             builder.Register<BlockInventoryDataCache>(Lifetime.Singleton);
             builder.Register<InventoryItemMoveService>(Lifetime.Singleton);
-            builder.Register<QueueInsertionMainThreadByExecution>(Lifetime.Singleton); //別スレッドの実行をメインスレッドに変えて実行する
             
             
             //ScriptableObjectの登録
@@ -103,6 +104,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(blockInventoryEquippedItemImageSet);
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(commandUIInput);
+            builder.RegisterComponent(queueInsertionMainThreadByExecution);
 
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             
@@ -112,6 +114,7 @@ namespace MainGame.Starter
 
             //依存関係を解決
             _resolver = builder.Build();
+            _resolver.Resolve<QueueInsertionMainThreadByExecution>();
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();
             _resolver.Resolve<MouseGroundClickInput>();
             _resolver.Resolve<PlayerInventoryItemView>();

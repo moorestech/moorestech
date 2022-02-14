@@ -218,6 +218,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: MainGameUI
       objectReference: {fileID: 0}
+    - target: {fileID: 4488347779245827108, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 30.920044
+      objectReference: {fileID: 0}
+    - target: {fileID: 7964713385318371322, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 268.18182
+      objectReference: {fileID: 0}
+    - target: {fileID: 7964713385318371322, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 31.043823
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
 --- !u!114 &135985973 stripped
@@ -677,6 +689,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1255688096}
   - component: {fileID: 1255688095}
+  - component: {fileID: 1255688097}
   m_Layer: 0
   m_Name: Stater
   m_TagString: Untagged
@@ -715,6 +728,7 @@ MonoBehaviour:
   mouseGroundClickInput: {fileID: 1684657584}
   playerInventoryEquippedItemImageSet: {fileID: 135985978}
   blockInventoryEquippedItemImageSet: {fileID: 135985977}
+  queueInsertionMainThreadByExecution: {fileID: 1255688097}
 --- !u!4 &1255688096
 Transform:
   m_ObjectHideFlags: 0
@@ -734,6 +748,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1255688097
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255688094}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d571893b75c434aa3690bec1ca4dc43, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1372590436
 GameObject:
   m_ObjectHideFlags: 0
