@@ -72,6 +72,7 @@ namespace MainGame.Starter
             builder.Register<SendPlayerInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
             builder.Register<RequestBlockInventoryProtocol>(Lifetime.Singleton);
+            builder.Register<SendCommandProtocol>(Lifetime.Singleton);
             
             
             //データストア、ゲームロジック系
