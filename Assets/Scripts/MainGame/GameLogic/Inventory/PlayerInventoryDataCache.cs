@@ -3,6 +3,7 @@ using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.UnityView;
 using MainGame.UnityView.UI.Inventory.View;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace MainGame.GameLogic.Inventory
@@ -30,7 +31,8 @@ namespace MainGame.GameLogic.Inventory
             for (int i = 0; i < _items.Count; i++)
             {
                 //viewのUIにインベントリが更新されたことを通知する処理をキューに入れる
-                _actionQueue.Insert(() => _playerInventoryItemView.OnInventoryUpdate(i,_items[i].ID,_items[i].Count));
+                var slot = i;
+                _actionQueue.Insert(() => _playerInventoryItemView.OnInventoryUpdate(slot,_items[slot].ID,_items[slot].Count));
             }
         }
 
