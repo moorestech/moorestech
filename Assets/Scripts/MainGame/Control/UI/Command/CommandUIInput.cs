@@ -1,5 +1,6 @@
 using System;
 using MainGame.Network.Send;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
@@ -8,7 +9,7 @@ namespace MainGame.Control.UI.Command
 {
     public class CommandUIInput: MonoBehaviour
     {
-        [SerializeField] private InputField commandInputField;
+        [SerializeField] private TMP_InputField commandInputField;
         [SerializeField] private Button submitButton;
 
         private SendCommandProtocol _sendCommandProtocol;
