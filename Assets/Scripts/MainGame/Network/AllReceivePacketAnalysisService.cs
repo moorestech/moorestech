@@ -3,13 +3,16 @@ using System.Linq;
 using MainGame.Network.Event;
 using MainGame.Network.Receive;
 using MainGame.Network.Util;
+using UnityEngine;
 
 namespace MainGame.Network
 {
     public class AllReceivePacketAnalysisService
     {
         private readonly List<IAnalysisPacket> _analysisPacketList = new List<IAnalysisPacket>();
-
+        private int _packetCount = 0;
+        
+        
         public AllReceivePacketAnalysisService(
             ChunkUpdateEvent chunkUpdateEvent,
             PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
@@ -25,10 +28,16 @@ namespace MainGame.Network
 
         public void Analysis(byte[] bytes)
         {
+            //get packet id
             var bytesList = bytes.ToList();
-            
+            var packetId = new ByteArrayEnumerator(bytesList).MoveNextToGetShort();
+
             //analysis packet
-            _analysisPacketList[new ByteArrayEnumerator(bytesList).MoveNextToGetShort()].Analysis(bytesList);
+            _analysisPacketList[packetId].Analysis(bytesList);
+            
+            //receive debug
+            _packetCount++;
+            Debug.Log("Count " + _packetCount + " ID " + packetId);
         }
     }
 }
