@@ -9,6 +9,7 @@ using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
+using MainGame.UnityView;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
@@ -82,6 +83,8 @@ namespace MainGame.Starter
             builder.Register<PlayerInventoryDataCache>(Lifetime.Singleton);
             builder.Register<BlockInventoryDataCache>(Lifetime.Singleton);
             builder.Register<InventoryItemMoveService>(Lifetime.Singleton);
+            
+            builder.RegisterEntryPoint<QueueInsertionMainThreadByExecution>(); //別スレッドの実行をメインスレッドに変えて実行する
             
             
             //ScriptableObjectの登録

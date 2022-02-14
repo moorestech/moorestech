@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer.Unity;
 
 namespace MainGame.UnityView
 {
@@ -8,7 +9,7 @@ namespace MainGame.UnityView
     /// ネットワークからviewの変更要求が来た時、メインスレッド出ないとメソッドを実行できません
     /// そのため、このオブジェクトのキューに入れ、Updateで呼び出します
     /// </summary>
-    public class QueueInsertionMainThreadByExecution : MonoBehaviour
+    public class QueueInsertionMainThreadByExecution : ITickable
     {
         Queue<Action> _actionQueue;
 
@@ -24,8 +25,8 @@ namespace MainGame.UnityView
                 _actionQueue.Enqueue(action);
             }
         }
-        
-        private void Update()
+
+        public void Tick()
         {
             lock (_actionQueue)
             {
