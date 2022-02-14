@@ -18,10 +18,14 @@ namespace MainGame.UnityView.Chunk
         
         public void GameObjectBlockPlace(Vector2Int blockPosition, int blockId)
         {
-            //すでにブロックがある場合はそっちのブロックに置き換える
+            //すでにブロックがあり、IDが違う場合は新しいブロックに置き換えるために削除する
             if (_blockObjectsDictionary.ContainsKey(blockPosition))
             {
-                Destroy(_blockObjectsDictionary[blockPosition]);
+                //IDが同じ時は再設置の必要がないため処理を終了
+                if (_blockObjectsDictionary[blockPosition].BlockId == blockId)return;
+                
+                //IDが違うため削除
+                Destroy(_blockObjectsDictionary[blockPosition].gameObject);
                 _blockObjectsDictionary.Remove(blockPosition);
             }
             
@@ -29,15 +33,22 @@ namespace MainGame.UnityView.Chunk
             var block = Instantiate(
                 _blockObjects.GetBlock(blockId),
                 new Vector3(blockPosition.x, 0, blockPosition.y), Quaternion.identity,
-                transform);
-            _blockObjectsDictionary.Add(blockPosition,block.GetComponent<BlockGameObject>());
+                transform).GetComponent<BlockGameObject>();
+            //IDを再設定
+            block.Construct(blockId);
+            _blockObjectsDictionary.Add(blockPosition,block);
         }
 
         public void GameObjectBlockRemove(Vector2Int blockPosition)
         {
             //すでにブロックが置かれている時のみブロックを削除する
-            if (!_blockObjectsDictionary.ContainsKey(blockPosition)) return;
-            Destroy(_blockObjectsDictionary[blockPosition]);
+            if (!_blockObjectsDictionary.ContainsKey(blockPosition))
+            {
+                return;
+            }
+            Debug.Log("Remove " + blockPosition);
+            
+            Destroy(_blockObjectsDictionary[blockPosition].gameObject);
             _blockObjectsDictionary.Remove(blockPosition);
         }
     }

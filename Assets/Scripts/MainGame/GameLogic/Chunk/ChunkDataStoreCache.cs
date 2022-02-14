@@ -38,12 +38,12 @@ namespace MainGame.GameLogic.Chunk
                 _chunk.Add(chunkPos, properties.BlockIds);
             }
             
-            //viewにブロックがおかれたことを通知する
+            //ブロックが違うところだけviewにブロックがおかれたことを通知する
             for (int i = 0; i < ChunkConstant.ChunkSize; i++)
             {
                 for (int j = 0; j < ChunkConstant.ChunkSize; j++)
                 {
-                    ViewReflectBlock(chunkPos + new Vector2Int(i,j),properties.BlockIds[i,j]);
+                    ViewPlaceOrRemoveBlock(chunkPos + new Vector2Int(i,j),properties.BlockIds[i,j]);
                 }
             }
         }
@@ -65,10 +65,10 @@ namespace MainGame.GameLogic.Chunk
             _chunk[chunkPos][i, j] = properties.BlockId;
             
             //viewにブロックがおかれたことを通知する
-            ViewReflectBlock(blockPos, properties.BlockId);
+            ViewPlaceOrRemoveBlock(blockPos, properties.BlockId);
         }
 
-        private void ViewReflectBlock(Vector2Int position,int id)
+        private void ViewPlaceOrRemoveBlock(Vector2Int position,int id)
         {
             if (id == BlockConstant.NullBlockId)
             {

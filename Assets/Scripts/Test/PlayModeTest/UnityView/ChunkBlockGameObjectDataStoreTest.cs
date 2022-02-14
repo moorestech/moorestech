@@ -82,17 +82,17 @@ namespace Test.PlayModeTest.UnityView
             
             //一つのブロックの設置
             chunkReceivedEvent.InvokeBlockUpdateEvent(
-                new OnBlockUpdateEventProperties(new Vector2Int(0,0),1));
+                new OnBlockUpdateEventProperties(chunkPosition,1));
             //チェック
             blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(1,blocks.Count);
-            Assert.True(blocks.Any(block => block.transform.position == new Vector3(0, 0, 0)));
+            Assert.True(blocks.Any(block => block.transform.position == new Vector3(chunkPosition.x, 0, chunkPosition.y)));
             
             
             
             //一つのブロックの削除
             chunkReceivedEvent.InvokeBlockUpdateEvent(
-                new OnBlockUpdateEventProperties(new Vector2Int(0,0),BlockConstant.NullBlockId));
+                new OnBlockUpdateEventProperties(chunkPosition,BlockConstant.NullBlockId));
             //Destoryのために1フレーム待機
             yield return null;
             blocks = GetBlocks(dataStore.transform);
