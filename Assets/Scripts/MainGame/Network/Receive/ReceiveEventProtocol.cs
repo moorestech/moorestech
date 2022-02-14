@@ -2,6 +2,7 @@
 using MainGame.Network.Event;
 using MainGame.Network.Receive.EventPacket;
 using MainGame.Network.Util;
+using UnityEngine;
 
 namespace MainGame.Network.Receive
 {
@@ -25,6 +26,8 @@ namespace MainGame.Network.Receive
             bytes.MoveNextToGetShort();
             var eventId = bytes.MoveNextToGetShort();
             _eventPacketList[eventId].Analysis(data);
+            
+            Debug.Log("Event ID " + eventId + " " + _eventPacketList[eventId].GetType().Name);
         }
     }
 }

@@ -32,12 +32,14 @@ namespace MainGame.Network
             var bytesList = bytes.ToList();
             var packetId = new ByteArrayEnumerator(bytesList).MoveNextToGetShort();
 
-            //analysis packet
-            _analysisPacketList[packetId].Analysis(bytesList);
             
             //receive debug
             _packetCount++;
             Debug.Log("Count " + _packetCount + " ID " + packetId + " " + _analysisPacketList[packetId].GetType().Name);
+            
+            
+            //analysis packet
+            _analysisPacketList[packetId].Analysis(bytesList);
         }
     }
 }
