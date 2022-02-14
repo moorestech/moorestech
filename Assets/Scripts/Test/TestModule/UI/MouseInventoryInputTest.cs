@@ -5,6 +5,7 @@ using MainGame.GameLogic.Inventory;
 using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Send;
+using MainGame.UnityView;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 
@@ -20,7 +21,7 @@ namespace Test.TestModule.UI
 
         private void Start()
         {
-            var playerInventory = new PlayerInventoryDataCache(new PlayerInventoryUpdateEvent(),playerInventoryItem);
+            var playerInventory = new PlayerInventoryDataCache(new PlayerInventoryUpdateEvent(),playerInventoryItem,new QueueInsertionMainThreadByExecution());
             var itemMove = new InventoryItemMoveService(
                 new PlayerConnectionSetting(0),
                 new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItem),

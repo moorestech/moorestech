@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Network.Event;
+using MainGame.UnityView;
 using MainGame.UnityView.UI.Inventory.View;
 using VContainer.Unity;
 
@@ -10,10 +11,14 @@ namespace MainGame.GameLogic.Inventory
     public class PlayerInventoryDataCache : IInitializable
     {
         private readonly PlayerInventoryItemView _playerInventoryItemView;
+        private readonly QueueInsertionMainThreadByExecution _actionQueue;
+        
         private List<ItemStack> _items = new(new ItemStack[PlayerInventoryConstant.MainInventorySize]);
         
-        public PlayerInventoryDataCache(PlayerInventoryUpdateEvent playerInventoryUpdateEvent,PlayerInventoryItemView playerInventoryItemView)
+        public PlayerInventoryDataCache(PlayerInventoryUpdateEvent playerInventoryUpdateEvent,PlayerInventoryItemView playerInventoryItemView,
+            QueueInsertionMainThreadByExecution actionQueue)
         {
+            _actionQueue = actionQueue;
             playerInventoryUpdateEvent.Subscribe(UpdateInventory,UpdateSlotInventory);
             _playerInventoryItemView = playerInventoryItemView;
         }
@@ -24,8 +29,8 @@ namespace MainGame.GameLogic.Inventory
             //イベントの発火
             for (int i = 0; i < _items.Count; i++)
             {
-                //viewのUIにインベントリが更新されたことを通知する
-                _playerInventoryItemView.OnInventoryUpdate(i,_items[i].ID,_items[i].Count);
+                //viewのUIにインベントリが更新されたことを通知する処理をキューに入れる
+                _actionQueue.Insert(() => _playerInventoryItemView.OnInventoryUpdate(i,_items[i].ID,_items[i].Count));
             }
         }
 
@@ -35,8 +40,8 @@ namespace MainGame.GameLogic.Inventory
             _items[s] = properties.ItemStack;
             //イベントの発火
             
-            //viewのUIにインベントリが更新されたことを通知する
-            _playerInventoryItemView.OnInventoryUpdate(s,_items[s].ID,_items[s].Count);
+            //viewのUIにインベントリが更新されたことを通知する処理をキューに入れる
+            _actionQueue.Insert(() => _playerInventoryItemView.OnInventoryUpdate(s,_items[s].ID,_items[s].Count));
         }
         
         public ItemStack GetItemStack(int slot)

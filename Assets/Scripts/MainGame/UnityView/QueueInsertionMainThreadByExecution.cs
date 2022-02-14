@@ -11,12 +11,7 @@ namespace MainGame.UnityView
     /// </summary>
     public class QueueInsertionMainThreadByExecution : ITickable
     {
-        Queue<Action> _actionQueue;
-
-        private void Awake()
-        {
-            _actionQueue = new Queue<Action>();
-        }
+        Queue<Action> _actionQueue = new();
 
         public void Insert(Action action)
         {

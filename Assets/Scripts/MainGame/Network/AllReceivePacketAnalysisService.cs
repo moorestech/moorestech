@@ -37,7 +37,7 @@ namespace MainGame.Network
             
             //receive debug
             _packetCount++;
-            Debug.Log("Count " + _packetCount + " ID " + packetId);
+            Debug.Log("Count " + _packetCount + " ID " + packetId + " " + _analysisPacketList[packetId].GetType().Name);
         }
     }
 }

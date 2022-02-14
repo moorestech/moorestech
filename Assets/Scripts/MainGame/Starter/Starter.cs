@@ -83,8 +83,7 @@ namespace MainGame.Starter
             builder.Register<PlayerInventoryDataCache>(Lifetime.Singleton);
             builder.Register<BlockInventoryDataCache>(Lifetime.Singleton);
             builder.Register<InventoryItemMoveService>(Lifetime.Singleton);
-            
-            builder.RegisterEntryPoint<QueueInsertionMainThreadByExecution>(); //別スレッドの実行をメインスレッドに変えて実行する
+            builder.Register<QueueInsertionMainThreadByExecution>(Lifetime.Singleton); //別スレッドの実行をメインスレッドに変えて実行する
             
             
             //ScriptableObjectの登録

@@ -3,6 +3,7 @@ using System.Reflection;
 using MainGame.Basic;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network.Event;
+using MainGame.UnityView;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.UI.Inventory.View;
 using NUnit.Framework;
@@ -17,7 +18,7 @@ namespace Test.EditModeTest.GameLogic
         {
             var inventoryEvent = new PlayerInventoryUpdateEvent();
             var playerInventoryItemView = new GameObject().AddComponent<PlayerInventoryItemView>();
-            var inventoryDataStore = new PlayerInventoryDataCache(inventoryEvent,playerInventoryItemView);
+            var inventoryDataStore = new PlayerInventoryDataCache(inventoryEvent,playerInventoryItemView,new QueueInsertionMainThreadByExecution());
             
             //インベントリの設定
             var inventory = new List<ItemStack>();
