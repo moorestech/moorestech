@@ -111,6 +111,10 @@ namespace PlayerInventory
                 var r = _mainInventory[i].AddItem(itemStack);
                 _mainInventory[i] = r.ProcessResultItemStack;
 
+                //イベントを発火
+                _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(
+                    new PlayerInventoryUpdateEventProperties(_playerId, i, _mainInventory[i]));
+                
                 //とった結果のアイテムを返す
                 return r.RemainderItemStack;
             }
