@@ -1,4 +1,5 @@
 using MainGame.Control.Game.MouseKeyboard;
+using MainGame.Control.UI.Command;
 using MainGame.Control.UI.Inventory;
 using MainGame.Control.UI.UIState;
 using MainGame.GameLogic;
@@ -42,6 +43,7 @@ namespace MainGame.Starter
         [SerializeField] private BlockInventoryInput blockInventoryInput;
         [SerializeField] private BlockClickDetect blockClickDetect;
         [SerializeField] private UIStateControl uIStateControl;
+        [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private MouseGroundClickInput mouseGroundClickInput;
         
         [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
@@ -98,6 +100,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(playerInventoryEquippedItemImageSet);
             builder.RegisterComponent(blockInventoryEquippedItemImageSet);
             builder.RegisterComponent(uIStateControl);
+            builder.RegisterComponent(commandUIInput);
 
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             
@@ -113,6 +116,7 @@ namespace MainGame.Starter
             _resolver.Resolve<PlayerInventoryInput>();
             _resolver.Resolve<BlockInventoryItemView>();
             _resolver.Resolve<BlockInventoryInput>();
+            _resolver.Resolve<CommandUIInput>();
             _resolver.Resolve<UIStateControl>();
 
         }
