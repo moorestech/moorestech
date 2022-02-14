@@ -15,11 +15,11 @@ namespace MainGame.GameLogic.Chunk
     {
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private readonly Dictionary<Vector2Int, int[,]> _chunk = new();
-        public ChunkDataStoreCache(ChunkUpdateEvent chunkUpdateEvent,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
+        public ChunkDataStoreCache(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             //イベントをサブスクライブする
-            chunkUpdateEvent.Subscribe(OnChunkUpdate,OnBlockUpdate);
+            networkReceivedChunkDataEvent.Subscribe(OnChunkUpdate,OnBlockUpdate);
         }
         
         /// <summary>

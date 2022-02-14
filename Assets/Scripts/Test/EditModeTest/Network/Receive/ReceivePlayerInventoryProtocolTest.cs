@@ -61,7 +61,7 @@ namespace Test.EditModeTest.Network.Receive
         public void ReceivedPacketToPlayerInventoryViaAllReceivePacketAnalysisServiceTestTest()
         {
             var inventoryEvent = new PlayerInventoryUpdateEvent();
-            var protocol = new AllReceivePacketAnalysisService(new ChunkUpdateEvent(),inventoryEvent);
+            var protocol = new AllReceivePacketAnalysisService(new NetworkReceivedChunkDataEvent(),inventoryEvent);
             var inventoryDataStore = new TestPlayerInventoryDataStore(inventoryEvent);
 
             var playerId = 10;

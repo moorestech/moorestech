@@ -18,7 +18,7 @@ namespace Test.EditModeTest.Network.Receive
         public void BlockPlaceEventToSetDataStoreTest()
         {
             //テスト用のBlockPlaceEventを生成
-            var chunkUpdateEvent = new ChunkUpdateEvent();
+            var chunkUpdateEvent = new NetworkReceivedChunkDataEvent();
             var blockPlaceEvent = new BlockPlaceEvent(chunkUpdateEvent);
             
             //イベントをサブスクライブする
@@ -49,7 +49,7 @@ namespace Test.EditModeTest.Network.Receive
         public void BlockPlaceEventViaAllReceivePacketAnalysisServiceTest()
         {
             //テスト用のBlockPlaceEventを生成
-            var chunkUpdateEvent = new ChunkUpdateEvent();
+            var chunkUpdateEvent = new NetworkReceivedChunkDataEvent();
             var packetAnalysis = new AllReceivePacketAnalysisService(chunkUpdateEvent,new PlayerInventoryUpdateEvent());
             
             var blockPosition = new Vector2Int(10,20);

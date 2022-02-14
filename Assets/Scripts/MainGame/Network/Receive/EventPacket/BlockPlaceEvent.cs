@@ -7,11 +7,11 @@ namespace MainGame.Network.Receive.EventPacket
 {
     public class BlockPlaceEvent : IAnalysisEventPacket
     {
-        readonly ChunkUpdateEvent _chunkUpdateEvent;
+        readonly NetworkReceivedChunkDataEvent _networkReceivedChunkDataEvent;
 
-        public BlockPlaceEvent(ChunkUpdateEvent chunkUpdateEvent)
+        public BlockPlaceEvent(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent)
         {
-            _chunkUpdateEvent = chunkUpdateEvent;
+            _networkReceivedChunkDataEvent = networkReceivedChunkDataEvent;
         }
 
         public void Analysis(List<byte> packet)
@@ -24,7 +24,7 @@ namespace MainGame.Network.Receive.EventPacket
             var blockId = bytes.MoveNextToGetInt();
             
             //ブロックをセットする
-            _chunkUpdateEvent.InvokeBlockUpdateEvent(new OnBlockUpdateEventProperties(new Vector2Int(x,y), blockId));
+            _networkReceivedChunkDataEvent.InvokeBlockUpdateEvent(new OnBlockUpdateEventProperties(new Vector2Int(x,y), blockId));
         }
     }
 }

@@ -64,7 +64,7 @@ namespace MainGame.Starter
             builder.Register<ISocket, SocketObject>(Lifetime.Singleton);
 
             //パケット受け取りイベント
-            builder.Register<ChunkUpdateEvent>(Lifetime.Singleton);
+            builder.Register<NetworkReceivedChunkDataEvent>(Lifetime.Singleton);
             builder.Register<PlayerInventoryUpdateEvent>(Lifetime.Singleton);
             builder.Register<BlockInventoryUpdateEvent>(Lifetime.Singleton);
             

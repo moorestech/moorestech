@@ -2,7 +2,7 @@
 
 namespace MainGame.Network.Event
 {
-    public class ChunkUpdateEvent
+    public class NetworkReceivedChunkDataEvent
     {
         public delegate void OnChunkUpdate(OnChunkUpdateEventProperties properties);
         public delegate void OnBlockUpdate(OnBlockUpdateEventProperties properties);

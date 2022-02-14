@@ -18,7 +18,7 @@ namespace Test.EditModeTest.GameLogic
         [Test]
         public void SetChunkTest()
         {
-            var chunkEvent = new ChunkUpdateEvent();
+            var chunkEvent = new NetworkReceivedChunkDataEvent();
             var chunkGameObjects = new GameObject().AddComponent<ChunkBlockGameObjectDataStore>();
             var chunkDataStore = new ChunkDataStoreCache(chunkEvent,chunkGameObjects);
             

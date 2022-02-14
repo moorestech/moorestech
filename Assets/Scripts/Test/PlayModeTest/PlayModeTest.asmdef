@@ -5,11 +5,11 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "UnityView",
-        "UnityView.Interface",
         "GameLogic",
         "Constant",
         "Unity.TextMeshPro",
-        "Control"
+        "Control",
+        "Network"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

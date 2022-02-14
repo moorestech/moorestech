@@ -18,7 +18,7 @@ namespace Test.EditModeTest.Network.Receive
         [Test]
         public void ReceiveChunkDataProtocolToRegisterDataStoreTest()
         {
-            var chunkUpdateEvent = new ChunkUpdateEvent();
+            var chunkUpdateEvent = new NetworkReceivedChunkDataEvent();
             var protocol = new ReceiveChunkDataProtocol(chunkUpdateEvent);
 
             //イベントをサブスクライブする
@@ -59,7 +59,7 @@ namespace Test.EditModeTest.Network.Receive
         [Test]
         public void ChunkDataAnalysisViaAllReceivePacketAnalysisServiceTest()
         {
-            var chunkUpdateEvent = new ChunkUpdateEvent();
+            var chunkUpdateEvent = new NetworkReceivedChunkDataEvent();
             var packetAnalysis = new AllReceivePacketAnalysisService(chunkUpdateEvent,new PlayerInventoryUpdateEvent());
             var chunkPosition = new Vector2Int(1000, 1240);
 
