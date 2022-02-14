@@ -1,4 +1,6 @@
 using MainGame.Control.UI.UIState;
+using MainGame.Network;
+using MainGame.Network.Send;
 using UnityEngine;
 
 namespace Test.TestModule.UI
@@ -10,7 +12,8 @@ namespace Test.TestModule.UI
 
         private void Start()
         {
-            uiStateControl.Construct(blockClickDetectTest);
+            var inventory = new RequestPlayerInventoryProtocol(new TestSocketModule(), new PlayerConnectionSetting(0));
+            uiStateControl.Construct(blockClickDetectTest,inventory);
         }
     }
 }

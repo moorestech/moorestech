@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MainGame.Network.Send;
+using UnityEngine;
 
 namespace MainGame.Control.UI.UIState.UIState
 {
@@ -7,13 +8,17 @@ namespace MainGame.Control.UI.UIState.UIState
         private readonly IUIState _gameScreen;
         private readonly MoorestechInputSettings _inputSettings;
         private readonly GameObject _playerInventory;
+        private readonly RequestPlayerInventoryProtocol _requestPlayerInventoryProtocol;
 
 
-        public PlayerInventoryState(IUIState gameScreen, MoorestechInputSettings inputSettings, GameObject playerInventory)
+        public PlayerInventoryState(IUIState gameScreen, MoorestechInputSettings inputSettings, GameObject playerInventory,
+            RequestPlayerInventoryProtocol requestPlayerInventoryProtocol)
         {
             _gameScreen = gameScreen;
             _inputSettings = inputSettings;
             _playerInventory = playerInventory;
+            _requestPlayerInventoryProtocol = requestPlayerInventoryProtocol;
+            
             playerInventory.SetActive(false);
         }
 
@@ -32,7 +37,11 @@ namespace MainGame.Control.UI.UIState.UIState
             return this;
         }
 
-        public void OnEnter() { _playerInventory.SetActive(true); }
+        public void OnEnter()
+        {
+            _playerInventory.SetActive(true);
+            _requestPlayerInventoryProtocol.Send();
+        }
 
         public void OnExit() { _playerInventory.SetActive(false); }
     }
