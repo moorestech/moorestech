@@ -23,35 +23,28 @@ namespace Test.CombinedTest.Server.PacketTest
         public void RemoveTest()
         {
             int playerId = 0;
-            int playerSlotIndex = 2;
+            int playerSlotIndex = 0;
 
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var BlockFactory = serviceProvider.GetService<BlockFactory>();
             var Blockconfig = serviceProvider.GetService<IBlockConfig>();
             
-
-            var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 3));
-            payload.AddRange(ToByteList.Convert(playerId));
-            packet.GetPacketResponse(payload);
+            
             var playerInventoryData =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
 
             var Block = BlockFactory.Create(1, 0);
+            var blockConfigData = Blockconfig.GetBlockConfig(Block.GetBlockId());
           
             //削除するためのブロックの生成
             worldBlock.AddBlock(Block, 0, 0, BlockDirection.North);
-
-            var BlockItemId = Blockconfig.GetBlockConfig(Block.GetBlockId());
-
-
-
+            
             Assert.AreEqual(0,worldBlock.GetBlock(0,0).GetIntId());
             
             //プレイヤーインベントリに削除したブロックを追加
 
-            playerInventoryData.InsertItem(_itemStackFactory.Create(BlockItemId.ItemId,1));
+            playerInventoryData.InsertItem(_itemStackFactory.Create(blockConfigData.ItemId,1));
 
             //プロトコルを使ってブロックを削除
             packet.GetPacketResponse(RemoveBlock(0, 0, 0));
@@ -60,7 +53,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //削除したブロックがプレイヤーインベントリに追加されているか
-            Assert.AreEqual(BlockItemId.ItemId, playerInventoryData.GetItem(playerSlotIndex).Id);
+            Assert.AreEqual(blockConfigData.ItemId, playerInventoryData.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(1, playerInventoryData.GetItem(playerSlotIndex).Count);
 
         }
