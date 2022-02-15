@@ -32,14 +32,6 @@ namespace Test.TestModule.UI
             
             playerInventoryEquippedItemImageSet.Construct(playerInventoryItem,new PlayerInventoryUpdateEvent());
             playerInventoryInput.Construct(playerInventoryItem,itemMove,playerInventory,playerInventoryEquippedItemImageSet);
-
-            StartCoroutine(PostStart());
-        }
-
-        private IEnumerator PostStart()
-        {
-            yield return new WaitForSeconds(0.1f);
-            playerInventoryInput.PostStart();
         }
     }
 }

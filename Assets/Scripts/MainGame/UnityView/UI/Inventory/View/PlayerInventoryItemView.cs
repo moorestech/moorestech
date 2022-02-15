@@ -9,7 +9,7 @@ namespace MainGame.UnityView.UI.Inventory.View
     public class PlayerInventoryItemView : MonoBehaviour
     {
         [SerializeField] private InventoryItemSlot inventoryItemSlot;
-        List<InventoryItemSlot> _slots = new();
+        List<InventoryItemSlot> _slots;
         private ItemImages _itemImages;
         
         
@@ -18,12 +18,6 @@ namespace MainGame.UnityView.UI.Inventory.View
         {
             _itemImages = itemImages;
             
-            for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
-            {
-                var s = Instantiate(inventoryItemSlot.gameObject, transform).GetComponent<InventoryItemSlot>();
-                s.Construct(i);
-                _slots.Add(s);
-            }
         }
 
         public void OnInventoryUpdate(int slot, int itemId, int count)
@@ -34,6 +28,15 @@ namespace MainGame.UnityView.UI.Inventory.View
         
         public IReadOnlyList<InventoryItemSlot> GetInventoryItemSlots()
         {
+            if (_slots != null) return _slots;
+
+            _slots = new List<InventoryItemSlot>();
+            for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
+            {
+                var s = Instantiate(inventoryItemSlot.gameObject, transform).GetComponent<InventoryItemSlot>();
+                s.Construct(i);
+                _slots.Add(s);
+            }
             return _slots;
         }
     }

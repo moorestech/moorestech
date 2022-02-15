@@ -7,7 +7,7 @@ using VContainer.Unity;
 
 namespace MainGame.Control.UI.Inventory
 {
-    public class PlayerInventoryInput : MonoBehaviour,IPostStartable
+    public class PlayerInventoryInput : MonoBehaviour
     {
         
         private int _equippedItemIndex = -1;
@@ -32,11 +32,9 @@ namespace MainGame.Control.UI.Inventory
             _equippedItem.gameObject.SetActive(false);
             _inputSettings = new();
             _inputSettings.Enable();
-        }
-        
-        //イベントをボタンに登録する
-        public void PostStart()
-        {
+            
+            
+            //イベントをボタンに登録する
             foreach (var slot in _playerInventoryItemView.GetInventoryItemSlots())
             {
                 slot.SubscribeOnItemSlotClick(OnSlotClick);
