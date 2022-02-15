@@ -63,6 +63,11 @@ namespace Test.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(PlayerInventoryItemMove(2, 1, 3, playerId));
             Assert.AreEqual(playerInventoryData.GetItem(2), itemStackFactory.CreatEmpty());
             Assert.AreEqual(playerInventoryData.GetItem(1), itemStackFactory.Create(1, 4));
+            
+            
+            //全てのアイテムを同じスロットにアイテムを移動させるテスト
+            packet.GetPacketResponse(PlayerInventoryItemMove(1, 1, 4, playerId));
+            Assert.AreEqual(playerInventoryData.GetItem(1), itemStackFactory.Create(1, 4));
         }
 
         private List<byte> PlayerInventoryItemMove(int fromSlot, int toSlot, int itemCount, int playerId)

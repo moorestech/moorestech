@@ -101,6 +101,27 @@ namespace PlayerInventory
             return item;
         }
 
+        public IItemStack InsertItem(IItemStack itemStack)
+        {
+            for (var i = 0; i < _mainInventory.Count; i++)
+            {
+                if (!_mainInventory[i].IsAllowedToAdd(itemStack)) continue;
+
+                //インベントリにアイテムを入れる
+                var r = _mainInventory[i].AddItem(itemStack);
+                _mainInventory[i] = r.ProcessResultItemStack;
+
+                //イベントを発火
+                _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(
+                    new PlayerInventoryUpdateEventProperties(_playerId, i, _mainInventory[i]));
+                
+                //とった結果のアイテムを返す
+                return r.RemainderItemStack;
+            }
+
+            return itemStack;
+        }
+
         public int GetSlotSize() { return PlayerInventoryConst.MainInventorySize; }
     }
 }
