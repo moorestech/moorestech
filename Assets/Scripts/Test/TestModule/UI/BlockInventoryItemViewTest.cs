@@ -23,7 +23,6 @@ namespace Test.TestModule.UI
         private void Start()
         {
             blockInventoryItemView.Construct(itemImages);
-            var queue = new GameObject().AddComponent<MainThreadExecutionQueue>();
             var blockInventory = new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItemView);
             var playerInventoryItemView = new GameObject().AddComponent<PlayerInventoryItemView>();
             var itemMove = new InventoryItemMoveService(

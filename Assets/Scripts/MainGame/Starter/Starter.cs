@@ -50,8 +50,6 @@ namespace MainGame.Starter
         [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
         [SerializeField] private BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet;
 
-        [SerializeField] private MainThreadExecutionQueue mainThreadExecutionQueue;
-
         void Start()
         {
             var builder = new ContainerBuilder();
@@ -104,7 +102,6 @@ namespace MainGame.Starter
             builder.RegisterComponent(blockInventoryEquippedItemImageSet);
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(commandUIInput);
-            builder.RegisterComponent(mainThreadExecutionQueue);
 
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             
@@ -114,7 +111,6 @@ namespace MainGame.Starter
 
             //依存関係を解決
             _resolver = builder.Build();
-            _resolver.Resolve<MainThreadExecutionQueue>();
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();
             _resolver.Resolve<MouseGroundClickInput>();
             _resolver.Resolve<PlayerInventoryItemView>();

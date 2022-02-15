@@ -16,6 +16,7 @@ namespace MainGame.UnityView
         private void Awake()
         {
             _actionQueue = new Queue<Action>();
+            _instance = this;
         }
 
         public void Insert(Action action)
@@ -34,6 +35,18 @@ namespace MainGame.UnityView
                 {
                     _actionQueue.Dequeue()();
                 }
+            }
+        }
+        
+        private static MainThreadExecutionQueue _instance;
+
+        public static MainThreadExecutionQueue Instance
+        {
+            get
+            {
+                if (_instance != null) return _instance;
+                throw new Exception("MainThreadExecutionQueueがアタッチされていません");
+
             }
         }
     }

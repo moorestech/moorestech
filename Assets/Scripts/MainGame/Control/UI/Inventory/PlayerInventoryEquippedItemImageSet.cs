@@ -15,12 +15,10 @@ namespace MainGame.Control.UI.Inventory
         private int _equippedItemIndex = 0;
         
         private PlayerInventoryItemView _playerInventoryItemView;
-        private MainThreadExecutionQueue _threadExecutionQueue;
         
         [Inject]
-        public void Construct(PlayerInventoryItemView playerInventoryItemView, PlayerInventoryUpdateEvent playerInventoryUpdateEvent,MainThreadExecutionQueue queue)
+        public void Construct(PlayerInventoryItemView playerInventoryItemView, PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
         {
-            _threadExecutionQueue = queue;
             _playerInventoryItemView = playerInventoryItemView;
             _equippedItem = GetComponent<InventoryItemSlot>();
             playerInventoryUpdateEvent.Subscribe(PlayerInventoryUpdate,PlayerInventorySlotUpdate);
@@ -32,7 +30,7 @@ namespace MainGame.Control.UI.Inventory
         private void PlayerInventorySlotUpdate(OnPlayerInventorySlotUpdateProperties properties)
         {
             if (properties.SlotId != _equippedItemIndex) return;
-            _threadExecutionQueue.Insert(() => SetItem(properties.SlotId));
+            MainThreadExecutionQueue.Instance.Insert(() => SetItem(properties.SlotId));
             
         }
         
