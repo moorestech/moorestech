@@ -18,6 +18,8 @@ namespace MainGame.Control.UI.UIState.UIState
             _inputSettings = inputSettings;
             _playerInventory = playerInventory;
             _requestPlayerInventoryProtocol = requestPlayerInventoryProtocol;
+            //起動時に初回のインベントリを取得
+            _requestPlayerInventoryProtocol.Send();
             
             playerInventory.SetActive(false);
         }
