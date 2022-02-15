@@ -29,7 +29,7 @@ namespace Test.TestModule.UI
         {
             playerInventoryItemView.Construct(itemImages);
             var updateEvent = new PlayerInventoryUpdateEvent();
-            var queue = new GameObject().AddComponent<QueueInsertionMainThreadByExecution>();
+            var queue = new GameObject().AddComponent<MainThreadExecutionQueue>();
             _playerInventoryDataCache = new PlayerInventoryDataCache(updateEvent,playerInventoryItemView,queue);
 
             _insertItems = new List<(int,int,int)>();
