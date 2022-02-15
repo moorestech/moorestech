@@ -275,9 +275,9 @@
             "actions": [
                 {
                     "name": "OpenMenu",
-                    "type": "Button",
+                    "type": "Value",
                     "id": "d05b5bb9-2c20-4891-9da9-7b462f4ac170",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -314,6 +314,15 @@
                     "type": "Button",
                     "id": "4e16a79f-7adf-46ea-912e-883f895d6760",
                     "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "ChangeHotBar",
+                    "type": "Value",
+                    "id": "97c655d1-9252-44a3-82bb-a7f5abd2debd",
+                    "expectedControlType": "Integer",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -374,6 +383,116 @@
                     "action": "CloseUI",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "Hot Bar Key Board",
+                    "id": "f5958c92-922b-42f7-8964-f78e38499140",
+                    "path": "HotBarKeyBoard",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeHotBar",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "Select 0",
+                    "id": "6747eacc-3be0-41a1-83fd-f09af1d66d0c",
+                    "path": "<Keyboard>/0",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeHotBar",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Select 1",
+                    "id": "ba477684-d3fd-445a-aafd-e0019c1374e9",
+                    "path": "<Keyboard>/1",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeHotBar",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Select 2",
+                    "id": "7718ab06-ee8d-42b8-a74a-30e4005bd272",
+                    "path": "<Keyboard>/2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeHotBar",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Select 3",
+                    "id": "ae8b0634-2115-4f7a-a108-28d8b4371b11",
+                    "path": "<Keyboard>/3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeHotBar",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Select 4",
+                    "id": "ace77139-0073-4a65-ab97-618eb29cdc71",
+                    "path": "<Keyboard>/4",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeHotBar",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Select 5",
+                    "id": "1ffbdef0-ef7d-4c95-8def-478709bd57d8",
+                    "path": "<Keyboard>/5",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeHotBar",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Select 6",
+                    "id": "3a5e1a13-ab15-41a1-85e5-b38011b7d89d",
+                    "path": "<Keyboard>/6",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeHotBar",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Select 7",
+                    "id": "0aee2664-3cdb-42fc-b7d1-6886c09c15ef",
+                    "path": "<Keyboard>/7",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeHotBar",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Select 8",
+                    "id": "d7b1afa0-569a-4ee2-8aad-25c046b47b09",
+                    "path": "<Keyboard>/8",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeHotBar",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 }
             ]
         }
