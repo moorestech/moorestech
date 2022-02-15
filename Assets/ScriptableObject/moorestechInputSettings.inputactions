@@ -319,7 +319,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "ChangeHotBar",
+                    "name": "HotBar",
                     "type": "Value",
                     "id": "97c655d1-9252-44a3-82bb-a7f5abd2debd",
                     "expectedControlType": "Integer",
@@ -391,7 +391,7 @@
                     "interactions": "Tap",
                     "processors": "",
                     "groups": "",
-                    "action": "ChangeHotBar",
+                    "action": "HotBar",
                     "isComposite": true,
                     "isPartOfComposite": false
                 },
@@ -402,7 +402,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ChangeHotBar",
+                    "action": "HotBar",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -413,7 +413,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ChangeHotBar",
+                    "action": "HotBar",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -424,7 +424,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ChangeHotBar",
+                    "action": "HotBar",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -435,7 +435,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ChangeHotBar",
+                    "action": "HotBar",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -446,7 +446,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ChangeHotBar",
+                    "action": "HotBar",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -457,7 +457,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ChangeHotBar",
+                    "action": "HotBar",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -468,7 +468,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ChangeHotBar",
+                    "action": "HotBar",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -479,7 +479,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ChangeHotBar",
+                    "action": "HotBar",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -490,7 +490,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ChangeHotBar",
+                    "action": "HotBar",
                     "isComposite": false,
                     "isPartOfComposite": true
                 }

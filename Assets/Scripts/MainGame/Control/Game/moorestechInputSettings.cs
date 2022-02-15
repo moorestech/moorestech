@@ -341,7 +341,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""ChangeHotBar"",
+                    ""name"": ""HotBar"",
                     ""type"": ""Value"",
                     ""id"": ""97c655d1-9252-44a3-82bb-a7f5abd2debd"",
                     ""expectedControlType"": ""Integer"",
@@ -413,7 +413,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""interactions"": ""Tap"",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ChangeHotBar"",
+                    ""action"": ""HotBar"",
                     ""isComposite"": true,
                     ""isPartOfComposite"": false
                 },
@@ -424,7 +424,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ChangeHotBar"",
+                    ""action"": ""HotBar"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -435,7 +435,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ChangeHotBar"",
+                    ""action"": ""HotBar"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -446,7 +446,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ChangeHotBar"",
+                    ""action"": ""HotBar"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -457,7 +457,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ChangeHotBar"",
+                    ""action"": ""HotBar"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -468,7 +468,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ChangeHotBar"",
+                    ""action"": ""HotBar"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -479,7 +479,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ChangeHotBar"",
+                    ""action"": ""HotBar"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -490,7 +490,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ChangeHotBar"",
+                    ""action"": ""HotBar"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -501,7 +501,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ChangeHotBar"",
+                    ""action"": ""HotBar"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -512,7 +512,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ChangeHotBar"",
+                    ""action"": ""HotBar"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 }
@@ -586,7 +586,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         m_UI_OpenInventory = m_UI.FindAction("OpenInventory", throwIfNotFound: true);
         m_UI_InventoryItemOnePut = m_UI.FindAction("InventoryItemOnePut", throwIfNotFound: true);
         m_UI_InventoryItemHalve = m_UI.FindAction("InventoryItemHalve", throwIfNotFound: true);
-        m_UI_ChangeHotBar = m_UI.FindAction("ChangeHotBar", throwIfNotFound: true);
+        m_UI_HotBar = m_UI.FindAction("HotBar", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -749,7 +749,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     private readonly InputAction m_UI_OpenInventory;
     private readonly InputAction m_UI_InventoryItemOnePut;
     private readonly InputAction m_UI_InventoryItemHalve;
-    private readonly InputAction m_UI_ChangeHotBar;
+    private readonly InputAction m_UI_HotBar;
     public struct UIActions
     {
         private @MoorestechInputSettings m_Wrapper;
@@ -759,7 +759,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         public InputAction @OpenInventory => m_Wrapper.m_UI_OpenInventory;
         public InputAction @InventoryItemOnePut => m_Wrapper.m_UI_InventoryItemOnePut;
         public InputAction @InventoryItemHalve => m_Wrapper.m_UI_InventoryItemHalve;
-        public InputAction @ChangeHotBar => m_Wrapper.m_UI_ChangeHotBar;
+        public InputAction @HotBar => m_Wrapper.m_UI_HotBar;
         public InputActionMap Get() { return m_Wrapper.m_UI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -784,9 +784,9 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 @InventoryItemHalve.started -= m_Wrapper.m_UIActionsCallbackInterface.OnInventoryItemHalve;
                 @InventoryItemHalve.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnInventoryItemHalve;
                 @InventoryItemHalve.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnInventoryItemHalve;
-                @ChangeHotBar.started -= m_Wrapper.m_UIActionsCallbackInterface.OnChangeHotBar;
-                @ChangeHotBar.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnChangeHotBar;
-                @ChangeHotBar.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnChangeHotBar;
+                @HotBar.started -= m_Wrapper.m_UIActionsCallbackInterface.OnHotBar;
+                @HotBar.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnHotBar;
+                @HotBar.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnHotBar;
             }
             m_Wrapper.m_UIActionsCallbackInterface = instance;
             if (instance != null)
@@ -806,9 +806,9 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 @InventoryItemHalve.started += instance.OnInventoryItemHalve;
                 @InventoryItemHalve.performed += instance.OnInventoryItemHalve;
                 @InventoryItemHalve.canceled += instance.OnInventoryItemHalve;
-                @ChangeHotBar.started += instance.OnChangeHotBar;
-                @ChangeHotBar.performed += instance.OnChangeHotBar;
-                @ChangeHotBar.canceled += instance.OnChangeHotBar;
+                @HotBar.started += instance.OnHotBar;
+                @HotBar.performed += instance.OnHotBar;
+                @HotBar.canceled += instance.OnHotBar;
             }
         }
     }
@@ -868,6 +868,6 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         void OnOpenInventory(InputAction.CallbackContext context);
         void OnInventoryItemOnePut(InputAction.CallbackContext context);
         void OnInventoryItemHalve(InputAction.CallbackContext context);
-        void OnChangeHotBar(InputAction.CallbackContext context);
+        void OnHotBar(InputAction.CallbackContext context);
     }
 }
