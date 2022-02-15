@@ -11,6 +11,8 @@ namespace MainGame.UnityView.UI.Inventory.View
         
         [SerializeField] private InventoryItemSlot inventoryItemSlot;
         List<InventoryItemSlot> _slots;
+        public IReadOnlyList<InventoryItemSlot> Slots => _slots;
+        
         private ItemImages _itemImages;
         
         
