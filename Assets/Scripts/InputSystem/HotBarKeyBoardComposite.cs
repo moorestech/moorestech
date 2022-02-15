@@ -50,8 +50,6 @@ namespace InputSystem
             if (context.ReadValueAsButton(select8)) return select8;
             
             return 0;
-            
-            return 0;
         }
     }
 }

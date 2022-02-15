@@ -348,6 +348,15 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""SwitchHotBar"",
+                    ""type"": ""Value"",
+                    ""id"": ""d2f618be-de73-4ef6-a5b9-1b42a7ab7978"",
+                    ""expectedControlType"": ""Integer"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -515,6 +524,17 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""action"": ""HotBar"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""bb5ea9dd-f755-4da1-99c4-024f41793ee3"",
+                    ""path"": ""<Mouse>/scroll/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SwitchHotBar"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -587,6 +607,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         m_UI_InventoryItemOnePut = m_UI.FindAction("InventoryItemOnePut", throwIfNotFound: true);
         m_UI_InventoryItemHalve = m_UI.FindAction("InventoryItemHalve", throwIfNotFound: true);
         m_UI_HotBar = m_UI.FindAction("HotBar", throwIfNotFound: true);
+        m_UI_SwitchHotBar = m_UI.FindAction("SwitchHotBar", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -750,6 +771,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     private readonly InputAction m_UI_InventoryItemOnePut;
     private readonly InputAction m_UI_InventoryItemHalve;
     private readonly InputAction m_UI_HotBar;
+    private readonly InputAction m_UI_SwitchHotBar;
     public struct UIActions
     {
         private @MoorestechInputSettings m_Wrapper;
@@ -760,6 +782,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         public InputAction @InventoryItemOnePut => m_Wrapper.m_UI_InventoryItemOnePut;
         public InputAction @InventoryItemHalve => m_Wrapper.m_UI_InventoryItemHalve;
         public InputAction @HotBar => m_Wrapper.m_UI_HotBar;
+        public InputAction @SwitchHotBar => m_Wrapper.m_UI_SwitchHotBar;
         public InputActionMap Get() { return m_Wrapper.m_UI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -787,6 +810,9 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 @HotBar.started -= m_Wrapper.m_UIActionsCallbackInterface.OnHotBar;
                 @HotBar.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnHotBar;
                 @HotBar.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnHotBar;
+                @SwitchHotBar.started -= m_Wrapper.m_UIActionsCallbackInterface.OnSwitchHotBar;
+                @SwitchHotBar.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnSwitchHotBar;
+                @SwitchHotBar.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnSwitchHotBar;
             }
             m_Wrapper.m_UIActionsCallbackInterface = instance;
             if (instance != null)
@@ -809,6 +835,9 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 @HotBar.started += instance.OnHotBar;
                 @HotBar.performed += instance.OnHotBar;
                 @HotBar.canceled += instance.OnHotBar;
+                @SwitchHotBar.started += instance.OnSwitchHotBar;
+                @SwitchHotBar.performed += instance.OnSwitchHotBar;
+                @SwitchHotBar.canceled += instance.OnSwitchHotBar;
             }
         }
     }
@@ -869,5 +898,6 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         void OnInventoryItemOnePut(InputAction.CallbackContext context);
         void OnInventoryItemHalve(InputAction.CallbackContext context);
         void OnHotBar(InputAction.CallbackContext context);
+        void OnSwitchHotBar(InputAction.CallbackContext context);
     }
 }

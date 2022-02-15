@@ -326,6 +326,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "SwitchHotBar",
+                    "type": "Value",
+                    "id": "d2f618be-de73-4ef6-a5b9-1b42a7ab7978",
+                    "expectedControlType": "Integer",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -493,6 +502,17 @@
                     "action": "HotBar",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "bb5ea9dd-f755-4da1-99c4-024f41793ee3",
+                    "path": "<Mouse>/scroll/y",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SwitchHotBar",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }
