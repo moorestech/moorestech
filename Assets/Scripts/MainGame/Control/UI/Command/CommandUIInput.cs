@@ -29,6 +29,7 @@ namespace MainGame.Control.UI.Command
         private void SubmitCommand()
         {
             _sendCommandProtocol.SendCommand(commandInputField.text);
+            commandInputField.text = String.Empty;
         }
     }
 }
