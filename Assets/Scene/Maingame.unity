@@ -575,6 +575,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2070925441746177912, guid: a1a802ecaf6775746bb2a929fb554ad8, type: 3}
   m_PrefabInstance: {fileID: 1402827283}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &932310750 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 777749069049601569, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5987fef42adc4228a01abbf00467f905, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &1037224095 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1438684973846715379, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
@@ -706,6 +717,7 @@ MonoBehaviour:
   mainCamera: {fileID: 1240479239}
   groundPlane: {fileID: 367739784}
   chunkBlockGameObjectDataStore: {fileID: 5365914811176455016, guid: eb9da167e98584171895e4493b9fe661, type: 3}
+  hotBarItemView: {fileID: 932310750}
   playerInventoryItemView: {fileID: 135985975}
   playerInventoryInput: {fileID: 135985974}
   blockInventoryItemView: {fileID: 135985976}
@@ -716,7 +728,6 @@ MonoBehaviour:
   mouseGroundClickInput: {fileID: 1684657584}
   playerInventoryEquippedItemImageSet: {fileID: 135985978}
   blockInventoryEquippedItemImageSet: {fileID: 135985977}
-  mainThreadExecutionQueue: {fileID: 1255688097}
 --- !u!4 &1255688096
 Transform:
   m_ObjectHideFlags: 0

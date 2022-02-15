@@ -38,6 +38,7 @@ namespace MainGame.Starter
         [SerializeField] private GroundPlane groundPlane;
 
         [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
+        [SerializeField] private HotBarItemView hotBarItemView;
         [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
         [SerializeField] private PlayerInventoryInput playerInventoryInput;
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
@@ -102,6 +103,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(blockInventoryEquippedItemImageSet);
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(commandUIInput);
+            builder.RegisterComponent(hotBarItemView);
 
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             
