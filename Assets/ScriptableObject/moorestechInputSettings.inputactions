@@ -386,9 +386,9 @@
                 },
                 {
                     "name": "Hot Bar Key Board",
-                    "id": "f5958c92-922b-42f7-8964-f78e38499140",
+                    "id": "853740fe-6882-4ac4-8439-4c65c70f4ff7",
                     "path": "HotBarKeyBoard",
-                    "interactions": "",
+                    "interactions": "Tap",
                     "processors": "",
                     "groups": "",
                     "action": "ChangeHotBar",
@@ -396,19 +396,8 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "Select 0",
-                    "id": "6747eacc-3be0-41a1-83fd-f09af1d66d0c",
-                    "path": "<Keyboard>/0",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "ChangeHotBar",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "Select 1",
-                    "id": "ba477684-d3fd-445a-aafd-e0019c1374e9",
+                    "name": "select0",
+                    "id": "a054cc2f-0784-4063-a585-503df8ea50b7",
                     "path": "<Keyboard>/1",
                     "interactions": "",
                     "processors": "",
@@ -418,8 +407,8 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "Select 2",
-                    "id": "7718ab06-ee8d-42b8-a74a-30e4005bd272",
+                    "name": "select1",
+                    "id": "4a8e5941-13b3-44d5-af35-7b38d53c0f9d",
                     "path": "<Keyboard>/2",
                     "interactions": "",
                     "processors": "",
@@ -429,8 +418,8 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "Select 3",
-                    "id": "ae8b0634-2115-4f7a-a108-28d8b4371b11",
+                    "name": "select2",
+                    "id": "7dc8b165-0fb0-4416-a2d8-a50375891a69",
                     "path": "<Keyboard>/3",
                     "interactions": "",
                     "processors": "",
@@ -440,8 +429,8 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "Select 4",
-                    "id": "ace77139-0073-4a65-ab97-618eb29cdc71",
+                    "name": "select3",
+                    "id": "82017b85-3f8f-4ee6-a860-e0a49d78f85c",
                     "path": "<Keyboard>/4",
                     "interactions": "",
                     "processors": "",
@@ -451,8 +440,8 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "Select 5",
-                    "id": "1ffbdef0-ef7d-4c95-8def-478709bd57d8",
+                    "name": "select4",
+                    "id": "8b7a484b-6192-48ad-a494-88c22e8c0066",
                     "path": "<Keyboard>/5",
                     "interactions": "",
                     "processors": "",
@@ -462,8 +451,8 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "Select 6",
-                    "id": "3a5e1a13-ab15-41a1-85e5-b38011b7d89d",
+                    "name": "select5",
+                    "id": "a61cda0d-b3fd-4f79-90e4-4231c0ca0ca8",
                     "path": "<Keyboard>/6",
                     "interactions": "",
                     "processors": "",
@@ -473,8 +462,8 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "Select 7",
-                    "id": "0aee2664-3cdb-42fc-b7d1-6886c09c15ef",
+                    "name": "select6",
+                    "id": "f805dfe0-7749-44da-b624-c22a98738c64",
                     "path": "<Keyboard>/7",
                     "interactions": "",
                     "processors": "",
@@ -484,9 +473,20 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "Select 8",
-                    "id": "d7b1afa0-569a-4ee2-8aad-25c046b47b09",
+                    "name": "select7",
+                    "id": "2eded8a4-80e5-4b93-83d9-acc2d2baf8b8",
                     "path": "<Keyboard>/8",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChangeHotBar",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "select8",
+                    "id": "532d0724-56a1-4247-8469-be78b275c2a9",
+                    "path": "<Keyboard>/9",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
