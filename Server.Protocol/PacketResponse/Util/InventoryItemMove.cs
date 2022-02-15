@@ -8,9 +8,16 @@ namespace Server.Protocol.PacketResponse.Util
         public void Move(ItemStackFactory itemStackFactory, IInventory sourceInventory, int sourceSlot,
             IInventory destinationInventory, int destinationSlot, int itemCount)
         {
+            //移動元と移動先のIDが同じ場合は移動しない
+            if (sourceInventory.GetHashCode() == destinationInventory.GetHashCode() && sourceSlot == destinationSlot)
+            {
+                return;
+            }
+            
+            
             //移動元からアイテムを取得
             var originItem = sourceInventory.GetItem(sourceSlot);
-            //動かすアイテム数の修正
+            //移動アイテム数が本来のアイテムより多い時は、本来のアイテム数に修正する
             if (originItem.Count < itemCount)
             {
                 itemCount = originItem.Count;
@@ -37,10 +44,10 @@ namespace Server.Protocol.PacketResponse.Util
                 //移動元インベントリに残りのアイテムをセット
                 sourceInventory.SetItem(sourceSlot, remainItem);
             }
+            //移動元と移動先のIDが異なる時、移動元インベントリのアイテムをすべて入れ替える時にのみ入れ替えを実行する
+            //一部入れ替え時は入れ替え作業は実行しない
             else if (itemCount == originItem.Count)
             {
-                //移動元インベントリのアイテムをすべて入れ替える時にのみ入れ替えを実行する
-                //一部入れ替え時は入れ替え作業は実行しない
                 destinationInventory.SetItem(destinationSlot, originItem);
                 sourceInventory.SetItem(sourceSlot, destinationInventoryItem);
             }
