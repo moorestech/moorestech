@@ -12,13 +12,17 @@ namespace MainGame.GameLogic.Inventory
     public class PlayerInventoryDataCache : IInitializable
     {
         private readonly PlayerInventoryItemView _playerInventoryItemView;
+        private readonly HotBarItemView _hotBarItemView;
         
         private List<ItemStack> _items = new(new ItemStack[PlayerInventoryConstant.MainInventorySize]);
         
-        public PlayerInventoryDataCache(PlayerInventoryUpdateEvent playerInventoryUpdateEvent,PlayerInventoryItemView playerInventoryItemView)
+        public PlayerInventoryDataCache(
+            PlayerInventoryUpdateEvent playerInventoryUpdateEvent,PlayerInventoryItemView playerInventoryItemView,
+            HotBarItemView hotBarItemView)
         {
             playerInventoryUpdateEvent.Subscribe(UpdateInventory,UpdateSlotInventory);
             _playerInventoryItemView = playerInventoryItemView;
+            _hotBarItemView = hotBarItemView;
         }
 
         public void UpdateInventory(OnPlayerInventoryUpdateProperties properties)
@@ -30,6 +34,7 @@ namespace MainGame.GameLogic.Inventory
                 //viewのUIにインベントリが更新されたことを通知する処理をキューに入れる
                 var slot = i;
                 MainThreadExecutionQueue.Instance.Insert(() => _playerInventoryItemView.OnInventoryUpdate(slot,_items[slot].ID,_items[slot].Count));
+                MainThreadExecutionQueue.Instance.Insert(() => _hotBarItemView.OnInventoryUpdate(slot,_items[slot].ID,_items[slot].Count));
             }
         }
 
@@ -41,6 +46,7 @@ namespace MainGame.GameLogic.Inventory
             
             //viewのUIにインベントリが更新されたことを通知する処理をキューに入れる
             MainThreadExecutionQueue.Instance.Insert(() => _playerInventoryItemView.OnInventoryUpdate(s,_items[s].ID,_items[s].Count));
+            MainThreadExecutionQueue.Instance.Insert(() => _hotBarItemView.OnInventoryUpdate(s,_items[s].ID,_items[s].Count));
         }
         
         public ItemStack GetItemStack(int slot)

@@ -25,7 +25,6 @@ namespace MainGame.UnityView.UI.Inventory.View
             }
         }
 
-        //TODO modelから呼び出されるようにする
         public void OnInventoryUpdate(int slot, int itemId, int count)
         {
             //スロットが一番下の段でなければスルー

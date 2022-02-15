@@ -17,6 +17,7 @@ namespace Test.TestModule.UI
     public class InventoryViewTestModule : MonoBehaviour
     {
         [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
+        [SerializeField] private HotBarItemView hotBarItemView;
         [SerializeField] private ItemImages itemImages;
 
         public PlayerInventoryDataCache PlayerInventoryDataCache => _playerInventoryDataCache;
@@ -29,7 +30,7 @@ namespace Test.TestModule.UI
         {
             playerInventoryItemView.Construct(itemImages);
             var updateEvent = new PlayerInventoryUpdateEvent();
-            _playerInventoryDataCache = new PlayerInventoryDataCache(updateEvent,playerInventoryItemView);
+            _playerInventoryDataCache = new PlayerInventoryDataCache(updateEvent,playerInventoryItemView,hotBarItemView);
 
             _insertItems = new List<(int,int,int)>();
 
