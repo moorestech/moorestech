@@ -22,6 +22,7 @@ namespace Test.TestModule.UI
         private void Start()
         {
             var playerInventory = GetComponent<InventoryViewTestModule>().PlayerInventoryDataCache;
+            var que = new GameObject().AddComponent<MainThreadExecutionQueue>();
             var itemMove = new InventoryItemMoveService(
                 new PlayerConnectionSetting(0),
                 new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItem),
@@ -30,7 +31,7 @@ namespace Test.TestModule.UI
                 new SendBlockInventoryPlayerInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendPlayerInventoryMoveItemProtocol(new TestSocketModule()));
             
-            playerInventoryEquippedItemImageSet.Construct(playerInventoryItem,new PlayerInventoryUpdateEvent());
+            playerInventoryEquippedItemImageSet.Construct(playerInventoryItem,new PlayerInventoryUpdateEvent(),que);
             playerInventoryInput.Construct(playerInventoryItem,itemMove,playerInventory,playerInventoryEquippedItemImageSet);
         }
     }

@@ -716,7 +716,7 @@ MonoBehaviour:
   mouseGroundClickInput: {fileID: 1684657584}
   playerInventoryEquippedItemImageSet: {fileID: 135985978}
   blockInventoryEquippedItemImageSet: {fileID: 135985977}
-  queueInsertionMainThreadByExecution: {fileID: 1255688097}
+  mainThreadExecutionQueue: {fileID: 1255688097}
 --- !u!4 &1255688096
 Transform:
   m_ObjectHideFlags: 0

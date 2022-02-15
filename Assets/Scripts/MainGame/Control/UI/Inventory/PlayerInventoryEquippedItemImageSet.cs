@@ -1,4 +1,5 @@
 ﻿using MainGame.Network.Event;
+using MainGame.UnityView;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -14,10 +15,12 @@ namespace MainGame.Control.UI.Inventory
         private int _equippedItemIndex = 0;
         
         private PlayerInventoryItemView _playerInventoryItemView;
+        private MainThreadExecutionQueue _threadExecutionQueue;
         
         [Inject]
-        public void Construct(PlayerInventoryItemView playerInventoryItemView, PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+        public void Construct(PlayerInventoryItemView playerInventoryItemView, PlayerInventoryUpdateEvent playerInventoryUpdateEvent,MainThreadExecutionQueue queue)
         {
+            _threadExecutionQueue = queue;
             _playerInventoryItemView = playerInventoryItemView;
             _equippedItem = GetComponent<InventoryItemSlot>();
             playerInventoryUpdateEvent.Subscribe(PlayerInventoryUpdate,PlayerInventorySlotUpdate);
@@ -29,7 +32,8 @@ namespace MainGame.Control.UI.Inventory
         private void PlayerInventorySlotUpdate(OnPlayerInventorySlotUpdateProperties properties)
         {
             if (properties.SlotId != _equippedItemIndex) return;
-            SetItem(properties.SlotId);
+            _threadExecutionQueue.Insert(() => SetItem(properties.SlotId));
+            
         }
         
         public void SetEquippedItemIndex(int index)
