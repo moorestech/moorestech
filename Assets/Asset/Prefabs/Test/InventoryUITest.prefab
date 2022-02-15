@@ -83,6 +83,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerInventoryItemView: {fileID: 9199618560218924157}
+  hotBarItemView: {fileID: 7409163258840573101}
   itemImages: {fileID: 11400000, guid: f3f5e541a0fc649389c5ffefa1f0082a, type: 2}
 --- !u!114 &2407636907828000943
 MonoBehaviour:
@@ -315,6 +316,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dea73c13e9c24570a0047611624b20be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7409163258840573101 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 777749069049601569, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 7789463816664185484}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5987fef42adc4228a01abbf00467f905, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &9199618560218924157 stripped
