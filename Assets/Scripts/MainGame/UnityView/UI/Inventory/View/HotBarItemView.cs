@@ -18,7 +18,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         public void Construct(ItemImages itemImages)
         {
             _itemImages = itemImages;
-            
+            _slots = new List<InventoryItemSlot>();
             for (int i = 0; i < PlayerInventoryConstant.MainInventoryColumns; i++)
             {
                 _slots.Add(Instantiate(inventoryItemSlot.gameObject,transform).GetComponent<InventoryItemSlot>());
@@ -31,10 +31,14 @@ namespace MainGame.UnityView.UI.Inventory.View
             var c = PlayerInventoryConstant.MainInventoryColumns;
             var r = PlayerInventoryConstant.MainInventoryRows;
             var startHotBarSlot = c * (r - 1);
-            if (startHotBarSlot <= slot) return;
+            
+            if (slot < startHotBarSlot) return;
             
             var sprite = _itemImages.GetItemImage(itemId);
+            slot -= startHotBarSlot;
+            Debug.Log("Slot " + slot);
             _slots[slot].SetItem(sprite,count);
+
         }
     }
 }

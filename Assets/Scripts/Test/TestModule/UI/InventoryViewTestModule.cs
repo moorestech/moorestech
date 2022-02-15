@@ -28,6 +28,7 @@ namespace Test.TestModule.UI
 
         private void Awake()
         {
+            hotBarItemView.Construct(itemImages);
             playerInventoryItemView.Construct(itemImages);
             var updateEvent = new PlayerInventoryUpdateEvent();
             _playerInventoryDataCache = new PlayerInventoryDataCache(updateEvent,playerInventoryItemView,hotBarItemView);
