@@ -6,5 +6,6 @@ namespace Game.Crafting.Interface
     public interface IIsCreatableJudgementService
     {
         public bool IsCreatable(List<IItemStack> craftingItems);
+        public IItemStack GetResult(List<IItemStack> craftingItems);
     }
 }
