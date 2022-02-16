@@ -20,11 +20,13 @@ namespace MainGame.Control.UI.Inventory
 
         private void Update()
         {
+            //キーボード入力で選択
             if (_inputSettings.UI.HotBar.ReadValue<int>() != 0)
             {
                 selectIndex = _inputSettings.UI.HotBar.ReadValue<int>();
             }
 
+            //マウスホイールで選択
             if (_inputSettings.UI.SwitchHotBar.ReadValue<float>() < 0)
             {
                 selectIndex--;
