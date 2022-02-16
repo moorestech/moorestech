@@ -16,14 +16,14 @@ namespace PlayerInventory
         private readonly ItemStackFactory _itemStackFactory;
 
         public PlayerInventoryData(int playerId, PlayerInventoryUpdateEvent playerInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory)
+            ItemStackFactory itemStackFactory,int slotNumber = PlayerInventoryConst.MainInventorySize)
         {
             _playerInventoryUpdateEvent = playerInventoryUpdateEvent;
             _itemStackFactory = itemStackFactory;
 
             _playerId = playerId;
             _mainInventory = new List<IItemStack>();
-            for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+            for (int i = 0; i < slotNumber; i++)
             {
                 _mainInventory.Add(_itemStackFactory.CreatEmpty());
             }
