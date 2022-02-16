@@ -48,32 +48,6 @@ namespace PlayerInventory
             return itemStack;
         }
 
-        public IItemStack DropItem(int slot, int count)
-        {
-            var result = _mainInventory[slot].SubItem(count);
-            _mainInventory[slot] = result;
-
-            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(
-                new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
-            return _itemStackFactory.Create(_mainInventory[slot].Id, count);
-        }
-
-
-        public IItemStack UseHotBar(int slot)
-        {
-            var result = _mainInventory[slot].SubItem(1);
-            _mainInventory[slot] = result;
-
-            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(
-                new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
-            return _itemStackFactory.Create(_mainInventory[slot].Id, 1);
-        }
-
-        public IItemStack GetItem(int slot)
-        {
-            return _mainInventory[slot];
-        }
-
         public void SetItem(int slot, IItemStack itemStack)
         {
             _mainInventory[slot] = itemStack;
@@ -128,5 +102,6 @@ namespace PlayerInventory
 
         public IItemStack InsertItem(int itemId, int count) { return InsertItem(_itemStackFactory.Create(itemId, count)); }
         public int GetSlotSize() { return _mainInventory.Count; }
+        public IItemStack GetItem(int slot) { return _mainInventory[slot]; }
     }
 }
