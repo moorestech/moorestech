@@ -8,7 +8,7 @@ namespace Game.Crafting.Interface
         public readonly List<IItemStack> Items;
         public readonly IItemStack Result;
 
-        public CraftingConfigData(IItemStack result, List<IItemStack> items)
+        public CraftingConfigData(List<IItemStack> items,IItemStack result)
         {
             Result = result;
             Items = items;

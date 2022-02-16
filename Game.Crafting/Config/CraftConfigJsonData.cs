@@ -27,10 +27,10 @@ namespace Game.Crafting.Config
     public class CraftItem
     {
         [DataMember(Name = "id")] private int _id;
-        [DataMember(Name = "count")] private string _count;
+        [DataMember(Name = "count")] private int _count;
 
         public int Id => _id;
 
-        public string Count => _count;
+        public int Count => _count;
     }
 }
