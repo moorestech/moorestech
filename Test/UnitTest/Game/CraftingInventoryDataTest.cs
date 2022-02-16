@@ -21,11 +21,12 @@ namespace Test.UnitTest.Game
         {
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
             ICraftingConfig config = new TestCraftConfig(itemStackFactory);
+            IIsCreatableJudgementService service = null;
             
             var craftConfig = config.GetCraftingConfig()[0];
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory);
+            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory,service);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
@@ -41,12 +42,13 @@ namespace Test.UnitTest.Game
         {
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
             ICraftingConfig config = new TestCraftConfig(itemStackFactory);
+            IIsCreatableJudgementService service = null;
 
             var craftConfig = config.GetCraftingConfig()[0];
             
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory);
+            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory,service);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
@@ -71,12 +73,13 @@ namespace Test.UnitTest.Game
         {
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
             ICraftingConfig config = new TestCraftConfig(itemStackFactory);
+            IIsCreatableJudgementService service = null;
 
             var craftConfig = config.GetCraftingConfig()[0];
             
             
             //craftingInventoryに1つ余分にアイテムを入れる
-            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory);
+            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory,service);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 var itemId = craftConfig.Items[i].Id;
