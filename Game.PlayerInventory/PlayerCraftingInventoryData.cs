@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Core.Item;
+using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using PlayerInventory.Event;
 
@@ -8,22 +10,60 @@ namespace PlayerInventory
     {
         //CraftInventoryはほとんどプレイヤーのインベントリと処理が同じなので、IInventoryの処理はPlayerInventoryDataに委譲しておく
         private readonly PlayerInventoryData _playerInventoryData;
+        private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
         public PlayerCraftingInventoryData(int playerId, PlayerInventoryUpdateEvent playerInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory)
+            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService)
         {
+            _isCreatableJudgementService = isCreatableJudgementService;
             _playerInventoryData = 
                 new PlayerInventoryData(playerId, playerInventoryUpdateEvent, itemStackFactory,PlayerInventoryConst.CraftingInventorySize);
         }
 
         public void Craft()
         {
-            throw new System.NotImplementedException();
+            //クラフトが可能なアイテムの配置かチェック
+            if (!_isCreatableJudgementService.IsCreatable(InventoryItems)) return;
+            
+            //クラフト結果のアイテムを出力スロットに追加可能か判定
+            var result = _isCreatableJudgementService.GetResult(InventoryItems);
+            var outputItem = _playerInventoryData.GetItem(PlayerInventoryConst.CraftingInventorySize - 1);
+
+            //クラフトしたアイテムの出力スロットに空きがある
+            if (!outputItem.IsAllowedToAdd(result)) return;
+            
+            //元のクラフト結果のアイテムを足したアイテムを出力スロットに追加
+            var addedOutputSlot = outputItem.AddItem(result).ProcessResultItemStack;
+            _playerInventoryData.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, addedOutputSlot);
+            
+            
+            //クラフトしたアイテムを消費する
+            var craftConfig = _isCreatableJudgementService.GetCraftingConfigData(InventoryItems);
+            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
+            {
+                //クラフトしたアイテムを消費する
+                var subItem = InventoryItems[i].SubItem(craftConfig.Items[i].Count);
+                //インベントリにセット
+                _playerInventoryData.SetItem(i, subItem);
+            }
         }
 
         public IItemStack GetResult()
         {
             throw new System.NotImplementedException();
+        }
+
+        private List<IItemStack> InventoryItems
+        {
+            get
+            {
+                var items = new List<IItemStack>();
+                for (int i = 0; i < _playerInventoryData.GetSlotSize(); i++)
+                {
+                    items.Add(_playerInventoryData.GetItem(i));
+                }
+                return items;
+            }
         }
 
 
