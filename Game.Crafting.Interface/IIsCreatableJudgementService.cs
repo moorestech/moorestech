@@ -7,5 +7,6 @@ namespace Game.Crafting.Interface
     {
         public bool IsCreatable(List<IItemStack> craftingItems);
         public IItemStack GetResult(List<IItemStack> craftingItems);
+        public CraftingConfigData GetCraftingConfigData(List<IItemStack> craftingItems);
     }
 }
