@@ -1,4 +1,6 @@
 using Core.Item;
+using Core.Item.Config;
+using Game.Crafting.Config;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using NUnit.Framework;
@@ -14,8 +16,8 @@ namespace Test.UnitTest.Game
         [Test]
         public void GetResultTest()
         {
-            ICraftingConfig config = null;
-            ItemStackFactory itemStackFactory = null;
+            ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
+            ICraftingConfig config = new TestCraftConfig(itemStackFactory);
             
             var craftConfig = config.GetCraftingConfig()[0];
             
@@ -34,8 +36,8 @@ namespace Test.UnitTest.Game
         [Test]
         public void CraftTest()
         {
-            ICraftingConfig config = null;
-            ItemStackFactory itemStackFactory = null;
+            ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
+            ICraftingConfig config = new TestCraftConfig(itemStackFactory);
 
             var craftConfig = config.GetCraftingConfig()[0];
             
@@ -64,9 +66,8 @@ namespace Test.UnitTest.Game
         [Test]
         public void CraftRemainderItemTest()
         {
-            
-            ICraftingConfig config = null;
-            ItemStackFactory itemStackFactory = null;
+            ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
+            ICraftingConfig config = new TestCraftConfig(itemStackFactory);
 
             var craftConfig = config.GetCraftingConfig()[0];
             
