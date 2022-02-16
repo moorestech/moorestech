@@ -5,10 +5,10 @@ using Game.Crafting.Interface;
 
 namespace Game.Crafting.Config
 {
-    public class CraftConfig : ICraftingConfig
+    public class TestCraftConfig : ICraftingConfig
     {
         private List<CraftingConfigData> _configDataList = new();
-        public CraftConfig(ItemStackFactory itemStackFactory)
+        public TestCraftConfig(ItemStackFactory itemStackFactory)
         {
             //ロードしたコンフィグのデータを元に、CraftingConfigDataを作成
             var loadedData = new CraftConfigJsonLoad().Load();
