@@ -21,6 +21,10 @@ namespace PlayerInventory
             throw new System.NotImplementedException();
         }
 
+        public IItemStack GetResult()
+        {
+            throw new System.NotImplementedException();
+        }
 
 
         #region delgate to PlayerInventoryData
