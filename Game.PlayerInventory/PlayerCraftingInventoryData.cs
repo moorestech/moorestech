@@ -48,10 +48,7 @@ namespace PlayerInventory
             }
         }
 
-        public IItemStack GetResult()
-        {
-            throw new System.NotImplementedException();
-        }
+        public IItemStack GetResult() { return _isCreatableJudgementService.GetResult(InventoryItems); }
 
         private List<IItemStack> InventoryItems
         {
