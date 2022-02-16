@@ -14,7 +14,9 @@ namespace MainGame.Control.UI.Inventory
         
         private MoorestechInputSettings _inputSettings;
         private int _selectIndex = 0;
-        
+
+        public int SelectIndex => _selectIndex;
+
         public void Awake()
         {
             _inputSettings = new();

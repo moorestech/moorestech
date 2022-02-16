@@ -1,3 +1,5 @@
+using MainGame.Control.UI.Inventory;
+using MainGame.Network.Send;
 using MainGame.UnityView.Chunk;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -13,10 +15,15 @@ namespace MainGame.Control.Game.MouseKeyboard
         private Camera _mainCamera;
         private GroundPlane _groundPlane;
         private MoorestechInputSettings _input;
+        private SelectHotBarControl _hotBarControl;
+        private SendPlaceHotBarBlockProtocol _sendPlaceHotBarBlockProtocol;
         
         [Inject]
-        public void Construct(Camera mainCamera,GroundPlane groundPlane)
+        public void Construct(Camera mainCamera,GroundPlane groundPlane,
+            SelectHotBarControl selectHotBarControl,SendPlaceHotBarBlockProtocol sendPlaceHotBarBlockProtocol)
         {
+            _sendPlaceHotBarBlockProtocol = sendPlaceHotBarBlockProtocol;
+            _hotBarControl = selectHotBarControl;
             _mainCamera = mainCamera;
             _groundPlane = groundPlane;
             _input = new MoorestechInputSettings();
@@ -39,8 +46,10 @@ namespace MainGame.Control.Game.MouseKeyboard
             //イベントを発火
             var x = Mathf.RoundToInt(hit.point.x);
             var y = Mathf.RoundToInt(hit.point.z);
-            //TODO ホットバーのindexを取得する
-            //TODO ブロックの設置をnetworkに伝える
+            
+            //ホットバーにあるブロックの設置をnetworkに伝える
+            _sendPlaceHotBarBlockProtocol.Send(x,y,_hotBarControl.SelectIndex);
+            
         }
     }
 }
