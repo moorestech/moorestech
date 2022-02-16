@@ -81,6 +81,8 @@ namespace PlayerInventory
                 new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
         }
 
+        public void SetItem(int slot, int itemId, int count) { SetItem(slot, _itemStackFactory.Create(itemId, count)); }
+
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
             //アイテムIDが同じの時はスタックして余ったものを返す
@@ -100,6 +102,8 @@ namespace PlayerInventory
                 new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
             return item;
         }
+
+        public IItemStack ReplaceItem(int slot, int itemId, int count) { return ReplaceItem(slot, _itemStackFactory.Create(itemId, count)); }
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
@@ -122,6 +126,7 @@ namespace PlayerInventory
             return itemStack;
         }
 
-        public int GetSlotSize() { return PlayerInventoryConst.MainInventorySize; }
+        public IItemStack InsertItem(int itemId, int count) { return InsertItem(_itemStackFactory.Create(itemId, count)); }
+        public int GetSlotSize() { return _mainInventory.Count; }
     }
 }
