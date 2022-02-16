@@ -11,6 +11,7 @@ namespace Core.ConfigPath
 
         public static string ItemConfigPath => GetConfigPath("item.json");
         public static string OreConfigPath => GetConfigPath("ore.json");
+        public static string CraftRecipeConfigPath => GetConfigPath("craftRecipe.json");
 
         private static string GetConfigPath(string fileName)
         {
