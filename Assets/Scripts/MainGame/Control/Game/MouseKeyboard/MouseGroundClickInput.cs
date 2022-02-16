@@ -48,7 +48,7 @@ namespace MainGame.Control.Game.MouseKeyboard
             var y = Mathf.RoundToInt(hit.point.z);
             
             //ホットバーにあるブロックの設置をnetworkに伝える
-            _sendPlaceHotBarBlockProtocol.Send(x,y,_hotBarControl.SelectIndex);
+            _sendPlaceHotBarBlockProtocol.Send(x,y,(short)_hotBarControl.SelectIndex);
             
         }
     }
