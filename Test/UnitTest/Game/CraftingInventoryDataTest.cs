@@ -11,6 +11,9 @@ namespace Test.UnitTest.Game
 {
     public class CraftingInventoryDataTest
     {
+        //TODO クラフトしたらアイテムが溢れる時にクラフトできないテスト
+        //TODO アイテムがない時はクラフトできないテスト
+
         private const int PlayerId = 0;
     
         [Test]
