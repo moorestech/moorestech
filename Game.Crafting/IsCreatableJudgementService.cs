@@ -6,6 +6,15 @@ namespace Game.Crafting
 {
     public class IsCreatableJudgementService : IIsCreatableJudgementService
     {
+        private readonly ICraftingConfig _craftingConfig;
+        private readonly Dictionary<string, CraftingConfigData> _craftingConfigDataCache = new();
+
+        public IsCreatableJudgementService(ICraftingConfig craftingConfig)
+        {
+            //TODO コンストラクタ_craftingConfigDataCacheの作成
+            _craftingConfig = craftingConfig;
+        }
+
         public bool IsCreatable(List<IItemStack> craftingItems)
         {
             throw new System.NotImplementedException();
