@@ -10,6 +10,8 @@ namespace Test.UnitTest.Game
     public class CraftingInventoryDataTest
     {
         private const int PlayerId = 0;
+    
+        [Test]
         public void GetResultTest()
         {
             ICraftingConfig config = null;
@@ -29,6 +31,7 @@ namespace Test.UnitTest.Game
             Assert.AreEqual(craftConfig.Result,craftingInventory.GetResult());
         }
 
+        [Test]
         public void CraftTest()
         {
             ICraftingConfig config = null;
@@ -58,6 +61,7 @@ namespace Test.UnitTest.Game
         }
 
         //クラフトを実行したときにアイテムが余るテスト
+        [Test]
         public void CraftRemainderItemTest()
         {
             
