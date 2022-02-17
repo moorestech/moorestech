@@ -2,12 +2,12 @@ using Game.PlayerInventory.Interface.Event;
 
 namespace PlayerInventory.Event
 {
-    public class PlayerInventoryUpdateEvent : IPlayerInventoryUpdateEvent
+    public class PlayerMainInventoryUpdateEvent : IPlayerMainInventoryUpdateEvent
     {
-        public event IPlayerInventoryUpdateEvent.UpdateInventoryEvent OnPlayerInventoryUpdate;
+        public event IPlayerMainInventoryUpdateEvent.UpdateInventoryEvent OnPlayerInventoryUpdate;
 
 
-        public void Subscribe(IPlayerInventoryUpdateEvent.UpdateInventoryEvent updateInventoryEvent)
+        public void Subscribe(IPlayerMainInventoryUpdateEvent.UpdateInventoryEvent updateInventoryEvent)
         {
             OnPlayerInventoryUpdate += updateInventoryEvent;
         }

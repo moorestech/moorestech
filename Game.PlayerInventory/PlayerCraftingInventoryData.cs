@@ -12,12 +12,12 @@ namespace PlayerInventory
         private readonly PlayerInventoryData _playerInventoryData;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
-        public PlayerCraftingInventoryData(int playerId, PlayerInventoryUpdateEvent playerInventoryUpdateEvent,
+        public PlayerCraftingInventoryData(int playerId, PlayerMainInventoryUpdateEvent playerMainInventoryUpdateEvent,
             ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService)
         {
             _isCreatableJudgementService = isCreatableJudgementService;
             _playerInventoryData = 
-                new PlayerInventoryData(playerId, playerInventoryUpdateEvent, itemStackFactory,PlayerInventoryConst.CraftingInventorySize);
+                new PlayerInventoryData(playerId, playerMainInventoryUpdateEvent, itemStackFactory,PlayerInventoryConst.CraftingInventorySize);
         }
 
         public void Craft()

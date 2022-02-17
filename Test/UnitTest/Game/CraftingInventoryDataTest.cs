@@ -25,7 +25,7 @@ namespace Test.UnitTest.Game
             var craftConfig = config.GetCraftingConfigList()[0];
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
@@ -47,7 +47,7 @@ namespace Test.UnitTest.Game
             
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
@@ -78,7 +78,7 @@ namespace Test.UnitTest.Game
             
             
             //craftingInventoryに1つ余分にアイテムを入れる
-            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 var itemId = craftConfig.Items[i].Id;
@@ -115,7 +115,7 @@ namespace Test.UnitTest.Game
             ICraftingConfig config = new TestCraftConfig(itemStackFactory);
             IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
 
-            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
             
             //クラフト結果が何もないことをチェック
             Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetCreatableItem());
@@ -142,7 +142,7 @@ namespace Test.UnitTest.Game
             
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
