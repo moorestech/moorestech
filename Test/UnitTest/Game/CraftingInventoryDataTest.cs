@@ -1,3 +1,4 @@
+using System;
 using Core.Item;
 using Core.Item.Config;
 using Game.Crafting;
@@ -101,7 +102,11 @@ namespace Test.UnitTest.Game
                 var inventoryItem = craftingInventory.GetItem(i);
                 
                 Assert.AreEqual(craftConfig.Items[i].Id,inventoryItem.Id);//check id
-                Assert.AreEqual(1,inventoryItem.Count);//check count
+                //クラフトの配置とにアイテムがある時のみチェック
+                if (craftConfig.Items[i].Count != 0)
+                {
+                    Assert.AreEqual(1,inventoryItem.Count);//check count
+                }
             }
         }
     }
