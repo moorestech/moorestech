@@ -1,5 +1,6 @@
 using Core.Item;
 using Core.Item.Config;
+using Game.Crafting;
 using Game.Crafting.Config;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
@@ -21,7 +22,7 @@ namespace Test.UnitTest.Game
         {
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
             ICraftingConfig config = new TestCraftConfig(itemStackFactory);
-            IIsCreatableJudgementService service = null;
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
             
             var craftConfig = config.GetCraftingConfigList()[0];
             
@@ -42,8 +43,8 @@ namespace Test.UnitTest.Game
         {
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
             ICraftingConfig config = new TestCraftConfig(itemStackFactory);
-            IIsCreatableJudgementService service = null;
-
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
+            
             var craftConfig = config.GetCraftingConfigList()[0];
             
             
@@ -73,7 +74,7 @@ namespace Test.UnitTest.Game
         {
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
             ICraftingConfig config = new TestCraftConfig(itemStackFactory);
-            IIsCreatableJudgementService service = null;
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
 
             var craftConfig = config.GetCraftingConfigList()[0];
             
