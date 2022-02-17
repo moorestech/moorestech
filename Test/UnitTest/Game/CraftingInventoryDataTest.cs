@@ -109,5 +109,24 @@ namespace Test.UnitTest.Game
                 }
             }
         }
+
+        [Test]
+        //アイテムが足りないときはクラフトできないテスト
+        public void NoneCraftSlotItemTest()
+        {
+            ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
+            ICraftingConfig config = new TestCraftConfig(itemStackFactory);
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
+
+            var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory,service);
+            
+            //クラフト結果が何もないことをチェック
+            Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetResult());
+            
+            //クラフトしても出力スロットに何もないテスト
+            craftingInventory.Craft();
+            Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetItem(PlayerInventoryConst.CraftingInventorySize - 1));
+            
+        }
     }
 }
