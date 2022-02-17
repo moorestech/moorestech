@@ -23,7 +23,7 @@ namespace Test.UnitTest.Game.SaveLoad
             int playerIntId = 100;
             
             //プレイヤーインベントリの作成
-            var inventory =  playerInventory.GetInventoryData(playerIntId);
+            var inventory =  playerInventory.GetMainInventoryData(playerIntId);
 
             //セットするアイテムを定義する
             var items = new Dictionary<int, IItemStack>();
@@ -47,7 +47,7 @@ namespace Test.UnitTest.Game.SaveLoad
             //セーブしたデータをロードする
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
-            var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerIntId);
+            var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetMainInventoryData(playerIntId);
 
             //インベントリのチェック
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
@@ -84,7 +84,7 @@ namespace Test.UnitTest.Game.SaveLoad
             //プレイヤーインベントリにアイテムをセットする
             foreach (var playerItem in playerItems)
             {
-                var inventory = playerInventory.GetInventoryData(playerItem.Key);
+                var inventory = playerInventory.GetMainInventoryData(playerItem.Key);
                 foreach (var item in playerItem.Value)
                 {
                     inventory.SetItem(item.Key,item.Value);
@@ -103,7 +103,7 @@ namespace Test.UnitTest.Game.SaveLoad
             //データを検証する
             foreach (var playerItem in playerItems)
             {
-                var loadedInventory = loadedPlayerInventory.GetInventoryData(playerItem.Key);
+                var loadedInventory = loadedPlayerInventory.GetMainInventoryData(playerItem.Key);
                 //インベントリのチェック
                 for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
                 {

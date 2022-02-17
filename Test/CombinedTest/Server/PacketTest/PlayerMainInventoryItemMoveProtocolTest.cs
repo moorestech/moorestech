@@ -10,7 +10,7 @@ using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
-    public class PlayerInventoryItemMoveProtocolTest
+    public class PlayerMainInventoryItemMoveProtocolTest
     {
         [Test]
         public void InventoryItemMove()
@@ -30,7 +30,7 @@ namespace Test.CombinedTest.Server.PacketTest
             payload.AddRange(ToByteList.Convert(playerId));
             packet.GetPacketResponse(payload);
             var playerInventoryData =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetMainInventoryData(playerId);
 
 
             //アイテムの設定

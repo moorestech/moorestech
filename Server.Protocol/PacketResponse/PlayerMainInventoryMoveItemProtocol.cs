@@ -8,12 +8,12 @@ using Server.Util;
 
 namespace Server.Protocol.PacketResponse
 {
-    public class PlayerInventoryMoveItemProtocol : IPacketResponse
+    public class PlayerMainInventoryMoveItemProtocol : IPacketResponse
     {
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public PlayerInventoryMoveItemProtocol(ServiceProvider serviceProvider)
+        public PlayerMainInventoryMoveItemProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
@@ -28,7 +28,7 @@ namespace Server.Protocol.PacketResponse
             var toSlot = payloadData.MoveNextToGetInt();
             var itemCount = payloadData.MoveNextToGetInt();
 
-            var playerInventory = _playerInventoryDataStore.GetInventoryData(playerId);
+            var playerInventory = _playerInventoryDataStore.GetMainInventoryData(playerId);
 
             new InventoryItemMove().Move(_itemStackFactory, playerInventory, fromSlot, playerInventory, toSlot,
                 itemCount);

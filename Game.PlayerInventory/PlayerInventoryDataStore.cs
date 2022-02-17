@@ -13,7 +13,7 @@ namespace PlayerInventory
     /// </summary>
     public class PlayerInventoryDataStore : IPlayerInventoryDataStore
     {
-        readonly Dictionary<int, PlayerInventoryData> _playerInventoryData = new();
+        readonly Dictionary<int, PlayerMainInventoryData> _playerInventoryData = new();
         private readonly PlayerMainInventoryUpdateEvent _playerMainInventoryUpdateEvent;
         private readonly ItemStackFactory _itemStackFactory;
 
@@ -25,12 +25,12 @@ namespace PlayerInventory
             _itemStackFactory = itemStackFactory;
         }
 
-        public IInventory GetInventoryData(int playerId)
+        public IInventory GetMainInventoryData(int playerId)
         {
             if (!_playerInventoryData.ContainsKey(playerId))
             {
                 _playerInventoryData.Add(playerId,
-                    new PlayerInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory));
+                    new PlayerMainInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory));
             }
 
             return _playerInventoryData[playerId];
@@ -66,7 +66,7 @@ namespace PlayerInventory
             {
                 var playerId = saveInventory.PlayerId;
 
-                var inventory = new PlayerInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory);
+                var inventory = new PlayerMainInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory);
                 //インベントリの追加を行う　既にあるなら置き換える
                 if (_playerInventoryData.ContainsKey(playerId))
                 {

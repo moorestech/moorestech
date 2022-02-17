@@ -26,7 +26,7 @@ namespace Server.Protocol.PacketResponse
             //他のコマンドを実装する場合、この実装方法をやめる
             if (command[0] == "give")
             {
-                var inventory = _playerInventoryDataStore.GetInventoryData(int.Parse(command[1]));
+                var inventory = _playerInventoryDataStore.GetMainInventoryData(int.Parse(command[1]));
                 var item = _itemStackFactory.Create(int.Parse(command[2]), int.Parse(command[3]));
                 inventory.InsertItem(item);
             }

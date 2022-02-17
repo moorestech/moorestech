@@ -48,7 +48,7 @@ namespace PlayerInventory.ItemManaged
             {
                 var result = item.AddItem(itemStack);
                 _mainInventory[slot] = result.ProcessResultItemStack;
-                _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(
+                _playerInventoryUpdateEvent.OnPlayerMainInventoryUpdateInvoke(
                     new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
                 return result.RemainderItemStack;
             }
@@ -101,7 +101,7 @@ namespace PlayerInventory.ItemManaged
 
         private void InvokeEvent(int slot)
         {
-            _playerInventoryUpdateEvent.OnPlayerInventoryUpdateInvoke(
+            _playerInventoryUpdateEvent.OnPlayerMainInventoryUpdateInvoke(
                 new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
         }
         

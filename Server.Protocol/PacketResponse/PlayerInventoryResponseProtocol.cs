@@ -19,7 +19,7 @@ namespace Server.Protocol.PacketResponse
             var payloadData = new ByteArrayEnumerator(payload);
             payloadData.MoveNextToGetShort();
             var playerId = payloadData.MoveNextToGetInt();
-            var playerInventory = _playerInventoryDataStore.GetInventoryData(playerId);
+            var playerInventory = _playerInventoryDataStore.GetMainInventoryData(playerId);
 
             var response = new List<byte>();
             response.AddRange(ToByteList.Convert((short) 4));

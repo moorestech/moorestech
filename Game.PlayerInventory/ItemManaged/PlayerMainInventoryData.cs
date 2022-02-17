@@ -5,11 +5,11 @@ using PlayerInventory.Event;
 
 namespace PlayerInventory.ItemManaged
 {
-    public class PlayerInventoryData : IInventory
+    public class PlayerMainInventoryData : IInventory
     {
         private readonly PlayerInventoryItemDataStoreService _inventoryService;
 
-        public PlayerInventoryData(int playerId, PlayerMainInventoryUpdateEvent playerMainInventoryUpdateEvent,
+        public PlayerMainInventoryData(int playerId, PlayerMainInventoryUpdateEvent playerMainInventoryUpdateEvent,
             ItemStackFactory itemStackFactory)
         {
             _inventoryService = new PlayerInventoryItemDataStoreService(playerId, playerMainInventoryUpdateEvent,

@@ -29,7 +29,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             packetResponse.GetPacketResponse(payload);
 
             //インベントリにアイテムを追加
-            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0);
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetMainInventoryData(0);
 
 
             playerInventoryData.SetItem(5, serviceProvider.GetService<ItemStackFactory>().Create(1, 5));

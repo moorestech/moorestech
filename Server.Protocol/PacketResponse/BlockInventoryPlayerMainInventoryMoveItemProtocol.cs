@@ -11,13 +11,13 @@ using Server.Util;
 
 namespace Server.Protocol.PacketResponse
 {
-    public class BlockInventoryPlayerInventoryMoveItemProtocol : IPacketResponse
+    public class BlockInventoryPlayerMainInventoryMoveItemProtocol : IPacketResponse
     {
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public BlockInventoryPlayerInventoryMoveItemProtocol(ServiceProvider serviceProvider)
+        public BlockInventoryPlayerMainInventoryMoveItemProtocol(ServiceProvider serviceProvider)
         {
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
@@ -37,7 +37,7 @@ namespace Server.Protocol.PacketResponse
             var moveItemCount = payloadData.MoveNextToGetInt();
 
             var blockInventory = (IInventory) _worldBlockDatastore.GetBlock(blockX, blockY);
-            var playerInventory = (IInventory) _playerInventoryDataStore.GetInventoryData(playerId);
+            var playerInventory = (IInventory) _playerInventoryDataStore.GetMainInventoryData(playerId);
 
             var inventoryItemMove = new InventoryItemMove();
             //フラグが0の時はプレイヤーインベントリからブロックインベントリにアイテムを移す

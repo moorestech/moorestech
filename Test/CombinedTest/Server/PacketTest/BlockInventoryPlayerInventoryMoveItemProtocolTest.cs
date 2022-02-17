@@ -62,7 +62,7 @@ namespace Test.CombinedTest.Server.PacketTest
             payload.AddRange(ToByteList.Convert(playerId));
             packet.GetPacketResponse(payload);
             var playerInventoryData =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetMainInventoryData(playerId);
 
 
             //実際にアイテムを移動するテスト--------------------------------------------------------

@@ -23,7 +23,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //アイテムが正しく入っているかチェック
             
             //プレイヤーインベントリを取得
-            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(10);
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetMainInventoryData(10);
             
             //何もないインベントリに入れたのでスロット0にアイテムが入っているかチェック
             Assert.AreEqual(2,playerInventory.GetItem(0).Id);

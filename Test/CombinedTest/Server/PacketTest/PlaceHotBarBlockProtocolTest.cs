@@ -27,7 +27,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //ホットバーにアイテムとしてのブロックをセットする
             var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
-            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetMainInventoryData(PlayerId);
             inventory.SetItem(slot, itemStackFactory.Create(BlockItemId,3));
             
             //ブロックを置く
