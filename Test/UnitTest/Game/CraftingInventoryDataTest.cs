@@ -19,7 +19,7 @@ namespace Test.UnitTest.Game
         private const int PlayerId = 0;
     
         [Test]
-        public void GetResultTest()
+        public void GetCreatableItemTest()
         {
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
             ICraftingConfig config = new TestCraftConfig(itemStackFactory);
@@ -35,8 +35,8 @@ namespace Test.UnitTest.Game
             }
             
             //インベントリのconfigからデータを取得
-            //getResultを検証する
-            Assert.AreEqual(craftConfig.Result,craftingInventory.GetResult());
+            //getCreatableItemを検証する
+            Assert.AreEqual(craftConfig.Result,craftingInventory.GetCreatableItem());
         }
 
         [Test]
@@ -121,7 +121,7 @@ namespace Test.UnitTest.Game
             var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory,service);
             
             //クラフト結果が何もないことをチェック
-            Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetResult());
+            Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetCreatableItem());
             
             //クラフトしても出力スロットに何もないテスト
             craftingInventory.Craft();

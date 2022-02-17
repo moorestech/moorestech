@@ -6,6 +6,6 @@ namespace Game.PlayerInventory.Interface
     public interface ICraftingInventory : IInventory
     {
         public void Craft();
-        public IItemStack GetResult();
+        public IItemStack GetCreatableItem();
     }
 }

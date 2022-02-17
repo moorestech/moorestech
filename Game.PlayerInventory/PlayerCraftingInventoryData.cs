@@ -48,7 +48,7 @@ namespace PlayerInventory
             }
         }
 
-        public IItemStack GetResult() { return _isCreatableJudgementService.GetResult(CraftingItems); }
+        public IItemStack GetCreatableItem() { return _isCreatableJudgementService.GetResult(CraftingItems); }
 
         private List<IItemStack> InventoryItems
         {
