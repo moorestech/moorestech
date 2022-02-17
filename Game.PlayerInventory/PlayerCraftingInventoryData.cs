@@ -23,10 +23,10 @@ namespace PlayerInventory
         public void Craft()
         {
             //クラフトが可能なアイテムの配置かチェック
-            if (!_isCreatableJudgementService.IsCreatable(InventoryItems)) return;
+            if (!_isCreatableJudgementService.IsCreatable(CraftingItems)) return;
             
             //クラフト結果のアイテムを出力スロットに追加可能か判定
-            var result = _isCreatableJudgementService.GetResult(InventoryItems);
+            var result = _isCreatableJudgementService.GetResult(CraftingItems);
             var outputItem = _playerInventoryData.GetItem(PlayerInventoryConst.CraftingInventorySize - 1);
 
             //クラフトしたアイテムの出力スロットに空きがある
@@ -38,7 +38,7 @@ namespace PlayerInventory
             
             
             //クラフトしたアイテムを消費する
-            var craftConfig = _isCreatableJudgementService.GetCraftingConfigData(InventoryItems);
+            var craftConfig = _isCreatableJudgementService.GetCraftingConfigData(CraftingItems);
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 //クラフトしたアイテムを消費する
@@ -48,7 +48,7 @@ namespace PlayerInventory
             }
         }
 
-        public IItemStack GetResult() { return _isCreatableJudgementService.GetResult(InventoryItems); }
+        public IItemStack GetResult() { return _isCreatableJudgementService.GetResult(CraftingItems); }
 
         private List<IItemStack> InventoryItems
         {
@@ -56,6 +56,19 @@ namespace PlayerInventory
             {
                 var items = new List<IItemStack>();
                 for (int i = 0; i < _playerInventoryData.GetSlotSize(); i++)
+                {
+                    items.Add(_playerInventoryData.GetItem(i));
+                }
+                return items;
+            }
+        }
+        
+        private List<IItemStack> CraftingItems
+        {
+            get
+            {
+                var items = new List<IItemStack>();
+                for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
                 {
                     items.Add(_playerInventoryData.GetItem(i));
                 }
