@@ -75,7 +75,7 @@ namespace Server
             //イベントを登録
             services.AddSingleton<IBlockPlaceEvent, BlockPlaceEvent>();
             services.AddSingleton<IBlockRemoveEvent, BlockRemoveEvent>();
-            services.AddSingleton<IPlayerInventoryUpdateEvent, PlayerInventoryUpdateEvent>();
+            services.AddSingleton<IPlayerMainInventoryUpdateEvent, PlayerMainInventoryUpdateEvent>();
 
             //イベントレシーバーを登録
             services.AddSingleton<ReceiveInventoryUpdateEvent, ReceiveInventoryUpdateEvent>();
