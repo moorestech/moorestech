@@ -77,7 +77,6 @@ namespace Game.Crafting
         private string GetCraftingConfigCacheKey(List<IItemStack> itemId)
         {
             var items = "";
-            itemId.Sort((a, b) => a.Id - b.Id);
             itemId.ForEach(i => { items = items + "_" + i.Id; });
             return items;
         }
