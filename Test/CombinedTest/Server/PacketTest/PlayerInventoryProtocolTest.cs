@@ -31,15 +31,31 @@ namespace Test.CombinedTest.Server.PacketTest
 
             var response = new ByteArrayEnumerator(packet.GetPacketResponse(payload)[0].ToList());
 
+            //データの検証
             Assert.AreEqual(4, response.MoveNextToGetShort());
             Assert.AreEqual(playerId, response.MoveNextToGetInt());
             Assert.AreEqual(0, response.MoveNextToGetShort());
+            //プレイヤーインベントリの検証
             for (int i = 0; i < PlayerInventoryConst.MainInventoryColumns; i++)
             {
                 Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
                 Assert.AreEqual(0, response.MoveNextToGetInt());
             }
-
+            //クラフトインベントリの検証
+            for (int i = 0; i < PlayerInventoryConst.CraftingInventorySize; i++)
+            {
+                Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
+                Assert.AreEqual(0, response.MoveNextToGetInt());
+            }
+            //クラフト結果アイテムの検証
+            Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
+            Assert.AreEqual(0, response.MoveNextToGetInt());
+            //クラフト不可能である事の検証
+            Assert.AreEqual(0, response.MoveNextToGetByte());
+            
+            
+            
+            //2回目のデータ要求のためにアイテムをセットする
             var playerInventoryData =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
@@ -48,6 +64,7 @@ namespace Test.CombinedTest.Server.PacketTest
             playerInventoryData.SetItem(34, itemStackFactory.Create(10, 7));
 
 
+            //2回目のデータ要求
             response = new ByteArrayEnumerator(packet.GetPacketResponse(payload)[0].ToList());
             Assert.AreEqual(4, response.MoveNextToGetShort());
             Assert.AreEqual(playerId, response.MoveNextToGetInt());
@@ -77,6 +94,17 @@ namespace Test.CombinedTest.Server.PacketTest
                     Assert.AreEqual(0, response.MoveNextToGetInt());
                 }
             }
+            //クラフトインベントリの検証
+            for (int i = 0; i < PlayerInventoryConst.CraftingInventorySize; i++)
+            {
+                Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
+                Assert.AreEqual(0, response.MoveNextToGetInt());
+            }
+            //クラフト結果アイテムの検証
+            Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
+            Assert.AreEqual(0, response.MoveNextToGetInt());
+            //クラフト不可能である事の検証
+            Assert.AreEqual(0, response.MoveNextToGetByte());
         }
     }
 }
