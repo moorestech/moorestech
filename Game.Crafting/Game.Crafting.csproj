@@ -6,6 +6,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Game.Crafting.Interface\Game.Crafting.Interface.csproj" />
+      <ProjectReference Include="..\Game.PlayerInventory.Interface\Game.PlayerInventory.Interface.csproj" />
     </ItemGroup>
 
 </Project>

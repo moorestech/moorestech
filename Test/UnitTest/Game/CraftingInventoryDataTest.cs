@@ -23,7 +23,7 @@ namespace Test.UnitTest.Game
             ICraftingConfig config = new TestCraftConfig(itemStackFactory);
             IIsCreatableJudgementService service = null;
             
-            var craftConfig = config.GetCraftingConfig()[0];
+            var craftConfig = config.GetCraftingConfigList()[0];
             
             //craftingInventoryにアイテムを入れる
             var craftingInventory = new PlayerCraftingInventoryData(PlayerId,new PlayerInventoryUpdateEvent(),itemStackFactory,service);
@@ -44,7 +44,7 @@ namespace Test.UnitTest.Game
             ICraftingConfig config = new TestCraftConfig(itemStackFactory);
             IIsCreatableJudgementService service = null;
 
-            var craftConfig = config.GetCraftingConfig()[0];
+            var craftConfig = config.GetCraftingConfigList()[0];
             
             
             //craftingInventoryにアイテムを入れる
@@ -75,7 +75,7 @@ namespace Test.UnitTest.Game
             ICraftingConfig config = new TestCraftConfig(itemStackFactory);
             IIsCreatableJudgementService service = null;
 
-            var craftConfig = config.GetCraftingConfig()[0];
+            var craftConfig = config.GetCraftingConfigList()[0];
             
             
             //craftingInventoryに1つ余分にアイテムを入れる

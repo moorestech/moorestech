@@ -4,6 +4,6 @@ namespace Game.Crafting.Interface
 {
     public interface ICraftingConfig
     {
-        public IReadOnlyList<CraftingConfigData> GetCraftingConfig();
+        public IReadOnlyList<CraftingConfigData> GetCraftingConfigList();
     }
 }

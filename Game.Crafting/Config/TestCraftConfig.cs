@@ -21,7 +21,7 @@ namespace Game.Crafting.Config
             }
         }
 
-        public IReadOnlyList<CraftingConfigData> GetCraftingConfig()
+        public IReadOnlyList<CraftingConfigData> GetCraftingConfigList()
         {
             return _configDataList;
         }
