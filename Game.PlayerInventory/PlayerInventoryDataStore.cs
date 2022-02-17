@@ -4,6 +4,7 @@ using Core.Item;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using PlayerInventory.Event;
+using PlayerInventory.ItemManaged;
 
 namespace PlayerInventory
 {

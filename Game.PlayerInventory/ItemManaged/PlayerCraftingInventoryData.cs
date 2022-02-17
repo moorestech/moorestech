@@ -4,20 +4,19 @@ using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using PlayerInventory.Event;
 
-namespace PlayerInventory
+namespace PlayerInventory.ItemManaged
 {
     public class PlayerCraftingInventoryData : ICraftingInventory
     {
-        //CraftInventoryはほとんどプレイヤーのインベントリと処理が同じなので、IInventoryの処理はPlayerInventoryDataに委譲しておく
-        private readonly PlayerInventoryData _playerInventoryData;
+        private readonly PlayerInventoryItemDataStoreService _inventoryService;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
         public PlayerCraftingInventoryData(int playerId, PlayerMainInventoryUpdateEvent playerMainInventoryUpdateEvent,
             ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService)
         {
             _isCreatableJudgementService = isCreatableJudgementService;
-            _playerInventoryData = 
-                new PlayerInventoryData(playerId, playerMainInventoryUpdateEvent, itemStackFactory,PlayerInventoryConst.CraftingInventorySize);
+            _inventoryService = new PlayerInventoryItemDataStoreService(playerId, playerMainInventoryUpdateEvent, 
+                itemStackFactory, PlayerInventoryConst.CraftingInventorySize);
         }
 
         public void Craft()
@@ -27,14 +26,14 @@ namespace PlayerInventory
             
             //クラフト結果のアイテムを出力スロットに追加可能か判定
             var result = _isCreatableJudgementService.GetResult(CraftingItems);
-            var outputItem = _playerInventoryData.GetItem(PlayerInventoryConst.CraftingInventorySize - 1);
+            var outputItem = _inventoryService.GetItem(PlayerInventoryConst.CraftingInventorySize - 1);
 
             //クラフトしたアイテムの出力スロットに空きがある
             if (!outputItem.IsAllowedToAdd(result)) return;
             
             //元のクラフト結果のアイテムを足したアイテムを出力スロットに追加
             var addedOutputSlot = outputItem.AddItem(result).ProcessResultItemStack;
-            _playerInventoryData.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, addedOutputSlot);
+            _inventoryService.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, addedOutputSlot);
             
             
             //クラフトしたアイテムを消費する
@@ -44,7 +43,7 @@ namespace PlayerInventory
                 //クラフトしたアイテムを消費する
                 var subItem = InventoryItems[i].SubItem(craftConfig.Items[i].Count);
                 //インベントリにセット
-                _playerInventoryData.SetItem(i, subItem);
+                _inventoryService.SetItem(i, subItem);
             }
         }
 
@@ -55,9 +54,9 @@ namespace PlayerInventory
             get
             {
                 var items = new List<IItemStack>();
-                for (int i = 0; i < _playerInventoryData.GetSlotSize(); i++)
+                for (int i = 0; i < _inventoryService.GetSlotSize(); i++)
                 {
-                    items.Add(_playerInventoryData.GetItem(i));
+                    items.Add(_inventoryService.GetItem(i));
                 }
                 return items;
             }
@@ -70,22 +69,22 @@ namespace PlayerInventory
                 var items = new List<IItemStack>();
                 for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
                 {
-                    items.Add(_playerInventoryData.GetItem(i));
+                    items.Add(_inventoryService.GetItem(i));
                 }
                 return items;
             }
         }
 
 
-        #region delgate to PlayerInventoryData
-        public IItemStack GetItem(int slot) { return _playerInventoryData.GetItem(slot); }
-        public void SetItem(int slot, IItemStack itemStack) { _playerInventoryData.SetItem(slot, itemStack); }
-        public void SetItem(int slot, int itemId, int count) { _playerInventoryData.SetItem(slot, itemId, count); }
-        public IItemStack ReplaceItem(int slot, IItemStack itemStack) { return _playerInventoryData.ReplaceItem(slot, itemStack); }
-        public IItemStack ReplaceItem(int slot, int itemId, int count) { return _playerInventoryData.ReplaceItem(slot, itemId, count); }
-        public IItemStack InsertItem(IItemStack itemStack) { return _playerInventoryData.InsertItem(itemStack); }
-        public IItemStack InsertItem(int itemId, int count) { return _playerInventoryData.InsertItem(itemId, count); }
-        public int GetSlotSize() { return _playerInventoryData.GetSlotSize(); }
+        #region delgate to PlayerInventoryItemDataStoreService
+        public IItemStack GetItem(int slot) { return _inventoryService.GetItem(slot); }
+        public void SetItem(int slot, IItemStack itemStack) { _inventoryService.SetItem(slot, itemStack); }
+        public void SetItem(int slot, int itemId, int count) { _inventoryService.SetItem(slot, itemId, count); }
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack) { return _inventoryService.ReplaceItem(slot, itemStack); }
+        public IItemStack ReplaceItem(int slot, int itemId, int count) { return _inventoryService.ReplaceItem(slot, itemId, count); }
+        public IItemStack InsertItem(IItemStack itemStack) { return _inventoryService.InsertItem(itemStack); }
+        public IItemStack InsertItem(int itemId, int count) { return _inventoryService.InsertItem(itemId, count); }
+        public int GetSlotSize() { return _inventoryService.GetSlotSize(); }
 
         #endregion
     }

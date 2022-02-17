@@ -8,6 +8,7 @@ using Game.PlayerInventory.Interface;
 using NUnit.Framework;
 using PlayerInventory;
 using PlayerInventory.Event;
+using PlayerInventory.ItemManaged;
 
 namespace Test.UnitTest.Game
 {

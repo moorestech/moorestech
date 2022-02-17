@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item;
-using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using PlayerInventory.Event;
 
-namespace PlayerInventory
+namespace PlayerInventory.ItemManaged
 {
     public class PlayerInventoryItemDataStoreService : IInventory
     {
@@ -85,7 +84,7 @@ namespace PlayerInventory
                 //挿入できるスロットを探索
                 if (!_mainInventory[i].IsAllowedToAdd(itemStack)) continue;
                 //挿入実行
-                return InsertItem(i,_mainInventory[i]);
+                return InsertItem(i,itemStack);
             }
             return itemStack;
         }
