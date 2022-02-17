@@ -7,6 +7,14 @@ namespace Game.PlayerInventory.Interface
         public const int MainInventoryColumns = 9;
         public const int MainInventoryRows = 5;
         public const int MainInventorySize = MainInventoryColumns * MainInventoryRows;
+        
+        public const int CraftingInventoryColumns = 3;
+        public const int CraftingInventoryRows = 3;
+        public const int CraftingSlotSize = CraftingInventoryColumns * CraftingInventoryRows;
+        
+        public const int CraftingOutputSlotSize = 1;
+        public const int CraftingInventorySize = CraftingSlotSize + CraftingOutputSlotSize;
+        
 
         public static int HotBarSlotToInventorySlot(int slot)
         {

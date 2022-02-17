@@ -10,18 +10,18 @@ namespace Core.Block.RecipeConfig
     {
         private readonly List<IMachineRecipeData> _recipedatas;
 
-        private readonly Dictionary<string, IMachineRecipeData> _recipeDataCash;
+        private readonly Dictionary<string, IMachineRecipeData> _recipeDataCache;
 
         //IDからレシピデータを取得する
         public TestMachineRecipeConfig(ItemStackFactory itemStackFactory)
         {
             _recipedatas = new MachineRecipeJsonLoad().LoadConfig(itemStackFactory);
 
-            _recipeDataCash = new Dictionary<string, IMachineRecipeData>();
+            _recipeDataCache = new Dictionary<string, IMachineRecipeData>();
             _recipedatas.ToList().ForEach(recipe =>
             {
-                _recipeDataCash.Add(
-                    GetKey(recipe.BlockId, recipe.ItemInputs.ToList()),
+                _recipeDataCache.Add(
+                    GetRecipeDataCacheKey(recipe.BlockId, recipe.ItemInputs.ToList()),
                     recipe);
             });
         }
@@ -52,10 +52,10 @@ namespace Core.Block.RecipeConfig
         {
             var tmpInputItem = inputItem.Where(i => i.Count != 0).ToList();
             tmpInputItem.Sort((a, b) => a.Id - b.Id);
-            var key = GetKey(BlockId, tmpInputItem);
-            if (_recipeDataCash.ContainsKey(key))
+            var key = GetRecipeDataCacheKey(BlockId, tmpInputItem);
+            if (_recipeDataCache.ContainsKey(key))
             {
-                return _recipeDataCash[key];
+                return _recipeDataCache[key];
             }
             else
             {
@@ -63,7 +63,7 @@ namespace Core.Block.RecipeConfig
             }
         }
 
-        private string GetKey(int blockId, List<IItemStack> itemId)
+        private string GetRecipeDataCacheKey(int blockId, List<IItemStack> itemId)
         {
             var items = "";
             itemId.Sort((a, b) => a.Id - b.Id);
