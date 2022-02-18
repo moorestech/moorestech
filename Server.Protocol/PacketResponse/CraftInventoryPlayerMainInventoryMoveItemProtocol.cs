@@ -39,13 +39,11 @@ namespace Server.Protocol.PacketResponse
             //フラグが0の時はメインインベントリからクラフトインベントリにアイテムを移す
             if (flag == 0)
             {
-                Console.WriteLine("source Main");
                 inventoryItemMove.Move(_itemStackFactory, mainInventory, mainInventorySlot, craftInventory,
                     craftInventorySlot, moveItemCount);
             }
             else if (flag == 1)
             {
-                Console.WriteLine("source Craft");
                 inventoryItemMove.Move(_itemStackFactory, craftInventory, craftInventorySlot, mainInventory,
                     mainInventorySlot, moveItemCount);
             }
