@@ -40,7 +40,7 @@ namespace Server.Protocol.PacketResponse
             var playerMainInventory = _playerInventoryDataStore.GetInventoryData(playerId).MainInventory;
 
             var inventoryItemMove = new InventoryItemMove();
-            //フラグが0の時はプレイヤーインベントリからブロックインベントリにアイテムを移す
+            //フラグが0の時はメインインベントリからブロックインベントリにアイテムを移す
             if (flag == 0)
             {
                 inventoryItemMove.Move(_itemStackFactory, playerMainInventory, playerMainInventorySlot, blockInventory,
