@@ -32,7 +32,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0);
 
 
-            playerInventoryData.SetItem(5, serviceProvider.GetService<ItemStackFactory>().Create(1, 5));
+            playerInventoryData.MainInventory.SetItem(5, serviceProvider.GetService<ItemStackFactory>().Create(1, 5));
             //イベントのキャッチ
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(1, response.Count);

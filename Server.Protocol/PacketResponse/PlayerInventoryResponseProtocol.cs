@@ -26,10 +26,30 @@ namespace Server.Protocol.PacketResponse
             response.AddRange(ToByteList.Convert(playerId));
             response.AddRange(ToByteList.Convert((short) 0));
 
+            //メインインベントリのアイテムを設定
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
-                response.AddRange(ToByteList.Convert(playerInventory.GetItem(i).Id));
-                response.AddRange(ToByteList.Convert(playerInventory.GetItem(i).Count));
+                response.AddRange(ToByteList.Convert(playerInventory.MainInventory.GetItem(i).Id));
+                response.AddRange(ToByteList.Convert(playerInventory.MainInventory.GetItem(i).Count));
+            }
+            
+            //クラフトインベントリのアイテムを設定
+            for (int i = 0; i < PlayerInventoryConst.CraftingInventorySize; i++)
+            {
+                response.AddRange(ToByteList.Convert(playerInventory.CraftingInventory.GetItem(i).Id));
+                response.AddRange(ToByteList.Convert(playerInventory.CraftingInventory.GetItem(i).Count));
+            }
+            //クラフト結果のアイテムを設定
+            response.AddRange(ToByteList.Convert(playerInventory.CraftingInventory.GetCreatableItem().Id));
+            response.AddRange(ToByteList.Convert(playerInventory.CraftingInventory.GetCreatableItem().Count));
+            //クラフト可能かを設定
+            if (playerInventory.CraftingInventory.IsCreatable())
+            {
+                response.Add(1);
+            }
+            else
+            {
+                response.Add(0);
             }
 
             return new List<byte[]>() {response.ToArray()};

@@ -10,7 +10,7 @@ using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
-    public class PlayerInventoryItemMoveProtocolTest
+    public class PlayerMainInventoryItemMoveProtocolTest
     {
         [Test]
         public void InventoryItemMove()
@@ -34,40 +34,40 @@ namespace Test.CombinedTest.Server.PacketTest
 
 
             //アイテムの設定
-            playerInventoryData.SetItem(0, itemStackFactory.Create(1, 5));
-            playerInventoryData.SetItem(1, itemStackFactory.Create(1, 1));
-            playerInventoryData.SetItem(2, itemStackFactory.Create(2, 1));
+            playerInventoryData.MainInventory.SetItem(0, itemStackFactory.Create(1, 5));
+            playerInventoryData.MainInventory.SetItem(1, itemStackFactory.Create(1, 1));
+            playerInventoryData.MainInventory.SetItem(2, itemStackFactory.Create(2, 1));
 
             //実際に移動させてテスト
             //全てのアイテムを移動させるテスト
             packet.GetPacketResponse(PlayerInventoryItemMove(0, 3, 5, playerId));
-            Assert.AreEqual(playerInventoryData.GetItem(0), itemStackFactory.CreatEmpty());
-            Assert.AreEqual(playerInventoryData.GetItem(3), itemStackFactory.Create(1, 5));
+            Assert.AreEqual(playerInventoryData.MainInventory.GetItem(0), itemStackFactory.CreatEmpty());
+            Assert.AreEqual(playerInventoryData.MainInventory.GetItem(3), itemStackFactory.Create(1, 5));
 
             //一部のアイテムを移動させるテスト
             packet.GetPacketResponse(PlayerInventoryItemMove(3, 0, 3, playerId));
-            Assert.AreEqual(playerInventoryData.GetItem(0), itemStackFactory.Create(1, 3));
-            Assert.AreEqual(playerInventoryData.GetItem(3), itemStackFactory.Create(1, 2));
+            Assert.AreEqual(playerInventoryData.MainInventory.GetItem(0), itemStackFactory.Create(1, 3));
+            Assert.AreEqual(playerInventoryData.MainInventory.GetItem(3), itemStackFactory.Create(1, 2));
 
             //一部のアイテムを移動しようとするが他にスロットがあるため失敗するテスト
             packet.GetPacketResponse(PlayerInventoryItemMove(0, 2, 1, playerId));
-            Assert.AreEqual(playerInventoryData.GetItem(0), itemStackFactory.Create(1, 3));
-            Assert.AreEqual(playerInventoryData.GetItem(2), itemStackFactory.Create(2, 1));
+            Assert.AreEqual(playerInventoryData.MainInventory.GetItem(0), itemStackFactory.Create(1, 3));
+            Assert.AreEqual(playerInventoryData.MainInventory.GetItem(2), itemStackFactory.Create(2, 1));
 
             //全てのアイテムを移動させるテスト
             packet.GetPacketResponse(PlayerInventoryItemMove(0, 2, 3, playerId));
-            Assert.AreEqual(playerInventoryData.GetItem(0), itemStackFactory.Create(2, 1));
-            Assert.AreEqual(playerInventoryData.GetItem(2), itemStackFactory.Create(1, 3));
+            Assert.AreEqual(playerInventoryData.MainInventory.GetItem(0), itemStackFactory.Create(2, 1));
+            Assert.AreEqual(playerInventoryData.MainInventory.GetItem(2), itemStackFactory.Create(1, 3));
 
             //アイテムを加算するテスト
             packet.GetPacketResponse(PlayerInventoryItemMove(2, 1, 3, playerId));
-            Assert.AreEqual(playerInventoryData.GetItem(2), itemStackFactory.CreatEmpty());
-            Assert.AreEqual(playerInventoryData.GetItem(1), itemStackFactory.Create(1, 4));
+            Assert.AreEqual(playerInventoryData.MainInventory.GetItem(2), itemStackFactory.CreatEmpty());
+            Assert.AreEqual(playerInventoryData.MainInventory.GetItem(1), itemStackFactory.Create(1, 4));
             
             
             //全てのアイテムを同じスロットにアイテムを移動させるテスト
             packet.GetPacketResponse(PlayerInventoryItemMove(1, 1, 4, playerId));
-            Assert.AreEqual(playerInventoryData.GetItem(1), itemStackFactory.Create(1, 4));
+            Assert.AreEqual(playerInventoryData.MainInventory.GetItem(1), itemStackFactory.Create(1, 4));
         }
 
         private List<byte> PlayerInventoryItemMove(int fromSlot, int toSlot, int itemCount, int playerId)

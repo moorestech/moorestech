@@ -9,11 +9,11 @@ namespace Server.Event.EventReceive
         private readonly EventProtocolProvider _eventProtocolProvider;
         private const short EventId = 1;
 
-        public ReceiveInventoryUpdateEvent(IPlayerInventoryUpdateEvent inventoryUpdateEvent,
+        public ReceiveInventoryUpdateEvent(IPlayerMainInventoryUpdateEvent mainInventoryUpdateEvent,
             EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            inventoryUpdateEvent.Subscribe(ReceivedEvent);
+            mainInventoryUpdateEvent.Subscribe(ReceivedEvent);
         }
 
 

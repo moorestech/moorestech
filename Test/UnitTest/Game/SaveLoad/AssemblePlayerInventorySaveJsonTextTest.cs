@@ -35,7 +35,7 @@ namespace Test.UnitTest.Game.SaveLoad
             //アイテムをセットする
             foreach (var item in items)
             {
-                inventory.SetItem(item.Key,item.Value);
+                inventory.MainInventory.SetItem(item.Key,item.Value);
             }
             
             //セーブする
@@ -54,10 +54,10 @@ namespace Test.UnitTest.Game.SaveLoad
             {
                 if (items.ContainsKey(i))
                 {
-                    Assert.AreEqual(items[i],loadedPlayerInventory.GetItem(i));
+                    Assert.AreEqual(items[i],loadedPlayerInventory.MainInventory.GetItem(i));
                     continue;
                 }
-                Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedPlayerInventory.GetItem(i));
+                Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedPlayerInventory.MainInventory.GetItem(i));
             }
         }
 
@@ -87,7 +87,7 @@ namespace Test.UnitTest.Game.SaveLoad
                 var inventory = playerInventory.GetInventoryData(playerItem.Key);
                 foreach (var item in playerItem.Value)
                 {
-                    inventory.SetItem(item.Key,item.Value);
+                    inventory.MainInventory.SetItem(item.Key,item.Value);
                 }
             }
             
@@ -109,10 +109,10 @@ namespace Test.UnitTest.Game.SaveLoad
                 {
                     if (playerItem.Value.ContainsKey(i))
                     {
-                        Assert.AreEqual(playerItem.Value[i],loadedInventory.GetItem(i));
+                        Assert.AreEqual(playerItem.Value[i],loadedInventory.MainInventory.GetItem(i));
                         continue;
                     }
-                    Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedInventory.GetItem(i));
+                    Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedInventory.MainInventory.GetItem(i));
                 }
             }
             

@@ -33,7 +33,8 @@ namespace Core.Block.BlockFactory.BlockTemplate
                 new VanillaMachineBlockInventory(input, output),
                 new VanillaMachineInventory(input, output),
                 new VanillaMachineSave(input, output, runProcess),
-                runProcess
+                runProcess,
+                _itemStackFactory
             );
         }
 
@@ -49,7 +50,8 @@ namespace Core.Block.BlockFactory.BlockTemplate
                 new VanillaMachineBlockInventory(input, output),
                 new VanillaMachineInventory(input, output),
                 new VanillaMachineSave(input, output, runProcess),
-                runProcess
+                runProcess,
+                _itemStackFactory
             );
         }
 

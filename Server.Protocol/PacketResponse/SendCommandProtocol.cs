@@ -28,7 +28,7 @@ namespace Server.Protocol.PacketResponse
             {
                 var inventory = _playerInventoryDataStore.GetInventoryData(int.Parse(command[1]));
                 var item = _itemStackFactory.Create(int.Parse(command[2]), int.Parse(command[3]));
-                inventory.InsertItem(item);
+                inventory.MainInventory.InsertItem(item);
             }
             
             

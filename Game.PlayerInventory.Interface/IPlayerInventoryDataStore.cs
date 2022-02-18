@@ -5,7 +5,7 @@ namespace Game.PlayerInventory.Interface
 {
     public interface IPlayerInventoryDataStore
     {
-        public IInventory GetInventoryData(int playerId);
+        public PlayerInventoryData GetInventoryData(int playerId);
         public List<SaveInventoryData> GetSaveInventoryDataList();
         public void LoadPlayerInventory(List<SaveInventoryData> saveInventoryDataList);
     }
