@@ -83,7 +83,7 @@ namespace Server
             services.AddSingleton<IPlayerMainInventoryUpdateEvent, PlayerMainInventoryUpdateEvent>();
 
             //イベントレシーバーを登録
-            services.AddSingleton<ReceiveInventoryUpdateEvent, ReceiveInventoryUpdateEvent>();
+            services.AddSingleton<ReceiveMainInventoryUpdateEvent, ReceiveMainInventoryUpdateEvent>();
             services.AddSingleton<ReceivePlaceBlockEvent, ReceivePlaceBlockEvent>();
             services.AddSingleton<ReceiveRemoveBlockEvent, ReceiveRemoveBlockEvent>();
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect, BlockPlaceEventToBlockInventoryConnect>();
@@ -104,7 +104,7 @@ namespace Server
 
             //イベントレシーバーをインスタンス化する
             //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
-            serviceProvider.GetService<ReceiveInventoryUpdateEvent>();
+            serviceProvider.GetService<ReceiveMainInventoryUpdateEvent>();
             serviceProvider.GetService<ReceivePlaceBlockEvent>();
             serviceProvider.GetService<ReceiveRemoveBlockEvent>();
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();

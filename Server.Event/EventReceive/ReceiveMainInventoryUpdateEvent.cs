@@ -4,12 +4,12 @@ using Server.Util;
 
 namespace Server.Event.EventReceive
 {
-    public class ReceiveInventoryUpdateEvent
+    public class ReceiveMainInventoryUpdateEvent
     {
         private readonly EventProtocolProvider _eventProtocolProvider;
         private const short EventId = 1;
 
-        public ReceiveInventoryUpdateEvent(IPlayerMainInventoryUpdateEvent mainInventoryUpdateEvent,
+        public ReceiveMainInventoryUpdateEvent(IPlayerMainInventoryUpdateEvent mainInventoryUpdateEvent,
             EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
