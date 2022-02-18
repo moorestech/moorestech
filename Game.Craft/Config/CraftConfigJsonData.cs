@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace Game.Crafting.Config
+namespace Game.Craft.Config
 {
     [DataContract]
     public class CraftConfigJsonData

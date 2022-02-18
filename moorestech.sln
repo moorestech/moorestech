@@ -62,9 +62,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassLibrary", "ClassLibrar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.World.EventHandler", "Game.World.EventHandler\Game.World.EventHandler.csproj", "{29F1A035-9915-450A-8C17-749EB8C2F77F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Crafting", "Game.Crafting\Game.Crafting.csproj", "{F12F3ACC-9527-4E7B-95B4-00B4A7676A22}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Craft", "Game.Craft\Game.Craft.csproj", "{F12F3ACC-9527-4E7B-95B4-00B4A7676A22}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Crafting.Interface", "Game.Crafting.Interface\Game.Crafting.Interface.csproj", "{DD03D42E-652D-4B64-BECB-F45975A1DBF2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Craft.Interface", "Game.Craft.Interface\Game.Craft.Interface.csproj", "{DD03D42E-652D-4B64-BECB-F45975A1DBF2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

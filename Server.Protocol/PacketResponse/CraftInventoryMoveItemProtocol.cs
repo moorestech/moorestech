@@ -27,7 +27,7 @@ namespace Server.Protocol.PacketResponse
             var toSlot = payloadData.MoveNextToGetInt();
             var itemCount = payloadData.MoveNextToGetInt();
 
-            var craftingInventory = _playerInventoryDataStore.GetInventoryData(playerId).CraftingInventory;
+            var craftingInventory = _playerInventoryDataStore.GetInventoryData(playerId).CraftInventory;
 
             new InventoryItemMove().Move(_itemStackFactory, craftingInventory, fromSlot, craftingInventory, toSlot,
                 itemCount);

@@ -1,22 +1,22 @@
 using System.Collections.Generic;
 using Core.Item;
-using Game.Crafting.Interface;
+using Game.Craft.Interface;
 using Game.PlayerInventory.Interface;
 using PlayerInventory.Event;
 
 namespace PlayerInventory.ItemManaged
 {
-    public class CraftingInventoryData : ICraftingInventory
+    public class CraftInventoryData : ICraftInventory
     {
         private readonly PlayerInventoryItemDataStoreService _inventoryService;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
-        public CraftingInventoryData(int playerId, PlayerMainInventoryUpdateEvent playerMainInventoryUpdateEvent,
+        public CraftInventoryData(int playerId, PlayerMainInventoryUpdateEvent playerMainInventoryUpdateEvent,
             ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService)
         {
             _isCreatableJudgementService = isCreatableJudgementService;
             _inventoryService = new PlayerInventoryItemDataStoreService(playerId, playerMainInventoryUpdateEvent, 
-                itemStackFactory, PlayerInventoryConst.CraftingInventorySize);
+                itemStackFactory, PlayerInventoryConst.CraftInventorySize);
         }
 
         public void Craft()
@@ -26,19 +26,19 @@ namespace PlayerInventory.ItemManaged
             
             //クラフト結果のアイテムを出力スロットに追加可能か判定
             var result = _isCreatableJudgementService.GetResult(CraftingItems);
-            var outputItem = _inventoryService.GetItem(PlayerInventoryConst.CraftingInventorySize - 1);
+            var outputItem = _inventoryService.GetItem(PlayerInventoryConst.CraftInventorySize - 1);
 
             //クラフトしたアイテムの出力スロットに空きがある
             if (!outputItem.IsAllowedToAdd(result)) return;
             
             //元のクラフト結果のアイテムを足したアイテムを出力スロットに追加
             var addedOutputSlot = outputItem.AddItem(result).ProcessResultItemStack;
-            _inventoryService.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, addedOutputSlot);
+            _inventoryService.SetItem(PlayerInventoryConst.CraftInventorySize - 1, addedOutputSlot);
             
             
             //クラフトしたアイテムを消費する
             var craftConfig = _isCreatableJudgementService.GetCraftingConfigData(CraftingItems);
-            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
+            for (int i = 0; i < PlayerInventoryConst.CraftSlotSize; i++)
             {
                 //クラフトしたアイテムを消費する
                 var subItem = _inventoryService.Inventory[i].SubItem(craftConfig.Items[i].Count);
@@ -54,7 +54,7 @@ namespace PlayerInventory.ItemManaged
             get
             {
                 var items = new List<IItemStack>();
-                for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
+                for (int i = 0; i < PlayerInventoryConst.CraftSlotSize; i++)
                 {
                     items.Add(_inventoryService.GetItem(i));
                 }

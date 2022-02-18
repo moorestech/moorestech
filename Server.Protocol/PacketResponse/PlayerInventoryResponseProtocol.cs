@@ -34,16 +34,16 @@ namespace Server.Protocol.PacketResponse
             }
             
             //クラフトインベントリのアイテムを設定
-            for (int i = 0; i < PlayerInventoryConst.CraftingInventorySize; i++)
+            for (int i = 0; i < PlayerInventoryConst.CraftInventorySize; i++)
             {
-                response.AddRange(ToByteList.Convert(playerInventory.CraftingInventory.GetItem(i).Id));
-                response.AddRange(ToByteList.Convert(playerInventory.CraftingInventory.GetItem(i).Count));
+                response.AddRange(ToByteList.Convert(playerInventory.CraftInventory.GetItem(i).Id));
+                response.AddRange(ToByteList.Convert(playerInventory.CraftInventory.GetItem(i).Count));
             }
             //クラフト結果のアイテムを設定
-            response.AddRange(ToByteList.Convert(playerInventory.CraftingInventory.GetCreatableItem().Id));
-            response.AddRange(ToByteList.Convert(playerInventory.CraftingInventory.GetCreatableItem().Count));
+            response.AddRange(ToByteList.Convert(playerInventory.CraftInventory.GetCreatableItem().Id));
+            response.AddRange(ToByteList.Convert(playerInventory.CraftInventory.GetCreatableItem().Count));
             //クラフト可能かを設定
-            if (playerInventory.CraftingInventory.IsCreatable())
+            if (playerInventory.CraftInventory.IsCreatable())
             {
                 response.Add(1);
             }

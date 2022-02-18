@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Game.Crafting.Interface
+namespace Game.Craft.Interface
 {
     public interface ICraftingConfig
     {

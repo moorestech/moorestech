@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
-using Game.Crafting.Interface;
+using Game.Craft.Interface;
 
-namespace Game.Crafting.Config
+namespace Game.Craft.Config
 {
     public class TestCraftConfig : ICraftingConfig
     {
