@@ -9,10 +9,10 @@ namespace PlayerInventory.ItemManaged
     {
         private readonly PlayerInventoryItemDataStoreService _inventoryService;
 
-        public MainInventoryData(int playerId, PlayerMainInventoryUpdateEvent playerMainInventoryUpdateEvent,
+        public MainInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent,
             ItemStackFactory itemStackFactory)
         {
-            _inventoryService = new PlayerInventoryItemDataStoreService(playerId, playerMainInventoryUpdateEvent,
+            _inventoryService = new PlayerInventoryItemDataStoreService(playerId, mainInventoryUpdateEvent,
                 itemStackFactory, PlayerInventoryConst.MainInventorySize);
         }
 

@@ -15,15 +15,15 @@ namespace PlayerInventory
     public class PlayerInventoryDataStore : IPlayerInventoryDataStore
     {
         readonly Dictionary<int, PlayerInventoryData> _playerInventoryData = new();
-        private readonly PlayerMainInventoryUpdateEvent _playerMainInventoryUpdateEvent;
+        private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
-        public PlayerInventoryDataStore(IPlayerMainInventoryUpdateEvent playerMainInventoryUpdateEvent,
+        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent,
             ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService)
         {
             //イベントの呼び出しをアセンブリに隠蔽するため、インターフェースをキャストします。
-            _playerMainInventoryUpdateEvent = (PlayerMainInventoryUpdateEvent) playerMainInventoryUpdateEvent;
+            _mainInventoryUpdateEvent = (MainInventoryUpdateEvent) mainInventoryUpdateEvent;
             _itemStackFactory = itemStackFactory;
             _isCreatableJudgementService = isCreatableJudgementService;
         }
@@ -32,8 +32,8 @@ namespace PlayerInventory
         {
             if (!_playerInventoryData.ContainsKey(playerId))
             {
-                var main = new MainInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory);
-                var craft = new CraftingInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService);
+                var main = new MainInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
+                var craft = new CraftingInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService);
                 
                 _playerInventoryData.Add(playerId, new PlayerInventoryData(main,craft));
             }
@@ -72,7 +72,7 @@ namespace PlayerInventory
             {
                 var playerId = saveInventory.PlayerId;
 
-                var inventory = new MainInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory);
+                var inventory = new MainInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
                 //インベントリの追加を行う　既にあるなら置き換える
                 if (_playerInventoryData.ContainsKey(playerId))
                 {
