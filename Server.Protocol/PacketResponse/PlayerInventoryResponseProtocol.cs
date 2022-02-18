@@ -19,7 +19,7 @@ namespace Server.Protocol.PacketResponse
             var payloadData = new ByteArrayEnumerator(payload);
             payloadData.MoveNextToGetShort();
             var playerId = payloadData.MoveNextToGetInt();
-            var playerInventory = _playerInventoryDataStore.GetMainInventoryData(playerId);
+            var playerInventory = _playerInventoryDataStore.GetInventoryData(playerId);
 
             var response = new List<byte>();
             response.AddRange(ToByteList.Convert((short) 4));
@@ -28,8 +28,8 @@ namespace Server.Protocol.PacketResponse
 
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
-                response.AddRange(ToByteList.Convert(playerInventory.GetItem(i).Id));
-                response.AddRange(ToByteList.Convert(playerInventory.GetItem(i).Count));
+                response.AddRange(ToByteList.Convert(playerInventory.MainInventory.GetItem(i).Id));
+                response.AddRange(ToByteList.Convert(playerInventory.MainInventory.GetItem(i).Count));
             }
 
             return new List<byte[]>() {response.ToArray()};

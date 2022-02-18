@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Game.Crafting\Game.Crafting.csproj" />
         <ProjectReference Include="..\Game.PlayerInventory\Game.PlayerInventory.csproj" />
         <ProjectReference Include="..\Game.SaveLoad.Interface\Game.SaveLoad.Interface.csproj" />
         <ProjectReference Include="..\Game.SaveLoad\Game.SaveLoad.csproj" />

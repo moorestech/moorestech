@@ -23,22 +23,22 @@ namespace Test.CombinedTest.Server.PacketTest
             //アイテムが正しく入っているかチェック
             
             //プレイヤーインベントリを取得
-            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetMainInventoryData(10);
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(10);
             
             //何もないインベントリに入れたのでスロット0にアイテムが入っているかチェック
-            Assert.AreEqual(2,playerInventory.GetItem(0).Id);
-            Assert.AreEqual(5,playerInventory.GetItem(0).Count);
+            Assert.AreEqual(2,playerInventory.MainInventory.GetItem(0).Id);
+            Assert.AreEqual(5,playerInventory.MainInventory.GetItem(0).Count);
             
             
             //別のアイテムIDを入れたので、スロット1にアイテムが入っているかチェック
             packet.GetPacketResponse(GetGiveCommandPacket(10, 3, 7));
-            Assert.AreEqual(3,playerInventory.GetItem(1).Id);
-            Assert.AreEqual(7,playerInventory.GetItem(1).Count);
+            Assert.AreEqual(3,playerInventory.MainInventory.GetItem(1).Id);
+            Assert.AreEqual(7,playerInventory.MainInventory.GetItem(1).Count);
             
             //アイテムID2を入れたので、スロット0のアイテムが増えているかチェック
             packet.GetPacketResponse(GetGiveCommandPacket(10, 2, 3));
-            Assert.AreEqual(2,playerInventory.GetItem(0).Id);
-            Assert.AreEqual(8,playerInventory.GetItem(0).Count);
+            Assert.AreEqual(2,playerInventory.MainInventory.GetItem(0).Id);
+            Assert.AreEqual(8,playerInventory.MainInventory.GetItem(0).Count);
 
         }
 

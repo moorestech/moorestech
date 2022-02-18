@@ -57,11 +57,11 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //2回目のデータ要求のためにアイテムをセットする
             var playerInventoryData =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetMainInventoryData(playerId);
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
-            playerInventoryData.SetItem(0, itemStackFactory.Create(1, 5));
-            playerInventoryData.SetItem(20, itemStackFactory.Create(3, 1));
-            playerInventoryData.SetItem(34, itemStackFactory.Create(10, 7));
+            playerInventoryData.MainInventory.SetItem(0, itemStackFactory.Create(1, 5));
+            playerInventoryData.MainInventory.SetItem(20, itemStackFactory.Create(3, 1));
+            playerInventoryData.MainInventory.SetItem(34, itemStackFactory.Create(10, 7));
 
 
             //2回目のデータ要求

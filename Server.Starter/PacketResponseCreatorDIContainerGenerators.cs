@@ -10,6 +10,9 @@ using Core.Item;
 using Core.Item.Config;
 using Core.Ore;
 using Core.Ore.Config;
+using Game.Crafting;
+using Game.Crafting.Config;
+using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.Save.Interface;
@@ -43,6 +46,7 @@ namespace Server
             //テスト用のコンフィグ、ファクトリーのインスタンスを登録
             services.AddSingleton<IMachineRecipeConfig, TestMachineRecipeConfig>();
             services.AddSingleton<IItemConfig, TestItemConfig>();
+            services.AddSingleton<ICraftingConfig, TestCraftConfig>();
             services.AddSingleton<ItemStackFactory, ItemStackFactory>();
             services.AddSingleton<IBlockConfig, BlockConfig>();
             services.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
@@ -51,6 +55,7 @@ namespace Server
 
 
             //ゲームプレイに必要なクラスのインスタンスを生成
+            services.AddSingleton<IIsCreatableJudgementService, IsCreatableJudgementService>();
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             services.AddSingleton<IWorldBlockComponentDatastore<IBlockElectric>, WorldBlockComponentDatastore<IBlockElectric>>();

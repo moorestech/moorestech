@@ -23,7 +23,7 @@ namespace Test.UnitTest.Game.SaveLoad
             int playerIntId = 100;
             
             //プレイヤーインベントリの作成
-            var inventory =  playerInventory.GetMainInventoryData(playerIntId);
+            var inventory =  playerInventory.GetInventoryData(playerIntId);
 
             //セットするアイテムを定義する
             var items = new Dictionary<int, IItemStack>();
@@ -35,7 +35,7 @@ namespace Test.UnitTest.Game.SaveLoad
             //アイテムをセットする
             foreach (var item in items)
             {
-                inventory.SetItem(item.Key,item.Value);
+                inventory.MainInventory.SetItem(item.Key,item.Value);
             }
             
             //セーブする
@@ -47,17 +47,17 @@ namespace Test.UnitTest.Game.SaveLoad
             //セーブしたデータをロードする
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
-            var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetMainInventoryData(playerIntId);
+            var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerIntId);
 
             //インベントリのチェック
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
                 if (items.ContainsKey(i))
                 {
-                    Assert.AreEqual(items[i],loadedPlayerInventory.GetItem(i));
+                    Assert.AreEqual(items[i],loadedPlayerInventory.MainInventory.GetItem(i));
                     continue;
                 }
-                Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedPlayerInventory.GetItem(i));
+                Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedPlayerInventory.MainInventory.GetItem(i));
             }
         }
 
@@ -84,10 +84,10 @@ namespace Test.UnitTest.Game.SaveLoad
             //プレイヤーインベントリにアイテムをセットする
             foreach (var playerItem in playerItems)
             {
-                var inventory = playerInventory.GetMainInventoryData(playerItem.Key);
+                var inventory = playerInventory.GetInventoryData(playerItem.Key);
                 foreach (var item in playerItem.Value)
                 {
-                    inventory.SetItem(item.Key,item.Value);
+                    inventory.MainInventory.SetItem(item.Key,item.Value);
                 }
             }
             
@@ -103,16 +103,16 @@ namespace Test.UnitTest.Game.SaveLoad
             //データを検証する
             foreach (var playerItem in playerItems)
             {
-                var loadedInventory = loadedPlayerInventory.GetMainInventoryData(playerItem.Key);
+                var loadedInventory = loadedPlayerInventory.GetInventoryData(playerItem.Key);
                 //インベントリのチェック
                 for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
                 {
                     if (playerItem.Value.ContainsKey(i))
                     {
-                        Assert.AreEqual(playerItem.Value[i],loadedInventory.GetItem(i));
+                        Assert.AreEqual(playerItem.Value[i],loadedInventory.MainInventory.GetItem(i));
                         continue;
                     }
-                    Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedInventory.GetItem(i));
+                    Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedInventory.MainInventory.GetItem(i));
                 }
             }
             

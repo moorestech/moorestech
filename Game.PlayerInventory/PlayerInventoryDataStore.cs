@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item;
+using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using PlayerInventory.Event;
@@ -13,29 +14,34 @@ namespace PlayerInventory
     /// </summary>
     public class PlayerInventoryDataStore : IPlayerInventoryDataStore
     {
-        readonly Dictionary<int, PlayerMainInventoryData> _playerInventoryData = new();
+        readonly Dictionary<int, PlayerInventoryData> _playerInventoryData = new();
         private readonly PlayerMainInventoryUpdateEvent _playerMainInventoryUpdateEvent;
         private readonly ItemStackFactory _itemStackFactory;
+        private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
         public PlayerInventoryDataStore(IPlayerMainInventoryUpdateEvent playerMainInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory)
+            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService)
         {
             //イベントの呼び出しをアセンブリに隠蔽するため、インターフェースをキャストします。
             _playerMainInventoryUpdateEvent = (PlayerMainInventoryUpdateEvent) playerMainInventoryUpdateEvent;
             _itemStackFactory = itemStackFactory;
+            _isCreatableJudgementService = isCreatableJudgementService;
         }
 
-        public IInventory GetMainInventoryData(int playerId)
+        public PlayerInventoryData GetInventoryData(int playerId)
         {
             if (!_playerInventoryData.ContainsKey(playerId))
             {
-                _playerInventoryData.Add(playerId,
-                    new PlayerMainInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory));
+                var main = new PlayerMainInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory);
+                var craft = new PlayerCraftingInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService);
+                
+                _playerInventoryData.Add(playerId, new PlayerInventoryData(main,craft));
             }
 
             return _playerInventoryData[playerId];
         }
 
+        //TODO クラフトインベントリのデータも含める
         public List<SaveInventoryData> GetSaveInventoryDataList()
         {
             var savePlayerInventoryList =  new List<SaveInventoryData>();
@@ -46,7 +52,7 @@ namespace PlayerInventory
                 var itemCounts = new List<int>();
                 for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
                 {
-                    var item = inventory.Value.GetItem(i);
+                    var item = inventory.Value.MainInventory.GetItem(i);
                     itemIds.Add(item.Id);
                     itemCounts.Add(item.Count);
                 }
@@ -70,10 +76,10 @@ namespace PlayerInventory
                 //インベントリの追加を行う　既にあるなら置き換える
                 if (_playerInventoryData.ContainsKey(playerId))
                 {
-                    _playerInventoryData[playerId] = inventory;
+                    _playerInventoryData[playerId] = new PlayerInventoryData(inventory,null);
                 }else
                 {
-                    _playerInventoryData.Add(playerId,inventory);
+                    _playerInventoryData.Add(playerId,new PlayerInventoryData(inventory,null));
                 }
                 
                 //インベントリにアイテムを追加する

@@ -8,6 +8,8 @@ using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
 using Core.Update;
+using Game.Crafting;
+using Game.Crafting.Config;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;
 using NUnit.Framework;
@@ -121,7 +123,7 @@ namespace Test.UnitTest.Game.SaveLoad
                 new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemFactory), itemFactory));
             var worldBlockDatastore =
                 new WorldBlockDatastore(new BlockPlaceEvent(), blockFactory, new BlockRemoveEvent());
-            var playerInventoryDataStore = new PlayerInventoryDataStore(new PlayerMainInventoryUpdateEvent(), itemFactory);
+            var playerInventoryDataStore = new PlayerInventoryDataStore(new PlayerMainInventoryUpdateEvent(), itemFactory,new IsCreatableJudgementService(new TestCraftConfig(itemFactory),itemFactory));
             var assembleSaveJsonText = new AssembleSaveJsonText(playerInventoryDataStore, worldBlockDatastore);
             var loadJsonText = new LoadJsonFile(new SaveJsonFileName(""), worldBlockDatastore,playerInventoryDataStore);
 
