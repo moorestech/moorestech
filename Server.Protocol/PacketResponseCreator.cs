@@ -25,12 +25,14 @@ namespace Server.Protocol
             _packetResponseList.Add(new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
             _packetResponseList.Add(new SendEventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseList.Add(new BlockInventoryPlayerMainInventoryMoveItemProtocol(serviceProvider));
-            _packetResponseList.Add(new PlayerMainInventoryMoveItemProtocol(serviceProvider));
+            _packetResponseList.Add(new MainInventoryMoveItemProtocol(serviceProvider));
             _packetResponseList.Add(new BlockInventoryMoveItemProtocol(serviceProvider));
             _packetResponseList.Add(new SendPlaceHotBarBlockProtocol(serviceProvider));
             _packetResponseList.Add(new BlockInventoryRequestProtocol(serviceProvider));
             _packetResponseList.Add(new RemoveBlockProtocol(serviceProvider));
             _packetResponseList.Add(new SendCommandProtocol(serviceProvider));
+            _packetResponseList.Add(new CraftInventoryPlayerMainInventoryMoveItemProtocol(serviceProvider));
+            _packetResponseList.Add(new CraftInventoryMoveItemProtocol(serviceProvider));
 
             serviceProvider.GetService<VeinGenerator>();
         }

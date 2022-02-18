@@ -6,12 +6,12 @@ using PlayerInventory.Event;
 
 namespace PlayerInventory.ItemManaged
 {
-    public class PlayerCraftingInventoryData : ICraftingInventory
+    public class CraftingInventoryData : ICraftingInventory
     {
         private readonly PlayerInventoryItemDataStoreService _inventoryService;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
-        public PlayerCraftingInventoryData(int playerId, PlayerMainInventoryUpdateEvent playerMainInventoryUpdateEvent,
+        public CraftingInventoryData(int playerId, PlayerMainInventoryUpdateEvent playerMainInventoryUpdateEvent,
             ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService)
         {
             _isCreatableJudgementService = isCreatableJudgementService;

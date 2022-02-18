@@ -13,7 +13,7 @@ using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
-    public class PlayerInventoryUpdateTest
+    public class PlayerMainInventoryUpdateTest
     {
         [Test]
         public void UpdateTest()
