@@ -7,11 +7,11 @@ namespace Game.PlayerInventory.Interface
 {
     public class SaveInventoryData
     {
-        [JsonProperty("MainItemId")] public List<int> MainItemId { get; }
-        [JsonProperty("MainItemCount")] public List<int> MainItemCount { get; }
-        [JsonProperty("CraftItemId")] public List<int> CraftItemId { get; }
-        [JsonProperty("CraftItemCount")] public List<int> CraftItemCount { get; }
-        [JsonProperty("PlayerId")] public int PlayerId { get; }
+        [JsonProperty("MainItemId")] public List<int> MainItemId;
+        [JsonProperty("MainItemCount")] public List<int> MainItemCount;
+        [JsonProperty("CraftItemId")] public List<int> CraftItemId;
+        [JsonProperty("CraftItemCount")] public List<int> CraftItemCount;
+        [JsonProperty("PlayerId")] public int PlayerId;
 
         public (List<IItemStack>,List<IItemStack>) GetPlayerInventoryData(ItemStackFactory itemStackFactory)
         {
@@ -28,6 +28,7 @@ namespace Game.PlayerInventory.Interface
             return (mainItemStack, craftItemStack);
         }
 
+        public SaveInventoryData(){}
         public SaveInventoryData(int playerId, PlayerInventoryData playerInventoryData)
         {
             MainItemId = new ();

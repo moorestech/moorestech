@@ -26,14 +26,14 @@ namespace Test.UnitTest.Game.SaveLoad
             var inventory =  playerInventory.GetInventoryData(playerIntId);
 
             //セットするアイテムを定義する
-            var items = new Dictionary<int, IItemStack>();
-            items.Add(0,itemStackFactory.Create(2,10));
-            items.Add(10,itemStackFactory.Create(5,1));
-            items.Add(30,itemStackFactory.Create(10,10));
-            items.Add(PlayerInventoryConst.MainInventorySize - 1,itemStackFactory.Create(12,11));
+            var mainItems = new Dictionary<int, IItemStack>();
+            mainItems.Add(0,itemStackFactory.Create(2,10));
+            mainItems.Add(10,itemStackFactory.Create(5,1));
+            mainItems.Add(30,itemStackFactory.Create(10,10));
+            mainItems.Add(PlayerInventoryConst.MainInventorySize - 1,itemStackFactory.Create(12,11));
             
             //アイテムをセットする
-            foreach (var item in items)
+            foreach (var item in mainItems)
             {
                 inventory.MainInventory.SetItem(item.Key,item.Value);
             }
@@ -52,9 +52,9 @@ namespace Test.UnitTest.Game.SaveLoad
             //インベントリのチェック
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
-                if (items.ContainsKey(i))
+                if (mainItems.ContainsKey(i))
                 {
-                    Assert.AreEqual(items[i],loadedPlayerInventory.MainInventory.GetItem(i));
+                    Assert.AreEqual(mainItems[i],loadedPlayerInventory.MainInventory.GetItem(i));
                     continue;
                 }
                 Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedPlayerInventory.MainInventory.GetItem(i));
