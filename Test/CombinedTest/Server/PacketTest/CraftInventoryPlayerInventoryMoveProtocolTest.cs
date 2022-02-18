@@ -30,7 +30,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //クラフトインベントリの作成
             var craftInventory =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainInventory;
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingInventory;
             //アイテムの設定
             craftInventory.InsertItem(_itemStackFactory.Create(1, 5));
             Assert.AreEqual(1, craftInventory.GetItem(craftSlot).Id);
@@ -65,7 +65,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //別のアイテムIDが在ったとき、全て選択していれば入れ替える
             //別IDのアイテム挿入
-            craftInventory.SetItem(mainSlotIndex, _itemStackFactory.Create(2, 3));
+            mainInventory.SetItem(mainSlotIndex, _itemStackFactory.Create(2, 3));
             //メインインベントリからクラフトインベントリへ全てのアイテムを移す
             packet.GetPacketResponse(CreateReplacePayload(0,  mainSlotIndex,  craftSlot, 3));
             //きちんと移動できたか確認
@@ -93,7 +93,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //同じIDならそのまま足されるテスト
             //テスト用にクラフトインベントリと同じアイテムIDを挿入
-            craftInventory.SetItem(mainSlotIndex, _itemStackFactory.Create(2, 3));
+            mainInventory.SetItem(mainSlotIndex, _itemStackFactory.Create(2, 3));
             //メインからアイテム2つを移す
             packet.GetPacketResponse(CreateReplacePayload(0,  mainSlotIndex,  craftSlot, 2));
 
@@ -104,7 +104,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //アイテムスタック数以上のアイテムを入れたときに戻されるテスト
             var max = new TestItemConfig().GetItemConfig(2).MaxStack;
-            craftInventory.SetItem(mainSlotIndex, _itemStackFactory.Create(2, max));
+            mainInventory.SetItem(mainSlotIndex, _itemStackFactory.Create(2, max));
             //メインからアイテムを全て移す
             packet.GetPacketResponse(CreateReplacePayload(0,  mainSlotIndex,  craftSlot, max));
 
