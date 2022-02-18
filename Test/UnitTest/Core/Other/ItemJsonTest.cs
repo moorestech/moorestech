@@ -14,7 +14,7 @@ namespace Test.UnitTest.Core.Other
         [TestCase(5, 30)]
         public void JsonStackTest(int id, int stack)
         {
-            Assert.AreEqual(stack, new TestItemConfig().GetItemConfig(id).Stack);
+            Assert.AreEqual(stack, new TestItemConfig().GetItemConfig(id).MaxStack);
         }
 
         [TestCase(0, "Test1")]

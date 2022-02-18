@@ -3,32 +3,32 @@
     {
       "name": "Test1",
       "id": 0,
-      "stacks": 100
+      "max_stacks": 100
     },
     {
       "name": "Test2",
       "id": 1,
-      "stacks": 50
+      "max_stacks": 50
     },
     {
       "name": "Test3",
       "id": 2,
-      "stacks": 300
+      "max_stacks": 300
     },
     {
       "name": "Test4",
       "id": 3,
-      "stacks": 55
+      "max_stacks": 55
     },
     {
       "name": "Test5",
       "id": 4,
-      "stacks": 200
+      "max_stacks": 200
     },
     {
       "name": "Test6",
       "id": 5,
-      "stacks": 30
+      "max_stacks": 30
     }
   ]
 }

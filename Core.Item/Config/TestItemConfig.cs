@@ -38,17 +38,17 @@ namespace Core.Item.Config
     {
         [DataMember(Name = "name")] private string _name;
         [DataMember(Name = "id")] private int _id;
-        [DataMember(Name = "stacks")] private int _stack;
+        [DataMember(Name = "max_stacks")] private int _maxStack;
 
-        public ItemConfigData(string name, int id, int stack)
+        public ItemConfigData(string name, int id, int maxStack)
         {
             _name = name;
             _id = id;
-            _stack = stack;
+            _maxStack = maxStack;
         }
 
         public string Name => _name;
         public int Id => _id;
-        public int Stack => _stack;
+        public int MaxStack => _maxStack;
     }
 }

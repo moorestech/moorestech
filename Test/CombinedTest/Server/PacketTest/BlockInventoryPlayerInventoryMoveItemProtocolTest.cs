@@ -136,7 +136,7 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(1, playerInventoryData.MainInventory.GetItem(playerSlotIndex).Count);
 
             //アイテムスタック数以上のアイテムを入れたときに戻されるテスト
-            var max = new TestItemConfig().GetItemConfig(2).Stack;
+            var max = new TestItemConfig().GetItemConfig(2).MaxStack;
             playerInventoryData.MainInventory.SetItem(playerSlotIndex, _itemStackFactory.Create(2, max));
             //プレイヤーからアイテムを全て移す
             packet.GetPacketResponse(CreateReplacePayload(0, playerId, playerSlotIndex, 0, 0, blockInventorySlotIndex,

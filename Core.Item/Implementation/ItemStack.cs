@@ -26,7 +26,7 @@ namespace Core.Item.Implementation
                 throw new ArgumentOutOfRangeException();
             }
 
-            if (itemConfig.GetItemConfig(id).Stack < count)
+            if (itemConfig.GetItemConfig(id).MaxStack < count)
             {
                 throw new ArgumentOutOfRangeException();
             }
@@ -50,7 +50,7 @@ namespace Core.Item.Implementation
             }
 
             var newCount = ((ItemStack) receiveItemStack).Count + Count;
-            var tmpStack = _itemConfig.GetItemConfig(Id).Stack;
+            var tmpStack = _itemConfig.GetItemConfig(Id).MaxStack;
 
             //量が指定数より多かったらはみ出した分を返す
             if (tmpStack < newCount)
@@ -76,7 +76,7 @@ namespace Core.Item.Implementation
 
         public bool IsAllowedToAdd(IItemStack item)
         {
-            var tmpStack = _itemConfig.GetItemConfig(Id).Stack;
+            var tmpStack = _itemConfig.GetItemConfig(Id).MaxStack;
 
             return (Id == item.Id || item.Id == ItemConst.EmptyItemId) &&
                    item.Count + Count <= tmpStack;

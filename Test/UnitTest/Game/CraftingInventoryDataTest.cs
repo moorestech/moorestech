@@ -172,7 +172,7 @@ namespace Test.UnitTest.Game
             
             //すでにアイテムが満杯である時はクラフトできないテスト
             //出力スロットにアイテムを入れる
-            setItem = itemStackFactory.Create(resultId,itemConfig.GetItemConfig(resultId).Stack);
+            setItem = itemStackFactory.Create(resultId,itemConfig.GetItemConfig(resultId).MaxStack);
             craftingInventory.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, setItem);
             
             //出力スロットのアイテムが変わっていないかチェック
