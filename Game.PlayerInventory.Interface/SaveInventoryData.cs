@@ -42,8 +42,8 @@ namespace Game.PlayerInventory.Interface
             CraftItemCount = new();
             for (int i = 0; i < playerInventoryData.CraftingInventory.GetSlotSize(); i++)
             {
-                MainItemId.Add(playerInventoryData.CraftingInventory.GetItem(i).Id);
-                MainItemCount.Add(playerInventoryData.CraftingInventory.GetItem(i).Count);
+                CraftItemId.Add(playerInventoryData.CraftingInventory.GetItem(i).Id);
+                CraftItemCount.Add(playerInventoryData.CraftingInventory.GetItem(i).Count);
             }
             
             
