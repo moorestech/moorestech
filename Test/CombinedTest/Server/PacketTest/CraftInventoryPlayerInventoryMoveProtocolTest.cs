@@ -121,11 +121,11 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(max, mainInventory.GetItem(mainSlotIndex).Count);
         }
 
-        private List<byte> CreateReplacePayload(byte toMainFlag,int mainSlot,int craftSlot,int itemNum)
+        private List<byte> CreateReplacePayload(short toMainFlag,int mainSlot,int craftSlot,int itemNum)
         {
             var payload = new List<byte>();
             payload.AddRange(ToByteList.Convert(PacketId));
-            payload.Add(toMainFlag); //クラフトインベントリ→メインインベントリのフラグ
+            payload.AddRange(ToByteList.Convert(toMainFlag)); //クラフトインベントリ→メインインベントリのフラグ
             payload.AddRange(ToByteList.Convert(PlayerId));
             payload.AddRange(ToByteList.Convert(mainSlot)); //メインインベントリの移動先スロット
             payload.AddRange(ToByteList.Convert(craftSlot)); //クラフトインベントリのインデクス

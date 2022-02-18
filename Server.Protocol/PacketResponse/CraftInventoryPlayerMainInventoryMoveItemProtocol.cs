@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item;
@@ -24,7 +25,7 @@ namespace Server.Protocol.PacketResponse
         {
             var payloadData = new ByteArrayEnumerator(payload);
             payloadData.MoveNextToGetShort();
-            var flag = payloadData.MoveNextToGetByte();
+            var flag = payloadData.MoveNextToGetShort();
             var playerId = payloadData.MoveNextToGetInt();
             var mainInventorySlot = payloadData.MoveNextToGetInt();
             var craftInventorySlot = payloadData.MoveNextToGetInt();
@@ -38,11 +39,13 @@ namespace Server.Protocol.PacketResponse
             //フラグが0の時はメインインベントリからクラフトインベントリにアイテムを移す
             if (flag == 0)
             {
+                Console.WriteLine("source Main");
                 inventoryItemMove.Move(_itemStackFactory, mainInventory, mainInventorySlot, craftInventory,
                     craftInventorySlot, moveItemCount);
             }
             else if (flag == 1)
             {
+                Console.WriteLine("source Craft");
                 inventoryItemMove.Move(_itemStackFactory, craftInventory, craftInventorySlot, mainInventory,
                     mainInventorySlot, moveItemCount);
             }
