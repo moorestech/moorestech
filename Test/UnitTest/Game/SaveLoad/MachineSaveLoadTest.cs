@@ -123,7 +123,8 @@ namespace Test.UnitTest.Game.SaveLoad
                 new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemFactory), itemFactory));
             var worldBlockDatastore =
                 new WorldBlockDatastore(new BlockPlaceEvent(), blockFactory, new BlockRemoveEvent());
-            var playerInventoryDataStore = new PlayerInventoryDataStore(new MainInventoryUpdateEvent(), itemFactory,new IsCreatableJudgementService(new TestCraftConfig(itemFactory),itemFactory));
+            var playerInventoryDataStore = new PlayerInventoryDataStore(new MainInventoryUpdateEvent(),new CraftInventoryUpdateEvent(),
+                itemFactory,new IsCreatableJudgementService(new TestCraftConfig(itemFactory),itemFactory));
             var assembleSaveJsonText = new AssembleSaveJsonText(playerInventoryDataStore, worldBlockDatastore);
             var loadJsonText = new LoadJsonFile(new SaveJsonFileName(""), worldBlockDatastore,playerInventoryDataStore);
 

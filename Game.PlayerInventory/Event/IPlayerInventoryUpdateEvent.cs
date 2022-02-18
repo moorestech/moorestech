@@ -4,6 +4,6 @@ namespace PlayerInventory.Event
 {
     public interface IPlayerInventoryUpdateEvent
     {
-        public void OnMainInventoryUpdateInvoke(PlayerInventoryUpdateEventProperties playerInventoryUpdateEventProperties);
+        public void OnInventoryUpdateInvoke(PlayerInventoryUpdateEventProperties playerInventoryUpdateEventProperties);
     }
 }

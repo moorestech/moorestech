@@ -3,7 +3,7 @@ using static Game.PlayerInventory.Interface.Event.ICraftInventoryUpdateEvent;
 
 namespace PlayerInventory.Event
 {
-    public class CraftInventoryUpdateEvent : ICraftInventoryUpdateEvent
+    public class CraftInventoryUpdateEvent : ICraftInventoryUpdateEvent,IPlayerInventoryUpdateEvent
     {
         public event UpdateInventoryEvent OnPlayerInventoryUpdate;
         public void Subscribe(UpdateInventoryEvent updateInventoryEvent)
@@ -11,7 +11,7 @@ namespace PlayerInventory.Event
             OnPlayerInventoryUpdate += updateInventoryEvent;
         }
 
-        public void OnCraftInventoryUpdateInvoke(
+        public void OnInventoryUpdateInvoke(
             PlayerInventoryUpdateEventProperties properties)
         {
             OnPlayerInventoryUpdate?.Invoke(properties);

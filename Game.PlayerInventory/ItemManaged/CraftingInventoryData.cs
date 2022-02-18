@@ -11,11 +11,11 @@ namespace PlayerInventory.ItemManaged
         private readonly PlayerInventoryItemDataStoreService _inventoryService;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
-        public CraftingInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent,
+        public CraftingInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent,
             ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService)
         {
             _isCreatableJudgementService = isCreatableJudgementService;
-            _inventoryService = new PlayerInventoryItemDataStoreService(playerId, mainInventoryUpdateEvent, 
+            _inventoryService = new PlayerInventoryItemDataStoreService(playerId, craftInventoryUpdateEvent, 
                 itemStackFactory, PlayerInventoryConst.CraftingInventorySize);
         }
 

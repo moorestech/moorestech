@@ -16,14 +16,19 @@ namespace PlayerInventory
     {
         readonly Dictionary<int, PlayerInventoryData> _playerInventoryData = new();
         private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
+        private readonly CraftInventoryUpdateEvent _craftInventoryUpdateEvent;
+        
         private readonly ItemStackFactory _itemStackFactory;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
         public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent,
+            ICraftInventoryUpdateEvent craftInventoryUpdateEvent,
             ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService)
         {
             //イベントの呼び出しをアセンブリに隠蔽するため、インターフェースをキャストします。
             _mainInventoryUpdateEvent = (MainInventoryUpdateEvent) mainInventoryUpdateEvent;
+            _craftInventoryUpdateEvent = (CraftInventoryUpdateEvent) craftInventoryUpdateEvent;
+            
             _itemStackFactory = itemStackFactory;
             _isCreatableJudgementService = isCreatableJudgementService;
         }
@@ -33,7 +38,7 @@ namespace PlayerInventory
             if (!_playerInventoryData.ContainsKey(playerId))
             {
                 var main = new MainInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
-                var craft = new CraftingInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService);
+                var craft = new CraftingInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService);
                 
                 _playerInventoryData.Add(playerId, new PlayerInventoryData(main,craft));
             }
