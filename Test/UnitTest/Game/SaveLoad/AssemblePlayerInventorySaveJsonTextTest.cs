@@ -32,11 +32,23 @@ namespace Test.UnitTest.Game.SaveLoad
             mainItems.Add(30,itemStackFactory.Create(10,10));
             mainItems.Add(PlayerInventoryConst.MainInventorySize - 1,itemStackFactory.Create(12,11));
             
-            //アイテムをセットする
+            var craftItems = new Dictionary<int, IItemStack>();
+            craftItems.Add(0,itemStackFactory.Create(2,5));
+            craftItems.Add(1,itemStackFactory.Create(3,4));
+            craftItems.Add(7,itemStackFactory.Create(4,7));
+            
+            //メインアイテムをセットする
             foreach (var item in mainItems)
             {
                 inventory.MainInventory.SetItem(item.Key,item.Value);
             }
+            //クラフトアイテムをセットする
+            foreach (var item in craftItems)
+            {
+                inventory.CraftingInventory.SetItem(item.Key,item.Value);
+            }
+            
+            
             
             //セーブする
             var json = assembleJsonText.AssembleSaveJson();
@@ -49,7 +61,7 @@ namespace Test.UnitTest.Game.SaveLoad
             (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
             var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerIntId);
 
-            //インベントリのチェック
+            //メインのインベントリのチェック
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
                 if (mainItems.ContainsKey(i))
@@ -58,6 +70,16 @@ namespace Test.UnitTest.Game.SaveLoad
                     continue;
                 }
                 Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedPlayerInventory.MainInventory.GetItem(i));
+            }
+            //クラフトのインベントリのチェック
+            for (int i = 0; i < PlayerInventoryConst.CraftingInventorySize; i++)
+            {
+                if (craftItems.ContainsKey(i))
+                {
+                    Assert.AreEqual(craftItems[i],loadedPlayerInventory.CraftingInventory.GetItem(i));
+                    continue;
+                }
+                Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedPlayerInventory.CraftingInventory.GetItem(i));
             }
         }
 
