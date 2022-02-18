@@ -9,7 +9,9 @@ namespace PlayerInventory.ItemManaged
     public class PlayerInventoryItemDataStoreService : IInventory
     {
         private readonly int _playerId;
-        private readonly List<IItemStack> _mainInventory;
+        private readonly List<IItemStack> _inventory;
+        public IReadOnlyList<IItemStack> Inventory => _inventory;
+
         private readonly IPlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
         private readonly ItemStackFactory _itemStackFactory;
 
@@ -20,10 +22,10 @@ namespace PlayerInventory.ItemManaged
             _itemStackFactory = itemStackFactory;
 
             _playerId = playerId;
-            _mainInventory = new List<IItemStack>();
+            _inventory = new List<IItemStack>();
             for (int i = 0; i < slotNumber; i++)
             {
-                _mainInventory.Add(_itemStackFactory.CreatEmpty());
+                _inventory.Add(_itemStackFactory.CreatEmpty());
             }
         }
 
@@ -31,7 +33,7 @@ namespace PlayerInventory.ItemManaged
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            _mainInventory[slot] = itemStack;
+            _inventory[slot] = itemStack;
             InvokeEvent(slot);
         }
         public void SetItem(int slot, int itemId, int count) { SetItem(slot, _itemStackFactory.Create(itemId, count)); }
@@ -43,18 +45,18 @@ namespace PlayerInventory.ItemManaged
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
             //アイテムIDが同じの時はスタックして余ったものを返す
-            var item = _mainInventory[slot];
+            var item = _inventory[slot];
             if (item.Id == itemStack.Id)
             {
                 var result = item.AddItem(itemStack);
-                _mainInventory[slot] = result.ProcessResultItemStack;
+                _inventory[slot] = result.ProcessResultItemStack;
                 _playerInventoryUpdateEvent.OnPlayerMainInventoryUpdateInvoke(
-                    new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
+                    new PlayerInventoryUpdateEventProperties(_playerId, slot, _inventory[slot]));
                 return result.RemainderItemStack;
             }
 
             //違う場合はそのまま入れ替える
-            _mainInventory[slot] = itemStack;
+            _inventory[slot] = itemStack;
             InvokeEvent(slot);
             return item;
         }
@@ -67,10 +69,10 @@ namespace PlayerInventory.ItemManaged
         
         public IItemStack InsertItem(int slot, IItemStack itemStack)
         {
-            if (!_mainInventory[slot].IsAllowedToAdd(itemStack)) return itemStack;
+            if (!_inventory[slot].IsAllowedToAdd(itemStack)) return itemStack;
             
-            var result = _mainInventory[slot].AddItem(itemStack);
-            _mainInventory[slot] = result.ProcessResultItemStack;
+            var result = _inventory[slot].AddItem(itemStack);
+            _inventory[slot] = result.ProcessResultItemStack;
 
             InvokeEvent(slot);
             
@@ -79,10 +81,10 @@ namespace PlayerInventory.ItemManaged
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            for (var i = 0; i < _mainInventory.Count; i++)
+            for (var i = 0; i < _inventory.Count; i++)
             {
                 //挿入できるスロットを探索
-                if (!_mainInventory[i].IsAllowedToAdd(itemStack)) continue;
+                if (!_inventory[i].IsAllowedToAdd(itemStack)) continue;
                 //挿入実行
                 return InsertItem(i,itemStack);
             }
@@ -95,14 +97,14 @@ namespace PlayerInventory.ItemManaged
         
         
         
-        public int GetSlotSize() { return _mainInventory.Count; }
-        public IItemStack GetItem(int slot) { return _mainInventory[slot]; }
+        public int GetSlotSize() { return _inventory.Count; }
+        public IItemStack GetItem(int slot) { return _inventory[slot]; }
 
 
         private void InvokeEvent(int slot)
         {
             _playerInventoryUpdateEvent.OnPlayerMainInventoryUpdateInvoke(
-                new PlayerInventoryUpdateEventProperties(_playerId, slot, _mainInventory[slot]));
+                new PlayerInventoryUpdateEventProperties(_playerId, slot, _inventory[slot]));
         }
         
         

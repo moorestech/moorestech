@@ -7,5 +7,6 @@ namespace Game.PlayerInventory.Interface
     {
         public void Craft();
         public IItemStack GetCreatableItem();
+        public bool IsCreatable();
     }
 }

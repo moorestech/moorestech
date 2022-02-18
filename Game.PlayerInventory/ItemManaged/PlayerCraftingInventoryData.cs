@@ -41,27 +41,14 @@ namespace PlayerInventory.ItemManaged
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 //クラフトしたアイテムを消費する
-                var subItem = InventoryItems[i].SubItem(craftConfig.Items[i].Count);
+                var subItem = _inventoryService.Inventory[i].SubItem(craftConfig.Items[i].Count);
                 //インベントリにセット
                 _inventoryService.SetItem(i, subItem);
             }
         }
 
         public IItemStack GetCreatableItem() { return _isCreatableJudgementService.GetResult(CraftingItems); }
-
-        private List<IItemStack> InventoryItems
-        {
-            get
-            {
-                var items = new List<IItemStack>();
-                for (int i = 0; i < _inventoryService.GetSlotSize(); i++)
-                {
-                    items.Add(_inventoryService.GetItem(i));
-                }
-                return items;
-            }
-        }
-        
+        public bool IsCreatable() { return _isCreatableJudgementService.IsCreatable(CraftingItems); }
         private List<IItemStack> CraftingItems
         {
             get
