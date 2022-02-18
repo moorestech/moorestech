@@ -30,12 +30,6 @@ namespace PlayerInventory.ItemManaged
 
             //クラフトしたアイテムの出力スロットに空きがある
             if (!outputItem.IsAllowedToAdd(result)) return;
-            
-            //元のクラフト結果のアイテムを足したアイテムを出力スロットに追加
-            var addedOutputSlot = outputItem.AddItem(result).ProcessResultItemStack;
-            _inventoryService.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, addedOutputSlot);
-            
-            
             //クラフトしたアイテムを消費する
             var craftConfig = _isCreatableJudgementService.GetCraftingConfigData(CraftingItems);
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
@@ -45,6 +39,11 @@ namespace PlayerInventory.ItemManaged
                 //インベントリにセット
                 _inventoryService.SetItem(i, subItem);
             }
+            
+            
+            //元のクラフト結果のアイテムを足したアイテムを出力スロットに追加
+            var addedOutputSlot = outputItem.AddItem(result).ProcessResultItemStack;
+            _inventoryService.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, addedOutputSlot);
         }
 
         public IItemStack GetCreatableItem() { return _isCreatableJudgementService.GetResult(CraftingItems); }
