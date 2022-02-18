@@ -27,10 +27,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Electric", "Core.Electric\Core.Electric.csproj", "{9C2A2B7F-EDEF-4497-8576-0C9157D40CF8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{6D142E32-204D-41A7-B121-423F9A073676}"
-ProjectSection(SolutionItems) = preProject
-	class diagram.drawio = class diagram.drawio
-	class diagram.puml = class diagram.puml
-EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Block", "Block", "{C0EAA04D-2C4C-4EED-9AEF-B00D7BB450CA}"
 EndProject
