@@ -44,7 +44,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //プレイヤーインベントリに削除したブロックを追加
 
-            playerInventoryData.InsertItem(_itemStackFactory.Create(blockConfigData.ItemId,1));
+            playerInventoryData.MainInventory.InsertItem(_itemStackFactory.Create(blockConfigData.ItemId,1));
 
             //プロトコルを使ってブロックを削除
             packet.GetPacketResponse(RemoveBlock(0, 0, 0));
@@ -53,8 +53,8 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //削除したブロックがプレイヤーインベントリに追加されているか
-            Assert.AreEqual(blockConfigData.ItemId, playerInventoryData.GetItem(playerSlotIndex).Id);
-            Assert.AreEqual(1, playerInventoryData.GetItem(playerSlotIndex).Count);
+            Assert.AreEqual(blockConfigData.ItemId, playerInventoryData.MainInventory.GetItem(playerSlotIndex).Id);
+            Assert.AreEqual(1, playerInventoryData.MainInventory.GetItem(playerSlotIndex).Count);
 
         }
 
