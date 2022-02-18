@@ -7,12 +7,12 @@ using Server.Util;
 
 namespace Server.Protocol.PacketResponse
 {
-    public class PlayerCraftInventoryMoveItemProtocol : IPacketResponse
+    public class CraftInventoryMoveItemProtocol : IPacketResponse
     {
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public PlayerCraftInventoryMoveItemProtocol(ServiceProvider serviceProvider)
+        public CraftInventoryMoveItemProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
