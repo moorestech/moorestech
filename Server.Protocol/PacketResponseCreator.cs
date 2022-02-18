@@ -31,6 +31,7 @@ namespace Server.Protocol
             _packetResponseList.Add(new BlockInventoryRequestProtocol(serviceProvider));
             _packetResponseList.Add(new RemoveBlockProtocol(serviceProvider));
             _packetResponseList.Add(new SendCommandProtocol(serviceProvider));
+            _packetResponseList.Add(new CraftInventoryPlayerMainInventoryMoveItemProtocol(serviceProvider));
 
             serviceProvider.GetService<VeinGenerator>();
         }
