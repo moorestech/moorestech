@@ -53,15 +53,7 @@ namespace PlayerInventory
             //セーブデータに必要なデータをまとめる
             foreach (var inventory in _playerInventoryData)
             {
-                var itemIds = new List<int>();
-                var itemCounts = new List<int>();
-                for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
-                {
-                    var item = inventory.Value.MainInventory.GetItem(i);
-                    itemIds.Add(item.Id);
-                    itemCounts.Add(item.Count);
-                }
-                var saveInventoryData = new SaveInventoryData(inventory.Key, itemIds, itemCounts);
+                var saveInventoryData = new SaveInventoryData(inventory.Key, inventory.Value);
                 savePlayerInventoryList.Add(saveInventoryData);
             }
             
@@ -88,11 +80,11 @@ namespace PlayerInventory
                 }
                 
                 //インベントリにアイテムを追加する
-                for (int i = 0; i < saveInventory.ItemCount.Count; i++)
+                for (int i = 0; i < saveInventory.MainItemCount.Count; i++)
                 {
                     inventory.SetItem(i,_itemStackFactory.Create(
-                       saveInventory.ItemId[i],
-                       saveInventory.ItemCount[i]));
+                       saveInventory.MainItemId[i],
+                       saveInventory.MainItemCount[i]));
                 }
             }
         }
