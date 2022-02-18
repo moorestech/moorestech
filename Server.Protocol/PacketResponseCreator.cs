@@ -33,6 +33,7 @@ namespace Server.Protocol
             _packetResponseList.Add(new SendCommandProtocol(serviceProvider));
             _packetResponseList.Add(new CraftInventoryPlayerMainInventoryMoveItemProtocol(serviceProvider));
             _packetResponseList.Add(new CraftInventoryMoveItemProtocol(serviceProvider));
+            _packetResponseList.Add(new CraftProtocol(serviceProvider));
 
             serviceProvider.GetService<VeinGenerator>();
         }
