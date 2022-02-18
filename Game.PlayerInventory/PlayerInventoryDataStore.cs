@@ -67,23 +67,21 @@ namespace PlayerInventory
             foreach (var saveInventory in saveInventoryDataList)
             {
                 var playerId = saveInventory.PlayerId;
+                var (main, craft) = saveInventory.GetPlayerInventoryData(_itemStackFactory);
 
-                var inventory = new MainInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
+                //アイテムを復元
+                var mainInventory = new MainInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,main);
+                var craftingInventory = new CraftingInventoryData(playerId, _craftInventoryUpdateEvent,
+                    _itemStackFactory,_isCreatableJudgementService,craft);
+                var playerInventory = new PlayerInventoryData(mainInventory, craftingInventory);
+                
                 //インベントリの追加を行う　既にあるなら置き換える
                 if (_playerInventoryData.ContainsKey(playerId))
                 {
-                    _playerInventoryData[playerId] = new PlayerInventoryData(inventory,null);
+                    _playerInventoryData[playerId] = playerInventory;
                 }else
                 {
-                    _playerInventoryData.Add(playerId,new PlayerInventoryData(inventory,null));
-                }
-                
-                //インベントリにアイテムを追加する
-                for (int i = 0; i < saveInventory.MainItemCount.Count; i++)
-                {
-                    inventory.SetItem(i,_itemStackFactory.Create(
-                       saveInventory.MainItemId[i],
-                       saveInventory.MainItemCount[i]));
+                    _playerInventoryData.Add(playerId,playerInventory);
                 }
             }
         }

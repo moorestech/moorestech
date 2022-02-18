@@ -36,6 +36,10 @@ namespace PlayerInventory.ItemManaged
             _inventory[slot] = itemStack;
             InvokeEvent(slot);
         }
+        public void SetItemWithoutEvent(int slot, IItemStack itemStack)
+        {
+            _inventory[slot] = itemStack;
+        }
         public void SetItem(int slot, int itemId, int count) { SetItem(slot, _itemStackFactory.Create(itemId, count)); }
         
         #endregion

@@ -18,6 +18,16 @@ namespace PlayerInventory.ItemManaged
             _inventoryService = new PlayerInventoryItemDataStoreService(playerId, craftInventoryUpdateEvent, 
                 itemStackFactory, PlayerInventoryConst.CraftingInventorySize);
         }
+        public CraftingInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent,
+            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService
+            ,List<IItemStack> itemStacks) : 
+            this(playerId, craftInventoryUpdateEvent, itemStackFactory,isCreatableJudgementService)
+        {
+            for (int i = 0; i < itemStacks.Count; i++)
+            {
+                _inventoryService.SetItemWithoutEvent(i,itemStacks[i]);
+            }
+        }
 
         public void Craft()
         {
