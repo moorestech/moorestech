@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Item.Util;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,6 +44,8 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(craftConfig.Items[checkSlot].Id,enumerator.MoveNextToGetInt()); //更新アイテムID
             Assert.AreEqual(craftConfig.Items[checkSlot].Count,enumerator.MoveNextToGetInt()); //更新アイテム数
             
+            Assert.AreEqual(ItemConst.EmptyItemId,enumerator.MoveNextToGetInt()); //結果のアイテムID
+            Assert.AreEqual(0,enumerator.MoveNextToGetInt()); //結果のアイテム数
             Assert.AreEqual(0,enumerator.MoveNextToGetByte()); //クラフトできないので0
             
             
@@ -56,6 +59,8 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(craftConfig.Items[checkSlot].Id,enumerator.MoveNextToGetInt()); //更新アイテムID
             Assert.AreEqual(craftConfig.Items[checkSlot].Count,enumerator.MoveNextToGetInt()); //更新アイテム数
             
+            Assert.AreEqual(craftConfig.Result.Id,enumerator.MoveNextToGetInt()); //結果のアイテムID
+            Assert.AreEqual(craftConfig.Result.Count,enumerator.MoveNextToGetInt()); //結果のアイテム数
             Assert.AreEqual(1,enumerator.MoveNextToGetByte()); //クラフトできるので1
             
             
@@ -78,9 +83,11 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(3,enumerator.MoveNextToGetShort()); //パケットID
             Assert.AreEqual(4,enumerator.MoveNextToGetShort()); //イベントID
             Assert.AreEqual(checkSlot,enumerator.MoveNextToGetInt()); //インベントリスロット
+            Assert.AreEqual(craftConfig.Items[checkSlot].Id,enumerator.MoveNextToGetInt()); //更新アイテムID
+            Assert.AreEqual(craftConfig.Items[checkSlot].Count,enumerator.MoveNextToGetInt()); //更新アイテム数
+            
             Assert.AreEqual(craftConfig.Result.Id,enumerator.MoveNextToGetInt()); //結果のアイテムID
             Assert.AreEqual(craftConfig.Result.Count,enumerator.MoveNextToGetInt()); //結果のアイテム数
-            
             Assert.AreEqual(0,enumerator.MoveNextToGetByte()); //クラフトできないので0
         }
         
