@@ -46,7 +46,6 @@ namespace PlayerInventory
             return _playerInventoryData[playerId];
         }
 
-        //TODO クラフトインベントリのデータも含める
         public List<SaveInventoryData> GetSaveInventoryDataList()
         {
             var savePlayerInventoryList =  new List<SaveInventoryData>();
