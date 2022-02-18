@@ -3,9 +3,9 @@ using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using Core.ConfigPath;
-using Game.Craft.Interface;
+using Game.Crafting.Interface;
 
-namespace Game.Craft.Config
+namespace Game.Crafting.Config
 {
     public class CraftConfigJsonLoad
     {

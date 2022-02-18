@@ -3,7 +3,7 @@ using System.Linq;
 using Core.Item;
 using Core.Item.Config;
 using Core.Item.Util;
-using Game.Craft.Interface;
+using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -43,7 +43,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 Assert.AreEqual(0, response.MoveNextToGetInt());
             }
             //クラフトインベントリの検証
-            for (int i = 0; i < PlayerInventoryConst.CraftInventorySize; i++)
+            for (int i = 0; i < PlayerInventoryConst.CraftingInventorySize; i++)
             {
                 Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
                 Assert.AreEqual(0, response.MoveNextToGetInt());
@@ -72,10 +72,10 @@ namespace Test.CombinedTest.Server.PacketTest
             {
                 var id = craftConfig.Items[i].Id;
                 var count = craftConfig.Items[i].Count;
-                playerInventoryData.CraftInventory.SetItem(i,id,count * 2);
+                playerInventoryData.CraftingInventory.SetItem(i,id,count * 2);
             }
             //クラフトを実行する　ここでアイテムが消費される
-            playerInventoryData.CraftInventory.Craft();
+            playerInventoryData.CraftingInventory.Craft();
 
             
             
@@ -111,7 +111,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 }
             }
             //クラフトスロットの検証
-            for (int i = 0; i < PlayerInventoryConst.CraftSlotSize; i++)
+            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 Assert.AreEqual(craftConfig.Items[i].Id, response.MoveNextToGetInt());
                 Assert.AreEqual(craftConfig.Items[i].Count, response.MoveNextToGetInt());

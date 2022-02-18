@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Core.Item;
-using Game.Craft.Interface;
+using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 
-namespace Game.Craft
+namespace Game.Crafting
 {
     public class IsCreatableJudgementService : IIsCreatableJudgementService
     {
@@ -23,7 +23,7 @@ namespace Game.Craft
             
             //レシピがない時のデータの作成
             var nullItem = new List<IItemStack>();
-            for (int i = 0; i < PlayerInventoryConst.CraftSlotSize; i++)
+            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 nullItem.Add(itemStackFactory.CreatEmpty());
             }

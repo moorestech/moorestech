@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Core.Item;
 
-namespace Game.Craft.Interface
+namespace Game.Crafting.Interface
 {
     public class CraftingConfigData
     {

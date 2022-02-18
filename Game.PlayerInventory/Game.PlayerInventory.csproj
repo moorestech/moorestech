@@ -8,7 +8,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Core.Item\Core.Item.csproj" />
         <ProjectReference Include="..\Core\Core.Inventory\Core.Inventory.csproj" />
-        <ProjectReference Include="..\Game.Craft.Interface\Game.Craft.Interface.csproj" />
+        <ProjectReference Include="..\Game.Crafting.Interface\Game.Crafting.Interface.csproj" />
         <ProjectReference Include="..\Game.PlayerInventory.Interface\Game.PlayerInventory.Interface.csproj" />
     </ItemGroup>
 

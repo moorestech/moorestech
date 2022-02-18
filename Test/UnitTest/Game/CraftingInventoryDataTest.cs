@@ -1,9 +1,9 @@
 using System;
 using Core.Item;
 using Core.Item.Config;
-using Game.Craft;
-using Game.Craft.Config;
-using Game.Craft.Interface;
+using Game.Crafting;
+using Game.Crafting.Config;
+using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using NUnit.Framework;
 using PlayerInventory;
@@ -26,7 +26,7 @@ namespace Test.UnitTest.Game
             var craftConfig = config.GetCraftingConfigList()[0];
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new CraftInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new CraftingInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
@@ -48,7 +48,7 @@ namespace Test.UnitTest.Game
             
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new CraftInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new CraftingInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
@@ -58,10 +58,10 @@ namespace Test.UnitTest.Game
             craftingInventory.Craft();
             
             //ResultSlotにアイテムが入っているかチェック
-            Assert.AreEqual(craftConfig.Result,craftingInventory.GetItem(PlayerInventoryConst.CraftInventorySize - 1 ));
+            Assert.AreEqual(craftConfig.Result,craftingInventory.GetItem(PlayerInventoryConst.CraftingInventorySize - 1 ));
             
             //クラフトスロットからアイテムが消えているかチェック
-            for (int i = 0; i < PlayerInventoryConst.CraftSlotSize; i++)
+            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetItem(i));
             }
@@ -79,7 +79,7 @@ namespace Test.UnitTest.Game
             
             
             //craftingInventoryに1つ余分にアイテムを入れる
-            var craftingInventory = new CraftInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new CraftingInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 var itemId = craftConfig.Items[i].Id;
@@ -92,10 +92,10 @@ namespace Test.UnitTest.Game
             craftingInventory.Craft();
             
             //ResultSlotにアイテムが入っているかチェック
-            Assert.AreEqual(craftConfig.Result,craftingInventory.GetItem(PlayerInventoryConst.CraftInventorySize - 1 ));
+            Assert.AreEqual(craftConfig.Result,craftingInventory.GetItem(PlayerInventoryConst.CraftingInventorySize - 1 ));
             
             //クラフトスロットにアイテムが1つ残っているかチェック
-            for (int i = 0; i < PlayerInventoryConst.CraftSlotSize; i++)
+            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 var inventoryItem = craftingInventory.GetItem(i);
                 
@@ -116,14 +116,14 @@ namespace Test.UnitTest.Game
             ICraftingConfig config = new TestCraftConfig(itemStackFactory);
             IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
 
-            var craftingInventory = new CraftInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new CraftingInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
             
             //クラフト結果が何もないことをチェック
             Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetCreatableItem());
             
             //クラフトしても出力スロットに何もないテスト
             craftingInventory.Craft();
-            Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetItem(PlayerInventoryConst.CraftInventorySize - 1));
+            Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetItem(PlayerInventoryConst.CraftingInventorySize - 1));
             
         }
         
@@ -143,7 +143,7 @@ namespace Test.UnitTest.Game
             
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new CraftInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new CraftingInventoryData(PlayerId,new PlayerMainInventoryUpdateEvent(),itemStackFactory,service);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
@@ -154,13 +154,13 @@ namespace Test.UnitTest.Game
             //すでに別のアイテムがあってクラフトできないテスト
             //出力スロットに他の別のアイテムを入れる
             var setItem = itemStackFactory.Create(resultId + 1, 1);
-            craftingInventory.SetItem(PlayerInventoryConst.CraftInventorySize - 1, setItem);
+            craftingInventory.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, setItem);
             
             //クラフト実行
             craftingInventory.Craft();
             
             //出力スロットのアイテムが変わっていないかチェック
-            Assert.AreEqual(setItem,craftingInventory.GetItem(PlayerInventoryConst.CraftInventorySize - 1));
+            Assert.AreEqual(setItem,craftingInventory.GetItem(PlayerInventoryConst.CraftingInventorySize - 1));
             //クラフトのスロットが変わっていないことをチェック
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
@@ -173,10 +173,10 @@ namespace Test.UnitTest.Game
             //すでにアイテムが満杯である時はクラフトできないテスト
             //出力スロットにアイテムを入れる
             setItem = itemStackFactory.Create(resultId,itemConfig.GetItemConfig(resultId).MaxStack);
-            craftingInventory.SetItem(PlayerInventoryConst.CraftInventorySize - 1, setItem);
+            craftingInventory.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, setItem);
             
             //出力スロットのアイテムが変わっていないかチェック
-            Assert.AreEqual(setItem,craftingInventory.GetItem(PlayerInventoryConst.CraftInventorySize - 1));
+            Assert.AreEqual(setItem,craftingInventory.GetItem(PlayerInventoryConst.CraftingInventorySize - 1));
             //クラフトのスロットが変わっていないことをチェック
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {

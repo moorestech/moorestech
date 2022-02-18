@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item;
-using Game.Craft.Interface;
+using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using PlayerInventory.Event;
@@ -33,7 +33,7 @@ namespace PlayerInventory
             if (!_playerInventoryData.ContainsKey(playerId))
             {
                 var main = new MainInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory);
-                var craft = new CraftInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService);
+                var craft = new CraftingInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService);
                 
                 _playerInventoryData.Add(playerId, new PlayerInventoryData(main,craft));
             }

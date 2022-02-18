@@ -14,8 +14,8 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Core\Core.Ore\Core.Ore.csproj" />
-        <ProjectReference Include="..\Game.Craft.Interface\Game.Craft.Interface.csproj" />
-        <ProjectReference Include="..\Game.Craft\Game.Craft.csproj" />
+        <ProjectReference Include="..\Game.Crafting.Interface\Game.Crafting.Interface.csproj" />
+        <ProjectReference Include="..\Game.Crafting\Game.Crafting.csproj" />
         <ProjectReference Include="..\Game.PlayerInventory\Game.PlayerInventory.csproj" />
         <ProjectReference Include="..\Game.SaveLoad\Game.SaveLoad.csproj" />
         <ProjectReference Include="..\Server.Starter\Server.Starter.csproj" />
