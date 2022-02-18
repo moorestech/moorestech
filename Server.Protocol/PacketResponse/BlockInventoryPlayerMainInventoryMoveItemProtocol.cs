@@ -30,7 +30,7 @@ namespace Server.Protocol.PacketResponse
             payloadData.MoveNextToGetShort();
             var flag = payloadData.MoveNextToGetShort();
             var playerId = payloadData.MoveNextToGetInt();
-            var playerInventorySlot = payloadData.MoveNextToGetInt();
+            var playerMainInventorySlot = payloadData.MoveNextToGetInt();
             var blockX = payloadData.MoveNextToGetInt();
             var blockY = payloadData.MoveNextToGetInt();
             var blockInventorySlot = payloadData.MoveNextToGetInt();
@@ -43,13 +43,13 @@ namespace Server.Protocol.PacketResponse
             //フラグが0の時はプレイヤーインベントリからブロックインベントリにアイテムを移す
             if (flag == 0)
             {
-                inventoryItemMove.Move(_itemStackFactory, playerMainInventory, playerInventorySlot, blockInventory,
+                inventoryItemMove.Move(_itemStackFactory, playerMainInventory, playerMainInventorySlot, blockInventory,
                     blockInventorySlot, moveItemCount);
             }
             else if (flag == 1)
             {
                 inventoryItemMove.Move(_itemStackFactory, blockInventory, blockInventorySlot, playerMainInventory,
-                    playerInventorySlot, moveItemCount);
+                    playerMainInventorySlot, moveItemCount);
             }
 
             return new List<byte[]>();
