@@ -142,5 +142,9 @@ namespace Core.Block.Blocks.PowerGenerator
         {
             throw new Exception("発電機にアイテム出力スロットはありません");
         }
+
+        public IItemStack GetItem(int slot) { return _fuelItemStacks[slot]; }
+        public void SetItem(int slot, IItemStack itemStack) { _fuelItemStacks[slot] = itemStack; }
+        public int GetSlotSize() { return _fuelItemStacks.Count; }
     }
 }

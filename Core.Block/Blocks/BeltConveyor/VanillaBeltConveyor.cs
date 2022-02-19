@@ -27,7 +27,7 @@ namespace Core.Block.Blocks.BeltConveyor
             _itemStackFactory = itemStackFactory;
             _inventoryItemNum = inventoryItemNum;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
-            _connector = new NullIBlockInventory();
+            _connector = new NullIBlockInventory(_itemStackFactory);
             GameUpdate.AddUpdateObject(this);
         }
 
@@ -39,7 +39,7 @@ namespace Core.Block.Blocks.BeltConveyor
             _itemStackFactory = itemStackFactory;
             _inventoryItemNum = inventoryItemNum;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
-            _connector = new NullIBlockInventory();
+            _connector = new NullIBlockInventory(_itemStackFactory);
             GameUpdate.AddUpdateObject(this);
 
             //stateから復元
@@ -101,7 +101,7 @@ namespace Core.Block.Blocks.BeltConveyor
         {
             if (_connector.GetHashCode() == blockInventory.GetHashCode())
             {
-                _connector = new NullIBlockInventory();
+                _connector = new NullIBlockInventory(_itemStackFactory);
             }
         }
 
@@ -175,6 +175,15 @@ namespace Core.Block.Blocks.BeltConveyor
             //最後のカンマを削除
             state.Remove(state.Length - 1, 1);
             return state.ToString();
+        }
+        
+        
+        public int GetSlotSize() { return _inventoryItems.Count; }
+        public IItemStack GetItem(int slot) { return _itemStackFactory.Create(_inventoryItems[slot].ItemId, 1); }
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            var limitTime = _inventoryItems[slot].RemainingTime;
+            _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.Id, _timeOfItemEnterToExit, limitTime);
         }
     }
 }

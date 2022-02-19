@@ -59,5 +59,20 @@ namespace Test.Module
         public void RemoveOutputConnector(IBlockInventory blockInventory)
         {
         }
+
+        public IItemStack GetItem(int slot)
+        {
+            return _insertedItems[slot];
+        }
+
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            _insertedItems[slot] = itemStack;
+        }
+
+        public int GetSlotSize()
+        {
+            return _insertedItems.Count;
+        }
     }
 }
