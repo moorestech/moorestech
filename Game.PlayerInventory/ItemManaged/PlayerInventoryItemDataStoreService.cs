@@ -36,6 +36,10 @@ namespace PlayerInventory.ItemManaged
             _inventory[slot] = itemStack;
             InvokeEvent(slot);
         }
+        public void SetItemWithoutEvent(int slot, IItemStack itemStack)
+        {
+            _inventory[slot] = itemStack;
+        }
         public void SetItem(int slot, int itemId, int count) { SetItem(slot, _itemStackFactory.Create(itemId, count)); }
         
         #endregion
@@ -50,7 +54,7 @@ namespace PlayerInventory.ItemManaged
             {
                 var result = item.AddItem(itemStack);
                 _inventory[slot] = result.ProcessResultItemStack;
-                _playerInventoryUpdateEvent.OnPlayerMainInventoryUpdateInvoke(
+                _playerInventoryUpdateEvent.OnInventoryUpdateInvoke(
                     new PlayerInventoryUpdateEventProperties(_playerId, slot, _inventory[slot]));
                 return result.RemainderItemStack;
             }
@@ -103,7 +107,7 @@ namespace PlayerInventory.ItemManaged
 
         private void InvokeEvent(int slot)
         {
-            _playerInventoryUpdateEvent.OnPlayerMainInventoryUpdateInvoke(
+            _playerInventoryUpdateEvent.OnInventoryUpdateInvoke(
                 new PlayerInventoryUpdateEventProperties(_playerId, slot, _inventory[slot]));
         }
         

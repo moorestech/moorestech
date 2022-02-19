@@ -15,15 +15,20 @@ namespace PlayerInventory
     public class PlayerInventoryDataStore : IPlayerInventoryDataStore
     {
         readonly Dictionary<int, PlayerInventoryData> _playerInventoryData = new();
-        private readonly PlayerMainInventoryUpdateEvent _playerMainInventoryUpdateEvent;
+        private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
+        private readonly CraftInventoryUpdateEvent _craftInventoryUpdateEvent;
+        
         private readonly ItemStackFactory _itemStackFactory;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
-        public PlayerInventoryDataStore(IPlayerMainInventoryUpdateEvent playerMainInventoryUpdateEvent,
+        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent,
+            ICraftInventoryUpdateEvent craftInventoryUpdateEvent,
             ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService)
         {
             //イベントの呼び出しをアセンブリに隠蔽するため、インターフェースをキャストします。
-            _playerMainInventoryUpdateEvent = (PlayerMainInventoryUpdateEvent) playerMainInventoryUpdateEvent;
+            _mainInventoryUpdateEvent = (MainInventoryUpdateEvent) mainInventoryUpdateEvent;
+            _craftInventoryUpdateEvent = (CraftInventoryUpdateEvent) craftInventoryUpdateEvent;
+            
             _itemStackFactory = itemStackFactory;
             _isCreatableJudgementService = isCreatableJudgementService;
         }
@@ -32,8 +37,8 @@ namespace PlayerInventory
         {
             if (!_playerInventoryData.ContainsKey(playerId))
             {
-                var main = new PlayerMainInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory);
-                var craft = new PlayerCraftingInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService);
+                var main = new MainInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
+                var craft = new CraftingInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService);
                 
                 _playerInventoryData.Add(playerId, new PlayerInventoryData(main,craft));
             }
@@ -41,22 +46,13 @@ namespace PlayerInventory
             return _playerInventoryData[playerId];
         }
 
-        //TODO クラフトインベントリのデータも含める
         public List<SaveInventoryData> GetSaveInventoryDataList()
         {
             var savePlayerInventoryList =  new List<SaveInventoryData>();
             //セーブデータに必要なデータをまとめる
             foreach (var inventory in _playerInventoryData)
             {
-                var itemIds = new List<int>();
-                var itemCounts = new List<int>();
-                for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
-                {
-                    var item = inventory.Value.MainInventory.GetItem(i);
-                    itemIds.Add(item.Id);
-                    itemCounts.Add(item.Count);
-                }
-                var saveInventoryData = new SaveInventoryData(inventory.Key, itemIds, itemCounts);
+                var saveInventoryData = new SaveInventoryData(inventory.Key, inventory.Value);
                 savePlayerInventoryList.Add(saveInventoryData);
             }
             
@@ -71,23 +67,21 @@ namespace PlayerInventory
             foreach (var saveInventory in saveInventoryDataList)
             {
                 var playerId = saveInventory.PlayerId;
+                var (main, craft) = saveInventory.GetPlayerInventoryData(_itemStackFactory);
 
-                var inventory = new PlayerMainInventoryData(playerId, _playerMainInventoryUpdateEvent, _itemStackFactory);
+                //アイテムを復元
+                var mainInventory = new MainInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,main);
+                var craftingInventory = new CraftingInventoryData(playerId, _craftInventoryUpdateEvent,
+                    _itemStackFactory,_isCreatableJudgementService,craft);
+                var playerInventory = new PlayerInventoryData(mainInventory, craftingInventory);
+                
                 //インベントリの追加を行う　既にあるなら置き換える
                 if (_playerInventoryData.ContainsKey(playerId))
                 {
-                    _playerInventoryData[playerId] = new PlayerInventoryData(inventory,null);
+                    _playerInventoryData[playerId] = playerInventory;
                 }else
                 {
-                    _playerInventoryData.Add(playerId,new PlayerInventoryData(inventory,null));
-                }
-                
-                //インベントリにアイテムを追加する
-                for (int i = 0; i < saveInventory.ItemCount.Count; i++)
-                {
-                    inventory.SetItem(i,_itemStackFactory.Create(
-                       saveInventory.ItemId[i],
-                       saveInventory.ItemCount[i]));
+                    _playerInventoryData.Add(playerId,playerInventory);
                 }
             }
         }

@@ -8,12 +8,12 @@ using Server.Util;
 
 namespace Server.Protocol.PacketResponse
 {
-    public class PlayerMainInventoryMoveItemProtocol : IPacketResponse
+    public class MainInventoryMoveItemProtocol : IPacketResponse
     {
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public PlayerMainInventoryMoveItemProtocol(ServiceProvider serviceProvider)
+        public MainInventoryMoveItemProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();

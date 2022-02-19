@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item;
 using Game.PlayerInventory.Interface;
@@ -5,15 +6,23 @@ using PlayerInventory.Event;
 
 namespace PlayerInventory.ItemManaged
 {
-    public class PlayerMainInventoryData : IInventory
+    public class MainInventoryData : IInventory
     {
         private readonly PlayerInventoryItemDataStoreService _inventoryService;
 
-        public PlayerMainInventoryData(int playerId, PlayerMainInventoryUpdateEvent playerMainInventoryUpdateEvent,
+        public MainInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent,
             ItemStackFactory itemStackFactory)
         {
-            _inventoryService = new PlayerInventoryItemDataStoreService(playerId, playerMainInventoryUpdateEvent,
+            _inventoryService = new PlayerInventoryItemDataStoreService(playerId, mainInventoryUpdateEvent,
                 itemStackFactory, PlayerInventoryConst.MainInventorySize);
+        }
+        public MainInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent,
+            ItemStackFactory itemStackFactory,List<IItemStack> itemStacks) : this(playerId, mainInventoryUpdateEvent, itemStackFactory)
+        {
+            for (int i = 0; i < itemStacks.Count; i++)
+            {
+                _inventoryService.SetItemWithoutEvent(i,itemStacks[i]);
+            }
         }
 
         public IItemStack GetItem(int slot) { return _inventoryService.GetItem(slot); }

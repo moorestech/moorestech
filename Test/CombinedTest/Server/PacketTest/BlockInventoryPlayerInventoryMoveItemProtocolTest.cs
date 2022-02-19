@@ -57,10 +57,6 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(5, input[blockInventorySlotIndex].Count);
 
             //プレイヤーのインベントリの設定
-            var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 3));
-            payload.AddRange(ToByteList.Convert(playerId));
-            packet.GetPacketResponse(payload);
             var playerInventoryData =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
 
