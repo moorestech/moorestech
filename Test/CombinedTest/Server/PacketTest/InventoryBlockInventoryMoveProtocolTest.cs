@@ -6,17 +6,18 @@ using Core.Item;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server;
 using Server.Protocol;
 using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
+    [TestClass]
     public class InventoryBlockInventoryMoveProtocolTest
     {
         private const int MachineBlockId = 1;
-        [Test]
+        [TestMethod]
         public void VanillaMachineInventoryItemMove()
         {
             int playerId = 1;

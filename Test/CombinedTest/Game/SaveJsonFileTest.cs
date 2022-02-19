@@ -4,7 +4,7 @@ using Game.Save.Interface;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server;
 
 namespace Test.CombinedTest.Game
@@ -12,9 +12,10 @@ namespace Test.CombinedTest.Game
     /// <summary>
     /// 実際にファイルに保存、ロードをして正しく動作するかテストする
     /// </summary>
+    [TestClass]
     public class SaveJsonFileTest
     {
-        [Test]
+        [TestMethod]
         public void SaveJsonAndLoadTest()
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

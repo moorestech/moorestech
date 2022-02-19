@@ -3,18 +3,19 @@ using Core.Block.BlockInventory;
 using Core.Block.Blocks.Service;
 using Core.Item;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server;
 using Test.Module;
 
 namespace Test.UnitTest.Core.Other
 {
+    [TestClass]
     public class ConnectingInventoryListPriorityInsertItemServiceTest
     {
         /// <summary>
         /// アイテムを挿入の優先度がループしてるかテストする
         /// </summary>
-        [Test]
+        [TestMethod]
         public void Test()
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

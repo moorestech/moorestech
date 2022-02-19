@@ -5,12 +5,13 @@ using Core.Item.Util;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server;
 using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
+    [TestClass]
     public class PlaceHotBarBlockProtocolTest
     {
         private const int PlacedBlockId = 1;
@@ -18,7 +19,7 @@ namespace Test.CombinedTest.Server.PacketTest
         private const int PlayerId = 3;
         private const int HotBarSlot = 3;
 
-        [Test]
+        [TestMethod]
         public void BlockPlaceTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

@@ -1,13 +1,18 @@
 using Game.PlayerInventory.Interface;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Test.UnitTest.Game
 {
+    [TestClass]
     public class HotBarSlotToInventorySlotTest
     {
-        [TestCase(0,36)]
-        [TestCase(1,37)]
-        [TestCase(8,44)]
+        [TestMethod]
+        public void Test()
+        {
+            Test(0, 36);
+            Test(1, 37);
+            Test(8, 44);
+        }
         public void Test(int hotBarSlot, int inventorySlot)
         {
             Assert.AreEqual(inventorySlot, PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot));

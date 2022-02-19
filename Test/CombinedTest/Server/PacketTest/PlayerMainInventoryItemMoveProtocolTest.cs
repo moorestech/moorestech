@@ -3,16 +3,17 @@ using Core.Item;
 using Core.Item.Util;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PlayerInventory;
 using Server;
 using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
+    [TestClass]
     public class PlayerMainInventoryItemMoveProtocolTest
     {
-        [Test]
+        [TestMethod]
         public void InventoryItemMove()
         {
             int playerId = 1;

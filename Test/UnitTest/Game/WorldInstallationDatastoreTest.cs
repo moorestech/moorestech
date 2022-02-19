@@ -6,16 +6,17 @@ using Core.Item;
 using Core.Item.Config;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server;
 using Test.Module.TestConfig;
 using IntId = Game.World.Interface.Util.IntId;
 
 namespace Test.UnitTest.Game
 {
+    [TestClass]
     public class WorldBlockDatastoreTest
     {
-        [Test]
+        [TestMethod]
         public void RegisteredDataCoordinateFromFetchTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -37,7 +38,7 @@ namespace Test.UnitTest.Game
         }
 
 
-        [Test]
+        [TestMethod]
         public void AlreadyRegisteredIntIdSecondTimeFailTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -49,10 +50,10 @@ namespace Test.UnitTest.Game
 
             //座標だけ変えてintIDは同じ
             var i2 = CreateMachine(1, intId);
-            Assert.False(worldData.AddBlock(i2, 10, 10, BlockDirection.North));
+            Assert.IsFalse(worldData.AddBlock(i2, 10, 10, BlockDirection.North));
         }
 
-        [Test]
+        [TestMethod]
         public void AlreadyCoordinateSecondTimeFailTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -63,7 +64,7 @@ namespace Test.UnitTest.Game
 
             //座標だけ変えてintIDは同じ
             var i2 = CreateMachine(1, IntId.NewIntId());
-            Assert.False(worldData.AddBlock(i2, 1, 1, BlockDirection.North));
+            Assert.IsFalse(worldData.AddBlock(i2, 1, 1, BlockDirection.North));
         }
 
         private BlockFactory _blockFactory;

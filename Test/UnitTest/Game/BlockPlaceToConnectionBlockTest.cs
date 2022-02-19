@@ -10,11 +10,12 @@ using Core.Block.Blocks.Machine.InventoryController;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server;
 
 namespace Test.UnitTest.Game
 {
+    [TestClass]
     public class BlockPlaceToConnectionBlockTest
     {
         const int MachineId = 1;
@@ -24,7 +25,7 @@ namespace Test.UnitTest.Game
         /// 機械にベルトコンベアが自動でつながるかをテストする
         /// 機械にアイテムを入れる向きでベルトコンベアのテストを行う
         /// </summary>
-        [Test]
+        [TestMethod]
         public void BeltConveyorConnectMachineTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -81,7 +82,7 @@ namespace Test.UnitTest.Game
         /// 機械をあらかじめ設置しておき、後に機械からアイテムが出る方向でベルトコンベアをおく
         /// ブロックが削除されたらつながる機械が消えるので、それをテストする
         /// </summary>
-        [Test]
+        [TestMethod]
         public void MachineConnectToBeltConveyorTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -124,7 +125,7 @@ namespace Test.UnitTest.Game
                 connectInventory.Select(item => ((VanillaBeltConveyor) item).GetIntId()).ToList();
             foreach (var beltConveyor in beltConveyors)
             {
-                Assert.True(_connectInventoryItem.Contains(beltConveyor.GetIntId()));
+                Assert.IsTrue(_connectInventoryItem.Contains(beltConveyor.GetIntId()));
             }
 
             //ベルトコンベアを削除する

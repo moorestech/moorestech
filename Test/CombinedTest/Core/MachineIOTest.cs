@@ -13,13 +13,14 @@ using Core.Item;
 using Core.Item.Config;
 using Core.Update;
 using Game.World.Interface.Util;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Test.CombinedTest.Core.Generate;
 using Test.Module;
 using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Core
 {
+    [TestClass]
     public class MachineIoTest
     {
         private readonly ItemStackFactory _itemStackFactory = new(new TestItemConfig());
@@ -44,14 +45,18 @@ namespace Test.CombinedTest.Core
 
             return machine;
         }
-
-        [TestCase(new int[1] {1}, new int[1] {1}, new int[1] {1}, new int[1] {1})]
-        [TestCase(new int[2] {100, 101}, new int[2] {10, 10}, new int[2] {100, 101}, new int[2] {10, 10})]
-        [TestCase(new int[3] {10, 11, 15}, new int[3] {10, 5, 8}, new int[3] {10, 11, 15}, new int[3] {10, 5, 8})]
-        [TestCase(new int[2] {1, 1}, new int[2] {1, 1}, new int[1] {1}, new int[1] {2})]
-        [TestCase(new int[2] {3, 1}, new int[2] {1, 1}, new int[2] {3, 1}, new int[2] {1, 1})]
-        [TestCase(new int[3] {0, 5, 1}, new int[3] {10, 5, 8}, new int[2] {5, 1}, new int[2] {5, 8})]
-        [TestCase(new int[2] {1, 0}, new int[2] {10, 5}, new int[1] {1}, new int[1] {10})]
+        
+        [TestMethod]
+        public void MachineAddInputTest()
+        {
+            MachineAddInputTest(new int[1] {1}, new int[1] {1}, new int[1] {1}, new int[1] {1});
+            MachineAddInputTest(new int[2] {100, 101}, new int[2] {10, 10}, new int[2] {100, 101}, new int[2] {10, 10});
+            MachineAddInputTest(new int[3] {10, 11, 15}, new int[3] {10, 5, 8}, new int[3] {10, 11, 15}, new int[3] {10, 5, 8});
+            MachineAddInputTest(new int[2] {1, 1}, new int[2] {1, 1}, new int[1] {1}, new int[1] {2});
+            MachineAddInputTest(new int[2] {3, 1}, new int[2] {1, 1}, new int[2] {3, 1}, new int[2] {1, 1});
+            MachineAddInputTest(new int[3] {0, 5, 1}, new int[3] {10, 5, 8}, new int[2] {5, 1}, new int[2] {5, 8});
+            MachineAddInputTest(new int[2] {1, 0}, new int[2] {10, 5}, new int[1] {1}, new int[1] {10});
+        }
         public void MachineAddInputTest(int[] id, int[] count, int[] ansid, int[] anscount)
         {
             var machine = CreateMachine(4);
@@ -81,7 +86,7 @@ namespace Test.CombinedTest.Core
         }
 
         //アイテムが通常通り処理されるかのテスト
-        [Test]
+        [TestMethod]
         public void ItemProcessingAndChangeConnectorTest()
         {
             int seed = 2119350917;
@@ -131,7 +136,7 @@ namespace Test.CombinedTest.Core
 
                 var (inputSlot, outputSlot) = GetInputOutputSlot(machine);
 
-                Assert.True(0 < outputSlot.Count);
+                Assert.IsTrue(0 < outputSlot.Count);
 
                 for (int j = 0; j < outputSlot.Count; j++)
                 {
@@ -142,7 +147,7 @@ namespace Test.CombinedTest.Core
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
                 for (int j = 0; j < inputSlot.Count; j++)
                 {
-                    Assert.True(inputRemainder[j].Equals(inputSlot[j]));
+                    Assert.IsTrue(inputRemainder[j].Equals(inputSlot[j]));
                 }
             }
 
@@ -166,24 +171,24 @@ namespace Test.CombinedTest.Core
 
                 var (inputSlot, outputSlot) = GetInputOutputSlot(machine);
 
-                Assert.True(outputSlot.Count == 0);
+                Assert.IsTrue(outputSlot.Count == 0);
 
                 for (int j = 0; j < machineIoTest.output.Count; j++)
                 {
-                    Assert.True(machineIoTest.output[j].Equals(dummy.InsertedItems[j]));
+                    Assert.IsTrue(machineIoTest.output[j].Equals(dummy.InsertedItems[j]));
                 }
 
                 var inputRemainder = machineIoTest.inputRemainder.Where(i => i.Count != 0).ToList();
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
                 for (int j = 0; j < inputRemainder.Count; j++)
                 {
-                    Assert.True(inputRemainder[j].Equals(inputSlot[j]));
+                    Assert.IsTrue(inputRemainder[j].Equals(inputSlot[j]));
                 }
             }
         }
 
         //アイテムが通常通り処理されるかのテスト
-        [Test]
+        [TestMethod]
         public void ItemProcessingOutputTest()
         {
             int seed = 2119350917;
@@ -235,11 +240,11 @@ namespace Test.CombinedTest.Core
                 var machineIoTest = recipes[i];
 
                 var output = connect.InsertedItems;
-                Assert.False(output.Count <= 0);
+                Assert.IsFalse(output.Count <= 0);
 
                 for (int j = 0; j < output.Count; j++)
                 {
-                    Assert.True(machineIoTest.output[j].Equals(output[j]));
+                    Assert.IsTrue(machineIoTest.output[j].Equals(output[j]));
                 }
 
 
@@ -249,7 +254,7 @@ namespace Test.CombinedTest.Core
                 inputRemainder.Sort((a, b) => a.Id - b.Id);
                 for (int j = 0; j < inputSlot.Count; j++)
                 {
-                    Assert.True(inputRemainder[j].Equals(inputSlot[j]));
+                    Assert.IsTrue(inputRemainder[j].Equals(inputSlot[j]));
                 }
             }
         }

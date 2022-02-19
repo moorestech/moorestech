@@ -13,13 +13,14 @@ using Core.Item.Util;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server;
 using Server.Util;
 using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
+    [TestClass]
     public class BlockInventoryPlayerInventoryMoveItemProtocolTest
     {
         private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
@@ -37,7 +38,7 @@ namespace Test.CombinedTest.Server.PacketTest
             return machine;
         }
 
-        [Test]
+        [TestMethod]
         public void ItemMoveTest()
         {
             int playerId = 1;

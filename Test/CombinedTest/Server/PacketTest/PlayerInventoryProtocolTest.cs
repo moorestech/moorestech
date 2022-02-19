@@ -7,7 +7,7 @@ using Core.Item.Util;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PlayerInventory;
 using Server;
 using Server.PacketHandle;
@@ -16,9 +16,10 @@ using Test.Module;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
+    [TestClass]
     public class PlayerInventoryProtocolTest
     {
-        [Test]
+        [TestMethod]
         public void GetPlayerInventoryProtocolTest()
         {
             int playerId = 1;

@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server.Util;
 using IntId = Game.World.Interface.Util.IntId;
 
 namespace Test.UnitTest.Server
 {
     //バイト配列と各種オブジェクトとの変換のテスト
+    [TestClass]
     public class ByteObjectConvertTest
     {
-        [Test]
+        [TestMethod]
         //intを相互変化しても問題ないかテスト
         public void OneIntConvertTest()
         {
@@ -19,7 +20,7 @@ namespace Test.UnitTest.Server
             Assert.AreEqual(Int, byteData.MoveNextToGetInt());
         }
 
-        [Test]
+        [TestMethod]
         //shortを相互変化しても問題ないかテスト
         public void OneShortConvertTest()
         {
@@ -29,7 +30,7 @@ namespace Test.UnitTest.Server
             Assert.AreEqual(Short, byteData.MoveNextToGetShort());
         }
 
-        [Test]
+        [TestMethod]
         //floatを相互変化しても問題ないかテスト
         public void OneFloatConvertTest()
         {
@@ -39,7 +40,7 @@ namespace Test.UnitTest.Server
             Assert.AreEqual(Float, byteData.MoveNextToGetFloat());
         }
 
-        [Test]
+        [TestMethod]
         //バイト数を指定してstringを相互変化しても問題ないかテスト
         public void OneByteNumStringConvertTest()
         {
@@ -49,7 +50,7 @@ namespace Test.UnitTest.Server
             Assert.AreEqual(String, byteData.MoveNextToGetString(30));
         }
 
-        [Test]
+        [TestMethod]
         //違うバイト数を指定してstringを相互変化して失敗させるテスト
         public void OneDifferentByteNumStringConvertTest()
         {
@@ -59,7 +60,7 @@ namespace Test.UnitTest.Server
             Assert.AreNotEqual(String, byteData.MoveNextToGetString(29));
         }
 
-        [Test]
+        [TestMethod]
         //いろいろ相互変換をしても問題ないかテスト
         public void MoreConvertTest()
         {
@@ -81,10 +82,14 @@ namespace Test.UnitTest.Server
             Assert.AreEqual(50, byteData.MoveNextToGetInt());
         }
 
-        [TestCase(0, 0, 0, 0, 0)]
-        [TestCase(5, 0, 0, 0, 5)]
-        [TestCase(500, 0, 0, 1, 244)]
-        [TestCase(1546, 0, 0, 6, 10)]
+        [TestMethod]
+        public void ConvertTest()
+        {
+            ConvertTest(0, 0, 0, 0, 0);
+            ConvertTest(5, 0, 0, 0, 5);
+            ConvertTest(500, 0, 0, 1, 244);
+            ConvertTest(1546, 0, 0, 6, 10);
+        }
         public void ConvertTest(int ans, byte b1, byte b2, byte b3, byte b4)
         {
             var actual = ToByteList.Convert(ans);
@@ -96,7 +101,7 @@ namespace Test.UnitTest.Server
             Assert.AreEqual(expect[3], actual[3]);
         }
 
-        [Test]
+        [TestMethod]
         public void ByteArrayToStringTest()
         {
             var bytes = new List<byte> {0x61, 0x41, 0x72, 0x36, 0x23};

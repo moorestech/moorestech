@@ -5,18 +5,19 @@ using Game.Crafting;
 using Game.Crafting.Config;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PlayerInventory;
 using PlayerInventory.Event;
 using PlayerInventory.ItemManaged;
 
 namespace Test.UnitTest.Game
 {
+    [TestClass]
     public class CraftingInventoryDataTest
     {
         private const int PlayerId = 0;
     
-        [Test]
+        [TestMethod]
         public void GetCreatableItemTest()
         {
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
@@ -37,7 +38,7 @@ namespace Test.UnitTest.Game
             Assert.AreEqual(craftConfig.Result,craftingInventory.GetCreatableItem());
         }
 
-        [Test]
+        [TestMethod]
         public void CraftTest()
         {
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
@@ -68,7 +69,7 @@ namespace Test.UnitTest.Game
         }
 
         //クラフトを実行したときにアイテムが余るテスト
-        [Test]
+        [TestMethod]
         public void CraftRemainderItemTest()
         {
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
@@ -108,7 +109,7 @@ namespace Test.UnitTest.Game
             }
         }
 
-        [Test]
+        [TestMethod]
         //アイテムが足りないときはクラフトできないテスト
         public void NoneCraftSlotItemTest()
         {
@@ -129,7 +130,7 @@ namespace Test.UnitTest.Game
         
         
         //出力スロットにアイテムを入れれない時のテスト
-        [Test]
+        [TestMethod]
         public void CanNotInsertOutputSlotToCanNotCraftTest()
         {
             //初期セットアップ

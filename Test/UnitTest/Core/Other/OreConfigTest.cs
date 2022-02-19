@@ -1,6 +1,6 @@
 using Core.Ore;
 using Core.Ore.Config;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Test.UnitTest.Core.Other
 {
@@ -8,9 +8,10 @@ namespace Test.UnitTest.Core.Other
     /// 鉱石のコンフィグのテスト
     /// コンフィグが変わったら都度変える
     /// </summary>
+    [TestClass]
     public class OreConfigTest
     {
-        [Test]
+        [TestMethod]
         public void OreIdToItemIdTest()
         {
             IOreConfig oreConfig = new OreConfig();

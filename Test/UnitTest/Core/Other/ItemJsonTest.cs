@@ -1,39 +1,51 @@
 ﻿using Core.Config.Item;
 using Core.Item.Config;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Test.UnitTest.Core.Other
 {
+    [TestClass]
     public class ItemJsonTest
     {
-        [TestCase(0, 100)]
-        [TestCase(1, 50)]
-        [TestCase(2, 300)]
-        [TestCase(3, 55)]
-        [TestCase(4, 200)]
-        [TestCase(5, 30)]
+        [TestMethod]
+        public void JsonStackTest()
+        {
+            JsonStackTest(0, 100);
+            JsonStackTest(1, 50);
+            JsonStackTest(2, 300);
+            JsonStackTest(3, 55);
+            JsonStackTest(4, 200);
+            JsonStackTest(5, 30);
+        }
         public void JsonStackTest(int id, int stack)
         {
             Assert.AreEqual(stack, new TestItemConfig().GetItemConfig(id).MaxStack);
         }
 
-        [TestCase(0, "Test1")]
-        [TestCase(1, "Test2")]
-        [TestCase(2, "Test3")]
-        [TestCase(3, "Test4")]
-        [TestCase(4, "Test5")]
-        [TestCase(5, "Test6")]
+        [TestMethod]
+        public void JsonNameTest()
+        {
+            JsonNameTest(0, "Test1");
+            JsonNameTest(1, "Test2");
+            JsonNameTest(2, "Test3");
+            JsonNameTest(3, "Test4");
+            JsonNameTest(4, "Test5");
+            JsonNameTest(5, "Test6");
+        }
         public void JsonNameTest(int id, string name)
         {
             Assert.AreEqual(name, new TestItemConfig().GetItemConfig(id).Name);
         }
-
-        [TestCase(0)]
-        [TestCase(1)]
-        [TestCase(2)]
-        [TestCase(3)]
-        [TestCase(4)]
-        [TestCase(5)]
+        [TestMethod]
+        public void JsonIdTest()
+        {
+            JsonIdTest(0);
+            JsonIdTest(1);
+            JsonIdTest(2);
+            JsonIdTest(3);
+            JsonIdTest(4);
+            JsonIdTest(5);
+        }
         public void JsonIdTest(int id)
         {
             Assert.AreEqual(id, new TestItemConfig().GetItemConfig(id).Id);

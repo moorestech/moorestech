@@ -12,7 +12,7 @@ using Game.Crafting;
 using Game.Crafting.Config;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PlayerInventory;
 using PlayerInventory.Event;
 using Test.Module.TestConfig;
@@ -21,11 +21,12 @@ using World.Event;
 
 namespace Test.UnitTest.Game.SaveLoad
 {
+    [TestClass]
     public class MachineSaveLoadTest
     {
         //インベントリのあるブロックを追加した時のテスト
         //レシピやブロックが変わった時はテストコードを修正してください
-        [Test]
+        [TestMethod]
         public void InventoryBlockTest()
         {
             //機械の追加

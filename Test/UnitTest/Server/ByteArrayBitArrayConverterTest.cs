@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server.Util;
 
 namespace Test.UnitTest.Server
 {
+    [TestClass]
     public class ByteArrayBitArrayConverterTest
     {
-        [Test]
+        [TestMethod]
         public void ByteNumberToByteArrayTest()
         {
             var bitArray = new List<bool>
@@ -118,7 +119,7 @@ namespace Test.UnitTest.Server
             Assert.AreEqual(15, enumerator.MoveNextToGetByte());
         }
 
-        [Test]
+        [TestMethod]
         public void ByteArrayToBitArrayTest()
         {
             var byteList = new List<byte> {0, 10, 100};

@@ -1,13 +1,14 @@
 using Core.Ore;
 using Core.Ore.Config;
 using Game.WorldMap;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Test.CombinedTest.Game
 {
+    [TestClass]
     public class VeinGeneratorTest
     {
-        [Test]
+        [TestMethod]
         public void GenerateTest()
         {
             //直接生成してテストできないので、500x500の範囲で生成して100個以上鉱石があればOKとする
@@ -26,7 +27,7 @@ namespace Test.CombinedTest.Game
                 }
             }
             
-            Assert.True(100 < count);
+            Assert.IsTrue(100 < count);
         }
         
     }

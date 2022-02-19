@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.BeltConveyor;
 using Core.Block.Config;
@@ -7,7 +8,7 @@ using Core.Item;
 using Core.Item.Config;
 using Core.Update;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server;
 using Test.Module;
 
@@ -16,11 +17,12 @@ namespace Test.CombinedTest.Core
     /// <summary>
     /// コンフィグが変わったらこのテストを変更に応じて変更してください
     /// </summary>
+    [TestClass]
     public class BeltConveyorTest
     {
         private ItemStackFactory _itemStackFactory;
 
-        [SetUp]
+        [TestInitialize]
         public void Setup()
         {
             _itemStackFactory = new ItemStackFactory(new TestItemConfig());
@@ -28,9 +30,10 @@ namespace Test.CombinedTest.Core
 
 
         //一定個数以上アイテムが入らないテストした後、正しく次に出力されるかのテスト
-        [Test]
+        [TestMethod]
         public void FullInsertAndChangeConnectorBeltConveyorTest()
         {
+            _itemStackFactory = new ItemStackFactory(new TestItemConfig());
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
@@ -63,7 +66,7 @@ namespace Test.CombinedTest.Core
         }
 
         //一個のアイテムが入って正しく搬出されるかのテスト
-        [Test]
+        [TestMethod]
         public void InsertBeltConveyorTest()
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -92,10 +95,12 @@ namespace Test.CombinedTest.Core
                     GameUpdate.Update();
                 }
 
-                Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.2));
-                Assert.True(expectedEndTime.AddSeconds(-0.2) <= DateTime.Now);
+                Console.WriteLine(DateTime.Now.ToString("O"));
+                Console.WriteLine(expectedEndTime.ToString("O"));
+                Assert.IsTrue(DateTime.Now <= expectedEndTime.AddSeconds(0.2));
+                Assert.IsTrue(expectedEndTime.AddSeconds(-0.2) <= DateTime.Now);
 
-                Assert.True(outputItem.Equals(_itemStackFactory.Create(id, count - 1)));
+                Assert.IsTrue(outputItem.Equals(_itemStackFactory.Create(id, count - 1)));
                 var tmp = _itemStackFactory.Create(id, 1);
                 Console.WriteLine($"{tmp} {dummy.InsertedItems[0]}");
                 Assert.AreEqual(tmp.ToString(), dummy.InsertedItems[0].ToString());
@@ -103,7 +108,7 @@ namespace Test.CombinedTest.Core
         }
 
         //ベルトコンベアのインベントリをフルにするテスト
-        [Test]
+        [TestMethod]
         public void FullInsertBeltConveyorTest()
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -127,14 +132,14 @@ namespace Test.CombinedTest.Core
                     GameUpdate.Update();
                 }
 
-                Assert.True(item.Equals(_itemStackFactory.Create(id, 0)));
+                Assert.IsTrue(item.Equals(_itemStackFactory.Create(id, 0)));
                 var tmp = _itemStackFactory.Create(id, config.BeltConveyorItemNum);
-                Assert.True(dummy.InsertedItems[0].Equals(tmp));
+                Assert.IsTrue(dummy.InsertedItems[0].Equals(tmp));
             }
         }
 
         //二つのアイテムが入ったとき、一方しか入らないテスト
-        [Test]
+        [TestMethod]
         public void Insert2ItemBeltConveyorTest()
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -152,8 +157,8 @@ namespace Test.CombinedTest.Core
                 var item1Out = beltConveyor.InsertItem(item1);
                 var item2Out = beltConveyor.InsertItem(item2);
 
-                Assert.True(item1Out.Equals(item1.SubItem(1)));
-                Assert.True(item2Out.Equals(item2));
+                Assert.IsTrue(item1Out.Equals(item1.SubItem(1)));
+                Assert.IsTrue(item2Out.Equals(item2));
             }
         }
     }

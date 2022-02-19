@@ -1,13 +1,14 @@
 ﻿using Core.Electric;
 using Core.Update;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Test.Module;
 
 namespace Test.UnitTest.Core.Block
 {
+    [TestClass]
     public class ElectricSegmentTest
     {
-        [Test]
+        [TestMethod]
         public void ElectricEnergyTest()
         {
             var segment = new ElectricSegment();

@@ -2,13 +2,14 @@
 using Core.Block.RecipeConfig.Data;
 using Core.Item;
 using Core.Item.Config;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Test.UnitTest.Core.Other
 {
+    [TestClass]
     public class NullRecipeDataTest
     {
-        [Test]
+        [TestMethod]
         public void NullTest()
         {
             IMachineRecipeData recipeData = new TestMachineRecipeConfig(new ItemStackFactory(new TestItemConfig()))

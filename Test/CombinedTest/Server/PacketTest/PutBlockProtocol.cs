@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PlayerInventory;
 using Server;
 using Server.Event;
@@ -13,9 +13,10 @@ using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
+    [TestClass]
     public class PutBlockProtocol
     {
-        [Test]
+        [TestMethod]
         public void SimpleBlockPlaceTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

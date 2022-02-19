@@ -4,13 +4,14 @@ using System.Reflection;
 using Core.Block.Blocks.BeltConveyor;
 using Core.Item;
 using Core.Item.Config;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Test.UnitTest.Game.SaveLoad
 {
+    [TestClass]
     public class BeltConveyorSaveLoadTest
     {
-        [Test]
+        [TestMethod]
         public void SaveLoadTest()
         {
             var belt = new VanillaBeltConveyor(1, 10, new ItemStackFactory(new TestItemConfig()), 4, 4000);

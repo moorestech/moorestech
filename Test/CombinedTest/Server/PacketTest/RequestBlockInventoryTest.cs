@@ -5,12 +5,13 @@ using Core.Block.Blocks.Machine;
 using Core.Item;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server;
 using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
+    [TestClass]
     public class RequestBlockInventoryTest
     {
         private const int MachineBlockId = 1;
@@ -19,7 +20,7 @@ namespace Test.CombinedTest.Server.PacketTest
         
         
         //通常の機械のテスト
-        [Test]
+        [TestMethod]
         public void MachineInventoryRequest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

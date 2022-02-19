@@ -7,7 +7,7 @@ using Core.Item;
 using Core.Item.Config;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server;
 using Server.PacketHandle.PacketResponse.Player;
 using Server.Protocol.PacketResponse.Const;
@@ -16,9 +16,10 @@ using IntId = Game.World.Interface.Util.IntId;
 
 namespace Test.UnitTest.Server.Player
 {
+    [TestClass]
     public class CoordinateToChunkBlocksTest
     {
-        [Test]
+        [TestMethod]
         public void NothingBlockTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -37,7 +38,7 @@ namespace Test.UnitTest.Server.Player
             }
         }
 
-        [Test]
+        [TestMethod]
         public void SameBlockResponseTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

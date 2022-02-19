@@ -8,18 +8,19 @@ using Core.Item;
 using Core.Item.Util;
 using Core.Update;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server;
 
 namespace Test.CombinedTest.Core
 {
+    [TestClass]
     public class PowerGeneratorTest
     {
         private const int PowerGeneratorId = 5;
         private const int FuelItem1Id = 1;
         private const int FuelItem2Id = 2;
 
-        [Test]
+        [TestMethod]
         public void UseFuelTest()
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
