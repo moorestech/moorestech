@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Core.ConfigPath\Core.ConfigPath.csproj" />
+        <ProjectReference Include="..\Core.ConfigJson\Core.ConfigJson.csproj" />
         <ProjectReference Include="..\Core\Core.Const\Core.Const.csproj" />
     </ItemGroup>
 

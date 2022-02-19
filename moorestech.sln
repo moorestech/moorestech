@@ -12,7 +12,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Util", "Server.Util\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Item", "Core.Item\Core.Item.csproj", "{A9AD78E3-165B-48F4-927F-AC7EFEBD7595}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.ConfigPath", "Core.ConfigPath\Core.ConfigPath.csproj", "{A0A2C6F4-AAA1-430C-8DAF-034CF14D192E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.ConfigJson", "Core.ConfigJson\Core.ConfigJson.csproj", "{A0A2C6F4-AAA1-430C-8DAF-034CF14D192E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Block", "Core.Block\Core.Block.csproj", "{BFB5F1B9-4450-45A4-972A-9C53A82296E9}"
 EndProject

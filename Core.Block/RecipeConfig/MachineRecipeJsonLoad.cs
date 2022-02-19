@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using Core.Block.RecipeConfig.Data;
+using Core.ConfigJson;
 using Core.Item;
 
 namespace Core.Block.RecipeConfig
@@ -18,7 +19,7 @@ namespace Core.Block.RecipeConfig
         internal List<IMachineRecipeData> LoadConfig(ItemStackFactory itemStackFactory)
         {
             //JSONデータの読み込み
-            var json = File.ReadAllText(ConfigPath.ConfigPath.RecipeConfigPath);
+            var json = File.ReadAllText(ConfigJsonPath.RecipeConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
             var serializer = new DataContractJsonSerializer(typeof(PurseJsonMachineRecipes));

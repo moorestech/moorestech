@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using Core.ConfigJson;
 
 namespace Core.Ore.Config
 {
@@ -11,7 +12,7 @@ namespace Core.Ore.Config
         public Dictionary<int, OreConfigDataElement> Load()
         {
             //JSONをロードする
-            var json = File.ReadAllText(ConfigPath.ConfigPath.OreConfigPath);
+            var json = File.ReadAllText(ConfigJsonPath.OreConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
             var serializer = new DataContractJsonSerializer(typeof(OreConfigData));

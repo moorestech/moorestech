@@ -13,7 +13,7 @@ namespace Core.Item.Config
 
         public TestItemConfig()
         {
-            var json = File.ReadAllText(ConfigPath.ConfigPath.ItemConfigPath);
+            var json = File.ReadAllText(ConfigJson.ConfigJsonPath.ItemConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
             var serializer = new DataContractJsonSerializer(typeof(ItemJson));

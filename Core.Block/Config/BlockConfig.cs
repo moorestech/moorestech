@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Block.Config.LoadConfig;
 using Core.Block.Config.LoadConfig.Param;
+using Core.ConfigJson;
 using Core.Const;
 using Core.Item.Util;
 
@@ -12,7 +13,7 @@ namespace Core.Block.Config
 
         public BlockConfig()
         {
-            _blockConfigDictionary = new BlockConfigJsonLoad().LoadJsonFromPath(ConfigPath.ConfigPath.BlockConfigPath);
+            _blockConfigDictionary = new BlockConfigJsonLoad().LoadJsonFromPath(ConfigJsonPath.BlockConfigPath);
         }
         public BlockConfig(string jsonText)
         {

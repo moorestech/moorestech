@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 
-namespace Core.ConfigPath
+namespace Core.ConfigJson
 {
-    public class ConfigPath
+    public static class ConfigJsonPath
     {
         public static string RecipeConfigPath => GetConfigPath("macineRecipe.json");
 
@@ -17,7 +17,7 @@ namespace Core.ConfigPath
         {
             DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
             DirectoryInfo diParent = di.Parent.Parent.Parent.Parent;
-            return Path.Combine(diParent.FullName, "Core.ConfigPath", "Json", fileName);
+            return Path.Combine(diParent.FullName, "Core.ConfigJson", "Json", fileName);
         }
     }
 }

@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using Core.ConfigPath;
-using Game.Crafting.Interface;
+using Core.ConfigJson;
 
 namespace Game.Crafting.Config
 {
@@ -12,7 +10,7 @@ namespace Game.Crafting.Config
         public CraftConfigJsonData Load()
         {
             //JSONをロードする
-            var json = File.ReadAllText(ConfigPath.CraftRecipeConfigPath);
+            var json = File.ReadAllText(ConfigJsonPath.CraftRecipeConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
             var serializer = new DataContractJsonSerializer(typeof(CraftConfigJsonData));
