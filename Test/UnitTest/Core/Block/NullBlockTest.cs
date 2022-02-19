@@ -1,5 +1,6 @@
 using Core.Block;
 using Core.Block.Blocks;
+using Core.Const;
 using NUnit.Framework;
 
 namespace Test.UnitTest.Core.Block
@@ -11,7 +12,7 @@ namespace Test.UnitTest.Core.Block
         {
             var block = new NullBlock();
             Assert.AreEqual(int.MaxValue, block.GetIntId());
-            Assert.AreEqual(BlockConst.BlockConst.EmptyBlockId, block.GetBlockId());
+            Assert.AreEqual(BlockConst.EmptyBlockId, block.GetBlockId());
         }
     }
 }

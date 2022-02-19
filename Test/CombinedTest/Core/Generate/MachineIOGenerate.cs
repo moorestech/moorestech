@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Const;
 using Core.Item;
 using Core.Item.Config;
 using Core.Item.Util;
@@ -124,7 +125,7 @@ namespace Test.CombinedTest.Core.Generate
                     r.Add(itemStackFactory.Create(o.id, o.count));
                 }
 
-                var a = r.Where(i => i.Id != BlockConst.BlockConst.EmptyBlockId).ToList();
+                var a = r.Where(i => i.Id != BlockConst.EmptyBlockId).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
                 return a.ToList();
             }

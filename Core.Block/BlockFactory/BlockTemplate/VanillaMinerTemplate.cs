@@ -2,6 +2,7 @@ using Core.Block.Blocks;
 using Core.Block.Blocks.Miner;
 using Core.Block.Config.LoadConfig;
 using Core.Block.Config.LoadConfig.Param;
+using Core.Const;
 using Core.Item;
 using Core.Item.Util;
 using Core.Ore;

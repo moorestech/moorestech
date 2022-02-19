@@ -1,4 +1,4 @@
-﻿namespace Core.Item.Util
+﻿namespace Core.Const
 {
     /// <summary>
     /// アイテムがない時のアイテムIDは0です

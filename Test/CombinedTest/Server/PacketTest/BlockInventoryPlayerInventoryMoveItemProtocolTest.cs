@@ -6,6 +6,7 @@ using Core.Block.Blocks.Machine;
 using Core.Block.Blocks.Machine.Inventory;
 using Core.Block.Blocks.Machine.InventoryController;
 using Core.Block.RecipeConfig;
+using Core.Const;
 using Core.Item;
 using Core.Item.Config;
 using Core.Item.Util;

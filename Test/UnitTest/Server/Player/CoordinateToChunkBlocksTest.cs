@@ -2,6 +2,7 @@
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Machine;
 using Core.Block.RecipeConfig;
+using Core.Const;
 using Core.Item;
 using Core.Item.Config;
 using Game.World.Interface.DataStore;
@@ -31,7 +32,7 @@ namespace Test.UnitTest.Server.Player
             {
                 for (int j = 0; j < b.GetLength(1); j++)
                 {
-                    Assert.AreEqual(BlockConst.BlockConst.EmptyBlockId, b[i, j]);
+                    Assert.AreEqual(BlockConst.EmptyBlockId, b[i, j]);
                 }
             }
         }

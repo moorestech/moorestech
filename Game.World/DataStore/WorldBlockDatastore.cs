@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks;
+using Core.Const;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 using World.Event;
@@ -122,7 +123,7 @@ namespace World.DataStore
             }
         }
         
-        public bool Exists(int x, int y) { return GetBlock(x, y).GetBlockId() != BlockConst.BlockConst.EmptyBlockId; }
+        public bool Exists(int x, int y) { return GetBlock(x, y).GetBlockId() != BlockConst.EmptyBlockId; }
         private int GetBlockId(int x, int y) { return _coordinateDictionary[new Coordinate(x, y)]; }
     }
 }

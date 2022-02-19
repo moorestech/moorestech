@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Const;
 using Core.Item;
 using Core.Item.Util;
 using Game.PlayerInventory.Interface;
@@ -56,7 +57,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //さらにブロックを置こうとしても置けないテスト
             packet.GetPacketResponse(CreateUseHotBarProtocol(10, 10));
-            Assert.AreEqual(BlockConst.BlockConst.EmptyBlockId, world.GetBlock(10,10).GetBlockId());
+            Assert.AreEqual(BlockConst.EmptyBlockId, world.GetBlock(10,10).GetBlockId());
         }
 
         private List<byte> CreateUseHotBarProtocol(int x,int y)

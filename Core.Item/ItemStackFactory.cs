@@ -1,4 +1,5 @@
-﻿using Core.Item.Config;
+﻿using Core.Const;
+using Core.Item.Config;
 using Core.Item.Implementation;
 using Core.Item.Util;
 

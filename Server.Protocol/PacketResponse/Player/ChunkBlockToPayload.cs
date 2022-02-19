@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.Block;
+using Core.Const;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Server.Util;
@@ -21,7 +22,7 @@ namespace Server.PacketHandle.PacketResponse.Player
                 {
                     var id = blocks[i, j];
                     //空気ブロックの追加
-                    if (id == BlockConst.BlockConst.EmptyBlockId)
+                    if (id == BlockConst.EmptyBlockId)
                     {
                         payload.Add(false);
                         continue;

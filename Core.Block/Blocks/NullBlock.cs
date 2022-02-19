@@ -1,4 +1,5 @@
 ﻿using System;
+using Core.Const;
 
 namespace Core.Block.Blocks
 {
@@ -10,12 +11,12 @@ namespace Core.Block.Blocks
 
         public int GetIntId()
         {
-            return BlockConst.BlockConst.NullBlockIntId;
+            return BlockConst.NullBlockIntId;
         }
 
         public int GetBlockId()
         {
-            return BlockConst.BlockConst.EmptyBlockId;
+            return BlockConst.EmptyBlockId;
         }
 
         public string GetSaveState()

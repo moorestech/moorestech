@@ -3,6 +3,7 @@ using Core.Block.BlockFactory;
 using Core.Block.Blocks.PowerGenerator;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
+using Core.Const;
 using Core.Item;
 using Core.Item.Util;
 using Core.Update;
