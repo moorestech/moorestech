@@ -43,9 +43,7 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(0,worldBlock.GetBlock(0,0).GetIntId());
             
             //プレイヤーインベントリに削除したブロックを追加
-
-            playerInventoryData.MainInventory.InsertItem(_itemStackFactory.Create(blockConfigData.ItemId,1));
-
+            
             //プロトコルを使ってブロックを削除
             packet.GetPacketResponse(RemoveBlock(0, 0, 0));
 
