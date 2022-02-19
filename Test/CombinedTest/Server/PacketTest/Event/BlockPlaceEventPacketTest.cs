@@ -4,7 +4,7 @@ using System.Linq;
 using Game.World.Interface;
 using Game.World.Interface.Event;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using PlayerInventory;
 using Server;
 using Server.Event;
@@ -16,11 +16,10 @@ using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
-    [TestClass]
     public class BlockPlaceEventPacketTest
     {
         //ブロックを設置しなかった時何も返ってこないテスト
-        [TestMethod]
+        [Test]
         public void DontBlockPlaceTest()
         {
             var blockPlace = new BlockPlaceEvent();
@@ -32,7 +31,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         }
 
         //ブロックを0個以上設置した時にブロック設置イベントが返ってくるテスト
-        [TestMethod]
+        [Test]
         public void BlockPlaceEvent()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

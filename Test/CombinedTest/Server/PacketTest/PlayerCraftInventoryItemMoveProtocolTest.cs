@@ -2,18 +2,17 @@ using System.Collections.Generic;
 using Core.Item;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
-    [TestClass]
     public class PlayerCraftInventoryItemMoveProtocolTest
     {
         private const short PacketId = 13;
         
-        [TestMethod]
+        [Test]
         public void InventoryItemMove()
         {
             int playerId = 1;

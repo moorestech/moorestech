@@ -3,7 +3,7 @@ using System.Linq;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 using Server.Protocol;
 using Server.Util;
@@ -13,10 +13,9 @@ namespace Test.CombinedTest.Server.PacketTest.Event
     /// <summary>
     /// ブロックを消したらその情報がイベントで飛んでくるテスト
     /// </summary>
-    [TestClass]
     public class BlockRemoveEventPacketTest
     {
-        [TestMethod]
+        [Test]
         public void RemoveBlockEvent()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

@@ -4,7 +4,7 @@ using Core.Item;
 using Core.Item.Util;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using PlayerInventory;
 using Server;
 using Server.Event;
@@ -13,10 +13,9 @@ using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
-    [TestClass]
     public class PlayerMainInventoryUpdateTest
     {
-        [TestMethod]
+        [Test]
         public void UpdateTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -59,15 +58,15 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(1, byteData2.MoveNextToGetShort()); //イベントIDの確認
 
             var slots = new List<int>() {byteData1.MoveNextToGetInt(), byteData2.MoveNextToGetInt()};
-            Assert.IsTrue(slots.Contains(4));
-            Assert.IsTrue(slots.Contains(5)); //移動時のスロット確認
+            Assert.True(slots.Contains(4));
+            Assert.True(slots.Contains(5)); //移動時のスロット確認
 
             Assert.AreEqual(1, byteData1.MoveNextToGetInt());
             Assert.AreEqual(1, byteData2.MoveNextToGetInt()); //アイテムIDの確認
 
             var counts = new List<int>() {byteData1.MoveNextToGetInt(), byteData2.MoveNextToGetInt()};
-            Assert.IsTrue(counts.Contains(2));
-            Assert.IsTrue(counts.Contains(3)); //アイテム数の確認
+            Assert.True(counts.Contains(2));
+            Assert.True(counts.Contains(3)); //アイテム数の確認
 
 
             //合成のテスト
@@ -82,16 +81,16 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(1, byteData2.MoveNextToGetShort()); //イベントIDの確認
 
             slots = new List<int>() {byteData1.MoveNextToGetInt(), byteData2.MoveNextToGetInt()};
-            Assert.IsTrue(slots.Contains(4));
-            Assert.IsTrue(slots.Contains(5)); //移動時のスロット確認
+            Assert.True(slots.Contains(4));
+            Assert.True(slots.Contains(5)); //移動時のスロット確認
 
             var ids = new List<int>() {byteData1.MoveNextToGetInt(), byteData2.MoveNextToGetInt()};
-            Assert.IsTrue(ids.Contains(1));
-            Assert.IsTrue(ids.Contains(0)); //アイテムIDの確認
+            Assert.True(ids.Contains(1));
+            Assert.True(ids.Contains(0)); //アイテムIDの確認
 
             counts = new List<int>() {byteData1.MoveNextToGetInt(), byteData2.MoveNextToGetInt()};
-            Assert.IsTrue(counts.Contains(5));
-            Assert.IsTrue(counts.Contains(0)); //アイテム数の確認
+            Assert.True(counts.Contains(5));
+            Assert.True(counts.Contains(0)); //アイテム数の確認
         }
 
 

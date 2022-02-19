@@ -3,16 +3,15 @@ using Game.Save.Interface;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 
 namespace Test.UnitTest.Game.SaveLoad
 {
-    [TestClass]
     public class AssembleSaveJsonTextTest
     {
         //何もデータがない時のテスト
-        [TestMethod]
+        [Test]
         public void NoneTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -22,7 +21,7 @@ namespace Test.UnitTest.Game.SaveLoad
         }
 
         //ブロックを追加した時のテスト
-        [TestMethod]
+        [Test]
         public void SimpleBlockPlacedTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

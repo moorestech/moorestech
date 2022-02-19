@@ -8,20 +8,19 @@ using Core.Item.Config;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 using Server.Event.EventReceive;
 using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
-    [TestClass]
     public class RemoveBlockProtocolTest
     {
         
         private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
 
-        [TestMethod]
+        [Test]
         public void RemoveTest()
         {
             int playerId = 0;
@@ -52,7 +51,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //プロトコルを使ってブロックを削除
             packet.GetPacketResponse(RemoveBlock(0, 0, 0));
 
-            Assert.IsFalse(worldBlock.Exists(0,0));
+            Assert.False(worldBlock.Exists(0,0));
             
             
             //削除したブロックがプレイヤーインベントリに追加されているか

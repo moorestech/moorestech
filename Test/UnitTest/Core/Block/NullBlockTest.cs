@@ -1,14 +1,13 @@
 using Core.Block;
 using Core.Block.Blocks;
 using Core.Const;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace Test.UnitTest.Core.Block
 {
-    [TestClass]
     public class NullBlockTest
     {
-        [TestMethod]
+        [Test]
         public void Test()
         {
             var block = new NullBlock();

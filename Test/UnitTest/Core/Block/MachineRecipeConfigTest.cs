@@ -5,31 +5,25 @@ using Core.Item;
 using Core.Item.Config;
 using Core.Item.Implementation;
 using Core.Item.Util;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace Test.UnitTest.Core.Block
 {
-    [TestClass]
     public class MachineRecipeConfigTest
     {
         private TestMachineRecipeConfig _testMachineRecipeConfig;
         private ItemStackFactory _itemStackFactory;
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _itemStackFactory = new ItemStackFactory(new TestItemConfig());
             _testMachineRecipeConfig = new(_itemStackFactory);
         }
 
-        [TestMethod]
-        public void RecipeTimeTest()
-        {
-            RecipeTimeTest(0, 1500);
-            RecipeTimeTest(1, 1500);
-        }
-
-        private void RecipeTimeTest(int id, int ans)
+        [TestCase(0, 1500)]
+        [TestCase(1, 1500)]
+        public void RecipeTimeTest(int id, int ans)
         {
             var time = _testMachineRecipeConfig.GetRecipeData(id).Time;
             Assert.AreEqual(ans, time);
@@ -38,17 +32,11 @@ namespace Test.UnitTest.Core.Block
         /// <summary>
         /// レシピがある時のテスト
         /// </summary>
-        [TestMethod]
-        public void RecipeInputItemBlockIdTest()
-        {
-            
-            RecipeInputItemBlockIdTest(1, new int[2] {1, 2}, 3, 1);
-            RecipeInputItemBlockIdTest(1, new int[2] {2, 1}, 3, 1);
-            RecipeInputItemBlockIdTest(3, new int[3] {1, 2, 3}, 5, 1);
-            RecipeInputItemBlockIdTest(3, new int[3] {2, 1, 3}, 5, 1);
-        }
-
-        private void RecipeInputItemBlockIdTest(int BlocksId, int[] items, int output0Id, double output0Percent)
+        [TestCase(1, new int[2] {1, 2}, 3, 1)]
+        [TestCase(1, new int[2] {2, 1}, 3, 1)]
+        [TestCase(3, new int[3] {1, 2, 3}, 5, 1)]
+        [TestCase(3, new int[3] {2, 1, 3}, 5, 1)]
+        public void RecipeInputItemBlockIdTest(int BlocksId, int[] items, int output0Id, double output0Percent)
         {
             var input = new List<IItemStack>();
             items.ToList().ForEach(
@@ -59,20 +47,15 @@ namespace Test.UnitTest.Core.Block
             Assert.AreEqual(output0Percent, ans.ItemOutputs[0].Percent);
         }
 
-        [TestMethod]
-        public void NullRecipeTest()
-        {
-            NullRecipeTest(3, new int[4] {2, 1, 0, 5}, 0); //nullの時のテスト
-            NullRecipeTest(0, new int[3] {2, 1, 0}, 0);
-            NullRecipeTest(3, new int[3] {4, 1, 0}, 0);
-            NullRecipeTest(3, new int[2] {2, 1}, 0);
-            NullRecipeTest(10, new int[1] {2}, 0);
-            NullRecipeTest(3, new int[3] {2, 1, 0}, 0);
-            NullRecipeTest(1, new int[2] {2, 1}, 1); //存在するときのテストケース
-            NullRecipeTest(0, new int[0], 0);
-        }
-
-        private void NullRecipeTest(int BlocksId, int[] items, int outputLength)
+        [TestCase(3, new int[4] {2, 1, 0, 5}, 0)] //nullの時のテスト
+        [TestCase(0, new int[3] {2, 1, 0}, 0)]
+        [TestCase(3, new int[3] {4, 1, 0}, 0)]
+        [TestCase(3, new int[2] {2, 1}, 0)]
+        [TestCase(10, new int[1] {2}, 0)]
+        [TestCase(3, new int[3] {2, 1, 0}, 0)]
+        [TestCase(1, new int[2] {2, 1}, 1)] //存在するときのテストケース
+        [TestCase(0, new int[0], 0)]
+        public void NullRecipeTest(int BlocksId, int[] items, int outputLength)
         {
             var input = new List<IItemStack>();
             items.ToList().ForEach(
@@ -82,22 +65,17 @@ namespace Test.UnitTest.Core.Block
             Assert.AreEqual(outputLength, ans);
         }
 
-        [TestMethod]
-        public void RecipeConfirmationTest()
-        {
-            RecipeConfirmationTest(1, new int[2] {1, 2}, new int[2] {3, 1}, true);
-            RecipeConfirmationTest(1, new int[2] {2, 1}, new int[2] {1, 3}, true);
-            RecipeConfirmationTest(1, new int[2] {2, 1}, new int[2] {1, 30}, true);
-            RecipeConfirmationTest(1, new int[2] {2, 1}, new int[2] {1, 1}, false);
-            RecipeConfirmationTest(3, new int[3] {1, 2, 3}, new int[3] {2, 3, 4}, true);
-            RecipeConfirmationTest(3, new int[3] {1, 2, 3}, new int[3] {4, 6, 8}, true);
-            RecipeConfirmationTest(3, new int[3] {1, 2, 3}, new int[3] {4, 6, 1}, false);
-            RecipeConfirmationTest(3, new int[3] {2, 1, 3}, new int[3] {3, 2, 4}, true);
-            RecipeConfirmationTest(3, new int[3] {2, 1, 3}, new int[3] {3, 1, 4}, false);
-            RecipeConfirmationTest(3, new int[4] {2, 1, 0, 5}, new int[4] {3, 1, 4, 5}, false);
-        }
-
-        private void RecipeConfirmationTest(int BlocksId, int[] items, int[] itemcount, bool ans)
+        [TestCase(1, new int[2] {1, 2}, new int[2] {3, 1}, true)]
+        [TestCase(1, new int[2] {2, 1}, new int[2] {1, 3}, true)]
+        [TestCase(1, new int[2] {2, 1}, new int[2] {1, 30}, true)]
+        [TestCase(1, new int[2] {2, 1}, new int[2] {1, 1}, false)]
+        [TestCase(3, new int[3] {1, 2, 3}, new int[3] {2, 3, 4}, true)]
+        [TestCase(3, new int[3] {1, 2, 3}, new int[3] {4, 6, 8}, true)]
+        [TestCase(3, new int[3] {1, 2, 3}, new int[3] {4, 6, 1}, false)]
+        [TestCase(3, new int[3] {2, 1, 3}, new int[3] {3, 2, 4}, true)]
+        [TestCase(3, new int[3] {2, 1, 3}, new int[3] {3, 1, 4}, false)]
+        [TestCase(3, new int[4] {2, 1, 0, 5}, new int[4] {3, 1, 4, 5}, false)]
+        public void RecipeConfirmationTest(int BlocksId, int[] items, int[] itemcount, bool ans)
         {
             List<IItemStack> itemStacks = new List<IItemStack>();
             for (int i = 0; i < items.Length; i++)

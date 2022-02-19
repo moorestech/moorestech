@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server.Util;
 
 namespace Test.UnitTest.Server
 {
-    [TestClass]
     public class BitObjectConvertTest
     {
-        [TestMethod]
+        [Test]
         public void BitArrayEnumeratorTest()
         {
             var byteArray = new List<byte>();
@@ -40,7 +39,7 @@ namespace Test.UnitTest.Server
         }
 
 
-        [TestMethod]
+        [Test]
         public void BitArrayToBitArrayEnumeratorTest()
         {
             var boolArray = new List<bool>();

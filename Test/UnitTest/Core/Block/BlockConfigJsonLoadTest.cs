@@ -1,19 +1,18 @@
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig;
 using Core.Block.Config.LoadConfig.Param;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Test.Module.TestConfig;
 
 namespace Test.UnitTest.Core.Block
 {
-    [TestClass]
     public class BlockConfigJsonLoadTest
     {
         /// <summary>
         /// Unit Test Block Config.jsonに基づいてテストコードが書かれています。
         /// 仕様を追加したら、このテストコードを更新してください。
         /// </summary>
-        [TestMethod]
+        [Test]
         public void JsonLoadTest()
         {
             var path = new TestConfigPath().GetPath("Unit Test Block Config.json");

@@ -2,19 +2,18 @@ using System.Collections.Generic;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
-    [TestClass]
     public class CraftProtocolTest
     {
         private const short PacketId = 14;
         private const int PlayerId = 1;
         
-        [TestMethod]
+        [Test]
         public void CraftTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

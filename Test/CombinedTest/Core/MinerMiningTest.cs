@@ -10,19 +10,18 @@ using Core.Ore;
 using Core.Update;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 using Test.Module;
 
 namespace Test.CombinedTest.Core
 {
-    [TestClass]
     public class MinerMiningTest
     {
         private int MinerId = 6;
 
         //一定時間たったら鉱石が出るテスト
-        [TestMethod]
+        [Test]
         public void MiningTest()
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

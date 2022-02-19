@@ -3,13 +3,12 @@ using Core.Block.BlockFactory;
 using Core.Electric;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 using World.DataStore;
 
 namespace Test.CombinedTest.Game
 {
-    [TestClass]
     public class ConnectElectricSegmentTest
     {
         //ブロックIDが変わったらここを変える
@@ -18,7 +17,7 @@ namespace Test.CombinedTest.Game
         private const int PowerGenerateId = 5;
 
         //電柱を設置し、電柱に接続するテスト
-        [TestMethod]
+        [Test]
         public void PlaceElectricPoleToPlaceElectricPoleTest()
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -77,7 +76,7 @@ namespace Test.CombinedTest.Game
         }
 
         //電柱を設置した後に機械、発電機を設置するテスト
-        [TestMethod]
+        [Test]
         public void PlaceElectricPoleToPlaceMachineTest()
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -135,7 +134,7 @@ namespace Test.CombinedTest.Game
         }
 
         //機械、発電機を設置した後に電柱を設置するテスト
-        [TestMethod]
+        [Test]
         public void PlaceMachineToPlaceElectricPoleTest()
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -184,7 +183,7 @@ namespace Test.CombinedTest.Game
         }
 
         //別々のセグメント同士を電柱でつなぐテスト
-        [TestMethod]
+        [Test]
         public void SegmentConnectionTest()
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

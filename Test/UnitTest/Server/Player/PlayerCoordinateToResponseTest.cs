@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using Game.World.Interface.DataStore;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Player;
 
 namespace Test.UnitTest.Server.Player
 {
-    [TestClass]
     public class PlayerCoordinateToResponseTest
     {
-        [TestMethod]
+        [Test]
         public void OneCoordinateResponseTest()
         {
             var p = new PlayerCoordinateToResponse();
@@ -33,7 +32,7 @@ namespace Test.UnitTest.Server.Player
 
             foreach (var a in ans)
             {
-                Assert.IsTrue(cList.Contains(a));
+                Assert.True(cList.Contains(a));
             }
 
             //2回目は何も返さない
@@ -43,7 +42,7 @@ namespace Test.UnitTest.Server.Player
 
 
         //初期座標がマイナスの時のテスト
-        [TestMethod]
+        [Test]
         public void OneMinusCoordinateResponseTest()
         {
             
@@ -67,7 +66,7 @@ namespace Test.UnitTest.Server.Player
 
             foreach (var a in ans)
             {
-                Assert.IsTrue(cList.Contains(a));
+                Assert.True(cList.Contains(a));
             }
 
             //2回目は何も返さない
@@ -75,7 +74,7 @@ namespace Test.UnitTest.Server.Player
             Assert.AreEqual(0, cList.Count);
         }
 
-        [TestMethod]
+        [Test]
         public void ShiftSideToCoordinateResponseTest()
         {
             var p = new PlayerCoordinateToResponse();
@@ -94,11 +93,11 @@ namespace Test.UnitTest.Server.Player
 
             foreach (var a in ans)
             {
-                Assert.IsTrue(cList.Contains(a));
+                Assert.True(cList.Contains(a));
             }
         }
 
-        [TestMethod]
+        [Test]
         public void ShiftSideAndUpToCoordinateResponseTest()
         {
             var p = new PlayerCoordinateToResponse();
@@ -122,23 +121,19 @@ namespace Test.UnitTest.Server.Player
 
             foreach (var a in ans)
             {
-                Assert.IsTrue(cList.Contains(a));
+                Assert.True(cList.Contains(a));
             }
         }
 
 
         //startXからendXまで移動した時にえられるx座標のチャンクのデータを返す
-        [TestMethod]
-        public void ShiftOneChunkXToCoordinateResponseTest()
-        {
-            ShiftOneChunkXToCoordinateResponseTest(0, 25, 60);
-            ShiftOneChunkXToCoordinateResponseTest(25, 45, 80);
-            ShiftOneChunkXToCoordinateResponseTest(1000, 1020, 1060);
-            ShiftOneChunkXToCoordinateResponseTest(0, -25, -60);
-            ShiftOneChunkXToCoordinateResponseTest(-25, -45, -100);
-            ShiftOneChunkXToCoordinateResponseTest(-1000, -1020, -1060);
-            ShiftOneChunkXToCoordinateResponseTest(-25, 0, 40);
-        }
+        [TestCase(0, 25, 60)]
+        [TestCase(25, 45, 80)]
+        [TestCase(1000, 1020, 1060)]
+        [TestCase(0, -25, -60)]
+        [TestCase(-25, -45, -100)]
+        [TestCase(-1000, -1020, -1060)]
+        [TestCase(-25, 0, 40)]
         public void ShiftOneChunkXToCoordinateResponseTest(int startX, int endX, int getChunkX)
         {
             var p = new PlayerCoordinateToResponse();
@@ -157,7 +152,7 @@ namespace Test.UnitTest.Server.Player
 
             foreach (var a in ans)
             {
-                Assert.IsTrue(cList.Contains(a));
+                Assert.True(cList.Contains(a));
             }
         }
     }

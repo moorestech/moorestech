@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.Serialization.Json;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace Test.CombinedTest.Core.Generate
 {
@@ -10,7 +10,7 @@ namespace Test.CombinedTest.Core.Generate
     /// </summary>
     public class GeneratedJson
     {
-        [TestMethod]
+        [Test]
         public void Json()
         {
             int seed = 2119350917;
@@ -28,7 +28,7 @@ namespace Test.CombinedTest.Core.Generate
             Console.WriteLine(reader.ReadToEnd());
 
 
-            Assert.IsTrue(true);
+            Assert.True(true);
         }
     }
 }

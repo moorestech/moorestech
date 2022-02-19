@@ -1,16 +1,15 @@
 using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
-    [TestClass]
     public class SendCommandProtocolTest
     {
-        [TestMethod]
+        [Test]
         public void GiveCommandTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

@@ -5,15 +5,14 @@ using Game.PlayerInventory.Interface;
 using Game.Save.Interface;
 using Game.Save.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 
 namespace Test.UnitTest.Game.SaveLoad
 {
-    [TestClass]
     public class AssemblePlayerInventorySaveJsonTextTest
     {
-        [TestMethod]
+        [Test]
         public void OnePlayerTest()
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -87,7 +86,7 @@ namespace Test.UnitTest.Game.SaveLoad
         /// <summary>
         /// 複数ユーザーの時インベントリのデータが正しくセーブできるか
         /// </summary>
-        [TestMethod]
+        [Test]
         public void MultiplePlayerSaveTest()
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

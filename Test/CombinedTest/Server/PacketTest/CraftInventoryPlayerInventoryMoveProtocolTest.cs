@@ -6,19 +6,18 @@ using Core.Item.Util;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
-    [TestClass]
     public class CraftInventoryPlayerInventoryMoveProtocolTest
     {
         private const int PlayerId = 1;
         private const short PacketId = 12;
         
-        [TestMethod]
+        [Test]
         public void ItemMoveTest()
         {
             int mainSlotIndex = 2;

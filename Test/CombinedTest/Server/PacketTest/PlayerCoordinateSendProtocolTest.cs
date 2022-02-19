@@ -9,7 +9,7 @@ using Core.Item;
 using Core.Item.Config;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 using Server.Protocol.PacketResponse.Const;
 using Server.Util;
@@ -18,10 +18,9 @@ using IntId = Game.World.Interface.Util.IntId;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
-    [TestClass]
     public class PlayerCoordinateSendProtocolTest
     {
-        [TestMethod]
+        [Test, Order(1)]
         public void SimpleChunkResponseTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -42,7 +41,7 @@ namespace Test.CombinedTest.Server.PacketTest
             foreach (var r in response)
             {
                 //座標の確認
-                Assert.IsTrue(ans.Contains(r.Coordinate));
+                Assert.True(ans.Contains(r.Coordinate));
                 //ブロックの確認
                 for (int i = 0; i < r.Blocks.GetLength(0); i++)
                 {
@@ -75,7 +74,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
 
         //ブロックを設置するテスト
-        [TestMethod]
+        [Test, Order(2)]
         public void PlaceBlockToChunkResponseTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -103,7 +102,7 @@ namespace Test.CombinedTest.Server.PacketTest
             {
                 //座標の確認
                 var c = r.Coordinate;
-                Assert.IsTrue(ans.Contains(c));
+                Assert.True(ans.Contains(c));
                 //ブロックの確認
                 for (int i = 0; i < r.Blocks.GetLength(0); i++)
                 {
@@ -117,7 +116,7 @@ namespace Test.CombinedTest.Server.PacketTest
         }
 
         //ランダムにブロックを設置するテスト
-        [TestMethod]
+        [Test, Order(3)]
         public void RandomPlaceBlockToChunkResponseTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -157,7 +156,7 @@ namespace Test.CombinedTest.Server.PacketTest
             {
                 //座標の確認
                 var c = r.Coordinate;
-                Assert.IsTrue(ans.Contains(c));
+                Assert.True(ans.Contains(c));
                 //ブロックの確認
                 for (int i = 0; i < r.Blocks.GetLength(0); i++)
                 {

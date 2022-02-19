@@ -4,16 +4,15 @@ using Core.Block.Blocks.Miner;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 
 namespace Test.CombinedTest.Core
 {
-    [TestClass]
     public class MinerCanBeMinedTest
     {
         private int MinerId = 6;
-        [TestMethod]
+        [Test]
         public void MinerTest()
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

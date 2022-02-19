@@ -5,19 +5,18 @@ using Core.Item.Util;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 using Server.Util;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
-    [TestClass]
     public class CraftInventoryUpdateTest
     {
         private const int PlayerId = 1;
         
         //クラフトした時にイベントが発火されるテスト
-        [TestMethod]
+        [Test]
         public void CraftEventTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

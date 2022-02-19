@@ -5,17 +5,16 @@ using Core.Block.BlockFactory;
 using Core.Block.Blocks.Miner;
 using Core.Item;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 
 namespace Test.UnitTest.Core.Block
 {
-    [TestClass]
     public class MinerSaveLoadTest
     {
         private int MinerId = 6;
         
-        [TestMethod]
+        [Test]
         public void SaveLoadTest()
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();

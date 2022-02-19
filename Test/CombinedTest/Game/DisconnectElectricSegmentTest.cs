@@ -2,20 +2,19 @@ using Core.Block.BlockFactory;
 using Core.Electric;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 
 namespace Test.CombinedTest.Game
 {
     //電柱が無くなったときにセグメントが切断されるテスト
-    [TestClass]
     public class DisconnectElectricSegmentTest
     {
         private const int ElectricPoleId = 4;
         private const int MachineId = 1;
         private const int PowerGenerateId = 5;
         
-        [TestMethod]
+        [Test]
         public void RemoveElectricPoleToDisconnectSegment()
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -76,7 +75,7 @@ namespace Test.CombinedTest.Game
         }
 
         //電柱を消してもループによって1つのセグメントになっている時のテスト
-        [TestMethod]
+        [Test]
         public void LoopedElectricSegmentRemoveElectricPoleTest()
         {
             /*設置する電柱、機械、発電機の場所

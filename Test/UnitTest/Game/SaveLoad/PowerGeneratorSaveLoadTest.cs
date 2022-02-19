@@ -6,17 +6,16 @@ using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Item;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Server;
 
 namespace Test.UnitTest.Game.SaveLoad
 {
-    [TestClass]
     public class PowerGeneratorSaveLoadTest
     {
         private const int PowerGeneratorId = 5;
 
-        [TestMethod]
+        [Test]
         public void PowerGeneratorTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
