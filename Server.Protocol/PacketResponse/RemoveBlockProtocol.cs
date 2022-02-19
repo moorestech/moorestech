@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Core.Block.BlockInventory;
 using Core.Block.Config;
 using Core.Item;
 using Core.Item.Config;
@@ -16,14 +17,15 @@ namespace Server.Protocol.PacketResponse
         private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IBlockConfig _blockConfig;
-        
-        
+        private readonly IWorldBlockComponentDatastore<IBlockInventory> _worldBlockComponentDatastore;
+
+
         public  RemoveBlockProtocol(ServiceProvider serviceProvider)
         {
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _blockConfig = serviceProvider.GetService<IBlockConfig>();
-
+            _worldBlockComponentDatastore = serviceProvider.GetService<IWorldBlockComponentDatastore<IBlockInventory>>();
         }
         
         public List<byte[]> GetResponse(List<byte> payload)
@@ -45,9 +47,20 @@ namespace Server.Protocol.PacketResponse
                 _playerInventoryDataStore.GetInventoryData(playerId);
             //壊したブロックをインベントリーに挿入
             playerInventoryData.MainInventory.InsertItem(_itemStackFactory.Create(blockConfigData.ItemId,1));
+            
+            if (_worldBlockComponentDatastore.ExistsComponentBlock(x, y) == true)
+            {
+                var BlockInventory = _worldBlockComponentDatastore.GetBlock(x, y);
+                for (int i = 0; i < BlockInventory.GetSlotSize(); i++)
+                {
+                    playerInventoryData.MainInventory.InsertItem(BlockInventory.GetItem(i));
+                }
+                    
+            }
+                
             //ブロック削除
             _worldBlockDatastore.RemoveBlock(x, y);
-            
+
             return new List<byte[]>();
             
             

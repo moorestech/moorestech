@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Core.Block.BlockFactory;
+using Core.Block.BlockInventory;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig;
 using Core.Item;
@@ -24,6 +25,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             int playerId = 0;
             int playerSlotIndex = 0;
+            int MachineBlockId = 1;
 
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
@@ -34,7 +36,9 @@ namespace Test.CombinedTest.Server.PacketTest
             var playerInventoryData =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
 
-            var Block = BlockFactory.Create(1, 0);
+            var Block = BlockFactory.Create(MachineBlockId, 0);
+            var BlockInventory = (IBlockInventory) Block;
+            BlockInventory.InsertItem(_itemStackFactory.Create(10, 7));
             var blockConfigData = Blockconfig.GetBlockConfig(Block.GetBlockId());
           
             //削除するためのブロックの生成
@@ -53,6 +57,10 @@ namespace Test.CombinedTest.Server.PacketTest
             //削除したブロックがプレイヤーインベントリに追加されているか
             Assert.AreEqual(blockConfigData.ItemId, playerInventoryData.MainInventory.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(1, playerInventoryData.MainInventory.GetItem(playerSlotIndex).Count);
+            
+            //ブロック内のアイテムがインベントリに入っているか
+            Assert.AreEqual(10, playerInventoryData.MainInventory.GetItem(playerSlotIndex+1).Id);
+            Assert.AreEqual(7, playerInventoryData.MainInventory.GetItem(playerSlotIndex+1).Count);
 
         }
 
