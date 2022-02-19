@@ -150,5 +150,9 @@ namespace Core.Block.Blocks.Miner
             _defaultMiningTime = miningTime;
             _remainingMillSecond = _defaultMiningTime;
         }
+        
+        public IItemStack GetItem(int slot) { return _outputSlot[slot]; }
+        public void SetItem(int slot, IItemStack itemStack) { _outputSlot[slot] = itemStack; }
+        public int GetSlotSize() { return _outputSlot.Count; }
     }
 }
