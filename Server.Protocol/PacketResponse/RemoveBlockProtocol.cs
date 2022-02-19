@@ -50,8 +50,12 @@ namespace Server.Protocol.PacketResponse
             
             if (_worldBlockComponentDatastore.ExistsComponentBlock(x, y) == true)
             {
-                _worldBlockComponentDatastore.GetBlock(x, y);
-                
+                var BlockInventory = _worldBlockComponentDatastore.GetBlock(x, y);
+                for (int i = 0; i < BlockInventory.GetSlotSize(); i++)
+                {
+                    playerInventoryData.MainInventory.InsertItem(BlockInventory.GetItem(i));
+                }
+                    
             }
                 
             //ブロック削除
