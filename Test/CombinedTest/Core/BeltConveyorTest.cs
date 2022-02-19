@@ -69,7 +69,6 @@ namespace Test.CombinedTest.Core
         [TestMethod]
         public void InsertBeltConveyorTest()
         {
-            GameUpdate.Clear();
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();

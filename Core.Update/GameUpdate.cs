@@ -32,10 +32,5 @@ namespace Core.Update
             {
             }
         }
-
-        public static void Clear()
-        {
-            _updates.Clear();
-        }
     }
 }
