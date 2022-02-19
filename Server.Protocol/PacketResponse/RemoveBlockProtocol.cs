@@ -36,7 +36,7 @@ namespace Server.Protocol.PacketResponse
             int playerId = payloadData.MoveNextToGetInt();
             
             //ブロックIdの取得
-            var Blockid = _worldBlockDatastore.GetBlock(x,y).GetIntId();
+            var Blockid = _worldBlockDatastore.GetBlock(x,y).GetBlockId();
             //ブロック情報の取得
             var blockConfigData = _blockConfig.GetBlockConfig(Blockid);
             
