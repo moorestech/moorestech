@@ -28,7 +28,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.PlayerInventory", "Gam
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Game", "Game", "{F79506AA-F55C-405A-93E8-D7E8BEA83356}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Inventory", "Core\Core.Inventory\Core.Inventory.csproj", "{18B4AD12-1EC4-448F-AEB5-C4E241F44700}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Inventory", "Core.Inventory\Core.Inventory.csproj", "{18B4AD12-1EC4-448F-AEB5-C4E241F44700}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.SaveLoad", "Game.SaveLoad\Game.SaveLoad.csproj", "{EE93BBB2-9444-456F-9A8F-D9DA1CEB6381}"
 EndProject
@@ -44,7 +44,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Module", "Test.Module\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.WorldMap", "Game.WorldMap\Game.WorldMap.csproj", "{2261CD9C-62B1-490C-A53E-720260463CFC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Ore", "Core\Core.Ore\Core.Ore.csproj", "{3CB44705-91A6-493E-803F-43E290F7F3DC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Ore", "Core.Ore\Core.Ore.csproj", "{3CB44705-91A6-493E-803F-43E290F7F3DC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassLibrary", "ClassLibrary\ClassLibrary.csproj", "{45E305AC-D816-47C7-9361-8B7A2593AE86}"
 EndProject
@@ -54,7 +54,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Crafting", "Game.Craft
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Crafting.Interface", "Game.Crafting.Interface\Game.Crafting.Interface.csproj", "{DD03D42E-652D-4B64-BECB-F45975A1DBF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Const", "Core\Core.Const\Core.Const.csproj", "{27C0BAD9-84E6-400F-AFB6-C3077C7CD529}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Const", "Core.Const\Core.Const.csproj", "{27C0BAD9-84E6-400F-AFB6-C3077C7CD529}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

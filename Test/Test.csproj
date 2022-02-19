@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Core\Core.Ore\Core.Ore.csproj" />
+        <ProjectReference Include="..\Core.Ore\Core.Ore.csproj" />
         <ProjectReference Include="..\Game.Crafting.Interface\Game.Crafting.Interface.csproj" />
         <ProjectReference Include="..\Game.Crafting\Game.Crafting.csproj" />
         <ProjectReference Include="..\Game.PlayerInventory\Game.PlayerInventory.csproj" />
