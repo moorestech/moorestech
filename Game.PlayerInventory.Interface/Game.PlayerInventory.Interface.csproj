@@ -6,7 +6,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Core.Inventory\Core.Inventory.csproj" />
-        <ProjectReference Include="..\Core\Core.Inventory\Core.Inventory.csproj" />
     </ItemGroup>
 
     <ItemGroup>
