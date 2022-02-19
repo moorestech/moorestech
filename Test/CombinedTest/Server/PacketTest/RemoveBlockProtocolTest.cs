@@ -57,6 +57,10 @@ namespace Test.CombinedTest.Server.PacketTest
             //削除したブロックがプレイヤーインベントリに追加されているか
             Assert.AreEqual(blockConfigData.ItemId, playerInventoryData.MainInventory.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(1, playerInventoryData.MainInventory.GetItem(playerSlotIndex).Count);
+            
+            //ブロック内のアイテムがインベントリに入っているか
+            Assert.AreEqual(10, playerInventoryData.MainInventory.GetItem(playerSlotIndex+1).Id);
+            Assert.AreEqual(7, playerInventoryData.MainInventory.GetItem(playerSlotIndex+1).Count);
 
         }
 
