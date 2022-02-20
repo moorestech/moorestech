@@ -36,7 +36,7 @@ namespace Server.Protocol.PacketResponse
             int y = payloadData.MoveNextToGetInt();
             Console.WriteLine("Place Block blockID:" + blockId + " x:" + x + " y:" + y);
 
-            var block = blockFactory.Create(blockId, IntId.NewIntId());
+            var block = blockFactory.Create(blockId, EntityId.NewEntityId());
 
             _worldBlockDatastore.AddBlock(block, x, y, BlockDirection.North);
             //返すものはない

@@ -40,11 +40,11 @@ namespace Test.UnitTest.Game.SaveLoad
 
             var block1 = worldLoadBlockDatastore.GetBlock(0, 0);
             Assert.AreEqual(10, block1.GetBlockId());
-            Assert.AreEqual(10, block1.GetIntId());
+            Assert.AreEqual(10, block1.GetEntityId());
 
             var block2 = worldLoadBlockDatastore.GetBlock(10, -15);
             Assert.AreEqual(15, block2.GetBlockId());
-            Assert.AreEqual(100, block2.GetIntId());
+            Assert.AreEqual(100, block2.GetEntityId());
         }
     }
 }

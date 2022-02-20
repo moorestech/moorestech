@@ -12,7 +12,7 @@ using Server;
 using Server.PacketHandle.PacketResponse.Player;
 using Server.Protocol.PacketResponse.Const;
 using Test.Module.TestConfig;
-using IntId = Game.World.Interface.Util.IntId;
+using EntityId = Game.World.Interface.Util.EntityId;
 
 namespace Test.UnitTest.Server.Player
 {
@@ -83,7 +83,7 @@ namespace Test.UnitTest.Server.Player
                     new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory), itemStackFactory));
             }
 
-            var machine = _blockFactory.Create(id, IntId.NewIntId()) as VanillaMachine;
+            var machine = _blockFactory.Create(id, EntityId.NewEntityId()) as VanillaMachine;
             return machine;
         }
     }

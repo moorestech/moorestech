@@ -46,38 +46,38 @@ namespace Core.Electric
 
         public void AddBlockElectric(IBlockElectric blockElectric)
         {
-            if (_electrics.ContainsKey(blockElectric.GetIntId())) return;
-            _electrics.Add(blockElectric.GetIntId(), blockElectric);
+            if (_electrics.ContainsKey(blockElectric.GetEntityId())) return;
+            _electrics.Add(blockElectric.GetEntityId(), blockElectric);
         }
 
         public void RemoveBlockElectric(IBlockElectric blockElectric)
         {
-            if (!_electrics.ContainsKey(blockElectric.GetIntId())) return;
-            _electrics.Remove(blockElectric.GetIntId());
+            if (!_electrics.ContainsKey(blockElectric.GetEntityId())) return;
+            _electrics.Remove(blockElectric.GetEntityId());
         }
 
         public void AddGenerator(IPowerGenerator powerGenerator)
         {
-            if (_generators.ContainsKey(powerGenerator.GetIntId())) return;
-            _generators.Add(powerGenerator.GetIntId(), powerGenerator);
+            if (_generators.ContainsKey(powerGenerator.GetEntityId())) return;
+            _generators.Add(powerGenerator.GetEntityId(), powerGenerator);
         }
 
         public void RemoveGenerator(IPowerGenerator powerGenerator)
         {
-            if (!_generators.ContainsKey(powerGenerator.GetIntId())) return;
-            _generators.Remove(powerGenerator.GetIntId());
+            if (!_generators.ContainsKey(powerGenerator.GetEntityId())) return;
+            _generators.Remove(powerGenerator.GetEntityId());
         }
 
         public void AddElectricPole(IElectricPole electricPole)
         {
-            if (_electricPoles.ContainsKey(electricPole.GetIntId())) return;
-            _electricPoles.Add(electricPole.GetIntId(), electricPole);
+            if (_electricPoles.ContainsKey(electricPole.GetEntityId())) return;
+            _electricPoles.Add(electricPole.GetEntityId(), electricPole);
         }
 
         public void RemoveElectricPole(IElectricPole electricPole)
         {
-            if (!_electricPoles.ContainsKey(electricPole.GetIntId())) return;
-            _electricPoles.Remove(electricPole.GetIntId());
+            if (!_electricPoles.ContainsKey(electricPole.GetEntityId())) return;
+            _electricPoles.Remove(electricPole.GetEntityId());
         }
 
         public ReadOnlyDictionary<int, IBlockElectric> GetElectrics()

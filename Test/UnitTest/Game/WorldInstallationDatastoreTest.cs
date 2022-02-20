@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Test.Module.TestConfig;
-using IntId = Game.World.Interface.Util.IntId;
+using EntityId = Game.World.Interface.Util.EntityId;
 
 namespace Test.UnitTest.Game
 {
@@ -24,31 +24,31 @@ namespace Test.UnitTest.Game
             var random = new Random(131513);
             for (int i = 0; i < 10; i++)
             {
-                var intId = IntId.NewIntId();
-                var ins = CreateMachine(1, intId);
+                var entityId = EntityId.NewEntityId();
+                var ins = CreateMachine(1, entityId);
 
                 int x = random.Next(-1000, 1000);
                 int y = random.Next(-1000, 1000);
 
                 worldData.AddBlock(ins, x, y, BlockDirection.North);
                 var output = worldData.GetBlock(x, y);
-                Assert.AreEqual(intId, output.GetIntId());
+                Assert.AreEqual(entityId, output.GetEntityId());
             }
         }
 
 
         [Test]
-        public void AlreadyRegisteredIntIdSecondTimeFailTest()
+        public void AlreadyRegisteredEntityIdSecondTimeFailTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
-            var intId = IntId.NewIntId();
-            var i = CreateMachine(1, intId);
+            var entityId = EntityId.NewEntityId();
+            var i = CreateMachine(1, entityId);
             worldData.AddBlock(i, 1, 1, BlockDirection.North);
 
             //座標だけ変えてintIDは同じ
-            var i2 = CreateMachine(1, intId);
+            var i2 = CreateMachine(1, entityId);
             Assert.False(worldData.AddBlock(i2, 10, 10, BlockDirection.North));
         }
 
@@ -58,11 +58,11 @@ namespace Test.UnitTest.Game
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
-            var i = CreateMachine(1, IntId.NewIntId());
+            var i = CreateMachine(1, EntityId.NewEntityId());
             worldData.AddBlock(i, 1, 1, BlockDirection.North);
 
             //座標だけ変えてintIDは同じ
-            var i2 = CreateMachine(1, IntId.NewIntId());
+            var i2 = CreateMachine(1, EntityId.NewEntityId());
             Assert.False(worldData.AddBlock(i2, 1, 1, BlockDirection.North));
         }
 

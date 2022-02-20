@@ -16,7 +16,7 @@ namespace Core.Block.Blocks.Miner
     public class VanillaMiner : IBlock, IBlockElectric, IBlockInventory, IUpdate,IMiner
     {
         private readonly int _blockId;
-        private readonly int _intId;
+        private readonly int _entityId;
         private readonly int _requestPower;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly List<IBlockInventory> _connectInventory = new();
@@ -29,22 +29,22 @@ namespace Core.Block.Blocks.Miner
         private int _nowPower = 0;
         private double _remainingMillSecond = int.MaxValue;
 
-        public VanillaMiner(int blockId, int intId, int requestPower, int outputSlot,
+        public VanillaMiner(int blockId, int entityId, int requestPower, int outputSlot,
             ItemStackFactory itemStackFactory)
         {
             _blockId = blockId;
-            _intId = intId;
+            _entityId = entityId;
             _requestPower = requestPower;
             _itemStackFactory = itemStackFactory;
             _outputSlot = CreateEmptyItemStacksList.Create(outputSlot, itemStackFactory);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdate.AddUpdateObject(this);
         }
-        public VanillaMiner(string saveData,int blockId, int intId, int requestPower, int miningTime ,
+        public VanillaMiner(string saveData,int blockId, int entityId, int requestPower, int miningTime ,
             ItemStackFactory itemStackFactory)
         {
             _blockId = blockId;
-            _intId = intId;
+            _entityId = entityId;
             _requestPower = requestPower;
             _remainingMillSecond = miningTime;
             _itemStackFactory = itemStackFactory;
@@ -121,9 +121,9 @@ namespace Core.Block.Blocks.Miner
             return itemStack;
         }
 
-        public int GetIntId()
+        public int GetEntityId()
         {
-            return _intId;
+            return _entityId;
         }
 
         public int GetBlockId()

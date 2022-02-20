@@ -15,17 +15,17 @@ namespace Core.Block.BlockFactory.BlockTemplate
             _itemStackFactory = itemStackFactory;
         }
 
-        public IBlock New(BlockConfigData param, int intId)
+        public IBlock New(BlockConfigData param, int entityId)
         {
             var beltConveyor = param.Param as BeltConveyorConfigParam;
-            return new VanillaBeltConveyor(param.BlockId, intId, _itemStackFactory, beltConveyor.BeltConveyorItemNum,
+            return new VanillaBeltConveyor(param.BlockId, entityId, _itemStackFactory, beltConveyor.BeltConveyorItemNum,
                 beltConveyor.TimeOfItemEnterToExit);
         }
 
-        public IBlock Load(BlockConfigData param, int intId, string state)
+        public IBlock Load(BlockConfigData param, int entityId, string state)
         {
             var beltConveyor = param.Param as BeltConveyorConfigParam;
-            return new VanillaBeltConveyor(param.BlockId, intId, state, _itemStackFactory,
+            return new VanillaBeltConveyor(param.BlockId, entityId, state, _itemStackFactory,
                 beltConveyor.BeltConveyorItemNum, beltConveyor.TimeOfItemEnterToExit);
         }
     }

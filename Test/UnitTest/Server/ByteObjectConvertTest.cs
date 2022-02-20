@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using Server.Util;
-using IntId = Game.World.Interface.Util.IntId;
+using EntityId = Game.World.Interface.Util.EntityId;
 
 namespace Test.UnitTest.Server
 {
@@ -65,19 +65,19 @@ namespace Test.UnitTest.Server
         {
             var random = new Random();
             var id = (short) random.Next(short.MinValue, short.MaxValue);
-            var intId1 = IntId.NewIntId();
-            var intId2 = IntId.NewIntId();
+            var entityId1 = EntityId.NewEntityId();
+            var entityId2 = EntityId.NewEntityId();
             var ans = new List<byte>();
             ans.AddRange(ToByteList.Convert(id));
-            ans.AddRange(ToByteList.Convert(intId1));
-            ans.AddRange(ToByteList.Convert(intId2));
+            ans.AddRange(ToByteList.Convert(entityId1));
+            ans.AddRange(ToByteList.Convert(entityId2));
             ans.AddRange(ToByteList.Convert(50));
 
             var byteData = new ByteArrayEnumerator(ans);
 
             Assert.AreEqual(id, byteData.MoveNextToGetShort());
-            Assert.AreEqual(intId1, byteData.MoveNextToGetInt());
-            Assert.AreEqual(intId2, byteData.MoveNextToGetInt());
+            Assert.AreEqual(entityId1, byteData.MoveNextToGetInt());
+            Assert.AreEqual(entityId2, byteData.MoveNextToGetInt());
             Assert.AreEqual(50, byteData.MoveNextToGetInt());
         }
 

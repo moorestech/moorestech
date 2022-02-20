@@ -40,17 +40,17 @@ namespace Test.CombinedTest.Game
 
             var block = loadWorldBlockDatastore.GetBlock(0, 0);
             Assert.AreEqual(1, block.GetBlockId());
-            Assert.AreEqual(10, block.GetIntId());
+            Assert.AreEqual(10, block.GetEntityId());
             Assert.AreEqual(BlockDirection.North, loadWorldBlockDatastore.GetBlockDirection(0, 0));
 
             block = loadWorldBlockDatastore.GetBlock(0, 1);
             Assert.AreEqual(2, block.GetBlockId());
-            Assert.AreEqual(5, block.GetIntId());
+            Assert.AreEqual(5, block.GetEntityId());
             Assert.AreEqual(BlockDirection.East, loadWorldBlockDatastore.GetBlockDirection(0, 1));
 
             block = loadWorldBlockDatastore.GetBlock(30, -10);
             Assert.AreEqual(3, block.GetBlockId());
-            Assert.AreEqual(1000, block.GetIntId());
+            Assert.AreEqual(1000, block.GetEntityId());
             Assert.AreEqual(BlockDirection.West, loadWorldBlockDatastore.GetBlockDirection(30, -10));
         }
     }

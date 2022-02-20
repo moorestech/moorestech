@@ -21,9 +21,9 @@ namespace Core.Block.Blocks.Machine
 
 
         private readonly int _blockId;
-        private readonly int _intId;
+        private readonly int _entityId;
 
-        public VanillaMachine(int blockId, int intId,
+        public VanillaMachine(int blockId, int entityId,
             VanillaMachineBlockInventory vanillaMachineBlockInventory,
             VanillaMachineInventory vanillaMachineInventory,
             VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess,ItemStackFactory itemStackFactory)
@@ -34,7 +34,7 @@ namespace Core.Block.Blocks.Machine
             _vanillaMachineRunProcess = vanillaMachineRunProcess;
             _itemStackFactory = itemStackFactory;
             _blockId = blockId;
-            _intId = intId;
+            _entityId = entityId;
         }
 
         
@@ -84,7 +84,7 @@ namespace Core.Block.Blocks.Machine
 
         #region IBlock implementation
         
-        public int GetIntId() { return _intId; }
+        public int GetEntityId() { return _entityId; }
         public int GetBlockId() { return _blockId; }
         public string GetSaveState() { return _vanillaMachineSave.Save(); }
 

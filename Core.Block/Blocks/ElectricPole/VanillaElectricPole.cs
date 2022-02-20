@@ -5,18 +5,18 @@ namespace Core.Block.Blocks.ElectricPole
 {
     public class VanillaElectricPole : IElectricPole, IBlock
     {
-        private readonly int _intId;
+        private readonly int _entityId;
         private readonly int _blockId;
 
-        public VanillaElectricPole(int blockId, int intId)
+        public VanillaElectricPole(int blockId, int entityId)
         {
-            _intId = intId;
+            _entityId = entityId;
             _blockId = blockId;
         }
 
-        public int GetIntId()
+        public int GetEntityId()
         {
-            return _intId;
+            return _entityId;
         }
 
         public int GetBlockId()

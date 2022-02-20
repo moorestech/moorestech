@@ -36,7 +36,7 @@ namespace Game.World.EventHandler.Service
         public void Disconnect(IElectricPole removedElectricPole)
         {
             //必要なデータを取得
-            var (x, y) = _worldBlockDatastore.GetBlockPosition(removedElectricPole.GetIntId());
+            var (x, y) = _worldBlockDatastore.GetBlockPosition(removedElectricPole.GetEntityId());
             var poleConfig =
                 _blockConfig.GetBlockConfig(((IBlock)removedElectricPole).GetBlockId()).Param as ElectricPoleConfigParam;
             var removedSegment = _worldElectricSegmentDatastore.GetElectricSegment(removedElectricPole);
@@ -63,7 +63,7 @@ namespace Game.World.EventHandler.Service
 
 
             //繋がっていた1つの電柱の周辺の機械と発電機を探索
-            var (connectedX, connectedY) = _worldBlockDatastore.GetBlockPosition(electricPoles[0].GetIntId());
+            var (connectedX, connectedY) = _worldBlockDatastore.GetBlockPosition(electricPoles[0].GetEntityId());
             var connectedPoleConfig =
                 _blockConfig.GetBlockConfig(((IBlock) electricPoles[0]).GetBlockId()).Param as ElectricPoleConfigParam;
             var (connectedBlocks, connectedGenerators) =

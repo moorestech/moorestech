@@ -80,7 +80,7 @@ namespace Game.World.EventHandler.Service
                 Dictionary<int, IBlockElectric> blockElectrics,
                 Dictionary<int, IPowerGenerator> powerGenerators)
         {
-            var (x, y) = _worldBlockDatastore.GetBlockPosition(electricPole.GetIntId());
+            var (x, y) = _worldBlockDatastore.GetBlockPosition(electricPole.GetEntityId());
             var poleConfig =
                 _blockConfig.GetBlockConfig(((IBlock) electricPole).GetBlockId()).Param as ElectricPoleConfigParam;
 
@@ -92,13 +92,13 @@ namespace Game.World.EventHandler.Service
             //ブロックと発電機を追加
             foreach (var block in newBlocks)
             {
-                if (blockElectrics.ContainsKey(block.GetIntId())) continue;
-                blockElectrics.Add(block.GetIntId(), block);
+                if (blockElectrics.ContainsKey(block.GetEntityId())) continue;
+                blockElectrics.Add(block.GetEntityId(), block);
             }
             foreach (var generator in newGenerators)
             {
-                if (powerGenerators.ContainsKey(generator.GetIntId())) continue;
-                powerGenerators.Add(generator.GetIntId(), generator);
+                if (powerGenerators.ContainsKey(generator.GetEntityId())) continue;
+                powerGenerators.Add(generator.GetEntityId(), generator);
             }
             
             
@@ -110,7 +110,7 @@ namespace Game.World.EventHandler.Service
             //削除された電柱は除く
             peripheralElectricPoles.Remove(removedElectricPole);
             //自身の電柱は追加する
-            electricPoles.Add(electricPole.GetIntId(), electricPole);
+            electricPoles.Add(electricPole.GetEntityId(), electricPole);
             //周辺に電柱がない場合は終了
             if (peripheralElectricPoles.Count == 0) return (electricPoles, blockElectrics, powerGenerators);
 
@@ -121,7 +121,7 @@ namespace Game.World.EventHandler.Service
             foreach (var peripheralElectricPole in peripheralElectricPoles)
             {
                 //もしもすでに追加されていた電柱ならスキップ
-                if (electricPoles.ContainsKey(peripheralElectricPole.GetIntId())) continue;
+                if (electricPoles.ContainsKey(peripheralElectricPole.GetEntityId())) continue;
                 //追加されていない電柱なら追加
                 (electricPoles, blockElectrics, powerGenerators) =
                     GetElectricPoles(peripheralElectricPole, removedElectricPole, electricPoles, blockElectrics,

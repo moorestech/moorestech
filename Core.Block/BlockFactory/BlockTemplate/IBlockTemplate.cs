@@ -6,7 +6,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
 {
     public interface IBlockTemplate
     {
-        public IBlock New(BlockConfigData param, int intId);
-        public IBlock Load(BlockConfigData param, int intId, string state);
+        public IBlock New(BlockConfigData param, int entityId);
+        public IBlock Load(BlockConfigData param, int entityId, string state);
     }
 }

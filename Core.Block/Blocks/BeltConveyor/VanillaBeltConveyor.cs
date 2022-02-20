@@ -19,11 +19,11 @@ namespace Core.Block.Blocks.BeltConveyor
         private IBlockInventory _connector;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public VanillaBeltConveyor(int blockId, int intId, ItemStackFactory itemStackFactory, int inventoryItemNum,
+        public VanillaBeltConveyor(int blockId, int entityId, ItemStackFactory itemStackFactory, int inventoryItemNum,
             int timeOfItemEnterToExit)
         {
             _blockId = blockId;
-            _intId = intId;
+            _entityId = entityId;
             _itemStackFactory = itemStackFactory;
             _inventoryItemNum = inventoryItemNum;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
@@ -31,11 +31,11 @@ namespace Core.Block.Blocks.BeltConveyor
             GameUpdate.AddUpdateObject(this);
         }
 
-        public VanillaBeltConveyor(int blockId, int intId, string state, ItemStackFactory itemStackFactory,
+        public VanillaBeltConveyor(int blockId, int entityId, string state, ItemStackFactory itemStackFactory,
             int inventoryItemNum, int timeOfItemEnterToExit)
         {
             _blockId = blockId;
-            _intId = intId;
+            _entityId = entityId;
             _itemStackFactory = itemStackFactory;
             _inventoryItemNum = inventoryItemNum;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
@@ -144,11 +144,11 @@ namespace Core.Block.Blocks.BeltConveyor
         }
 
         private int _blockId;
-        private int _intId;
+        private int _entityId;
 
-        public int GetIntId()
+        public int GetEntityId()
         {
-            return _intId;
+            return _entityId;
         }
 
         public int GetBlockId()

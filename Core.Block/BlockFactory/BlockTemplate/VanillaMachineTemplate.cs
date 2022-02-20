@@ -22,14 +22,14 @@ namespace Core.Block.BlockFactory.BlockTemplate
             _itemStackFactory = itemStackFactory;
         }
 
-        public IBlock New(BlockConfigData param, int intId)
+        public IBlock New(BlockConfigData param, int entityId)
         {
             var(input, output, machineParam) = GetData(param);
 
             var runProcess = new VanillaMachineRunProcess(input, output, _machineRecipeConfig.GetNullRecipeData(),
                 machineParam.RequiredPower);
 
-            return new VanillaMachine(param.BlockId, intId,
+            return new VanillaMachine(param.BlockId, entityId,
                 new VanillaMachineBlockInventory(input, output),
                 new VanillaMachineInventory(input, output),
                 new VanillaMachineSave(input, output, runProcess),
@@ -38,7 +38,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
             );
         }
 
-        public IBlock Load(BlockConfigData param, int intId, string state)
+        public IBlock Load(BlockConfigData param, int entityId, string state)
         {
             var(input, output, machineParam) = GetData(param);
 
@@ -46,7 +46,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
                 machineParam.RequiredPower).Load(state);
 
 
-            return new VanillaMachine(param.BlockId, intId,
+            return new VanillaMachine(param.BlockId, entityId,
                 new VanillaMachineBlockInventory(input, output),
                 new VanillaMachineInventory(input, output),
                 new VanillaMachineSave(input, output, runProcess),

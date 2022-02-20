@@ -20,10 +20,10 @@ namespace Test.UnitTest.Game.SaveLoad
             var itemStackFactory = saveServiceProvider.GetService<ItemStackFactory>();
             var assembleJsonText = saveServiceProvider.GetService<AssembleSaveJsonText>();
             
-            int playerIntId = 100;
+            int playerEntityId = 100;
             
             //プレイヤーインベントリの作成
-            var inventory =  playerInventory.GetInventoryData(playerIntId);
+            var inventory =  playerInventory.GetInventoryData(playerEntityId);
 
             //セットするアイテムを定義する
             var mainItems = new Dictionary<int, IItemStack>();
@@ -59,7 +59,7 @@ namespace Test.UnitTest.Game.SaveLoad
             //セーブしたデータをロードする
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
-            var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerIntId);
+            var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerEntityId);
 
             //メインのインベントリのチェック
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)

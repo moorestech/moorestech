@@ -6,14 +6,14 @@ namespace Core.Block.BlockFactory.BlockTemplate
 {
     public class VanillaElectricPoleTemplate : IBlockTemplate
     {
-        public IBlock New(BlockConfigData param, int intId)
+        public IBlock New(BlockConfigData param, int entityId)
         {
-            return new VanillaElectricPole(param.BlockId, intId);
+            return new VanillaElectricPole(param.BlockId, entityId);
         }
 
-        public IBlock Load(BlockConfigData param, int intId, string state)
+        public IBlock Load(BlockConfigData param, int entityId, string state)
         {
-            return new VanillaElectricPole(param.BlockId, intId);
+            return new VanillaElectricPole(param.BlockId, entityId);
         }
     }
 }

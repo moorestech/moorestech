@@ -34,7 +34,7 @@ namespace Test.CombinedTest.Core
             var miningTime = minerBlockConfigParam.OreSettings[0].MiningTime;
             var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.OreSettings[0].OreId);
 
-            var miner = new VanillaMiner(MinerId, IntId.NewIntId(), 100, 10, itemStackFactory);
+            var miner = new VanillaMiner(MinerId, EntityId.NewEntityId(), 100, 10, itemStackFactory);
             miner.SetMiningItem(miningItemId, miningTime);
 
             var dummyInventory = new DummyBlockInventory();

@@ -10,7 +10,7 @@ namespace Game.World.Interface.DataStore
         public bool RemoveBlock(int x, int y);
         public IBlock GetBlock(int x, int y);
         public bool Exists(int x, int y);
-        public (int,int) GetBlockPosition(int intId);
+        public (int,int) GetBlockPosition(int entityId);
         public BlockDirection GetBlockDirection(int x, int y);
         public List<SaveBlockData> GetSaveBlockDataList();
         public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList);

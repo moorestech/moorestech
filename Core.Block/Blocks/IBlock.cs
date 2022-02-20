@@ -2,7 +2,7 @@
 {
     public interface IBlock
     {
-        public int GetIntId();
+        public int GetEntityId();
         public int GetBlockId();
         public string GetSaveState();
     }

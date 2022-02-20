@@ -33,7 +33,7 @@ namespace Test.CombinedTest.Core
                     new VanillaIBlockTemplates(new TestMachineRecipeConfig(_itemStackFactory), _itemStackFactory));
             }
 
-            var machine = _blockFactory.Create(id, IntId.NewIntId()) as VanillaMachine;
+            var machine = _blockFactory.Create(id, EntityId.NewEntityId()) as VanillaMachine;
             return machine;
         }
 

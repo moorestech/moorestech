@@ -19,7 +19,7 @@ namespace Test.Module
             return _power;
         }
 
-        public int GetIntId()
+        public int GetEntityId()
         {
             return id;
         }

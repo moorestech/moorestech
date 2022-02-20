@@ -9,9 +9,9 @@ namespace Core.Block.Blocks
         {
         }
 
-        public int GetIntId()
+        public int GetEntityId()
         {
-            return BlockConst.NullBlockIntId;
+            return BlockConst.NullBlockEntityId;
         }
 
         public int GetBlockId()

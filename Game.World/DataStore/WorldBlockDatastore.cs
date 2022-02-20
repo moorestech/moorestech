@@ -37,13 +37,13 @@ namespace World.DataStore
         public bool AddBlock(IBlock block, int x, int y, BlockDirection blockDirection)
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
-            if (!_blockMasterDictionary.ContainsKey(block.GetIntId()) &&
+            if (!_blockMasterDictionary.ContainsKey(block.GetEntityId()) &&
                 !_coordinateDictionary.ContainsKey(new Coordinate(x, y)))
             {
                 var c = new Coordinate(x, y);
                 var data = new WorldBlockData(block, x, y, blockDirection);
-                _blockMasterDictionary.Add(block.GetIntId(), data);
-                _coordinateDictionary.Add(c, block.GetIntId());
+                _blockMasterDictionary.Add(block.GetEntityId(), data);
+                _coordinateDictionary.Add(c, block.GetEntityId());
                 _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(c, data.Block, blockDirection));
 
                 return true;
@@ -54,15 +54,15 @@ namespace World.DataStore
 
         public bool RemoveBlock(int x, int y)
         {
-            var intId = GetBlockId(x, y);
-            if (!_blockMasterDictionary.ContainsKey(intId)) return false;
+            var entityId = GetBlockId(x, y);
+            if (!_blockMasterDictionary.ContainsKey(entityId)) return false;
 
-            var data = _blockMasterDictionary[intId];
+            var data = _blockMasterDictionary[entityId];
 
             _blockRemoveEvent.OnBlockRemoveEventInvoke(new BlockRemoveEventProperties(
                 new Coordinate(x, y), data.Block));
 
-            _blockMasterDictionary.Remove(intId);
+            _blockMasterDictionary.Remove(entityId);
             _coordinateDictionary.Remove(new Coordinate(x, y));
             return true;
         }
@@ -75,11 +75,11 @@ namespace World.DataStore
             return _nullBlock;
         }
 
-        public (int, int) GetBlockPosition(int intId)
+        public (int, int) GetBlockPosition(int entityId)
         {
-            if (_blockMasterDictionary.ContainsKey(intId))
+            if (_blockMasterDictionary.ContainsKey(entityId))
             {
-                var data = _blockMasterDictionary[intId];
+                var data = _blockMasterDictionary[entityId];
                 return (data.X, data.Y);
             }
 
@@ -103,7 +103,7 @@ namespace World.DataStore
                     block.Value.X,
                     block.Value.Y,
                     block.Value.Block.GetBlockId(),
-                    block.Value.Block.GetIntId(),
+                    block.Value.Block.GetEntityId(),
                     block.Value.Block.GetSaveState(),
                     (int) block.Value.BlockDirection));
             }
@@ -116,7 +116,7 @@ namespace World.DataStore
             foreach (var block in saveBlockDataList)
             {
                 AddBlock(
-                    _blockFactory.Load(block.BlockId, block.IntId, block.State),
+                    _blockFactory.Load(block.BlockId, block.EntityId, block.State),
                     block.X,
                     block.Y,
                     (BlockDirection) block.Direction);

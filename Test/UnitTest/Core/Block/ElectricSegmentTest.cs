@@ -60,7 +60,7 @@ namespace Test.UnitTest.Core.Block
             nowPower = power;
         }
 
-        public int GetIntId()
+        public int GetEntityId()
         {
             return id;
         }

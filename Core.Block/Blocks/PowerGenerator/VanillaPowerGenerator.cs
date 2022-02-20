@@ -13,28 +13,28 @@ namespace Core.Block.Blocks.PowerGenerator
     public class VanillaPowerGenerator : IBlock, IPowerGenerator, IBlockInventory, IUpdate
     {
         private readonly int _blockId;
-        private readonly int _intId;
+        private readonly int _entityId;
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
         private readonly List<IItemStack> _fuelItemStacks;
 
         private int _fuelItemId = ItemConst.EmptyItemId;
         private double _remainingFuelTime = 0;
 
-        public VanillaPowerGenerator(int blockId, int intId, int fuelItemSlot, ItemStackFactory itemStackFactory,
+        public VanillaPowerGenerator(int blockId, int entityId, int fuelItemSlot, ItemStackFactory itemStackFactory,
             Dictionary<int, FuelSetting> fuelSettings)
         {
             _blockId = blockId;
-            _intId = intId;
+            _entityId = entityId;
             _fuelSettings = fuelSettings;
             _fuelItemStacks = CreateEmptyItemStacksList.Create(fuelItemSlot, itemStackFactory);
             GameUpdate.AddUpdateObject(this);
         }
 
-        public VanillaPowerGenerator(int blockId, int intId, string loadString, int fuelItemSlot,
+        public VanillaPowerGenerator(int blockId, int entityId, string loadString, int fuelItemSlot,
             ItemStackFactory itemStackFactory, Dictionary<int, FuelSetting> fuelSettings)
         {
             _blockId = blockId;
-            _intId = intId;
+            _entityId = entityId;
             _fuelSettings = fuelSettings;
             GameUpdate.AddUpdateObject(this);
             _fuelItemStacks = new List<IItemStack>();
@@ -124,9 +124,9 @@ namespace Core.Block.Blocks.PowerGenerator
             return 0;
         }
 
-        public int GetIntId()
+        public int GetEntityId()
         {
-            return _intId;
+            return _entityId;
         }
 
         public int GetBlockId()
