@@ -30,6 +30,11 @@ namespace Core.Item.Implementation
             return true;
         }
 
+        public bool IsAllowedToAddButRemain(IItemStack item)
+        {
+            return false;
+        }
+
         public IItemStack Clone()
         {
             return _itemStackFactory.CreatEmpty();

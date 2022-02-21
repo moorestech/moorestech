@@ -83,6 +83,14 @@ namespace Core.Item.Implementation
                    item.Count + Count <= tmpStack;
         }
 
+        public bool IsAllowedToAddButRemain(IItemStack item)
+        {
+            var tmpStack = _itemConfig.GetItemConfig(Id).MaxStack;
+
+            return (Id == item.Id || item.Id == ItemConst.EmptyItemId) &&
+                   tmpStack < item.Count + Count;
+        }
+
         public IItemStack Clone()
         {
             return _itemStackFactory.Create(Id, Count);

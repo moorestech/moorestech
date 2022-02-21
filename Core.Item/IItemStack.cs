@@ -9,6 +9,12 @@ namespace Core.Item
         ItemProcessResult AddItem(IItemStack receiveItemStack);
         IItemStack SubItem(int subCount);
         bool IsAllowedToAdd(IItemStack item);
+        /// <summary>
+        /// アイテムを追加できるが、あまりが発生する場合trueを返します
+        /// あまりが発生しない場合や、IDが違うことで追加ができない場合はfalseを返します
+        /// </summary>
+        /// <returns>追加はできるがあまりがある時にtrue</returns>
+        bool IsAllowedToAddButRemain(IItemStack item);
         IItemStack Clone();
     }
 }
