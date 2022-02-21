@@ -48,6 +48,12 @@ namespace Server.Protocol.PacketResponse
             //壊したブロックをインベントリーに挿入
             playerInventoryData.MainInventory.InsertItem(_itemStackFactory.Create(blockConfigData.ItemId,1));
             
+            //TODO 溢れるテスト
+            //TODO アイテムが全てInsertできているか、EmptyItemと比較してチェック
+            //TODO もし一つでもEmptyItemがあれば入りきらなかったと判断して、ブロックを破壊しない
+            //TODO ブロック破壊時にブロックのアイテムをインベントリにInsertする
+            //TODO この時にEmptyItemじゃなければインベントリがいっぱいであると判断して、破壊しない
+
             //インベントリがある時は
             if (_worldBlockComponentDatastore.ExistsComponentBlock(x, y) == true)
             {
