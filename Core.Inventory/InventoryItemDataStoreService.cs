@@ -1,27 +1,24 @@
 using System.Collections.Generic;
-using Core.Inventory;
 using Core.Item;
-using Game.PlayerInventory.Interface.Event;
-using PlayerInventory.Event;
 
-namespace PlayerInventory.ItemManaged
+namespace Core.Inventory
 {
-    public class PlayerInventoryItemDataStoreService : IInventory
+    public class InventoryItemDataStoreService : IInventory
     {
-        private readonly int _playerId;
+        public delegate void OnInventoryUpdate(int slot, IItemStack itemStack);
+        
+        private readonly OnInventoryUpdate _onInventoryUpdate;
         private readonly List<IItemStack> _inventory;
         public IReadOnlyList<IItemStack> Inventory => _inventory;
 
-        private readonly IPlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public PlayerInventoryItemDataStoreService(int playerId, IPlayerInventoryUpdateEvent playerInventoryUpdateEvent,
+        public InventoryItemDataStoreService(OnInventoryUpdate onInventoryUpdate,
             ItemStackFactory itemStackFactory,int slotNumber)
         {
-            _playerInventoryUpdateEvent = playerInventoryUpdateEvent;
             _itemStackFactory = itemStackFactory;
 
-            _playerId = playerId;
+            _onInventoryUpdate = onInventoryUpdate;
             _inventory = new List<IItemStack>();
             for (int i = 0; i < slotNumber; i++)
             {
@@ -54,8 +51,7 @@ namespace PlayerInventory.ItemManaged
             {
                 var result = item.AddItem(itemStack);
                 _inventory[slot] = result.ProcessResultItemStack;
-                _playerInventoryUpdateEvent.OnInventoryUpdateInvoke(
-                    new PlayerInventoryUpdateEventProperties(_playerId, slot, _inventory[slot]));
+                InvokeEvent(slot);
                 return result.RemainderItemStack;
             }
 
@@ -116,8 +112,7 @@ namespace PlayerInventory.ItemManaged
 
         private void InvokeEvent(int slot)
         {
-            _playerInventoryUpdateEvent.OnInventoryUpdateInvoke(
-                new PlayerInventoryUpdateEventProperties(_playerId, slot, _inventory[slot]));
+            _onInventoryUpdate(slot, _inventory[slot]);
         }
         
         
