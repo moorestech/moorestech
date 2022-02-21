@@ -55,14 +55,13 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.False(worldBlock.Exists(0,0));
             
             
-            //削除したブロックがプレイヤーインベントリに追加されているか
-            Assert.AreEqual(blockConfigData.ItemId, playerInventoryData.MainInventory.GetItem(playerSlotIndex).Id);
-            Assert.AreEqual(1, playerInventoryData.MainInventory.GetItem(playerSlotIndex).Count);
-            
             //ブロック内のアイテムがインベントリに入っているか
-            Assert.AreEqual(10, playerInventoryData.MainInventory.GetItem(playerSlotIndex+1).Id);
-            Assert.AreEqual(7, playerInventoryData.MainInventory.GetItem(playerSlotIndex+1).Count);
+            Assert.AreEqual(10, playerInventoryData.MainInventory.GetItem(playerSlotIndex).Id);
+            Assert.AreEqual(7, playerInventoryData.MainInventory.GetItem(playerSlotIndex).Count);
 
+            //削除したブロックは次のスロットに入っているのでそれをチェック
+            Assert.AreEqual(blockConfigData.ItemId, playerInventoryData.MainInventory.GetItem(playerSlotIndex + 1).Id);
+            Assert.AreEqual(1, playerInventoryData.MainInventory.GetItem(playerSlotIndex + 1).Count);
         }
 
         
@@ -88,11 +87,12 @@ namespace Test.CombinedTest.Server.PacketTest
             //一つの目のスロットにはID3の最大スタック数から1個少ないアイテムを入れる
             var id3MaxStack = itemConfig.GetItemConfig(3).MaxStack;
             mainInventory.SetItem(0,itemStackFactory.Create(3,id3MaxStack-1));
-            //二つめのスロットには何も入れない
-            
-            
-            
-            
+            //二つめのスロットにはID4のアイテムを1つ入れておく
+            mainInventory.SetItem(1,itemStackFactory.Create(4,1));
+
+
+
+
             //削除するためのブロックの生成
             var block = blockFactory.Create(MachineBlockId, 0);
             var blockInventory = (IBlockInventory) block;
@@ -117,9 +117,9 @@ namespace Test.CombinedTest.Server.PacketTest
             //削除したブロックがワールドに存在してることを確認
             Assert.True(worldBlock.Exists(0,0));
             
-            //プレイヤーのインベントリにアイテムが入っているか確認
+            //プレイヤーのインベントリにブロック内のアイテムが入っているか確認
             Assert.AreEqual(itemStackFactory.Create(3,id3MaxStack),mainInventory.GetItem(0));
-            Assert.AreEqual(itemStackFactory.Create(4,5),mainInventory.GetItem(1));
+            Assert.AreEqual(itemStackFactory.Create(4,6),mainInventory.GetItem(1));
             
             //ブロックのインベントリが減っているかを確認
             Assert.AreEqual(itemStackFactory.Create(3,1),blockInventory.GetItem(0));
