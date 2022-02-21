@@ -48,7 +48,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //プロトコルを使ってブロックを削除
-            packet.GetPacketResponse(RemoveBlock(0, 0, 0));
+            packet.GetPacketResponse(RemoveBlock(0, 0, PlayerId));
 
             
             //削除したブロックがワールドに存在しないことを確認
@@ -68,12 +68,11 @@ namespace Test.CombinedTest.Server.PacketTest
         
         //インベントリがいっぱいで一部のアイテムが残っている場合のテスト
         [Test]
-        public void InventoryFullToRemoveBlockTest()
+        public void InventoryFullToRemoveBlockSomeItemRemainTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
-            var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
@@ -110,7 +109,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //プロトコルを使ってブロックを削除
-            packet.GetPacketResponse(RemoveBlock(0, 0, 0));
+            packet.GetPacketResponse(RemoveBlock(0, 0, PlayerId));
 
             
             
@@ -128,15 +127,48 @@ namespace Test.CombinedTest.Server.PacketTest
             
         }
         
+        //ブロックの中にアイテムはないけど、プレイヤーのインベントリが満杯でブロックを破壊できない時のテスト
+        [Test]
+        public void InventoryFullToCantRemoveBlockTest()
+        {
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var itemConfig = serviceProvider.GetService<IItemConfig>();
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            
+            var mainInventory =
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainInventory;
+
+            //インベントリを満杯にする
+            for (int i = 0; i < mainInventory.GetSlotSize(); i++)
+            {
+                mainInventory.SetItem(i,itemStackFactory.Create(1000,1));
+            }
+            
+            //ブロックを設置
+            var block = blockFactory.Create(MachineBlockId, 0);
+            worldBlock.AddBlock(block, 0, 0, BlockDirection.North);
+            
+            
+            
+            //プロトコルを使ってブロックを削除
+            packet.GetPacketResponse(RemoveBlock(0, 0, PlayerId));
+            
+            
+            
+            //ブロックが削除できていないことを検証
+            Assert.True(worldBlock.Exists(0,0));
+        }
         
         
-        List<byte> RemoveBlock(int x, int y,int Playerid)
+        List<byte> RemoveBlock(int x, int y,int playerId)
         {
             var bytes = new List<byte>();
             bytes.AddRange(ToByteList.Convert((short) 10));
             bytes.AddRange(ToByteList.Convert(x));
             bytes.AddRange(ToByteList.Convert(y));
-            bytes.AddRange(ToByteList.Convert(Playerid));
+            bytes.AddRange(ToByteList.Convert(playerId));
 
             return bytes;
         }
