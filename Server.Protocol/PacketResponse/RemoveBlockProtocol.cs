@@ -48,22 +48,21 @@ namespace Server.Protocol.PacketResponse
             //壊したブロックをインベントリーに挿入
             playerInventoryData.MainInventory.InsertItem(_itemStackFactory.Create(blockConfigData.ItemId,1));
             
+            //インベントリがある時は
             if (_worldBlockComponentDatastore.ExistsComponentBlock(x, y) == true)
             {
+                //プレイヤーインベントリにブロック内のアイテムを挿入
                 var BlockInventory = _worldBlockComponentDatastore.GetBlock(x, y);
                 for (int i = 0; i < BlockInventory.GetSlotSize(); i++)
                 {
                     playerInventoryData.MainInventory.InsertItem(BlockInventory.GetItem(i));
                 }
-                    
             }
                 
             //ブロック削除
             _worldBlockDatastore.RemoveBlock(x, y);
 
             return new List<byte[]>();
-            
-            
         }
 
     }
