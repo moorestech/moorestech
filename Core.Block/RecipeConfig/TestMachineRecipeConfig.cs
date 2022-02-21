@@ -48,7 +48,7 @@ namespace Core.Block.RecipeConfig
         /// <param name="BlockId">設置物ID</param>
         /// <param name="inputItem">搬入スロット</param>
         /// <returns>レシピデータ</returns>
-        public IMachineRecipeData GetRecipeData(int BlockId, List<IItemStack> inputItem)
+        public IMachineRecipeData GetRecipeData(int BlockId, IReadOnlyList<IItemStack> inputItem)
         {
             var tmpInputItem = inputItem.Where(i => i.Count != 0).ToList();
             tmpInputItem.Sort((a, b) => a.Id - b.Id);

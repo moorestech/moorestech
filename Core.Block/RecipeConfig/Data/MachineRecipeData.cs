@@ -25,7 +25,7 @@ namespace Core.Block.RecipeConfig.Data
         public int Time { get; }
         public int RecipeId { get; }
 
-        public bool RecipeConfirmation(List<IItemStack> inputSlot)
+        public bool RecipeConfirmation(IReadOnlyList<IItemStack> inputSlot)
         {
             int cnt = 0;
             foreach (var slot in inputSlot)

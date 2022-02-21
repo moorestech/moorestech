@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Service;
 using Core.Block.RecipeConfig.Data;
+using Core.Inventory;
 using Core.Item;
 using Core.Item.Util;
 using Core.Update;
@@ -12,16 +13,16 @@ namespace Core.Block.Blocks.Machine.Inventory
 {
     public class VanillaMachineOutputInventory : IUpdate
     {
-        private readonly List<IItemStack> _outputSlot;
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
+        private readonly InventoryItemDataStoreService _itemDataStoreService;
 
 
-        public ReadOnlyCollection<IItemStack> OutputSlot => new(_outputSlot);
+        public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;
 
         public VanillaMachineOutputInventory(int outputSlot, ItemStackFactory itemStackFactory)
         {
-            _outputSlot = CreateEmptyItemStacksList.Create(outputSlot, itemStackFactory);
+            _itemDataStoreService = new InventoryItemDataStoreService(InvokeEvent,itemStackFactory,outputSlot);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdate.AddUpdateObject(this);
         }
@@ -35,7 +36,7 @@ namespace Core.Block.Blocks.Machine.Inventory
         {
             foreach (var itemOutput in machineRecipeData.ItemOutputs)
             {
-                var isAllowed = _outputSlot.Aggregate(false,
+                var isAllowed = OutputSlot.Aggregate(false,
                     (current, slot) => slot.IsAllowedToAdd(itemOutput.OutputItem) || current);
 
                 if (!isAllowed) return false;
@@ -49,11 +50,10 @@ namespace Core.Block.Blocks.Machine.Inventory
             //アウトプットスロットにアイテムを格納する
             foreach (var output in machineRecipeData.ItemOutputs)
             {
-                for (int i = 0; i < _outputSlot.Count; i++)
+                for (int i = 0; i < OutputSlot.Count; i++)
                 {
-                    if (!_outputSlot[i].IsAllowedToAdd(output.OutputItem)) continue;
-
-                    _outputSlot[i] = _outputSlot[i].AddItem(output.OutputItem).ProcessResultItemStack;
+                    if (!OutputSlot[i].IsAllowedToAdd(output.OutputItem)) continue;
+                    _itemDataStoreService.SetItem(i,OutputSlot[i].AddItem(output.OutputItem).ProcessResultItemStack);
                     break;
                 }
             }
@@ -61,9 +61,9 @@ namespace Core.Block.Blocks.Machine.Inventory
 
         void InsertConnectInventory()
         {
-            for (int i = 0; i < _outputSlot.Count; i++)
+            for (int i = 0; i < OutputSlot.Count; i++)
             {
-                _outputSlot[i] = _connectInventoryService.InsertItem(_outputSlot[i]);
+                _itemDataStoreService.SetItem(i,_connectInventoryService.InsertItem(OutputSlot[i]));
             }
         }
 
@@ -92,7 +92,13 @@ namespace Core.Block.Blocks.Machine.Inventory
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            _outputSlot[slot] = itemStack;
+            _itemDataStoreService.SetItem(slot,itemStack);
+        }
+        
+        
+        private void InvokeEvent(int slot, IItemStack itemStack)
+        {
+            //TODO イベントを発火する
         }
     }
 }

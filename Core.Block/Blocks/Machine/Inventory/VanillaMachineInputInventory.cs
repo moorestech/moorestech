@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Core.Block.RecipeConfig;
 using Core.Block.RecipeConfig.Data;
+using Core.Inventory;
 using Core.Item;
 using Core.Item.Util;
 
@@ -11,34 +12,23 @@ namespace Core.Block.Blocks.Machine.Inventory
     public class VanillaMachineInputInventory
     {
         private readonly int _blockId;
-        private readonly List<IItemStack> _inputSlot;
+        private readonly InventoryItemDataStoreService _itemDataStoreService;
         private readonly IMachineRecipeConfig _machineRecipeConfig;
 
-        public ReadOnlyCollection<IItemStack> InputSlot => new(_inputSlot);
+        public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.Inventory;
 
         public VanillaMachineInputInventory(int blockId, int inputSlot, IMachineRecipeConfig machineRecipeConfig,
             ItemStackFactory itemStackFactory)
         {
             _blockId = blockId;
             _machineRecipeConfig = machineRecipeConfig;
-            _inputSlot = CreateEmptyItemStacksList.Create(inputSlot, itemStackFactory);
+            //TODO このdelgateはDIする
+            _itemDataStoreService = new InventoryItemDataStoreService(InvokeEvent,itemStackFactory, inputSlot);
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            for (var i = 0; i < _inputSlot.Count; i++)
-            {
-                if (!_inputSlot[i].IsAllowedToAdd(itemStack)) continue;
-
-                //インベントリにアイテムを入れる
-                var r = _inputSlot[i].AddItem(itemStack);
-                _inputSlot[i] = r.ProcessResultItemStack;
-
-                //とった結果のアイテムを返す
-                return r.RemainderItemStack;
-            }
-
-            return itemStack;
+            return _itemDataStoreService.InsertItem(itemStack);
         }
 
         public bool IsAllowedToStartProcess
@@ -46,15 +36,15 @@ namespace Core.Block.Blocks.Machine.Inventory
             get
             {
                 //建物IDと現在のインプットスロットからレシピを検索する
-                var recipe = _machineRecipeConfig.GetRecipeData(_blockId, _inputSlot.ToList());
+                var recipe = _machineRecipeConfig.GetRecipeData(_blockId, InputSlot);
                 //実行できるレシピかどうか
-                return recipe.RecipeConfirmation(_inputSlot);
+                return recipe.RecipeConfirmation(InputSlot);
             }
         }
 
         public IMachineRecipeData GetRecipeData()
         {
-            return _machineRecipeConfig.GetRecipeData(_blockId, _inputSlot.ToList());
+            return _machineRecipeConfig.GetRecipeData(_blockId, InputSlot);
         }
 
         public void ReduceInputSlot(IMachineRecipeData recipe)
@@ -62,11 +52,11 @@ namespace Core.Block.Blocks.Machine.Inventory
             //inputスロットからアイテムを減らす
             foreach (var item in recipe.ItemInputs)
             {
-                for (var i = 0; i < _inputSlot.Count; i++)
+                for (var i = 0; i < InputSlot.Count; i++)
                 {
-                    if (_inputSlot[i].Id != item.Id || item.Count > _inputSlot[i].Count) continue;
+                    if (_itemDataStoreService.Inventory[i].Id != item.Id || item.Count > InputSlot[i].Count) continue;
                     //アイテムを減らす
-                    _inputSlot[i] = _inputSlot[i].SubItem(item.Count);
+                    _itemDataStoreService.SetItem(i,InputSlot[i].SubItem(item.Count));
                     break;
                 }
             }
@@ -74,7 +64,12 @@ namespace Core.Block.Blocks.Machine.Inventory
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            _inputSlot[slot] = itemStack;
+            _itemDataStoreService.SetItem(slot,itemStack);
+        }
+
+        private void InvokeEvent(int slot, IItemStack itemStack)
+        {
+            //TODO イベントを発火する
         }
     }
 }

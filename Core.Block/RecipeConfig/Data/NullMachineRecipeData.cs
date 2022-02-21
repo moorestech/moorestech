@@ -13,7 +13,7 @@ namespace Core.Block.RecipeConfig.Data
         public int Time => 0;
         public int RecipeId => -1;
 
-        public bool RecipeConfirmation(List<IItemStack> inputSlot)
+        public bool RecipeConfirmation(IReadOnlyList<IItemStack> inputSlot)
         {
             return false;
         }
