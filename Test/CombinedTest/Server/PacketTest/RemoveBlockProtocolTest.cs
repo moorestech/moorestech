@@ -17,32 +17,30 @@ namespace Test.CombinedTest.Server.PacketTest
 {
     public class RemoveBlockProtocolTest
     {
-        
-        private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
+        private const int MachineBlockId = 1;
 
         [Test]
         public void RemoveTest()
         {
             int playerId = 0;
             int playerSlotIndex = 0;
-            int MachineBlockId = 1;
 
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var BlockFactory = serviceProvider.GetService<BlockFactory>();
-            var Blockconfig = serviceProvider.GetService<IBlockConfig>();
-            
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockConfig = serviceProvider.GetService<IBlockConfig>();
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             var playerInventoryData =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
 
-            var Block = BlockFactory.Create(MachineBlockId, 0);
-            var BlockInventory = (IBlockInventory) Block;
-            BlockInventory.InsertItem(_itemStackFactory.Create(10, 7));
-            var blockConfigData = Blockconfig.GetBlockConfig(Block.GetBlockId());
+            var block = blockFactory.Create(MachineBlockId, 0);
+            var blockInventory = (IBlockInventory) block;
+            blockInventory.InsertItem(itemStackFactory.Create(10, 7));
+            var blockConfigData = blockConfig.GetBlockConfig(block.GetBlockId());
           
             //削除するためのブロックの生成
-            worldBlock.AddBlock(Block, 0, 0, BlockDirection.North);
+            worldBlock.AddBlock(block, 0, 0, BlockDirection.North);
             
             Assert.AreEqual(0,worldBlock.GetBlock(0,0).GetEntityId());
             
