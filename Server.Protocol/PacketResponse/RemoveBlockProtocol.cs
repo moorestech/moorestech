@@ -58,10 +58,10 @@ namespace Server.Protocol.PacketResponse
             if (_worldBlockComponentDatastore.ExistsComponentBlock(x, y) == true)
             {
                 //プレイヤーインベントリにブロック内のアイテムを挿入
-                var BlockInventory = _worldBlockComponentDatastore.GetBlock(x, y);
-                for (int i = 0; i < BlockInventory.GetSlotSize(); i++)
+                var blockInventory = _worldBlockComponentDatastore.GetBlock(x, y);
+                for (int i = 0; i < blockInventory.GetSlotSize(); i++)
                 {
-                    playerInventoryData.MainInventory.InsertItem(BlockInventory.GetItem(i));
+                    playerInventoryData.MainInventory.InsertItem(blockInventory.GetItem(i));
                 }
             }
                 
