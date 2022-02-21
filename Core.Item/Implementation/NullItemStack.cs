@@ -32,7 +32,7 @@ namespace Core.Item.Implementation
 
         public bool IsAllowedToAddButRemain(IItemStack item)
         {
-            return false;
+            return true;
         }
 
         public IItemStack Clone()

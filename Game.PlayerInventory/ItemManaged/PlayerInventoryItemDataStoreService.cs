@@ -88,9 +88,18 @@ namespace PlayerInventory.ItemManaged
             for (var i = 0; i < _inventory.Count; i++)
             {
                 //挿入できるスロットを探索
-                if (!_inventory[i].IsAllowedToAdd(itemStack)) continue;
+                if (!_inventory[i].IsAllowedToAddButRemain(itemStack)) continue;
+                
                 //挿入実行
-                return InsertItem(i,itemStack);
+                var remain = InsertItem(i, itemStack);
+                
+                //挿入結果が空のアイテムならそのまま処理を終了
+                if (remain.Equals(_itemStackFactory.CreatEmpty()))
+                {
+                    return remain;
+                }
+                //そうでないならあまりのアイテムを入れるまで探索
+                itemStack = remain;
             }
             return itemStack;
         }
