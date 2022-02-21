@@ -73,7 +73,7 @@ namespace PlayerInventory.ItemManaged
         
         public IItemStack InsertItem(int slot, IItemStack itemStack)
         {
-            if (!_inventory[slot].IsAllowedToAdd(itemStack)) return itemStack;
+            if (!_inventory[slot].IsAllowedToAddButRemain(itemStack)) return itemStack;
             
             var result = _inventory[slot].AddItem(itemStack);
             _inventory[slot] = result.ProcessResultItemStack;
