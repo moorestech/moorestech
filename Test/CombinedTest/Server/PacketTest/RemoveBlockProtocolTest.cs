@@ -18,11 +18,11 @@ namespace Test.CombinedTest.Server.PacketTest
     public class RemoveBlockProtocolTest
     {
         private const int MachineBlockId = 1;
+        private const int PlayerId = 0;
 
         [Test]
         public void RemoveTest()
         {
-            int playerId = 0;
             int playerSlotIndex = 0;
 
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
@@ -32,7 +32,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             var playerInventoryData =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
 
             var block = blockFactory.Create(MachineBlockId, 0);
             var blockInventory = (IBlockInventory) block;
@@ -46,9 +46,12 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //プレイヤーインベントリに削除したブロックを追加
             
+            
             //プロトコルを使ってブロックを削除
             packet.GetPacketResponse(RemoveBlock(0, 0, 0));
 
+            
+            //削除したブロックがワールドに存在しないことを確認
             Assert.False(worldBlock.Exists(0,0));
             
             
@@ -62,6 +65,71 @@ namespace Test.CombinedTest.Server.PacketTest
 
         }
 
+        
+        //インベントリがいっぱいで一部のアイテムが残っている場合のテスト
+        [Test]
+        public void InventoryFullToRemoveBlockTest()
+        {
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockConfig = serviceProvider.GetService<IBlockConfig>();
+            var itemConfig = serviceProvider.GetService<IItemConfig>();
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            
+            var mainInventory =
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainInventory;
+
+            //インベントリの2つのスロットを残してインベントリを満杯にする
+            for (int i = 2; i < mainInventory.GetSlotSize(); i++)
+            {
+                mainInventory.SetItem(i,itemStackFactory.Create(1000,1));
+            }
+            
+            //一つの目のスロットにはID3の最大スタック数から1個少ないアイテムを入れる
+            var id3MaxStack = itemConfig.GetItemConfig(3).MaxStack;
+            mainInventory.SetItem(0,itemStackFactory.Create(3,id3MaxStack-1));
+            //二つめのスロットには何も入れない
+            
+            
+            
+            
+            //削除するためのブロックの生成
+            var block = blockFactory.Create(MachineBlockId, 0);
+            var blockInventory = (IBlockInventory) block;
+            //ブロックにはID3のアイテムを2個と、ID4のアイテムを5個入れる
+            //このブロックを削除したときに、ID3のアイテムが1個だけ残る
+            blockInventory.SetItem(0,itemStackFactory.Create(3, 2));
+            blockInventory.SetItem(1,itemStackFactory.Create(4, 5));
+            
+            //ブロックを設置
+            worldBlock.AddBlock(block, 0, 0, BlockDirection.North);
+            
+
+            
+            
+            
+            //プロトコルを使ってブロックを削除
+            packet.GetPacketResponse(RemoveBlock(0, 0, 0));
+
+            
+            
+            
+            //削除したブロックがワールドに存在してることを確認
+            Assert.True(worldBlock.Exists(0,0));
+            
+            //プレイヤーのインベントリにアイテムが入っているか確認
+            Assert.AreEqual(itemStackFactory.Create(3,id3MaxStack),mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(4,5),mainInventory.GetItem(1));
+            
+            //ブロックのインベントリが減っているかを確認
+            Assert.AreEqual(itemStackFactory.Create(3,1),blockInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.CreatEmpty(),blockInventory.GetItem(1));
+            
+        }
+        
+        
+        
         List<byte> RemoveBlock(int x, int y,int Playerid)
         {
             var bytes = new List<byte>();
