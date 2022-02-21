@@ -58,7 +58,7 @@ namespace Server.Protocol.PacketResponse
                     blockInventory.SetItem(i,remainItem);
                     
                     //アイテムが入りきらなかったらブロックを削除しないフラグを立てる
-                    if (remainItem.Equals(_itemStackFactory.CreatEmpty()))
+                    if (!remainItem.Equals(_itemStackFactory.CreatEmpty()))
                     {
                         isNotRemainItem = false;
                     }
