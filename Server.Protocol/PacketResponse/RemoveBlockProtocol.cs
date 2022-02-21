@@ -51,7 +51,12 @@ namespace Server.Protocol.PacketResponse
                 var blockInventory = _worldBlockComponentDatastore.GetBlock(x, y);
                 for (int i = 0; i < blockInventory.GetSlotSize(); i++)
                 {
+                    //プレイヤーインベントリにアイテムを挿入
                     var remainItem = playerMainInventory.InsertItem(blockInventory.GetItem(i));
+                    //余ったアイテムをブロックに戻す
+                    //この時、もしプレイヤーインベントリにアイテムを入れれたのなら、空のアイテムをブロックに戻すようになっているs
+                    blockInventory.SetItem(i,remainItem);
+                    
                     //アイテムが入りきらなかったらブロックを削除しないフラグを立てる
                     if (remainItem.Equals(_itemStackFactory.CreatEmpty()))
                     {
