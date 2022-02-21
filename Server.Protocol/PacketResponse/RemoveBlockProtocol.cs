@@ -37,23 +37,13 @@ namespace Server.Protocol.PacketResponse
             int y = payloadData.MoveNextToGetInt();
             int playerId = payloadData.MoveNextToGetInt();
             
-            //ブロックIdの取得
-            var Blockid = _worldBlockDatastore.GetBlock(x,y).GetBlockId();
-            //ブロック情報の取得
-            var blockConfigData = _blockConfig.GetBlockConfig(Blockid);
             
-            //プレイヤーインベントリーの設定
-            var playerInventoryData =
-                _playerInventoryDataStore.GetInventoryData(playerId);
-            //壊したブロックをインベントリーに挿入
-            playerInventoryData.MainInventory.InsertItem(_itemStackFactory.Create(blockConfigData.ItemId,1));
-            
-            //TODO 溢れるテスト
-            //TODO アイテムが全てInsertできているか、EmptyItemと比較してチェック
-            //TODO もし一つでもEmptyItemがあれば入りきらなかったと判断して、ブロックを破壊しない
-            //TODO ブロック破壊時にブロックのアイテムをインベントリにInsertする
-            //TODO この時にEmptyItemじゃなければインベントリがいっぱいであると判断して、破壊しない
+            //プレイヤーインベントリーの取得
+            var playerMainInventory =
+                _playerInventoryDataStore.GetInventoryData(playerId).MainInventory;
 
+            var isNotRemainItem = true;
+            
             //インベントリがある時は
             if (_worldBlockComponentDatastore.ExistsComponentBlock(x, y) == true)
             {
@@ -61,12 +51,31 @@ namespace Server.Protocol.PacketResponse
                 var blockInventory = _worldBlockComponentDatastore.GetBlock(x, y);
                 for (int i = 0; i < blockInventory.GetSlotSize(); i++)
                 {
-                    playerInventoryData.MainInventory.InsertItem(blockInventory.GetItem(i));
+                    var remainItem = playerMainInventory.InsertItem(blockInventory.GetItem(i));
+                    //アイテムが入りきらなかったらブロックを削除しないフラグを立てる
+                    if (remainItem.Equals(_itemStackFactory.CreatEmpty()))
+                    {
+                        isNotRemainItem = false;
+                    }
                 }
             }
+            
+            
+            //インベントリに削除するブロックを入れる
+            
+            //壊したブロックをインベントリーに挿入
+            //ブロックIdの取得
+            var blockId = _worldBlockDatastore.GetBlock(x,y).GetBlockId();
+            //ブロックのIDを取得
+            var blockItemId = _blockConfig.GetBlockConfig(blockId).ItemId;
+            var remainBlockItem = playerMainInventory.InsertItem(_itemStackFactory.Create(blockItemId,1));
                 
-            //ブロック削除
-            _worldBlockDatastore.RemoveBlock(x, y);
+            
+            //ブロック内のアイテムを全てインベントリに入れ、ブロックもインベントリに入れれた時だけブロックを削除する
+            if (isNotRemainItem && remainBlockItem.Equals(_itemStackFactory.CreatEmpty()))
+            {
+                _worldBlockDatastore.RemoveBlock(x, y);
+            }
 
             return new List<byte[]>();
         }
