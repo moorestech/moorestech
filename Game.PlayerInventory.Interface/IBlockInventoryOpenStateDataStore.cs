@@ -1,11 +1,10 @@
-﻿using Game.World.Interface.DataStore;
+﻿using System.Collections.Generic;
 
 namespace Game.PlayerInventory.Interface
 {
     public interface IBlockInventoryOpenStateDataStore
     {
-        public bool IsOpen(int playerId);
-        public int GetOpenCoordinates(int playerId);
+        public List<int> GetBlockInventoryOpenPlayers(int blockEntityId);
         public void Open(int playerId, int x ,int y);
         public void Close(int playerId);
     }

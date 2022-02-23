@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using Core.Inventory;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
@@ -21,19 +23,11 @@ namespace PlayerInventory
             _worldBlockDatastore = worldBlockDatastore;
         }
 
-        public bool IsOpen(int playerId)
+        public List<int> GetBlockInventoryOpenPlayers(int blockEntityId)
         {
-            return _openCoordinates.ContainsKey(playerId);
-        }
-
-        public int GetOpenCoordinates(int playerId)
-        {
-            if (_openCoordinates.ContainsKey(playerId))
-            {
-                return _openCoordinates[playerId];
-            }
-
-            throw new Exception($"PlayerId : {playerId} はインベントリを開いていません");
+            return _openCoordinates.
+                Where(x => x.Value == blockEntityId).
+                Select(x => x.Key).ToList();
         }
 
         public void Open(int playerId, int x,int y)
