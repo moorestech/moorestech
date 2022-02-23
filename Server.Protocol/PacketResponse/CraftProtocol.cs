@@ -17,9 +17,9 @@ namespace Server.Protocol.PacketResponse
         
         public List<byte[]> GetResponse(List<byte> payload)
         {
-            var response = new ByteArrayEnumerator(payload);
-            response.MoveNextToGetShort(); // Packet ID
-            var playerId = response.MoveNextToGetInt();
+            var byteListEnumerator = new ByteListEnumerator(payload);
+            byteListEnumerator.MoveNextToGetShort(); // Packet ID
+            var playerId = byteListEnumerator.MoveNextToGetInt();
 
             var craftingInventory = _playerInventoryDataStore.GetInventoryData(playerId).CraftingOpenableInventory;
             

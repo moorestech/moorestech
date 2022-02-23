@@ -31,11 +31,11 @@ namespace Server.Protocol.PacketResponse
         public List<byte[]> GetResponse(List<byte> payload)
         {
             
-            var payloadData = new ByteArrayEnumerator(payload);
-            payloadData.MoveNextToGetShort();
-            int x = payloadData.MoveNextToGetInt();
-            int y = payloadData.MoveNextToGetInt();
-            int playerId = payloadData.MoveNextToGetInt();
+            var byteListEnumerator = new ByteListEnumerator(payload);
+            byteListEnumerator.MoveNextToGetShort();
+            int x = byteListEnumerator.MoveNextToGetInt();
+            int y = byteListEnumerator.MoveNextToGetInt();
+            int playerId = byteListEnumerator.MoveNextToGetInt();
             
             
             //プレイヤーインベントリーの取得

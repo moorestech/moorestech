@@ -31,7 +31,7 @@ namespace Test.CombinedTest.Server.PacketTest
             payload.AddRange(ToByteList.Convert((short) 3));
             payload.AddRange(ToByteList.Convert(playerId));
 
-            var response = new ByteArrayEnumerator(packet.GetPacketResponse(payload)[0].ToList());
+            var response = new ByteListEnumerator(packet.GetPacketResponse(payload)[0].ToList());
 
             //データの検証
             Assert.AreEqual(4, response.MoveNextToGetShort());
@@ -82,7 +82,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //2回目のデータ要求
-            response = new ByteArrayEnumerator(packet.GetPacketResponse(payload)[0].ToList());
+            response = new ByteListEnumerator(packet.GetPacketResponse(payload)[0].ToList());
             Assert.AreEqual(4, response.MoveNextToGetShort());
             Assert.AreEqual(playerId, response.MoveNextToGetInt());
             Assert.AreEqual(0, response.MoveNextToGetShort());

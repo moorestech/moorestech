@@ -17,9 +17,9 @@ namespace Server.Protocol.PacketResponse
         public List<byte[]> GetResponse(List<byte> payload)
         {
             //パケットのパース、接続元、接続先のインスタンス取得
-            var b = new ByteArrayEnumerator(payload);
-            b.MoveNextToGetShort();
-            var userId = b.MoveNextToGetInt();
+            var byteListEnumerator = new ByteListEnumerator(payload);
+            byteListEnumerator.MoveNextToGetShort();
+            var userId = byteListEnumerator.MoveNextToGetInt();
             return _eventProtocolProvider.GetEventBytesList(userId);
         }
     }

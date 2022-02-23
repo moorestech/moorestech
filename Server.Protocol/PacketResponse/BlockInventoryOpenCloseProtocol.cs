@@ -18,12 +18,12 @@ namespace Server.Protocol.PacketResponse
 
         public List<byte[]> GetResponse(List<byte> payload)
         {
-            var enumerator = new ByteArrayEnumerator(payload);
-            enumerator.MoveNextToGetShort(); //packet id
-            var x = enumerator.MoveNextToGetInt();
-            var y = enumerator.MoveNextToGetInt();
-            var playerId = enumerator.MoveNextToGetInt();
-            var isOpen = enumerator.MoveNextToGetByte() == IsOpenFlag;
+            var byteListEnumerator = new ByteListEnumerator(payload);
+            byteListEnumerator.MoveNextToGetShort(); //packet id
+            var x = byteListEnumerator.MoveNextToGetInt();
+            var y = byteListEnumerator.MoveNextToGetInt();
+            var playerId = byteListEnumerator.MoveNextToGetInt();
+            var isOpen = byteListEnumerator.MoveNextToGetByte() == IsOpenFlag;
 
             //開く、閉じるのセット
             if (isOpen)

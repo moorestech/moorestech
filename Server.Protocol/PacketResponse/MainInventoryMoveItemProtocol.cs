@@ -21,12 +21,12 @@ namespace Server.Protocol.PacketResponse
 
         public List<byte[]> GetResponse(List<byte> payload)
         {
-            var payloadData = new ByteArrayEnumerator(payload);
-            payloadData.MoveNextToGetShort(); //パケットID
-            var playerId = payloadData.MoveNextToGetInt();
-            var fromSlot = payloadData.MoveNextToGetInt();
-            var toSlot = payloadData.MoveNextToGetInt();
-            var itemCount = payloadData.MoveNextToGetInt();
+            var byteListEnumerator = new ByteListEnumerator(payload);
+            byteListEnumerator.MoveNextToGetShort(); //パケットID
+            var playerId = byteListEnumerator.MoveNextToGetInt();
+            var fromSlot = byteListEnumerator.MoveNextToGetInt();
+            var toSlot = byteListEnumerator.MoveNextToGetInt();
+            var itemCount = byteListEnumerator.MoveNextToGetInt();
 
             var mainInventory = _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory;
 

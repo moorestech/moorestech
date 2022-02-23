@@ -42,7 +42,7 @@ namespace Server.Protocol
 
         public List<byte[]> GetPacketResponse(List<byte> payload)
         {
-            return _packetResponseList[new ByteArrayEnumerator(payload).MoveNextToGetShort()].GetResponse(payload);
+            return _packetResponseList[new ByteListEnumerator(payload).MoveNextToGetShort()].GetResponse(payload);
         }
     }
 }

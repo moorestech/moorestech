@@ -26,15 +26,15 @@ namespace Server.Protocol.PacketResponse
 
         public List<byte[]> GetResponse(List<byte> payload)
         {
-            var payloadData = new ByteArrayEnumerator(payload);
-            payloadData.MoveNextToGetShort();
-            var flag = payloadData.MoveNextToGetShort();
-            var playerId = payloadData.MoveNextToGetInt();
-            var playerMainInventorySlot = payloadData.MoveNextToGetInt();
-            var blockX = payloadData.MoveNextToGetInt();
-            var blockY = payloadData.MoveNextToGetInt();
-            var blockInventorySlot = payloadData.MoveNextToGetInt();
-            var moveItemCount = payloadData.MoveNextToGetInt();
+            var byteListEnumerator = new ByteListEnumerator(payload);
+            byteListEnumerator.MoveNextToGetShort();
+            var flag = byteListEnumerator.MoveNextToGetShort();
+            var playerId = byteListEnumerator.MoveNextToGetInt();
+            var playerMainInventorySlot = byteListEnumerator.MoveNextToGetInt();
+            var blockX = byteListEnumerator.MoveNextToGetInt();
+            var blockY = byteListEnumerator.MoveNextToGetInt();
+            var blockInventorySlot = byteListEnumerator.MoveNextToGetInt();
+            var moveItemCount = byteListEnumerator.MoveNextToGetInt();
 
             var blockInventory = (IOpenableInventory) _worldBlockDatastore.GetBlock(blockX, blockY);
             var playerMainInventory = _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory;

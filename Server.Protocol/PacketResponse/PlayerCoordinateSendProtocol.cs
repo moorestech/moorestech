@@ -24,7 +24,7 @@ namespace Server.Protocol.PacketResponse
         public List<byte[]> GetResponse(List<byte> payload)
         {
             //プレイヤー座標の解析
-            var b = new ByteArrayEnumerator(payload);
+            var b = new ByteListEnumerator(payload);
             b.MoveNextToGetShort();
             var x = b.MoveNextToGetFloat();
             var y = b.MoveNextToGetFloat();

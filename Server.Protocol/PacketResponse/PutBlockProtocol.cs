@@ -28,12 +28,12 @@ namespace Server.Protocol.PacketResponse
         public List<byte[]> GetResponse(List<byte> payload)
         {
             //パケットのパース、接続元、接続先のインスタンス取得
-            var payloadData = new ByteArrayEnumerator(payload);
-            payloadData.MoveNextToGetShort();
-            int blockId = payloadData.MoveNextToGetInt();
-            payloadData.MoveNextToGetShort();
-            int x = payloadData.MoveNextToGetInt();
-            int y = payloadData.MoveNextToGetInt();
+            var byteListEnumerator = new ByteListEnumerator(payload);
+            byteListEnumerator.MoveNextToGetShort();
+            int blockId = byteListEnumerator.MoveNextToGetInt();
+            byteListEnumerator.MoveNextToGetShort();
+            int x = byteListEnumerator.MoveNextToGetInt();
+            int y = byteListEnumerator.MoveNextToGetInt();
             Console.WriteLine("Place Block blockID:" + blockId + " x:" + x + " y:" + y);
 
             var block = blockFactory.Create(blockId, EntityId.NewEntityId());

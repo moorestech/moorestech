@@ -38,7 +38,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             //最後から一つ前のパケットはまだクラフト可能になっていないことを検証する
             var checkSlot = PlayerInventoryConst.CraftingSlotSize - 2;
-            var enumerator = new ByteArrayEnumerator(response[checkSlot].ToList());
+            var enumerator = new ByteListEnumerator(response[checkSlot].ToList());
             Assert.AreEqual(3,enumerator.MoveNextToGetShort()); //パケットID
             Assert.AreEqual(4,enumerator.MoveNextToGetShort()); //イベントID
             Assert.AreEqual(checkSlot,enumerator.MoveNextToGetInt()); //インベントリスロット
@@ -53,7 +53,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             //最後のパケットはクラフト可能になっていることを検証する
             checkSlot = PlayerInventoryConst.CraftingSlotSize - 1;
-            enumerator = new ByteArrayEnumerator(response[checkSlot].ToList());
+            enumerator = new ByteListEnumerator(response[checkSlot].ToList());
             Assert.AreEqual(3,enumerator.MoveNextToGetShort()); //パケットID
             Assert.AreEqual(4,enumerator.MoveNextToGetShort()); //イベントID
             Assert.AreEqual(checkSlot,enumerator.MoveNextToGetInt()); //インベントリスロット
@@ -80,7 +80,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             //最初のパケットが出力スロットであるため、その検証をする
             checkSlot = PlayerInventoryConst.CraftingInventorySize - 1;;
-            enumerator = new ByteArrayEnumerator(response[checkSlot].ToList());
+            enumerator = new ByteListEnumerator(response[checkSlot].ToList());
             Assert.AreEqual(3,enumerator.MoveNextToGetShort()); //パケットID
             Assert.AreEqual(4,enumerator.MoveNextToGetShort()); //イベントID
             Assert.AreEqual(checkSlot,enumerator.MoveNextToGetInt()); //インベントリスロット

@@ -14,7 +14,7 @@ namespace Test.UnitTest.Server
         public void OneIntConvertTest()
         {
             var Int = new Random(1000).Next(Int32.MaxValue, Int32.MaxValue);
-            var byteData = new ByteArrayEnumerator(ToByteList.Convert(Int));
+            var byteData = new ByteListEnumerator(ToByteList.Convert(Int));
 
             Assert.AreEqual(Int, byteData.MoveNextToGetInt());
         }
@@ -24,7 +24,7 @@ namespace Test.UnitTest.Server
         public void OneShortConvertTest()
         {
             var Short = (short) new Random(1000).Next(short.MinValue, short.MaxValue);
-            var byteData = new ByteArrayEnumerator(ToByteList.Convert(Short));
+            var byteData = new ByteListEnumerator(ToByteList.Convert(Short));
 
             Assert.AreEqual(Short, byteData.MoveNextToGetShort());
         }
@@ -34,7 +34,7 @@ namespace Test.UnitTest.Server
         public void OneFloatConvertTest()
         {
             var Float = (float) new Random(1000).NextDouble();
-            var byteData = new ByteArrayEnumerator(ToByteList.Convert(Float));
+            var byteData = new ByteListEnumerator(ToByteList.Convert(Float));
 
             Assert.AreEqual(Float, byteData.MoveNextToGetFloat());
         }
@@ -44,7 +44,7 @@ namespace Test.UnitTest.Server
         public void OneByteNumStringConvertTest()
         {
             var String = "変換test012()あいうaＢC:";
-            var byteData = new ByteArrayEnumerator(ToByteList.Convert(String));
+            var byteData = new ByteListEnumerator(ToByteList.Convert(String));
 
             Assert.AreEqual(String, byteData.MoveNextToGetString(30));
         }
@@ -54,7 +54,7 @@ namespace Test.UnitTest.Server
         public void OneDifferentByteNumStringConvertTest()
         {
             var String = "変換test012()あいうaＢC:";
-            var byteData = new ByteArrayEnumerator(ToByteList.Convert(String));
+            var byteData = new ByteListEnumerator(ToByteList.Convert(String));
 
             Assert.AreNotEqual(String, byteData.MoveNextToGetString(29));
         }
@@ -73,7 +73,7 @@ namespace Test.UnitTest.Server
             ans.AddRange(ToByteList.Convert(entityId2));
             ans.AddRange(ToByteList.Convert(50));
 
-            var byteData = new ByteArrayEnumerator(ans);
+            var byteData = new ByteListEnumerator(ans);
 
             Assert.AreEqual(id, byteData.MoveNextToGetShort());
             Assert.AreEqual(entityId1, byteData.MoveNextToGetInt());
@@ -101,7 +101,7 @@ namespace Test.UnitTest.Server
         {
             var bytes = new List<byte> {0x61, 0x41, 0x72, 0x36, 0x23};
 
-            var byteData = new ByteArrayEnumerator(bytes);
+            var byteData = new ByteListEnumerator(bytes);
             Assert.AreEqual("aAr6#", byteData.MoveNextToGetString(5));
         }
     }

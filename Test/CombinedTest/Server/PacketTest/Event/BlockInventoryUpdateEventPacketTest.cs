@@ -49,7 +49,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             //イベントパケットをチェック
             Assert.AreEqual(1,eventPacket.Count);
-            var packetEnumerator = new ByteArrayEnumerator(eventPacket[0].ToList());
+            var packetEnumerator = new ByteListEnumerator(eventPacket[0].ToList());
             Assert.AreEqual(3,packetEnumerator.MoveNextToGetShort());
             Assert.AreEqual(2,packetEnumerator.MoveNextToGetShort());
             Assert.AreEqual(1,packetEnumerator.MoveNextToGetInt()); // slot id
