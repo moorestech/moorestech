@@ -28,7 +28,7 @@ namespace Server.Protocol.PacketResponse
             //開く、閉じるのセット
             if (isOpen)
             {
-                _inventoryOpenState.Open(playerId,new Coordinate(x,y));
+                _inventoryOpenState.Open(playerId,x,y);
             }
             else
             {
