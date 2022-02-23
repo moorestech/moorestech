@@ -18,10 +18,10 @@ namespace Server.Protocol.PacketResponse
 
         public List<byte[]> GetResponse(List<byte> payload)
         {
-            var enumerator = new ByteArrayEnumerator(payload);
-            enumerator.MoveNextToGetShort();//packet id
-            var length = enumerator.MoveNextToGetShort();//command length
-            var command = enumerator.MoveNextToGetString(length).Split(' ');//command text
+            var byteListEnumerator = new ByteListEnumerator(payload);
+            byteListEnumerator.MoveNextToGetShort();//packet id
+            var length = byteListEnumerator.MoveNextToGetShort();//command length
+            var command = byteListEnumerator.MoveNextToGetString(length).Split(' ');//command text
             
             //他のコマンドを実装する場合、この実装方法をやめる
             if (command[0] == "give")

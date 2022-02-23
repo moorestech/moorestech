@@ -23,13 +23,13 @@ namespace Server.Protocol.PacketResponse
 
         public List<byte[]> GetResponse(List<byte> payload)
         {
-            var payloadData = new ByteArrayEnumerator(payload);
-            payloadData.MoveNextToGetShort();
-            var flag = payloadData.MoveNextToGetShort();
-            var playerId = payloadData.MoveNextToGetInt();
-            var mainInventorySlot = payloadData.MoveNextToGetInt();
-            var craftInventorySlot = payloadData.MoveNextToGetInt();
-            var moveItemCount = payloadData.MoveNextToGetInt();
+            var byteListEnumerator = new ByteListEnumerator(payload);
+            byteListEnumerator.MoveNextToGetShort();
+            var flag = byteListEnumerator.MoveNextToGetShort();
+            var playerId = byteListEnumerator.MoveNextToGetInt();
+            var mainInventorySlot = byteListEnumerator.MoveNextToGetInt();
+            var craftInventorySlot = byteListEnumerator.MoveNextToGetInt();
+            var moveItemCount = byteListEnumerator.MoveNextToGetInt();
 
             var craftInventory = _playerInventoryDataStore.GetInventoryData(playerId).CraftingOpenableInventory;
             var mainInventory = _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory;

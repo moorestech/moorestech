@@ -5,12 +5,12 @@ using System.Text;
 
 namespace Server.Util
 {
-    public class ByteArrayEnumerator
+    public class ByteListEnumerator
     {
         private readonly List<byte> _payload;
         private int index = 0;
 
-        public ByteArrayEnumerator(List<byte> payload)
+        public ByteListEnumerator(List<byte> payload)
         {
             _payload = payload;
         }

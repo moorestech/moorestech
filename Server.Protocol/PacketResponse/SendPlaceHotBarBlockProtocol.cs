@@ -26,12 +26,12 @@ namespace Server.Protocol.PacketResponse
 
         public List<byte[]> GetResponse(List<byte> payload)
         {
-            var packet = new ByteArrayEnumerator(payload);
-            packet.MoveNextToGetShort();
-            var slot = packet.MoveNextToGetShort();
-            var x = packet.MoveNextToGetInt();
-            var y = packet.MoveNextToGetInt();
-            var playerId = packet.MoveNextToGetInt();
+            var byteListEnumerator = new ByteListEnumerator(payload);
+            byteListEnumerator.MoveNextToGetShort();
+            var slot = byteListEnumerator.MoveNextToGetShort();
+            var x = byteListEnumerator.MoveNextToGetInt();
+            var y = byteListEnumerator.MoveNextToGetInt();
+            var playerId = byteListEnumerator.MoveNextToGetInt();
 
             var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(slot);
             

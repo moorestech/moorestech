@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using Server.Protocol.PacketResponse;
 
-namespace Server.PacketHandle.PacketResponse
+namespace Server.Protocol.PacketResponse
 {
     public class DummyProtocol : IPacketResponse
     {

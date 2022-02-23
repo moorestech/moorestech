@@ -35,10 +35,10 @@ namespace Server.Protocol.PacketResponse
 
         public List<byte[]> GetResponse(List<byte> payload)
         {
-            var enumerator = new ByteArrayEnumerator(payload);
-            enumerator.MoveNextToGetShort();
-            var x = enumerator.MoveNextToGetInt();
-            var y = enumerator.MoveNextToGetInt();
+            var byteListEnumerator = new ByteListEnumerator(payload);
+            byteListEnumerator.MoveNextToGetShort();
+            var x = byteListEnumerator.MoveNextToGetInt();
+            var y = byteListEnumerator.MoveNextToGetInt();
 
             var blockId = _blockDatastore.GetBlock(x, y).GetBlockId();
             var blockConfig = _blockConfig.GetBlockConfig(blockId);

@@ -21,13 +21,13 @@ namespace Server.Protocol.PacketResponse
 
         public List<byte[]> GetResponse(List<byte> payload)
         {
-            var payloadData = new ByteArrayEnumerator(payload);
-            payloadData.MoveNextToGetShort(); //パケットID
-            var x = payloadData.MoveNextToGetInt();
-            var y = payloadData.MoveNextToGetInt();
-            var fromSlot = payloadData.MoveNextToGetInt();
-            var toSlot = payloadData.MoveNextToGetInt();
-            var itemCount = payloadData.MoveNextToGetInt();
+            var byteListEnumerator = new ByteListEnumerator(payload);
+            byteListEnumerator.MoveNextToGetShort(); //パケットID
+            var x = byteListEnumerator.MoveNextToGetInt();
+            var y = byteListEnumerator.MoveNextToGetInt();
+            var fromSlot = byteListEnumerator.MoveNextToGetInt();
+            var toSlot = byteListEnumerator.MoveNextToGetInt();
+            var itemCount = byteListEnumerator.MoveNextToGetInt();
 
             if (!_inventoryDatastore.ExistsComponentBlock(x, y)) return new List<byte[]>();
             var inventoryBlock = _inventoryDatastore.GetBlock(x, y);

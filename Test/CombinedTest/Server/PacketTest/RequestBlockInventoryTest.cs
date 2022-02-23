@@ -33,7 +33,7 @@ namespace Test.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine,5,10,BlockDirection.North);
 
             //レスポンスの取得
-            var response = new ByteArrayEnumerator(packet.GetPacketResponse(RequestBlock(5,10))[0].ToList());
+            var response = new ByteListEnumerator(packet.GetPacketResponse(RequestBlock(5,10))[0].ToList());
             
             Assert.AreEqual(6,response.MoveNextToGetShort()); //packet id
             Assert.AreEqual(InputSlotNum + OutPutSlotNum,response.MoveNextToGetShort()); // slot num

@@ -37,7 +37,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(1, response.Count);
             //チェック
-            var byteData = new ByteArrayEnumerator(response[0].ToList());
+            var byteData = new ByteListEnumerator(response[0].ToList());
             byteData.MoveNextToGetShort();
             Assert.AreEqual(1, byteData.MoveNextToGetShort());
             Assert.AreEqual(5, byteData.MoveNextToGetInt());
@@ -49,8 +49,8 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             packetResponse.GetPacketResponse(PlayerInventoryItemMove(5, 4, 3, 0));
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(2, response.Count);
-            var byteData1 = new ByteArrayEnumerator(response[0].ToList());
-            var byteData2 = new ByteArrayEnumerator(response[1].ToList());
+            var byteData1 = new ByteListEnumerator(response[0].ToList());
+            var byteData2 = new ByteListEnumerator(response[1].ToList());
             byteData1.MoveNextToGetShort();
             byteData2.MoveNextToGetShort();
 
@@ -73,8 +73,8 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             packetResponse.GetPacketResponse(PlayerInventoryItemMove(4, 5, 3, 0));
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(2, response.Count);
-            byteData1 = new ByteArrayEnumerator(response[0].ToList());
-            byteData2 = new ByteArrayEnumerator(response[1].ToList());
+            byteData1 = new ByteListEnumerator(response[0].ToList());
+            byteData2 = new ByteListEnumerator(response[1].ToList());
             byteData1.MoveNextToGetShort();
             byteData2.MoveNextToGetShort();
             Assert.AreEqual(1, byteData1.MoveNextToGetShort());
