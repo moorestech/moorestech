@@ -66,6 +66,7 @@ namespace Server
             services.AddSingleton<IWorldBlockComponentDatastore<IOpenableInventory>, WorldBlockComponentDatastore<IOpenableInventory>>();
             services.AddSingleton<IWorldBlockComponentDatastore<IMiner>, WorldBlockComponentDatastore<IMiner>>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
+            services.AddSingleton<IBlockInventoryOpenStateDataStore, BlockInventoryOpenStateDataStore>();
             services.AddSingleton<IWorldElectricSegmentDatastore, WorldElectricSegmentDatastore>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IOreConfig, OreConfig>();
