@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
-using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 using Server.Util;
 
@@ -12,15 +11,13 @@ namespace Server.Event.EventReceive
         
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IBlockInventoryOpenStateDataStore _inventoryOpenStateDataStore;
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
 
         public ReceiveOpenableBlockInventoryUpdateEvent(
             EventProtocolProvider eventProtocolProvider, IBlockInventoryOpenStateDataStore inventoryOpenStateDataStore,
-            IBlockInventoryUpdateEvent blockInventoryUpdateEvent, IWorldBlockDatastore worldBlockDatastore)
+            IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _inventoryOpenStateDataStore = inventoryOpenStateDataStore;
-            _worldBlockDatastore = worldBlockDatastore;
             blockInventoryUpdateEvent.Subscribe(InventoryUpdateEvent);
         }
 

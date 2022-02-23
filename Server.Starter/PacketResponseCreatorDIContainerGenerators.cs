@@ -89,6 +89,7 @@ namespace Server
             //イベントレシーバーを登録
             services.AddSingleton<ReceiveMainInventoryUpdateEvent, ReceiveMainInventoryUpdateEvent>();
             services.AddSingleton<ReceiveCraftingInventoryUpdateEvent, ReceiveCraftingInventoryUpdateEvent>();
+            services.AddSingleton<ReceiveOpenableBlockInventoryUpdateEvent, ReceiveOpenableBlockInventoryUpdateEvent>();
             services.AddSingleton<ReceivePlaceBlockEvent, ReceivePlaceBlockEvent>();
             services.AddSingleton<ReceiveRemoveBlockEvent, ReceiveRemoveBlockEvent>();
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect, BlockPlaceEventToBlockInventoryConnect>();
@@ -111,6 +112,7 @@ namespace Server
             //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
             serviceProvider.GetService<ReceiveMainInventoryUpdateEvent>();
             serviceProvider.GetService<ReceiveCraftingInventoryUpdateEvent>();
+            serviceProvider.GetService<ReceiveOpenableBlockInventoryUpdateEvent>();
             serviceProvider.GetService<ReceivePlaceBlockEvent>();
             serviceProvider.GetService<ReceiveRemoveBlockEvent>();
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
