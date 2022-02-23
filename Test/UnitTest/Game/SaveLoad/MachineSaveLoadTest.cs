@@ -4,6 +4,7 @@ using Core.Block.BlockFactory;
 using Core.Block.Blocks.Machine;
 using Core.Block.Blocks.Machine.Inventory;
 using Core.Block.Blocks.Machine.InventoryController;
+using Core.Block.Event;
 using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
@@ -120,7 +121,7 @@ namespace Test.UnitTest.Game.SaveLoad
         {
             var itemFactory = new ItemStackFactory(new TestItemConfig());
             var blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemFactory), itemFactory));
+                new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemFactory), itemFactory,new BlockOpenableInventoryUpdateEvent()));
             var worldBlockDatastore =
                 new WorldBlockDatastore(new BlockPlaceEvent(), blockFactory, new BlockRemoveEvent());
             var playerInventoryDataStore = new PlayerInventoryDataStore(new MainInventoryUpdateEvent(),new CraftInventoryUpdateEvent(),

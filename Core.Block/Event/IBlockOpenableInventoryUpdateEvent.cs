@@ -16,7 +16,7 @@ namespace Core.Block.Event
         public readonly int SlotId;
         public readonly IItemStack ItemStack;
 
-        public BlockOpenableInventoryUpdateEventProperties(IItemStack itemStack, int slotId, int entityId)
+        public BlockOpenableInventoryUpdateEventProperties(int entityId, int slotId,IItemStack itemStack)
         {
             ItemStack = itemStack;
             SlotId = slotId;

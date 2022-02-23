@@ -3,6 +3,7 @@ using Core.Block.BlockInventory;
 using Core.Block.Blocks.Miner;
 using Core.Block.Config;
 using Core.Block.Config.Service;
+using Core.Block.Event;
 using Core.Block.RecipeConfig;
 using Core.Electric;
 using Core.Inventory;
@@ -80,6 +81,7 @@ namespace Server
             //イベントを登録
             services.AddSingleton<IBlockPlaceEvent, BlockPlaceEvent>();
             services.AddSingleton<IBlockRemoveEvent, BlockRemoveEvent>();
+            services.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
             services.AddSingleton<ICraftInventoryUpdateEvent, CraftInventoryUpdateEvent>();
 

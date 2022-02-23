@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Service;
+using Core.Block.Event;
 using Core.Block.RecipeConfig.Data;
 using Core.Inventory;
 using Core.Item;
@@ -16,12 +17,17 @@ namespace Core.Block.Blocks.Machine.Inventory
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
+        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
+        private readonly int _entityId;
 
 
         public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;
 
-        public VanillaMachineOutputInventory(int outputSlot, ItemStackFactory itemStackFactory)
+        public VanillaMachineOutputInventory(int outputSlot, ItemStackFactory itemStackFactory, 
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId)
         {
+            _blockInventoryUpdate = blockInventoryUpdate;
+            _entityId = entityId;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,outputSlot);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdate.AddUpdateObject(this);
@@ -80,25 +86,17 @@ namespace Core.Block.Blocks.Machine.Inventory
             }
         }
 
-        public void RemoveConnectInventory(IBlockInventory blockInventory)
-        {
-            _connectInventory.Remove(blockInventory);
-        }
+        public void RemoveConnectInventory(IBlockInventory blockInventory) { _connectInventory.Remove(blockInventory); }
 
-        public void Update()
-        {
-            InsertConnectInventory();
-        }
+        public void Update() { InsertConnectInventory(); }
 
-        public void SetItem(int slot, IItemStack itemStack)
-        {
-            _itemDataStoreService.SetItem(slot,itemStack);
-        }
+        public void SetItem(int slot, IItemStack itemStack) { _itemDataStoreService.SetItem(slot,itemStack); }
         
         
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
-            //TODO イベントを発火する
+            _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
+                _entityId,slot,itemStack));
         }
     }
 }
