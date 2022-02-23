@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
-using Game.World.Interface.DataStore;
 using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
@@ -19,7 +18,7 @@ namespace Server.Protocol
             _packetResponseList = new List<IPacketResponse>();
             _packetResponseList.Add(new DummyProtocol());
             _packetResponseList.Add(new PutBlockProtocol(serviceProvider));
-            _packetResponseList.Add(new PlayerCoordinateSendProtocol(serviceProvider.GetService<IWorldBlockDatastore>()));
+            _packetResponseList.Add(new PlayerCoordinateSendProtocol(serviceProvider));
             _packetResponseList.Add(new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
             _packetResponseList.Add(new SendEventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseList.Add(new BlockInventoryPlayerMainInventoryMoveItemProtocol(serviceProvider));

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.World.Interface.DataStore;
+using Game.WorldMap;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Player;
 using Server.Util;
 
@@ -14,10 +16,12 @@ namespace Server.Protocol.PacketResponse
     {
         private readonly Dictionary<int, PlayerCoordinateToResponse> _responses = new();
         private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly WorldMapTile _worldMapTile;
 
-        public PlayerCoordinateSendProtocol(IWorldBlockDatastore worldBlockDatastore)
+        public PlayerCoordinateSendProtocol(ServiceProvider serviceProvider)
         {
-            _worldBlockDatastore = worldBlockDatastore;
+            _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+            _worldMapTile = serviceProvider.GetService<WorldMapTile>();
         }
 
         public List<byte[]> GetResponse(List<byte> payload)
@@ -48,7 +52,7 @@ namespace Server.Protocol.PacketResponse
             foreach (var chunkCoordinate in responseChunkCoordinates)
             {
                 //チャンクのブロックデータを取得してバイト配列に変換する
-                responseChunk.Add(ChunkBlockToPayload.Convert(_worldBlockDatastore, chunkCoordinate));
+                responseChunk.Add(ChunkBlockToPayload.Convert(chunkCoordinate,_worldBlockDatastore,_worldMapTile));
             }
 
             return responseChunk;

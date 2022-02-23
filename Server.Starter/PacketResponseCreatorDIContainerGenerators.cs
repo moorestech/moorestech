@@ -71,6 +71,7 @@ namespace Server
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IOreConfig, OreConfig>();
             services.AddSingleton<VeinGenerator, VeinGenerator>();
+            services.AddSingleton<WorldMapTile, WorldMapTile>();
             services.AddSingleton(new Seed(1337));
             services.AddSingleton<IElectricSegmentMergeService, ElectricSegmentMergeService>();
 

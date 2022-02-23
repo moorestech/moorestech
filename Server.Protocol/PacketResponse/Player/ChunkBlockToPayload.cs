@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using Core.Const;
 using Game.World.Interface.DataStore;
+using Game.WorldMap;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse.Player
 {
     public static class ChunkBlockToPayload
     {
-        public static byte[] Convert(IWorldBlockDatastore worldBlockDatastore, Coordinate chunkCoordinate)
+        public static byte[] Convert(Coordinate chunkCoordinate,IWorldBlockDatastore worldBlockDatastore, WorldMapTile worldMapTile)
         {
             
             var payload = new List<bool>();
@@ -26,7 +27,19 @@ namespace Server.Protocol.PacketResponse.Player
                     SetBlockId(payload, blockId);
                 }
             }
-
+            //TODO マップタイルのテスト
+            //マップタイルのIDの追加
+            var mapTIleIds = CoordinateToChunkBlockIntArray.GetMapIdsInChunk(chunkCoordinate, worldMapTile);
+            for (int i = 0; i < mapTIleIds.GetLength(0); i++)
+            {
+                for (int j = 0; j < mapTIleIds.GetLength(1); j++)
+                {
+                    var mapTile = mapTIleIds[i, j];
+                    SetBlockId(payload, mapTile);
+                }
+            }
+            
+            
             return BitListToByteList.Convert(payload).ToArray();
         }
 
