@@ -9,6 +9,7 @@ using Core.Const;
 using Core.Item;
 using Core.Item.Config;
 using Game.World.Interface.DataStore;
+using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
@@ -170,6 +171,18 @@ namespace Test.CombinedTest.Server.PacketTest
             }
         }
 
+        //TODO マップタイルのテスト
+        [Test, Order(4)]
+        public void TileMapResponseTest()
+        {
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var veinGenerator = serviceProvider.GetService<VeinGenerator>();
+            
+            //TODO 鉱石があるチャンクを探す
+            
+            
+        }
+        
         private BlockFactory _blockFactory;
 
         private VanillaMachine CreateMachine(int id)
@@ -201,54 +214,75 @@ namespace Test.CombinedTest.Server.PacketTest
             bit.MoveNextToShort();
             var x = bit.MoveNextToInt();
             var y = bit.MoveNextToInt();
+            
+            
             var blocks = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
             for (int i = 0; i < ChunkResponseConst.ChunkSize; i++)
             {
                 for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
                 {
-                    //空気ブロックか否か
+                    blocks[i, j] = GetBitEnumerator(bit);
+                }
+            }
+            
+            
+            var mapTiles = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
+            for (int i = 0; i < ChunkResponseConst.ChunkSize; i++)
+            {
+                for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
+                {
+                    mapTiles[i, j] = GetBitEnumerator(bit);
+                }
+            }
+            
+
+            return new ChunkData(new Coordinate(x, y),blocks,mapTiles);
+        }
+
+        private int GetBitEnumerator(BitListEnumerator bit)
+        {
+            
+            //空気ブロックか否か
+            if (bit.MoveNextToBit())
+            {
+                //ブロックIDの取得
+                //intか否か
+                if (bit.MoveNextToBit())
+                {
+                    bit.MoveNextToBit();
+                    return bit.MoveNextToInt();
+                }
+                else
+                {
+                    //shortかbyteか
                     if (bit.MoveNextToBit())
                     {
-                        //ブロックIDの取得
-                        //intか否か
-                        if (bit.MoveNextToBit())
-                        {
-                            bit.MoveNextToBit();
-                            blocks[i, j] = bit.MoveNextToInt();
-                        }
-                        else
-                        {
-                            //shortかbyteか
-                            if (bit.MoveNextToBit())
-                            {
-                                blocks[i, j] = bit.MoveNextToShort();
-                            }
-                            else
-                            {
-                                blocks[i, j] = bit.MoveNextToByte();
-                            }
-                        }
+                        return bit.MoveNextToShort();
                     }
                     else
                     {
-                        //空気ブロック
-                        blocks[i, j] = BlockConst.EmptyBlockId;
+                        return bit.MoveNextToByte();
                     }
                 }
             }
-
-            return new ChunkData(blocks, new Coordinate(x, y));
+            else
+            {
+                //空気ブロック
+                return BlockConst.EmptyBlockId;
+            }
         }
 
         private class ChunkData
         {
             public readonly int[,] Blocks;
+            public readonly int[,] MapTiles;
             public readonly Coordinate Coordinate;
 
-            public ChunkData(int[,] blocks, Coordinate coordinate)
+            public ChunkData(Coordinate coordinate, int[,] mapTiles,int[,] blocks)
             {
                 this.Blocks = blocks;
                 Coordinate = coordinate;
+                MapTiles = mapTiles;
             }
         }
     }
