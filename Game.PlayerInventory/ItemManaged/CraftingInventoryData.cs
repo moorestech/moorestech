@@ -1,26 +1,31 @@
 using System.Collections.Generic;
+using Core.Inventory;
 using Core.Item;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
+using Game.PlayerInventory.Interface.Event;
 using PlayerInventory.Event;
 
 namespace PlayerInventory.ItemManaged
 {
     public class CraftingInventoryData : ICraftingInventory
     {
-        private readonly PlayerInventoryItemDataStoreService _inventoryService;
+        private readonly InventoryItemDataStoreService _inventoryService;
+        private readonly int _playerId;
+        private readonly CraftInventoryUpdateEvent _craftInventoryUpdateEvent;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
         public CraftingInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent,
             ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService)
         {
+            _playerId = playerId;
+            
+            _craftInventoryUpdateEvent = craftInventoryUpdateEvent;
             _isCreatableJudgementService = isCreatableJudgementService;
-            _inventoryService = new PlayerInventoryItemDataStoreService(playerId, craftInventoryUpdateEvent, 
+            _inventoryService = new InventoryItemDataStoreService(InvokeEvent, 
                 itemStackFactory, PlayerInventoryConst.CraftingInventorySize);
         }
-        public CraftingInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService
-            ,List<IItemStack> itemStacks) : 
+        public CraftingInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService,List<IItemStack> itemStacks) : 
             this(playerId, craftInventoryUpdateEvent, itemStackFactory,isCreatableJudgementService)
         {
             for (int i = 0; i < itemStacks.Count; i++)
@@ -69,6 +74,12 @@ namespace PlayerInventory.ItemManaged
                 }
                 return items;
             }
+        }
+
+        private void InvokeEvent(int slot, IItemStack itemStack)
+        {
+            _craftInventoryUpdateEvent.OnInventoryUpdateInvoke(
+                new PlayerInventoryUpdateEventProperties(_playerId,slot,itemStack));
         }
 
 

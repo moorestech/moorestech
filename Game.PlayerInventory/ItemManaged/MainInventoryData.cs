@@ -2,22 +2,27 @@ using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item;
 using Game.PlayerInventory.Interface;
+using Game.PlayerInventory.Interface.Event;
 using PlayerInventory.Event;
 
 namespace PlayerInventory.ItemManaged
 {
     public class MainInventoryData : IInventory
     {
-        private readonly PlayerInventoryItemDataStoreService _inventoryService;
+        private readonly int _playerId;
+        private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
+        private readonly InventoryItemDataStoreService _inventoryService;
 
         public MainInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent,
             ItemStackFactory itemStackFactory)
         {
-            _inventoryService = new PlayerInventoryItemDataStoreService(playerId, mainInventoryUpdateEvent,
+            _playerId = playerId;
+            _mainInventoryUpdateEvent = mainInventoryUpdateEvent;
+            _inventoryService = new InventoryItemDataStoreService(InvokeEvent,
                 itemStackFactory, PlayerInventoryConst.MainInventorySize);
         }
-        public MainInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory,List<IItemStack> itemStacks) : this(playerId, mainInventoryUpdateEvent, itemStackFactory)
+        public MainInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent, ItemStackFactory itemStackFactory,List<IItemStack> itemStacks) : 
+            this(playerId, mainInventoryUpdateEvent, itemStackFactory)
         {
             for (int i = 0; i < itemStacks.Count; i++)
             {
@@ -25,6 +30,14 @@ namespace PlayerInventory.ItemManaged
             }
         }
 
+        
+
+        private void InvokeEvent(int slot, IItemStack itemStack)
+        {
+            _mainInventoryUpdateEvent.OnInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(
+                _playerId,slot,itemStack));
+        }
+        
         public IItemStack GetItem(int slot) { return _inventoryService.GetItem(slot); }
         public void SetItem(int slot, IItemStack itemStack) { _inventoryService.SetItem(slot, itemStack); }
         public void SetItem(int slot, int itemId, int count) { _inventoryService.SetItem(slot, itemId,count); }
