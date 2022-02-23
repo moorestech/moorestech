@@ -33,18 +33,18 @@ namespace Game.PlayerInventory.Interface
         {
             MainItemId = new ();
             MainItemCount = new ();
-            for (int i = 0; i < playerInventoryData.MainInventory.GetSlotSize(); i++)
+            for (int i = 0; i < playerInventoryData.MainOpenableInventory.GetSlotSize(); i++)
             {
-                MainItemId.Add(playerInventoryData.MainInventory.GetItem(i).Id);
-                MainItemCount.Add(playerInventoryData.MainInventory.GetItem(i).Count);
+                MainItemId.Add(playerInventoryData.MainOpenableInventory.GetItem(i).Id);
+                MainItemCount.Add(playerInventoryData.MainOpenableInventory.GetItem(i).Count);
             }
             
             CraftItemId = new();
             CraftItemCount = new();
-            for (int i = 0; i < playerInventoryData.CraftingInventory.GetSlotSize(); i++)
+            for (int i = 0; i < playerInventoryData.CraftingOpenableInventory.GetSlotSize(); i++)
             {
-                CraftItemId.Add(playerInventoryData.CraftingInventory.GetItem(i).Id);
-                CraftItemCount.Add(playerInventoryData.CraftingInventory.GetItem(i).Count);
+                CraftItemId.Add(playerInventoryData.CraftingOpenableInventory.GetItem(i).Id);
+                CraftItemCount.Add(playerInventoryData.CraftingOpenableInventory.GetItem(i).Count);
             }
             
             

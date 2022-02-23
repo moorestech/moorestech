@@ -28,7 +28,7 @@ namespace Server.Protocol.PacketResponse
             var toSlot = payloadData.MoveNextToGetInt();
             var itemCount = payloadData.MoveNextToGetInt();
 
-            var mainInventory = _playerInventoryDataStore.GetInventoryData(playerId).MainInventory;
+            var mainInventory = _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory;
 
             new InventoryItemMove().Move(_itemStackFactory, mainInventory, fromSlot, mainInventory, toSlot,
                 itemCount);

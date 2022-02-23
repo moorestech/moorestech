@@ -11,7 +11,7 @@ namespace Core.Block.Blocks.Machine
     /// 機械を表すクラス
     /// 具体的な処理は各コンポーネントに任せて、このクラスはInterfaceの実装だけを行う
     /// </summary>
-    public class VanillaMachine : IBlock, IBlockInventory, IBlockElectric, IInventory
+    public class VanillaMachine : IBlock, IBlockInventory, IBlockElectric, IOpenableInventory
     {
         private readonly VanillaMachineBlockInventory _vanillaMachineBlockInventory;
         private readonly VanillaMachineInventory _vanillaMachineInventory;
@@ -56,7 +56,7 @@ namespace Core.Block.Blocks.Machine
         
         
 
-        #region IInventory implementation
+        #region IOpenableInventory implementation
         public IItemStack GetItem(int slot) { return _vanillaMachineInventory.GetItem(slot); }
         
         public void SetItem(int slot, IItemStack itemStack) { _vanillaMachineInventory.SetItem(slot, itemStack); }

@@ -32,11 +32,11 @@ namespace Server.Event.EventReceive
             payload.AddRange(ToByteList.Convert(properties.ItemId));
             payload.AddRange(ToByteList.Convert(properties.Count));
             
-            var creatableItem = craftInventory.CraftingInventory.GetCreatableItem();
+            var creatableItem = craftInventory.CraftingOpenableInventory.GetCreatableItem();
             payload.AddRange(ToByteList.Convert(creatableItem.Id));
             payload.AddRange(ToByteList.Convert(creatableItem.Count));
             
-            var isCreatable = craftInventory.CraftingInventory.IsCreatable();
+            var isCreatable = craftInventory.CraftingOpenableInventory.IsCreatable();
             if (isCreatable)
             {
                 payload.Add(1);

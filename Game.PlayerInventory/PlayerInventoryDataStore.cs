@@ -37,8 +37,8 @@ namespace PlayerInventory
         {
             if (!_playerInventoryData.ContainsKey(playerId))
             {
-                var main = new MainInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
-                var craft = new CraftingInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService);
+                var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
+                var craft = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService);
                 
                 _playerInventoryData.Add(playerId, new PlayerInventoryData(main,craft));
             }
@@ -70,8 +70,8 @@ namespace PlayerInventory
                 var (main, craft) = saveInventory.GetPlayerInventoryData(_itemStackFactory);
 
                 //アイテムを復元
-                var mainInventory = new MainInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,main);
-                var craftingInventory = new CraftingInventoryData(playerId, _craftInventoryUpdateEvent,
+                var mainInventory = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,main);
+                var craftingInventory = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent,
                     _itemStackFactory,_isCreatableJudgementService,craft);
                 var playerInventory = new PlayerInventoryData(mainInventory, craftingInventory);
                 

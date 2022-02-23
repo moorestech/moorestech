@@ -15,14 +15,14 @@ namespace Core.Block.Blocks.Machine.Inventory
     {
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
-        private readonly InventoryItemDataStoreService _itemDataStoreService;
+        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
 
 
         public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;
 
         public VanillaMachineOutputInventory(int outputSlot, ItemStackFactory itemStackFactory)
         {
-            _itemDataStoreService = new InventoryItemDataStoreService(InvokeEvent,itemStackFactory,outputSlot);
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,outputSlot);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdate.AddUpdateObject(this);
         }

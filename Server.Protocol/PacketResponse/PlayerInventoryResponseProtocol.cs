@@ -29,21 +29,21 @@ namespace Server.Protocol.PacketResponse
             //メインインベントリのアイテムを設定
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
-                response.AddRange(ToByteList.Convert(playerInventory.MainInventory.GetItem(i).Id));
-                response.AddRange(ToByteList.Convert(playerInventory.MainInventory.GetItem(i).Count));
+                response.AddRange(ToByteList.Convert(playerInventory.MainOpenableInventory.GetItem(i).Id));
+                response.AddRange(ToByteList.Convert(playerInventory.MainOpenableInventory.GetItem(i).Count));
             }
             
             //クラフトインベントリのアイテムを設定
             for (int i = 0; i < PlayerInventoryConst.CraftingInventorySize; i++)
             {
-                response.AddRange(ToByteList.Convert(playerInventory.CraftingInventory.GetItem(i).Id));
-                response.AddRange(ToByteList.Convert(playerInventory.CraftingInventory.GetItem(i).Count));
+                response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetItem(i).Id));
+                response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetItem(i).Count));
             }
             //クラフト結果のアイテムを設定
-            response.AddRange(ToByteList.Convert(playerInventory.CraftingInventory.GetCreatableItem().Id));
-            response.AddRange(ToByteList.Convert(playerInventory.CraftingInventory.GetCreatableItem().Count));
+            response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetCreatableItem().Id));
+            response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetCreatableItem().Count));
             //クラフト可能かを設定
-            if (playerInventory.CraftingInventory.IsCreatable())
+            if (playerInventory.CraftingOpenableInventory.IsCreatable())
             {
                 response.Add(1);
             }

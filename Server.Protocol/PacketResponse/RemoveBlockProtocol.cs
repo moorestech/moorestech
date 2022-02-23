@@ -40,7 +40,7 @@ namespace Server.Protocol.PacketResponse
             
             //プレイヤーインベントリーの取得
             var playerMainInventory =
-                _playerInventoryDataStore.GetInventoryData(playerId).MainInventory;
+                _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory;
 
             var isNotRemainItem = true;
             

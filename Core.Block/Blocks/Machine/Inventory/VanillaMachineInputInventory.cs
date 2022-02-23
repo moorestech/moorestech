@@ -12,7 +12,7 @@ namespace Core.Block.Blocks.Machine.Inventory
     public class VanillaMachineInputInventory
     {
         private readonly int _blockId;
-        private readonly InventoryItemDataStoreService _itemDataStoreService;
+        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly IMachineRecipeConfig _machineRecipeConfig;
 
         public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.Inventory;
@@ -23,7 +23,7 @@ namespace Core.Block.Blocks.Machine.Inventory
             _blockId = blockId;
             _machineRecipeConfig = machineRecipeConfig;
             //TODO このdelgateはDIする
-            _itemDataStoreService = new InventoryItemDataStoreService(InvokeEvent,itemStackFactory, inputSlot);
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory, inputSlot);
         }
 
         public IItemStack InsertItem(IItemStack itemStack)

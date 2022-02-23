@@ -3,7 +3,7 @@ using Core.Item;
 
 namespace Game.PlayerInventory.Interface
 {
-    public interface ICraftingInventory : IInventory
+    public interface ICraftingOpenableInventory : IOpenableInventory
     {
         public void Craft();
         public IItemStack GetCreatableItem();

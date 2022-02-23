@@ -62,7 +62,7 @@ namespace Server
             services.AddSingleton<IWorldBlockComponentDatastore<IElectricPole>, WorldBlockComponentDatastore<IElectricPole>>();
             services.AddSingleton<IWorldBlockComponentDatastore<IPowerGenerator>, WorldBlockComponentDatastore<IPowerGenerator>>();
             services.AddSingleton<IWorldBlockComponentDatastore<IBlockInventory>, WorldBlockComponentDatastore<IBlockInventory>>();
-            services.AddSingleton<IWorldBlockComponentDatastore<IInventory>, WorldBlockComponentDatastore<IInventory>>();
+            services.AddSingleton<IWorldBlockComponentDatastore<IOpenableInventory>, WorldBlockComponentDatastore<IOpenableInventory>>();
             services.AddSingleton<IWorldBlockComponentDatastore<IMiner>, WorldBlockComponentDatastore<IMiner>>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IWorldElectricSegmentDatastore, WorldElectricSegmentDatastore>();

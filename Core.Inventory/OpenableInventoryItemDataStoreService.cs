@@ -3,7 +3,7 @@ using Core.Item;
 
 namespace Core.Inventory
 {
-    public class InventoryItemDataStoreService : IInventory
+    public class OpenableInventoryItemDataStoreService : IOpenableInventory
     {
         public delegate void OnInventoryUpdate(int slot, IItemStack itemStack);
         
@@ -13,7 +13,7 @@ namespace Core.Inventory
 
         private readonly ItemStackFactory _itemStackFactory;
 
-        public InventoryItemDataStoreService(OnInventoryUpdate onInventoryUpdate,
+        public OpenableInventoryItemDataStoreService(OnInventoryUpdate onInventoryUpdate,
             ItemStackFactory itemStackFactory,int slotNumber)
         {
             _itemStackFactory = itemStackFactory;

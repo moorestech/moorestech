@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse
             response.MoveNextToGetShort(); // Packet ID
             var playerId = response.MoveNextToGetInt();
 
-            var craftingInventory = _playerInventoryDataStore.GetInventoryData(playerId).CraftingInventory;
+            var craftingInventory = _playerInventoryDataStore.GetInventoryData(playerId).CraftingOpenableInventory;
             
             //クラフトの実行
             craftingInventory.Craft();

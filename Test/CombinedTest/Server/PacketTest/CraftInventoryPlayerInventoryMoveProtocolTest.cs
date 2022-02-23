@@ -31,7 +31,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //クラフトインベントリの作成
             var craftInventory =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingInventory;
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
             //アイテムの設定
             craftInventory.InsertItem(_itemStackFactory.Create(1, 5));
             Assert.AreEqual(1, craftInventory.GetItem(craftSlot).Id);
@@ -40,7 +40,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //メインのインベントリの作成
             var mainInventory =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainInventory;
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
 
 
             //実際にアイテムを移動するテスト--------------------------------------------------------
