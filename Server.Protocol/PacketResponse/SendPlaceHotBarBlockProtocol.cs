@@ -32,22 +32,33 @@ namespace Server.Protocol.PacketResponse
             var x = byteListEnumerator.MoveNextToGetInt();
             var y = byteListEnumerator.MoveNextToGetInt();
             var playerId = byteListEnumerator.MoveNextToGetInt();
+            var directionByte = byteListEnumerator.MoveNextToGetByte();
 
-            var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(slot);
             
+            var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(slot);
             var item = _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory.GetItem(inventorySlot);
+            
             
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
             if (!_itemIdToBlockId.CanConvert(item.Id)) return new List<byte[]>();
             //すでにブロックがある場合はそもまま処理を終了
             if (_worldBlockDatastore.Exists(x,y))  return new List<byte[]>();
+
             
-            
+            var blockDirection = directionByte switch
+            {
+                0 => BlockDirection.North,
+                1 => BlockDirection.East,
+                2 => BlockDirection.South,
+                3 => BlockDirection.West,
+                _ => BlockDirection.North
+            };
+
             
             //ブロックの作成
             var block = _blockFactory.Create(_itemIdToBlockId.Convert(item.Id), EntityId.NewEntityId());
             //ブロックの設置
-            _worldBlockDatastore.AddBlock(block, x, y,BlockDirection.North);
+            _worldBlockDatastore.AddBlock(block, x, y,blockDirection);
             
             //アイテムを減らし、セットする
             item = item.SubItem(1);
