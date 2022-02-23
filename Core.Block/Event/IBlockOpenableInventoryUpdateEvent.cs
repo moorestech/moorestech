@@ -13,13 +13,13 @@ namespace Core.Block.Event
     public class BlockOpenableInventoryUpdateEventProperties
     {
         public readonly int EntityId;
-        public readonly int SlotId;
+        public readonly int Slot;
         public readonly IItemStack ItemStack;
 
-        public BlockOpenableInventoryUpdateEventProperties(int entityId, int slotId,IItemStack itemStack)
+        public BlockOpenableInventoryUpdateEventProperties(int entityId, int slot,IItemStack itemStack)
         {
             ItemStack = itemStack;
-            SlotId = slotId;
+            Slot = slot;
             EntityId = entityId;
         }
     }
