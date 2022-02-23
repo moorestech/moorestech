@@ -7,7 +7,7 @@ namespace Core.Block.Event
         public delegate void BlockInventoryEvent(
             BlockOpenableInventoryUpdateEventProperties properties);
 
-        public void Subscribe(BlockInventoryEvent properties);
+        public void Subscribe(BlockInventoryEvent blockInventoryEvent);
     }
 
     public class BlockOpenableInventoryUpdateEventProperties
