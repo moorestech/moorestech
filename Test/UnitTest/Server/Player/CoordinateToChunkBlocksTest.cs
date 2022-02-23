@@ -24,7 +24,7 @@ namespace Test.UnitTest.Server.Player
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
-            var b = CoordinateToChunkBlockIntArray.Convert(new Coordinate(0, 0), worldData);
+            var b = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(new Coordinate(0, 0), worldData);
 
             Assert.AreEqual(b.GetLength(0), ChunkResponseConst.ChunkSize);
             Assert.AreEqual(b.GetLength(1), ChunkResponseConst.ChunkSize);
@@ -57,7 +57,7 @@ namespace Test.UnitTest.Server.Player
                 var c = new Coordinate(
                     random.Next(-5, 5) * ChunkResponseConst.ChunkSize,
                     random.Next(-5, 5) * ChunkResponseConst.ChunkSize);
-                var b = CoordinateToChunkBlockIntArray.Convert(c, worldData);
+                var b = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(c, worldData);
 
                 //ブロックの確認
                 for (int i = 0; i < b.GetLength(0); i++)

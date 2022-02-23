@@ -5,7 +5,7 @@ namespace Server.Protocol.PacketResponse.Player
 {
     public static class CoordinateToChunkBlockIntArray
     {
-        public static int[,] Convert(Coordinate coordinate, IWorldBlockDatastore worldBlockDatastore)
+        public static int[,] GetBlockIdsInChunk(Coordinate coordinate, IWorldBlockDatastore worldBlockDatastore)
         {
             //その座標のチャンクの原点
             var x = coordinate.X / ChunkResponseConst.ChunkSize * ChunkResponseConst.ChunkSize;

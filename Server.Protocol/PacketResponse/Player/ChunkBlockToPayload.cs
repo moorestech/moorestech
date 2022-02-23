@@ -17,7 +17,7 @@ namespace Server.Protocol.PacketResponse.Player
             payload.AddRange(ToBitList.Convert(ToByteList.Convert(chunkCoordinate.Y)));
             
             //ブロックのIDの追加
-            var blocks = CoordinateToChunkBlockIntArray.Convert(chunkCoordinate, worldBlockDatastore);
+            var blocks = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(chunkCoordinate, worldBlockDatastore);
             for (int i = 0; i < blocks.GetLength(0); i++)
             {
                 for (int j = 0; j < blocks.GetLength(1); j++)
