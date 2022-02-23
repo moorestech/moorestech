@@ -32,7 +32,7 @@ namespace Test.CombinedTest.Server.PacketTest
             inventory.MainOpenableInventory.SetItem(slot, itemStackFactory.Create(BlockItemId,3));
             
             //ブロックを置く
-            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4,0));
             
             //ブロックが置かれているかチェック
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
@@ -43,24 +43,55 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //既にブロックがあるところに置こうとしてもアイテムが減らないテスト
-            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4,0));
             //アイテムが減っていないかのチェック
             Assert.AreEqual(2,
                 inventory.MainOpenableInventory.GetItem(slot).Count);
             
             //ホットバー内のアイテムを使い切る
-            packet.GetPacketResponse(CreateUseHotBarProtocol(3, 4));
-            packet.GetPacketResponse(CreateUseHotBarProtocol(4, 4));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(3, 4,0));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(4, 4,0));
             //ホットバーのアイテムが空になっているかのテスト
             Assert.AreEqual(itemStackFactory.CreatEmpty(), inventory.MainOpenableInventory.GetItem(slot));
             
             
             //さらにブロックを置こうとしても置けないテスト
-            packet.GetPacketResponse(CreateUseHotBarProtocol(10, 10));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(10, 10,0));
             Assert.AreEqual(BlockConst.EmptyBlockId, world.GetBlock(10,10).GetBlockId());
         }
 
-        private List<byte> CreateUseHotBarProtocol(int x,int y)
+
+        
+        //ブロックの設置する向きが正しいかテスト
+        [Test]
+        public void PlaceDirectionTest()
+        {
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+            
+            //パケットでプレイヤーインベントリを生成
+            
+            //ホットバーにアイテムとしてのブロックをセットする
+            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
+            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            inventory.MainOpenableInventory.SetItem(slot, itemStackFactory.Create(BlockItemId,4));
+            
+            
+            //ブロックを置く
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4,0));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 5,1));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 6,2));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 7,3));
+            
+            //ブロックの向きをチェック
+            Assert.AreEqual(BlockDirection.North,worldBlockDatastore.GetBlockDirection(2,4));
+            Assert.AreEqual(BlockDirection.East,worldBlockDatastore.GetBlockDirection(2,5));
+            Assert.AreEqual(BlockDirection.South,worldBlockDatastore.GetBlockDirection(2,6));
+            Assert.AreEqual(BlockDirection.West,worldBlockDatastore.GetBlockDirection(2,7));
+        }
+
+        private List<byte> CreateUseHotBarProtocol(int x,int y,byte blockDirection)
         {
             var payload = new List<byte>();
             payload.AddRange(ToByteList.Convert((short) 8));
@@ -68,6 +99,7 @@ namespace Test.CombinedTest.Server.PacketTest
             payload.AddRange(ToByteList.Convert(x));
             payload.AddRange(ToByteList.Convert(y));
             payload.AddRange(ToByteList.Convert(PlayerId));
+            payload.Add(blockDirection);
             return payload;
         }
 
