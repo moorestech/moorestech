@@ -10,7 +10,7 @@ namespace Server.Protocol.PacketResponse.Player
     {
         private Coordinate _lastCoordinate = new Coordinate {X = Int32.MaxValue, Y = Int32.MaxValue};
 
-        public List<Coordinate> GetResponseCoordinate(Coordinate coordinate)
+        public List<Coordinate> GetResponseChunkCoordinates(Coordinate coordinate)
         {
             var now = GetCoordinates(coordinate);
             var last = GetCoordinates(_lastCoordinate);

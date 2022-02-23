@@ -14,7 +14,7 @@ namespace Test.UnitTest.Server.Player
         {
             var p = new PlayerCoordinateToResponse();
             //1回目は全てを返す
-            var cList = p.GetResponseCoordinate(new Coordinate(0, 0));
+            var cList = p.GetResponseChunkCoordinates(new Coordinate(0, 0));
 
             var ans = new List<Coordinate>();
             if (ChunkResponseConst.ChunkSize != 20 || ChunkResponseConst.PlayerVisibleRangeChunk != 5)
@@ -36,7 +36,7 @@ namespace Test.UnitTest.Server.Player
             }
 
             //2回目は何も返さない
-            cList = p.GetResponseCoordinate(new Coordinate(0, 0));
+            cList = p.GetResponseChunkCoordinates(new Coordinate(0, 0));
             Assert.AreEqual(0, cList.Count);
         }
 
@@ -48,7 +48,7 @@ namespace Test.UnitTest.Server.Player
             
             var p = new PlayerCoordinateToResponse();
             //1回目は全てを返す
-            var cList = p.GetResponseCoordinate(new Coordinate(-10, 0));
+            var cList = p.GetResponseChunkCoordinates(new Coordinate(-10, 0));
 
             var ans = new List<Coordinate>();
             if (ChunkResponseConst.ChunkSize != 20 || ChunkResponseConst.PlayerVisibleRangeChunk != 5)
@@ -70,7 +70,7 @@ namespace Test.UnitTest.Server.Player
             }
 
             //2回目は何も返さない
-            cList = p.GetResponseCoordinate(new Coordinate(-10, 0));
+            cList = p.GetResponseChunkCoordinates(new Coordinate(-10, 0));
             Assert.AreEqual(0, cList.Count);
         }
 
@@ -79,12 +79,12 @@ namespace Test.UnitTest.Server.Player
         {
             var p = new PlayerCoordinateToResponse();
             //1回目は全てを返す
-            var cList = p.GetResponseCoordinate(new Coordinate(0, 0));
+            var cList = p.GetResponseChunkCoordinates(new Coordinate(0, 0));
             Assert.AreEqual(cList.Count,
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk);
 
             //2回目1チャンクx分を増加させる
-            cList = p.GetResponseCoordinate(new Coordinate(25, 0));
+            cList = p.GetResponseChunkCoordinates(new Coordinate(25, 0));
             var ans = new List<Coordinate>();
             for (int i = -2; i < 3; i++)
             {
@@ -102,12 +102,12 @@ namespace Test.UnitTest.Server.Player
         {
             var p = new PlayerCoordinateToResponse();
             //1回目は全てを返す
-            var cList = p.GetResponseCoordinate(new Coordinate(0, 0));
+            var cList = p.GetResponseChunkCoordinates(new Coordinate(0, 0));
             Assert.AreEqual(cList.Count,
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk);
 
             //2回目1チャンクx分を増加させる
-            cList = p.GetResponseCoordinate(new Coordinate(25, 25));
+            cList = p.GetResponseChunkCoordinates(new Coordinate(25, 25));
             var ans = new List<Coordinate>();
             for (int i = -1; i < 4; i++)
             {
@@ -138,12 +138,12 @@ namespace Test.UnitTest.Server.Player
         {
             var p = new PlayerCoordinateToResponse();
             //1回目は全てを返す
-            var cList = p.GetResponseCoordinate(new Coordinate(startX, 0));
+            var cList = p.GetResponseChunkCoordinates(new Coordinate(startX, 0));
             Assert.AreEqual(cList.Count,
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk);
 
             //2回目1チャンクx分を増加させる
-            cList = p.GetResponseCoordinate(new Coordinate(endX, 0));
+            cList = p.GetResponseChunkCoordinates(new Coordinate(endX, 0));
             var ans = new List<Coordinate>();
             for (int i = -2; i < 3; i++)
             {

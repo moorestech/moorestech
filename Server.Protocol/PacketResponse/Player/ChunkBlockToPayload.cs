@@ -1,16 +1,16 @@
 using System.Collections.Generic;
-using Core.Block;
 using Core.Const;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Server.Util;
 
-namespace Server.PacketHandle.PacketResponse.Player
+namespace Server.Protocol.PacketResponse.Player
 {
     public static class ChunkBlockToPayload
     {
-        public static byte[] Convert(int[,] blocks, Coordinate chunkCoordinate)
+        public static byte[] Convert(IWorldBlockDatastore _worldBlockDatastore, Coordinate chunkCoordinate)
         {
+            var blocks = CoordinateToChunkBlockIntArray.Convert(chunkCoordinate, _worldBlockDatastore);
+            
             var payload = new List<bool>();
 
             payload.AddRange(ToBitList.Convert(ToByteList.Convert((short) 1)));

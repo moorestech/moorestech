@@ -1,10 +1,9 @@
-﻿using Game.World.Interface;
-using Game.World.Interface.DataStore;
+﻿using Game.World.Interface.DataStore;
 using Server.Protocol.PacketResponse.Const;
 
-namespace Server.PacketHandle.PacketResponse.Player
+namespace Server.Protocol.PacketResponse.Player
 {
-    public static class CoordinateToChunkBlocks
+    public static class CoordinateToChunkBlockIntArray
     {
         public static int[,] Convert(Coordinate coordinate, IWorldBlockDatastore worldBlockDatastore)
         {
