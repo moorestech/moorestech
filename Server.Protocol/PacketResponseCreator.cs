@@ -34,6 +34,8 @@ namespace Server.Protocol
             _packetResponseList.Add(new CraftInventoryPlayerMainInventoryMoveItemProtocol(serviceProvider));
             _packetResponseList.Add(new CraftInventoryMoveItemProtocol(serviceProvider));
             _packetResponseList.Add(new CraftProtocol(serviceProvider));
+            _packetResponseList.Add(new DummyProtocol()); // 採掘実行プロトコルの予約
+            _packetResponseList.Add(new BlockInventoryOpenCloseProtocol(serviceProvider));
 
             serviceProvider.GetService<VeinGenerator>();
         }

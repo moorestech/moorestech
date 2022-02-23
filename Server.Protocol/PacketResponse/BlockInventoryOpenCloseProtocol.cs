@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
@@ -10,9 +11,9 @@ namespace Server.Protocol.PacketResponse
         private readonly IBlockInventoryOpenStateDataStore _inventoryOpenState;
         private const byte IsOpenFlag = 1;
 
-        public BlockInventoryOpenCloseProtocol(IBlockInventoryOpenStateDataStore inventoryOpenState)
+        public BlockInventoryOpenCloseProtocol(ServiceProvider serviceProvider)
         {
-            _inventoryOpenState = inventoryOpenState;
+            _inventoryOpenState = serviceProvider.GetService<IBlockInventoryOpenStateDataStore>();
         }
 
         public List<byte[]> GetResponse(List<byte> payload)
