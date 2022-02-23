@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
-using Server.PacketHandle.PacketResponse;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse

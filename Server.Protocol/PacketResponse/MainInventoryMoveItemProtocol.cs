@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Core.Item;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
-using Server.PacketHandle.PacketResponse;
 using Server.Protocol.PacketResponse.Util;
 using Server.Util;
 
