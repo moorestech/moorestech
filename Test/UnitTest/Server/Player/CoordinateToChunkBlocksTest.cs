@@ -1,6 +1,7 @@
 ﻿using System;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Machine;
+using Core.Block.Event;
 using Core.Block.RecipeConfig;
 using Core.Const;
 using Core.Item;
@@ -80,7 +81,7 @@ namespace Test.UnitTest.Server.Player
             {
                 var itemStackFactory = new ItemStackFactory(new TestItemConfig());
                 _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory), itemStackFactory));
+                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory), itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
             }
 
             var machine = _blockFactory.Create(id, EntityId.NewEntityId()) as VanillaMachine;

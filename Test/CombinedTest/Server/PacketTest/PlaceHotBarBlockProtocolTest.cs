@@ -29,7 +29,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //ホットバーにアイテムとしてのブロックをセットする
             var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            inventory.MainInventory.SetItem(slot, itemStackFactory.Create(BlockItemId,3));
+            inventory.MainOpenableInventory.SetItem(slot, itemStackFactory.Create(BlockItemId,3));
             
             //ブロックを置く
             packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4));
@@ -38,7 +38,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
             Assert.AreEqual(PlacedBlockId, world.GetBlock(2, 4).GetBlockId());
             //アイテムが減っているかチェック
-            Assert.AreEqual(2, inventory.MainInventory.GetItem(slot).Count);
+            Assert.AreEqual(2, inventory.MainOpenableInventory.GetItem(slot).Count);
             
             
             
@@ -46,13 +46,13 @@ namespace Test.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4));
             //アイテムが減っていないかのチェック
             Assert.AreEqual(2,
-                inventory.MainInventory.GetItem(slot).Count);
+                inventory.MainOpenableInventory.GetItem(slot).Count);
             
             //ホットバー内のアイテムを使い切る
             packet.GetPacketResponse(CreateUseHotBarProtocol(3, 4));
             packet.GetPacketResponse(CreateUseHotBarProtocol(4, 4));
             //ホットバーのアイテムが空になっているかのテスト
-            Assert.AreEqual(itemStackFactory.CreatEmpty(), inventory.MainInventory.GetItem(slot));
+            Assert.AreEqual(itemStackFactory.CreatEmpty(), inventory.MainOpenableInventory.GetItem(slot));
             
             
             //さらにブロックを置こうとしても置けないテスト

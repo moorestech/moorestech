@@ -57,7 +57,7 @@ namespace Server.Protocol.PacketResponse
         private List<byte> GetResponseBase(int x, int y)
         {
             var response = new List<byte>();
-            var block = _blockDatastore.GetBlock(x, y) as IInventory;
+            var block = _blockDatastore.GetBlock(x, y) as IOpenableInventory;
             
             response.AddRange(ToByteList.Convert((short) ProtocolId));
             response.AddRange(ToByteList.Convert((short) block.GetSlotSize()));

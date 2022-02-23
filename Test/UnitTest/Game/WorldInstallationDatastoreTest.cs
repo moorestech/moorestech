@@ -1,6 +1,7 @@
 ﻿using System;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Machine;
+using Core.Block.Event;
 using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
@@ -74,7 +75,7 @@ namespace Test.UnitTest.Game
             {
                 var itemStackFactory = new ItemStackFactory(new TestItemConfig());
                 _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory), itemStackFactory));
+                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory), itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
             }
 
             var machine = _blockFactory.Create(id, indId) as VanillaMachine;

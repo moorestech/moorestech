@@ -56,12 +56,12 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //ブロック内のアイテムがインベントリに入っているか
-            Assert.AreEqual(10, playerInventoryData.MainInventory.GetItem(playerSlotIndex).Id);
-            Assert.AreEqual(7, playerInventoryData.MainInventory.GetItem(playerSlotIndex).Count);
+            Assert.AreEqual(10, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Id);
+            Assert.AreEqual(7, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);
 
             //削除したブロックは次のスロットに入っているのでそれをチェック
-            Assert.AreEqual(blockConfigData.ItemId, playerInventoryData.MainInventory.GetItem(playerSlotIndex + 1).Id);
-            Assert.AreEqual(1, playerInventoryData.MainInventory.GetItem(playerSlotIndex + 1).Count);
+            Assert.AreEqual(blockConfigData.ItemId, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Id);
+            Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Count);
         }
 
         
@@ -76,7 +76,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             var mainInventory =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainInventory;
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
 
             //インベントリの2つのスロットを残してインベントリを満杯にする
             for (int i = 2; i < mainInventory.GetSlotSize(); i++)
@@ -138,7 +138,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             var mainInventory =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainInventory;
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
 
             //インベントリを満杯にする
             for (int i = 0; i < mainInventory.GetSlotSize(); i++)

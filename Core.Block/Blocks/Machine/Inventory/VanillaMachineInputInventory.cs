@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Core.Block.Event;
 using Core.Block.RecipeConfig;
 using Core.Block.RecipeConfig.Data;
 using Core.Inventory;
@@ -12,18 +13,21 @@ namespace Core.Block.Blocks.Machine.Inventory
     public class VanillaMachineInputInventory
     {
         private readonly int _blockId;
-        private readonly InventoryItemDataStoreService _itemDataStoreService;
+        private readonly int _entityId;
+        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly IMachineRecipeConfig _machineRecipeConfig;
+        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
 
         public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.Inventory;
 
         public VanillaMachineInputInventory(int blockId, int inputSlot, IMachineRecipeConfig machineRecipeConfig,
-            ItemStackFactory itemStackFactory)
+            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId)
         {
             _blockId = blockId;
             _machineRecipeConfig = machineRecipeConfig;
-            //TODO このdelgateはDIする
-            _itemDataStoreService = new InventoryItemDataStoreService(InvokeEvent,itemStackFactory, inputSlot);
+            _blockInventoryUpdate = blockInventoryUpdate;
+            _entityId = entityId;
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory, inputSlot);
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
@@ -69,7 +73,8 @@ namespace Core.Block.Blocks.Machine.Inventory
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
-            //TODO イベントを発火する
+            _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
+                _entityId,slot,itemStack));
         }
     }
 }

@@ -7,6 +7,7 @@ using Core.Block.BlockInventory;
 using Core.Block.Blocks.Machine;
 using Core.Block.Blocks.Machine.Inventory;
 using Core.Block.Blocks.Machine.InventoryController;
+using Core.Block.Event;
 using Core.Block.RecipeConfig;
 using Core.Electric;
 using Core.Item;
@@ -30,7 +31,7 @@ namespace Test.CombinedTest.Core
             if (_blockFactory == null)
             {
                 _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(_itemStackFactory), _itemStackFactory));
+                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(_itemStackFactory), _itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
             }
 
             var machine = _blockFactory.Create(id, EntityId.NewEntityId()) as VanillaMachine;

@@ -61,9 +61,9 @@ namespace Test.CombinedTest.Server.PacketTest
             var playerInventoryData =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
-            playerInventoryData.MainInventory.SetItem(0, itemStackFactory.Create(1, 5));
-            playerInventoryData.MainInventory.SetItem(20, itemStackFactory.Create(3, 1));
-            playerInventoryData.MainInventory.SetItem(34, itemStackFactory.Create(10, 7));
+            playerInventoryData.MainOpenableInventory.SetItem(0, itemStackFactory.Create(1, 5));
+            playerInventoryData.MainOpenableInventory.SetItem(20, itemStackFactory.Create(3, 1));
+            playerInventoryData.MainOpenableInventory.SetItem(34, itemStackFactory.Create(10, 7));
             
             
             
@@ -73,10 +73,10 @@ namespace Test.CombinedTest.Server.PacketTest
             {
                 var id = craftConfig.Items[i].Id;
                 var count = craftConfig.Items[i].Count;
-                playerInventoryData.CraftingInventory.SetItem(i,id,count * 2);
+                playerInventoryData.CraftingOpenableInventory.SetItem(i,id,count * 2);
             }
             //クラフトを実行する　ここでアイテムが消費される
-            playerInventoryData.CraftingInventory.Craft();
+            playerInventoryData.CraftingOpenableInventory.Craft();
 
             
             

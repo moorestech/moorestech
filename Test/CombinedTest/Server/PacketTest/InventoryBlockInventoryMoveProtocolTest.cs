@@ -39,40 +39,40 @@ namespace Test.CombinedTest.Server.PacketTest
         }
 
         private void Check(
-            IInventory blockInventoryData,
+            IOpenableInventory blockOpenableInventoryData,
             ItemStackFactory itemStackFactory,
             PacketResponseCreator packet,
             int x,int y)
         {
             //アイテムの設定
-            blockInventoryData.SetItem(0, itemStackFactory.Create(1, 5));
-            blockInventoryData.SetItem(1, itemStackFactory.Create(2, 1));
+            blockOpenableInventoryData.SetItem(0, itemStackFactory.Create(1, 5));
+            blockOpenableInventoryData.SetItem(1, itemStackFactory.Create(2, 1));
 
             //実際に移動させてテスト
             //全てのアイテムを移動させるテスト
             packet.GetPacketResponse(BlockInventoryItemMove(0, 2, 5, x,y));
-            Assert.AreEqual(blockInventoryData.GetItem(0), itemStackFactory.CreatEmpty());
-            Assert.AreEqual(blockInventoryData.GetItem(2), itemStackFactory.Create(1, 5));
+            Assert.AreEqual(blockOpenableInventoryData.GetItem(0), itemStackFactory.CreatEmpty());
+            Assert.AreEqual(blockOpenableInventoryData.GetItem(2), itemStackFactory.Create(1, 5));
 
             //一部のアイテムを移動させるテスト
             packet.GetPacketResponse(BlockInventoryItemMove(2, 0, 3, x,y));
-            Assert.AreEqual(blockInventoryData.GetItem(0), itemStackFactory.Create(1, 3));
-            Assert.AreEqual(blockInventoryData.GetItem(2), itemStackFactory.Create(1, 2));
+            Assert.AreEqual(blockOpenableInventoryData.GetItem(0), itemStackFactory.Create(1, 3));
+            Assert.AreEqual(blockOpenableInventoryData.GetItem(2), itemStackFactory.Create(1, 2));
 
             //一部のアイテムを移動しようとするが他にスロットがあるため失敗するテスト
             packet.GetPacketResponse(BlockInventoryItemMove(0, 1, 1, x,y));
-            Assert.AreEqual(blockInventoryData.GetItem(0), itemStackFactory.Create(1, 3));
-            Assert.AreEqual(blockInventoryData.GetItem(1), itemStackFactory.Create(2, 1));
+            Assert.AreEqual(blockOpenableInventoryData.GetItem(0), itemStackFactory.Create(1, 3));
+            Assert.AreEqual(blockOpenableInventoryData.GetItem(1), itemStackFactory.Create(2, 1));
 
             //全てのアイテムを移動させるテスト
             packet.GetPacketResponse(BlockInventoryItemMove(0, 1, 3, x,y));
-            Assert.AreEqual(blockInventoryData.GetItem(0), itemStackFactory.Create(2, 1));
-            Assert.AreEqual(blockInventoryData.GetItem(1), itemStackFactory.Create(1, 3));
+            Assert.AreEqual(blockOpenableInventoryData.GetItem(0), itemStackFactory.Create(2, 1));
+            Assert.AreEqual(blockOpenableInventoryData.GetItem(1), itemStackFactory.Create(1, 3));
 
             //アイテムを加算するテスト
             packet.GetPacketResponse(BlockInventoryItemMove(2, 1, 2, x,y));
-            Assert.AreEqual(blockInventoryData.GetItem(2), itemStackFactory.CreatEmpty());
-            Assert.AreEqual(blockInventoryData.GetItem(1), itemStackFactory.Create(1, 5));
+            Assert.AreEqual(blockOpenableInventoryData.GetItem(2), itemStackFactory.CreatEmpty());
+            Assert.AreEqual(blockOpenableInventoryData.GetItem(1), itemStackFactory.Create(1, 5));
             
         }
         

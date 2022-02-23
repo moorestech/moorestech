@@ -8,29 +8,29 @@ using PlayerInventory.Event;
 
 namespace PlayerInventory.ItemManaged
 {
-    public class CraftingInventoryData : ICraftingInventory
+    public class CraftingOpenableInventoryData : ICraftingOpenableInventory
     {
-        private readonly InventoryItemDataStoreService _inventoryService;
+        private readonly OpenableInventoryItemDataStoreService _openableInventoryService;
         private readonly int _playerId;
         private readonly CraftInventoryUpdateEvent _craftInventoryUpdateEvent;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
-        public CraftingInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent,
+        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent,
             ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService)
         {
             _playerId = playerId;
             
             _craftInventoryUpdateEvent = craftInventoryUpdateEvent;
             _isCreatableJudgementService = isCreatableJudgementService;
-            _inventoryService = new InventoryItemDataStoreService(InvokeEvent, 
+            _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, 
                 itemStackFactory, PlayerInventoryConst.CraftingInventorySize);
         }
-        public CraftingInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService,List<IItemStack> itemStacks) : 
+        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService,List<IItemStack> itemStacks) : 
             this(playerId, craftInventoryUpdateEvent, itemStackFactory,isCreatableJudgementService)
         {
             for (int i = 0; i < itemStacks.Count; i++)
             {
-                _inventoryService.SetItemWithoutEvent(i,itemStacks[i]);
+                _openableInventoryService.SetItemWithoutEvent(i,itemStacks[i]);
             }
         }
 
@@ -41,7 +41,7 @@ namespace PlayerInventory.ItemManaged
             
             //クラフト結果のアイテムを出力スロットに追加可能か判定
             var result = _isCreatableJudgementService.GetResult(CraftingItems);
-            var outputItem = _inventoryService.GetItem(PlayerInventoryConst.CraftingInventorySize - 1);
+            var outputItem = _openableInventoryService.GetItem(PlayerInventoryConst.CraftingInventorySize - 1);
 
             //クラフトしたアイテムの出力スロットに空きがある
             if (!outputItem.IsAllowedToAdd(result)) return;
@@ -50,15 +50,15 @@ namespace PlayerInventory.ItemManaged
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 //クラフトしたアイテムを消費する
-                var subItem = _inventoryService.Inventory[i].SubItem(craftConfig.Items[i].Count);
+                var subItem = _openableInventoryService.Inventory[i].SubItem(craftConfig.Items[i].Count);
                 //インベントリにセット
-                _inventoryService.SetItem(i, subItem);
+                _openableInventoryService.SetItem(i, subItem);
             }
             
             
             //元のクラフト結果のアイテムを足したアイテムを出力スロットに追加
             var addedOutputSlot = outputItem.AddItem(result).ProcessResultItemStack;
-            _inventoryService.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, addedOutputSlot);
+            _openableInventoryService.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, addedOutputSlot);
         }
 
         public IItemStack GetCreatableItem() { return _isCreatableJudgementService.GetResult(CraftingItems); }
@@ -70,7 +70,7 @@ namespace PlayerInventory.ItemManaged
                 var items = new List<IItemStack>();
                 for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
                 {
-                    items.Add(_inventoryService.GetItem(i));
+                    items.Add(_openableInventoryService.GetItem(i));
                 }
                 return items;
             }
@@ -84,14 +84,14 @@ namespace PlayerInventory.ItemManaged
 
 
         #region delgate to PlayerInventoryItemDataStoreService
-        public IItemStack GetItem(int slot) { return _inventoryService.GetItem(slot); }
-        public void SetItem(int slot, IItemStack itemStack) { _inventoryService.SetItem(slot, itemStack); }
-        public void SetItem(int slot, int itemId, int count) { _inventoryService.SetItem(slot, itemId, count); }
-        public IItemStack ReplaceItem(int slot, IItemStack itemStack) { return _inventoryService.ReplaceItem(slot, itemStack); }
-        public IItemStack ReplaceItem(int slot, int itemId, int count) { return _inventoryService.ReplaceItem(slot, itemId, count); }
-        public IItemStack InsertItem(IItemStack itemStack) { return _inventoryService.InsertItem(itemStack); }
-        public IItemStack InsertItem(int itemId, int count) { return _inventoryService.InsertItem(itemId, count); }
-        public int GetSlotSize() { return _inventoryService.GetSlotSize(); }
+        public IItemStack GetItem(int slot) { return _openableInventoryService.GetItem(slot); }
+        public void SetItem(int slot, IItemStack itemStack) { _openableInventoryService.SetItem(slot, itemStack); }
+        public void SetItem(int slot, int itemId, int count) { _openableInventoryService.SetItem(slot, itemId, count); }
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack) { return _openableInventoryService.ReplaceItem(slot, itemStack); }
+        public IItemStack ReplaceItem(int slot, int itemId, int count) { return _openableInventoryService.ReplaceItem(slot, itemId, count); }
+        public IItemStack InsertItem(IItemStack itemStack) { return _openableInventoryService.InsertItem(itemStack); }
+        public IItemStack InsertItem(int itemId, int count) { return _openableInventoryService.InsertItem(itemId, count); }
+        public int GetSlotSize() { return _openableInventoryService.GetSlotSize(); }
 
         #endregion
     }

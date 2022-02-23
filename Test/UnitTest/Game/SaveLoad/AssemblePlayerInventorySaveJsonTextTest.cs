@@ -40,12 +40,12 @@ namespace Test.UnitTest.Game.SaveLoad
             //メインアイテムをセットする
             foreach (var item in mainItems)
             {
-                inventory.MainInventory.SetItem(item.Key,item.Value);
+                inventory.MainOpenableInventory.SetItem(item.Key,item.Value);
             }
             //クラフトアイテムをセットする
             foreach (var item in craftItems)
             {
-                inventory.CraftingInventory.SetItem(item.Key,item.Value);
+                inventory.CraftingOpenableInventory.SetItem(item.Key,item.Value);
             }
             
             
@@ -66,20 +66,20 @@ namespace Test.UnitTest.Game.SaveLoad
             {
                 if (mainItems.ContainsKey(i))
                 {
-                    Assert.AreEqual(mainItems[i],loadedPlayerInventory.MainInventory.GetItem(i));
+                    Assert.AreEqual(mainItems[i],loadedPlayerInventory.MainOpenableInventory.GetItem(i));
                     continue;
                 }
-                Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedPlayerInventory.MainInventory.GetItem(i));
+                Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedPlayerInventory.MainOpenableInventory.GetItem(i));
             }
             //クラフトのインベントリのチェック
             for (int i = 0; i < PlayerInventoryConst.CraftingInventorySize; i++)
             {
                 if (craftItems.ContainsKey(i))
                 {
-                    Assert.AreEqual(craftItems[i],loadedPlayerInventory.CraftingInventory.GetItem(i));
+                    Assert.AreEqual(craftItems[i],loadedPlayerInventory.CraftingOpenableInventory.GetItem(i));
                     continue;
                 }
-                Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedPlayerInventory.CraftingInventory.GetItem(i));
+                Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedPlayerInventory.CraftingOpenableInventory.GetItem(i));
             }
         }
 
@@ -109,7 +109,7 @@ namespace Test.UnitTest.Game.SaveLoad
                 var inventory = playerInventory.GetInventoryData(playerItem.Key);
                 foreach (var item in playerItem.Value)
                 {
-                    inventory.MainInventory.SetItem(item.Key,item.Value);
+                    inventory.MainOpenableInventory.SetItem(item.Key,item.Value);
                 }
             }
             
@@ -131,10 +131,10 @@ namespace Test.UnitTest.Game.SaveLoad
                 {
                     if (playerItem.Value.ContainsKey(i))
                     {
-                        Assert.AreEqual(playerItem.Value[i],loadedInventory.MainInventory.GetItem(i));
+                        Assert.AreEqual(playerItem.Value[i],loadedInventory.MainOpenableInventory.GetItem(i));
                         continue;
                     }
-                    Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedInventory.MainInventory.GetItem(i));
+                    Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedInventory.MainOpenableInventory.GetItem(i));
                 }
             }
             

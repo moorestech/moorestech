@@ -26,7 +26,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //プレイヤーのインベントリの設定
             var craftingInventory =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).CraftingInventory;
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).CraftingOpenableInventory;
 
 
             //アイテムの設定

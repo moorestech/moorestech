@@ -10,12 +10,12 @@ namespace Server.Protocol.PacketResponse
 {
     public class BlockInventoryMoveItemProtocol : IPacketResponse
     {
-        private readonly IWorldBlockComponentDatastore<IInventory> _inventoryDatastore;
+        private readonly IWorldBlockComponentDatastore<IOpenableInventory> _inventoryDatastore;
         private readonly ItemStackFactory _itemStackFactory;
 
         public BlockInventoryMoveItemProtocol(ServiceProvider serviceProvider)
         {
-            _inventoryDatastore = serviceProvider.GetService<IWorldBlockComponentDatastore<IInventory>>();
+            _inventoryDatastore = serviceProvider.GetService<IWorldBlockComponentDatastore<IOpenableInventory>>();
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 

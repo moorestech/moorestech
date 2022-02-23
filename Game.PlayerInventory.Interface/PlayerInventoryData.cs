@@ -4,13 +4,13 @@ namespace Game.PlayerInventory.Interface
 {
     public class PlayerInventoryData
     {
-        public readonly IInventory MainInventory;
-        public readonly ICraftingInventory CraftingInventory;
+        public readonly IOpenableInventory MainOpenableInventory;
+        public readonly ICraftingOpenableInventory CraftingOpenableInventory;
 
-        public PlayerInventoryData(IInventory mainInventory, ICraftingInventory craftingInventory)
+        public PlayerInventoryData(IOpenableInventory mainOpenableInventory, ICraftingOpenableInventory craftingOpenableInventory)
         {
-            MainInventory = mainInventory;
-            CraftingInventory = craftingInventory;
+            MainOpenableInventory = mainOpenableInventory;
+            CraftingOpenableInventory = craftingOpenableInventory;
         }
     }
 }
