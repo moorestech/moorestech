@@ -275,9 +275,9 @@
             "actions": [
                 {
                     "name": "OpenMenu",
-                    "type": "Value",
+                    "type": "Button",
                     "id": "d05b5bb9-2c20-4891-9da9-7b462f4ac170",
-                    "expectedControlType": "Vector2",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
