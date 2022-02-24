@@ -67,6 +67,7 @@ namespace MainGame.Starter
             //パケット受け取りイベント
             builder.Register<INetworkReceivedChunkDataEvent,NetworkReceivedChunkDataEvent>(Lifetime.Singleton);
             builder.Register<IPlayerInventoryUpdateEvent,PlayerInventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<ICraftingInventoryUpdateEvent,CraftingInventoryUpdateEvent>(Lifetime.Singleton);
             builder.Register<IBlockInventoryUpdateEvent,BlockInventoryUpdateEvent>(Lifetime.Singleton);
             
             //パケット送信インスタンス
