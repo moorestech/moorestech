@@ -90,8 +90,8 @@ namespace Test.CombinedTest.Server.PacketTest
             var b = blockFactory.Create(5,1);
             worldBlock.AddBlock(b, 0, 0, BlockDirection.North);
 
-            var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0))
-                .Select(PayloadToBlock).ToList();
+            var bytes = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0));
+            var response = bytes.Select(PayloadToBlock).ToList();
 
             Assert.AreEqual(25, response.Count());
             var ans = new List<Coordinate>();
@@ -300,7 +300,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
             public ChunkData(Coordinate coordinate, int[,] mapTiles,int[,] blocks)
             {
-                this.Blocks = blocks;
+                Blocks = blocks;
                 Coordinate = coordinate;
                 MapTiles = mapTiles;
             }
