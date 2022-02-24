@@ -36,7 +36,7 @@ namespace MainGame.Control.UI.UIState
         
         
         //UIステート
-        private void Update()
+        private void FixedUpdate()
         {
             //UIステートが変更されたら
             if (!_currentState.IsNext()) return;
