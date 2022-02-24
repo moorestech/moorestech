@@ -26,7 +26,7 @@ namespace Test.TestModule.UI
         //slot id count
         private List<(int, int, int)> _insertItems;
 
-        private void Start()
+        private void Awake()
         {
             hotBarItemView.Construct(itemImages);
             playerInventoryItemView.Construct(itemImages);
