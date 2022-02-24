@@ -11,9 +11,9 @@ namespace MainGame.Network.Receive
     {
         private readonly NetworkReceivedChunkDataEvent _networkReceivedChunkDataEvent;
 
-        public ReceiveChunkDataProtocol(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent)
+        public ReceiveChunkDataProtocol(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent)
         {
-            _networkReceivedChunkDataEvent = networkReceivedChunkDataEvent;
+            _networkReceivedChunkDataEvent = networkReceivedChunkDataEvent as NetworkReceivedChunkDataEvent;
         }
 
         public void Analysis(List<byte> data)

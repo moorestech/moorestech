@@ -9,9 +9,9 @@ namespace MainGame.Network.Receive
     {
         private readonly BlockInventoryUpdateEvent _blockInventoryUpdateEvent;
 
-        public ReceiveBlockInventoryProtocol(BlockInventoryUpdateEvent blockInventoryUpdateEvent)
+        public ReceiveBlockInventoryProtocol(IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
         {
-            _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
+            _blockInventoryUpdateEvent = blockInventoryUpdateEvent as BlockInventoryUpdateEvent;
         }
 
         public void Analysis(List<byte> data)

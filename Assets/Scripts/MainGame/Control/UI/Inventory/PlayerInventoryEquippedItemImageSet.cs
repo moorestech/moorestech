@@ -17,7 +17,7 @@ namespace MainGame.Control.UI.Inventory
         private PlayerInventoryItemView _playerInventoryItemView;
         
         [Inject]
-        public void Construct(PlayerInventoryItemView playerInventoryItemView, PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+        public void Construct(PlayerInventoryItemView playerInventoryItemView, IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
         {
             _playerInventoryItemView = playerInventoryItemView;
             _equippedItem = GetComponent<InventoryItemSlot>();

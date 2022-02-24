@@ -9,9 +9,9 @@ namespace MainGame.Network.Receive.EventPacket
     {
         private PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
 
-        public PlayerInventorySlotEvent(PlayerInventoryUpdateEvent playerInventorySlotEvent)
+        public PlayerInventorySlotEvent(IPlayerInventoryUpdateEvent playerInventorySlotEvent)
         {
-            _playerInventoryUpdateEvent = playerInventorySlotEvent;
+            _playerInventoryUpdateEvent = playerInventorySlotEvent as PlayerInventoryUpdateEvent;
         }
 
         public void Analysis(List<byte> packet)

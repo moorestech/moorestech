@@ -12,9 +12,9 @@ namespace MainGame.Network.Receive
     {
         private readonly PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
 
-        public ReceivePlayerInventoryProtocol(PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+        public ReceivePlayerInventoryProtocol(IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
         {
-            _playerInventoryUpdateEvent = playerInventoryUpdateEvent;
+            _playerInventoryUpdateEvent = playerInventoryUpdateEvent as PlayerInventoryUpdateEvent;
         }
 
         public void Analysis(List<byte> data)

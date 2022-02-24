@@ -9,9 +9,9 @@ namespace MainGame.Network.Receive.EventPacket
     {
         readonly NetworkReceivedChunkDataEvent _networkReceivedChunkDataEvent;
 
-        public BlockPlaceEvent(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent)
+        public BlockPlaceEvent(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent)
         {
-            _networkReceivedChunkDataEvent = networkReceivedChunkDataEvent;
+            _networkReceivedChunkDataEvent = networkReceivedChunkDataEvent as NetworkReceivedChunkDataEvent;
         }
 
         public void Analysis(List<byte> packet)

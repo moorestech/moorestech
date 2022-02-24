@@ -1,23 +1,22 @@
 ﻿using UnityEngine;
+using static MainGame.Network.Event.INetworkReceivedChunkDataEvent;
 
 namespace MainGame.Network.Event
 {
-    public class NetworkReceivedChunkDataEvent
+    public interface INetworkReceivedChunkDataEvent
     {
-        public delegate void OnChunkUpdate(OnChunkUpdateEventProperties properties);
-        public delegate void OnBlockUpdate(OnBlockUpdateEventProperties properties);
-        private event OnChunkUpdate OnChunkUpdateEvent;
-        private event OnBlockUpdate OnBlockUpdateEvent;
-        public void Subscribe(OnChunkUpdate onChunkUpdate, OnBlockUpdate onBlockUpdate)
+        public delegate void ChunkUpdate(OnChunkUpdateEventProperties properties);
+        public delegate void BlockUpdate(OnBlockUpdateEventProperties properties);
+        public void Subscribe(ChunkUpdate onChunkUpdate, BlockUpdate onBlockUpdate);
+    }
+    public class NetworkReceivedChunkDataEvent : INetworkReceivedChunkDataEvent
+    {
+        private event ChunkUpdate OnChunkUpdateEvent;
+        private event BlockUpdate OnBlockUpdateEvent;
+        public void Subscribe(ChunkUpdate onChunkUpdate, BlockUpdate onBlockUpdate)
         {
             OnChunkUpdateEvent += onChunkUpdate;
             OnBlockUpdateEvent += onBlockUpdate;
-        }
-
-        public void Unsubscribe(OnChunkUpdate onChunkUpdate, OnBlockUpdate onBlockUpdate)
-        {
-            OnChunkUpdateEvent -= onChunkUpdate;
-            OnBlockUpdateEvent -= onBlockUpdate;
         }
 
         public void InvokeChunkUpdateEvent(OnChunkUpdateEventProperties properties)

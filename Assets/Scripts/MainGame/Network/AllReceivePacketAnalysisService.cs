@@ -14,8 +14,8 @@ namespace MainGame.Network
         
         
         public AllReceivePacketAnalysisService(
-            NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,
-            PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+            INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,
+            IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
         {
             _analysisPacketList.Add(new DummyProtocol());
             _analysisPacketList.Add(new ReceiveChunkDataProtocol(networkReceivedChunkDataEvent));

@@ -65,9 +65,9 @@ namespace MainGame.Starter
             builder.Register<ISocket, SocketObject>(Lifetime.Singleton);
 
             //パケット受け取りイベント
-            builder.Register<NetworkReceivedChunkDataEvent>(Lifetime.Singleton);
-            builder.Register<PlayerInventoryUpdateEvent>(Lifetime.Singleton);
-            builder.Register<BlockInventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<INetworkReceivedChunkDataEvent,NetworkReceivedChunkDataEvent>(Lifetime.Singleton);
+            builder.Register<IPlayerInventoryUpdateEvent,PlayerInventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<IBlockInventoryUpdateEvent,BlockInventoryUpdateEvent>(Lifetime.Singleton);
             
             //パケット送信インスタンス
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う

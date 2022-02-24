@@ -1,28 +1,24 @@
 using System.Collections.Generic;
 using MainGame.Basic;
+using static MainGame.Network.Event.IPlayerInventoryUpdateEvent;
 
 namespace MainGame.Network.Event
 {
-    public class PlayerInventoryUpdateEvent 
+    public interface IPlayerInventoryUpdateEvent
     {
-        public delegate void OnPlayerInventoryUpdate(PlayerInventoryUpdateProperties properties);
-        public delegate void OnPlayerInventorySlotUpdate(PlayerInventorySlotUpdateProperties properties);
-        private event OnPlayerInventoryUpdate OnPlayerInventoryUpdateEvent;
-        private event OnPlayerInventorySlotUpdate OnPlayerInventorySlotUpdateEvent;
-        public void Subscribe(
-            OnPlayerInventoryUpdate onPlayerInventoryUpdate,
-            OnPlayerInventorySlotUpdate onPlayerInventorySlotUpdate)
+        public delegate void PlayerInventoryUpdate(PlayerInventoryUpdateProperties properties);
+        public delegate void PlayerInventorySlotUpdate(PlayerInventorySlotUpdateProperties properties);
+
+        public void Subscribe(PlayerInventoryUpdate onPlayerInventoryUpdate, PlayerInventorySlotUpdate onPlayerInventorySlotUpdate);
+    }
+    public class PlayerInventoryUpdateEvent : IPlayerInventoryUpdateEvent
+    {
+        private event PlayerInventoryUpdate OnPlayerInventoryUpdateEvent;
+        private event PlayerInventorySlotUpdate OnPlayerInventorySlotUpdateEvent;
+        public void Subscribe(PlayerInventoryUpdate onPlayerInventoryUpdate, PlayerInventorySlotUpdate onPlayerInventorySlotUpdate)
         {
             OnPlayerInventoryUpdateEvent += onPlayerInventoryUpdate;
             OnPlayerInventorySlotUpdateEvent += onPlayerInventorySlotUpdate;
-        }
-
-        public void Unsubscribe(
-            OnPlayerInventoryUpdate onPlayerInventoryUpdate,
-            OnPlayerInventorySlotUpdate onPlayerInventorySlotUpdate)
-        {
-            OnPlayerInventoryUpdateEvent -= onPlayerInventoryUpdate;
-            OnPlayerInventorySlotUpdateEvent -= onPlayerInventorySlotUpdate;
         }
 
         public void OnOnPlayerInventoryUpdateEvent(

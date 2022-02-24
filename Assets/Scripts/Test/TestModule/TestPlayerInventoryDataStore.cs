@@ -8,9 +8,9 @@ namespace Test.TestModule
     {
         public Dictionary<int,List<ItemStack>> playerInventory = new Dictionary<int, List<ItemStack>>();
 
-        public TestPlayerInventoryDataStore(PlayerInventoryUpdateEvent @event)
+        public TestPlayerInventoryDataStore(IPlayerInventoryUpdateEvent playerInventory)
         {
-            @event.Subscribe(OnPlayerInventoryUpdate,OnPlayerInventorySlotUpdate);
+            playerInventory.Subscribe(OnPlayerInventoryUpdate,OnPlayerInventorySlotUpdate);
         }
 
         private void OnPlayerInventoryUpdate(PlayerInventoryUpdateProperties properties)

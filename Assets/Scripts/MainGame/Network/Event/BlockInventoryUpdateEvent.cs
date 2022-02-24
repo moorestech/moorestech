@@ -1,13 +1,19 @@
 using System.Collections.Generic;
 using MainGame.Basic;
 using UnityEngine;
+using static MainGame.Network.Event.IBlockInventoryUpdateEvent;
 
 namespace MainGame.Network.Event
 {
-    public class BlockInventoryUpdateEvent 
+    public interface IBlockInventoryUpdateEvent
     {
         public delegate void BlockInventorySlotUpdate(BlockInventorySlotUpdateProperties properties);
         public delegate void SettingBlockInventory(SettingBlockInventoryProperties properties);
+        public void Subscribe(BlockInventorySlotUpdate onBlockInventorySlot, SettingBlockInventory onSettingBlock);
+    }
+    
+    public class BlockInventoryUpdateEvent : IBlockInventoryUpdateEvent
+    {
         private event BlockInventorySlotUpdate OnBlockInventorySlotUpdate;
         private event SettingBlockInventory OnSettingBlock;
         public void Subscribe(BlockInventorySlotUpdate onBlockInventorySlot, SettingBlockInventory onSettingBlock)

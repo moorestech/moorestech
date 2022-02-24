@@ -10,7 +10,7 @@ namespace MainGame.Network.Receive
     {
         List<IAnalysisEventPacket> _eventPacketList = new List<IAnalysisEventPacket>();
 
-        public ReceiveEventProtocol(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,PlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+        public ReceiveEventProtocol(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
         {
             _eventPacketList.Add(new BlockPlaceEvent(networkReceivedChunkDataEvent));
             _eventPacketList.Add(new PlayerInventorySlotEvent(playerInventoryUpdateEvent));

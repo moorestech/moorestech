@@ -17,7 +17,7 @@ namespace MainGame.GameLogic.Inventory
         private List<ItemStack> _items = new(new ItemStack[PlayerInventoryConstant.MainInventorySize]);
         
         public PlayerInventoryDataCache(
-            PlayerInventoryUpdateEvent playerInventoryUpdateEvent,PlayerInventoryItemView playerInventoryItemView,
+            IPlayerInventoryUpdateEvent playerInventoryUpdateEvent,PlayerInventoryItemView playerInventoryItemView,
             HotBarItemView hotBarItemView)
         {
             playerInventoryUpdateEvent.Subscribe(UpdateInventory,UpdateSlotInventory);
