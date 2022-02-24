@@ -1,11 +1,13 @@
-using MainGame.GameLogic;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network;
 using MainGame.Network.Send;
 using UnityEngine;
 
-namespace MainGame.Control.UI.Inventory
+namespace MainGame.Control.UI.Inventory.ItemMove
 {
+    /// <summary>
+    /// プレイヤーインベントリ、ブロックインベントリの間でアイテムを移動する際に使用するサービスクラス
+    /// </summary>
     public class BlockInventoryPlayerInventoryItemMoveService
     {
         private readonly int _playerId;

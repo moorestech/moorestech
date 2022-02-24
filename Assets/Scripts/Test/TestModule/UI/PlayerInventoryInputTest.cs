@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using MainGame.Control.UI.Inventory;
+using MainGame.Control.UI.Inventory.ItemMove;
 using MainGame.GameLogic;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network;
