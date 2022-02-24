@@ -47,6 +47,7 @@ namespace MainGame.Starter
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private MouseGroundClickInput mouseGroundClickInput;
+        [SerializeField] private SelectHotBarControl selectHotBarControl;
         
         [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
         [SerializeField] private BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet;
@@ -104,6 +105,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarItemView);
+            builder.RegisterComponent(selectHotBarControl);
 
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             
