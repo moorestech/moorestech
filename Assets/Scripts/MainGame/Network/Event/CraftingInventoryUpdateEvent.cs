@@ -22,12 +22,12 @@ namespace MainGame.Network.Event
             
         }
 
-        protected virtual void InvokeCraftingInventorySlotUpdate(CraftingInventorySlotUpdateProperties properties)
+        public void InvokeCraftingInventorySlotUpdate(CraftingInventorySlotUpdateProperties properties)
         {
             OnCraftingInventorySlotUpdate?.Invoke(properties);
         }
 
-        protected virtual void InvokeCraftingInventoryUpdate(CraftingInventoryUpdateProperties properties)
+        public void InvokeCraftingInventoryUpdate(CraftingInventoryUpdateProperties properties)
         {
             OnCraftingInventoryUpdate?.Invoke(properties);
         }
@@ -38,11 +38,15 @@ namespace MainGame.Network.Event
     {
         public readonly int PlayerId;
         public readonly List<ItemStack> ItemStacks;
+        public readonly ItemStack ResultItemStack;
+        public readonly bool CanCraft;
 
-        public CraftingInventoryUpdateProperties(int playerId, List<ItemStack> itemStacks)
+        public CraftingInventoryUpdateProperties(int playerId, bool canCraft, List<ItemStack> itemStacks, ItemStack resultItemStack)
         {
             PlayerId = playerId;
             ItemStacks = itemStacks;
+            ResultItemStack = resultItemStack;
+            CanCraft = canCraft;
         }
     }
 

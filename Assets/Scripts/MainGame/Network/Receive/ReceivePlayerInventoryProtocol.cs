@@ -10,13 +10,16 @@ namespace MainGame.Network.Receive
     /// </summary>
     public class ReceivePlayerInventoryProtocol : IAnalysisPacket
     {
+        private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
+        private readonly CraftingInventoryUpdateEvent _craftingInventoryUpdateEvent;
+        
         public ReceivePlayerInventoryProtocol(
-            IMainInventoryUpdateEvent mainInventoryUpdateEvent)
+            IMainInventoryUpdateEvent mainInventoryUpdateEvent,ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent)
         {
             _mainInventoryUpdateEvent = mainInventoryUpdateEvent as MainInventoryUpdateEvent;
+            _craftingInventoryUpdateEvent = craftingInventoryUpdateEvent as CraftingInventoryUpdateEvent;
         }
 
-        private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
 
         public void Analysis(List<byte> data)
         {
@@ -27,6 +30,8 @@ namespace MainGame.Network.Receive
             var playerId = bytes.MoveNextToGetInt();
             //padding
             bytes.MoveNextToGetShort();
+            
+            //main inventory items
             var mainItems = new List<ItemStack>();
             for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
             {
@@ -34,11 +39,35 @@ namespace MainGame.Network.Receive
                 var count = bytes.MoveNextToGetInt();
                 mainItems.Add(new ItemStack(id, count));
             }
-            
             _mainInventoryUpdateEvent.InvokeMainInventoryUpdate(
                 new MainInventoryUpdateProperties(
                     playerId,
                     mainItems));
+            
+            
+            //craft inventory items
+            var craftItems = new List<ItemStack>();
+            for (int i = 0; i < PlayerInventoryConstant.CraftingInventorySize; i++)
+            {
+                var id = bytes.MoveNextToGetInt();
+                var count = bytes.MoveNextToGetInt();
+                craftItems.Add(new ItemStack(id, count));
+            }
+            var resultId = bytes.MoveNextToGetInt();
+            var resultCount = bytes.MoveNextToGetInt();
+            var resultItem = new ItemStack(resultId, resultCount);
+            var canCraft = bytes.MoveNextToGetByte() == 1;
+            _craftingInventoryUpdateEvent.InvokeCraftingInventoryUpdate(
+                new CraftingInventoryUpdateProperties(playerId,canCraft,craftItems,resultItem));
+            
         }
+    }
+
+
+    public class User
+    {
+        public string UserName;
+        public int Age;
+        public string ItemId;
     }
 }

@@ -16,7 +16,7 @@ namespace Test.EditModeTest.Network.Receive
         public void ReceivedPacketToPlayerInventoryTest()
         {
             var inventoryEvent = new MainInventoryUpdateEvent();
-            var protocol = new ReceivePlayerInventoryProtocol(inventoryEvent);
+            var protocol = new ReceivePlayerInventoryProtocol(inventoryEvent,new CraftingInventoryUpdateEvent());
             var inventoryDataStore = new TestPlayerInventoryDataStore(inventoryEvent);
 
             var playerId = 10;
@@ -101,7 +101,7 @@ namespace Test.EditModeTest.Network.Receive
         }
 
         //アイテムからプレイヤーインベントリのパケットを作る
-        public List<byte> CreatePlayerInventoryPacket(int playerId,Dictionary<int, ItemStack> items)
+        public List<byte>CreatePlayerInventoryPacket(int playerId,Dictionary<int, ItemStack> items)
         {
             var packet = new List<byte>();
             packet.AddRange(ToByteList.Convert((short)4));
