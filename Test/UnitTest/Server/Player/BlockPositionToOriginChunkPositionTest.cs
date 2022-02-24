@@ -1,5 +1,6 @@
 using Game.World.Interface.DataStore;
 using NUnit.Framework;
+using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Util;
 
 namespace Test.UnitTest.Server.Player
@@ -28,7 +29,7 @@ namespace Test.UnitTest.Server.Player
         
         public void ConvertTest(int blockX,int blockY,int  expectedChunkX,int expectedChunkY)
         {
-            var (x,y) = new BlockPositionToOriginChunkPosition().Convert(blockX, blockY);
+            var (x,y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(blockX, blockY);
             Assert.AreEqual(expectedChunkX, x);
             Assert.AreEqual(expectedChunkY, y);
         }

@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse.Player
         {
             var chunkHalf = ChunkResponseConst.PlayerVisibleRangeChunk / 2;
             //その座標のチャンクの原点
-            var (x, y) = new BlockPositionToOriginChunkPosition().Convert(coordinate.X, coordinate.Y);
+            var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coordinate.X, coordinate.Y);
 
             var result = new List<Coordinate>();
             for (int i = -chunkHalf; i <= chunkHalf; i++)
