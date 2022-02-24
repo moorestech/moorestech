@@ -298,7 +298,7 @@ namespace Test.CombinedTest.Server.PacketTest
             public readonly int[,] MapTiles;
             public readonly Coordinate Coordinate;
 
-            public ChunkData(Coordinate coordinate, int[,] mapTiles,int[,] blocks)
+            public ChunkData(Coordinate coordinate, int[,] blocks,int[,] mapTiles)
             {
                 Blocks = blocks;
                 Coordinate = coordinate;
