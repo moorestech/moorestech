@@ -8,6 +8,7 @@ using Core.Block.RecipeConfig;
 using Core.Const;
 using Core.Item;
 using Core.Item.Config;
+using Core.Ore;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
@@ -171,14 +172,49 @@ namespace Test.CombinedTest.Server.PacketTest
             }
         }
 
-        //TODO マップタイルのテスト
+        //マップタイルの返信が正しいかチェックする
         [Test, Order(4)]
         public void TileMapResponseTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
+            var worldMapTile = serviceProvider.GetService<WorldMapTile>();
             
-            //TODO 鉱石があるチャンクを探す
+            var veinCoordinate = new Coordinate(0, 0);
+            
+            //10000*10000 ブロックの中から鉱石があるチャンクを探す
+            for (int i = 0; i < 1000; i++)
+            {
+                for (int j = 0; j < 1000; j++)
+                {
+                    var id = veinGenerator.GetOreId(i, j);
+                    if (OreConst.NoneOreId == id) continue;
+                    veinCoordinate = new Coordinate(i, j);
+                }
+            }
+            
+            //鉱石がある座標のチャンクを取得
+            var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(25, veinCoordinate.X, veinCoordinate.Y))
+                .Select(PayloadToBlock).ToList();
+            
+            
+            //正しく鉱石IDが帰ってきているかチェックする
+            foreach (var r in response)
+            {
+                var x = r.Coordinate.X;
+                var y = r.Coordinate.Y;
+                for (int i = 0; i < ChunkResponseConst.ChunkSize; i++)
+                {
+                    for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
+                    {
+                        //マップタイルと実際の返信を検証する
+                        Assert.AreEqual(
+                            worldMapTile.GetMapTile(i + x,i + y), 
+                            r.MapTiles[i, j]);
+                    }
+                }
+            }
+            
             
             
         }
