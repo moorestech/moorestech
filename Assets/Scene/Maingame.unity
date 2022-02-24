@@ -231,17 +231,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b43537e02a6246ea90d697997ec190f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &135985974 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4887610450443466519, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-  m_PrefabInstance: {fileID: 135985972}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 32acd88976c94f13a6ecedf9934ebbdd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &135985975 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1419232311588060913, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
@@ -597,6 +586,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5987fef42adc4228a01abbf00467f905, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &937343861 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5743486347233616804, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32acd88976c94f13a6ecedf9934ebbdd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &1037224095 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1438684973846715379, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
@@ -730,7 +730,7 @@ MonoBehaviour:
   chunkBlockGameObjectDataStore: {fileID: 5365914811176455016, guid: eb9da167e98584171895e4493b9fe661, type: 3}
   hotBarItemView: {fileID: 932310750}
   playerInventoryItemView: {fileID: 135985975}
-  playerInventoryInput: {fileID: 135985974}
+  playerInventoryInput: {fileID: 937343861}
   blockInventoryItemView: {fileID: 135985976}
   blockInventoryInput: {fileID: 135985973}
   blockClickDetect: {fileID: 1684657582}

@@ -12,7 +12,7 @@ namespace MainGame.GameLogic.Inventory
         private List<ItemStack> _itemStackList;
 
 
-        public BlockInventoryDataCache(BlockInventoryUpdateEvent blockInventory,BlockInventoryItemView blockInventoryItemView)
+        public BlockInventoryDataCache(IBlockInventoryUpdateEvent blockInventory,BlockInventoryItemView blockInventoryItemView)
         {
             _blockInventoryItemView = blockInventoryItemView;
             blockInventory.Subscribe(OnBlockInventorySlotUpdate,OnSettingBlockInventory);
