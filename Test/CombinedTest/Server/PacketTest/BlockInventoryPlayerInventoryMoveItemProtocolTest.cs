@@ -26,7 +26,7 @@ namespace Test.CombinedTest.Server.PacketTest
         private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
         private BlockFactory _blockFactory;
 
-        private VanillaMachine CreateMachine(int id, int indId)
+        private VanillaMachine CreateMachine(int id, int entityId)
         {
             if (_blockFactory == null)
             {
@@ -34,7 +34,7 @@ namespace Test.CombinedTest.Server.PacketTest
                     new VanillaIBlockTemplates(new TestMachineRecipeConfig(_itemStackFactory), _itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
             }
 
-            var machine = _blockFactory.Create(id, indId) as VanillaMachine;
+            var machine = _blockFactory.Create(id, entityId) as VanillaMachine;
             return machine;
         }
 

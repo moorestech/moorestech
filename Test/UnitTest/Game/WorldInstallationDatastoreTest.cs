@@ -69,7 +69,7 @@ namespace Test.UnitTest.Game
 
         private BlockFactory _blockFactory;
 
-        private VanillaMachine CreateMachine(int id, int indId)
+        private VanillaMachine CreateMachine(int id, int entityId)
         {
             if (_blockFactory == null)
             {
@@ -78,7 +78,7 @@ namespace Test.UnitTest.Game
                     new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory), itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
             }
 
-            var machine = _blockFactory.Create(id, indId) as VanillaMachine;
+            var machine = _blockFactory.Create(id, entityId) as VanillaMachine;
             return machine;
         }
     }

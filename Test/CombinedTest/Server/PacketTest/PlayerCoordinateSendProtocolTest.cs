@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Block.BlockFactory;
+using Core.Block.Blocks;
 using Core.Block.Blocks.Machine;
 using Core.Block.Event;
 using Core.Block.RecipeConfig;
@@ -82,10 +83,11 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
 
             var random = new Random(13944156);
             //ブロックの設置
-            var b = CreateMachine(5);
+            var b = blockFactory.Create(5,1);
             worldBlock.AddBlock(b, 0, 0, BlockDirection.North);
 
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0))
@@ -124,19 +126,20 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
 
             var random = new Random(13944156);
             //ブロックの設置
             for (int i = 0; i < 1000; i++)
             {
-                VanillaMachine b = null;
+                IBlock b = null;
                 if (random.Next(0, 3) == 1)
                 {
-                    b = CreateMachine(random.Next(short.MaxValue, int.MaxValue));
+                    b = blockFactory.Create(random.Next(short.MaxValue, int.MaxValue),EntityId.NewEntityId());
                 }
                 else
                 {
-                    b = CreateMachine(random.Next(0, 500));
+                    b = blockFactory.Create(random.Next(0, 500),EntityId.NewEntityId());
                 }
 
                 worldBlock.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300), BlockDirection.North);
@@ -214,24 +217,6 @@ namespace Test.CombinedTest.Server.PacketTest
                     }
                 }
             }
-            
-            
-            
-        }
-        
-        private BlockFactory _blockFactory;
-
-        private VanillaMachine CreateMachine(int id)
-        {
-            if (_blockFactory == null)
-            {
-                var itemStackFactory = new ItemStackFactory(new TestItemConfig());
-                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory), itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
-            }
-
-            var machine = _blockFactory.Create(id, EntityId.NewEntityId()) as VanillaMachine;
-            return machine;
         }
 
         List<byte> PlayerCoordinatePayload(int playerId, float x, float y)
@@ -277,7 +262,6 @@ namespace Test.CombinedTest.Server.PacketTest
 
         private int GetBitEnumerator(BitListEnumerator bit)
         {
-            
             //空気ブロックか否か
             if (bit.MoveNextToBit())
             {

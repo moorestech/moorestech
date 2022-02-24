@@ -18,23 +18,23 @@ namespace Core.Block.BlockFactory
             _blockTypesDictionary = vanillaIBlockTemplates.BlockTypesDictionary;
         }
 
-        public IBlock Create(int blockId, int indId)
+        public IBlock Create(int blockId, int entityId)
         {
             var type = _blockConfig.GetBlockConfig(blockId);
             if (_blockTypesDictionary.ContainsKey(type.Type))
             {
-                return _blockTypesDictionary[type.Type].New(type, indId);
+                return _blockTypesDictionary[type.Type].New(type, entityId);
             }
 
             throw new Exception("Block type not found :" + type.Type);
         }
 
-        public IBlock Load(int blockId, int indId, string state)
+        public IBlock Load(int blockId, int entityId, string state)
         {
             var type = _blockConfig.GetBlockConfig(blockId);
             if (_blockTypesDictionary.ContainsKey(type.Type))
             {
-                return _blockTypesDictionary[type.Type].Load(type, indId, state);
+                return _blockTypesDictionary[type.Type].Load(type, entityId, state);
             }
 
             throw new Exception("Block type not found :" + type.Type);
