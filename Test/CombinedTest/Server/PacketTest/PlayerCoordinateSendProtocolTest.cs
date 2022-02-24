@@ -212,7 +212,7 @@ namespace Test.CombinedTest.Server.PacketTest
                     {
                         //マップタイルと実際の返信を検証する
                         Assert.AreEqual(
-                            worldMapTile.GetMapTile(i + x,i + y), 
+                            worldMapTile.GetMapTile(i + x,j + y), 
                             r.MapTiles[i, j]);
                     }
                 }
