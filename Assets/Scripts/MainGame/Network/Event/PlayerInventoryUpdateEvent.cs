@@ -5,8 +5,8 @@ namespace MainGame.Network.Event
 {
     public class PlayerInventoryUpdateEvent 
     {
-        public delegate void OnPlayerInventoryUpdate(OnPlayerInventoryUpdateProperties properties);
-        public delegate void OnPlayerInventorySlotUpdate(OnPlayerInventorySlotUpdateProperties properties);
+        public delegate void OnPlayerInventoryUpdate(PlayerInventoryUpdateProperties properties);
+        public delegate void OnPlayerInventorySlotUpdate(PlayerInventorySlotUpdateProperties properties);
         private event OnPlayerInventoryUpdate OnPlayerInventoryUpdateEvent;
         private event OnPlayerInventorySlotUpdate OnPlayerInventorySlotUpdateEvent;
         public void Subscribe(
@@ -26,13 +26,13 @@ namespace MainGame.Network.Event
         }
 
         public void OnOnPlayerInventoryUpdateEvent(
-            OnPlayerInventoryUpdateProperties properties)
+            PlayerInventoryUpdateProperties properties)
         {
             OnPlayerInventoryUpdateEvent?.Invoke(properties);
         }
 
         public void OnOnPlayerInventorySlotUpdateEvent(
-            OnPlayerInventorySlotUpdateProperties properties)
+            PlayerInventorySlotUpdateProperties properties)
         {
             OnPlayerInventorySlotUpdateEvent?.Invoke(properties);
         }
@@ -40,24 +40,24 @@ namespace MainGame.Network.Event
     
     
 
-    public class OnPlayerInventoryUpdateProperties
+    public class PlayerInventoryUpdateProperties
     {
         public readonly int PlayerId;
         public readonly List<ItemStack> ItemStacks;
 
-        public OnPlayerInventoryUpdateProperties(int playerId, List<ItemStack> itemStacks)
+        public PlayerInventoryUpdateProperties(int playerId, List<ItemStack> itemStacks)
         {
             PlayerId = playerId;
             ItemStacks = itemStacks;
         }
     }
 
-    public class OnPlayerInventorySlotUpdateProperties
+    public class PlayerInventorySlotUpdateProperties
     {
         public readonly int SlotId;
         public readonly ItemStack ItemStack;
 
-        public OnPlayerInventorySlotUpdateProperties(int slotId, ItemStack itemStack)
+        public PlayerInventorySlotUpdateProperties(int slotId, ItemStack itemStack)
         {
             SlotId = slotId;
             ItemStack = itemStack;

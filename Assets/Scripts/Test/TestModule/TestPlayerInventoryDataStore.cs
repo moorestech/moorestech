@@ -13,7 +13,7 @@ namespace Test.TestModule
             @event.Subscribe(OnPlayerInventoryUpdate,OnPlayerInventorySlotUpdate);
         }
 
-        private void OnPlayerInventoryUpdate(OnPlayerInventoryUpdateProperties properties)
+        private void OnPlayerInventoryUpdate(PlayerInventoryUpdateProperties properties)
         {
             var playerId = properties.PlayerId;
             var items = properties.ItemStacks;
@@ -28,7 +28,7 @@ namespace Test.TestModule
             }
         }
 
-        private void OnPlayerInventorySlotUpdate(OnPlayerInventorySlotUpdateProperties properties)
+        private void OnPlayerInventorySlotUpdate(PlayerInventorySlotUpdateProperties properties)
         {
             var slot = properties.SlotId;
             var item = properties.ItemStack;

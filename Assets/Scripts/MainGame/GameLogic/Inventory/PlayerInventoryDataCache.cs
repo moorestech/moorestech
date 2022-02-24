@@ -25,7 +25,7 @@ namespace MainGame.GameLogic.Inventory
             _hotBarItemView = hotBarItemView;
         }
 
-        public void UpdateInventory(OnPlayerInventoryUpdateProperties properties)
+        public void UpdateInventory(PlayerInventoryUpdateProperties properties)
         {
             _items = properties.ItemStacks;
             //イベントの発火
@@ -38,7 +38,7 @@ namespace MainGame.GameLogic.Inventory
             }
         }
 
-        public void UpdateSlotInventory(OnPlayerInventorySlotUpdateProperties properties)
+        public void UpdateSlotInventory(PlayerInventorySlotUpdateProperties properties)
         {
             var s = properties.SlotId;
             _items[s] = properties.ItemStack;

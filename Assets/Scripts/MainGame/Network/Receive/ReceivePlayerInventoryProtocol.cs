@@ -35,7 +35,7 @@ namespace MainGame.Network.Receive
             }
             
             _playerInventoryUpdateEvent.OnOnPlayerInventoryUpdateEvent(
-                new OnPlayerInventoryUpdateProperties(
+                new PlayerInventoryUpdateProperties(
                     playerId,
                     items));
         }

@@ -46,7 +46,7 @@ namespace Test.TestModule.UI
             foreach (var item in _insertItems)
             {
                 updateEvent.OnOnPlayerInventorySlotUpdateEvent(
-                    new OnPlayerInventorySlotUpdateProperties(
+                    new PlayerInventorySlotUpdateProperties(
                         item.Item1,new ItemStack(item.Item2,item.Item3)));
             }
 

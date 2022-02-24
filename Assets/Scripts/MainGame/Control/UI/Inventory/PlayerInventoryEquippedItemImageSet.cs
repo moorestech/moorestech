@@ -26,8 +26,8 @@ namespace MainGame.Control.UI.Inventory
         
 
         //equippedItemの更新を行うためにイベントを登録
-        private void PlayerInventoryUpdate(OnPlayerInventoryUpdateProperties properties) { }
-        private void PlayerInventorySlotUpdate(OnPlayerInventorySlotUpdateProperties properties)
+        private void PlayerInventoryUpdate(PlayerInventoryUpdateProperties properties) { }
+        private void PlayerInventorySlotUpdate(PlayerInventorySlotUpdateProperties properties)
         {
             if (properties.SlotId != _equippedItemIndex) return;
             MainThreadExecutionQueue.Instance.Insert(() => SetItem(properties.SlotId));

@@ -24,7 +24,7 @@ namespace MainGame.Network.Receive.EventPacket
             var count = bytes.MoveNextToGetInt();
             
             _playerInventoryUpdateEvent.OnOnPlayerInventorySlotUpdateEvent(
-                new OnPlayerInventorySlotUpdateProperties(
+                new PlayerInventorySlotUpdateProperties(
                     slot,new ItemStack(id,count)));
         }
     }
