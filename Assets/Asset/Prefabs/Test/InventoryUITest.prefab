@@ -48,6 +48,7 @@ GameObject:
   - component: {fileID: 7473477974037748790}
   - component: {fileID: 7380561452167060310}
   - component: {fileID: 6087842418355826647}
+  - component: {fileID: 7277322896807529162}
   m_Layer: 0
   m_Name: TestModule
   m_TagString: Untagged
@@ -155,6 +156,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d571893b75c434aa3690bec1ca4dc43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &7277322896807529162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7789463816143227919}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6779501bae5db4a8abfe051ea220d711, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  craftingSlotItemView: {fileID: 2602153183113864115}
+  itemImages: {fileID: 11400000, guid: f3f5e541a0fc649389c5ffefa1f0082a, type: 2}
 --- !u!1001 &7789463816664185484
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -272,6 +287,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2107544fb6a94656872abd8a095603b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2602153183113864115 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5189563605911181631, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 7789463816664185484}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8ee34fc3635465b80baa36bb708e8a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &3444686217624259995 stripped
