@@ -83,7 +83,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32c9240aaa4d494094366b708564c080, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerInventoryItemView: {fileID: 9199618560218924157}
+  mainInventoryItemView: {fileID: 9199618560218924157}
   hotBarItemView: {fileID: 7409163258840573101}
   itemImages: {fileID: 11400000, guid: f3f5e541a0fc649389c5ffefa1f0082a, type: 2}
 --- !u!114 &2407636907828000943
@@ -98,9 +98,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d86b8a45199148e9a1c17895c1c1dbfa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerInventoryInput: {fileID: 2570792829411170600}
+  mainInventoryInput: {fileID: 2570792829411170600}
   playerInventoryEquippedItemImageSet: {fileID: 1238669465589821741}
-  playerInventoryItem: {fileID: 9199618560218924157}
+  mainInventoryItem: {fileID: 9199618560218924157}
   blockInventoryItem: {fileID: 4539266823444687271}
 --- !u!114 &2081080828784532788
 MonoBehaviour:

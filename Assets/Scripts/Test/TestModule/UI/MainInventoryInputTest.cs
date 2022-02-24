@@ -12,27 +12,27 @@ using UnityEngine;
 
 namespace Test.TestModule.UI
 {
-    public class PlayerInventoryInputTest : MonoBehaviour
+    public class MainInventoryInputTest : MonoBehaviour
     {
-        [SerializeField] private PlayerInventoryInput playerInventoryInput;
+        [SerializeField] private MainInventoryInput mainInventoryInput;
         [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
 
-        [SerializeField] private PlayerInventoryItemView playerInventoryItem;
+        [SerializeField] private MainInventoryItemView mainInventoryItem;
         [SerializeField] private BlockInventoryItemView blockInventoryItem;
 
         private void Start()
         {
-            var playerInventory = GetComponent<InventoryViewTestModule>().PlayerInventoryDataCache;
-            var itemMove = new BlockInventoryPlayerInventoryItemMoveService(
+            var mainInventoryDataCache = GetComponent<InventoryViewTestModule>().MainInventoryDataCache;
+            var itemMove = new BlockInventoryMainInventoryItemMoveService(
                 new PlayerConnectionSetting(0),
                 new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItem),
-                playerInventory,
+                mainInventoryDataCache,
                 new SendBlockInventoryMoveItemProtocol(new TestSocketModule()),
-                new SendBlockInventoryPlayerInventoryMoveItemProtocol(new TestSocketModule()),
-                new SendPlayerInventoryMoveItemProtocol(new TestSocketModule()));
+                new SendBlockInventoryMainInventoryMoveItemProtocol(new TestSocketModule()),
+                new SendMainInventoryMoveItemProtocol(new TestSocketModule()));
             
-            playerInventoryEquippedItemImageSet.Construct(playerInventoryItem,new PlayerInventoryUpdateEvent());
-            playerInventoryInput.Construct(playerInventoryItem,itemMove,playerInventory,playerInventoryEquippedItemImageSet);
+            playerInventoryEquippedItemImageSet.Construct(mainInventoryItem,new MainInventoryUpdateEvent());
+            mainInventoryInput.Construct(mainInventoryItem,itemMove,mainInventoryDataCache,playerInventoryEquippedItemImageSet);
         }
     }
 }

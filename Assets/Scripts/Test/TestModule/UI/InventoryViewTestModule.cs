@@ -16,12 +16,12 @@ namespace Test.TestModule.UI
 {
     public class InventoryViewTestModule : MonoBehaviour
     {
-        [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
+        [SerializeField] private MainInventoryItemView mainInventoryItemView;
         [SerializeField] private HotBarItemView hotBarItemView;
         [SerializeField] private ItemImages itemImages;
 
-        public PlayerInventoryDataCache PlayerInventoryDataCache => _playerInventoryDataCache;
-        private PlayerInventoryDataCache _playerInventoryDataCache;
+        public MainInventoryDataCache MainInventoryDataCache => _mainInventoryDataCache;
+        private MainInventoryDataCache _mainInventoryDataCache;
         
         //slot id count
         private List<(int, int, int)> _insertItems;
@@ -29,9 +29,9 @@ namespace Test.TestModule.UI
         private void Awake()
         {
             hotBarItemView.Construct(itemImages);
-            playerInventoryItemView.Construct(itemImages);
-            var updateEvent = new PlayerInventoryUpdateEvent();
-            _playerInventoryDataCache = new PlayerInventoryDataCache(updateEvent,playerInventoryItemView,hotBarItemView);
+            mainInventoryItemView.Construct(itemImages);
+            var updateEvent = new MainInventoryUpdateEvent();
+            _mainInventoryDataCache = new MainInventoryDataCache(updateEvent,mainInventoryItemView,hotBarItemView);
 
             _insertItems = new List<(int,int,int)>();
 
@@ -45,8 +45,8 @@ namespace Test.TestModule.UI
             //イベントを発火
             foreach (var item in _insertItems)
             {
-                updateEvent.OnOnPlayerInventorySlotUpdateEvent(
-                    new PlayerInventorySlotUpdateProperties(
+                updateEvent.InvokeMainInventorySlotUpdate(
+                    new MainInventorySlotUpdateProperties(
                         item.Item1,new ItemStack(item.Item2,item.Item3)));
             }
 
@@ -57,7 +57,7 @@ namespace Test.TestModule.UI
         {
             yield return new WaitForSeconds(0.1f);
             //アイテムのUIの取得
-            var slots = playerInventoryItemView.GetInventoryItemSlots();
+            var slots = mainInventoryItemView.GetInventoryItemSlots();
 
             //チェック
             foreach (var item in _insertItems)

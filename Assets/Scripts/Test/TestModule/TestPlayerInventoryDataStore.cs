@@ -8,12 +8,12 @@ namespace Test.TestModule
     {
         public Dictionary<int,List<ItemStack>> playerInventory = new Dictionary<int, List<ItemStack>>();
 
-        public TestPlayerInventoryDataStore(IPlayerInventoryUpdateEvent playerInventory)
+        public TestPlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventory)
         {
-            playerInventory.Subscribe(OnPlayerInventoryUpdate,OnPlayerInventorySlotUpdate);
+            mainInventory.Subscribe(OnPlayerInventoryUpdate,OnPlayerInventorySlotUpdate);
         }
 
-        private void OnPlayerInventoryUpdate(PlayerInventoryUpdateProperties properties)
+        private void OnPlayerInventoryUpdate(MainInventoryUpdateProperties properties)
         {
             var playerId = properties.PlayerId;
             var items = properties.ItemStacks;
@@ -28,7 +28,7 @@ namespace Test.TestModule
             }
         }
 
-        private void OnPlayerInventorySlotUpdate(PlayerInventorySlotUpdateProperties properties)
+        private void OnPlayerInventorySlotUpdate(MainInventorySlotUpdateProperties properties)
         {
             var slot = properties.SlotId;
             var item = properties.ItemStack;

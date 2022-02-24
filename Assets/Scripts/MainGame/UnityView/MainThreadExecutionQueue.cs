@@ -13,7 +13,7 @@ namespace MainGame.UnityView
     {
         Queue<Action> _actionQueue;
 
-        private void Awake()
+        public void Awake()
         {
             _actionQueue = new Queue<Action>();
             _instance = this;
@@ -45,8 +45,14 @@ namespace MainGame.UnityView
             get
             {
                 if (_instance != null) return _instance;
-                throw new Exception("MainThreadExecutionQueueがアタッチされていません");
+                
+                _instance = FindObjectOfType<MainThreadExecutionQueue>();
+                if (_instance == null)
+                {
+                    throw new Exception("MainThreadExecutionQueueがアタッチされていません");
+                }
 
+                return _instance;
             }
         }
     }

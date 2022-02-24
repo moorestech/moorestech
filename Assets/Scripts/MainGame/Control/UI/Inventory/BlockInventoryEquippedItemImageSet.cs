@@ -18,19 +18,19 @@ namespace MainGame.Control.UI.Inventory
         
         
         [Inject]
-        public void Construct(BlockInventoryItemView playerInventoryItemView, IPlayerInventoryUpdateEvent playerInventoryUpdateEvent,
+        public void Construct(BlockInventoryItemView blockInventoryItemView, IMainInventoryUpdateEvent mainInventoryUpdateEvent,
             IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
         {
-            _blockInventoryItemView = playerInventoryItemView;
+            _blockInventoryItemView = blockInventoryItemView;
             _equippedItem = GetComponent<InventoryItemSlot>();
             
-            playerInventoryUpdateEvent.Subscribe(p=>{},PlayerInventorySlotUpdate);
+            mainInventoryUpdateEvent.Subscribe(p=>{},MainInventorySlotUpdate);
             blockInventoryUpdateEvent.Subscribe(BlockInventorySlotUpdate,p => {});
         }
         
 
         //プレイヤーインベントリが更新したときにequippedItemの更新を行うためにイベントを登録
-        private void PlayerInventorySlotUpdate(PlayerInventorySlotUpdateProperties properties)
+        private void MainInventorySlotUpdate(MainInventorySlotUpdateProperties properties)
         {
             if (properties.SlotId != _equippedItemIndex) return;
             SetItem(properties.SlotId);

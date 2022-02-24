@@ -40,8 +40,8 @@ namespace MainGame.Starter
 
         [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
         [SerializeField] private HotBarItemView hotBarItemView;
-        [SerializeField] private PlayerInventoryItemView playerInventoryItemView;
-        [SerializeField] private PlayerInventoryInput playerInventoryInput;
+        [SerializeField] private MainInventoryItemView mainInventoryItemView;
+        [SerializeField] private MainInventoryInput mainInventoryInput;
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
         [SerializeField] private BlockInventoryInput blockInventoryInput;
         [SerializeField] private BlockClickDetect blockClickDetect;
@@ -66,7 +66,7 @@ namespace MainGame.Starter
 
             //パケット受け取りイベント
             builder.Register<INetworkReceivedChunkDataEvent,NetworkReceivedChunkDataEvent>(Lifetime.Singleton);
-            builder.Register<IPlayerInventoryUpdateEvent,PlayerInventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<IMainInventoryUpdateEvent,MainInventoryUpdateEvent>(Lifetime.Singleton);
             builder.Register<ICraftingInventoryUpdateEvent,CraftingInventoryUpdateEvent>(Lifetime.Singleton);
             builder.Register<IBlockInventoryUpdateEvent,BlockInventoryUpdateEvent>(Lifetime.Singleton);
             
@@ -74,9 +74,9 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
             builder.Register<RequestPlayerInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockInventoryMoveItemProtocol>(Lifetime.Singleton);
-            builder.Register<SendBlockInventoryPlayerInventoryMoveItemProtocol>(Lifetime.Singleton);
+            builder.Register<SendBlockInventoryMainInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);
-            builder.Register<SendPlayerInventoryMoveItemProtocol>(Lifetime.Singleton);
+            builder.Register<SendMainInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
             builder.Register<RequestBlockInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendCommandProtocol>(Lifetime.Singleton);
@@ -84,9 +84,9 @@ namespace MainGame.Starter
             
             //データストア、ゲームロジック系
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
-            builder.Register<PlayerInventoryDataCache>(Lifetime.Singleton);
+            builder.Register<MainInventoryDataCache>(Lifetime.Singleton);
             builder.Register<BlockInventoryDataCache>(Lifetime.Singleton);
-            builder.Register<BlockInventoryPlayerInventoryItemMoveService>(Lifetime.Singleton);
+            builder.Register<BlockInventoryMainInventoryItemMoveService>(Lifetime.Singleton);
             
             
             //ScriptableObjectの登録
@@ -97,8 +97,8 @@ namespace MainGame.Starter
             builder.RegisterComponent(chunkBlockGameObjectDataStore);
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(groundPlane);
-            builder.RegisterComponent(playerInventoryItemView);
-            builder.RegisterComponent(playerInventoryInput);
+            builder.RegisterComponent(mainInventoryItemView);
+            builder.RegisterComponent(mainInventoryInput);
             builder.RegisterComponent(blockInventoryItemView);
             builder.RegisterComponent(blockInventoryInput);
             builder.RegisterComponent(mouseGroundClickInput);
@@ -119,8 +119,8 @@ namespace MainGame.Starter
             _resolver = builder.Build();
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();
             _resolver.Resolve<MouseGroundClickInput>();
-            _resolver.Resolve<PlayerInventoryItemView>();
-            _resolver.Resolve<PlayerInventoryInput>();
+            _resolver.Resolve<MainInventoryItemView>();
+            _resolver.Resolve<MainInventoryInput>();
             _resolver.Resolve<BlockInventoryItemView>();
             _resolver.Resolve<BlockInventoryInput>();
             _resolver.Resolve<CommandUIInput>();

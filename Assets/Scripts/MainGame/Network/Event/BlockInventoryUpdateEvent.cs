@@ -22,12 +22,12 @@ namespace MainGame.Network.Event
             OnSettingBlock += onSettingBlock;
         }
 
-        public void OnOnSettingBlock(List<ItemStack> items, string uiType, params short[] uiParams)
+        public void InvokeSettingBlock(List<ItemStack> items, string uiType, params short[] uiParams)
         {
             OnSettingBlock?.Invoke(new SettingBlockInventoryProperties(items, uiType, uiParams));
         }
 
-        public void OnOnBlockInventorySlotUpdate(Vector2Int pos, int slot, int id, int count)
+        public void InvokeBlockInventorySlotUpdate(Vector2Int pos, int slot, int id, int count)
         {
             OnBlockInventorySlotUpdate?.Invoke(new BlockInventorySlotUpdateProperties(pos, slot, id, count));
         }

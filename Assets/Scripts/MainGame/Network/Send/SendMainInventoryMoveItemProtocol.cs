@@ -3,12 +3,12 @@ using MainGame.Network.Util;
 
 namespace MainGame.Network.Send
 {
-    public class SendPlayerInventoryMoveItemProtocol
+    public class SendMainInventoryMoveItemProtocol
     {
         private const short ProtocolId = 6;
         private readonly ISocket _socket;
 
-        public SendPlayerInventoryMoveItemProtocol(ISocket socket)
+        public SendMainInventoryMoveItemProtocol(ISocket socket)
         {
             _socket = socket;
         }

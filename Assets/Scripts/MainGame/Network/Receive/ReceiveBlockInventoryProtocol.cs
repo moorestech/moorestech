@@ -32,7 +32,7 @@ namespace MainGame.Network.Receive
             var inputNum = bytes.MoveNextToGetShort();
             var outputNum = bytes.MoveNextToGetShort();
             
-            _blockInventoryUpdateEvent.OnOnSettingBlock(items,"",inputNum,outputNum);
+            _blockInventoryUpdateEvent.InvokeSettingBlock(items,"",inputNum,outputNum);
         }
     }
 }

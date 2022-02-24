@@ -15,7 +15,7 @@ namespace Test.EditModeTest.Network.Receive
         [Test]
         public void ReceivedPacketToPlayerInventoryTest()
         {
-            var inventoryEvent = new PlayerInventoryUpdateEvent();
+            var inventoryEvent = new MainInventoryUpdateEvent();
             var protocol = new ReceivePlayerInventoryProtocol(inventoryEvent);
             var inventoryDataStore = new TestPlayerInventoryDataStore(inventoryEvent);
 
@@ -60,7 +60,7 @@ namespace Test.EditModeTest.Network.Receive
         [Test]
         public void ReceivedPacketToPlayerInventoryViaAllReceivePacketAnalysisServiceTestTest()
         {
-            var inventoryEvent = new PlayerInventoryUpdateEvent();
+            var inventoryEvent = new MainInventoryUpdateEvent();
             var protocol = new AllReceivePacketAnalysisService(new NetworkReceivedChunkDataEvent(),inventoryEvent);
             var inventoryDataStore = new TestPlayerInventoryDataStore(inventoryEvent);
 

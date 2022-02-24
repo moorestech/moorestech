@@ -8,30 +8,30 @@ namespace MainGame.Control.UI.Inventory.ItemMove
     /// <summary>
     /// プレイヤーインベントリ、ブロックインベントリの間でアイテムを移動する際に使用するサービスクラス
     /// </summary>
-    public class BlockInventoryPlayerInventoryItemMoveService
+    public class BlockInventoryMainInventoryItemMoveService
     {
         private readonly int _playerId;
         
         private readonly BlockInventoryDataCache _blockInventoryDataCache;
-        private readonly PlayerInventoryDataCache _playerInventoryDataCache;
+        private readonly MainInventoryDataCache _mainInventoryDataCache;
         
         private readonly SendBlockInventoryMoveItemProtocol _blockInventoryMove;
-        private readonly SendBlockInventoryPlayerInventoryMoveItemProtocol _blockInventoryPlayerInventoryMove;
-        private readonly SendPlayerInventoryMoveItemProtocol _playerInventoryMove;
+        private readonly SendBlockInventoryMainInventoryMoveItemProtocol _blockInventoryMainInventoryMove;
+        private readonly SendMainInventoryMoveItemProtocol _mainInventoryMove;
 
-        public BlockInventoryPlayerInventoryItemMoveService(
+        public BlockInventoryMainInventoryItemMoveService(
             PlayerConnectionSetting setting, 
-            BlockInventoryDataCache blockInventoryDataCache, PlayerInventoryDataCache playerInventoryDataCache, 
+            BlockInventoryDataCache blockInventoryDataCache, MainInventoryDataCache mainInventoryDataCache, 
             SendBlockInventoryMoveItemProtocol blockInventoryMove, 
-            SendBlockInventoryPlayerInventoryMoveItemProtocol blockInventoryPlayerInventoryMove, 
-            SendPlayerInventoryMoveItemProtocol playerInventoryMove)
+            SendBlockInventoryMainInventoryMoveItemProtocol blockInventoryMainInventoryMove, 
+            SendMainInventoryMoveItemProtocol mainInventoryMove)
         {
             _playerId = setting.PlayerId;
             _blockInventoryDataCache = blockInventoryDataCache;
-            _playerInventoryDataCache = playerInventoryDataCache;
+            _mainInventoryDataCache = mainInventoryDataCache;
             _blockInventoryMove = blockInventoryMove;
-            _blockInventoryPlayerInventoryMove = blockInventoryPlayerInventoryMove;
-            _playerInventoryMove = playerInventoryMove;
+            _blockInventoryMainInventoryMove = blockInventoryMainInventoryMove;
+            _mainInventoryMove = mainInventoryMove;
         }
 
         private Vector2Int _blockPosition;
@@ -55,7 +55,7 @@ namespace MainGame.Control.UI.Inventory.ItemMove
         {
             if (isBlock) return _blockInventoryDataCache.GetItemStack(slot).Count;
             
-            return _playerInventoryDataCache.GetItemStack(slot).Count;
+            return _mainInventoryDataCache.GetItemStack(slot).Count;
         }
 
         private void SendItemMove(int fromSlot, bool fromIsBlock, int toSlot, bool toIsBlock, int itemCount)
@@ -70,12 +70,12 @@ namespace MainGame.Control.UI.Inventory.ItemMove
             //プレイヤーインベントリ内のアイテムの移動
             if (!fromIsBlock && !toIsBlock)
             {
-                _playerInventoryMove.Send(_playerId,fromSlot,toSlot,itemCount);
+                _mainInventoryMove.Send(_playerId,fromSlot,toSlot,itemCount);
                 return;
             }
             
             //プレイヤーインベントリとブロックインベントリのアイテムの移動
-            _blockInventoryPlayerInventoryMove.Send(_playerId,toIsBlock,_blockPosition,fromSlot,toSlot,itemCount);
+            _blockInventoryMainInventoryMove.Send(_playerId,toIsBlock,_blockPosition,fromSlot,toSlot,itemCount);
         }
     }
 }

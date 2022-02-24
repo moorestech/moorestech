@@ -8,26 +8,26 @@ using VContainer.Unity;
 
 namespace MainGame.Control.UI.Inventory
 {
-    public class PlayerInventoryInput : MonoBehaviour
+    public class MainInventoryInput : MonoBehaviour
     {
         
         private int _equippedItemIndex = -1;
         private MoorestechInputSettings _inputSettings;
         
-        private PlayerInventoryItemView _playerInventoryItemView;
-        private BlockInventoryPlayerInventoryItemMoveService _blockInventoryPlayerInventoryItemMoveService;
-        private PlayerInventoryDataCache _playerInventoryDataCache;
+        private MainInventoryItemView _mainInventoryItemView;
+        private BlockInventoryMainInventoryItemMoveService _blockInventoryMainInventoryItemMoveService;
+        private MainInventoryDataCache _mainInventoryDataCache;
         
         private PlayerInventoryEquippedItemImageSet _equippedItem;
 
         [Inject]
         public void Construct(
-            PlayerInventoryItemView playerInventoryItemView, BlockInventoryPlayerInventoryItemMoveService blockInventoryPlayerInventoryItemMoveService,
-            PlayerInventoryDataCache playerInventoryDataCache,PlayerInventoryEquippedItemImageSet equippedItem)
+            MainInventoryItemView mainInventoryItemView, BlockInventoryMainInventoryItemMoveService blockInventoryMainInventoryItemMoveService,
+            MainInventoryDataCache mainInventoryDataCache,PlayerInventoryEquippedItemImageSet equippedItem)
         {
-            _playerInventoryDataCache = playerInventoryDataCache;
-            _playerInventoryItemView = playerInventoryItemView;
-            _blockInventoryPlayerInventoryItemMoveService = blockInventoryPlayerInventoryItemMoveService;
+            _mainInventoryDataCache = mainInventoryDataCache;
+            _mainInventoryItemView = mainInventoryItemView;
+            _blockInventoryMainInventoryItemMoveService = blockInventoryMainInventoryItemMoveService;
             _equippedItem = equippedItem;
             
             _equippedItem.gameObject.SetActive(false);
@@ -36,7 +36,7 @@ namespace MainGame.Control.UI.Inventory
             
             
             //イベントをボタンに登録する
-            foreach (var slot in _playerInventoryItemView.GetInventoryItemSlots())
+            foreach (var slot in _mainInventoryItemView.GetInventoryItemSlots())
             {
                 slot.SubscribeOnItemSlotClick(OnSlotClick);
             }
@@ -48,7 +48,7 @@ namespace MainGame.Control.UI.Inventory
             if (_equippedItemIndex == -1)
             {
                 //スロットがからの時はそのまま処理を終了
-                var slotEmpty = _playerInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
+                var slotEmpty = _mainInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
                 if (slotEmpty)return;
 
                 _equippedItemIndex = slot;
@@ -60,19 +60,19 @@ namespace MainGame.Control.UI.Inventory
             //アイテムを半分だけおく
             if (_inputSettings.UI.InventoryItemHalve.inProgress)
             {
-                _blockInventoryPlayerInventoryItemMoveService.MoveHalfItemStack(_equippedItemIndex,false,slot,false);
+                _blockInventoryMainInventoryItemMoveService.MoveHalfItemStack(_equippedItemIndex,false,slot,false);
                 return;
             }
             
             //アイテムを一個だけおく
             if (_inputSettings.UI.InventoryItemOnePut.inProgress)
             {
-                _blockInventoryPlayerInventoryItemMoveService.MoveOneItemStack(_equippedItemIndex,false,slot,false);
+                _blockInventoryMainInventoryItemMoveService.MoveOneItemStack(_equippedItemIndex,false,slot,false);
                 return;
             }
             
             //アイテムを全部おく
-            _blockInventoryPlayerInventoryItemMoveService.MoveAllItemStack(_equippedItemIndex,false,slot,false);
+            _blockInventoryMainInventoryItemMoveService.MoveAllItemStack(_equippedItemIndex,false,slot,false);
             _equippedItemIndex = -1;
             _equippedItem.gameObject.SetActive(false);
         }

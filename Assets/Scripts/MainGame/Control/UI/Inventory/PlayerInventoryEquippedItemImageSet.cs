@@ -14,20 +14,20 @@ namespace MainGame.Control.UI.Inventory
         private InventoryItemSlot _equippedItem;
         private int _equippedItemIndex = 0;
         
-        private PlayerInventoryItemView _playerInventoryItemView;
+        private MainInventoryItemView _mainInventoryItemView;
         
         [Inject]
-        public void Construct(PlayerInventoryItemView playerInventoryItemView, IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+        public void Construct(MainInventoryItemView mainInventoryItemView, IMainInventoryUpdateEvent mainInventoryUpdateEvent)
         {
-            _playerInventoryItemView = playerInventoryItemView;
+            _mainInventoryItemView = mainInventoryItemView;
             _equippedItem = GetComponent<InventoryItemSlot>();
-            playerInventoryUpdateEvent.Subscribe(PlayerInventoryUpdate,PlayerInventorySlotUpdate);
+            mainInventoryUpdateEvent.Subscribe(MainInventoryUpdate,MainInventorySlotUpdate);
         }
         
 
         //equippedItemの更新を行うためにイベントを登録
-        private void PlayerInventoryUpdate(PlayerInventoryUpdateProperties properties) { }
-        private void PlayerInventorySlotUpdate(PlayerInventorySlotUpdateProperties properties)
+        private void MainInventoryUpdate(MainInventoryUpdateProperties properties) { }
+        private void MainInventorySlotUpdate(MainInventorySlotUpdateProperties properties)
         {
             if (properties.SlotId != _equippedItemIndex) return;
             MainThreadExecutionQueue.Instance.Insert(() => SetItem(properties.SlotId));
@@ -42,7 +42,7 @@ namespace MainGame.Control.UI.Inventory
 
         private void SetItem(int slot)
         {
-            var fromItem = _playerInventoryItemView.GetInventoryItemSlots()[slot];
+            var fromItem = _mainInventoryItemView.GetInventoryItemSlots()[slot];
             _equippedItem.CopyItem(fromItem);
         }
     }

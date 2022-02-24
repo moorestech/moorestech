@@ -1,59 +1,59 @@
 using System.Collections.Generic;
 using MainGame.Basic;
-using static MainGame.Network.Event.IPlayerInventoryUpdateEvent;
+using static MainGame.Network.Event.IMainInventoryUpdateEvent;
 
 namespace MainGame.Network.Event
 {
-    public interface IPlayerInventoryUpdateEvent
+    public interface IMainInventoryUpdateEvent
     {
-        public delegate void PlayerInventoryUpdate(PlayerInventoryUpdateProperties properties);
-        public delegate void PlayerInventorySlotUpdate(PlayerInventorySlotUpdateProperties properties);
+        public delegate void MainInventoryUpdate(MainInventoryUpdateProperties properties);
+        public delegate void MainInventorySlotUpdate(MainInventorySlotUpdateProperties properties);
 
-        public void Subscribe(PlayerInventoryUpdate onPlayerInventoryUpdate, PlayerInventorySlotUpdate onPlayerInventorySlotUpdate);
+        public void Subscribe(MainInventoryUpdate onMainInventoryUpdate, MainInventorySlotUpdate onMainInventorySlotUpdate);
     }
-    public class PlayerInventoryUpdateEvent : IPlayerInventoryUpdateEvent
+    public class MainInventoryUpdateEvent : IMainInventoryUpdateEvent
     {
-        private event PlayerInventoryUpdate OnPlayerInventoryUpdateEvent;
-        private event PlayerInventorySlotUpdate OnPlayerInventorySlotUpdateEvent;
-        public void Subscribe(PlayerInventoryUpdate onPlayerInventoryUpdate, PlayerInventorySlotUpdate onPlayerInventorySlotUpdate)
+        private event MainInventoryUpdate OnMainInventoryUpdateEvent;
+        private event MainInventorySlotUpdate OnMainInventorySlotUpdateEvent;
+        public void Subscribe(MainInventoryUpdate onMainInventoryUpdate, MainInventorySlotUpdate onMainInventorySlotUpdate)
         {
-            OnPlayerInventoryUpdateEvent += onPlayerInventoryUpdate;
-            OnPlayerInventorySlotUpdateEvent += onPlayerInventorySlotUpdate;
+            OnMainInventoryUpdateEvent += onMainInventoryUpdate;
+            OnMainInventorySlotUpdateEvent += onMainInventorySlotUpdate;
         }
 
-        public void OnOnPlayerInventoryUpdateEvent(
-            PlayerInventoryUpdateProperties properties)
+        public void InvokeMainInventoryUpdate(
+            MainInventoryUpdateProperties properties)
         {
-            OnPlayerInventoryUpdateEvent?.Invoke(properties);
+            OnMainInventoryUpdateEvent?.Invoke(properties);
         }
 
-        public void OnOnPlayerInventorySlotUpdateEvent(
-            PlayerInventorySlotUpdateProperties properties)
+        public void InvokeMainInventorySlotUpdate(
+            MainInventorySlotUpdateProperties properties)
         {
-            OnPlayerInventorySlotUpdateEvent?.Invoke(properties);
+            OnMainInventorySlotUpdateEvent?.Invoke(properties);
         }
     }
     
     
 
-    public class PlayerInventoryUpdateProperties
+    public class MainInventoryUpdateProperties
     {
         public readonly int PlayerId;
         public readonly List<ItemStack> ItemStacks;
 
-        public PlayerInventoryUpdateProperties(int playerId, List<ItemStack> itemStacks)
+        public MainInventoryUpdateProperties(int playerId, List<ItemStack> itemStacks)
         {
             PlayerId = playerId;
             ItemStacks = itemStacks;
         }
     }
 
-    public class PlayerInventorySlotUpdateProperties
+    public class MainInventorySlotUpdateProperties
     {
         public readonly int SlotId;
         public readonly ItemStack ItemStack;
 
-        public PlayerInventorySlotUpdateProperties(int slotId, ItemStack itemStack)
+        public MainInventorySlotUpdateProperties(int slotId, ItemStack itemStack)
         {
             SlotId = slotId;
             ItemStack = itemStack;

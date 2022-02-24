@@ -16,7 +16,7 @@ namespace Test.EditModeTest.Network.Send
         public void SendTest()
         {
             var socket = new TestSocketModule();
-            var protocol = new SendBlockInventoryPlayerInventoryMoveItemProtocol(socket);
+            var protocol = new SendBlockInventoryMainInventoryMoveItemProtocol(socket);
             bool toBlock = true;
             int playerId = 10;
             int playerInventorySlot = 3;

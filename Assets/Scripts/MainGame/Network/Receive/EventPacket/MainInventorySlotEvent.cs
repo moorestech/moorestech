@@ -5,13 +5,13 @@ using MainGame.Network.Util;
 
 namespace MainGame.Network.Receive.EventPacket
 {
-    public class PlayerInventorySlotEvent : IAnalysisEventPacket
+    public class MainInventorySlotEvent : IAnalysisEventPacket
     {
-        private PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
+        private MainInventoryUpdateEvent _mainInventoryUpdateEvent;
 
-        public PlayerInventorySlotEvent(IPlayerInventoryUpdateEvent playerInventorySlotEvent)
+        public MainInventorySlotEvent(IMainInventoryUpdateEvent mainInventorySlotEvent)
         {
-            _playerInventoryUpdateEvent = playerInventorySlotEvent as PlayerInventoryUpdateEvent;
+            _mainInventoryUpdateEvent = mainInventorySlotEvent as MainInventoryUpdateEvent;
         }
 
         public void Analysis(List<byte> packet)
@@ -23,8 +23,8 @@ namespace MainGame.Network.Receive.EventPacket
             var id = bytes.MoveNextToGetInt();
             var count = bytes.MoveNextToGetInt();
             
-            _playerInventoryUpdateEvent.OnOnPlayerInventorySlotUpdateEvent(
-                new PlayerInventorySlotUpdateProperties(
+            _mainInventoryUpdateEvent.InvokeMainInventorySlotUpdate(
+                new MainInventorySlotUpdateProperties(
                     slot,new ItemStack(id,count)));
         }
     }

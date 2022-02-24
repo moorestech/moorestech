@@ -11,12 +11,12 @@ namespace MainGame.Network.Receive
     public class ReceivePlayerInventoryProtocol : IAnalysisPacket
     {
         public ReceivePlayerInventoryProtocol(
-            IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+            IMainInventoryUpdateEvent mainInventoryUpdateEvent)
         {
-            _playerInventoryUpdateEvent = playerInventoryUpdateEvent as PlayerInventoryUpdateEvent;
+            _mainInventoryUpdateEvent = mainInventoryUpdateEvent as MainInventoryUpdateEvent;
         }
 
-        private readonly PlayerInventoryUpdateEvent _playerInventoryUpdateEvent;
+        private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
 
         public void Analysis(List<byte> data)
         {
@@ -35,8 +35,8 @@ namespace MainGame.Network.Receive
                 mainItems.Add(new ItemStack(id, count));
             }
             
-            _playerInventoryUpdateEvent.OnOnPlayerInventoryUpdateEvent(
-                new PlayerInventoryUpdateProperties(
+            _mainInventoryUpdateEvent.InvokeMainInventoryUpdate(
+                new MainInventoryUpdateProperties(
                     playerId,
                     mainItems));
         }

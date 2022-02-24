@@ -17,12 +17,11 @@ namespace MainGame.UnityView.UI.Inventory.View
         [SerializeField] private RectTransform outputItems;
 
         [SerializeField] private InventoryItemSlot inventoryItemSlot;
-        private readonly List<InventoryItemSlot> _playerInventorySlots = new();
+        private readonly List<InventoryItemSlot> _mainInventorySlots = new();
         private readonly List<InventoryItemSlot> _inputInventorySlots = new();
         private readonly List<InventoryItemSlot> _outputInventorySlots = new();
         private ItemImages _itemImages;
-        private int inputSlotCount;
-        private int outputSlotCount;
+        private int _inputSlotCount;
         
         [Inject]
         public void Construct(ItemImages itemImages)
@@ -35,7 +34,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             {
                 var s = Instantiate(inventoryItemSlot.gameObject, transform).GetComponent<InventoryItemSlot>();
                 s.Construct(i);
-                _playerInventorySlots.Add(s);
+                _mainInventorySlots.Add(s);
             }
 
             //ブロックインベントリの表示
@@ -63,8 +62,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             var input = param[0];
             var output = param[1];
             
-            inputSlotCount = input;
-            outputSlotCount = output;
+            _inputSlotCount = input;
             //全て非表示
             _inputInventorySlots.ForEach(i => i.gameObject.SetActive(false));
             _outputInventorySlots.ForEach(i => i.gameObject.SetActive(false));
@@ -87,13 +85,13 @@ namespace MainGame.UnityView.UI.Inventory.View
         public void BlockInventoryUpdate(int slot, int itemId, int count)
         {
             var sprite = _itemImages.GetItemImage(itemId);
-            if (slot < inputSlotCount)
+            if (slot < _inputSlotCount)
             {
                 _inputInventorySlots[slot].SetItem(sprite,count);
             }
             else
             {
-                _outputInventorySlots[slot - inputSlotCount].SetItem(sprite,count);
+                _outputInventorySlots[slot - _inputSlotCount].SetItem(sprite,count);
             }
         }
         
@@ -101,7 +99,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         public IReadOnlyList<InventoryItemSlot> GetAllInventoryItemSlots()
         {
             var merged = new List<InventoryItemSlot>();
-            merged.AddRange(_playerInventorySlots);
+            merged.AddRange(_mainInventorySlots);
             merged.AddRange(_inputInventorySlots);
             merged.AddRange(_outputInventorySlots);
             return merged;
@@ -111,15 +109,15 @@ namespace MainGame.UnityView.UI.Inventory.View
         {
             if (index < PlayerInventoryConstant.MainInventorySize)
             {
-                return _playerInventorySlots[index];
+                return _mainInventorySlots[index];
             }
             
-            if (index < PlayerInventoryConstant.MainInventorySize + inputSlotCount)
+            if (index < PlayerInventoryConstant.MainInventorySize + _inputSlotCount)
             {
                 return _inputInventorySlots[index];
             }
 
-            return _outputInventorySlots[index - inputSlotCount];
+            return _outputInventorySlots[index - _inputSlotCount];
         }
     }
 }

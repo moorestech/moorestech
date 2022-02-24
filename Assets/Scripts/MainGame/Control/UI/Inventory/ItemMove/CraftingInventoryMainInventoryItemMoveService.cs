@@ -8,6 +8,6 @@ namespace MainGame.Control.UI.Inventory.ItemMove
     public class CraftingInventoryMainInventoryItemMoveService
     {
         
-        private readonly PlayerInventoryDataCache _playerInventoryDataCache;
+        private readonly MainInventoryDataCache _mainInventoryDataCache;
     }
 }

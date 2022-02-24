@@ -12,7 +12,7 @@ namespace MainGame.Control.UI.Inventory
     {
         private int _equippedItemIndex = -1;
         private BlockInventoryItemView _blockInventoryItemView;
-        private BlockInventoryPlayerInventoryItemMoveService _blockInventoryPlayerInventoryItemMoveService;
+        private BlockInventoryMainInventoryItemMoveService _blockInventoryMainInventoryItemMoveService;
         private BlockInventoryDataCache _blockInventoryDataCache;
         private BlockInventoryEquippedItemImageSet _blockInventoryEquippedItemImageSet;
         
@@ -23,12 +23,12 @@ namespace MainGame.Control.UI.Inventory
         [Inject]
         public void Construct(
             BlockInventoryItemView blockInventoryItemView,
-            BlockInventoryPlayerInventoryItemMoveService blockInventoryPlayerInventoryItemMoveService,
+            BlockInventoryMainInventoryItemMoveService blockInventoryMainInventoryItemMoveService,
             BlockInventoryDataCache blockInventoryDataCache,
             BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet)
         {
             _blockInventoryItemView = blockInventoryItemView;
-            _blockInventoryPlayerInventoryItemMoveService = blockInventoryPlayerInventoryItemMoveService;
+            _blockInventoryMainInventoryItemMoveService = blockInventoryMainInventoryItemMoveService;
             _blockInventoryDataCache = blockInventoryDataCache;
             _blockInventoryEquippedItemImageSet = blockInventoryEquippedItemImageSet;
             
@@ -85,19 +85,19 @@ namespace MainGame.Control.UI.Inventory
             //アイテムを半分だけおく
             if (_inputSettings.UI.InventoryItemHalve.inProgress)
             {
-               _blockInventoryPlayerInventoryItemMoveService.MoveHalfItemStack(fromSlot,fromIsBlock,toSlot,toIsBlock);
+               _blockInventoryMainInventoryItemMoveService.MoveHalfItemStack(fromSlot,fromIsBlock,toSlot,toIsBlock);
                 return;
             }
             
             //アイテムを一個だけおく
             if (_inputSettings.UI.InventoryItemOnePut.inProgress)
             {
-                _blockInventoryPlayerInventoryItemMoveService.MoveOneItemStack(fromSlot,fromIsBlock,toSlot,toIsBlock);
+                _blockInventoryMainInventoryItemMoveService.MoveOneItemStack(fromSlot,fromIsBlock,toSlot,toIsBlock);
                 return;
             }
             
             //アイテムを全部おく
-            _blockInventoryPlayerInventoryItemMoveService.MoveAllItemStack(fromSlot,fromIsBlock,toSlot,toIsBlock);
+            _blockInventoryMainInventoryItemMoveService.MoveAllItemStack(fromSlot,fromIsBlock,toSlot,toIsBlock);
             _equippedItemIndex = -1;
             _blockInventoryEquippedItemImageSet.gameObject.SetActive(false);
         }

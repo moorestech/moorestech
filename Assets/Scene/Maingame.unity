@@ -729,8 +729,8 @@ MonoBehaviour:
   groundPlane: {fileID: 367739784}
   chunkBlockGameObjectDataStore: {fileID: 5365914811176455016, guid: eb9da167e98584171895e4493b9fe661, type: 3}
   hotBarItemView: {fileID: 932310750}
-  playerInventoryItemView: {fileID: 135985975}
-  playerInventoryInput: {fileID: 937343861}
+  mainInventoryItemView: {fileID: 135985975}
+  mainInventoryInput: {fileID: 937343861}
   blockInventoryItemView: {fileID: 135985976}
   blockInventoryInput: {fileID: 135985973}
   blockClickDetect: {fileID: 1684657582}

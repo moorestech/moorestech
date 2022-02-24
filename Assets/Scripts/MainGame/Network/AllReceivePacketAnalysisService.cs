@@ -15,13 +15,13 @@ namespace MainGame.Network
         
         public AllReceivePacketAnalysisService(
             INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,
-            IPlayerInventoryUpdateEvent playerInventoryUpdateEvent)
+            IMainInventoryUpdateEvent mainInventoryUpdateEvent)
         {
             _analysisPacketList.Add(new DummyProtocol());
             _analysisPacketList.Add(new ReceiveChunkDataProtocol(networkReceivedChunkDataEvent));
             _analysisPacketList.Add(new DummyProtocol());//TODO 将来的に他プレイヤー座標のパケットが入る
-            _analysisPacketList.Add(new ReceiveEventProtocol(networkReceivedChunkDataEvent,playerInventoryUpdateEvent));
-            _analysisPacketList.Add(new ReceivePlayerInventoryProtocol(playerInventoryUpdateEvent));
+            _analysisPacketList.Add(new ReceiveEventProtocol(networkReceivedChunkDataEvent,mainInventoryUpdateEvent));
+            _analysisPacketList.Add(new ReceivePlayerInventoryProtocol(mainInventoryUpdateEvent));
             _analysisPacketList.Add(new DummyProtocol()); //TODO 地面のマップデータのパケットが入る
             
         }

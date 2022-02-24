@@ -13,7 +13,7 @@ namespace Test.EditModeTest.Network.Receive
         [Test]
         public void UpdatePlayerInventorySlotToDataStoreTest()
         {
-            var playerInventoryEvent = new PlayerInventoryUpdateEvent();
+            var playerInventoryEvent = new MainInventoryUpdateEvent();
             var inventoryDatastore = new TestPlayerInventoryDataStore(playerInventoryEvent);
             var analysis = new AllReceivePacketAnalysisService(new NetworkReceivedChunkDataEvent(),playerInventoryEvent);
             

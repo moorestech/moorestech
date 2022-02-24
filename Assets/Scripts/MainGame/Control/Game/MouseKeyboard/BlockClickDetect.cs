@@ -12,13 +12,13 @@ namespace MainGame.Control.Game.MouseKeyboard
         private Camera _mainCamera;
         private MoorestechInputSettings _input;
         private RequestBlockInventoryProtocol _requestBlockInventoryProtocol;
-        private BlockInventoryPlayerInventoryItemMoveService _blockInventoryPlayerInventoryItemMoveService;
+        private BlockInventoryMainInventoryItemMoveService _blockInventoryMainInventoryItemMoveService;
         
         [Inject]
         public void Construct(Camera mainCamera,RequestBlockInventoryProtocol requestBlockInventoryProtocol,
-            BlockInventoryPlayerInventoryItemMoveService blockInventoryPlayerInventoryItemMoveService)
+            BlockInventoryMainInventoryItemMoveService blockInventoryMainInventoryItemMoveService)
         {
-            _blockInventoryPlayerInventoryItemMoveService = blockInventoryPlayerInventoryItemMoveService;
+            _blockInventoryMainInventoryItemMoveService = blockInventoryMainInventoryItemMoveService;
             _requestBlockInventoryProtocol = requestBlockInventoryProtocol;
             _mainCamera = mainCamera;
             _input = new MoorestechInputSettings();
@@ -41,7 +41,7 @@ namespace MainGame.Control.Game.MouseKeyboard
             //実際にインベントリのパケットを取得できてからUIを開くため、実際の開く処理はNetworkアセンブリで行う
             //ここで呼び出す処理が多くなった場合イベントを使うことを検討する
             _requestBlockInventoryProtocol.Send(x,y);
-            _blockInventoryPlayerInventoryItemMoveService.SetBlockPosition(x,y);
+            _blockInventoryMainInventoryItemMoveService.SetBlockPosition(x,y);
                 
             
             return true;

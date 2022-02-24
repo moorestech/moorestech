@@ -4,12 +4,12 @@ using UnityEngine;
 
 namespace MainGame.Network.Send
 {
-    public class SendBlockInventoryPlayerInventoryMoveItemProtocol
+    public class SendBlockInventoryMainInventoryMoveItemProtocol
     {
         private const short ProtocolId = 5;
         private readonly ISocket _socket;
 
-        public SendBlockInventoryPlayerInventoryMoveItemProtocol(ISocket socket)
+        public SendBlockInventoryMainInventoryMoveItemProtocol(ISocket socket)
         {
             _socket = socket;
         }
