@@ -14,19 +14,19 @@ namespace MainGame.Control.UI.Inventory
         private MoorestechInputSettings _inputSettings;
         
         private PlayerInventoryItemView _playerInventoryItemView;
-        private InventoryItemMoveService _inventoryItemMoveService;
+        private BlockInventoryPlayerInventoryItemMoveService _blockInventoryPlayerInventoryItemMoveService;
         private PlayerInventoryDataCache _playerInventoryDataCache;
         
         private PlayerInventoryEquippedItemImageSet _equippedItem;
 
         [Inject]
         public void Construct(
-            PlayerInventoryItemView playerInventoryItemView, InventoryItemMoveService inventoryItemMoveService,
+            PlayerInventoryItemView playerInventoryItemView, BlockInventoryPlayerInventoryItemMoveService blockInventoryPlayerInventoryItemMoveService,
             PlayerInventoryDataCache playerInventoryDataCache,PlayerInventoryEquippedItemImageSet equippedItem)
         {
             _playerInventoryDataCache = playerInventoryDataCache;
             _playerInventoryItemView = playerInventoryItemView;
-            _inventoryItemMoveService = inventoryItemMoveService;
+            _blockInventoryPlayerInventoryItemMoveService = blockInventoryPlayerInventoryItemMoveService;
             _equippedItem = equippedItem;
             
             _equippedItem.gameObject.SetActive(false);
@@ -59,19 +59,19 @@ namespace MainGame.Control.UI.Inventory
             //アイテムを半分だけおく
             if (_inputSettings.UI.InventoryItemHalve.inProgress)
             {
-                _inventoryItemMoveService.MoveHalfItemStack(_equippedItemIndex,false,slot,false);
+                _blockInventoryPlayerInventoryItemMoveService.MoveHalfItemStack(_equippedItemIndex,false,slot,false);
                 return;
             }
             
             //アイテムを一個だけおく
             if (_inputSettings.UI.InventoryItemOnePut.inProgress)
             {
-                _inventoryItemMoveService.MoveOneItemStack(_equippedItemIndex,false,slot,false);
+                _blockInventoryPlayerInventoryItemMoveService.MoveOneItemStack(_equippedItemIndex,false,slot,false);
                 return;
             }
             
             //アイテムを全部おく
-            _inventoryItemMoveService.MoveAllItemStack(_equippedItemIndex,false,slot,false);
+            _blockInventoryPlayerInventoryItemMoveService.MoveAllItemStack(_equippedItemIndex,false,slot,false);
             _equippedItemIndex = -1;
             _equippedItem.gameObject.SetActive(false);
         }

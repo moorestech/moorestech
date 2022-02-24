@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MainGame.Control.UI.Inventory
 {
-    public class InventoryItemMoveService
+    public class BlockInventoryPlayerInventoryItemMoveService
     {
         private readonly int _playerId;
         
@@ -17,7 +17,7 @@ namespace MainGame.Control.UI.Inventory
         private readonly SendBlockInventoryPlayerInventoryMoveItemProtocol _blockInventoryPlayerInventoryMove;
         private readonly SendPlayerInventoryMoveItemProtocol _playerInventoryMove;
 
-        public InventoryItemMoveService(
+        public BlockInventoryPlayerInventoryItemMoveService(
             PlayerConnectionSetting setting, 
             BlockInventoryDataCache blockInventoryDataCache, PlayerInventoryDataCache playerInventoryDataCache, 
             SendBlockInventoryMoveItemProtocol blockInventoryMove, 

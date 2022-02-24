@@ -25,7 +25,7 @@ namespace Test.TestModule.UI
             blockInventoryItemView.Construct(itemImages);
             var blockInventory = new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItemView);
             var playerInventoryItemView = new GameObject().AddComponent<PlayerInventoryItemView>();
-            var itemMove = new InventoryItemMoveService(
+            var itemMove = new BlockInventoryPlayerInventoryItemMoveService(
                 new PlayerConnectionSetting(0),
                 blockInventory,
                 GetComponent<InventoryViewTestModule>().PlayerInventoryDataCache,

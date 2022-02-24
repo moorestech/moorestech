@@ -22,7 +22,7 @@ namespace Test.TestModule.UI
         private void Start()
         {
             var playerInventory = GetComponent<InventoryViewTestModule>().PlayerInventoryDataCache;
-            var itemMove = new InventoryItemMoveService(
+            var itemMove = new BlockInventoryPlayerInventoryItemMoveService(
                 new PlayerConnectionSetting(0),
                 new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItem),
                 playerInventory,

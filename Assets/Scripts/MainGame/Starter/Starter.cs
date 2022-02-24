@@ -84,7 +84,7 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
             builder.Register<PlayerInventoryDataCache>(Lifetime.Singleton);
             builder.Register<BlockInventoryDataCache>(Lifetime.Singleton);
-            builder.Register<InventoryItemMoveService>(Lifetime.Singleton);
+            builder.Register<BlockInventoryPlayerInventoryItemMoveService>(Lifetime.Singleton);
             
             
             //ScriptableObjectの登録
