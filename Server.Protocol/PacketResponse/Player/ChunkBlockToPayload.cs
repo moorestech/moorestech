@@ -27,7 +27,6 @@ namespace Server.Protocol.PacketResponse.Player
                     SetBlockId(payload, blockId);
                 }
             }
-            //TODO マップタイルのテスト
             //マップタイルのIDの追加
             var mapTIleIds = CoordinateToChunkBlockIntArray.GetMapIdsInChunk(chunkCoordinate, worldMapTile);
             for (int i = 0; i < mapTIleIds.GetLength(0); i++)

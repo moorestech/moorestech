@@ -2,13 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Block.BlockFactory;
+using Core.Block.Blocks;
 using Core.Block.Blocks.Machine;
 using Core.Block.Event;
 using Core.Block.RecipeConfig;
 using Core.Const;
 using Core.Item;
 using Core.Item.Config;
+using Core.Ore;
 using Game.World.Interface.DataStore;
+using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
@@ -80,14 +83,15 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
 
             var random = new Random(13944156);
             //ブロックの設置
-            var b = CreateMachine(5);
+            var b = blockFactory.Create(5,1);
             worldBlock.AddBlock(b, 0, 0, BlockDirection.North);
 
-            var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0))
-                .Select(PayloadToBlock).ToList();
+            var bytes = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0));
+            var response = bytes.Select(PayloadToBlock).ToList();
 
             Assert.AreEqual(25, response.Count());
             var ans = new List<Coordinate>();
@@ -122,19 +126,20 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
 
             var random = new Random(13944156);
             //ブロックの設置
             for (int i = 0; i < 1000; i++)
             {
-                VanillaMachine b = null;
+                IBlock b = null;
                 if (random.Next(0, 3) == 1)
                 {
-                    b = CreateMachine(random.Next(short.MaxValue, int.MaxValue));
+                    b = blockFactory.Create(random.Next(short.MaxValue, int.MaxValue),EntityId.NewEntityId());
                 }
                 else
                 {
-                    b = CreateMachine(random.Next(0, 500));
+                    b = blockFactory.Create(random.Next(0, 500),EntityId.NewEntityId());
                 }
 
                 worldBlock.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300), BlockDirection.North);
@@ -170,19 +175,48 @@ namespace Test.CombinedTest.Server.PacketTest
             }
         }
 
-        private BlockFactory _blockFactory;
-
-        private VanillaMachine CreateMachine(int id)
+        //マップタイルの返信が正しいかチェックする
+        [Test, Order(4)]
+        public void TileMapResponseTest()
         {
-            if (_blockFactory == null)
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var veinGenerator = serviceProvider.GetService<VeinGenerator>();
+            var worldMapTile = serviceProvider.GetService<WorldMapTile>();
+            
+            var veinCoordinate = new Coordinate(0, 0);
+            
+            //10000*10000 ブロックの中から鉱石があるチャンクを探す
+            for (int i = 0; i < 1000; i++)
             {
-                var itemStackFactory = new ItemStackFactory(new TestItemConfig());
-                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory), itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
+                for (int j = 0; j < 1000; j++)
+                {
+                    var id = veinGenerator.GetOreId(i, j);
+                    if (OreConst.NoneOreId == id) continue;
+                    veinCoordinate = new Coordinate(i, j);
+                }
             }
-
-            var machine = _blockFactory.Create(id, EntityId.NewEntityId()) as VanillaMachine;
-            return machine;
+            
+            //鉱石がある座標のチャンクを取得
+            var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(25, veinCoordinate.X, veinCoordinate.Y))
+                .Select(PayloadToBlock).ToList();
+            
+            
+            //正しく鉱石IDが帰ってきているかチェックする
+            foreach (var r in response)
+            {
+                var x = r.Coordinate.X;
+                var y = r.Coordinate.Y;
+                for (int i = 0; i < ChunkResponseConst.ChunkSize; i++)
+                {
+                    for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
+                    {
+                        //マップタイルと実際の返信を検証する
+                        Assert.AreEqual(
+                            worldMapTile.GetMapTile(i + x,j + y), 
+                            r.MapTiles[i, j]);
+                    }
+                }
+            }
         }
 
         List<byte> PlayerCoordinatePayload(int playerId, float x, float y)
@@ -201,54 +235,74 @@ namespace Test.CombinedTest.Server.PacketTest
             bit.MoveNextToShort();
             var x = bit.MoveNextToInt();
             var y = bit.MoveNextToInt();
+            
+            
             var blocks = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
             for (int i = 0; i < ChunkResponseConst.ChunkSize; i++)
             {
                 for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
                 {
-                    //空気ブロックか否か
+                    blocks[i, j] = GetBitEnumerator(bit);
+                }
+            }
+            
+            
+            var mapTiles = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
+            for (int i = 0; i < ChunkResponseConst.ChunkSize; i++)
+            {
+                for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
+                {
+                    mapTiles[i, j] = GetBitEnumerator(bit);
+                }
+            }
+            
+
+            return new ChunkData(new Coordinate(x, y),blocks,mapTiles);
+        }
+
+        private int GetBitEnumerator(BitListEnumerator bit)
+        {
+            //空気ブロックか否か
+            if (bit.MoveNextToBit())
+            {
+                //ブロックIDの取得
+                //intか否か
+                if (bit.MoveNextToBit())
+                {
+                    bit.MoveNextToBit();
+                    return bit.MoveNextToInt();
+                }
+                else
+                {
+                    //shortかbyteか
                     if (bit.MoveNextToBit())
                     {
-                        //ブロックIDの取得
-                        //intか否か
-                        if (bit.MoveNextToBit())
-                        {
-                            bit.MoveNextToBit();
-                            blocks[i, j] = bit.MoveNextToInt();
-                        }
-                        else
-                        {
-                            //shortかbyteか
-                            if (bit.MoveNextToBit())
-                            {
-                                blocks[i, j] = bit.MoveNextToShort();
-                            }
-                            else
-                            {
-                                blocks[i, j] = bit.MoveNextToByte();
-                            }
-                        }
+                        return bit.MoveNextToShort();
                     }
                     else
                     {
-                        //空気ブロック
-                        blocks[i, j] = BlockConst.EmptyBlockId;
+                        return bit.MoveNextToByte();
                     }
                 }
             }
-
-            return new ChunkData(blocks, new Coordinate(x, y));
+            else
+            {
+                //空気ブロック
+                return BlockConst.EmptyBlockId;
+            }
         }
 
         private class ChunkData
         {
             public readonly int[,] Blocks;
+            public readonly int[,] MapTiles;
             public readonly Coordinate Coordinate;
 
-            public ChunkData(int[,] blocks, Coordinate coordinate)
+            public ChunkData(Coordinate coordinate, int[,] blocks,int[,] mapTiles)
             {
-                this.Blocks = blocks;
+                Blocks = blocks;
                 Coordinate = coordinate;
+                MapTiles = mapTiles;
             }
         }
     }
