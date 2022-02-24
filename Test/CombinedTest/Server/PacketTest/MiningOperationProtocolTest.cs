@@ -64,9 +64,6 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(oreItemId, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);
 
-            //ストップウォッチ（一時退避中）
-            //System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            
             
             //パケット
            List<byte> MiningOperation(int x, int y,int playerId)
