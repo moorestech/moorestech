@@ -18,21 +18,20 @@ namespace Test.TestModule.UI
         [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
 
         [SerializeField] private MainInventoryItemView mainInventoryItem;
-        [SerializeField] private BlockInventoryItemView blockInventoryItem;
+        [SerializeField] private HotBarItemView hotBarItem;
+        [SerializeField] private CraftingInventoryItemView craftingInventoryItem;
 
         private void Start()
         {
             var mainInventoryDataCache = GetComponent<InventoryViewTestModule>().MainInventoryDataCache;
-            var itemMove = new BlockInventoryMainInventoryItemMoveService(
-                new PlayerConnectionSetting(0),
-                new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItem),
+            var itemMove = new PlayerInventoryMainInventoryItemMoveService(
                 mainInventoryDataCache,
-                new SendBlockInventoryMoveItemProtocol(new TestSocketModule()),
-                new SendBlockInventoryMainInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendMainInventoryMoveItemProtocol(new TestSocketModule()));
+            var craftingInventory = new CraftingInventoryDataCache(new CraftingInventoryUpdateEvent(),craftingInventoryItem);
             
             playerInventoryEquippedItemImageSet.Construct(mainInventoryItem,new MainInventoryUpdateEvent());
-            playerInventoryInput.Construct(mainInventoryItem,itemMove,mainInventoryDataCache,playerInventoryEquippedItemImageSet);
+            playerInventoryInput.Construct(playerInventoryEquippedItemImageSet,itemMove,
+            mainInventoryItem,mainInventoryDataCache,craftingInventoryItem, craftingInventory);
         }
     }
 }

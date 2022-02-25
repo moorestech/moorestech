@@ -36,6 +36,7 @@ namespace MainGame.Control.UI.Inventory
         
         public void SetEquippedItemIndex(int index)
         {
+            //TODO クラフト側も同じように設定するようなオプションを追加
             _equippedItemIndex = index;
             SetItem(index);
         }

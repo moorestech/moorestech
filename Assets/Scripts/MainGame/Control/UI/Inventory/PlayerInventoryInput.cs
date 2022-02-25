@@ -11,23 +11,33 @@ namespace MainGame.Control.UI.Inventory
     public class PlayerInventoryInput : MonoBehaviour
     {
         
-        private int _equippedItemIndex = -1;
+        private int _equippedItemSlot = -1;
+        private bool _isFromCraftting = false;
+        
         private MoorestechInputSettings _inputSettings;
+
+        private PlayerInventoryMainInventoryItemMoveService _playerInventoryMainInventoryItemMoveService;
         
         private MainInventoryItemView _mainInventoryItemView;
-        private BlockInventoryMainInventoryItemMoveService _blockInventoryMainInventoryItemMoveService;
         private MainInventoryDataCache _mainInventoryDataCache;
+        
+        private CraftingInventoryItemView _craftingInventoryItemView;
+        private CraftingInventoryDataCache _craftingInventoryDataCache;
         
         private PlayerInventoryEquippedItemImageSet _equippedItem;
 
         [Inject]
         public void Construct(
-            MainInventoryItemView mainInventoryItemView, BlockInventoryMainInventoryItemMoveService blockInventoryMainInventoryItemMoveService,
-            MainInventoryDataCache mainInventoryDataCache,PlayerInventoryEquippedItemImageSet equippedItem)
+            PlayerInventoryEquippedItemImageSet equippedItem,PlayerInventoryMainInventoryItemMoveService playerInventoryMainInventoryItemMoveService,
+            MainInventoryItemView mainInventoryItemView, MainInventoryDataCache mainInventoryDataCache,
+            CraftingInventoryItemView craftingInventoryItemView, CraftingInventoryDataCache craftingInventoryDataCache
+            )
         {
             _mainInventoryDataCache = mainInventoryDataCache;
             _mainInventoryItemView = mainInventoryItemView;
-            _blockInventoryMainInventoryItemMoveService = blockInventoryMainInventoryItemMoveService;
+            _craftingInventoryDataCache = craftingInventoryDataCache;
+            _craftingInventoryItemView = craftingInventoryItemView;
+            _playerInventoryMainInventoryItemMoveService = playerInventoryMainInventoryItemMoveService;
             _equippedItem = equippedItem;
             
             _equippedItem.gameObject.SetActive(false);
@@ -35,46 +45,81 @@ namespace MainGame.Control.UI.Inventory
             _inputSettings.Enable();
             
             
-            //イベントをボタンに登録する
+            //イベントをそれぞれのインベントリのボタンに登録する
             foreach (var slot in _mainInventoryItemView.GetInventoryItemSlots())
             {
-                slot.SubscribeOnItemSlotClick(OnSlotClick);
+                slot.SubscribeOnItemSlotClick(OnMainSlotClick);
+            }
+            foreach (var slot in _craftingInventoryItemView.GetInventoryItemSlots())
+            {
+                slot.SubscribeOnItemSlotClick(OnCraftSlotClick);
             }
         }
-        
-        //ボタンがクリックされた時に呼び出される
-        private void OnSlotClick(int slot)
+
+
+        //クラフトインベントリのボタンがクリックされた時に呼び出される
+        private void OnCraftSlotClick(int slot)
         {
-            if (_equippedItemIndex == -1)
+            if (_equippedItemSlot == -1)
+            {
+                //スロットがからの時はそのまま処理を終了
+                var slotEmpty = _craftingInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
+                if (slotEmpty)return;
+
+                _isFromCraftting = true;
+                _equippedItemSlot = slot;
+                _equippedItem.gameObject.SetActive(true);
+                _equippedItem.SetEquippedItemIndex(slot);
+                return;
+            }
+            _equippedItemSlot = -1;
+            _equippedItem.gameObject.SetActive(false);
+            
+            MoveItem(_equippedItemSlot,_isFromCraftting,slot,true);
+        }
+        
+        //メインインベントリのボタンがクリックされた時に呼び出される
+        private void OnMainSlotClick(int slot)
+        {
+            if (_equippedItemSlot == -1)
             {
                 //スロットがからの時はそのまま処理を終了
                 var slotEmpty = _mainInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
                 if (slotEmpty)return;
 
-                _equippedItemIndex = slot;
+                _isFromCraftting = false;
+                _equippedItemSlot = slot;
                 _equippedItem.gameObject.SetActive(true);
                 _equippedItem.SetEquippedItemIndex(slot);
                 return;
             }
 
+            MoveItem(_equippedItemSlot,_isFromCraftting,slot,false);
+            _equippedItemSlot = -1;
+            _equippedItem.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// 実際にアイテムを移動させるサービスにアイテム移動を指示する
+        /// </summary>
+        private void MoveItem(int fromSlot,bool fromIsCrafting,int toSlot,bool toIsCrafting)
+        {
             //アイテムを半分だけおく
             if (_inputSettings.UI.InventoryItemHalve.inProgress)
             {
-                _blockInventoryMainInventoryItemMoveService.MoveHalfItemStack(_equippedItemIndex,false,slot,false);
+                _playerInventoryMainInventoryItemMoveService.MoveHalfItemStack(fromSlot, fromIsCrafting, toSlot, toIsCrafting);
                 return;
             }
             
             //アイテムを一個だけおく
             if (_inputSettings.UI.InventoryItemOnePut.inProgress)
             {
-                _blockInventoryMainInventoryItemMoveService.MoveOneItemStack(_equippedItemIndex,false,slot,false);
+                _playerInventoryMainInventoryItemMoveService.MoveOneItemStack(fromSlot, fromIsCrafting, toSlot, toIsCrafting);
                 return;
             }
             
             //アイテムを全部おく
-            _blockInventoryMainInventoryItemMoveService.MoveAllItemStack(_equippedItemIndex,false,slot,false);
-            _equippedItemIndex = -1;
-            _equippedItem.gameObject.SetActive(false);
+            _playerInventoryMainInventoryItemMoveService.MoveAllItemStack(fromSlot, fromIsCrafting, toSlot, toIsCrafting);
         }
     }
 }
