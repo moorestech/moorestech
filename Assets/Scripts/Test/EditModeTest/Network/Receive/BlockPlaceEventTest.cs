@@ -50,7 +50,7 @@ namespace Test.EditModeTest.Network.Receive
         {
             //テスト用のBlockPlaceEventを生成
             var chunkUpdateEvent = new NetworkReceivedChunkDataEvent();
-            var packetAnalysis = new AllReceivePacketAnalysisService(chunkUpdateEvent,new MainInventoryUpdateEvent());
+            var packetAnalysis = new AllReceivePacketAnalysisService(chunkUpdateEvent,new MainInventoryUpdateEvent(),new CraftingInventoryUpdateEvent());
             
             var blockPosition = new Vector2Int(10,20);
             var blockId = 3;

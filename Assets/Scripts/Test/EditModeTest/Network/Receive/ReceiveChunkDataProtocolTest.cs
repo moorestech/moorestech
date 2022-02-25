@@ -60,7 +60,7 @@ namespace Test.EditModeTest.Network.Receive
         public void ChunkDataAnalysisViaAllReceivePacketAnalysisServiceTest()
         {
             var chunkUpdateEvent = new NetworkReceivedChunkDataEvent();
-            var packetAnalysis = new AllReceivePacketAnalysisService(chunkUpdateEvent,new MainInventoryUpdateEvent());
+            var packetAnalysis = new AllReceivePacketAnalysisService(chunkUpdateEvent,new MainInventoryUpdateEvent(),new CraftingInventoryUpdateEvent());
             var chunkPosition = new Vector2Int(1000, 1240);
 
             //イベントをサブスクライブする
