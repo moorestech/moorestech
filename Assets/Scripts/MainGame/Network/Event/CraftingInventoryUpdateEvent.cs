@@ -19,7 +19,8 @@ namespace MainGame.Network.Event
         public void Subscribe(CraftingInventoryUpdate craftingInventoryUpdate,
             CraftingInventorySlotUpdate craftingInventorySlotUpdate)
         {
-            
+            OnCraftingInventoryUpdate += craftingInventoryUpdate;
+            OnCraftingInventorySlotUpdate += craftingInventorySlotUpdate;
         }
 
         public void InvokeCraftingInventorySlotUpdate(CraftingInventorySlotUpdateProperties properties)

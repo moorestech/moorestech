@@ -12,7 +12,7 @@ namespace MainGame.Control.UI.Inventory
     {
         
         private int _equippedItemSlot = -1;
-        private bool _isFromCraftting = false;
+        private bool _isFromCrafting = false;
         
         private MoorestechInputSettings _inputSettings;
 
@@ -66,7 +66,7 @@ namespace MainGame.Control.UI.Inventory
                 var slotEmpty = _craftingInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
                 if (slotEmpty)return;
 
-                _isFromCraftting = true;
+                _isFromCrafting = true;
                 _equippedItemSlot = slot;
                 _equippedItem.gameObject.SetActive(true);
                 _equippedItem.SetEquippedMainItemSlot(slot);
@@ -75,7 +75,7 @@ namespace MainGame.Control.UI.Inventory
             _equippedItemSlot = -1;
             _equippedItem.gameObject.SetActive(false);
             
-            MoveItem(_equippedItemSlot,_isFromCraftting,slot,true);
+            MoveItem(_equippedItemSlot,_isFromCrafting,slot,true);
         }
         
         //メインインベントリのボタンがクリックされた時に呼び出される
@@ -87,14 +87,14 @@ namespace MainGame.Control.UI.Inventory
                 var slotEmpty = _mainInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
                 if (slotEmpty)return;
 
-                _isFromCraftting = false;
+                _isFromCrafting = false;
                 _equippedItemSlot = slot;
                 _equippedItem.gameObject.SetActive(true);
                 _equippedItem.SetEquippedMainItemSlot(slot);
                 return;
             }
 
-            MoveItem(_equippedItemSlot,_isFromCraftting,slot,false);
+            MoveItem(_equippedItemSlot,_isFromCrafting,slot,false);
             _equippedItemSlot = -1;
             _equippedItem.gameObject.SetActive(false);
         }

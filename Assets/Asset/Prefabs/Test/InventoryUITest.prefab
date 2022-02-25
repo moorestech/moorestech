@@ -48,7 +48,6 @@ GameObject:
   - component: {fileID: 7473477974037748790}
   - component: {fileID: 7380561452167060310}
   - component: {fileID: 6087842418355826647}
-  - component: {fileID: 7277322896807529162}
   m_Layer: 0
   m_Name: TestModule
   m_TagString: Untagged
@@ -84,6 +83,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainInventoryItemView: {fileID: 9199618560218924157}
+  craftingInventoryItemView: {fileID: 2602153183113864115}
   hotBarItemView: {fileID: 7409163258840573101}
   itemImages: {fileID: 11400000, guid: f3f5e541a0fc649389c5ffefa1f0082a, type: 2}
 --- !u!114 &2407636907828000943
@@ -98,10 +98,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d86b8a45199148e9a1c17895c1c1dbfa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainInventoryInput: {fileID: 2570792829411170600}
+  playerInventoryInput: {fileID: 2570792829411170600}
   playerInventoryEquippedItemImageSet: {fileID: 1238669465589821741}
   mainInventoryItem: {fileID: 9199618560218924157}
-  blockInventoryItem: {fileID: 4539266823444687271}
+  hotBarItem: {fileID: 7409163258840573101}
+  craftingInventoryItem: {fileID: 2602153183113864115}
 --- !u!114 &2081080828784532788
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -156,20 +157,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d571893b75c434aa3690bec1ca4dc43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &7277322896807529162
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7789463816143227919}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6779501bae5db4a8abfe051ea220d711, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  craftingSlotItemView: {fileID: 2602153183113864115}
-  itemImages: {fileID: 11400000, guid: f3f5e541a0fc649389c5ffefa1f0082a, type: 2}
 --- !u!1001 &7789463816664185484
 PrefabInstance:
   m_ObjectHideFlags: 0

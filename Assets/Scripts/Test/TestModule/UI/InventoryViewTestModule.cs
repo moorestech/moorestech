@@ -1,16 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using MainGame.Basic;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network.Event;
-using MainGame.UnityView;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
-using TMPro;
 using UnityEngine;
-using UnityEngine.Assertions;
-using UnityEngine.UI;
 
 namespace Test.TestModule.UI
 {
@@ -34,6 +28,7 @@ namespace Test.TestModule.UI
         {
             hotBarItemView.Construct(itemImages);
             mainInventoryItemView.Construct(itemImages);
+            craftingInventoryItemView.Construct(itemImages);
             
             
 
@@ -65,7 +60,6 @@ namespace Test.TestModule.UI
             _insertItems.Add((1,2,10));
             _insertItems.Add((2,3,5));
             _insertItems.Add((9,4,1));
-            _insertItems.Add((10,2,1));
             
             var craftResultItem = new ItemStack(5, 3);
             
