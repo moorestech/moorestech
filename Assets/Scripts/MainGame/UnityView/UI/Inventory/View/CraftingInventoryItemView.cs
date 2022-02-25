@@ -6,7 +6,7 @@ using VContainer;
 
 namespace MainGame.UnityView.UI.Inventory.View
 {
-    public class CraftingSlotItemView : MonoBehaviour
+    public class CraftingInventoryItemView : MonoBehaviour
     {
         [SerializeField] private InventoryItemSlot inventoryItemSlot;
         [SerializeField] private RectTransform craftingResultSlot;

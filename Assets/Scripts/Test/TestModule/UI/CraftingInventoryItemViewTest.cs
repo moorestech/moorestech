@@ -6,12 +6,12 @@ namespace Test.TestModule.UI
 {
     public class CraftingInventoryItemViewTest : MonoBehaviour
     {
-        [SerializeField] private CraftingSlotItemView craftingSlotItemView;
+        [SerializeField] private CraftingInventoryItemView craftingInventoryItemView;
         [SerializeField] private ItemImages itemImages;
         void Start()
         {
-            craftingSlotItemView.Construct(itemImages);
-            craftingSlotItemView.GetInventoryItemSlots();
+            craftingInventoryItemView.Construct(itemImages);
+            craftingInventoryItemView.GetInventoryItemSlots();
         }
 
         // Update is called once per frame
