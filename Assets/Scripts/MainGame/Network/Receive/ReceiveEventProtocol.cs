@@ -10,10 +10,15 @@ namespace MainGame.Network.Receive
     {
         List<IAnalysisEventPacket> _eventPacketList = new List<IAnalysisEventPacket>();
 
-        public ReceiveEventProtocol(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,IMainInventoryUpdateEvent mainInventoryUpdateEvent)
+        public ReceiveEventProtocol(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,
+            IMainInventoryUpdateEvent mainInventoryUpdateEvent,ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent)
         {
             _eventPacketList.Add(new BlockPlaceEvent(networkReceivedChunkDataEvent));
             _eventPacketList.Add(new MainInventorySlotEvent(mainInventoryUpdateEvent));
+            _eventPacketList.Add(null); //TODO ブロックインベントリ更新イベント
+            _eventPacketList.Add(null); //TODO ブロック削除イベント
+            _eventPacketList.Add(null); //TODO ブロック削除イベント
+            _eventPacketList.Add(new CraftingInventorySlotEvent(craftingInventoryUpdateEvent));
         }
         
         /// <summary>

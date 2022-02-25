@@ -67,17 +67,20 @@ namespace Test.TestModule.UI
             _insertItems.Add((9,4,1));
             _insertItems.Add((10,2,1));
             
+            var craftResultItem = new ItemStack(5, 3);
             
-            //メインインベントリの設定とイベントの発火
+            
+            //クラフトインベントリの設定とイベントの発火
             var craftingUpdateEvent = new CraftingInventoryUpdateEvent();
             _craftingInventoryDataCache = new CraftingInventoryDataCache(craftingUpdateEvent,craftingInventoryItemView);
 
+            
             //イベントを発火
             foreach (var item in _insertItems)
             {
                 craftingUpdateEvent.InvokeCraftingInventorySlotUpdate(
                     new CraftingInventorySlotUpdateProperties(
-                        item.Item1,new ItemStack(item.Item2,item.Item3)));
+                        item.Item1,new ItemStack(item.Item2,item.Item3),craftResultItem,true));
             }
         }
     }
