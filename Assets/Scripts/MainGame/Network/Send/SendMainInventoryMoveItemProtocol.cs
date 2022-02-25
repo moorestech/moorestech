@@ -7,18 +7,20 @@ namespace MainGame.Network.Send
     {
         private const short ProtocolId = 6;
         private readonly ISocket _socket;
+        private readonly int _playerId;
 
-        public SendMainInventoryMoveItemProtocol(ISocket socket)
+        public SendMainInventoryMoveItemProtocol(ISocket socket,PlayerConnectionSetting playerConnection)
         {
+            _playerId = playerConnection.PlayerId;
             _socket = socket;
         }
 
-        public void Send(int playerId, int fromSlot, int toSlot, int itemCount)
+        public void Send(int fromSlot, int toSlot, int itemCount)
         {
             var packet = new List<byte>();
             
             packet.AddRange(ToByteList.Convert(ProtocolId));
-            packet.AddRange(ToByteList.Convert(playerId));
+            packet.AddRange(ToByteList.Convert(_playerId));
             packet.AddRange(ToByteList.Convert(fromSlot));
             packet.AddRange(ToByteList.Convert(toSlot));
             packet.AddRange(ToByteList.Convert(itemCount));

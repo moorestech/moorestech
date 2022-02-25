@@ -17,11 +17,15 @@ namespace Test.TestModule.UI
     public class InventoryViewTestModule : MonoBehaviour
     {
         [SerializeField] private MainInventoryItemView mainInventoryItemView;
+        [SerializeField] private CraftingInventoryItemView craftingInventoryItemView;
         [SerializeField] private HotBarItemView hotBarItemView;
         [SerializeField] private ItemImages itemImages;
 
         public MainInventoryDataCache MainInventoryDataCache => _mainInventoryDataCache;
         private MainInventoryDataCache _mainInventoryDataCache;
+        
+        public CraftingInventoryDataCache CraftingInventoryDataCache => _craftingInventoryDataCache;
+        private CraftingInventoryDataCache _craftingInventoryDataCache;
         
         //slot id count
         private List<(int, int, int)> _insertItems;
@@ -30,52 +34,50 @@ namespace Test.TestModule.UI
         {
             hotBarItemView.Construct(itemImages);
             mainInventoryItemView.Construct(itemImages);
-            var updateEvent = new MainInventoryUpdateEvent();
-            _mainInventoryDataCache = new MainInventoryDataCache(updateEvent,mainInventoryItemView,hotBarItemView);
+            
+            
 
+            //メインインベントリに挿入するアイテムの設定
             _insertItems = new List<(int,int,int)>();
-
-            //アイテムの設定
             _insertItems.Add((0,1,5));
             _insertItems.Add((5,2,10));
             _insertItems.Add((10,2,1));
             _insertItems.Add((40,2,1));
             _insertItems.Add((44,2,1));
+            
+            
+            //メインインベントリの設定とイベントの発火
+            var mainUpdateEvent = new MainInventoryUpdateEvent();
+            _mainInventoryDataCache = new MainInventoryDataCache(mainUpdateEvent,mainInventoryItemView,hotBarItemView);
 
             //イベントを発火
             foreach (var item in _insertItems)
             {
-                updateEvent.InvokeMainInventorySlotUpdate(
+                mainUpdateEvent.InvokeMainInventorySlotUpdate(
                     new MainInventorySlotUpdateProperties(
                         item.Item1,new ItemStack(item.Item2,item.Item3)));
             }
+            
+            
+            //クラフトインベントリに挿入するアイテムの設定
+            _insertItems = new List<(int,int,int)>();
+            _insertItems.Add((0,1,5));
+            _insertItems.Add((5,2,10));
+            _insertItems.Add((10,2,1));
+            _insertItems.Add((40,2,1));
+            _insertItems.Add((44,2,1));
+            
+            
+            //メインインベントリの設定とイベントの発火
+            var craftingUpdateEvent = new CraftingInventoryUpdateEvent();
+            _craftingInventoryDataCache = new CraftingInventoryDataCache(craftingUpdateEvent,craftingInventoryItemView);
 
-            StartCoroutine(Check());
-        }
-
-        private IEnumerator Check()
-        {
-            yield return new WaitForSeconds(0.1f);
-            //アイテムのUIの取得
-            var slots = mainInventoryItemView.GetInventoryItemSlots();
-
-            //チェック
+            //イベントを発火
             foreach (var item in _insertItems)
             {
-                var slot = item.Item1;
-                var id = item.Item2;
-                var count = item.Item3;
-
-                var expectedCount = count.ToString();
-                var actualCount = slots[slot].gameObject.GetComponentInChildren<TextMeshProUGUI>().text;
-                Assert.AreEqual(expectedCount,actualCount);
-
-                //同じ画像かチェック
-                var expectedImage = itemImages.GetItemImage(id).GetHashCode();
-                //ButtonにもImageがついてあるため、そのままだとButtonのImageが取得される。
-                //そのため、Last()を使ってアイテムのImageを取得する
-                var actualImage = slots[slot].GetComponentsInChildren<Image>().Last().sprite.GetHashCode();
-                Assert.AreEqual(expectedImage,actualImage);
+                mainUpdateEvent.InvokeMainInventorySlotUpdate(
+                    new MainInventorySlotUpdateProperties(
+                        item.Item1,new ItemStack(item.Item2,item.Item3)));
             }
         }
     }

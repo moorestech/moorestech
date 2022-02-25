@@ -70,7 +70,7 @@ namespace MainGame.Control.UI.Inventory.ItemMove
             //プレイヤーインベントリ内のアイテムの移動
             if (!fromIsBlock && !toIsBlock)
             {
-                _mainInventoryMove.Send(_playerId,fromSlot,toSlot,itemCount);
+                _mainInventoryMove.Send(fromSlot,toSlot,itemCount);
                 return;
             }
             

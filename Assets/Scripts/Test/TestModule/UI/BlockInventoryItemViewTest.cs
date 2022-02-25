@@ -25,13 +25,14 @@ namespace Test.TestModule.UI
         {
             blockInventoryItemView.Construct(itemImages);
             var blockInventory = new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItemView);
+            var playerConnection = new PlayerConnectionSetting(0);
             var itemMove = new BlockInventoryMainInventoryItemMoveService(
-                new PlayerConnectionSetting(0),
+                playerConnection,
                 blockInventory,
                 GetComponent<InventoryViewTestModule>().MainInventoryDataCache,
                 new SendBlockInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendBlockInventoryMainInventoryMoveItemProtocol(new TestSocketModule()),
-                new SendMainInventoryMoveItemProtocol(new TestSocketModule()));
+                new SendMainInventoryMoveItemProtocol(new TestSocketModule(),playerConnection));
 
             blockInventoryInput.Construct(blockInventoryItemView,itemMove,blockInventory,blockInventoryEquippedItemImageSet);
             blockInventoryEquippedItemImageSet.Construct(blockInventoryItemView,new MainInventoryUpdateEvent(),new BlockInventoryUpdateEvent());

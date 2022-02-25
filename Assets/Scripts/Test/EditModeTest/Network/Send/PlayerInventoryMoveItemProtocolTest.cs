@@ -1,4 +1,5 @@
 using System.Linq;
+using MainGame.Network;
 using MainGame.Network.Send;
 using MainGame.Network.Util;
 using NUnit.Framework;
@@ -15,13 +16,13 @@ namespace Test.EditModeTest.Network.Send
         public void SendTest()
         {
             var socket = new TestSocketModule();
-            var protocol = new SendMainInventoryMoveItemProtocol(socket);
             var playerId = 1;
+            var protocol = new SendMainInventoryMoveItemProtocol(socket,new PlayerConnectionSetting(playerId));
             var fromSlot = 10;
             var toSlot = 20;
             var itemCount = 55;
             
-            protocol.Send(playerId, fromSlot, toSlot, itemCount);
+            protocol.Send(fromSlot, toSlot, itemCount);
             
             
             //データの検証

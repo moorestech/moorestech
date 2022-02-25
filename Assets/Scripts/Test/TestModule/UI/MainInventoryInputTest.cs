@@ -23,10 +23,18 @@ namespace Test.TestModule.UI
 
         private void Start()
         {
+            //プロトコル送信クラスのインスタンスを作成
+            var sendMain = new SendMainInventoryMoveItemProtocol(new TestSocketModule(), new PlayerConnectionSetting(0));
+            var sendCraft = new SendCraftingInventoryMoveItemProtocol();
+            var sendCraftMain = new SendCraftingInventoryMainInventoryMoveItemProtocol();
+            
+            //インベントリデータキャッシュの取得
             var mainInventoryDataCache = GetComponent<InventoryViewTestModule>().MainInventoryDataCache;
+            var craftingInventoryDataCache = GetComponent<InventoryViewTestModule>().CraftingInventoryDataCache;
+
             var itemMove = new PlayerInventoryMainInventoryItemMoveService(
-                mainInventoryDataCache,
-                new SendMainInventoryMoveItemProtocol(new TestSocketModule()));
+                mainInventoryDataCache,craftingInventoryDataCache,
+                sendMain,sendCraft,sendCraftMain);
             var craftingInventory = new CraftingInventoryDataCache(new CraftingInventoryUpdateEvent(),craftingInventoryItem);
             
             playerInventoryEquippedItemImageSet.Construct(mainInventoryItem,craftingInventoryItem,new MainInventoryUpdateEvent(),new CraftingInventoryUpdateEvent());
