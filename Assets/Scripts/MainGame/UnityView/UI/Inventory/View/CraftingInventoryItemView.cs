@@ -14,6 +14,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
         [SerializeField] private Image canNotCraftImage;
         [SerializeField] private RectTransform craftingResultSlot;
+        [SerializeField] private InventoryItemSlot craftResultItemView;
         
         List<InventoryItemSlot> _slots;
         private ItemImages _itemImages;
@@ -34,7 +35,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         public void SetResultItem(ItemStack resultItem, bool canCraft)
         {
             //結果のアイテムを設定
-            _slots[ResultItemSlot].SetItem(_itemImages.GetItemImage(resultItem.ID), resultItem.Count);
+            craftResultItemView.SetItem(_itemImages.GetItemImage(resultItem.ID), resultItem.Count);
             //クラフトできない時は矢印にバツを表示する
             canNotCraftImage.gameObject.SetActive(!canCraft);
         }
