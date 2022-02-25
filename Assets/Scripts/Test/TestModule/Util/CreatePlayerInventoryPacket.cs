@@ -15,6 +15,7 @@ namespace Test.TestModule.Util
             packet.AddRange(ToByteList.Convert(playerId));
             packet.AddRange(ToByteList.Convert((short)0));
 
+            //メインインベントリの設定
             for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
             {
                 if (items.ContainsKey(i))
@@ -26,6 +27,19 @@ namespace Test.TestModule.Util
                 packet.AddRange(ToByteList.Convert(ItemConstant.NullItemId));   
                 packet.AddRange(ToByteList.Convert(ItemConstant.NullItemCount));   
             }
+            
+            //クラフトインベントリの設定
+            //スロットの設定
+            for (int i = 0; i < PlayerInventoryConstant.CraftingInventorySize; i++)
+            {
+                packet.AddRange(ToByteList.Convert(ItemConstant.NullItemId));   
+                packet.AddRange(ToByteList.Convert(ItemConstant.NullItemCount));   
+            }
+            //クラフト結果の設定
+            packet.AddRange(ToByteList.Convert(ItemConstant.NullItemId));   
+            packet.AddRange(ToByteList.Convert(ItemConstant.NullItemCount)); 
+            packet.Add(0); // クラフトの可否を設定
+            
 
             return packet;
         }
