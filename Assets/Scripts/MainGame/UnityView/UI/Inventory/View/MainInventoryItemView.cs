@@ -8,7 +8,7 @@ namespace MainGame.UnityView.UI.Inventory.View
 {
     public class MainInventoryItemView : MonoBehaviour
     {
-        [SerializeField] private InventoryItemSlot inventoryItemSlot;
+        [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
         List<InventoryItemSlot> _slots;
         private ItemImages _itemImages;
         
@@ -33,7 +33,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             _slots = new List<InventoryItemSlot>();
             for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
             {
-                var s = Instantiate(inventoryItemSlot.gameObject, transform).GetComponent<InventoryItemSlot>();
+                var s = Instantiate(inventoryItemSlotPrefab.gameObject, transform).GetComponent<InventoryItemSlot>();
                 s.Construct(i);
                 _slots.Add(s);
             }

@@ -9,7 +9,7 @@ namespace MainGame.UnityView.UI.Inventory.View
     public class HotBarItemView : MonoBehaviour
     {
         
-        [SerializeField] private InventoryItemSlot inventoryItemSlot;
+        [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
         List<InventoryItemSlot> _slots;
         public IReadOnlyList<InventoryItemSlot> Slots => _slots;
         
@@ -23,7 +23,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             _slots = new List<InventoryItemSlot>();
             for (int i = 0; i < PlayerInventoryConstant.MainInventoryColumns; i++)
             {
-                _slots.Add(Instantiate(inventoryItemSlot.gameObject,transform).GetComponent<InventoryItemSlot>());
+                _slots.Add(Instantiate(inventoryItemSlotPrefab.gameObject,transform).GetComponent<InventoryItemSlot>());
             }
         }
 

@@ -16,7 +16,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         [SerializeField] private RectTransform inputItems;
         [SerializeField] private RectTransform outputItems;
 
-        [SerializeField] private InventoryItemSlot inventoryItemSlot;
+        [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
         private readonly List<InventoryItemSlot> _mainInventorySlots = new();
         private readonly List<InventoryItemSlot> _inputInventorySlots = new();
         private readonly List<InventoryItemSlot> _outputInventorySlots = new();
@@ -32,7 +32,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             //プレイヤーインベントリの表示
             for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
             {
-                var s = Instantiate(inventoryItemSlot.gameObject, transform).GetComponent<InventoryItemSlot>();
+                var s = Instantiate(inventoryItemSlotPrefab.gameObject, transform).GetComponent<InventoryItemSlot>();
                 s.Construct(i);
                 _mainInventorySlots.Add(s);
             }
@@ -41,13 +41,13 @@ namespace MainGame.UnityView.UI.Inventory.View
             for (int i = 0; i < SlotCount; i++)
             {
                 //inputの設定
-                var s = Instantiate(inventoryItemSlot.gameObject, inputItems).GetComponent<InventoryItemSlot>();
+                var s = Instantiate(inventoryItemSlotPrefab.gameObject, inputItems).GetComponent<InventoryItemSlot>();
                 s.Construct(i);
                 s.gameObject.SetActive(false);
                 _inputInventorySlots.Add(s);
                 
                 //outputの設定
-                s = Instantiate(inventoryItemSlot.gameObject, outputItems).GetComponent<InventoryItemSlot>();
+                s = Instantiate(inventoryItemSlotPrefab.gameObject, outputItems).GetComponent<InventoryItemSlot>();
                 s.Construct(i);
                 s.gameObject.SetActive(false);
                 _outputInventorySlots.Add(s);

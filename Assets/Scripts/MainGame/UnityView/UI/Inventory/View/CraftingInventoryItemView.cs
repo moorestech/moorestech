@@ -11,7 +11,7 @@ namespace MainGame.UnityView.UI.Inventory.View
     {
         private const int ResultItemSlot = PlayerInventoryConstant.CraftingSlotSize - 1;
         
-        [SerializeField] private InventoryItemSlot inventoryItemSlot;
+        [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
         [SerializeField] private Image canNotCraftImage;
         [SerializeField] private RectTransform craftingResultSlot;
         
@@ -47,13 +47,13 @@ namespace MainGame.UnityView.UI.Inventory.View
             //クラフトするためのアイテムスロットを作成
             for (int i = 0; i < PlayerInventoryConstant.CraftingSlotSize; i++)
             {
-                var s = Instantiate(inventoryItemSlot.gameObject, transform).GetComponent<InventoryItemSlot>();
+                var s = Instantiate(inventoryItemSlotPrefab.gameObject, transform).GetComponent<InventoryItemSlot>();
                 s.Construct(i);
                 _slots.Add(s);
             }
             
             //クラフト結果のアイテムスロットを作成
-            var result = Instantiate(inventoryItemSlot.gameObject, craftingResultSlot).GetComponent<InventoryItemSlot>();
+            var result = Instantiate(inventoryItemSlotPrefab.gameObject, craftingResultSlot).GetComponent<InventoryItemSlot>();
             result.Construct(ResultItemSlot);
             _slots.Add(result);
             
