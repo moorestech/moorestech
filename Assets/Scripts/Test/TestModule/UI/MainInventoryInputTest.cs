@@ -36,7 +36,7 @@ namespace Test.TestModule.UI
             var mainInventoryDataCache = GetComponent<InventoryViewTestModule>().MainInventoryDataCache;
             var craftingInventoryDataCache = GetComponent<InventoryViewTestModule>().CraftingInventoryDataCache;
 
-            var itemMove = new PlayerInventoryMainInventoryItemMoveService(
+            var itemMove = new MainInventoryCraftInventoryItemMoveService(
                 mainInventoryDataCache,craftingInventoryDataCache,
                 sendMain,sendCraft,sendCraftMain);
             

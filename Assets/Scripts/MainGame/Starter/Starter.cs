@@ -41,6 +41,7 @@ namespace MainGame.Starter
         [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
         [SerializeField] private HotBarItemView hotBarItemView;
         [SerializeField] private MainInventoryItemView mainInventoryItemView;
+        [SerializeField] private CraftingInventoryItemView craftingInventoryItemView;
         [SerializeField] private PlayerInventoryInput playerInventoryInput;
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
         [SerializeField] private BlockInventoryInput blockInventoryInput;
@@ -81,13 +82,18 @@ namespace MainGame.Starter
             builder.Register<SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
             builder.Register<RequestBlockInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendCommandProtocol>(Lifetime.Singleton);
+            builder.Register<SendCraftProtocol>(Lifetime.Singleton);
+            builder.Register<SendCraftingInventoryMoveItemProtocol>(Lifetime.Singleton);
+            builder.Register<SendCraftingInventoryMainInventoryMoveItemProtocol>(Lifetime.Singleton);
             
             
             //データストア、ゲームロジック系
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
             builder.Register<MainInventoryDataCache>(Lifetime.Singleton);
+            builder.Register<CraftingInventoryDataCache>(Lifetime.Singleton);
             builder.Register<BlockInventoryDataCache>(Lifetime.Singleton);
             builder.Register<BlockInventoryMainInventoryItemMoveService>(Lifetime.Singleton);
+            builder.Register<MainInventoryCraftInventoryItemMoveService>(Lifetime.Singleton);
             
             
             //ScriptableObjectの登録
@@ -99,6 +105,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(groundPlane);
             builder.RegisterComponent(mainInventoryItemView);
+            builder.RegisterComponent(craftingInventoryItemView);
             builder.RegisterComponent(playerInventoryInput);
             builder.RegisterComponent(blockInventoryItemView);
             builder.RegisterComponent(blockInventoryInput);

@@ -16,7 +16,7 @@ namespace MainGame.Control.UI.Inventory
         
         private MoorestechInputSettings _inputSettings;
 
-        private PlayerInventoryMainInventoryItemMoveService _playerInventoryMainInventoryItemMoveService;
+        private MainInventoryCraftInventoryItemMoveService _mainInventoryCraftInventoryItemMoveService;
         
         private MainInventoryItemView _mainInventoryItemView;
         private MainInventoryDataCache _mainInventoryDataCache;
@@ -28,7 +28,7 @@ namespace MainGame.Control.UI.Inventory
 
         [Inject]
         public void Construct(
-            PlayerInventoryEquippedItemImageSet equippedItem,PlayerInventoryMainInventoryItemMoveService playerInventoryMainInventoryItemMoveService,
+            PlayerInventoryEquippedItemImageSet equippedItem,MainInventoryCraftInventoryItemMoveService mainInventoryCraftInventoryItemMoveService,
             MainInventoryItemView mainInventoryItemView, MainInventoryDataCache mainInventoryDataCache,
             CraftingInventoryItemView craftingInventoryItemView, CraftingInventoryDataCache craftingInventoryDataCache
             )
@@ -37,7 +37,7 @@ namespace MainGame.Control.UI.Inventory
             _mainInventoryItemView = mainInventoryItemView;
             _craftingInventoryDataCache = craftingInventoryDataCache;
             _craftingInventoryItemView = craftingInventoryItemView;
-            _playerInventoryMainInventoryItemMoveService = playerInventoryMainInventoryItemMoveService;
+            _mainInventoryCraftInventoryItemMoveService = mainInventoryCraftInventoryItemMoveService;
             _equippedItem = equippedItem;
             
             _equippedItem.gameObject.SetActive(false);
@@ -113,19 +113,19 @@ namespace MainGame.Control.UI.Inventory
             //アイテムを半分だけおく
             if (_inputSettings.UI.InventoryItemHalve.inProgress)
             {
-                _playerInventoryMainInventoryItemMoveService.MoveHalfItemStack(fromSlot, fromIsCrafting, toSlot, toIsCrafting);
+                _mainInventoryCraftInventoryItemMoveService.MoveHalfItemStack(fromSlot, fromIsCrafting, toSlot, toIsCrafting);
                 return;
             }
             
             //アイテムを一個だけおく
             if (_inputSettings.UI.InventoryItemOnePut.inProgress)
             {
-                _playerInventoryMainInventoryItemMoveService.MoveOneItemStack(fromSlot, fromIsCrafting, toSlot, toIsCrafting);
+                _mainInventoryCraftInventoryItemMoveService.MoveOneItemStack(fromSlot, fromIsCrafting, toSlot, toIsCrafting);
                 return;
             }
             
             //アイテムを全部おく
-            _playerInventoryMainInventoryItemMoveService.MoveAllItemStack(fromSlot, fromIsCrafting, toSlot, toIsCrafting);
+            _mainInventoryCraftInventoryItemMoveService.MoveAllItemStack(fromSlot, fromIsCrafting, toSlot, toIsCrafting);
         }
     }
 }

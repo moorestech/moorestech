@@ -54,7 +54,7 @@ namespace MainGame.Network
                 var len = _socketInstanceCreate.GetSocket().Receive(bytes);
                 if (len == 0)
                 {
-                    Debug.Log("サーバーから切断されました");
+                    Debug.LogError("サーバーから切断されました");
                     break;
                 }
                 //解析を行う
