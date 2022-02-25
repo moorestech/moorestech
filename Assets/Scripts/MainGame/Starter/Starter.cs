@@ -49,6 +49,7 @@ namespace MainGame.Starter
         [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private MouseGroundClickInput mouseGroundClickInput;
         [SerializeField] private SelectHotBarControl selectHotBarControl;
+        [SerializeField] private CraftExecute craftExecute;
         
         [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
         [SerializeField] private BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet;
@@ -108,6 +109,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarItemView);
             builder.RegisterComponent(selectHotBarControl);
+            builder.RegisterComponent(craftExecute);
 
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             
