@@ -24,9 +24,13 @@ namespace Test.TestModule.UI
         private void Start()
         {
             //プロトコル送信クラスのインスタンスを作成
-            var sendMain = new SendMainInventoryMoveItemProtocol(new TestSocketModule(), new PlayerConnectionSetting(0));
-            var sendCraft = new SendCraftingInventoryMoveItemProtocol();
-            var sendCraftMain = new SendCraftingInventoryMainInventoryMoveItemProtocol();
+            var playerSetting = new PlayerConnectionSetting(0);
+            var testSocket = new TestSocketModule();
+            
+            var sendMain = new SendMainInventoryMoveItemProtocol(testSocket,playerSetting);
+            var sendCraft = new SendCraftingInventoryMoveItemProtocol(testSocket,playerSetting);
+            var sendCraftMain = new SendCraftingInventoryMainInventoryMoveItemProtocol(testSocket,playerSetting);
+            
             
             //インベントリデータキャッシュの取得
             var mainInventoryDataCache = GetComponent<InventoryViewTestModule>().MainInventoryDataCache;
