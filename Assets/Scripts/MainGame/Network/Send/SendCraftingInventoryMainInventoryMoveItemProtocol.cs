@@ -18,7 +18,7 @@ namespace MainGame.Network.Send
         
         public void Send(bool toCrafting, int fromSlot, int toSlot, int itemCount)
         {
-            var toCraftingByte = toCrafting ? (byte)0 : (byte)1;
+            var toCraftingByte = toCrafting ? (short)0 : (short)1;
             var mainSlot = toCrafting ? fromSlot : toSlot;
             var craftingSlot = toCrafting ? toSlot : fromSlot;
             
@@ -27,7 +27,7 @@ namespace MainGame.Network.Send
 
             packet.AddRange(ToByteList.Convert(ProtocolId));
             packet.AddRange(ToByteList.Convert(_playerId));
-            packet.Add(toCraftingByte);
+            packet.AddRange(ToByteList.Convert(toCraftingByte));
             packet.AddRange(ToByteList.Convert(mainSlot));
             packet.AddRange(ToByteList.Convert(craftingSlot));
             packet.AddRange(ToByteList.Convert(itemCount));
