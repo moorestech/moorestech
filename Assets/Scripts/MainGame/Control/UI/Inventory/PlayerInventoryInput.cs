@@ -8,7 +8,7 @@ using VContainer.Unity;
 
 namespace MainGame.Control.UI.Inventory
 {
-    public class MainInventoryInput : MonoBehaviour
+    public class PlayerInventoryInput : MonoBehaviour
     {
         
         private int _equippedItemIndex = -1;

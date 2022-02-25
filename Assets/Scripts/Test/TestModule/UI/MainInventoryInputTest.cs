@@ -14,7 +14,7 @@ namespace Test.TestModule.UI
 {
     public class MainInventoryInputTest : MonoBehaviour
     {
-        [SerializeField] private MainInventoryInput mainInventoryInput;
+        [SerializeField] private PlayerInventoryInput playerInventoryInput;
         [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
 
         [SerializeField] private MainInventoryItemView mainInventoryItem;
@@ -32,7 +32,7 @@ namespace Test.TestModule.UI
                 new SendMainInventoryMoveItemProtocol(new TestSocketModule()));
             
             playerInventoryEquippedItemImageSet.Construct(mainInventoryItem,new MainInventoryUpdateEvent());
-            mainInventoryInput.Construct(mainInventoryItem,itemMove,mainInventoryDataCache,playerInventoryEquippedItemImageSet);
+            playerInventoryInput.Construct(mainInventoryItem,itemMove,mainInventoryDataCache,playerInventoryEquippedItemImageSet);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace MainGame.Starter
         [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
         [SerializeField] private HotBarItemView hotBarItemView;
         [SerializeField] private MainInventoryItemView mainInventoryItemView;
-        [SerializeField] private MainInventoryInput mainInventoryInput;
+        [SerializeField] private PlayerInventoryInput playerInventoryInput;
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
         [SerializeField] private BlockInventoryInput blockInventoryInput;
         [SerializeField] private BlockClickDetect blockClickDetect;
@@ -98,7 +98,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(groundPlane);
             builder.RegisterComponent(mainInventoryItemView);
-            builder.RegisterComponent(mainInventoryInput);
+            builder.RegisterComponent(playerInventoryInput);
             builder.RegisterComponent(blockInventoryItemView);
             builder.RegisterComponent(blockInventoryInput);
             builder.RegisterComponent(mouseGroundClickInput);
@@ -120,7 +120,7 @@ namespace MainGame.Starter
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();
             _resolver.Resolve<MouseGroundClickInput>();
             _resolver.Resolve<MainInventoryItemView>();
-            _resolver.Resolve<MainInventoryInput>();
+            _resolver.Resolve<PlayerInventoryInput>();
             _resolver.Resolve<BlockInventoryItemView>();
             _resolver.Resolve<BlockInventoryInput>();
             _resolver.Resolve<CommandUIInput>();

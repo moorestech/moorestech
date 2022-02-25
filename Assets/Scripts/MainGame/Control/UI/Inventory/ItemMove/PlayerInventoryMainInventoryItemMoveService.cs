@@ -6,14 +6,14 @@ namespace MainGame.Control.UI.Inventory.ItemMove
     /// <summary>
     /// メインインベントリ、クラフトインベントリの間でアイテムを移動する際に使用するサービスクラス
     /// </summary>
-    public class CraftingInventoryMainInventoryItemMoveService
+    public class PlayerInventoryMainInventoryItemMoveService
     {
         private readonly int _playerId;
         
         private readonly MainInventoryDataCache _mainInventoryDataCache;
         
 
-        public CraftingInventoryMainInventoryItemMoveService(
+        public PlayerInventoryMainInventoryItemMoveService(
             MainInventoryDataCache mainInventoryDataCache,  
             SendMainInventoryMoveItemProtocol mainInventoryMove)
         {
