@@ -21,25 +21,27 @@ namespace MainGame.GameLogic.Inventory
 
         public void UpdateInventory(CraftingInventoryUpdateProperties properties)
         {
-            //TODO 結果アイテムの表示やクラフト可否の表示を更新する
             _items = properties.ItemStacks;
             //イベントの発火
             for (int i = 0; i < _items.Count; i++)
             {
                 //viewのUIにインベントリが更新されたことを通知する処理をキューに入れる
                 var slot = i;
-                MainThreadExecutionQueue.Instance.Insert(() => _craftingInventoryItemView.OnInventoryUpdate(slot,_items[slot].ID,_items[slot].Count));
+                MainThreadExecutionQueue.Instance.Insert(() => _craftingInventoryItemView.OnInventoryUpdate(slot,_items[slot]));
             }
+            //結果のアイテムの設定
+            MainThreadExecutionQueue.Instance.Insert(() => _craftingInventoryItemView.SetResultItem(properties.ResultItemStack,properties.CanCraft));
         }
 
         public void UpdateSlotInventory(CraftingInventorySlotUpdateProperties properties)
         {
             var s = properties.SlotId;
             _items[s] = properties.ItemStack;
-            //イベントの発火
             
             //viewのUIにインベントリが更新されたことを通知する処理をキューに入れる
-            MainThreadExecutionQueue.Instance.Insert(() => _craftingInventoryItemView.OnInventoryUpdate(s,_items[s].ID,_items[s].Count));
+            MainThreadExecutionQueue.Instance.Insert(() => _craftingInventoryItemView.OnInventoryUpdate(s,_items[s]));
+            //結果のアイテムの設定
+            MainThreadExecutionQueue.Instance.Insert(() => _craftingInventoryItemView.SetResultItem(properties.ResultItemStack,properties.CanCraft));
         }
         
         public ItemStack GetItemStack(int slot)

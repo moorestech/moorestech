@@ -21,10 +21,15 @@ namespace MainGame.UnityView.UI.Inventory.View
             _itemImages = itemImages;
         }
 
-        public void OnInventoryUpdate(int slot, int itemId, int count)
+        public void OnInventoryUpdate(int slot, ItemStack item)
         {
-            var sprite = _itemImages.GetItemImage(itemId);
-            _slots[slot].SetItem(sprite,count);
+            var sprite = _itemImages.GetItemImage(item.ID);
+            _slots[slot].SetItem(sprite,item.Count);
+        }
+
+        public void SetResultItem(ItemStack resultItem, bool canCraft)
+        {
+            //TODO : 結果のアイテムを設定
         }
         
         public IReadOnlyList<InventoryItemSlot> GetInventoryItemSlots()

@@ -54,15 +54,15 @@ namespace MainGame.Network.Event
     {
         public readonly int SlotId;
         public readonly ItemStack ItemStack;
-        private readonly ItemStack _resultItemStack;
-        private readonly bool _canCraft;
+        public readonly ItemStack ResultItemStack;
+        public readonly bool CanCraft;
 
         public CraftingInventorySlotUpdateProperties(int slotId, ItemStack itemStack,ItemStack resultItemStack,bool canCraft)
         {
             SlotId = slotId;
             ItemStack = itemStack;
-            _resultItemStack = resultItemStack;
-            _canCraft = canCraft;
+            ResultItemStack = resultItemStack;
+            CanCraft = canCraft;
         }
     }
 }
