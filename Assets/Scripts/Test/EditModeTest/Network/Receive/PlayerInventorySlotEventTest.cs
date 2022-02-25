@@ -5,6 +5,7 @@ using MainGame.Network.Event;
 using MainGame.Network.Util;
 using NUnit.Framework;
 using Test.TestModule;
+using Test.TestModule.Util;
 
 namespace Test.EditModeTest.Network.Receive
 {
@@ -18,13 +19,9 @@ namespace Test.EditModeTest.Network.Receive
             var analysis = new AllReceivePacketAnalysisService(new NetworkReceivedChunkDataEvent(),playerInventoryEvent,new CraftingInventoryUpdateEvent());
             
             
-            //他のテストコードのインベントリパケット作成モジュールを使用
+            //インベントリパケット作成モジュールを使用
             var playerId = 10;
-            var packet =
-                new ReceivePlayerInventoryProtocolTest().
-                    CreatePlayerInventoryPacket(
-                        playerId,
-                    new Dictionary<int, ItemStack>());
+            var packet = CreatePlayerInventoryPacket.Create(playerId, new Dictionary<int, ItemStack>());
             
             //プロトコル経由でプレイヤーインベントリの作成
             analysis.Analysis(packet.ToArray());

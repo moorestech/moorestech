@@ -6,6 +6,7 @@ using MainGame.Network.Receive;
 using MainGame.Network.Util;
 using NUnit.Framework;
 using Test.TestModule;
+using Test.TestModule.Util;
 
 namespace Test.EditModeTest.Network.Receive
 {
@@ -31,7 +32,7 @@ namespace Test.EditModeTest.Network.Receive
             
             
             //パケットを解析
-            protocol.Analysis(CreatePlayerInventoryPacket(playerId,setItems));
+            protocol.Analysis(CreatePlayerInventoryPacket.Create(playerId,setItems));
             
             
             
@@ -76,7 +77,7 @@ namespace Test.EditModeTest.Network.Receive
             
             
             //パケットを解析
-            protocol.Analysis(CreatePlayerInventoryPacket(playerId,setItems).ToArray());
+            protocol.Analysis(CreatePlayerInventoryPacket.Create(playerId,setItems).ToArray());
             
             
             
@@ -98,29 +99,6 @@ namespace Test.EditModeTest.Network.Receive
                 Assert.AreEqual(ItemConstant.NullItemId,id);
                 Assert.AreEqual(ItemConstant.NullItemCount,count);
             }
-        }
-
-        //アイテムからプレイヤーインベントリのパケットを作る
-        public List<byte>CreatePlayerInventoryPacket(int playerId,Dictionary<int, ItemStack> items)
-        {
-            var packet = new List<byte>();
-            packet.AddRange(ToByteList.Convert((short)4));
-            packet.AddRange(ToByteList.Convert(playerId));
-            packet.AddRange(ToByteList.Convert((short)0));
-
-            for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
-            {
-                if (items.ContainsKey(i))
-                {
-                    packet.AddRange(ToByteList.Convert(items[i].ID));   
-                    packet.AddRange(ToByteList.Convert(items[i].Count));   
-                    continue;
-                }
-                packet.AddRange(ToByteList.Convert(ItemConstant.NullItemId));   
-                packet.AddRange(ToByteList.Convert(ItemConstant.NullItemCount));   
-            }
-
-            return packet;
         }
     }
 }
