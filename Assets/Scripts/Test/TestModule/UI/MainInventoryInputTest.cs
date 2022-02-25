@@ -29,7 +29,7 @@ namespace Test.TestModule.UI
                 new SendMainInventoryMoveItemProtocol(new TestSocketModule()));
             var craftingInventory = new CraftingInventoryDataCache(new CraftingInventoryUpdateEvent(),craftingInventoryItem);
             
-            playerInventoryEquippedItemImageSet.Construct(mainInventoryItem,new MainInventoryUpdateEvent());
+            playerInventoryEquippedItemImageSet.Construct(mainInventoryItem,craftingInventoryItem,new MainInventoryUpdateEvent(),new CraftingInventoryUpdateEvent());
             playerInventoryInput.Construct(playerInventoryEquippedItemImageSet,itemMove,
             mainInventoryItem,mainInventoryDataCache,craftingInventoryItem, craftingInventory);
         }

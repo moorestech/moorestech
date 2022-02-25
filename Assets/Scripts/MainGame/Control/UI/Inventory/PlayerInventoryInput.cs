@@ -69,7 +69,7 @@ namespace MainGame.Control.UI.Inventory
                 _isFromCraftting = true;
                 _equippedItemSlot = slot;
                 _equippedItem.gameObject.SetActive(true);
-                _equippedItem.SetEquippedItemIndex(slot);
+                _equippedItem.SetEquippedMainItemSlot(slot);
                 return;
             }
             _equippedItemSlot = -1;
@@ -90,7 +90,7 @@ namespace MainGame.Control.UI.Inventory
                 _isFromCraftting = false;
                 _equippedItemSlot = slot;
                 _equippedItem.gameObject.SetActive(true);
-                _equippedItem.SetEquippedItemIndex(slot);
+                _equippedItem.SetEquippedMainItemSlot(slot);
                 return;
             }
 
