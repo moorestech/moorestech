@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using MainGame.Network.Util;
 
 namespace MainGame.Network.Send
 {
@@ -14,9 +16,17 @@ namespace MainGame.Network.Send
             _socket = socket;
         }
         
-        public void Send( int fromSlot, int toSlot, int itemCount)
+        public void Send(int fromSlot, int toSlot, int itemCount)
         {
-            throw new NotImplementedException();
+            var packet = new List<byte>();
+            
+            packet.AddRange(ToByteList.Convert(ProtocolId));
+            packet.AddRange(ToByteList.Convert(_playerId));
+            packet.AddRange(ToByteList.Convert(fromSlot));
+            packet.AddRange(ToByteList.Convert(toSlot));
+            packet.AddRange(ToByteList.Convert(itemCount));
+
+            _socket.Send(packet.ToArray());
         }
     }
 }

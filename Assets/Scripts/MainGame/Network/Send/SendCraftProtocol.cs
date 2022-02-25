@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using MainGame.Network.Util;
+
 namespace MainGame.Network.Send
 {
     public class SendCraftProtocol
@@ -14,7 +17,11 @@ namespace MainGame.Network.Send
         
         public void Send()
         {
-            //TODO
+            var packet = new List<byte>();
+            packet.AddRange(ToByteList.Convert(ProtocolId));
+            packet.AddRange(ToByteList.Convert(_playerId));
+            
+            _socket.Send(packet.ToArray());
             
         }
     }
