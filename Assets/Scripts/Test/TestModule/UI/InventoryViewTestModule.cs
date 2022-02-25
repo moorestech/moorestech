@@ -62,10 +62,10 @@ namespace Test.TestModule.UI
             //クラフトインベントリに挿入するアイテムの設定
             _insertItems = new List<(int,int,int)>();
             _insertItems.Add((0,1,5));
-            _insertItems.Add((5,2,10));
+            _insertItems.Add((1,2,10));
+            _insertItems.Add((2,3,5));
+            _insertItems.Add((9,4,1));
             _insertItems.Add((10,2,1));
-            _insertItems.Add((40,2,1));
-            _insertItems.Add((44,2,1));
             
             
             //メインインベントリの設定とイベントの発火
@@ -75,8 +75,8 @@ namespace Test.TestModule.UI
             //イベントを発火
             foreach (var item in _insertItems)
             {
-                mainUpdateEvent.InvokeMainInventorySlotUpdate(
-                    new MainInventorySlotUpdateProperties(
+                craftingUpdateEvent.InvokeCraftingInventorySlotUpdate(
+                    new CraftingInventorySlotUpdateProperties(
                         item.Item1,new ItemStack(item.Item2,item.Item3)));
             }
         }
