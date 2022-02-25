@@ -2,19 +2,23 @@ using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
+using UnityEngine.UI;
 using VContainer;
 
 namespace MainGame.UnityView.UI.Inventory.View
 {
     public class CraftingInventoryItemView : MonoBehaviour
     {
+        private const int ResultItemSlot = PlayerInventoryConstant.CraftingSlotSize - 1;
+        
         [SerializeField] private InventoryItemSlot inventoryItemSlot;
+        [SerializeField] private Image canNotCraftImage;
         [SerializeField] private RectTransform craftingResultSlot;
         
         List<InventoryItemSlot> _slots;
         private ItemImages _itemImages;
-        
-        
+
+
         [Inject]
         public void Construct(ItemImages itemImages)
         {
@@ -29,7 +33,10 @@ namespace MainGame.UnityView.UI.Inventory.View
 
         public void SetResultItem(ItemStack resultItem, bool canCraft)
         {
-            //TODO : 結果のアイテムを設定
+            //結果のアイテムを設定
+            _slots[ResultItemSlot].SetItem(_itemImages.GetItemImage(resultItem.ID), resultItem.Count);
+            //クラフトできない時は矢印にバツを表示する
+            canNotCraftImage.gameObject.SetActive(!canCraft);
         }
         
         public IReadOnlyList<InventoryItemSlot> GetInventoryItemSlots()
@@ -47,7 +54,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             
             //クラフト結果のアイテムスロットを作成
             var result = Instantiate(inventoryItemSlot.gameObject, craftingResultSlot).GetComponent<InventoryItemSlot>();
-            result.Construct(PlayerInventoryConstant.CraftingSlotSize - 1);
+            result.Construct(ResultItemSlot);
             _slots.Add(result);
             
             return _slots;
