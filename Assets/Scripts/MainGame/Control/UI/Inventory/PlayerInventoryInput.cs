@@ -69,13 +69,11 @@ namespace MainGame.Control.UI.Inventory
                 _isFromCrafting = true;
                 _equippedItemSlot = slot;
                 _equippedItem.gameObject.SetActive(true);
-                _equippedItem.SetEquippedMainItemSlot(slot);
+                _equippedItem.SetEquippedCraftItemSlot(slot);
                 return;
             }
-            _equippedItemSlot = -1;
-            _equippedItem.gameObject.SetActive(false);
-            
             MoveItem(_equippedItemSlot,_isFromCrafting,slot,true);
+            EquippedItemSlotOff();
         }
         
         //メインインベントリのボタンがクリックされた時に呼び出される
@@ -95,8 +93,16 @@ namespace MainGame.Control.UI.Inventory
             }
 
             MoveItem(_equippedItemSlot,_isFromCrafting,slot,false);
+            EquippedItemSlotOff();
+        }
+
+        private void EquippedItemSlotOff()
+        {
             _equippedItemSlot = -1;
             _equippedItem.gameObject.SetActive(false);
+            
+            //次に持っているアイテムの表示をオンにすると前回の場所で一瞬表示されてしまうので、見えない位置に移動させておく
+            _equippedItem.GetComponent<RectTransform>().anchoredPosition = new Vector2(-100, -100);
         }
 
         /// <summary>

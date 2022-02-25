@@ -61,6 +61,11 @@ namespace MainGame.Control.UI.Inventory
             _isCraftingInventory = false;
             SetMainItem(index);
         }
+        private void SetMainItem(int slot)
+        {
+            var fromItem = _mainInventoryItemView.GetInventoryItemSlots()[slot];
+            _equippedItem.CopyItem(fromItem);
+        }
 
         
         public void SetEquippedCraftItemSlot(int index)
@@ -70,11 +75,6 @@ namespace MainGame.Control.UI.Inventory
             SetCraftItem(index);
         }
 
-        private void SetMainItem(int slot)
-        {
-            var fromItem = _mainInventoryItemView.GetInventoryItemSlots()[slot];
-            _equippedItem.CopyItem(fromItem);
-        }
         private void SetCraftItem(int slot)
         {
             var fromItem = _craftingInventoryItemView.GetInventoryItemSlots()[slot];

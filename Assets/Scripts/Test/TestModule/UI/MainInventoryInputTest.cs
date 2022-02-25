@@ -39,11 +39,10 @@ namespace Test.TestModule.UI
             var itemMove = new PlayerInventoryMainInventoryItemMoveService(
                 mainInventoryDataCache,craftingInventoryDataCache,
                 sendMain,sendCraft,sendCraftMain);
-            var craftingInventory = new CraftingInventoryDataCache(new CraftingInventoryUpdateEvent(),craftingInventoryItem);
             
             playerInventoryEquippedItemImageSet.Construct(mainInventoryItem,craftingInventoryItem,new MainInventoryUpdateEvent(),new CraftingInventoryUpdateEvent());
             playerInventoryInput.Construct(playerInventoryEquippedItemImageSet,itemMove,
-            mainInventoryItem,mainInventoryDataCache,craftingInventoryItem, craftingInventory);
+            mainInventoryItem,mainInventoryDataCache,craftingInventoryItem, craftingInventoryDataCache);
         }
     }
 }

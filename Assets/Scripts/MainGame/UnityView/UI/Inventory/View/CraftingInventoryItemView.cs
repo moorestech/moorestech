@@ -9,7 +9,7 @@ namespace MainGame.UnityView.UI.Inventory.View
 {
     public class CraftingInventoryItemView : MonoBehaviour
     {
-        private const int ResultItemSlot = PlayerInventoryConstant.CraftingSlotSize - 1;
+        private const int ResultItemSlot = PlayerInventoryConstant.CraftingInventorySize - 1;
         
         [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
         [SerializeField] private Image canNotCraftImage;

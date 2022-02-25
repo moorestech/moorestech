@@ -10,7 +10,7 @@ namespace MainGame.GameLogic.Inventory
     {
         private readonly CraftingInventoryItemView _craftingInventoryItemView;
         
-        private List<ItemStack> _items = new(new ItemStack[PlayerInventoryConstant.MainInventorySize]);
+        private List<ItemStack> _items = new(new ItemStack[PlayerInventoryConstant.CraftingInventorySize]);
         
         public CraftingInventoryDataCache(
             ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent,CraftingInventoryItemView craftingInventoryItemView)
