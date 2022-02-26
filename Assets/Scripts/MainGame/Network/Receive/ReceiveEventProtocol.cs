@@ -17,7 +17,6 @@ namespace MainGame.Network.Receive
             _eventPacketList.Add(new MainInventorySlotEvent(mainInventoryUpdateEvent));
             _eventPacketList.Add(null); //TODO ブロックインベントリ更新イベント
             _eventPacketList.Add(null); //TODO ブロック削除イベント
-            _eventPacketList.Add(null); //TODO ブロック削除イベント
             _eventPacketList.Add(new CraftingInventorySlotEvent(craftingInventoryUpdateEvent));
         }
         
