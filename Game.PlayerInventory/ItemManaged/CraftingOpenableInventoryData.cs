@@ -38,13 +38,9 @@ namespace PlayerInventory.ItemManaged
         {
             //クラフトが可能なアイテムの配置かチェック
             if (!_isCreatableJudgementService.IsCreatable(CraftingItems)) return;
-            
             //クラフト結果のアイテムを出力スロットに追加可能か判定
-            var result = _isCreatableJudgementService.GetResult(CraftingItems);
-            var outputItem = _openableInventoryService.GetItem(PlayerInventoryConst.CraftingInventorySize - 1);
-
-            //クラフトしたアイテムの出力スロットに空きがある
-            if (!outputItem.IsAllowedToAdd(result)) return;
+            if (!IsResultSlotAddCreatableItem()) return;
+            
             //クラフトしたアイテムを消費する
             var craftConfig = _isCreatableJudgementService.GetCraftingConfigData(CraftingItems);
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
@@ -57,12 +53,30 @@ namespace PlayerInventory.ItemManaged
             
             
             //元のクラフト結果のアイテムを足したアイテムを出力スロットに追加
-            var addedOutputSlot = outputItem.AddItem(result).ProcessResultItemStack;
+            var result = _isCreatableJudgementService.GetResult(CraftingItems);
+            var outputSlotItem = _openableInventoryService.GetItem(PlayerInventoryConst.CraftingInventorySize - 1);
+            
+            var addedOutputSlot = outputSlotItem.AddItem(result).ProcessResultItemStack;
             _openableInventoryService.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, addedOutputSlot);
         }
 
         public IItemStack GetCreatableItem() { return _isCreatableJudgementService.GetResult(CraftingItems); }
-        public bool IsCreatable() { return _isCreatableJudgementService.IsCreatable(CraftingItems); }
+        public bool IsCreatable() { return _isCreatableJudgementService.IsCreatable(CraftingItems) && IsResultSlotAddCreatableItem(); }
+        
+        /// <summary>
+        /// クラフト結果のアイテムを出力スロットに追加可能か判定
+        /// </summary>
+        /// <param name="itemStack"></param>
+        /// <returns></returns>
+        private bool IsResultSlotAddCreatableItem()
+        {
+            var result = _isCreatableJudgementService.GetResult(CraftingItems);
+            var outputItem = _openableInventoryService.GetItem(PlayerInventoryConst.CraftingInventorySize - 1);
+
+            //クラフトしたアイテムの出力スロットに空きがある
+            return outputItem.IsAllowedToAdd(result);
+        }
+        
         private List<IItemStack> CraftingItems
         {
             get
