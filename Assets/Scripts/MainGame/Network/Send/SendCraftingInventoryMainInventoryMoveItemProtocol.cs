@@ -26,8 +26,8 @@ namespace MainGame.Network.Send
             var packet = new List<byte>();
 
             packet.AddRange(ToByteList.Convert(ProtocolId));
-            packet.AddRange(ToByteList.Convert(_playerId));
             packet.AddRange(ToByteList.Convert(toCraftingByte));
+            packet.AddRange(ToByteList.Convert(_playerId));
             packet.AddRange(ToByteList.Convert(mainSlot));
             packet.AddRange(ToByteList.Convert(craftingSlot));
             packet.AddRange(ToByteList.Convert(itemCount));
