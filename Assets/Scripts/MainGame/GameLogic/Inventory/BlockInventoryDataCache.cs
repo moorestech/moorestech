@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Network.Event;
+using MainGame.UnityView;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 
@@ -34,16 +35,19 @@ namespace MainGame.GameLogic.Inventory
         private void OnSettingBlockInventory(SettingBlockInventoryProperties onSettingBlock)
         {
             var items = onSettingBlock.items;
-            
             _itemStackList = items;
-            //UIを開く
-            _blockInventoryItemView.SettingBlockInventory(onSettingBlock.uiType,onSettingBlock.uiParams);
-            //UIを更新する
-            for (var i = 0; i < items.Count; i++)
+            
+            MainThreadExecutionQueue.Instance.Insert(() =>
             {
-                var item = items[i];
-                _blockInventoryItemView.BlockInventoryUpdate(i,item.ID,item.Count);
-            }
+                //UIを開く
+                _blockInventoryItemView.SettingBlockInventory(onSettingBlock.uiType,onSettingBlock.uiParams);
+                //UIを更新する
+                for (var i = 0; i < items.Count; i++)
+                {
+                    var item = items[i];
+                    _blockInventoryItemView.BlockInventoryUpdate(i,item.ID,item.Count);
+                }
+            });
         }
         
         public ItemStack GetItemStack(int slot)

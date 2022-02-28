@@ -15,7 +15,7 @@ namespace MainGame.Network
         
         public AllReceivePacketAnalysisService(
             INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,
-            IMainInventoryUpdateEvent mainInventoryUpdateEvent,ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent)
+            IMainInventoryUpdateEvent mainInventoryUpdateEvent,ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent,IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             _analysisPacketList.Add(new DummyProtocol());
             _analysisPacketList.Add(new ReceiveChunkDataProtocol(networkReceivedChunkDataEvent));
@@ -23,7 +23,7 @@ namespace MainGame.Network
             _analysisPacketList.Add(new ReceiveEventProtocol(networkReceivedChunkDataEvent,mainInventoryUpdateEvent,craftingInventoryUpdateEvent));
             _analysisPacketList.Add(new ReceivePlayerInventoryProtocol(mainInventoryUpdateEvent,new CraftingInventoryUpdateEvent()));
             _analysisPacketList.Add(new DummyProtocol()); //TODO 地面のマップデータのパケットが入る
-            _analysisPacketList.Add(new DummyProtocol()); //TODO ブロックインベントリ応答プロトコルが入る
+            _analysisPacketList.Add(new ReceiveBlockInventoryProtocol(blockInventoryUpdateEvent)); //TODO ブロックインベントリ応答プロトコルが入る
             
         }
 

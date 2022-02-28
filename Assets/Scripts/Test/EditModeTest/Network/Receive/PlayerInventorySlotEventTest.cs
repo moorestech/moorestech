@@ -16,7 +16,7 @@ namespace Test.EditModeTest.Network.Receive
         {
             var playerInventoryEvent = new MainInventoryUpdateEvent();
             var inventoryDatastore = new TestPlayerInventoryDataStore(playerInventoryEvent);
-            var analysis = new AllReceivePacketAnalysisService(new NetworkReceivedChunkDataEvent(),playerInventoryEvent,new CraftingInventoryUpdateEvent());
+            var analysis = new AllReceivePacketAnalysisService(new NetworkReceivedChunkDataEvent(),playerInventoryEvent,new CraftingInventoryUpdateEvent(),null);
             
             
             //インベントリパケット作成モジュールを使用

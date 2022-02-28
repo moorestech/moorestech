@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
+using UnityEngine;
 
 namespace MainGame.Network.Receive
 {
@@ -24,7 +25,7 @@ namespace MainGame.Network.Receive
             for (int i = 0; i < itemNum; i++)
             {
                 var id = bytes.MoveNextToGetInt();
-                var count = bytes.MoveNextToGetShort();
+                var count = bytes.MoveNextToGetInt();
                 items.Add(new ItemStack(id, count));
             }
             
