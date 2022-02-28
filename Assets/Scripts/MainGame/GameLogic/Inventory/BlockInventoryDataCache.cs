@@ -25,7 +25,12 @@ namespace MainGame.GameLogic.Inventory
             var id = properties.Id;
             var count = properties.Count;
             
-            _blockInventoryItemView.BlockInventoryUpdate(slot,id,count);
+            
+            MainThreadExecutionQueue.Instance.Insert(() =>
+            {
+                _blockInventoryItemView.BlockInventoryUpdate(slot,id,count);
+            });
+            
             if (slot < _itemStackList.Count)
             {
                 _itemStackList[slot] = new ItemStack(id,count);

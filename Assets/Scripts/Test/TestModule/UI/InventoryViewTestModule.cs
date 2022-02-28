@@ -14,6 +14,7 @@ namespace Test.TestModule.UI
         [SerializeField] private CraftingInventoryItemView craftingInventoryItemView;
         [SerializeField] private HotBarItemView hotBarItemView;
         [SerializeField] private ItemImages itemImages;
+        [SerializeField] private BlockInventoryItemView blockInventoryItemView;
 
         public MainInventoryDataCache MainInventoryDataCache => _mainInventoryDataCache;
         private MainInventoryDataCache _mainInventoryDataCache;
@@ -43,7 +44,7 @@ namespace Test.TestModule.UI
             
             //メインインベントリの設定とイベントの発火
             var mainUpdateEvent = new MainInventoryUpdateEvent();
-            _mainInventoryDataCache = new MainInventoryDataCache(mainUpdateEvent,mainInventoryItemView,hotBarItemView);
+            _mainInventoryDataCache = new MainInventoryDataCache(mainUpdateEvent,mainInventoryItemView,blockInventoryItemView,hotBarItemView);
 
             //イベントを発火
             foreach (var item in _insertItems)

@@ -12,16 +12,18 @@ namespace MainGame.GameLogic.Inventory
     public class MainInventoryDataCache : IInitializable
     {
         private readonly MainInventoryItemView _mainInventoryItemView;
+        private readonly BlockInventoryItemView _blockInventoryItemView;
         private readonly HotBarItemView _hotBarItemView;
         
         private List<ItemStack> _items = new(new ItemStack[PlayerInventoryConstant.MainInventorySize]);
         
         public MainInventoryDataCache(
-            IMainInventoryUpdateEvent mainInventoryUpdateEvent,MainInventoryItemView mainInventoryItemView,
+            IMainInventoryUpdateEvent mainInventoryUpdateEvent,MainInventoryItemView mainInventoryItemView,BlockInventoryItemView blockInventoryItemView,
             HotBarItemView hotBarItemView)
         {
             mainInventoryUpdateEvent.Subscribe(UpdateInventory,UpdateSlotInventory);
             _mainInventoryItemView = mainInventoryItemView;
+            _blockInventoryItemView = blockInventoryItemView;
             _hotBarItemView = hotBarItemView;
         }
 
@@ -31,22 +33,36 @@ namespace MainGame.GameLogic.Inventory
             //イベントの発火
             for (int i = 0; i < _items.Count; i++)
             {
-                //viewのUIにインベントリが更新されたことを通知する処理をキューに入れる
+                var id = _items[i].ID;
+                var count = _items[i].Count;
                 var slot = i;
-                MainThreadExecutionQueue.Instance.Insert(() => _mainInventoryItemView.OnInventoryUpdate(slot,_items[slot].ID,_items[slot].Count));
-                MainThreadExecutionQueue.Instance.Insert(() => _hotBarItemView.OnInventoryUpdate(slot,_items[slot].ID,_items[slot].Count));
+                
+                //viewのUIにインベントリが更新されたことを通知する処理をキューに入れる
+                MainThreadExecutionQueue.Instance.Insert(() =>
+                {
+                    _mainInventoryItemView.OnInventoryUpdate(slot, id, count);
+                    _hotBarItemView.OnInventoryUpdate(slot, id, count);
+                    _blockInventoryItemView.MainInventoryUpdate(slot,id,count);
+                });
             }
         }
 
         public void UpdateSlotInventory(MainInventorySlotUpdateProperties properties)
         {
-            var s = properties.SlotId;
-            _items[s] = properties.ItemStack;
-            //イベントの発火
+            var slot = properties.SlotId;
+            _items[slot] = properties.ItemStack;
             
-            //viewのUIにインベントリが更新されたことを通知する処理をキューに入れる
-            MainThreadExecutionQueue.Instance.Insert(() => _mainInventoryItemView.OnInventoryUpdate(s,_items[s].ID,_items[s].Count));
-            MainThreadExecutionQueue.Instance.Insert(() => _hotBarItemView.OnInventoryUpdate(s,_items[s].ID,_items[s].Count));
+            
+            var id = _items[slot].ID;
+            var count = _items[slot].Count;
+            
+            //イベントの発火
+            MainThreadExecutionQueue.Instance.Insert(() =>
+            {
+                _mainInventoryItemView.OnInventoryUpdate(slot, id, count);
+                _hotBarItemView.OnInventoryUpdate(slot, id, count);
+                _blockInventoryItemView.MainInventoryUpdate(slot,id,count);
+            });
         }
         
         public ItemStack GetItemStack(int slot)

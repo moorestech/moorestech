@@ -96,6 +96,13 @@ namespace MainGame.UnityView.UI.Inventory.View
         }
         
         
+        public void MainInventoryUpdate(int slot, int itemId, int count)
+        {
+            var sprite = _itemImages.GetItemImage(itemId);
+            _mainInventorySlots[slot].SetItem(sprite,count);
+        }
+        
+        
         public IReadOnlyList<InventoryItemSlot> GetAllInventoryItemSlots()
         {
             var merged = new List<InventoryItemSlot>();
