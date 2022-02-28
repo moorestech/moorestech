@@ -8,7 +8,7 @@ namespace Server.Protocol.PacketResponse.Player
 {
     public class PlayerCoordinateToResponse
     {
-        private const int RequestGetPlayerResetMilliSeconds = 500;
+        private const int RequestPlayerIntervalMilliSeconds = 500;
         
         private Coordinate _lastCoordinate = new Coordinate {X = Int32.MaxValue, Y = Int32.MaxValue};
         private DateTime _lastGetTime = DateTime.MinValue;
@@ -16,7 +16,7 @@ namespace Server.Protocol.PacketResponse.Player
         public List<Coordinate> GetResponseChunkCoordinates(Coordinate coordinate)
         {
             //前回のリクエストから500ミリ秒以上経過している場合は新たにリクエストを行う
-            if (_lastGetTime.AddMilliseconds(RequestGetPlayerResetMilliSeconds) < DateTime.Now)
+            if (_lastGetTime.AddMilliseconds(RequestPlayerIntervalMilliSeconds) < DateTime.Now)
             {
                 _lastCoordinate = new Coordinate {X = Int32.MaxValue, Y = Int32.MaxValue};
             }
