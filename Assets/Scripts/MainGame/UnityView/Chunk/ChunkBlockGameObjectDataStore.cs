@@ -30,13 +30,16 @@ namespace MainGame.UnityView.Chunk
             }
             
             //新しいブロックを設置
-            var block = Instantiate(
-                _blockObjects.GetBlock(blockId),
-                new Vector3(blockPosition.x, 0, blockPosition.y), Quaternion.identity,
-                transform).GetComponent<BlockGameObject>();
-            //IDを再設定
-            block.Construct(blockId);
-            _blockObjectsDictionary.Add(blockPosition,block);
+            MainThreadExecutionQueue.Instance.Insert(() =>
+            {
+                var block = Instantiate(
+                    _blockObjects.GetBlock(blockId),
+                    new Vector3(blockPosition.x, 0, blockPosition.y), Quaternion.identity,
+                    transform).GetComponent<BlockGameObject>();
+                //IDを再設定
+                block.Construct(blockId);
+                _blockObjectsDictionary.Add(blockPosition,block);
+            });
         }
 
         public void GameObjectBlockRemove(Vector2Int blockPosition)
