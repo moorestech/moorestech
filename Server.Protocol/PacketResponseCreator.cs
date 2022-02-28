@@ -20,7 +20,7 @@ namespace Server.Protocol
             _packetResponseList.Add(new PutBlockProtocol(serviceProvider));
             _packetResponseList.Add(new PlayerCoordinateSendProtocol(serviceProvider));
             _packetResponseList.Add(new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
-            _packetResponseList.Add(new SendEventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
+            _packetResponseList.Add(new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseList.Add(new BlockInventoryPlayerMainInventoryMoveItemProtocol(serviceProvider));
             _packetResponseList.Add(new MainInventoryMoveItemProtocol(serviceProvider));
             _packetResponseList.Add(new BlockInventoryMoveItemProtocol(serviceProvider));

@@ -4,11 +4,11 @@ using Server.Util;
 
 namespace Server.Protocol.PacketResponse
 {
-    public class SendEventProtocol : IPacketResponse
+    public class EventProtocol : IPacketResponse
     {
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public SendEventProtocol(EventProtocolProvider eventProtocolProvider)
+        public EventProtocol(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
         }

@@ -65,7 +65,7 @@ namespace Server.PacketHandle
             foreach (var packet in packets)
             {
                 client.Send(packet);
-                await Task.Delay(100);
+                await Task.Delay(10);
             }
         }
     }
