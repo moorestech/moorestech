@@ -11,15 +11,10 @@ namespace MainGame.Control.Game.MouseKeyboard
     {
         private Camera _mainCamera;
         private MoorestechInputSettings _input;
-        private RequestBlockInventoryProtocol _requestBlockInventoryProtocol;
-        private BlockInventoryMainInventoryItemMoveService _blockInventoryMainInventoryItemMoveService;
         
         [Inject]
-        public void Construct(Camera mainCamera,RequestBlockInventoryProtocol requestBlockInventoryProtocol,
-            BlockInventoryMainInventoryItemMoveService blockInventoryMainInventoryItemMoveService)
+        public void Construct(Camera mainCamera)
         {
-            _blockInventoryMainInventoryItemMoveService = blockInventoryMainInventoryItemMoveService;
-            _requestBlockInventoryProtocol = requestBlockInventoryProtocol;
             _mainCamera = mainCamera;
             _input = new MoorestechInputSettings();
             _input.Enable();
@@ -31,20 +26,28 @@ namespace MainGame.Control.Game.MouseKeyboard
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
 
             // マウスでクリックした位置が地面なら
+            if (!_input.Playable.ScreenClick.triggered) return false;
             if (!Physics.Raycast(ray, out var hit)) return false;
             if (hit.collider.gameObject.GetComponent<BlockGameObject>() == null) return false;
 
-            var x = Mathf.RoundToInt(hit.point.x);
-            var y = Mathf.RoundToInt(hit.point.z);
-            
-            //その位置のブロックインベントリを取得するパケットを送信する
-            //実際にインベントリのパケットを取得できてからUIを開くため、実際の開く処理はNetworkアセンブリで行う
-            //ここで呼び出す処理が多くなった場合イベントを使うことを検討する
-            _requestBlockInventoryProtocol.Send(x,y);
-            _blockInventoryMainInventoryItemMoveService.SetBlockPosition(x,y);
-                
-            
             return true;
+        }
+
+        public Vector2Int GetClickPosition()
+        {
+            var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
+            var ray = _mainCamera.ScreenPointToRay(mousePosition);
+            
+            if (Physics.Raycast(ray, out var hit))
+            {            
+                var x = Mathf.RoundToInt(hit.point.x);
+                var y = Mathf.RoundToInt(hit.point.z);
+                return new Vector2Int(x, y);
+            }
+            else
+            {
+                return Vector2Int.zero;
+            }
         }
     }
 }

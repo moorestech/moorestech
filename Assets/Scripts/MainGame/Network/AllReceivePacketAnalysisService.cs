@@ -23,6 +23,7 @@ namespace MainGame.Network
             _analysisPacketList.Add(new ReceiveEventProtocol(networkReceivedChunkDataEvent,mainInventoryUpdateEvent,craftingInventoryUpdateEvent));
             _analysisPacketList.Add(new ReceivePlayerInventoryProtocol(mainInventoryUpdateEvent,new CraftingInventoryUpdateEvent()));
             _analysisPacketList.Add(new DummyProtocol()); //TODO 地面のマップデータのパケットが入る
+            _analysisPacketList.Add(new DummyProtocol()); //TODO ブロックインベントリ応答プロトコルが入る
             
         }
 

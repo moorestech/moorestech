@@ -1,6 +1,10 @@
+using MainGame.Control.UI.Inventory.ItemMove;
 using MainGame.Control.UI.UIState;
+using MainGame.GameLogic.Inventory;
 using MainGame.Network;
+using MainGame.Network.Event;
 using MainGame.Network.Send;
+using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 
 namespace Test.TestModule.UI
@@ -13,7 +17,9 @@ namespace Test.TestModule.UI
         private void Start()
         {
             var inventory = new RequestPlayerInventoryProtocol(new TestSocketModule(), new PlayerConnectionSetting(0));
-            uiStateControl.Construct(blockClickDetectTest,inventory);
+            
+            //Constructが依存関係の増加によって構築するのが面倒になったのでとりあえずコメントアウトして放置する
+            //uiStateControl.Construct(blockClickDetectTest,inventory,new RequestBlockInventoryProtocol(new TestSocketModule()));
         }
     }
 }

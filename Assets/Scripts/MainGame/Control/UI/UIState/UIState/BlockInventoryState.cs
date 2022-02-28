@@ -1,3 +1,6 @@
+using MainGame.Control.Game.MouseKeyboard;
+using MainGame.Control.UI.Inventory.ItemMove;
+using MainGame.Network.Send;
 using UnityEngine;
 
 namespace MainGame.Control.UI.UIState.UIState
@@ -7,9 +10,17 @@ namespace MainGame.Control.UI.UIState.UIState
         private readonly IUIState _gameScreen;
         private readonly MoorestechInputSettings _inputSettings;
         private readonly GameObject _blockInventory;
+        private readonly RequestBlockInventoryProtocol _requestBlockInventoryProtocol;
+        private readonly BlockInventoryMainInventoryItemMoveService _itemMoveService;
+        private readonly IBlockClickDetect _blockClickDetect;
 
-        public BlockInventoryState(IUIState gameScreen, MoorestechInputSettings inputSettings, GameObject blockInventory)
+        public BlockInventoryState(IUIState gameScreen, MoorestechInputSettings inputSettings, GameObject blockInventory,
+            RequestBlockInventoryProtocol requestBlockInventoryProtocol,
+            BlockInventoryMainInventoryItemMoveService itemMoveService,IBlockClickDetect blockClickDetect)
         {
+            _requestBlockInventoryProtocol = requestBlockInventoryProtocol;
+            _itemMoveService = itemMoveService;
+            _blockClickDetect = blockClickDetect;
             _gameScreen = gameScreen;
             _inputSettings = inputSettings;
             _blockInventory = blockInventory;
@@ -31,7 +42,18 @@ namespace MainGame.Control.UI.UIState.UIState
             return this;
         }
 
-        public void OnEnter() { _blockInventory.SetActive(true); }
+        public void OnEnter()
+        {
+            var blockPos = _blockClickDetect.GetClickPosition();
+            
+            //その位置のブロックインベントリを取得するパケットを送信する
+            //実際にインベントリのパケットを取得できてからUIを開くため、実際の開く処理はNetworkアセンブリで行う
+            //ここで呼び出す処理が多くなった場合イベントを使うことを検討する
+            _requestBlockInventoryProtocol.Send(blockPos.x,blockPos.y);
+            _itemMoveService.SetBlockPosition(blockPos.x,blockPos.y);
+            
+            _blockInventory.SetActive(true);
+        }
 
         public void OnExit() { _blockInventory.SetActive(false); }
     }

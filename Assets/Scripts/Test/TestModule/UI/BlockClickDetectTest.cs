@@ -10,5 +10,10 @@ namespace Test.TestModule.UI
         {
             return Input.GetKeyDown(KeyCode.J);
         }
+
+        public Vector2Int GetClickPosition()
+        {
+            return Vector2Int.zero;
+        }
     }
 }

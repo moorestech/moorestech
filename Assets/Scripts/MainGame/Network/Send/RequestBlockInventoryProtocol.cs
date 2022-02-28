@@ -7,7 +7,12 @@ namespace MainGame.Network.Send
     {
         private const short ProtocolId = 9;
         private readonly ISocket _socket;
-        
+
+        public RequestBlockInventoryProtocol(ISocket socket)
+        {
+            _socket = socket;
+        }
+
         public void Send(int x, int y)
         {
             var packet = new List<byte>();
