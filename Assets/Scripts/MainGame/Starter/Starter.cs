@@ -1,3 +1,4 @@
+using MainGame.Control.Game;
 using MainGame.Control.Game.MouseKeyboard;
 using MainGame.Control.UI.Command;
 using MainGame.Control.UI.Inventory;
@@ -51,6 +52,7 @@ namespace MainGame.Starter
         [SerializeField] private MouseGroundClickInput mouseGroundClickInput;
         [SerializeField] private SelectHotBarControl selectHotBarControl;
         [SerializeField] private CraftExecute craftExecute;
+        [SerializeField] private PlayerPosition playerPosition;
         
         [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
         [SerializeField] private BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet;
@@ -74,12 +76,12 @@ namespace MainGame.Starter
             
             //パケット送信インスタンス
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
+            builder.RegisterEntryPoint<SendPlayerPositionProtocolProtocol>(); //プレイヤー位置送信は一定時間ごとに送信するのでRegisterEntryPointを使う
             builder.Register<RequestPlayerInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockInventoryMainInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);
             builder.Register<SendMainInventoryMoveItemProtocol>(Lifetime.Singleton);
-            builder.Register<SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
             builder.Register<RequestBlockInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendCommandProtocol>(Lifetime.Singleton);
             builder.Register<SendCraftProtocol>(Lifetime.Singleton);
@@ -117,6 +119,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(hotBarItemView);
             builder.RegisterComponent(selectHotBarControl);
             builder.RegisterComponent(craftExecute);
+            builder.RegisterComponent<IPlayerPosition>(playerPosition);
 
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             
