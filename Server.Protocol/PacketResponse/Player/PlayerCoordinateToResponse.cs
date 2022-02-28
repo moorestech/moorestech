@@ -8,10 +8,21 @@ namespace Server.Protocol.PacketResponse.Player
 {
     public class PlayerCoordinateToResponse
     {
+        private const int RequestGetPlayerResetMilliSeconds = 500;
+        
         private Coordinate _lastCoordinate = new Coordinate {X = Int32.MaxValue, Y = Int32.MaxValue};
+        private DateTime _lastGetTime = DateTime.MinValue;
 
         public List<Coordinate> GetResponseChunkCoordinates(Coordinate coordinate)
         {
+            //前回のリクエストから500ミリ秒以上経過している場合は新たにリクエストを行う
+            if (_lastGetTime.AddMilliseconds(RequestGetPlayerResetMilliSeconds) < DateTime.Now)
+            {
+                _lastCoordinate = new Coordinate {X = Int32.MaxValue, Y = Int32.MaxValue};
+            }
+            
+            _lastGetTime = DateTime.Now;
+            
             var now = GetCoordinates(coordinate);
             var last = GetCoordinates(_lastCoordinate);
             _lastCoordinate = coordinate;
