@@ -1,5 +1,7 @@
 using System.Linq;
+using MainGame.Network;
 using MainGame.Network.Send;
+using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Util;
 using NUnit.Framework;
 using Test.TestModule;
@@ -17,14 +19,13 @@ namespace Test.EditModeTest.Network.Send
         public void SendTest()
         {
             var socket = new TestSocketModule();
-            var protocol = new SendPlayerPositionProtocolProtocol(socket);
             var playerId = 1;
             var pos = new Vector2(123.4f, 567.8f);
             
-            protocol.Send(playerId, pos);
+            var protocol = new SendPlayerPositionProtocolProtocol(socket,new ReturnPlayerPosition(pos),new PlayerConnectionSetting(playerId));
             
-            
-            
+            protocol.Send();
+
             //データの検証
             var bytes = new ByteArrayEnumerator(socket.SentData.ToList());
             Assert.AreEqual(2,  bytes.MoveNextToGetShort()); 
@@ -33,4 +34,20 @@ namespace Test.EditModeTest.Network.Send
             Assert.AreEqual(playerId,  bytes.MoveNextToGetInt()); 
         }
     }
+
+    class ReturnPlayerPosition : IPlayerPosition
+    {
+        private readonly Vector2 _pos;
+
+        public ReturnPlayerPosition(Vector2 pos)
+        {
+            _pos = pos;
+        }
+
+        public Vector2 GetPlayerPosition()
+        {
+            return _pos;
+        }
+    }
+        
 }
