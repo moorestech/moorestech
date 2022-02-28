@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using MainGame.Network.Send.SocketUtil;
 using UnityEditor.Search;
 using UnityEngine;
@@ -24,20 +25,35 @@ namespace MainGame.Network.Send
 
         public void Send(byte[] data)
         {
-            if (_socket.Connected)
+            lock (_sendQueue)
             {
-                _socket.Send(data);
-                //送信時にキューに入っているデータを送信する
-                while (_sendQueue.Count > 0)
+                if (_socket.Connected)
                 {
-                    Thread.Sleep(10);
-                    _socket.Send(_sendQueue.Dequeue());
+                    _sendQueue.Enqueue(data);
+                    var _ = SendPackets();
+                }
+                else
+                {
+                    //接続していない段階での送信リクエストはキューに入れておく
+                    _sendQueue.Enqueue(data);
                 }
             }
-            else
+        }
+        
+        async Task SendPackets()
+        {
+            //一度にまとめて送るとサーバー側でさばき切れないので、0.1秒おきにパケットを送信する
+            while (true)
             {
-                //接続していない段階での送信リクエストはキューに入れておく
-                _sendQueue.Enqueue(data);
+                lock (_sendQueue)
+                {
+                    _socket.Send(_sendQueue.Dequeue());
+                    if (_sendQueue.Count == 0)
+                    {
+                        return;
+                    }
+                }
+                await Task.Delay(10);
             }
         }
     }
