@@ -125,8 +125,8 @@ namespace MainGame.UnityView.UI.Inventory.View
             {
                 return _mainInventorySlots[index];
             }
-            
-            if (index < PlayerInventoryConstant.MainInventorySize + _inputSlotCount)
+            index -= PlayerInventoryConstant.MainInventorySize;
+            if (index < _inputSlotCount)
             {
                 return _inputInventorySlots[index];
             }
