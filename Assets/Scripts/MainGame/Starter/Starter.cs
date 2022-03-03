@@ -4,6 +4,8 @@ using MainGame.Control.UI.Command;
 using MainGame.Control.UI.Inventory;
 using MainGame.Control.UI.Inventory.ItemMove;
 using MainGame.Control.UI.UIState;
+using MainGame.Control.UI.UIState.UIObject;
+using MainGame.Control.UI.UIState.UIState;
 using MainGame.GameLogic;
 using MainGame.GameLogic.Chunk;
 using MainGame.GameLogic.Inventory;
@@ -47,7 +49,6 @@ namespace MainGame.Starter
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
         [SerializeField] private BlockInventoryInput blockInventoryInput;
         [SerializeField] private BlockClickDetect blockClickDetect;
-        [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private MouseGroundClickInput mouseGroundClickInput;
         [SerializeField] private SelectHotBarControl selectHotBarControl;
@@ -56,6 +57,11 @@ namespace MainGame.Starter
         
         [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
         [SerializeField] private BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet;
+        
+        [SerializeField] private UIStateControl uIStateControl;
+        [SerializeField] private BlockInventoryObject blockInventoryObject;
+        [SerializeField] private PlayerInventoryObject playerInventoryObject;
+        [SerializeField] private PauseMenuObject pauseMenuObject;
 
         void Start()
         {
@@ -98,6 +104,13 @@ namespace MainGame.Starter
             builder.Register<BlockInventoryMainInventoryItemMoveService>(Lifetime.Singleton);
             builder.Register<MainInventoryCraftInventoryItemMoveService>(Lifetime.Singleton);
             
+            //UIコントロール
+            builder.Register<UIStateDictionary>(Lifetime.Singleton);
+            builder.Register<BlockInventoryState>(Lifetime.Singleton);
+            builder.Register<GameScreenState>(Lifetime.Singleton);
+            builder.Register<PauseMenuState>(Lifetime.Singleton);
+            builder.Register<PlayerInventoryState>(Lifetime.Singleton);
+            
             
             //ScriptableObjectの登録
             builder.RegisterInstance(blockObjects);
@@ -115,13 +128,18 @@ namespace MainGame.Starter
             builder.RegisterComponent(mouseGroundClickInput);
             builder.RegisterComponent(playerInventoryEquippedItemImageSet);
             builder.RegisterComponent(blockInventoryEquippedItemImageSet);
-            builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarItemView);
             builder.RegisterComponent(selectHotBarControl);
             builder.RegisterComponent(craftExecute);
+            
+            builder.RegisterComponent(uIStateControl);
+            builder.RegisterComponent(playerInventoryObject);
+            builder.RegisterComponent(blockInventoryObject);
+            builder.RegisterComponent(pauseMenuObject);
+            
+            
             builder.RegisterComponent<IPlayerPosition>(playerPosition);
-
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             
             

@@ -1,27 +1,27 @@
-﻿using MainGame.Network.Send;
+﻿using MainGame.Control.UI.UIState.UIObject;
+using MainGame.Network.Send;
 using UnityEngine;
 
 namespace MainGame.Control.UI.UIState.UIState
 {
     public class PlayerInventoryState : IUIState
     {
-        private readonly IUIState _gameScreen;
+        private readonly PlayerInventoryObject _playerInventory;
+        
         private readonly MoorestechInputSettings _inputSettings;
-        private readonly GameObject _playerInventory;
         private readonly RequestPlayerInventoryProtocol _requestPlayerInventoryProtocol;
 
 
-        public PlayerInventoryState(IUIState gameScreen, MoorestechInputSettings inputSettings, GameObject playerInventory,
+        public PlayerInventoryState( MoorestechInputSettings inputSettings, PlayerInventoryObject playerInventory,
             RequestPlayerInventoryProtocol requestPlayerInventoryProtocol)
         {
-            _gameScreen = gameScreen;
             _inputSettings = inputSettings;
             _playerInventory = playerInventory;
             _requestPlayerInventoryProtocol = requestPlayerInventoryProtocol;
             //起動時に初回のインベントリを取得
             _requestPlayerInventoryProtocol.Send();
             
-            playerInventory.SetActive(false);
+            playerInventory.gameObject.SetActive(false);
         }
 
         public bool IsNext()
@@ -29,22 +29,22 @@ namespace MainGame.Control.UI.UIState.UIState
             return _inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered;
         }
 
-        public IUIState GetNext()
+        public UIStateEnum GetNext()
         {
             if (_inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered)
             {
-                return _gameScreen;
+                return UIStateEnum.GameScreen;
             }
 
-            return this;
+            return UIStateEnum.PlayerInventory;
         }
 
         public void OnEnter()
         {
-            _playerInventory.SetActive(true);
+            _playerInventory.gameObject.SetActive(true);
             _requestPlayerInventoryProtocol.Send();
         }
 
-        public void OnExit() { _playerInventory.SetActive(false); }
+        public void OnExit() { _playerInventory.gameObject.SetActive(false); }
     }
 }

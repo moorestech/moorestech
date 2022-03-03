@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3507958356103347424}
   - component: {fileID: 4500805225003975165}
+  - component: {fileID: 6814766137050968709}
   m_Layer: 5
   m_Name: PlayerInventory
   m_TagString: Untagged
@@ -55,6 +56,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 32acd88976c94f13a6ecedf9934ebbdd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &6814766137050968709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 934557933874445574}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21b40b126a134e9d9d52dafa69dacc34, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1132106671826237348
@@ -1053,6 +1066,7 @@ GameObject:
   m_Component:
   - component: {fileID: 320844201255704235}
   - component: {fileID: 918903490161064717}
+  - component: {fileID: 8911473350465677396}
   m_Layer: 5
   m_Name: BlockInventory
   m_TagString: Untagged
@@ -1094,6 +1108,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b43537e02a6246ea90d697997ec190f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &8911473350465677396
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7603433346726962665}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 309a33304c8441b08440ce8ee645364f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &8085711948232503118

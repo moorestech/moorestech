@@ -6,18 +6,10 @@ namespace MainGame.Control.UI.UIState.UIState
     {
         private MoorestechInputSettings _input;
         private IBlockClickDetect _blockClickDetect;
-        private IUIState _inventoryState;
-        private IUIState _pauseState;
-        private IUIState _blockInventoryState;
-        public void Construct(
-            IUIState inventoryState, IUIState pauseState,IUIState blockInventoryState,
-            MoorestechInputSettings input,IBlockClickDetect blockClickDetect)
+        public GameScreenState(MoorestechInputSettings input,IBlockClickDetect blockClickDetect)
         {
             _input = input;
-            _inventoryState = inventoryState;
-            _pauseState = pauseState;
             _blockClickDetect = blockClickDetect;
-            _blockInventoryState = blockInventoryState;
         }
 
         public bool IsNext()
@@ -39,24 +31,23 @@ namespace MainGame.Control.UI.UIState.UIState
             return false;
         }
 
-        public IUIState GetNext()
+        public UIStateEnum GetNext()
         {
             if (_input.UI.OpenInventory.triggered)
             {
-                return _inventoryState;
+                return UIStateEnum.PlayerInventory;
             }
             if (_input.UI.OpenMenu.triggered)
             {
-                return _pauseState;
+                return UIStateEnum.PauseMenu;
             }
-
             if (_blockClickDetect.IsBlockClicked())
             {
-                return _blockInventoryState;
+                return UIStateEnum.BlockInventory;
             }
 
 
-            return this;
+            return UIStateEnum.GameScreen;
         }
 
         public void OnEnter() { }

@@ -681,6 +681,39 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5568359412720786261, guid: eb9da167e98584171895e4493b9fe661, type: 3}
   m_PrefabInstance: {fileID: 811504271}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &816961701 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5522534773418977928, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92f7d2df447b460f8fdf00be14820acb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &816961702 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5012937688824097988, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21b40b126a134e9d9d52dafa69dacc34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &816961703 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6964966609405507093, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 309a33304c8441b08440ce8ee645364f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &932310750 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 777749069049601569, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
@@ -830,7 +863,6 @@ MonoBehaviour:
   blockInventoryItemView: {fileID: 135985976}
   blockInventoryInput: {fileID: 135985974}
   blockClickDetect: {fileID: 1684657582}
-  uIStateControl: {fileID: 1520253678}
   commandUIInput: {fileID: 2032687454}
   mouseGroundClickInput: {fileID: 1684657584}
   selectHotBarControl: {fileID: 679146591}
@@ -838,6 +870,10 @@ MonoBehaviour:
   playerPosition: {fileID: 1264384480}
   playerInventoryEquippedItemImageSet: {fileID: 135985978}
   blockInventoryEquippedItemImageSet: {fileID: 135985977}
+  uIStateControl: {fileID: 1520253678}
+  blockInventoryObject: {fileID: 816961703}
+  playerInventoryObject: {fileID: 816961702}
+  pauseMenuObject: {fileID: 816961701}
 --- !u!4 &1255688096
 Transform:
   m_ObjectHideFlags: 0

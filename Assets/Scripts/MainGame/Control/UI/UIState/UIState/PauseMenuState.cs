@@ -1,19 +1,18 @@
-﻿using UnityEngine;
+﻿using MainGame.Control.UI.UIState.UIObject;
+using UnityEngine;
 
 namespace MainGame.Control.UI.UIState.UIState
 {
     public class PauseMenuState : IUIState
     {
-        private readonly IUIState _gameScreen;
         private readonly MoorestechInputSettings _inputSettings;
-        private readonly GameObject _pauseMenu;
+        private readonly PauseMenuObject _pauseMenu;
 
-        public PauseMenuState(IUIState gameScreen,MoorestechInputSettings inputSettings,GameObject pauseMenu)
+        public PauseMenuState(MoorestechInputSettings inputSettings,PauseMenuObject pauseMenu)
         {
-            _gameScreen = gameScreen;
             _inputSettings = inputSettings;
             _pauseMenu = pauseMenu;
-            pauseMenu.SetActive(false);
+            pauseMenu.gameObject.SetActive(false);
         }
 
         public bool IsNext()
@@ -21,18 +20,18 @@ namespace MainGame.Control.UI.UIState.UIState
             return _inputSettings.UI.CloseUI.triggered;
         }
 
-        public IUIState GetNext()
+        public UIStateEnum GetNext()
         {
             if (_inputSettings.UI.CloseUI.triggered)
             {
-                return _gameScreen;
+                return UIStateEnum.GameScreen;
             }
 
-            return this;
+            return UIStateEnum.PauseMenu;
         }
 
-        public void OnEnter() { _pauseMenu.SetActive(true); }
+        public void OnEnter() { _pauseMenu.gameObject.SetActive(true); }
 
-        public void OnExit() { _pauseMenu.SetActive(false); }
+        public void OnExit() { _pauseMenu.gameObject.SetActive(false); }
     }
 }

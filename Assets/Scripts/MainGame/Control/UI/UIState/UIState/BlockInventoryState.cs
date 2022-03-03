@@ -1,5 +1,6 @@
 using MainGame.Control.Game.MouseKeyboard;
 using MainGame.Control.UI.Inventory.ItemMove;
+using MainGame.Control.UI.UIState.UIObject;
 using MainGame.Network.Send;
 using UnityEngine;
 
@@ -7,15 +8,16 @@ namespace MainGame.Control.UI.UIState.UIState
 {
     public class BlockInventoryState : IUIState
     {
-        private readonly IUIState _gameScreen;
         private readonly MoorestechInputSettings _inputSettings;
-        private readonly GameObject _blockInventory;
+        private readonly BlockInventoryObject _blockInventory;
+        
         private readonly RequestBlockInventoryProtocol _requestBlockInventoryProtocol;
         private readonly SendBlockInventoryOpenCloseControl _sendBlockInventoryOpenCloseControl;
         private readonly BlockInventoryMainInventoryItemMoveService _itemMoveService;
+        
         private readonly IBlockClickDetect _blockClickDetect;
 
-        public BlockInventoryState(IUIState gameScreen, MoorestechInputSettings inputSettings, GameObject blockInventory,
+        public BlockInventoryState(MoorestechInputSettings inputSettings, BlockInventoryObject blockInventory,
             RequestBlockInventoryProtocol requestBlockInventoryProtocol,
             BlockInventoryMainInventoryItemMoveService itemMoveService,IBlockClickDetect blockClickDetect,SendBlockInventoryOpenCloseControl sendBlockInventoryOpenCloseControl)
         {
@@ -23,10 +25,9 @@ namespace MainGame.Control.UI.UIState.UIState
             _itemMoveService = itemMoveService;
             _blockClickDetect = blockClickDetect;
             _sendBlockInventoryOpenCloseControl = sendBlockInventoryOpenCloseControl;
-            _gameScreen = gameScreen;
             _inputSettings = inputSettings;
             _blockInventory = blockInventory;
-            blockInventory.SetActive(false);
+            blockInventory.gameObject.SetActive(false);
         }
 
         public bool IsNext()
@@ -34,14 +35,14 @@ namespace MainGame.Control.UI.UIState.UIState
             return _inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered;
         }
 
-        public IUIState GetNext()
+        public UIStateEnum GetNext()
         {
             if (_inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered)
             {
-                return _gameScreen;
+                return UIStateEnum.GameScreen;
             }
 
-            return this;
+            return UIStateEnum.BlockInventory;
         }
 
         public void OnEnter()
@@ -55,9 +56,9 @@ namespace MainGame.Control.UI.UIState.UIState
             _sendBlockInventoryOpenCloseControl.Send(blockPos.x,blockPos.y,true);
             _itemMoveService.SetBlockPosition(blockPos.x,blockPos.y);
             
-            _blockInventory.SetActive(true);
+            _blockInventory.gameObject.SetActive(true);
         }
 
-        public void OnExit() { _blockInventory.SetActive(false); }
+        public void OnExit() { _blockInventory.gameObject.SetActive(false); }
     }
 }
