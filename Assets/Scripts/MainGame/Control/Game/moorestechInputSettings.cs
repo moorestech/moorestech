@@ -357,6 +357,15 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""BlockDelete"",
+                    ""type"": ""Button"",
+                    ""id"": ""c32a2ed0-2d81-426d-84ef-3708b00aa473"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -535,6 +544,17 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""action"": ""SwitchHotBar"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8e6467d1-12db-4901-93df-eb714c6bbed4"",
+                    ""path"": ""<Keyboard>/g"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""BlockDelete"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -608,6 +628,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         m_UI_InventoryItemHalve = m_UI.FindAction("InventoryItemHalve", throwIfNotFound: true);
         m_UI_HotBar = m_UI.FindAction("HotBar", throwIfNotFound: true);
         m_UI_SwitchHotBar = m_UI.FindAction("SwitchHotBar", throwIfNotFound: true);
+        m_UI_BlockDelete = m_UI.FindAction("BlockDelete", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -772,6 +793,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     private readonly InputAction m_UI_InventoryItemHalve;
     private readonly InputAction m_UI_HotBar;
     private readonly InputAction m_UI_SwitchHotBar;
+    private readonly InputAction m_UI_BlockDelete;
     public struct UIActions
     {
         private @MoorestechInputSettings m_Wrapper;
@@ -783,6 +805,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         public InputAction @InventoryItemHalve => m_Wrapper.m_UI_InventoryItemHalve;
         public InputAction @HotBar => m_Wrapper.m_UI_HotBar;
         public InputAction @SwitchHotBar => m_Wrapper.m_UI_SwitchHotBar;
+        public InputAction @BlockDelete => m_Wrapper.m_UI_BlockDelete;
         public InputActionMap Get() { return m_Wrapper.m_UI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -813,6 +836,9 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 @SwitchHotBar.started -= m_Wrapper.m_UIActionsCallbackInterface.OnSwitchHotBar;
                 @SwitchHotBar.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnSwitchHotBar;
                 @SwitchHotBar.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnSwitchHotBar;
+                @BlockDelete.started -= m_Wrapper.m_UIActionsCallbackInterface.OnBlockDelete;
+                @BlockDelete.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnBlockDelete;
+                @BlockDelete.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnBlockDelete;
             }
             m_Wrapper.m_UIActionsCallbackInterface = instance;
             if (instance != null)
@@ -838,6 +864,9 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 @SwitchHotBar.started += instance.OnSwitchHotBar;
                 @SwitchHotBar.performed += instance.OnSwitchHotBar;
                 @SwitchHotBar.canceled += instance.OnSwitchHotBar;
+                @BlockDelete.started += instance.OnBlockDelete;
+                @BlockDelete.performed += instance.OnBlockDelete;
+                @BlockDelete.canceled += instance.OnBlockDelete;
             }
         }
     }
@@ -899,5 +928,6 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         void OnInventoryItemHalve(InputAction.CallbackContext context);
         void OnHotBar(InputAction.CallbackContext context);
         void OnSwitchHotBar(InputAction.CallbackContext context);
+        void OnBlockDelete(InputAction.CallbackContext context);
     }
 }

@@ -16,17 +16,17 @@ namespace MainGame.Control.UI.UIState.UIState
 
         public bool IsNext()
         {
-            return _inputSettings.UI.CloseUI.triggered;
+            return _inputSettings.UI.CloseUI.triggered || _inputSettings.UI.BlockDelete.triggered;
         }
 
         public UIStateEnum GetNext()
         {
-            if (_inputSettings.UI.CloseUI.triggered)
+            if (_inputSettings.UI.CloseUI.triggered || _inputSettings.UI.BlockDelete.triggered)
             {
                 return UIStateEnum.GameScreen;
             }
 
-            return UIStateEnum.PauseMenu;
+            return UIStateEnum.DeleteBar;
         }
 
         public void OnEnter()

@@ -114,6 +114,7 @@ namespace MainGame.Starter
             builder.Register<GameScreenState>(Lifetime.Singleton);
             builder.Register<PauseMenuState>(Lifetime.Singleton);
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
+            builder.Register<DeleteObjectInventoryState>(Lifetime.Singleton);
             
             
             //ScriptableObjectの登録

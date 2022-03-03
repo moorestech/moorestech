@@ -27,6 +27,10 @@ namespace MainGame.Control.UI.UIState.UIState
             {
                 return true;
             }
+            if (_input.UI.BlockDelete.triggered)
+            {
+                return true;
+            }
 
             return false;
         }
@@ -44,6 +48,10 @@ namespace MainGame.Control.UI.UIState.UIState
             if (_blockClickDetect.IsBlockClicked())
             {
                 return UIStateEnum.BlockInventory;
+            }
+            if (_input.UI.BlockDelete.triggered)
+            {
+                return UIStateEnum.DeleteBar;
             }
 
 
