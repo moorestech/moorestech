@@ -87,6 +87,7 @@ namespace MainGame.Starter
             builder.Register<SendCraftProtocol>(Lifetime.Singleton);
             builder.Register<SendCraftingInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<SendCraftingInventoryMainInventoryMoveItemProtocol>(Lifetime.Singleton);
+            builder.Register<SendBlockInventoryOpenCloseControl>(Lifetime.Singleton);
             
             
             //データストア、ゲームロジック系
