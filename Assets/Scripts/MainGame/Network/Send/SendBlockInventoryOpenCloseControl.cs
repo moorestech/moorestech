@@ -6,7 +6,7 @@ namespace MainGame.Network.Send
     public class SendBlockInventoryOpenCloseControl
     {
         private readonly ISocket _socket;
-        private const short ProtocolId = 15;
+        private const short ProtocolId = 16;
         private readonly int _playerId;
 
         
@@ -25,7 +25,7 @@ namespace MainGame.Network.Send
             packet.AddRange(ToByteList.Convert(x));
             packet.AddRange(ToByteList.Convert(y));
             packet.AddRange(ToByteList.Convert(_playerId));
-            packet.AddRange(ToByteList.Convert(isOpen ? (byte)1 : (byte)0));
+            packet.Add(isOpen ? (byte)1 : (byte)0);
 
             _socket.Send(packet.ToArray());
         }
