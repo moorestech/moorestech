@@ -8,7 +8,6 @@ using VContainer.Unity;
 
 namespace MainGame.Control.UI.Inventory
 {
-    //TODO メインインベントリとブロックインベントリの移動を対応させる
     public class BlockInventoryInput : MonoBehaviour
     {
         private int _equippedItemIndex = -1;
