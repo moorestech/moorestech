@@ -6,5 +6,6 @@
         PlayerInventory,
         BlockInventory,
         PauseMenu,
+        DeleteBar,
     }
 }
