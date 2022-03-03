@@ -66,7 +66,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
                 param.BlockId, machineParam.InputSlot, _machineRecipeConfig, _itemStackFactory, _blockInventoryUpdateEvent,entityId);
 
             var output = new VanillaMachineOutputInventory(
-                machineParam.OutputSlot, _itemStackFactory, _blockInventoryUpdateEvent,entityId);
+                machineParam.OutputSlot, _itemStackFactory, _blockInventoryUpdateEvent,entityId,machineParam.InputSlot);
             
             return (input, output, machineParam);
         }

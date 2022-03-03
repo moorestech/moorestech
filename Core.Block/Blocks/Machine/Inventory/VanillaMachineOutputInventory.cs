@@ -20,14 +20,17 @@ namespace Core.Block.Blocks.Machine.Inventory
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly int _entityId;
 
+        private readonly int _inputSlotSize;
+
 
         public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;
 
         public VanillaMachineOutputInventory(int outputSlot, ItemStackFactory itemStackFactory, 
-            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId)
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId, int inputSlotSize)
         {
             _blockInventoryUpdate = blockInventoryUpdate;
             _entityId = entityId;
+            _inputSlotSize = inputSlotSize;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,outputSlot);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdate.AddUpdateObject(this);
@@ -96,7 +99,7 @@ namespace Core.Block.Blocks.Machine.Inventory
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
-                _entityId,slot,itemStack));
+                _entityId,slot + _inputSlotSize,itemStack));
         }
     }
 }
