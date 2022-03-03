@@ -95,10 +95,12 @@ namespace MainGame.Starter
             builder.Register<SendCraftingInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<SendCraftingInventoryMainInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockInventoryOpenCloseControl>(Lifetime.Singleton);
+            builder.Register<SendBlockRemoveProtocol>(Lifetime.Singleton);
             
             
             //データストア、ゲームロジック系
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
+            builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
             builder.Register<MainInventoryDataCache>(Lifetime.Singleton);
             builder.Register<CraftingInventoryDataCache>(Lifetime.Singleton);
             builder.Register<BlockInventoryDataCache>(Lifetime.Singleton);

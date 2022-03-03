@@ -51,8 +51,11 @@ namespace MainGame.UnityView.Chunk
             }
             Debug.Log("Remove " + blockPosition);
             
-            Destroy(_blockObjectsDictionary[blockPosition].gameObject);
-            _blockObjectsDictionary.Remove(blockPosition);
+            MainThreadExecutionQueue.Instance.Insert(() =>
+            {
+                Destroy(_blockObjectsDictionary[blockPosition].gameObject);
+                _blockObjectsDictionary.Remove(blockPosition);
+            });
         }
     }
 }
