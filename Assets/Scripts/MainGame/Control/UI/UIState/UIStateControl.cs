@@ -9,6 +9,9 @@ namespace MainGame.Control.UI.UIState
     public class UIStateControl : MonoBehaviour
     {
         private  UIStateEnum _currentState;
+
+        public UIStateEnum CurrentState => _currentState;
+
         private UIStateDictionary _uiStateDictionary;
         
         [Inject]
