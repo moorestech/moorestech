@@ -16,7 +16,7 @@ namespace MainGame.Network.Receive
             _eventPacketList.Add(new BlockPlaceEvent(networkReceivedChunkDataEvent));
             _eventPacketList.Add(new MainInventorySlotEvent(mainInventoryUpdateEvent));
             _eventPacketList.Add(new BlockInventorySlotUpdateEvent(blockInventoryUpdateEvent));
-            _eventPacketList.Add(null); //TODO ブロック削除イベント
+            _eventPacketList.Add(new BlockRemoveEvent(networkReceivedChunkDataEvent));
             _eventPacketList.Add(new CraftingInventorySlotEvent(craftingInventoryUpdateEvent));
         }
         
