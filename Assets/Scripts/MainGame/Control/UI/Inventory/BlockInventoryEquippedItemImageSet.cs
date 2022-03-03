@@ -1,5 +1,6 @@
 ﻿using MainGame.Basic;
 using MainGame.Network.Event;
+using MainGame.UnityView;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -53,8 +54,11 @@ namespace MainGame.Control.UI.Inventory
 
         private void SetItem(int slot)
         {
-            var fromItem = _blockInventoryItemView.GetOpenedInventoryItemSlot(slot);
-            _equippedItem.CopyItem(fromItem);
+            MainThreadExecutionQueue.Instance.Insert(() =>
+            {
+                var fromItem = _blockInventoryItemView.GetOpenedInventoryItemSlot(slot);
+                _equippedItem.CopyItem(fromItem);
+            });
         }
     }
 }
