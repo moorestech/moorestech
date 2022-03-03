@@ -62,6 +62,7 @@ namespace MainGame.Starter
         [SerializeField] private BlockInventoryObject blockInventoryObject;
         [SerializeField] private PlayerInventoryObject playerInventoryObject;
         [SerializeField] private PauseMenuObject pauseMenuObject;
+        [SerializeField] private DeleteBarObject deleteBarObject;
 
         void Start()
         {
@@ -140,6 +141,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(playerInventoryObject);
             builder.RegisterComponent(blockInventoryObject);
             builder.RegisterComponent(pauseMenuObject);
+            builder.RegisterComponent(deleteBarObject);
             
             
             builder.RegisterComponent<IPlayerPosition>(playerPosition);
