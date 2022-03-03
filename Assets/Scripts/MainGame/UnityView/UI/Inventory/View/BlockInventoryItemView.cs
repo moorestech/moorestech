@@ -133,7 +133,5 @@ namespace MainGame.UnityView.UI.Inventory.View
 
             return _outputInventorySlots[index - _inputSlotCount];
         }
-        
-        //TODO インベントリの開く、閉じるのプロトコルを作成する
     }
 }

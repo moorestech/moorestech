@@ -20,7 +20,7 @@ namespace MainGame.Control.UI.UIState
 
         
         [Inject]
-        public void Construct(IBlockClickDetect blockClickDetect,RequestPlayerInventoryProtocol inventoryProtocol,RequestBlockInventoryProtocol requestBlockInventoryProtocol,BlockInventoryMainInventoryItemMoveService itemMoveService)
+        public void Construct(IBlockClickDetect blockClickDetect,RequestPlayerInventoryProtocol inventoryProtocol,RequestBlockInventoryProtocol requestBlockInventoryProtocol,BlockInventoryMainInventoryItemMoveService itemMoveService,SendBlockInventoryOpenCloseControl sendBlockInventoryOpenCloseControl)
         {
             _inputSettings = new MoorestechInputSettings();
             _inputSettings.Enable();
@@ -28,7 +28,7 @@ namespace MainGame.Control.UI.UIState
             //ステートマシンの設定
             var gameScreen = new GameScreenState();
             var inventory = new PlayerInventoryState(gameScreen,_inputSettings,playerInventory,inventoryProtocol);
-            var blockInventoryState = new BlockInventoryState(gameScreen,_inputSettings,blockInventory,requestBlockInventoryProtocol,itemMoveService,blockClickDetect);
+            var blockInventoryState = new BlockInventoryState(gameScreen,_inputSettings,blockInventory,requestBlockInventoryProtocol,itemMoveService,blockClickDetect,sendBlockInventoryOpenCloseControl);
             var pause = new PauseMenuState(gameScreen,_inputSettings,pauseMenu);
             
             gameScreen.Construct(inventory,pause,blockInventoryState,_inputSettings,blockClickDetect);
