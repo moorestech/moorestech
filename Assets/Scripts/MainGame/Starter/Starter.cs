@@ -104,6 +104,9 @@ namespace MainGame.Starter
             builder.Register<BlockInventoryMainInventoryItemMoveService>(Lifetime.Singleton);
             builder.Register<MainInventoryCraftInventoryItemMoveService>(Lifetime.Singleton);
             
+            //インプット
+            builder.Register<MoorestechInputSettings>(Lifetime.Singleton);
+            
             //UIコントロール
             builder.Register<UIStateDictionary>(Lifetime.Singleton);
             builder.Register<BlockInventoryState>(Lifetime.Singleton);
