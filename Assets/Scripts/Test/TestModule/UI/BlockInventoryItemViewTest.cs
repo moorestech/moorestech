@@ -25,18 +25,19 @@ namespace Test.TestModule.UI
         {
             blockInventoryItemView.Construct(itemImages);
             var blockInventory = new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItemView);
+            var playerInventory = GetComponent<InventoryViewTestModule>().MainInventoryDataCache;
+            
             var playerConnection = new PlayerConnectionSetting(0);
             var itemMove = new BlockInventoryMainInventoryItemMoveService(
                 playerConnection,
                 blockInventory,
-                GetComponent<InventoryViewTestModule>().MainInventoryDataCache,
+                playerInventory,
                 new SendBlockInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendBlockInventoryMainInventoryMoveItemProtocol(new TestSocketModule()),
                 new SendMainInventoryMoveItemProtocol(new TestSocketModule(),playerConnection));
 
-            blockInventoryInput.Construct(blockInventoryItemView,itemMove,blockInventory,blockInventoryEquippedItemImageSet);
+            blockInventoryInput.Construct(blockInventoryItemView,itemMove,blockInventory,blockInventoryEquippedItemImageSet,playerInventory);
             blockInventoryEquippedItemImageSet.Construct(blockInventoryItemView,new MainInventoryUpdateEvent(),new BlockInventoryUpdateEvent());
-            blockInventoryInput.PostStart();
             
             //プレイヤーインベントリのアイテム設定
             

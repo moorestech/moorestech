@@ -26,32 +26,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         [Inject]
         public void Construct(ItemImages itemImages)
         {
-            
             _itemImages = itemImages;
-            
-            //プレイヤーインベントリの表示
-            for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
-            {
-                var s = Instantiate(inventoryItemSlotPrefab.gameObject, transform).GetComponent<InventoryItemSlot>();
-                s.Construct(i);
-                _mainInventorySlots.Add(s);
-            }
-
-            //ブロックインベントリの表示
-            for (int i = 0; i < SlotCount; i++)
-            {
-                //inputの設定
-                var s = Instantiate(inventoryItemSlotPrefab.gameObject, inputItems).GetComponent<InventoryItemSlot>();
-                s.Construct(i);
-                s.gameObject.SetActive(false);
-                _inputInventorySlots.Add(s);
-                
-                //outputの設定
-                s = Instantiate(inventoryItemSlotPrefab.gameObject, outputItems).GetComponent<InventoryItemSlot>();
-                s.Construct(i);
-                s.gameObject.SetActive(false);
-                _outputInventorySlots.Add(s);
-            }
         }
 
         //ブロックのインベントリを開く
@@ -105,11 +80,43 @@ namespace MainGame.UnityView.UI.Inventory.View
         
         public IReadOnlyList<InventoryItemSlot> GetAllInventoryItemSlots()
         {
+            if (_mainInventorySlots.Count == 0)
+            {
+                SetInventorySlot();
+            }
+            
             var merged = new List<InventoryItemSlot>();
             merged.AddRange(_mainInventorySlots);
             merged.AddRange(_inputInventorySlots);
             merged.AddRange(_outputInventorySlots);
             return merged;
+        }
+
+        private void SetInventorySlot()
+        {
+            //メインインベントリの作成
+            for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
+            {
+                var s = Instantiate(inventoryItemSlotPrefab.gameObject, transform).GetComponent<InventoryItemSlot>();
+                s.Construct(i);
+                _mainInventorySlots.Add(s);
+            }
+
+            //ブロックインベントリの作成
+            for (int i = 0; i < SlotCount; i++)
+            {
+                //inputの設定
+                var s = Instantiate(inventoryItemSlotPrefab.gameObject, inputItems).GetComponent<InventoryItemSlot>();
+                s.Construct(i);
+                s.gameObject.SetActive(false);
+                _inputInventorySlots.Add(s);
+                
+                //outputの設定
+                s = Instantiate(inventoryItemSlotPrefab.gameObject, outputItems).GetComponent<InventoryItemSlot>();
+                s.Construct(i);
+                s.gameObject.SetActive(false);
+                _outputInventorySlots.Add(s);
+            }
         }
         
         public InventoryItemSlot GetOpenedInventoryItemSlot(int index)

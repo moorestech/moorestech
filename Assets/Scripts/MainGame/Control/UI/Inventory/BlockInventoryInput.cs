@@ -8,12 +8,14 @@ using VContainer.Unity;
 
 namespace MainGame.Control.UI.Inventory
 {
-    public class BlockInventoryInput : MonoBehaviour,IPostStartable
+    //TODO メインインベントリとブロックインベントリの移動を対応させる
+    public class BlockInventoryInput : MonoBehaviour
     {
         private int _equippedItemIndex = -1;
         private BlockInventoryItemView _blockInventoryItemView;
         private BlockInventoryMainInventoryItemMoveService _blockInventoryMainInventoryItemMoveService;
         private BlockInventoryDataCache _blockInventoryDataCache;
+        private MainInventoryDataCache _mainInventoryDataCache;
         private BlockInventoryEquippedItemImageSet _blockInventoryEquippedItemImageSet;
         
         private MoorestechInputSettings _inputSettings;
@@ -25,39 +27,33 @@ namespace MainGame.Control.UI.Inventory
             BlockInventoryItemView blockInventoryItemView,
             BlockInventoryMainInventoryItemMoveService blockInventoryMainInventoryItemMoveService,
             BlockInventoryDataCache blockInventoryDataCache,
-            BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet)
+            BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet,MainInventoryDataCache mainInventoryDataCache)
         {
             _blockInventoryItemView = blockInventoryItemView;
             _blockInventoryMainInventoryItemMoveService = blockInventoryMainInventoryItemMoveService;
             _blockInventoryDataCache = blockInventoryDataCache;
             _blockInventoryEquippedItemImageSet = blockInventoryEquippedItemImageSet;
-            
+            _mainInventoryDataCache = mainInventoryDataCache;
+
             _blockInventoryEquippedItemImageSet.gameObject.SetActive(false);
             _inputSettings = new();
             _inputSettings.Enable();
-        }
-        
-        
-        
-        //イベントをボタンに登録する
-        public void PostStart()
-        {
+            
+            
+            //イベントをボタンに登録する
             foreach (var slot in _blockInventoryItemView.GetAllInventoryItemSlots())
             {
                 slot.SubscribeOnItemSlotClick(OnSlotClick);
             }
         }
-        
-        
-        
+
         //ボタンがクリックされた時に呼び出される
         private void OnSlotClick(int slot)
         {
             if (_equippedItemIndex == -1)
             {
                 //スロットがからの時はそのまま処理を終了
-                var isSlotEmpty = _blockInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
-                if (isSlotEmpty)return;
+                if (IsSlotEmpty(slot))return;
                 
                 _equippedItemIndex = slot;
                 //アイテムをクリックしたときに追従する画像の設定
@@ -100,6 +96,16 @@ namespace MainGame.Control.UI.Inventory
             _blockInventoryMainInventoryItemMoveService.MoveAllItemStack(fromSlot,fromIsBlock,toSlot,toIsBlock);
             _equippedItemIndex = -1;
             _blockInventoryEquippedItemImageSet.gameObject.SetActive(false);
+        }
+        
+        private bool IsSlotEmpty(int slot)
+        {
+            if (PlayerInventoryConstant.MainInventorySize <= slot)
+            {
+                slot -= PlayerInventoryConstant.MainInventorySize;
+                return _blockInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
+            }
+            return _mainInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
         }
     }
 }
