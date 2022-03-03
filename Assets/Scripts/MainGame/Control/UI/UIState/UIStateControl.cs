@@ -12,8 +12,9 @@ namespace MainGame.Control.UI.UIState
         private UIStateDictionary _uiStateDictionary;
         
         [Inject]
-        public void Construct(UIStateDictionary uiStateDictionary)
+        public void Construct(UIStateDictionary uiStateDictionary,MoorestechInputSettings inputSettings)
         {
+            inputSettings.Enable();
             _uiStateDictionary = uiStateDictionary;
         }
         
