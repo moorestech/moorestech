@@ -54,7 +54,9 @@ namespace World.DataStore
 
         public bool RemoveBlock(int x, int y)
         {
-            var entityId = GetBlockId(x, y);
+            if (!Exists(x, y)) return false;
+            
+            var entityId = GetEntityId(x, y);
             if (!_blockMasterDictionary.ContainsKey(entityId)) return false;
 
             var data = _blockMasterDictionary[entityId];
@@ -124,6 +126,6 @@ namespace World.DataStore
         }
         
         public bool Exists(int x, int y) { return GetBlock(x, y).GetBlockId() != BlockConst.EmptyBlockId; }
-        private int GetBlockId(int x, int y) { return _coordinateDictionary[new Coordinate(x, y)]; }
+        private int GetEntityId(int x, int y) { return _coordinateDictionary[new Coordinate(x, y)]; }
     }
 }

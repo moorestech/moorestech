@@ -14,7 +14,7 @@ namespace Server.Protocol.PacketResponse
     {
         
         private readonly IWorldBlockDatastore _worldBlockDatastore;
-        private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
+        private readonly ItemStackFactory _itemStackFactory;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IBlockConfig _blockConfig;
         private readonly IWorldBlockComponentDatastore<IBlockInventory> _worldBlockComponentDatastore;
@@ -24,6 +24,7 @@ namespace Server.Protocol.PacketResponse
         {
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             _blockConfig = serviceProvider.GetService<IBlockConfig>();
             _worldBlockComponentDatastore = serviceProvider.GetService<IWorldBlockComponentDatastore<IBlockInventory>>();
         }
