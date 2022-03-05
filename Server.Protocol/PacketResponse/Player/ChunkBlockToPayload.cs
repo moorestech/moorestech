@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Const;
 using Game.World.Interface.DataStore;
@@ -18,13 +19,14 @@ namespace Server.Protocol.PacketResponse.Player
             payload.AddRange(ToBitList.Convert(ToByteList.Convert(chunkCoordinate.Y)));
             
             //ブロックのIDの追加
-            var blocks = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(chunkCoordinate, worldBlockDatastore);
-            for (int i = 0; i < blocks.GetLength(0); i++)
+            var blocksIds = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(chunkCoordinate, worldBlockDatastore);
+            var blockDirections = CoordinateToChunkBlockIntArray.GetBlockDirectionInChunk(chunkCoordinate, worldBlockDatastore);
+            for (int i = 0; i < blocksIds.GetLength(0); i++)
             {
-                for (int j = 0; j < blocks.GetLength(1); j++)
+                for (int j = 0; j < blocksIds.GetLength(1); j++)
                 {
-                    var blockId = blocks[i, j];
-                    SetBlockId(payload, blockId);
+                    SetIdToPayload(payload, blocksIds[i, j]);
+                    SetDirection(payload, blockDirections[i,j]);
                 }
             }
             //マップタイルのIDの追加
@@ -34,7 +36,7 @@ namespace Server.Protocol.PacketResponse.Player
                 for (int j = 0; j < mapTIleIds.GetLength(1); j++)
                 {
                     var mapTile = mapTIleIds[i, j];
-                    SetBlockId(payload, mapTile);
+                    SetIdToPayload(payload, mapTile);
                 }
             }
             
@@ -42,7 +44,7 @@ namespace Server.Protocol.PacketResponse.Player
             return BitListToByteList.Convert(payload).ToArray();
         }
 
-        private static void SetBlockId(List<bool> payload,int id)
+        private static void SetIdToPayload(List<bool> payload,int id)
         {
             //空気ブロックの追加
             if (id == BlockConst.EmptyBlockId)
@@ -74,6 +76,31 @@ namespace Server.Protocol.PacketResponse.Player
             payload.Add(true);
             payload.Add(false);
             payload.AddRange(ToBitList.Convert(ToByteList.Convert(id)));
+        }
+        
+        private static void SetDirection(List<bool> payload,BlockDirection direction)
+        {
+            switch (direction)
+            {
+                case BlockDirection.North :
+                    payload.Add(false);
+                    payload.Add(false);
+                    break;
+                case BlockDirection.East :
+                    payload.Add(false);
+                    payload.Add(true);
+                    break;
+                case BlockDirection.South :
+                    payload.Add(true);
+                    payload.Add(false);
+                    break;
+                case BlockDirection.West :
+                    payload.Add(true);
+                    payload.Add(true);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
+            }
         }
     }
 }
