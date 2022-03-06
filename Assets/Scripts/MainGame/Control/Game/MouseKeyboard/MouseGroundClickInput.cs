@@ -1,3 +1,4 @@
+using System;
 using MainGame.Control.UI.Inventory;
 using MainGame.Control.UI.UIState;
 using MainGame.Network.Send;
@@ -31,31 +32,32 @@ namespace MainGame.Control.Game.MouseKeyboard
             _groundPlane = groundPlane;
             _input = new MoorestechInputSettings();
             _input.Enable();
-            _input.Playable.ScreenClick.performed += OnBlockPlace;
         }
 
-        private void OnBlockPlace(InputAction.CallbackContext context)
+        private void Update()
         {
-            
             var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
             
             
-            // マウスでクリックした位置が地面なら
+            // マウスの位置が地面の時にのみ実行
             if (!Physics.Raycast(ray, out var hit)) return;
             if (hit.transform.gameObject != _groundPlane.gameObject)return;
             
-            
-            //イベントを発火
             var x = Mathf.RoundToInt(hit.point.x);
             var y = Mathf.RoundToInt(hit.point.z);
-
-
-            if (_uiStateControl.CurrentState == UIStateEnum.GameScreen)
+            
+            //クリックされてたら
+            if (_input.Playable.ScreenClick.triggered)
             {
-                //ホットバーにあるブロックの設置をnetworkに伝える
+                //UIがゲームスクリーンの時にホットバーにあるブロックの設置
+                if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return;
                 _sendPlaceHotBarBlockProtocol.Send(x,y,(short)_hotBarControl.SelectIndex);
+                
+                return;
             }
+            //TODO クリックされてなかったらプレビューを表示する
+            
             
         }
     }
