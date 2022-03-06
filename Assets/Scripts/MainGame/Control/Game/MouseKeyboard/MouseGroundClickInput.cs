@@ -1,7 +1,9 @@
 using System;
+using MainGame.Basic;
 using MainGame.Control.UI.Inventory;
 using MainGame.Control.UI.UIState;
 using MainGame.Network.Send;
+using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -20,45 +22,83 @@ namespace MainGame.Control.Game.MouseKeyboard
         private SelectHotBarControl _hotBarControl;
         private SendPlaceHotBarBlockProtocol _sendPlaceHotBarBlockProtocol;
         private UIStateControl _uiStateControl;
+        private IBlockPlacePreview _blockPlacePreview;
+        
+        
+        private BlockDirection _currentBlockDirection;
         
         [Inject]
         public void Construct(Camera mainCamera,GroundPlane groundPlane,
-            SelectHotBarControl selectHotBarControl,SendPlaceHotBarBlockProtocol sendPlaceHotBarBlockProtocol,UIStateControl uiStateControl)
+            SelectHotBarControl selectHotBarControl,SendPlaceHotBarBlockProtocol sendPlaceHotBarBlockProtocol,UIStateControl uiStateControl,IBlockPlacePreview blockPlacePreview)
         {
             _uiStateControl = uiStateControl;
             _sendPlaceHotBarBlockProtocol = sendPlaceHotBarBlockProtocol;
             _hotBarControl = selectHotBarControl;
             _mainCamera = mainCamera;
             _groundPlane = groundPlane;
+            _blockPlacePreview = blockPlacePreview;
+            
             _input = new MoorestechInputSettings();
             _input.Enable();
         }
 
         private void Update()
         {
+            BlockDirectionControl();
+            GroundClickControl();
+        }
+
+        private void BlockDirectionControl()
+        {
+            //TODO 
+        }
+        
+        
+        private void GroundClickControl()
+        {
+            //基本はプレビュー非表示
+            _blockPlacePreview.SetActive(false);
+            
+            
+            var (isHit, hitPoint) = GetPreviewPosition();
+            if (!isHit)
+            { 
+                return;   
+            }
+
+            //プレビュー表示
+            _blockPlacePreview.SetActive(false);
+            
+            //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
+            if (_input.Playable.ScreenClick.triggered)
+            {
+                _sendPlaceHotBarBlockProtocol.Send(hitPoint.x,hitPoint.y,(short)_hotBarControl.SelectIndex);
+                return;
+            }
+            
+            
+            //クリックされてなかったらプレビューを表示する
+            _blockPlacePreview.SetPreview(hitPoint,_currentBlockDirection);
+        }
+        
+        
+        private (bool,Vector2Int pos) GetPreviewPosition()
+        {
             var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
             
+            //画面からのrayが何かにヒットしているか
+            if (!Physics.Raycast(ray, out var hit)) return (false,new Vector2Int());
+            //そのrayが地面のオブジェクトにヒットしてるか
+            if (hit.transform.gameObject != _groundPlane.gameObject) return (false,new Vector2Int());
+            //UIの状態がゲーム中か
+            if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return (false,new Vector2Int());
             
-            // マウスの位置が地面の時にのみ実行
-            if (!Physics.Raycast(ray, out var hit)) return;
-            if (hit.transform.gameObject != _groundPlane.gameObject)return;
             
             var x = Mathf.RoundToInt(hit.point.x);
             var y = Mathf.RoundToInt(hit.point.z);
-            
-            //クリックされてたら
-            if (_input.Playable.ScreenClick.triggered)
-            {
-                //UIがゲームスクリーンの時にホットバーにあるブロックの設置
-                if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return;
-                _sendPlaceHotBarBlockProtocol.Send(x,y,(short)_hotBarControl.SelectIndex);
-                
-                return;
-            }
-            //TODO クリックされてなかったらプレビューを表示する
-            
-            
+
+            return (true ,new Vector2Int(x,y));
         }
     }
 }
