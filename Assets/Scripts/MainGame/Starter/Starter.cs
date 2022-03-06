@@ -14,6 +14,7 @@ using MainGame.Network.Event;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.UnityView;
+using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
@@ -63,6 +64,7 @@ namespace MainGame.Starter
         [SerializeField] private PlayerInventoryObject playerInventoryObject;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
+        [SerializeField] private BlockPlacePreview blockPlacePreview;
 
         void Start()
         {
@@ -149,6 +151,7 @@ namespace MainGame.Starter
             
             builder.RegisterComponent<IPlayerPosition>(playerPosition);
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
+            builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
             
             
 

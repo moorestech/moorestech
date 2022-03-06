@@ -9,5 +9,10 @@ namespace MainGame.UnityView.Block
         {
             gameObject.transform.rotation = BlockDirectionAngle.GetRotation(blockDirection);
         }
+
+        public void SetActive(bool active)
+        {
+            gameObject.SetActive(active);
+        }
     }
 }
