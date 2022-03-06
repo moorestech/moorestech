@@ -76,7 +76,7 @@ namespace MainGame.Control.Game.MouseKeyboard
             }
 
             //プレビュー表示
-            _blockPlacePreview.SetActive(false);
+            _blockPlacePreview.SetActive(true);
             
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (_input.Playable.ScreenClick.triggered)
