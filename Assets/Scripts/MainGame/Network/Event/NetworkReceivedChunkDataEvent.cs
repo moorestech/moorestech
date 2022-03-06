@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MainGame.Basic;
+using UnityEngine;
 using static MainGame.Network.Event.INetworkReceivedChunkDataEvent;
 
 namespace MainGame.Network.Event
@@ -36,11 +37,13 @@ namespace MainGame.Network.Event
     {
         public readonly Vector2Int ChunkPos;
         public readonly int[,] BlockIds;
+        public readonly BlockDirection[,] BlockDirections;
 
-        public OnChunkUpdateEventProperties(Vector2Int chunkPos, int[,] blockIds)
+        public OnChunkUpdateEventProperties(Vector2Int chunkPos, int[,] blockIds, BlockDirection[,] blockDirections)
         {
             this.ChunkPos = chunkPos;
             this.BlockIds = blockIds;
+            BlockDirections = blockDirections;
         }
     }
 

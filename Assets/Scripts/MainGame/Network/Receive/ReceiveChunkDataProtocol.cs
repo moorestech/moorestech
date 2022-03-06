@@ -26,6 +26,7 @@ namespace MainGame.Network.Receive
             var chunkPos = new Vector2Int(x, y);
 
             var chunkBlocks = new int[ChunkConstant.ChunkSize,ChunkConstant.ChunkSize];
+            var blockDirections = new BlockDirection[ChunkConstant.ChunkSize,ChunkConstant.ChunkSize];
             
             //analysis block data
             for (int i = 0; i < ChunkConstant.ChunkSize; i++)
@@ -33,11 +34,12 @@ namespace MainGame.Network.Receive
                 for (int j = 0; j < ChunkConstant.ChunkSize; j++)
                 {
                     chunkBlocks[i, j] = GetBlockId(bits);
+                    blockDirections[i, j] = GetBlockDirection(bits);
                 }
             }
             
             //chunk data event
-            _networkReceivedChunkDataEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(chunkPos, chunkBlocks));
+            _networkReceivedChunkDataEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(chunkPos, chunkBlocks,blockDirections));
         }
 
         private int GetBlockId(BitListEnumerator bits)
@@ -63,6 +65,32 @@ namespace MainGame.Network.Receive
             }
             //none block
             return BlockConstant.NullBlockId;
+        }
+        
+        private BlockDirection GetBlockDirection(BitListEnumerator bit)
+        {
+            var bit1 = bit.MoveNextToBit();
+            var bit2 = bit.MoveNextToBit();
+            
+            if (!bit1 && !bit2)
+            {
+                return BlockDirection.North;
+            }
+            
+            if (!bit1 && bit2)
+            {
+                return BlockDirection.East;
+            }
+            
+            if (bit1 && !bit2)
+            {
+                return BlockDirection.South;
+            }
+            else
+            {
+                return BlockDirection.West;
+            }
+            
         }
     }
 }

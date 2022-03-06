@@ -14,6 +14,9 @@ namespace Test.EditModeTest.GameLogic
 {
     public class ChunkDataStoreTest
     {
+        private readonly BlockDirection[,] _emptyBlockDirections =
+            new BlockDirection[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize];
+        
         //正しくチャンクがセットできるかのテスト
         [Test]
         public void SetChunkTest()
@@ -27,17 +30,17 @@ namespace Test.EditModeTest.GameLogic
             
             //チャンクをイベント経由でセットする
             chunkEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(
-                new Vector2Int(0,0), EmptyBlockArray()));
+                new Vector2Int(0,0), EmptyBlockArray(),_emptyBlockDirections));
             //チャンクが正しくセットできているかチェック
             Assert.True(chunk.ContainsKey(new Vector2Int(0,0)));
             
             
             chunkEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(
-                new Vector2Int(20,0), EmptyBlockArray()));
+                new Vector2Int(20,0), EmptyBlockArray(),_emptyBlockDirections));
             Assert.True(chunk.ContainsKey(new Vector2Int(20,0)));
             
             chunkEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(
-                new Vector2Int(20,-100), EmptyBlockArray()));
+                new Vector2Int(20,-100), EmptyBlockArray(),_emptyBlockDirections));
             Assert.True(chunk.ContainsKey(new Vector2Int(20,-100)));
         }
 
