@@ -42,7 +42,7 @@ namespace MainGame.Control.Game.MouseKeyboard
             _input.Enable();
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
             BlockDirectionControl();
             GroundClickControl();
