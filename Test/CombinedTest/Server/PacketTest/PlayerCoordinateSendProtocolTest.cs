@@ -90,9 +90,16 @@ namespace Test.CombinedTest.Server.PacketTest
             var b = blockFactory.Create(5,1);
             worldBlock.AddBlock(b, 0, 0, BlockDirection.North);
 
+            
+            
+            
             var bytes = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0));
             var response = bytes.Select(PayloadToBlock).ToList();
 
+            
+            
+            
+            
             Assert.AreEqual(25, response.Count());
             var ans = new List<Coordinate>();
             for (int i = -40; i <= 40; i += ChunkResponseConst.ChunkSize)
@@ -141,13 +148,22 @@ namespace Test.CombinedTest.Server.PacketTest
                 {
                     b = blockFactory.Create(random.Next(0, 500),EntityId.NewEntityId());
                 }
-
-                worldBlock.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300), BlockDirection.North);
+                
+                
+                var blockDirection = (BlockDirection)random.Next(0, 4);
+                worldBlock.AddBlock(b, random.Next(-40, 40), random.Next(-40, 40), blockDirection);
             }
+            
+            
+            
 
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(25, 0, 0))
                 .Select(PayloadToBlock).ToList();
-
+            
+            
+            
+            
+            //検証
             Assert.AreEqual(25, response.Count());
             var ans = new List<Coordinate>();
             for (int i = -40; i <= 40; i += ChunkResponseConst.ChunkSize)
@@ -168,8 +184,11 @@ namespace Test.CombinedTest.Server.PacketTest
                 {
                     for (int j = 0; j < r.Blocks.GetLength(1); j++)
                     {
-                        Assert.AreEqual(worldBlock.GetBlock(c.X + i, c.Y + j).GetBlockId()
-                            , r.Blocks[i, j]);
+                        var id = worldBlock.GetBlock(c.X + i, c.Y + j).GetBlockId();
+                        Assert.AreEqual(id, r.Blocks[i, j]);
+                        
+                        var direction = worldBlock.GetBlockDirection(c.X + i, c.Y + j);
+                        Assert.AreEqual(direction, r.BlockDirections[i, j]);
                     }
                 }
             }
@@ -238,11 +257,13 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             var blocks = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
+            var blockDirections = new BlockDirection[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
             for (int i = 0; i < ChunkResponseConst.ChunkSize; i++)
             {
                 for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
                 {
-                    blocks[i, j] = GetBitEnumerator(bit);
+                    blocks[i, j] = GetId(bit);
+                    blockDirections[i, j] = GetBlockDirection(bit);
                 }
             }
             
@@ -252,15 +273,15 @@ namespace Test.CombinedTest.Server.PacketTest
             {
                 for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
                 {
-                    mapTiles[i, j] = GetBitEnumerator(bit);
+                    mapTiles[i, j] = GetId(bit);
                 }
             }
             
 
-            return new ChunkData(new Coordinate(x, y),blocks,mapTiles);
+            return new ChunkData(new Coordinate(x, y),blocks,mapTiles,blockDirections);
         }
 
-        private int GetBitEnumerator(BitListEnumerator bit)
+        private int GetId(BitListEnumerator bit)
         {
             //空気ブロックか否か
             if (bit.MoveNextToBit())
@@ -292,17 +313,45 @@ namespace Test.CombinedTest.Server.PacketTest
             }
         }
 
+        private BlockDirection GetBlockDirection(BitListEnumerator bit)
+        {
+            var bit1 = bit.MoveNextToBit();
+            var bit2 = bit.MoveNextToBit();
+            
+            if (!bit1 && !bit2)
+            {
+                return BlockDirection.North;
+            }
+            
+            if (!bit1 && bit2)
+            {
+                return BlockDirection.East;
+            }
+            
+            if (bit1 && !bit2)
+            {
+                return BlockDirection.South;
+            }
+            else
+            {
+                return BlockDirection.West;
+            }
+            
+        }
+
         private class ChunkData
         {
             public readonly int[,] Blocks;
+            public readonly BlockDirection[,] BlockDirections;
             public readonly int[,] MapTiles;
             public readonly Coordinate Coordinate;
 
-            public ChunkData(Coordinate coordinate, int[,] blocks,int[,] mapTiles)
+            public ChunkData(Coordinate coordinate, int[,] blocks,int[,] mapTiles, BlockDirection[,] blockDirections)
             {
                 Blocks = blocks;
                 Coordinate = coordinate;
                 MapTiles = mapTiles;
+                BlockDirections = blockDirections;
             }
         }
     }
