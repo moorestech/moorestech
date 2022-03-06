@@ -50,7 +50,16 @@ namespace MainGame.Control.Game.MouseKeyboard
 
         private void BlockDirectionControl()
         {
-            //TODO 
+            if (!_input.Playable.BlockPlaceRotation.triggered) return;
+            
+            _currentBlockDirection = _currentBlockDirection switch
+            {
+                BlockDirection.North => BlockDirection.East,
+                BlockDirection.East => BlockDirection.South,
+                BlockDirection.South => BlockDirection.West,
+                BlockDirection.West => BlockDirection.North,
+                _ => _currentBlockDirection
+            };
         }
         
         
