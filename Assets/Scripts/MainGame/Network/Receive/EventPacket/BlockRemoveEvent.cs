@@ -24,7 +24,7 @@ namespace MainGame.Network.Receive.EventPacket
             var y = bytes.MoveNextToGetInt();
             
             _networkReceivedChunkDataEvents.InvokeBlockUpdateEvent(
-                new OnBlockUpdateEventProperties(new Vector2Int(x,y),BlockConstant.NullBlockId));
+                new OnBlockUpdateEventProperties(new Vector2Int(x,y),BlockConstant.NullBlockId,BlockDirection.North));
         }
     }
 }

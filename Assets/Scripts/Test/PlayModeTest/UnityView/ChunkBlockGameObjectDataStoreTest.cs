@@ -5,6 +5,7 @@ using System.Linq;
 using MainGame.Basic;
 using MainGame.GameLogic.Chunk;
 using MainGame.Network.Event;
+using MainGame.UnityView;
 using MainGame.UnityView.Chunk;
 using NUnit.Framework;
 using UnityEditor;
@@ -23,7 +24,9 @@ namespace Test.PlayModeTest.UnityView
         public IEnumerator PlaceAndRemoveEventTest()
         {
             //初期設定
-            var dataStore = new GameObject().AddComponent<ChunkBlockGameObjectDataStore>();
+            var gameObject = new GameObject();
+            gameObject.AddComponent<MainThreadExecutionQueue>();
+            var dataStore = gameObject.AddComponent<ChunkBlockGameObjectDataStore>();
             var chunkReceivedEvent = new NetworkReceivedChunkDataEvent();
             new ChunkDataStoreCache(chunkReceivedEvent,dataStore);
             var blocksData = AssetDatabase.LoadAssetAtPath<BlockObjects>("Assets/ScriptableObject/BlockObjects.asset");
@@ -86,7 +89,7 @@ namespace Test.PlayModeTest.UnityView
             
             //一つのブロックの設置
             chunkReceivedEvent.InvokeBlockUpdateEvent(
-                new OnBlockUpdateEventProperties(chunkPosition,1));
+                new OnBlockUpdateEventProperties(chunkPosition,1,BlockDirection.North));
             //チェック
             blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(1,blocks.Count);
@@ -96,7 +99,7 @@ namespace Test.PlayModeTest.UnityView
             
             //一つのブロックの削除
             chunkReceivedEvent.InvokeBlockUpdateEvent(
-                new OnBlockUpdateEventProperties(chunkPosition,BlockConstant.NullBlockId));
+                new OnBlockUpdateEventProperties(chunkPosition,BlockConstant.NullBlockId,BlockDirection.North));
             //Destoryのために1フレーム待機
             yield return null;
             blocks = GetBlocks(dataStore.transform);

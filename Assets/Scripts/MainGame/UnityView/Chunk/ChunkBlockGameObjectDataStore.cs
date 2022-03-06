@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MainGame.Basic;
 using UnityEngine;
 using VContainer;
 
@@ -16,26 +17,29 @@ namespace MainGame.UnityView.Chunk
             _blockObjects = blockObjects;
         }
         
-        public void GameObjectBlockPlace(Vector2Int blockPosition, int blockId)
+        public void GameObjectBlockPlace(Vector2Int blockPosition, int blockId,BlockDirection blockDirection)
         {
-            //すでにブロックがあり、IDが違う場合は新しいブロックに置き換えるために削除する
-            if (_blockObjectsDictionary.ContainsKey(blockPosition))
-            {
-                //IDが同じ時は再設置の必要がないため処理を終了
-                if (_blockObjectsDictionary[blockPosition].BlockId == blockId)return;
-                
-                //IDが違うため削除
-                Destroy(_blockObjectsDictionary[blockPosition].gameObject);
-                _blockObjectsDictionary.Remove(blockPosition);
-            }
-            
-            //新しいブロックを設置
             MainThreadExecutionQueue.Instance.Insert(() =>
             {
+                //すでにブロックがあり、IDが違う場合は新しいブロックに置き換えるために削除する
+                if (_blockObjectsDictionary.ContainsKey(blockPosition))
+                {
+                    //IDが同じ時は再設置の必要がないため処理を終了
+                    if (_blockObjectsDictionary[blockPosition].BlockId == blockId)return;
+                
+                    //IDが違うため削除
+                    Destroy(_blockObjectsDictionary[blockPosition].gameObject);
+                    _blockObjectsDictionary.Remove(blockPosition);
+                }
+
+                
+                //新しいブロックを設置
                 var block = Instantiate(
                     _blockObjects.GetBlock(blockId),
-                    new Vector3(blockPosition.x, 0, blockPosition.y), Quaternion.identity,
+                    new Vector3(blockPosition.x, 0, blockPosition.y),
+                    BlockDirectionAngle.GetRotation(blockDirection),
                     transform).GetComponent<BlockGameObject>();
+                
                 //IDを再設定
                 block.Construct(blockId);
                 _blockObjectsDictionary.Add(blockPosition,block);
@@ -49,7 +53,6 @@ namespace MainGame.UnityView.Chunk
             {
                 return;
             }
-            Debug.Log("Remove " + blockPosition);
             
             MainThreadExecutionQueue.Instance.Insert(() =>
             {

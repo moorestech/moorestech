@@ -51,11 +51,13 @@ namespace MainGame.Network.Event
     {
         public readonly Vector2Int BlockPos;
         public readonly  int BlockId;
+        public readonly BlockDirection BlockDirection;
 
-        public OnBlockUpdateEventProperties(Vector2Int blockPos, int blockId)
+        public OnBlockUpdateEventProperties(Vector2Int blockPos, int blockId, BlockDirection blockDirection)
         {
             this.BlockPos = blockPos;
             this.BlockId = blockId;
+            BlockDirection = blockDirection;
         }
     }
 }

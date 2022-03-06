@@ -38,12 +38,12 @@ namespace MainGame.GameLogic.Chunk
                 _chunk.Add(chunkPos, properties.BlockIds);
             }
             
-            //ブロックが違うところだけviewにブロックがおかれたことを通知する
+            //ブロックの更新イベントを発行
             for (int i = 0; i < ChunkConstant.ChunkSize; i++)
             {
                 for (int j = 0; j < ChunkConstant.ChunkSize; j++)
                 {
-                    ViewPlaceOrRemoveBlock(chunkPos + new Vector2Int(i,j),properties.BlockIds[i,j]);
+                    ViewPlaceOrRemoveBlock(chunkPos + new Vector2Int(i,j),properties.BlockIds[i,j],properties.BlockDirections[i,j]);
                 }
             }
         }
@@ -65,17 +65,17 @@ namespace MainGame.GameLogic.Chunk
             _chunk[chunkPos][i, j] = properties.BlockId;
             
             //viewにブロックがおかれたことを通知する
-            ViewPlaceOrRemoveBlock(blockPos, properties.BlockId);
+            ViewPlaceOrRemoveBlock(blockPos, properties.BlockId,properties.BlockDirection);
         }
 
-        private void ViewPlaceOrRemoveBlock(Vector2Int position,int id)
+        private void ViewPlaceOrRemoveBlock(Vector2Int position,int id,BlockDirection blockDirection)
         {
             if (id == BlockConstant.NullBlockId)
             {
                 _chunkBlockGameObjectDataStore.GameObjectBlockRemove(position);
                 return;
             }
-            _chunkBlockGameObjectDataStore.GameObjectBlockPlace(position,id);
+            _chunkBlockGameObjectDataStore.GameObjectBlockPlace(position,id,blockDirection);
         }
 
 
