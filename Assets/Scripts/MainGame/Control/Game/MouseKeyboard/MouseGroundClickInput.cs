@@ -81,7 +81,7 @@ namespace MainGame.Control.Game.MouseKeyboard
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (_input.Playable.ScreenClick.triggered)
             {
-                _sendPlaceHotBarBlockProtocol.Send(hitPoint.x,hitPoint.y,(short)_hotBarControl.SelectIndex);
+                _sendPlaceHotBarBlockProtocol.Send(hitPoint.x,hitPoint.y,(short)_hotBarControl.SelectIndex,_currentBlockDirection);
                 return;
             }
             

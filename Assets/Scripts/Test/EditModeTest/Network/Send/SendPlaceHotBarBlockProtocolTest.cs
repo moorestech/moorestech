@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using MainGame.Basic;
 using MainGame.Network;
 using MainGame.Network.Send;
 using MainGame.Network.Util;
@@ -20,7 +21,7 @@ namespace Test.EditModeTest.Network.Send
             int x = 3;
             int y = 10;
             short hotBarSlot = 2;
-            placeHotBarBlockProtocol.Send(x,y,hotBarSlot);
+            placeHotBarBlockProtocol.Send(x,y,hotBarSlot,BlockDirection.South);
             
             //データの検証
             var bytes = new ByteArrayEnumerator(socket.SentData.ToList());
@@ -29,6 +30,7 @@ namespace Test.EditModeTest.Network.Send
             Assert.AreEqual(x,  bytes.MoveNextToGetInt()); 
             Assert.AreEqual(y,  bytes.MoveNextToGetInt()); 
             Assert.AreEqual(playerId,  bytes.MoveNextToGetInt()); 
+            Assert.AreEqual(2,  bytes.MoveNextToGetByte()); 
         }
     }
 }
