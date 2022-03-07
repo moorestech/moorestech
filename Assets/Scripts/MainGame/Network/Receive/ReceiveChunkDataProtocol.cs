@@ -38,8 +38,18 @@ namespace MainGame.Network.Receive
                 }
             }
             
+            var mapTiles = new int[ChunkConstant.ChunkSize,ChunkConstant.ChunkSize];
+            //analysis map data
+            for (int i = 0; i < ChunkConstant.ChunkSize; i++)
+            {
+                for (int j = 0; j < ChunkConstant.ChunkSize; j++)
+                {
+                    mapTiles[i, j] = GetBlockId(bits);
+                }
+            }
+            
             //chunk data event
-            _networkReceivedChunkDataEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(chunkPos, chunkBlocks,blockDirections));
+            _networkReceivedChunkDataEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(chunkPos, chunkBlocks,blockDirections,mapTiles));
         }
 
         private int GetBlockId(BitListEnumerator bits)

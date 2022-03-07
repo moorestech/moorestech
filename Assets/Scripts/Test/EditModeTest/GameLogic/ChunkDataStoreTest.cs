@@ -30,17 +30,17 @@ namespace Test.EditModeTest.GameLogic
             
             //チャンクをイベント経由でセットする
             chunkEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(
-                new Vector2Int(0,0), EmptyBlockArray(),_emptyBlockDirections));
+                new Vector2Int(0,0), EmptyBlockArray(),_emptyBlockDirections,EmptyBlockArray()));
             //チャンクが正しくセットできているかチェック
             Assert.True(chunk.ContainsKey(new Vector2Int(0,0)));
             
             
             chunkEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(
-                new Vector2Int(20,0), EmptyBlockArray(),_emptyBlockDirections));
+                new Vector2Int(20,0), EmptyBlockArray(),_emptyBlockDirections,EmptyBlockArray()));
             Assert.True(chunk.ContainsKey(new Vector2Int(20,0)));
             
             chunkEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(
-                new Vector2Int(20,-100), EmptyBlockArray(),_emptyBlockDirections));
+                new Vector2Int(20,-100), EmptyBlockArray(),_emptyBlockDirections,EmptyBlockArray()));
             Assert.True(chunk.ContainsKey(new Vector2Int(20,-100)));
         }
 

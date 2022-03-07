@@ -49,7 +49,7 @@ namespace Test.PlayModeTest.UnityView
             ids[13, 4] = 1;
             var chunkPosition = new Vector2Int(-20,20);
             //イベントを発火
-            chunkReceivedEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(chunkPosition,ids,_emptyBlockDirections));
+            chunkReceivedEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(chunkPosition,ids,_emptyBlockDirections,new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize]));
             
             
             //Instansiateのために1フレーム待機
@@ -74,7 +74,7 @@ namespace Test.PlayModeTest.UnityView
             newIds[13, 4] = 1;
             newIds[5, 5] = 1;
             //イベントを発火
-            chunkReceivedEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(chunkPosition,newIds,_emptyBlockDirections));
+            chunkReceivedEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(chunkPosition,newIds,_emptyBlockDirections,new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize]));
             
             //Instansiateのために1フレーム待機
             yield return null;
@@ -86,7 +86,7 @@ namespace Test.PlayModeTest.UnityView
             
             //何もないチャンクが発火され、ブロックがなくなるテスト
             chunkReceivedEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(
-                chunkPosition,new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize],_emptyBlockDirections));
+                chunkPosition,new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize],_emptyBlockDirections,new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize]));
             
             //Destoryのために1フレーム待機
             yield return null;

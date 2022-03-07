@@ -38,12 +38,15 @@ namespace MainGame.Network.Event
         public readonly Vector2Int ChunkPos;
         public readonly int[,] BlockIds;
         public readonly BlockDirection[,] BlockDirections;
+        
+        public readonly int[,] MapTileIds;
 
-        public OnChunkUpdateEventProperties(Vector2Int chunkPos, int[,] blockIds, BlockDirection[,] blockDirections)
+        public OnChunkUpdateEventProperties(Vector2Int chunkPos, int[,] blockIds, BlockDirection[,] blockDirections, int[,] mapTileIds)
         {
-            this.ChunkPos = chunkPos;
-            this.BlockIds = blockIds;
+            ChunkPos = chunkPos;
+            BlockIds = blockIds;
             BlockDirections = blockDirections;
+            MapTileIds = mapTileIds;
         }
     }
 
