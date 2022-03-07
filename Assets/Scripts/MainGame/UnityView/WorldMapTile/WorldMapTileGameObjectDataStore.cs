@@ -18,6 +18,11 @@ namespace MainGame.UnityView.WorldMapTile
         
         public void GameObjectBlockPlace(Vector2Int tilePosition, int tileId)
         {
+            if (_blockObjectsDictionary.ContainsKey(tilePosition))
+            {
+                return;
+            }
+            
             MainThreadExecutionQueue.Instance.Insert(() =>
             {
                 var tile = Instantiate(
