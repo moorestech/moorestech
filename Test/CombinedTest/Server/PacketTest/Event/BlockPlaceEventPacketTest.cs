@@ -38,7 +38,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         public void BlockPlaceEvent()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
-            var worldBlockDataStore = serviceProvider.GetService<WorldBlockDatastore>();
+            var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             
             
 
@@ -58,13 +58,12 @@ namespace Test.CombinedTest.Server.PacketTest.Event
                     var x = random.Next(-10000, 10000);
                     var y = random.Next(-10000, 10000);
                     var blockId = random.Next(1, 1000);
-                    var entityId = random.Next(1, 1000);
                     var direction = random.Next(0, 4);
                     
                     //設置したブロックを保持する
                     blocks.Add(new TestBlockData(x, y, blockId,direction));
                     //ブロックの設置
-                    worldBlockDataStore.AddBlock(new VanillaBlock(blockId,entityId), x, y,(BlockDirection)direction);
+                    worldBlockDataStore.AddBlock(new VanillaBlock(blockId,random.Next(1, 1000000)), x, y,(BlockDirection)direction);
                 }
                 
                 
