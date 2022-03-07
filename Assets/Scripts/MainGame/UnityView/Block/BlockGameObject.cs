@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MainGame.UnityView.Chunk
+namespace MainGame.UnityView.Block
 {
     public class BlockGameObject : MonoBehaviour
     {
