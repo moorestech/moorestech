@@ -6,6 +6,7 @@ using MainGame.Basic;
 using MainGame.GameLogic.Chunk;
 using MainGame.Network.Event;
 using MainGame.UnityView;
+using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using NUnit.Framework;
 using UnityEditor;

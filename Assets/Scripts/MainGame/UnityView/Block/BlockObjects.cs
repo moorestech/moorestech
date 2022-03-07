@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
+using MainGame.UnityView.Chunk;
 using UnityEngine;
 
-namespace MainGame.UnityView.Chunk
+namespace MainGame.UnityView.Block
 {
     [CreateAssetMenu(fileName = "BlockObjects", menuName = "BlockObjects", order = 0)]
     public class BlockObjects : ScriptableObject
