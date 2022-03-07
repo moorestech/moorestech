@@ -5,7 +5,7 @@ using VContainer;
 
 namespace MainGame.Control.Game.MouseKeyboard
 {
-    public class MapTileClickDetect : MonoBehaviour
+    public class OreMapTileClickDetect : MonoBehaviour
     {
         private Camera _mainCamera;
         private MoorestechInputSettings _input;
