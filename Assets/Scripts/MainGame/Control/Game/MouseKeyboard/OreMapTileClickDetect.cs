@@ -1,4 +1,5 @@
 ﻿using System;
+using MainGame.Network.Send;
 using MainGame.UnityView.WorldMapTile;
 using UnityEngine;
 using VContainer;
@@ -9,18 +10,24 @@ namespace MainGame.Control.Game.MouseKeyboard
     {
         private Camera _mainCamera;
         private MoorestechInputSettings _input;
+        private SendMiningProtocol _sendMiningProtocol;
         
         [Inject]
-        public void Construct(Camera mainCamera)
+        public void Construct(Camera mainCamera,SendMiningProtocol sendMiningProtocol)
         {
             _mainCamera = mainCamera;
+            _sendMiningProtocol = sendMiningProtocol;
+            
             _input = new MoorestechInputSettings();
             _input.Enable();
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
-            
+            if (IsBlockClicked())
+            {
+                _sendMiningProtocol.Send(GetClickPosition());
+            }
         }
 
         private bool IsBlockClicked()
@@ -34,6 +41,23 @@ namespace MainGame.Control.Game.MouseKeyboard
             if (hit.collider.gameObject.GetComponent<OreTileObject>() == null) return false;
             
             return true;
+        }
+
+        public Vector2Int GetClickPosition()
+        {
+            var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
+            var ray = _mainCamera.ScreenPointToRay(mousePosition);
+            
+            if (Physics.Raycast(ray, out var hit))
+            {            
+                var x = Mathf.RoundToInt(hit.point.x);
+                var y = Mathf.RoundToInt(hit.point.z);
+                return new Vector2Int(x, y);
+            }
+            else
+            {
+                return Vector2Int.zero;
+            }
         }
     }
 }

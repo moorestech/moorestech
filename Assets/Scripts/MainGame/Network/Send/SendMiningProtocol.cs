@@ -1,8 +1,10 @@
-﻿namespace MainGame.Network.Send
+﻿using UnityEngine;
+
+namespace MainGame.Network.Send
 {
     public class SendMiningProtocol
     {
-        public void Send(int x,int y)
+        public void Send(Vector2Int vector2Int)
         {
             //TODO 
         }
