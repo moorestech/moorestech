@@ -51,6 +51,8 @@ namespace Test.PlayModeTest.UnityView
             chunkReceivedEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(chunkPosition,ids,_emptyBlockDirections));
             
             
+            //Instansiateのために1フレーム待機
+            yield return null;
             
             //ブロックが置かれているか確認する
             blocks = GetBlocks(dataStore.transform);
@@ -72,6 +74,10 @@ namespace Test.PlayModeTest.UnityView
             newIds[5, 5] = 1;
             //イベントを発火
             chunkReceivedEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(chunkPosition,newIds,_emptyBlockDirections));
+            
+            //Instansiateのために1フレーム待機
+            yield return null;
+            
             blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(5,blocks.Count);
             Assert.True(blocks.Any(block => block.transform.position == new Vector3(-15, 0, 25)));
@@ -80,8 +86,10 @@ namespace Test.PlayModeTest.UnityView
             //何もないチャンクが発火され、ブロックがなくなるテスト
             chunkReceivedEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(
                 chunkPosition,new int[ChunkConstant.ChunkSize, ChunkConstant.ChunkSize],_emptyBlockDirections));
+            
             //Destoryのために1フレーム待機
             yield return null;
+            
             blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(0,blocks.Count);
             
@@ -90,6 +98,10 @@ namespace Test.PlayModeTest.UnityView
             //一つのブロックの設置
             chunkReceivedEvent.InvokeBlockUpdateEvent(
                 new OnBlockUpdateEventProperties(chunkPosition,1,BlockDirection.North));
+            
+            //Instansiateのために1フレーム待機
+            yield return null;
+            
             //チェック
             blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(1,blocks.Count);
@@ -100,8 +112,10 @@ namespace Test.PlayModeTest.UnityView
             //一つのブロックの削除
             chunkReceivedEvent.InvokeBlockUpdateEvent(
                 new OnBlockUpdateEventProperties(chunkPosition,BlockConstant.NullBlockId,BlockDirection.North));
+            
             //Destoryのために1フレーム待機
             yield return null;
+            
             blocks = GetBlocks(dataStore.transform);
             Assert.AreEqual(0,blocks.Count);
         }
