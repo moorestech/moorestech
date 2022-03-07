@@ -18,6 +18,7 @@ using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
+using MainGame.UnityView.WorldMapTile;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -36,6 +37,7 @@ namespace MainGame.Starter
         [Header("ScriptableObjects")]
         [SerializeField] private BlockObjects blockObjects;
         [SerializeField] private ItemImages itemImages;
+        [SerializeField] private WorldMapTileObjects worldMapTileObjects;
         
         [Header("InHierarchy")]
         [SerializeField] Camera mainCamera;
@@ -43,6 +45,8 @@ namespace MainGame.Starter
         [SerializeField] private GroundPlane groundPlane;
 
         [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
+        [SerializeField] private WorldMapTileGameObjectDataStore worldMapTileGameObjectDataStore;
+        
         [SerializeField] private HotBarItemView hotBarItemView;
         [SerializeField] private MainInventoryItemView mainInventoryItemView;
         [SerializeField] private CraftingInventoryItemView craftingInventoryItemView;
@@ -102,6 +106,7 @@ namespace MainGame.Starter
             
             //データストア、ゲームロジック系
             builder.RegisterEntryPoint<ChunkDataStoreCache>();
+            builder.RegisterEntryPoint<WorldMapTilePresenter>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
             builder.Register<MainInventoryDataCache>(Lifetime.Singleton);
             builder.Register<CraftingInventoryDataCache>(Lifetime.Singleton);
@@ -124,9 +129,12 @@ namespace MainGame.Starter
             //ScriptableObjectの登録
             builder.RegisterInstance(blockObjects);
             builder.RegisterInstance(itemImages);
+            builder.RegisterInstance(worldMapTileObjects);
 
             //Hierarchy上にあるcomponent
             builder.RegisterComponent(chunkBlockGameObjectDataStore);
+            builder.RegisterComponent(worldMapTileGameObjectDataStore);
+            
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(groundPlane);
             builder.RegisterComponent(mainInventoryItemView);

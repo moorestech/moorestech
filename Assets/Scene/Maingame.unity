@@ -864,9 +864,11 @@ MonoBehaviour:
   autoInjectGameObjects: []
   blockObjects: {fileID: 11400000, guid: db5bae58745d342e7bde18cd5a2830be, type: 2}
   itemImages: {fileID: 11400000, guid: f3f5e541a0fc649389c5ffefa1f0082a, type: 2}
+  worldMapTileObjects: {fileID: 11400000, guid: 8739e78e3bfce4a42a12c59e0582dadc, type: 2}
   mainCamera: {fileID: 1240479239}
   groundPlane: {fileID: 367739784}
   chunkBlockGameObjectDataStore: {fileID: 811504272}
+  worldMapTileGameObjectDataStore: {fileID: 1857732743}
   hotBarItemView: {fileID: 932310750}
   mainInventoryItemView: {fileID: 135985975}
   craftingInventoryItemView: {fileID: 758237237}
@@ -1296,6 +1298,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1857732742}
+  - component: {fileID: 1857732743}
   m_Layer: 0
   m_Name: WorldMapTileObjects
   m_TagString: Untagged
@@ -1318,6 +1321,18 @@ Transform:
   m_Father: {fileID: 1255688096}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1857732743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1857732741}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7023edad7deb4b1aa5365f9e3534a5d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &2032687454 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3284662009520109990, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
