@@ -13,5 +13,7 @@ MonoBehaviour:
   m_Name: WorldMapTileObjects
   m_EditorClassIdentifier: 
   TileObjectList:
+  - {fileID: 798548887505201479, guid: a1ecb2012c3dd0043b2e6de403a7c74b, type: 3}
   - {fileID: -1218328166402749699, guid: 85fcea7aa9e1994498dfe96bc6d6b911, type: 3}
+  - {fileID: -1218328166402749699, guid: 3b76f7f1f3a4c454095d8c2e0f2c8dc7, type: 3}
   NothingIndexBlockObject: {fileID: 798548887505201479, guid: a1ecb2012c3dd0043b2e6de403a7c74b, type: 3}

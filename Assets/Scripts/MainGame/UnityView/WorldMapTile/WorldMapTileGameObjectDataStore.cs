@@ -18,7 +18,7 @@ namespace MainGame.UnityView.WorldMapTile
         
         public void GameObjectBlockPlace(Vector2Int tilePosition, int tileId)
         {
-            if (_blockObjectsDictionary.ContainsKey(tilePosition))
+            if (_blockObjectsDictionary.ContainsKey(tilePosition) || tileId == 0)
             {
                 return;
             }
