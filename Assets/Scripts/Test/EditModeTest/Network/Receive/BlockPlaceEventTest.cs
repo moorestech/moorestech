@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using MainGame.Basic;
 using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Receive.EventPacket;
@@ -83,6 +84,7 @@ namespace Test.EditModeTest.Network.Receive
             data.AddRange(ToByteList.Convert(blockPosition.x));
             data.AddRange(ToByteList.Convert(blockPosition.y));
             data.AddRange(ToByteList.Convert(blockId));
+            data.Add((byte)BlockDirection.North);
             return data;
         }
     }

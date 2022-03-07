@@ -151,6 +151,9 @@ namespace Test.EditModeTest.Network.Receive
                             bits.Add(false);
                             break;
                     }
+                    //向きの設定
+                    bits.Add(false);
+                    bits.Add(false);
                 }
             }
 
