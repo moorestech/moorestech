@@ -9,6 +9,7 @@ namespace MainGame.Control.UI.Inventory
     public class SelectHotBarControl : MonoBehaviour
     {
         [SerializeField] private SelectHotBarView selectHotBarView;
+        [SerializeField] private HotBarItemView hotBarItemView;
         
         private const int HotBarCount = 9;
         
@@ -17,11 +18,29 @@ namespace MainGame.Control.UI.Inventory
 
         public int SelectIndex => _selectIndex;
 
-        public void Awake()
+
+        public bool IsClicked => isClicked;
+        private bool isClicked = false;
+        
+        public void Start()
         {
             _inputSettings = new();
             _inputSettings.Enable();
+
+            foreach (var slot in hotBarItemView.Slots)
+            {
+                slot.SubscribeOnItemSlotClick(ClickItem);
+            }
         }
-        
+
+        private void ClickItem(int slot)
+        {
+            selectHotBarView.SetSelect(slot);
+        }
+
+        public void LateUpdate()
+        {
+            isClicked = false;
+        }
     }
 }

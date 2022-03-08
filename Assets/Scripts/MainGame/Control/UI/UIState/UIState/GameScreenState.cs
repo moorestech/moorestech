@@ -1,4 +1,5 @@
 ﻿using MainGame.Control.Game.MouseKeyboard;
+using MainGame.Control.UI.Inventory;
 
 namespace MainGame.Control.UI.UIState.UIState
 {
@@ -6,10 +7,13 @@ namespace MainGame.Control.UI.UIState.UIState
     {
         private MoorestechInputSettings _input;
         private IBlockClickDetect _blockClickDetect;
-        public GameScreenState(MoorestechInputSettings input,IBlockClickDetect blockClickDetect)
+        private readonly SelectHotBarControl _selectHotBarControl;
+
+        public GameScreenState(MoorestechInputSettings input,IBlockClickDetect blockClickDetect,SelectHotBarControl selectHotBarControl)
         {
             _input = input;
             _blockClickDetect = blockClickDetect;
+            _selectHotBarControl = selectHotBarControl;
         }
 
         public bool IsNext()
@@ -28,6 +32,11 @@ namespace MainGame.Control.UI.UIState.UIState
                 return true;
             }
             if (_input.UI.BlockDelete.triggered)
+            {
+                return true;
+            }
+
+            if (_selectHotBarControl.IsClicked)
             {
                 return true;
             }
@@ -52,6 +61,10 @@ namespace MainGame.Control.UI.UIState.UIState
             if (_input.UI.BlockDelete.triggered)
             {
                 return UIStateEnum.DeleteBar;
+            }
+            if (_selectHotBarControl.IsClicked)
+            {
+                return UIStateEnum.BlockPlace;
             }
 
 

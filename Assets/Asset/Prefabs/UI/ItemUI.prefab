@@ -1376,6 +1376,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   selectHotBarView: {fileID: 2514071812894102749}
+  hotBarItemView: {fileID: 1281414139932573792}
 --- !u!1 &8630061562599170681
 GameObject:
   m_ObjectHideFlags: 0

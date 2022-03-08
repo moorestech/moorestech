@@ -23,7 +23,9 @@ namespace MainGame.UnityView.UI.Inventory.View
             _slots = new List<InventoryItemSlot>();
             for (int i = 0; i < PlayerInventoryConstant.MainInventoryColumns; i++)
             {
-                _slots.Add(Instantiate(inventoryItemSlotPrefab.gameObject,transform).GetComponent<InventoryItemSlot>());
+                var slot = Instantiate(inventoryItemSlotPrefab.gameObject, transform).GetComponent<InventoryItemSlot>();
+                slot.Construct(i);
+                _slots.Add(slot);
             }
         }
 
