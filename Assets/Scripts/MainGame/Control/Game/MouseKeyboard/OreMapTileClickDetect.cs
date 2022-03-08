@@ -1,4 +1,5 @@
 ﻿using System;
+using MainGame.Control.UI.UIState;
 using MainGame.Network.Send;
 using MainGame.UnityView.WorldMapTile;
 using UnityEngine;
@@ -11,12 +12,14 @@ namespace MainGame.Control.Game.MouseKeyboard
         private Camera _mainCamera;
         private MoorestechInputSettings _input;
         private SendMiningProtocol _sendMiningProtocol;
+        private UIStateControl _uiStateControl; 
         
         [Inject]
-        public void Construct(Camera mainCamera,SendMiningProtocol sendMiningProtocol)
+        public void Construct(Camera mainCamera,SendMiningProtocol sendMiningProtocol,UIStateControl uiStateControl)
         {
             _mainCamera = mainCamera;
             _sendMiningProtocol = sendMiningProtocol;
+            _uiStateControl = uiStateControl;
             
             _input = new MoorestechInputSettings();
             _input.Enable();
@@ -24,7 +27,7 @@ namespace MainGame.Control.Game.MouseKeyboard
 
         private void FixedUpdate()
         {
-            if (IsBlockClicked())
+            if (IsBlockClicked() && _uiStateControl.CurrentState == UIStateEnum.DeleteBar)
             {
                 _sendMiningProtocol.Send(GetClickPosition());
             }

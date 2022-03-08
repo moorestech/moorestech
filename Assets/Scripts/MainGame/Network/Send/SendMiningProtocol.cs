@@ -18,7 +18,6 @@ namespace MainGame.Network.Send
         
         public void Send(Vector2Int pos)
         {
-            Debug.LogError("Send mining");
             var packet = new List<byte>();
             
             packet.AddRange(ToByteList.Convert(ProtocolId));

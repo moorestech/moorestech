@@ -22,10 +22,8 @@ namespace MainGame.Control.Game.MouseKeyboard
         {
             if (_uiStateControl.CurrentState == UIStateEnum.DeleteBar)
             {
-                Debug.Log("UIStateEnum.DeleteBar");
                 if (_blockClickDetect.IsBlockClicked())
                 {
-                    Debug.Log("Block clicked");
                     var pos = _blockClickDetect.GetClickPosition();
                     _sendBlockRemoveProtocol.Send(pos.x,pos.y);
                 }

@@ -101,7 +101,7 @@ namespace MainGame.Control.Game.MouseKeyboard
             //そのrayが地面のオブジェクトにヒットしてるか
             if (hit.transform.gameObject != _groundPlane.gameObject) return (false,new Vector2Int());
             //UIの状態がゲーム中か
-            if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return (false,new Vector2Int());
+            if (_uiStateControl.CurrentState != UIStateEnum.BlockPlace) return (false,new Vector2Int());
             
             
             var x = Mathf.RoundToInt(hit.point.x);
