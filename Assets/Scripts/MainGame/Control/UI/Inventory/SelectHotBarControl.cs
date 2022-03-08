@@ -11,16 +11,15 @@ namespace MainGame.Control.UI.Inventory
         [SerializeField] private SelectHotBarView selectHotBarView;
         [SerializeField] private HotBarItemView hotBarItemView;
         
-        private const int HotBarCount = 9;
         
         private MoorestechInputSettings _inputSettings;
-        private int _selectIndex = 0;
-
+        
         public int SelectIndex => _selectIndex;
+        private int _selectIndex = 0;
+        
 
-
-        public bool IsClicked => isClicked;
-        private bool isClicked = false;
+        public bool IsClicked => _isClickedCount == 0 || _isClickedCount == 1;
+        private int _isClickedCount = -1;
         
         public void Start()
         {
@@ -35,12 +34,25 @@ namespace MainGame.Control.UI.Inventory
 
         private void ClickItem(int slot)
         {
+            _selectIndex = slot;
+            _isClickedCount = 0;
+            Debug.Log("Clicked");
             selectHotBarView.SetSelect(slot);
         }
 
-        public void LateUpdate()
+        /// <summary>
+        /// ButtonがクリックされたことをFixedUpdate内で確認したいのでクリックされてから2フレームはtrueとする
+        /// </summary>
+        public void FixedUpdate()
         {
-            isClicked = false;
+            if (_isClickedCount == 0 || _isClickedCount == 1)
+            {
+                _isClickedCount++;
+            }
+            if (_isClickedCount == 2)
+            {
+                _isClickedCount = -1;
+            }
         }
     }
 }
