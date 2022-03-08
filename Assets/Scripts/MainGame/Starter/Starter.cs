@@ -55,7 +55,7 @@ namespace MainGame.Starter
         [SerializeField] private BlockInventoryInput blockInventoryInput;
         [SerializeField] private BlockClickDetect blockClickDetect;
         [SerializeField] private CommandUIInput commandUIInput;
-        [SerializeField] private DetectGroundClickInput detectGroundClickInput;
+        [SerializeField] private DetectGroundClickToSendBlockPlacePacket detectGroundClickToSendBlockPlacePacket;
         [SerializeField] private SelectHotBarControl selectHotBarControl;
         [SerializeField] private CraftExecute craftExecute;
         [SerializeField] private PlayerPosition playerPosition;
@@ -147,7 +147,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(playerInventoryInput);
             builder.RegisterComponent(blockInventoryItemView);
             builder.RegisterComponent(blockInventoryInput);
-            builder.RegisterComponent(detectGroundClickInput);
+            builder.RegisterComponent(detectGroundClickToSendBlockPlacePacket);
             builder.RegisterComponent(playerInventoryEquippedItemImageSet);
             builder.RegisterComponent(blockInventoryEquippedItemImageSet);
             builder.RegisterComponent(commandUIInput);
@@ -174,7 +174,7 @@ namespace MainGame.Starter
             //依存関係を解決
             _resolver = builder.Build();
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();
-            _resolver.Resolve<DetectGroundClickInput>();
+            _resolver.Resolve<DetectGroundClickToSendBlockPlacePacket>();
             _resolver.Resolve<MainInventoryItemView>();
             _resolver.Resolve<PlayerInventoryInput>();
             _resolver.Resolve<BlockInventoryItemView>();

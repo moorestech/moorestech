@@ -888,7 +888,7 @@ MonoBehaviour:
   blockInventoryInput: {fileID: 135985974}
   blockClickDetect: {fileID: 1684657582}
   commandUIInput: {fileID: 2032687454}
-  detectGroundClickInput: {fileID: 1684657584}
+  detectGroundClickToSendBlockPlacePacket: {fileID: 1684657584}
   selectHotBarControl: {fileID: 679146591}
   craftExecute: {fileID: 135985973}
   playerPosition: {fileID: 1264384480}

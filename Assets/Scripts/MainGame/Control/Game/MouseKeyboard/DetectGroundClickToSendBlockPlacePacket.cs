@@ -14,7 +14,7 @@ namespace MainGame.Control.Game.MouseKeyboard
     /// <summary>
     /// マウスで地面をクリックしたときに発生するイベント
     /// </summary>
-    public class DetectGroundClickInput : MonoBehaviour
+    public class DetectGroundClickToSendBlockPlacePacket : MonoBehaviour
     {
         private Camera _mainCamera;
         private GroundPlane _groundPlane;
