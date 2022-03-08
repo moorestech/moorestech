@@ -69,6 +69,7 @@ namespace MainGame.Starter
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private BlockPlacePreview blockPlacePreview;
+        [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
 
         void Start()
         {
@@ -102,6 +103,7 @@ namespace MainGame.Starter
             builder.Register<SendCraftingInventoryMainInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockInventoryOpenCloseControl>(Lifetime.Singleton);
             builder.Register<SendBlockRemoveProtocol>(Lifetime.Singleton);
+            builder.Register<SendMiningProtocol>(Lifetime.Singleton);
             
             
             //データストア、ゲームロジック系
@@ -135,6 +137,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(chunkBlockGameObjectDataStore);
             builder.RegisterComponent(worldMapTileGameObjectDataStore);
             
+            builder.RegisterComponent(oreMapTileClickDetect);
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(groundPlane);
             builder.RegisterComponent(mainInventoryItemView);

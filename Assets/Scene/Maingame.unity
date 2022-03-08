@@ -889,6 +889,7 @@ MonoBehaviour:
   pauseMenuObject: {fileID: 816961701}
   deleteBarObject: {fileID: 110116535}
   blockPlacePreview: {fileID: 1341326065}
+  oreMapTileClickDetect: {fileID: 1857732744}
 --- !u!4 &1255688096
 Transform:
   m_ObjectHideFlags: 0
@@ -1299,6 +1300,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1857732742}
   - component: {fileID: 1857732743}
+  - component: {fileID: 1857732744}
   m_Layer: 0
   m_Name: WorldMapTileObjects
   m_TagString: Untagged
@@ -1331,6 +1333,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7023edad7deb4b1aa5365f9e3534a5d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1857732744
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1857732741}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 743d0a5d64b94c21ab8f4038b39c45da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &2032687454 stripped

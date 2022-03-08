@@ -7,5 +7,6 @@
         BlockInventory,
         PauseMenu,
         DeleteBar,
+        BlockPlace,
     }
 }
