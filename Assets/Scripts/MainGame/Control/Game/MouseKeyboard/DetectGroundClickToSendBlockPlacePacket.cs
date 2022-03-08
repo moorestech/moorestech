@@ -99,7 +99,7 @@ namespace MainGame.Control.Game.MouseKeyboard
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit)) return (false,new Vector2Int());
             //そのrayが地面のオブジェクトにヒットしてるか
-            if (hit.transform.gameObject != _groundPlane.gameObject) return (false,new Vector2Int());
+            if (hit.transform.GetComponent<GroundPlane>() == null) return (false,new Vector2Int());
             //UIの状態がゲーム中か
             if (_uiStateControl.CurrentState != UIStateEnum.BlockPlace) return (false,new Vector2Int());
             
