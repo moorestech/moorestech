@@ -11,7 +11,6 @@ namespace MainGame.Control.UI.Inventory
         [SerializeField] private SelectHotBarView selectHotBarView;
         [SerializeField] private HotBarItemView hotBarItemView;
         
-        
         private MoorestechInputSettings _inputSettings;
         
         public int SelectIndex => _selectIndex;
@@ -38,6 +37,17 @@ namespace MainGame.Control.UI.Inventory
             _isClickedCount = 0;
             Debug.Log("Clicked");
             selectHotBarView.SetSelect(slot);
+        }
+
+        private void Update()
+        {
+            //キーボード入力で選択
+            if (_inputSettings.UI.HotBar.ReadValue<int>() != 0)
+            {
+                //キー入力で得られる値は1〜9なので-1する
+                _selectIndex = _inputSettings.UI.HotBar.ReadValue<int>() - 1;
+                selectHotBarView.SetSelect(_selectIndex);
+            }
         }
 
         /// <summary>
