@@ -43,6 +43,50 @@
         "id" : 3,
         "count" : 1
       }
+    },
+    {
+      "items": [
+        {
+          "id" : 1,
+          "count" : 1
+        },
+        {
+          "id" : 0,
+          "count" : 0
+        },
+        {
+          "id" : 0,
+          "count" : 0
+        },
+        {
+          "id" : 0,
+          "count" : 0
+        },
+        {
+          "id" : 0,
+          "count" : 0
+        },
+        {
+          "id" : 0,
+          "count" : 0
+        },
+        {
+          "id" : 0,
+          "count" : 0
+        },
+        {
+          "id" : 0,
+          "count" : 0
+        },
+        {
+          "id" : 0,
+          "count" : 0
+        }
+      ],
+      "result" : {
+        "id" : 3,
+        "count" : 2
+      }
     }
   ]
 }

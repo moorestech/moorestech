@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Block.Blocks;
 using Game.World.Interface;
+using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -12,6 +14,7 @@ using Server.PacketHandle;
 using Server.Protocol;
 using Server.Util;
 using World;
+using World.DataStore;
 using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
@@ -35,6 +38,9 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         public void BlockPlaceEvent()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
+            
+            
 
             //イベントキューにIDを登録する
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
@@ -43,21 +49,33 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var random = new Random(1410);
             for (int i = 0; i < 100; i++)
             {
+                //ランダムな位置にブロックを設置する
                 Console.WriteLine(i);
-                var blocks = new List<Block>();
+                var blocks = new List<TestBlockData>();
                 var cnt = random.Next(0, 20);
                 for (int j = 0; j < cnt; j++)
                 {
                     var x = random.Next(-10000, 10000);
                     var y = random.Next(-10000, 10000);
-                    var id = random.Next(1, 1000);
-                    blocks.Add(new Block(x, y, id));
-                    BlockPlace(x, y, id, packetResponse);
+                    var blockId = random.Next(1, 1000);
+                    var direction = random.Next(0, 4);
+                    
+                    //設置したブロックを保持する
+                    blocks.Add(new TestBlockData(x, y, blockId,direction));
+                    //ブロックの設置
+                    worldBlockDataStore.AddBlock(new VanillaBlock(blockId,random.Next(1, 1000000)), x, y,(BlockDirection)direction);
                 }
-
+                
+                
+                
+                //イベントパケットをリクエストする
                 response = packetResponse.GetPacketResponse(EventRequestData(0));
                 Assert.AreEqual(cnt, response.Count);
-                //帰ってきたイベントが設置したブロックであることを確認
+                
+                
+                
+                
+                //返ってきたイベントパケットと設置したブロックを照合し、あったら削除する
                 foreach (var r in response)
                 {
                     var b = AnalysisResponsePacket(r);
@@ -69,16 +87,18 @@ namespace Test.CombinedTest.Server.PacketTest.Event
                         }
                     }
                 }
-
+                //設置したブロックリストが残ってなければすべてのイベントが返ってきた事がわかる
                 Assert.AreEqual(0, blocks.Count);
+                
+                
 
-                //パケットを送ったので次は何も返ってこない
+                //イベントのリクエストを送ったので次は何も返ってこないテスト
                 response = packetResponse.GetPacketResponse(EventRequestData(0));
                 Assert.AreEqual(0, response.Count);
             }
         }
 
-        Block AnalysisResponsePacket(byte[] payload)
+        TestBlockData AnalysisResponsePacket(byte[] payload)
         {
             var b = new ByteListEnumerator(payload.ToList());
             b.MoveNextToGetShort();
@@ -87,20 +107,9 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var x = b.MoveNextToGetInt();
             var y = b.MoveNextToGetInt();
             var id = b.MoveNextToGetInt();
-            return new Block(x, y, id);
-        }
-
-        void BlockPlace(int x, int y, int id, PacketResponseCreator packetResponseCreator)
-        {
-            var bytes = new List<byte>();
-            bytes.AddRange(ToByteList.Convert((short) 1));
-            bytes.AddRange(ToByteList.Convert(id));
-            bytes.AddRange(ToByteList.Convert((short) 0));
-            bytes.AddRange(ToByteList.Convert(x));
-            bytes.AddRange(ToByteList.Convert(y));
-            bytes.AddRange(ToByteList.Convert(0));
-            bytes.AddRange(ToByteList.Convert(0));
-            packetResponseCreator.GetPacketResponse(bytes);
+            var direction = b.MoveNextToGetByte();
+            
+            return new TestBlockData(x, y, id,direction);
         }
 
         List<byte> EventRequestData(int plyaerID)
@@ -111,26 +120,29 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             return payload;
         }
 
-        class Block
+        class TestBlockData
         {
             public readonly int X;
             public readonly int Y;
             public readonly int id;
+            public readonly BlockDirection BlockDirection;
 
-            public Block(int x, int y, int id)
+            public TestBlockData(int x, int y, int id, int blockDirectionNum)
             {
                 X = x;
                 Y = y;
                 this.id = id;
+                BlockDirection = (BlockDirection) blockDirectionNum;
             }
 
             public override bool Equals(object? obj)
             {
-                var b = obj as Block;
+                var b = obj as TestBlockData;
                 return
                     b.id == id &&
                     b.X == X &&
-                    b.Y == Y;
+                    b.Y == Y &&
+                    b.BlockDirection == BlockDirection;
             }
         }
     }

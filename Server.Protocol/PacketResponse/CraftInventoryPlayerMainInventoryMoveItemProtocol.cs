@@ -30,6 +30,7 @@ namespace Server.Protocol.PacketResponse
             var mainInventorySlot = byteListEnumerator.MoveNextToGetInt();
             var craftInventorySlot = byteListEnumerator.MoveNextToGetInt();
             var moveItemCount = byteListEnumerator.MoveNextToGetInt();
+            
 
             var craftInventory = _playerInventoryDataStore.GetInventoryData(playerId).CraftingOpenableInventory;
             var mainInventory = _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory;
