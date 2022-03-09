@@ -36,8 +36,6 @@ namespace Server.Protocol.PacketResponse
             int y = byteListEnumerator.MoveNextToGetInt();
             int playerId = byteListEnumerator.MoveNextToGetInt();
             
-            //シード設定
-            _veinGenerator = new VeinGenerator(new Seed(_seed.SeedValue), new OreConfig());
             
             //プレイヤーインベントリーの取得
             var playerMainInventory =

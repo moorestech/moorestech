@@ -21,8 +21,8 @@ namespace Test.CombinedTest.Server.PacketTest
         public void MiningTest()
         {
 
-            int i = 0;
-            int j = 0;
+            int x = 0;
+            int y = 0;
             int PlayerId = 0;
             int playerSlotIndex = 0;
             var oreId = 0;
@@ -34,23 +34,24 @@ namespace Test.CombinedTest.Server.PacketTest
             var playerInventoryData =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             
-            //100×100マス内にある鉱石を探知
+            //500×500マス内にある鉱石を探知
             var veinGenerator = new VeinGenerator(new Seed(seed.SeedValue),new OreConfig());
 
             
-            for (i = 0; i < 500; i++)
+            for (int i = 0; i < 500; i++)
             {
-                for (j = 0; j < 500; j++)
+                for (int j = 0; j < 500; j++)
                 {
                     oreId = veinGenerator.GetOreId(i, j);
                     if (oreId != OreConst.NoneOreId)
                     {
-                        
+                        y = j;
                         break;
                     }
                 }
                 if (oreId != OreConst.NoneOreId)
                 {
+                    x = i;
                     break;
                 }
             }
@@ -58,28 +59,29 @@ namespace Test.CombinedTest.Server.PacketTest
             var oreItemId = oreConfig.OreIdToItemId(oreId);
             
             //プロトコルを使って鉱石を採掘
-            packet.GetPacketResponse(MiningOperation(i, j, PlayerId));
+            packet.GetPacketResponse(MiningOperation(x, y, PlayerId));
             
             //インベントリーに鉱石がはいっているか
             Assert.AreEqual(oreItemId, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);
 
             
-            //パケット
-           List<byte> MiningOperation(int x, int y,int playerId)
-            {
-                var payload = new List<byte>();
-                payload.AddRange(ToByteList.Convert((short) 15));
-                payload.AddRange(ToByteList.Convert(x));
-                payload.AddRange(ToByteList.Convert(y));
-                payload.AddRange(ToByteList.Convert(playerId));
-
-                return payload;
-            }
+           
 
 
 
 
+        } //パケット
+        List<byte> MiningOperation(int x, int y,int playerId)
+        {
+            var payload = new List<byte>();
+            payload.AddRange(ToByteList.Convert((short) 15));
+            payload.AddRange(ToByteList.Convert(x));
+            payload.AddRange(ToByteList.Convert(y));
+            payload.AddRange(ToByteList.Convert(playerId));
+
+            return payload;
         }
+        
     }
 }
