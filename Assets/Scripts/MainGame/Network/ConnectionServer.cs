@@ -31,7 +31,7 @@ namespace MainGame.Network
             t.Start();
         }
 
-        public void Connect()
+        private void Connect()
         {
 
             Debug.Log("サーバーに接続します");
@@ -50,15 +50,36 @@ namespace MainGame.Network
             byte[] bytes = new byte[4096];
             while (true)
             {
-                //Receiveで受信
-                var len = _socketInstanceCreate.GetSocket().Receive(bytes);
-                if (len == 0)
+                try
                 {
-                    Debug.LogError("サーバーから切断されました");
-                    break;
+                    //Receiveで受信
+                    var len = _socketInstanceCreate.GetSocket().Receive(bytes);
+                    if (len == 0)
+                    {
+                        Debug.LogError("サーバーから切断されました");
+                        break;
+                    }
+
+                    try
+                    {
+                        //解析を行う
+                        _allReceivePacketAnalysisService.Analysis(bytes);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError("受信パケット解析失敗：" + e);
+                    }
                 }
-                //解析を行う
-                _allReceivePacketAnalysisService.Analysis(bytes);
+                catch (Exception e)
+                {
+                    Debug.LogError("エラーによりサーバーから説残されました "+e);
+                    
+                    if (_socketInstanceCreate.GetSocket().Connected)
+                    {
+                        _socketInstanceCreate.GetSocket().Close();
+                    }
+                    return;
+                }
             }
         }
     }
