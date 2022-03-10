@@ -3,17 +3,16 @@ using MainGame.Control.Game.MouseKeyboard;
 using MainGame.Control.UI.Command;
 using MainGame.Control.UI.Inventory;
 using MainGame.Control.UI.Inventory.ItemMove;
+using MainGame.Control.UI.PauseMenu;
 using MainGame.Control.UI.UIState;
 using MainGame.Control.UI.UIState.UIObject;
 using MainGame.Control.UI.UIState.UIState;
-using MainGame.GameLogic;
 using MainGame.GameLogic.Chunk;
 using MainGame.GameLogic.Inventory;
 using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
-using MainGame.UnityView;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.UI.Inventory.Element;
@@ -71,6 +70,7 @@ namespace MainGame.Starter
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
+        [SerializeField] private SaveButton saveButton;
 
         void Start()
         {
@@ -105,6 +105,7 @@ namespace MainGame.Starter
             builder.Register<SendBlockInventoryOpenCloseControl>(Lifetime.Singleton);
             builder.Register<SendBlockRemoveProtocol>(Lifetime.Singleton);
             builder.Register<SendMiningProtocol>(Lifetime.Singleton);
+            builder.Register<SendSaveProtocol>(Lifetime.Singleton);
             
             
             //データストア、ゲームロジック系
@@ -161,6 +162,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(blockInventoryObject);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
+            builder.RegisterComponent(saveButton);
             
             
             builder.RegisterComponent<IPlayerPosition>(playerPosition);
