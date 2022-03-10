@@ -1435,6 +1435,7 @@ GameObject:
   - component: {fileID: 7882323475629522190}
   - component: {fileID: 1641630676082023218}
   - component: {fileID: 308671298586424739}
+  - component: {fileID: 5570857163455845073}
   m_Layer: 5
   m_Name: 'Back to MainMenu '
   m_TagString: Untagged
@@ -1545,6 +1546,19 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5570857163455845073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6524654052646703616}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cae18fda1ad43d24ca3f3d27fe0d8f08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  backToMainMenuButton: {fileID: 308671298586424739}
 --- !u!1 &7164688616085011578
 GameObject:
   m_ObjectHideFlags: 0
