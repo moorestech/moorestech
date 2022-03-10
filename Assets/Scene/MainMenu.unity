@@ -871,10 +871,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1131031186}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: edcfe7d2d6c4438f8a902b1a38c46314, type: 3}
+  m_Script: {fileID: 11500000, guid: b749328a56783ea43bd822c7cb71ddd7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startLocal: {fileID: 1131031188}
+  startLocalButton: {fileID: 1131031188}
 --- !u!1 &1231464842
 GameObject:
   m_ObjectHideFlags: 0
