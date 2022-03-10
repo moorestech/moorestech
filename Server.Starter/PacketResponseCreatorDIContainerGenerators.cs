@@ -44,7 +44,7 @@ namespace Server
         {
             var services = new ServiceCollection();
             
-            //テスト用のコンフィグ、ファクトリーのインスタンスを登録
+            //コンフィグ、ファクトリーのインスタンスを登録
             services.AddSingleton(new ConfigPath(serverConfig));
             services.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
             services.AddSingleton<IItemConfig, ItemConfig>();
