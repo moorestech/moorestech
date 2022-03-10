@@ -33,6 +33,7 @@ namespace Server.Protocol
             _packetResponseList.Add(new CraftProtocol(serviceProvider));
             _packetResponseList.Add(new MiningOperationProtocol(serviceProvider)); 
             _packetResponseList.Add(new BlockInventoryOpenCloseProtocol(serviceProvider));
+            _packetResponseList.Add(new SaveProtocol(serviceProvider));
 
             serviceProvider.GetService<VeinGenerator>();
         }
