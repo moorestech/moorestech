@@ -39,7 +39,12 @@ namespace MainGame.Network.Send
                 }
             }
         }
-        
+
+        public void Close()
+        {
+            _socket.Close();
+        }
+
         async Task SendPackets()
         {
             //一度にまとめて送るとサーバー側でさばき切れないので、0.1秒おきにパケットを送信する

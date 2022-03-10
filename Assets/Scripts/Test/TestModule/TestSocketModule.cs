@@ -10,5 +10,7 @@ namespace Test.TestModule
         {
             SentData = array;
         }
+
+        public void Close() { }
     }
 }
