@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using Core.Item;
+using Core.Update;
 using Microsoft.Extensions.DependencyInjection;
 using PlayerInventory;
 using Server.Event;
@@ -21,6 +22,13 @@ namespace Server
             {
                 packetHandler = new PacketHandler();
                 packetHandler.StartServer(packet);
+            }).Start();
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    GameUpdate.Update();
+                }
             }).Start();
         }
     }
