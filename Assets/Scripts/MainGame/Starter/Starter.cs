@@ -71,6 +71,7 @@ namespace MainGame.Starter
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
         [SerializeField] private SaveButton saveButton;
+        [SerializeField] private BackToMainMenu backToMainMenu;
 
         void Start()
         {
@@ -163,6 +164,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
             builder.RegisterComponent(saveButton);
+            builder.RegisterComponent(backToMainMenu);
             
             
             builder.RegisterComponent<IPlayerPosition>(playerPosition);

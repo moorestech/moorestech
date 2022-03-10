@@ -975,6 +975,7 @@ MonoBehaviour:
   blockPlacePreview: {fileID: 1341326065}
   oreMapTileClickDetect: {fileID: 1857732744}
   saveButton: {fileID: 104714908}
+  backToMainMenu: {fileID: 2134570746}
 --- !u!4 &1255688096
 Transform:
   m_ObjectHideFlags: 0
@@ -1441,6 +1442,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 79768f6700a64f3badb3a98ed67abe75, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2134570746 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5570857163455845073, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cae18fda1ad43d24ca3f3d27fe0d8f08, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1001 &8246183722424448659

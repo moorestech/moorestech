@@ -1,5 +1,7 @@
+using MainGame.Basic;
 using MainGame.Network;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using VContainer;
 
@@ -24,7 +26,7 @@ namespace MainGame.Control.UI.PauseMenu
         void Back()
         {
             _socket.Close();
-            
+            SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
         }
     }
 }
