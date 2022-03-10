@@ -7,6 +7,7 @@ using Core.Item;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Test.Module.TestConfig;
 
 namespace Test.UnitTest.Core.Block
 {
@@ -17,7 +18,7 @@ namespace Test.UnitTest.Core.Block
         [Test]
         public void SaveLoadTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 

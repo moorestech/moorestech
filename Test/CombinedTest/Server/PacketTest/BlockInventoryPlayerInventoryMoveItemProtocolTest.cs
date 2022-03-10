@@ -7,6 +7,7 @@ using Core.Block.Blocks.Machine.Inventory;
 using Core.Block.Blocks.Machine.InventoryController;
 using Core.Block.Event;
 using Core.Block.RecipeConfig;
+using Core.ConfigJson;
 using Core.Const;
 using Core.Item;
 using Core.Item.Config;
@@ -23,7 +24,7 @@ namespace Test.CombinedTest.Server.PacketTest
 {
     public class BlockInventoryPlayerInventoryMoveItemProtocolTest
     {
-        private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
+        private ItemStackFactory _itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
         private BlockFactory _blockFactory;
 
         private VanillaMachine CreateMachine(int id, int entityId)
@@ -31,7 +32,7 @@ namespace Test.CombinedTest.Server.PacketTest
             if (_blockFactory == null)
             {
                 _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(_itemStackFactory), _itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
+                    new VanillaIBlockTemplates(new MachineRecipeConfig(_itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath)), _itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
             }
 
             var machine = _blockFactory.Create(id, entityId) as VanillaMachine;
@@ -47,7 +48,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //初期設定----------------------------------------------------------
 
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             //ブロックの設置
             var blockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var block = CreateMachine(1, 1);
@@ -134,7 +135,7 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);
 
             //アイテムスタック数以上のアイテムを入れたときに戻されるテスト
-            var max = new TestItemConfig().GetItemConfig(2).MaxStack;
+            var max = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)).GetItemConfig(2).MaxStack;
             playerInventoryData.MainOpenableInventory.SetItem(playerSlotIndex, _itemStackFactory.Create(2, max));
             //プレイヤーからアイテムを全て移す
             packet.GetPacketResponse(CreateReplacePayload(0, playerId, playerSlotIndex, 0, 0, blockInventorySlotIndex,

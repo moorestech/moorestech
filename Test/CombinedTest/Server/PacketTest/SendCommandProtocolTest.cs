@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Util;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -12,7 +13,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void GiveCommandTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             
             //送信するパケットの作成
             var commandPacket = GetGiveCommandPacket(10, 2, 5);

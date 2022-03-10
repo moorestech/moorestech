@@ -10,6 +10,7 @@ using Core.Update;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Core
 {
@@ -22,7 +23,7 @@ namespace Test.CombinedTest.Core
         [Test]
         public void UseFuelTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var powerGenerator = blockFactory.Create(PowerGeneratorId, 10) as VanillaPowerGenerator;
             var blockConfig = serviceProvider.GetService<IBlockConfig>();

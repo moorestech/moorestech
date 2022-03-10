@@ -6,6 +6,7 @@ using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Core
 {
@@ -15,7 +16,7 @@ namespace Test.CombinedTest.Core
         [Test]
         public void MinerTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();

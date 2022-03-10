@@ -1,4 +1,5 @@
 ﻿using System;
+using Core.ConfigJson;
 using Core.Const;
 using Core.Item;
 using Core.Item.Config;
@@ -6,6 +7,7 @@ using Core.Item.Implementation;
 using Core.Item.Util;
 using NUnit.Framework;
 using Test.Module;
+using Test.Module.TestConfig;
 
 namespace Test.UnitTest.Core.Other
 {
@@ -16,7 +18,7 @@ namespace Test.UnitTest.Core.Other
         [SetUp]
         public void Setup()
         {
-            _itemStackFactory = new ItemStackFactory(new TestItemConfig());
+            _itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
         }
 
         [TestCase(1, 1, 1, 1, 2, 0, 1, ItemConst.EmptyItemId)]

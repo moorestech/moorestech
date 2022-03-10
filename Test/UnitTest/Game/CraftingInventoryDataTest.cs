@@ -1,4 +1,5 @@
 using System;
+using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
 using Game.Crafting;
@@ -9,6 +10,7 @@ using NUnit.Framework;
 using PlayerInventory;
 using PlayerInventory.Event;
 using PlayerInventory.ItemManaged;
+using Test.Module.TestConfig;
 
 namespace Test.UnitTest.Game
 {
@@ -19,8 +21,8 @@ namespace Test.UnitTest.Game
         [Test]
         public void GetCreatableItemTest()
         {
-            ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
-            ICraftingConfig config = new TestCraftConfig(itemStackFactory);
+            ItemStackFactory itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
+            ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
             IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
             
             var craftConfig = config.GetCraftingConfigList()[0];
@@ -40,8 +42,8 @@ namespace Test.UnitTest.Game
         [Test]
         public void CraftTest()
         {
-            ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
-            ICraftingConfig config = new TestCraftConfig(itemStackFactory);
+            ItemStackFactory itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
+            ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
             IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
             
             var craftConfig = config.GetCraftingConfigList()[0];
@@ -71,8 +73,8 @@ namespace Test.UnitTest.Game
         [Test]
         public void CraftRemainderItemTest()
         {
-            ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
-            ICraftingConfig config = new TestCraftConfig(itemStackFactory);
+            ItemStackFactory itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
+            ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
             IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
 
             var craftConfig = config.GetCraftingConfigList()[0];
@@ -112,8 +114,8 @@ namespace Test.UnitTest.Game
         //アイテムが足りないときはクラフトできないテスト
         public void NoneCraftSlotItemTest()
         {
-            ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
-            ICraftingConfig config = new TestCraftConfig(itemStackFactory);
+            ItemStackFactory itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
+            ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
             IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
 
             var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service);
@@ -133,9 +135,9 @@ namespace Test.UnitTest.Game
         public void CanNotInsertOutputSlotToCanNotCraftTest()
         {
             //初期セットアップ
-            var itemConfig = new TestItemConfig();
+            var itemConfig = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath));
             ItemStackFactory itemStackFactory = new ItemStackFactory(itemConfig);
-            ICraftingConfig config = new TestCraftConfig(itemStackFactory);
+            ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
             IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
             
             var craftConfig = config.GetCraftingConfigList()[0];

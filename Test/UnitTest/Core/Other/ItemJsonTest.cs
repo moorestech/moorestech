@@ -1,6 +1,8 @@
 ﻿using Core.Config.Item;
+using Core.ConfigJson;
 using Core.Item.Config;
 using NUnit.Framework;
+using Test.Module.TestConfig;
 
 namespace Test.UnitTest.Core.Other
 {
@@ -14,7 +16,7 @@ namespace Test.UnitTest.Core.Other
         [TestCase(5, 30)]
         public void JsonStackTest(int id, int stack)
         {
-            Assert.AreEqual(stack, new TestItemConfig().GetItemConfig(id).MaxStack);
+            Assert.AreEqual(stack, new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)).GetItemConfig(id).MaxStack);
         }
 
         [TestCase(0, "Test1")]
@@ -25,7 +27,7 @@ namespace Test.UnitTest.Core.Other
         [TestCase(5, "Test6")]
         public void JsonNameTest(int id, string name)
         {
-            Assert.AreEqual(name, new TestItemConfig().GetItemConfig(id).Name);
+            Assert.AreEqual(name, new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)).GetItemConfig(id).Name);
         }
 
         [TestCase(0)]
@@ -36,7 +38,7 @@ namespace Test.UnitTest.Core.Other
         [TestCase(5)]
         public void JsonIdTest(int id)
         {
-            Assert.AreEqual(id, new TestItemConfig().GetItemConfig(id).Id);
+            Assert.AreEqual(id, new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)).GetItemConfig(id).Id);
         }
     }
 }

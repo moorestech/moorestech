@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.ConfigJson;
 using Core.Const;
 using Core.Item;
 using Core.Item.Config;
@@ -13,6 +14,7 @@ using Server;
 using Server.PacketHandle;
 using Server.Util;
 using Test.Module;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -23,7 +25,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             int playerId = 1;
 
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
 
 
             //からの時のデータ要求
@@ -60,7 +62,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //インベントリにアイテムが入っている時のテスト
             var playerInventoryData =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
-            ItemStackFactory itemStackFactory = new ItemStackFactory(new TestItemConfig());
+            ItemStackFactory itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
             playerInventoryData.MainOpenableInventory.SetItem(0, itemStackFactory.Create(1, 5));
             playerInventoryData.MainOpenableInventory.SetItem(20, itemStackFactory.Create(3, 1));
             playerInventoryData.MainOpenableInventory.SetItem(34, itemStackFactory.Create(10, 7));

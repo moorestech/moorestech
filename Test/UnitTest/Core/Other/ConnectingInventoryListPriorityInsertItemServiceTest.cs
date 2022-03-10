@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Test.Module;
+using Test.Module.TestConfig;
 
 namespace Test.UnitTest.Core.Other
 {
@@ -17,7 +18,7 @@ namespace Test.UnitTest.Core.Other
         [Test]
         public void Test()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var inventoryList = new List<IBlockInventory>();

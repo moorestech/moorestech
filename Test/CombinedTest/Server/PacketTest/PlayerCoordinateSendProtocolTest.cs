@@ -27,7 +27,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(1)]
         public void SimpleChunkResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             //1回のレスポンスのテスト
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).ToList();
@@ -81,7 +81,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(2)]
         public void PlaceBlockToChunkResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
 
@@ -131,7 +131,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(3)]
         public void RandomPlaceBlockToChunkResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
 
@@ -198,7 +198,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(4)]
         public void TileMapResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
             var worldMapTile = serviceProvider.GetService<WorldMapTile>();
             

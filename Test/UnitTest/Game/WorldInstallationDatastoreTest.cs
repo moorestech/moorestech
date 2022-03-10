@@ -3,6 +3,7 @@ using Core.Block.BlockFactory;
 using Core.Block.Blocks.Machine;
 using Core.Block.Event;
 using Core.Block.RecipeConfig;
+using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
 using Game.World.Interface.DataStore;
@@ -19,7 +20,7 @@ namespace Test.UnitTest.Game
         [Test]
         public void RegisteredDataCoordinateFromFetchTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var random = new Random(131513);
@@ -41,7 +42,7 @@ namespace Test.UnitTest.Game
         [Test]
         public void AlreadyRegisteredEntityIdSecondTimeFailTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var entityId = EntityId.NewEntityId();
@@ -56,7 +57,7 @@ namespace Test.UnitTest.Game
         [Test]
         public void AlreadyCoordinateSecondTimeFailTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var i = CreateMachine(1, EntityId.NewEntityId());
@@ -73,9 +74,10 @@ namespace Test.UnitTest.Game
         {
             if (_blockFactory == null)
             {
-                var itemStackFactory = new ItemStackFactory(new TestItemConfig());
+                var config = new ConfigPath(TestModuleConfigPath.FolderPath);
+                var itemStackFactory = new ItemStackFactory(new ItemConfig(config));
                 _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemStackFactory), itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
+                    new VanillaIBlockTemplates(new MachineRecipeConfig(itemStackFactory,config), itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
             }
 
             var machine = _blockFactory.Create(id, entityId) as VanillaMachine;

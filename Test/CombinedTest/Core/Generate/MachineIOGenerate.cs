@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.ConfigJson;
 using Core.Const;
 using Core.Item;
 using Core.Item.Config;
 using Core.Item.Util;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Core.Generate
 {
@@ -13,7 +15,7 @@ namespace Test.CombinedTest.Core.Generate
         public static MachineIOTest[] MachineIoTestCase(recipe recipe, int seed)
         {
             var testCase = new List<MachineIOTest>();
-            var itemStackFactory = new ItemStackFactory(new TestItemConfig());
+            var itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
             recipes[] recipes = recipe.recipes;
             foreach (var r in recipes)
             {

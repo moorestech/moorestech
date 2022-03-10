@@ -3,6 +3,7 @@ using Core.Block.BlockFactory;
 using Core.Block.Blocks.BeltConveyor;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
+using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
 using Core.Update;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Test.Module;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Core
 {
@@ -23,7 +25,7 @@ namespace Test.CombinedTest.Core
         [SetUp]
         public void Setup()
         {
-            _itemStackFactory = new ItemStackFactory(new TestItemConfig());
+            _itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
         }
 
 
@@ -31,7 +33,7 @@ namespace Test.CombinedTest.Core
         [Test]
         public void FullInsertAndChangeConnectorBeltConveyorTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var config = (BeltConveyorConfigParam) blockConfig.GetBlockConfig(3).Param;
@@ -66,7 +68,7 @@ namespace Test.CombinedTest.Core
         [Test]
         public void InsertBeltConveyorTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var config = (BeltConveyorConfigParam) blockConfig.GetBlockConfig(3).Param;
@@ -106,7 +108,7 @@ namespace Test.CombinedTest.Core
         [Test]
         public void FullInsertBeltConveyorTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var config = (BeltConveyorConfigParam) blockConfig.GetBlockConfig(3).Param;
@@ -137,7 +139,7 @@ namespace Test.CombinedTest.Core
         [Test]
         public void Insert2ItemBeltConveyorTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var blockFactory = serviceProvider.GetService<BlockFactory>();
 
             var random = new Random(4123);

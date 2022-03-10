@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Test.Module;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Core
 {
@@ -24,7 +25,7 @@ namespace Test.CombinedTest.Core
         [Test]
         public void MiningTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var oreConfig = serviceProvider.GetService<IOreConfig>();

@@ -9,10 +9,10 @@ namespace Core.Ore.Config
 {
     public class OreConfigJsonLoad
     {
-        public Dictionary<int, OreConfigDataElement> Load()
+        public Dictionary<int, OreConfigDataElement> Load(string path)
         {
             //JSONをロードする
-            var json = File.ReadAllText(ConfigJsonPath.OreConfigPath);
+            var json = File.ReadAllText(path);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
             var serializer = new DataContractJsonSerializer(typeof(OreConfigData));

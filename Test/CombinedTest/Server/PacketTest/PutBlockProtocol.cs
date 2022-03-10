@@ -8,6 +8,7 @@ using Server;
 using Server.Event;
 using Server.PacketHandle;
 using Server.Util;
+using Test.Module.TestConfig;
 using World;
 using World.Event;
 
@@ -18,7 +19,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void SimpleBlockPlaceTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
 
             packetResponse.GetPacketResponse(BlockPlace(1, 0, 0));

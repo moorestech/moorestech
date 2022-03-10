@@ -16,10 +16,10 @@ namespace Core.Block.RecipeConfig
         {
         }
 
-        internal List<IMachineRecipeData> LoadConfig(ItemStackFactory itemStackFactory)
+        internal List<IMachineRecipeData> LoadConfig(ItemStackFactory itemStackFactory,string configPath)
         {
             //JSONデータの読み込み
-            var json = File.ReadAllText(ConfigJsonPath.RecipeConfigPath);
+            var json = File.ReadAllText(configPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
             var serializer = new DataContractJsonSerializer(typeof(PurseJsonMachineRecipes));

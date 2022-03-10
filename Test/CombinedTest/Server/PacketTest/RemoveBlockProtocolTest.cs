@@ -12,6 +12,7 @@ using NUnit.Framework;
 using Server;
 using Server.Event.EventReceive;
 using Server.Util;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -25,7 +26,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             int playerSlotIndex = 0;
 
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
@@ -69,7 +70,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void InventoryFullToRemoveBlockSomeItemRemainTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();
@@ -131,7 +132,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void InventoryFullToCantRemoveBlockTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();

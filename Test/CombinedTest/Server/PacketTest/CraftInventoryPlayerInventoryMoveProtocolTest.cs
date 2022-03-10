@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.ConfigJson;
 using Core.Const;
 using Core.Item;
 using Core.Item.Config;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Util;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -25,7 +27,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //初期設定----------------------------------------------------------
 
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             
@@ -104,7 +106,7 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(1, mainInventory.GetItem(mainSlotIndex).Count);
 
             //アイテムスタック数以上のアイテムを入れたときに戻されるテスト
-            var max = new TestItemConfig().GetItemConfig(2).MaxStack;
+            var max = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)).GetItemConfig(2).MaxStack;
             mainInventory.SetItem(mainSlotIndex, _itemStackFactory.Create(2, max));
             //メインからアイテムを全て移す
             packet.GetPacketResponse(CreateReplacePayload(0,  mainSlotIndex,  craftSlot, max));

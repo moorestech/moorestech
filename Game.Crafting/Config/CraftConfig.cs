@@ -1,17 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.ConfigJson;
 using Core.Item;
 using Game.Crafting.Interface;
 
 namespace Game.Crafting.Config
 {
-    public class TestCraftConfig : ICraftingConfig
+    public class CraftConfig : ICraftingConfig
     {
         private List<CraftingConfigData> _configDataList = new();
-        public TestCraftConfig(ItemStackFactory itemStackFactory)
+        public CraftConfig(ItemStackFactory itemStackFactory,ConfigPath configPath)
         {
             //ロードしたコンフィグのデータを元に、CraftingConfigDataを作成
-            var loadedData = new CraftConfigJsonLoad().Load();
+            var loadedData = new CraftConfigJsonLoad().Load(configPath.CraftRecipeConfigPath);
             foreach (var config in loadedData.CraftConfigElements)
             {
                 var items = config.Items.Select(item => itemStackFactory.Create(item.Id, item.Count)).ToList();

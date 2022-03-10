@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Block.BlockInventory;
+using Core.ConfigJson;
 using Core.Const;
 using Core.Item;
 using Core.Item.Config;
 using Core.Item.Util;
+using Test.Module.TestConfig;
 
 namespace Test.Module
 {
@@ -30,7 +32,7 @@ namespace Test.Module
 
         public DummyBlockInventory(int insertToEndNum = 1,int maxSlot = 100)
         {
-            _itemStackFactory = new ItemStackFactory(new TestItemConfig());
+            _itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
             _isItemExists = false;
             this.InsertToEndNum = insertToEndNum;
             _endInsertCnt = 0;

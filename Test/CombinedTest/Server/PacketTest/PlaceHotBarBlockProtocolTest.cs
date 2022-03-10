@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Util;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -21,7 +22,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void BlockPlaceTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             //パケットでプレイヤーインベントリを生成
@@ -66,7 +67,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void PlaceDirectionTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             

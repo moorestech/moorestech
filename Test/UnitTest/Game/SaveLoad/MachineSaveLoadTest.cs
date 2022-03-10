@@ -6,6 +6,7 @@ using Core.Block.Blocks.Machine.Inventory;
 using Core.Block.Blocks.Machine.InventoryController;
 using Core.Block.Event;
 using Core.Block.RecipeConfig;
+using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
 using Core.Update;
@@ -119,13 +120,15 @@ namespace Test.UnitTest.Game.SaveLoad
         private (ItemStackFactory, BlockFactory, WorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,LoadJsonFile)
             CreateBlockTestModule()
         {
-            var itemFactory = new ItemStackFactory(new TestItemConfig());
+            var config = new ConfigPath(TestModuleConfigPath.FolderPath);
+            
+            var itemFactory = new ItemStackFactory(new ItemConfig(config));
             var blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                new VanillaIBlockTemplates(new TestMachineRecipeConfig(itemFactory), itemFactory,new BlockOpenableInventoryUpdateEvent()));
+                new VanillaIBlockTemplates(new MachineRecipeConfig(itemFactory,config), itemFactory,new BlockOpenableInventoryUpdateEvent()));
             var worldBlockDatastore =
                 new WorldBlockDatastore(new BlockPlaceEvent(), blockFactory, new BlockRemoveEvent());
             var playerInventoryDataStore = new PlayerInventoryDataStore(new MainInventoryUpdateEvent(),new CraftInventoryUpdateEvent(),
-                itemFactory,new IsCreatableJudgementService(new TestCraftConfig(itemFactory),itemFactory));
+                itemFactory,new IsCreatableJudgementService(new CraftConfig(itemFactory,config),itemFactory));
             var assembleSaveJsonText = new AssembleSaveJsonText(playerInventoryDataStore, worldBlockDatastore);
             var loadJsonText = new LoadJsonFile(new SaveJsonFileName(""), worldBlockDatastore,playerInventoryDataStore);
 

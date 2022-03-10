@@ -6,6 +6,7 @@ using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Game
 {
@@ -17,7 +18,7 @@ namespace Test.CombinedTest.Game
         [Test]
         public void SaveJsonAndLoadTest()
         {
-            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<BlockFactory>();
             //テスト用にファイル名を変更
@@ -30,7 +31,7 @@ namespace Test.CombinedTest.Game
             saveServiceProvider.GetService<ISaveRepository>().Save();
 
 
-            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             //テスト用にファイル名を変更
             loadServiceProvider.GetService<SaveJsonFileName>().ChangeFileName("SaveJsonAndLoadTest.json");
             Console.WriteLine(loadServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);

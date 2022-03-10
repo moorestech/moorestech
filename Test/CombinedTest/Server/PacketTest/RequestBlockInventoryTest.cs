@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Util;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -22,7 +23,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void MachineInventoryRequest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             

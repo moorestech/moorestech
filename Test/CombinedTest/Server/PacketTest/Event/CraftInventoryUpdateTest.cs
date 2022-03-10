@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Util;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
@@ -19,7 +20,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Test]
         public void CraftEventTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
 
             //クラフトに必要ないアイテムを追加
             //craftingInventoryにアイテムを入れる

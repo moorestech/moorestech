@@ -3,17 +3,18 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using Core.Config.Item;
+using Core.ConfigJson;
 using static System.Int32;
 
 namespace Core.Item.Config
 {
-    public class TestItemConfig : IItemConfig
+    public class ItemConfig : IItemConfig
     {
         private ItemConfigData[] _itemDatas;
 
-        public TestItemConfig()
+        public ItemConfig(ConfigPath configPath)
         {
-            var json = File.ReadAllText(ConfigJson.ConfigJsonPath.ItemConfigPath);
+            var json = File.ReadAllText(configPath.ItemConfigPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
             var serializer = new DataContractJsonSerializer(typeof(ItemJson));

@@ -1,8 +1,10 @@
 ﻿using Core.Block.RecipeConfig;
 using Core.Block.RecipeConfig.Data;
+using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
 using NUnit.Framework;
+using Test.Module.TestConfig;
 
 namespace Test.UnitTest.Core.Other
 {
@@ -11,7 +13,8 @@ namespace Test.UnitTest.Core.Other
         [Test]
         public void NullTest()
         {
-            IMachineRecipeData recipeData = new TestMachineRecipeConfig(new ItemStackFactory(new TestItemConfig()))
+            var config = new ConfigPath(TestModuleConfigPath.FolderPath);
+            IMachineRecipeData recipeData = new MachineRecipeConfig(new ItemStackFactory(new ItemConfig(config)),config)
                 .GetNullRecipeData();
             Assert.AreEqual(0, recipeData.ItemInputs.Count);
             Assert.AreEqual(0, recipeData.ItemOutputs.Count);

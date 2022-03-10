@@ -9,6 +9,7 @@ using Core.Block.Blocks.Machine.Inventory;
 using Core.Block.Blocks.Machine.InventoryController;
 using Core.Block.Event;
 using Core.Block.RecipeConfig;
+using Core.ConfigJson;
 using Core.Electric;
 using Core.Item;
 using Core.Item.Config;
@@ -23,7 +24,7 @@ namespace Test.CombinedTest.Core
 {
     public class MachineIoTest
     {
-        private readonly ItemStackFactory _itemStackFactory = new(new TestItemConfig());
+        private readonly ItemStackFactory _itemStackFactory = new(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
         private BlockFactory _blockFactory;
 
         private VanillaMachine CreateMachine(int id)
@@ -31,7 +32,7 @@ namespace Test.CombinedTest.Core
             if (_blockFactory == null)
             {
                 _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                    new VanillaIBlockTemplates(new TestMachineRecipeConfig(_itemStackFactory), _itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
+                    new VanillaIBlockTemplates(new MachineRecipeConfig(_itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath)), _itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
             }
 
             var machine = _blockFactory.Create(id, EntityId.NewEntityId()) as VanillaMachine;

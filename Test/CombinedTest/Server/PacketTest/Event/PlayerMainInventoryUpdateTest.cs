@@ -9,6 +9,7 @@ using PlayerInventory;
 using Server;
 using Server.Event;
 using Server.Util;
+using Test.Module.TestConfig;
 using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
@@ -18,7 +19,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Test]
         public void UpdateTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
 
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(0, response.Count);

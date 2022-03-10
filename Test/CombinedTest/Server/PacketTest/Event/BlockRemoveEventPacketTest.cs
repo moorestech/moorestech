@@ -7,6 +7,7 @@ using NUnit.Framework;
 using Server;
 using Server.Protocol;
 using Server.Util;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
@@ -18,7 +19,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Test]
         public void RemoveBlockEvent()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
 
             //イベントキューにIDを登録する
             var response = packetResponse.GetPacketResponse(EventRequestData(0));

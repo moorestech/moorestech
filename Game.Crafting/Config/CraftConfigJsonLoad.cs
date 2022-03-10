@@ -7,10 +7,10 @@ namespace Game.Crafting.Config
 {
     public class CraftConfigJsonLoad
     {
-        public CraftConfigJsonData Load()
+        public CraftConfigJsonData Load(string configPath)
         {
             //JSONをロードする
-            var json = File.ReadAllText(ConfigJsonPath.CraftRecipeConfigPath);
+            var json = File.ReadAllText(configPath);
             var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
             ms.Seek(0, SeekOrigin.Begin);
             var serializer = new DataContractJsonSerializer(typeof(CraftConfigJsonData));

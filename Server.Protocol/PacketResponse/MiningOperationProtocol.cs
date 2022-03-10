@@ -12,9 +12,9 @@ namespace Server.Protocol.PacketResponse
 {
     public class MiningOperationProtocol : IPacketResponse
     {
-        private VeinGenerator _veinGenerator;
+        private readonly VeinGenerator _veinGenerator;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        private ItemStackFactory _itemStackFactory = new ItemStackFactory(new TestItemConfig());
+        private readonly ItemStackFactory _itemStackFactory;
         private readonly IOreConfig _oreConfig;
         private Seed _seed;
 
@@ -23,6 +23,7 @@ namespace Server.Protocol.PacketResponse
 
             _veinGenerator = serviceProvider.GetService<VeinGenerator>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             _oreConfig = serviceProvider.GetService<IOreConfig>();
             _seed = serviceProvider.GetService<Seed>();
 

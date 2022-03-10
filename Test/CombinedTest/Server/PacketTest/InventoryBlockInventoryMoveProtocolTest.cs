@@ -10,6 +10,7 @@ using NUnit.Framework;
 using Server;
 using Server.Protocol;
 using Server.Util;
+using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -25,7 +26,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //初期設定----------------------------------------------------------
 
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             //ブロックの作成、設置

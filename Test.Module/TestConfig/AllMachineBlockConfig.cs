@@ -11,7 +11,7 @@ namespace Test.Module.TestConfig
 
         public AllMachineBlockConfig()
         {
-            var path = new TestConfigPath().GetPath("All Machine Block Config.json");
+            var path = new TestModuleConfigPath().GetPath("All Machine Block Config.json");
             _blockConfigDictionary = new BlockConfigJsonLoad().LoadJsonFromPath(path);
         }
 

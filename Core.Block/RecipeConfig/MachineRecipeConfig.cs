@@ -1,21 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Block.RecipeConfig.Data;
+using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Util;
 
 namespace Core.Block.RecipeConfig
 {
-    public class TestMachineRecipeConfig : IMachineRecipeConfig
+    public class MachineRecipeConfig : IMachineRecipeConfig
     {
         private readonly List<IMachineRecipeData> _recipedatas;
 
         private readonly Dictionary<string, IMachineRecipeData> _recipeDataCache;
 
         //IDからレシピデータを取得する
-        public TestMachineRecipeConfig(ItemStackFactory itemStackFactory)
+        public MachineRecipeConfig(ItemStackFactory itemStackFactory,ConfigPath configPath)
         {
-            _recipedatas = new MachineRecipeJsonLoad().LoadConfig(itemStackFactory);
+            _recipedatas = new MachineRecipeJsonLoad().LoadConfig(itemStackFactory,configPath.MachineRecipeConfigPath);
 
             _recipeDataCache = new Dictionary<string, IMachineRecipeData>();
             _recipedatas.ToList().ForEach(recipe =>

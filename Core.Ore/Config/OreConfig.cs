@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.ConfigJson;
 using Core.Const;
 using Core.Item.Util;
 
@@ -9,9 +10,9 @@ namespace Core.Ore.Config
     {
         private readonly Dictionary<int, OreConfigDataElement> _oreConfigData;
 
-        public OreConfig()
+        public OreConfig(ConfigPath configPath)
         {
-            _oreConfigData = new OreConfigJsonLoad().Load();
+            _oreConfigData = new OreConfigJsonLoad().Load(configPath.OreConfigPath);
         }
 
         public int OreIdToItemId(int oreId)

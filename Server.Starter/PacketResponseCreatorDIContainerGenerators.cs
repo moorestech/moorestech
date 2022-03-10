@@ -5,6 +5,7 @@ using Core.Block.Config;
 using Core.Block.Config.Service;
 using Core.Block.Event;
 using Core.Block.RecipeConfig;
+using Core.ConfigJson;
 using Core.Electric;
 using Core.Inventory;
 using Core.Item;
@@ -39,15 +40,15 @@ namespace Server
 {
     public class PacketResponseCreatorDiContainerGenerators
     {
-        public (PacketResponseCreator, ServiceProvider) Create()
+        public (PacketResponseCreator, ServiceProvider) Create(string serverConfig)
         {
-            //TODO コンフィグ周りを整理する
-            //テスト用のコンフィグをプロダクションのコンフィグに置き換える
             var services = new ServiceCollection();
+            
             //テスト用のコンフィグ、ファクトリーのインスタンスを登録
-            services.AddSingleton<IMachineRecipeConfig, TestMachineRecipeConfig>();
-            services.AddSingleton<IItemConfig, TestItemConfig>();
-            services.AddSingleton<ICraftingConfig, TestCraftConfig>();
+            services.AddSingleton(new ConfigPath(serverConfig));
+            services.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
+            services.AddSingleton<IItemConfig, ItemConfig>();
+            services.AddSingleton<ICraftingConfig, CraftConfig>();
             services.AddSingleton<ItemStackFactory, ItemStackFactory>();
             services.AddSingleton<IBlockConfig, BlockConfig>();
             services.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();

@@ -11,9 +11,9 @@ namespace Core.Block.Config
     {
         private readonly Dictionary<int, BlockConfigData> _blockConfigDictionary;
 
-        public BlockConfig()
+        public BlockConfig(ConfigPath configPath)
         {
-            _blockConfigDictionary = new BlockConfigJsonLoad().LoadJsonFromPath(ConfigJsonPath.BlockConfigPath);
+            _blockConfigDictionary = new BlockConfigJsonLoad().LoadJsonFromPath(configPath.BlockConfigPath);
         }
         public BlockConfig(string jsonText)
         {

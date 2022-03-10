@@ -1,31 +1,34 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Block.RecipeConfig;
+using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
 using Core.Item.Implementation;
 using Core.Item.Util;
 using NUnit.Framework;
+using Test.Module.TestConfig;
 
 namespace Test.UnitTest.Core.Block
 {
     public class MachineRecipeConfigTest
     {
-        private TestMachineRecipeConfig _testMachineRecipeConfig;
+        private MachineRecipeConfig _machineRecipeConfig;
         private ItemStackFactory _itemStackFactory;
 
         [SetUp]
         public void Setup()
         {
-            _itemStackFactory = new ItemStackFactory(new TestItemConfig());
-            _testMachineRecipeConfig = new(_itemStackFactory);
+            var config = new ConfigPath(TestModuleConfigPath.FolderPath);
+            _itemStackFactory = new ItemStackFactory(new ItemConfig(config));
+            _machineRecipeConfig = new(_itemStackFactory,config);
         }
 
         [TestCase(0, 1500)]
         [TestCase(1, 1500)]
         public void RecipeTimeTest(int id, int ans)
         {
-            var time = _testMachineRecipeConfig.GetRecipeData(id).Time;
+            var time = _machineRecipeConfig.GetRecipeData(id).Time;
             Assert.AreEqual(ans, time);
         }
 
@@ -42,7 +45,7 @@ namespace Test.UnitTest.Core.Block
             items.ToList().ForEach(
                 i => input.Add(_itemStackFactory.Create(i, 1)));
 
-            var ans = _testMachineRecipeConfig.GetRecipeData(BlocksId, input);
+            var ans = _machineRecipeConfig.GetRecipeData(BlocksId, input);
             Assert.AreEqual(output0Id, ans.ItemOutputs[0].OutputItem.Id);
             Assert.AreEqual(output0Percent, ans.ItemOutputs[0].Percent);
         }
@@ -61,7 +64,7 @@ namespace Test.UnitTest.Core.Block
             items.ToList().ForEach(
                 i => input.Add(_itemStackFactory.Create(i, 1)));
 
-            int ans = _testMachineRecipeConfig.GetRecipeData(BlocksId, input).ItemOutputs.Count;
+            int ans = _machineRecipeConfig.GetRecipeData(BlocksId, input).ItemOutputs.Count;
             Assert.AreEqual(outputLength, ans);
         }
 
@@ -83,7 +86,7 @@ namespace Test.UnitTest.Core.Block
                 itemStacks.Add(_itemStackFactory.Create(items[i], itemcount[i]));
             }
 
-            var a = _testMachineRecipeConfig.GetRecipeData(BlocksId, itemStacks).RecipeConfirmation(itemStacks);
+            var a = _machineRecipeConfig.GetRecipeData(BlocksId, itemStacks).RecipeConfirmation(itemStacks);
             Assert.AreEqual(ans, a);
         }
     }
