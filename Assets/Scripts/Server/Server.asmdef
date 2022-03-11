@@ -7,12 +7,12 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll",
         "Newtonsoft.Json.dll",
         "Microsoft.Extensions.DependencyInjection.dll",
         "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "Json.Net.dll",
-        "Microsoft.Bcl.AsyncInterfaces.dll"
+        "Microsoft.Bcl.AsyncInterfaces.dll",
+        "nunit.framework.toserver.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
