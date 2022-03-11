@@ -53,6 +53,8 @@ namespace Server
                         GameUpdate.Update();
                     }
                 }).Start();
+
+                Console.ReadKey();
             }
             catch (Exception e)
             {

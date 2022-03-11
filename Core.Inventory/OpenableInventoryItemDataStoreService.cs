@@ -72,12 +72,17 @@ namespace Core.Inventory
         
         public IItemStack InsertItem(int slot, IItemStack itemStack)
         {
+            if (itemStack.Equals(_itemStackFactory.CreatEmpty())) return itemStack;
             if (!_inventory[slot].IsAllowedToAddButRemain(itemStack)) return itemStack;
             
             var result = _inventory[slot].AddItem(itemStack);
-            _inventory[slot] = result.ProcessResultItemStack;
 
-            InvokeEvent(slot);
+            //挿入を試した結果が今までと違う場合は入れ替えをしてイベントを発火
+            if (!_inventory[slot].Equals(result.ProcessResultItemStack))
+            {
+                _inventory[slot] = result.ProcessResultItemStack;
+                InvokeEvent(slot);
+            }
             
             return result.RemainderItemStack;
         }

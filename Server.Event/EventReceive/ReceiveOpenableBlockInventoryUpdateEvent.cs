@@ -56,12 +56,6 @@ namespace Server.Event.EventReceive
             payload.AddRange(ToByteList.Convert(x));
             payload.AddRange(ToByteList.Convert(y));
             
-            //10秒だったらエラーをスローする
-            if (now.AddSeconds(10) < DateTime.Now)
-            {
-                throw new Exception("10秒以内にイベントを送信してください");
-            }
-            
             return payload.ToArray();
         }
 

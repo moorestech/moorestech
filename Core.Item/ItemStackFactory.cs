@@ -8,10 +8,12 @@ namespace Core.Item
     public class ItemStackFactory
     {
         private readonly IItemConfig _itemConfig;
+        private readonly IItemStack _nullItem;
 
         public ItemStackFactory(IItemConfig itemConfig)
         {
             _itemConfig = itemConfig;
+            _nullItem = new NullItemStack(this);
         }
 
         public IItemStack Create(int id, int count)
@@ -31,7 +33,7 @@ namespace Core.Item
 
         public IItemStack CreatEmpty()
         {
-            return new NullItemStack(this);
+            return _nullItem;
         }
     }
 }
