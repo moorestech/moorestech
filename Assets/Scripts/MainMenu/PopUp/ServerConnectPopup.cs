@@ -7,7 +7,7 @@ namespace MainMenu.PopUp
 {
     public class ServerConnectPopup : MonoBehaviour
     {
-        [SerializeField] private TextMeshPro test;
+        [SerializeField] private TMP_Text logText;
         [SerializeField] private Button closeButton;
 
         private void Start()
@@ -20,7 +20,7 @@ namespace MainMenu.PopUp
         public void SetText(string text)
         {
             gameObject.SetActive(true);
-            test.text = text;
+            logText.text = text;
         }
     }
 }

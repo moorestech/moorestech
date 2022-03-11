@@ -2,15 +2,16 @@
 using System.Net;
 using System.Net.Sockets;
 using MainMenu.PopUp;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace MainMenu
 {
-    public class ConnectServerGame : MonoBehaviour
+    public class ConnectServer : MonoBehaviour
     {
-        [SerializeField] private InputField serverIp;
-        [SerializeField] private InputField serverPort;
+        [SerializeField] private TMP_InputField serverIp;
+        [SerializeField] private TMP_InputField serverPort;
 
         [SerializeField] private ServerConnectPopup serverConnectPopup;
         
