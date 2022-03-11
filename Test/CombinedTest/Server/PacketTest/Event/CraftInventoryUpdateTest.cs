@@ -34,17 +34,20 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             //イベントを取得
             var response = packetResponse.GetPacketResponse(EventRequest());
-            Assert.AreEqual(PlayerInventoryConst.CraftingSlotSize,response.Count); //クラフトスロットのサイズ分セットしたので、そのサイズ分返ってくる
+            
+            const int craftEventCount = 6;
+            
+            Assert.AreEqual(craftEventCount,response.Count); //クラフトスロットのサイズ分セットしたので、そのサイズ分返ってくる
             
             
             //最後から一つ前のパケットはまだクラフト可能になっていないことを検証する
-            var checkSlot = PlayerInventoryConst.CraftingSlotSize - 2;
+            var checkSlot = craftEventCount - 2;
             var enumerator = new ByteListEnumerator(response[checkSlot].ToList());
             Assert.AreEqual(3,enumerator.MoveNextToGetShort()); //パケットID
             Assert.AreEqual(4,enumerator.MoveNextToGetShort()); //イベントID
-            Assert.AreEqual(checkSlot,enumerator.MoveNextToGetInt()); //インベントリスロット
-            Assert.AreEqual(craftConfig.Items[checkSlot].Id,enumerator.MoveNextToGetInt()); //更新アイテムID
-            Assert.AreEqual(craftConfig.Items[checkSlot].Count,enumerator.MoveNextToGetInt()); //更新アイテム数
+            Assert.AreEqual(7,enumerator.MoveNextToGetInt()); //インベントリスロット レシピによって変わるので固定値
+            Assert.AreEqual(craftConfig.Items[7].Id,enumerator.MoveNextToGetInt()); //更新アイテムID
+            Assert.AreEqual(craftConfig.Items[7].Count,enumerator.MoveNextToGetInt()); //更新アイテム数
             
             Assert.AreEqual(ItemConst.EmptyItemId,enumerator.MoveNextToGetInt()); //結果のアイテムID
             Assert.AreEqual(0,enumerator.MoveNextToGetInt()); //結果のアイテム数
@@ -53,13 +56,13 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             
             //最後のパケットはクラフト可能になっていることを検証する
-            checkSlot = PlayerInventoryConst.CraftingSlotSize - 1;
+            checkSlot = craftEventCount - 1;
             enumerator = new ByteListEnumerator(response[checkSlot].ToList());
             Assert.AreEqual(3,enumerator.MoveNextToGetShort()); //パケットID
             Assert.AreEqual(4,enumerator.MoveNextToGetShort()); //イベントID
-            Assert.AreEqual(checkSlot,enumerator.MoveNextToGetInt()); //インベントリスロット
-            Assert.AreEqual(craftConfig.Items[checkSlot].Id,enumerator.MoveNextToGetInt()); //更新アイテムID
-            Assert.AreEqual(craftConfig.Items[checkSlot].Count,enumerator.MoveNextToGetInt()); //更新アイテム数
+            Assert.AreEqual(8,enumerator.MoveNextToGetInt()); //インベントリスロット レシピによって変わるので固定値
+            Assert.AreEqual(craftConfig.Items[8].Id,enumerator.MoveNextToGetInt()); //更新アイテムID
+            Assert.AreEqual(craftConfig.Items[8].Count,enumerator.MoveNextToGetInt()); //更新アイテム数
             
             Assert.AreEqual(craftConfig.Result.Id,enumerator.MoveNextToGetInt()); //結果のアイテムID
             Assert.AreEqual(craftConfig.Result.Count,enumerator.MoveNextToGetInt()); //結果のアイテム数
@@ -77,14 +80,14 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             //イベントが発火しているか
             response = packetResponse.GetPacketResponse(EventRequest());
-            Assert.AreEqual(PlayerInventoryConst.CraftingInventorySize,response.Count); //クラフトすると全てのスロットが更新されるため、10個のイベントが発生する
+            Assert.AreEqual(craftEventCount + 1,response.Count); //クラフトすると全てのスロットが更新されるため、craftEventCount + 1個のイベントが発生する
             
             //最初のパケットが出力スロットであるため、その検証をする
-            checkSlot = PlayerInventoryConst.CraftingInventorySize - 1;;
+            checkSlot = craftEventCount + 1 - 1;
             enumerator = new ByteListEnumerator(response[checkSlot].ToList());
             Assert.AreEqual(3,enumerator.MoveNextToGetShort()); //パケットID
             Assert.AreEqual(4,enumerator.MoveNextToGetShort()); //イベントID
-            Assert.AreEqual(checkSlot,enumerator.MoveNextToGetInt()); //インベントリスロット
+            Assert.AreEqual(9,enumerator.MoveNextToGetInt()); //インベントリスロット
             Assert.AreEqual(craftConfig.Result.Id,enumerator.MoveNextToGetInt()); //更新アイテムID
             Assert.AreEqual(craftConfig.Result.Count,enumerator.MoveNextToGetInt()); //更新アイテム数
             

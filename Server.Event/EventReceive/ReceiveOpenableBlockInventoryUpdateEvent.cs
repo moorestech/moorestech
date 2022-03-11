@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Core.Block.Event;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
@@ -39,6 +40,8 @@ namespace Server.Event.EventReceive
             }
         }
         
+        private DateTime now = DateTime.Now;
+        
         private byte[] GetPayload(BlockOpenableInventoryUpdateEventProperties properties)
         {
             var (x, y) = _worldBlockDatastore.GetBlockPosition(properties.EntityId);
@@ -52,6 +55,12 @@ namespace Server.Event.EventReceive
             payload.AddRange(ToByteList.Convert(properties.ItemStack.Count));
             payload.AddRange(ToByteList.Convert(x));
             payload.AddRange(ToByteList.Convert(y));
+            
+            //10秒だったらエラーをスローする
+            if (now.AddSeconds(10) < DateTime.Now)
+            {
+                throw new Exception("10秒以内にイベントを送信してください");
+            }
             
             return payload.ToArray();
         }

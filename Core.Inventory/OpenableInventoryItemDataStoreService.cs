@@ -30,8 +30,11 @@ namespace Core.Inventory
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            _inventory[slot] = itemStack;
-            InvokeEvent(slot);
+            if (!_inventory[slot].Equals(itemStack))
+            {
+                _inventory[slot] = itemStack;
+                InvokeEvent(slot);
+            }
         }
         public void SetItemWithoutEvent(int slot, IItemStack itemStack)
         {
