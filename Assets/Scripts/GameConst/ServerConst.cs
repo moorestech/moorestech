@@ -1,4 +1,5 @@
-﻿using static System.IO.Path;
+﻿using System.IO;
+using static System.IO.Path;
 
 namespace GameConst
 {
@@ -11,11 +12,11 @@ namespace GameConst
         
         
 #if UNITY_EDITOR_WIN
-        public static readonly string ServerExePath = GetFullPath("./WindowsServer/moorestech_server.exe");
-        public static readonly string ServerConfigPath = GetFullPath("./WindowsServer/Config");
+        public static readonly string ServerDirectory = GetFullPath("./WindowsServer");
 #elif UNITY_STANDALONE_WIN
-        public static readonly string ServerExePath = GetFullPath("./server/moorestech_server.exe");
-        public static readonly string ServerConfigPath = GetFullPath("./server/Config");
+        public static readonly string ServerDirectory = GetFullPath("./server");
 #endif
+        public static readonly string ServerExePath = Combine(ServerDirectory,"moorestech_server.exe");
+        public static readonly string ServerConfigDirectory = Combine(ServerDirectory,"Config");
     }
 }

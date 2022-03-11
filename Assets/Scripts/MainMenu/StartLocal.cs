@@ -23,7 +23,7 @@ namespace MainMenu
         {
             _serverProcess = new Process();
             _serverProcess.StartInfo.FileName = ServerConst.ServerExePath;
-            _serverProcess.StartInfo.Arguments = ServerConst.ServerConfigPath;
+            _serverProcess.StartInfo.Arguments = ServerConst.ServerConfigDirectory;
             _serverProcess.Start();
 
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;
