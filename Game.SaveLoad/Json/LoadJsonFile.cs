@@ -23,8 +23,11 @@ namespace Game.Save.Json
 
         public void Load()
         {
-            var json = File.ReadAllText(_saveJsonFileName.FullSaveFilePath);
-            Load(json);
+            if (File.Exists(_saveJsonFileName.FullSaveFilePath))
+            {
+                var json = File.ReadAllText(_saveJsonFileName.FullSaveFilePath);
+                Load(json);
+            }
         }
 
         public void Load(string jsonText)
