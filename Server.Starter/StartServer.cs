@@ -19,20 +19,14 @@ namespace Server
         public static void Main(string[] args)
         {
 #if DEBUG
-            args = new string[1];
-            args[0] = DebugConfigPath.FolderPath;
+            var configPath = DebugFolderPath;
 #else
-            var (argsOk,error) = CheckArgs(args);
-            if (!argsOk)
-            {
-                Console.WriteLine(error);
-                Console.ReadKey();
-                return;
-            }
+            var configPath = ReleasesFolderPath;
 #endif
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(args[0]);
-
             
+            
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(configPath);
+
             new Thread(() =>
             {
                 new PacketHandler().StartServer(packet);
@@ -46,21 +40,23 @@ namespace Server
             }).Start();
         }
 
-        private static (bool,string) CheckArgs(string[] args)
+        
+        private static string DebugFolderPath
         {
-            if (args.Length != argsCount)
+            get
             {
-                return (false, "必要な引数がありません <コンフィグパスのディレクトリ>");
+                DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
+                DirectoryInfo diParent = di.Parent.Parent.Parent.Parent;
+                return Path.Combine(diParent.FullName, "Server.Starter", "Config");
             }
-            
-            
-            if (!Directory.Exists(args[0]))
+        }
+        private static string ReleasesFolderPath
+        {
+            get
             {
-                return (false, $"{args[0]}のコンフィグパスのディレクトリが存在しません");
+                DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
+                return Path.Combine(di.FullName, "Config");
             }
-            
-            
-            return (true, "");
         }
     }
 }
