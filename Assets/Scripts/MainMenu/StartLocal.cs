@@ -5,7 +5,6 @@ using MainGame.Starter;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using static System.IO.Path;
 
 namespace MainMenu
 {
@@ -13,13 +12,6 @@ namespace MainMenu
     {
         [SerializeField] private Button startLocalButton;
             
-#if UNITY_EDITOR_WIN
-        private const string ServerExePath = "./WindowsServer/moorestech_server.exe";
-        private const string ServerConfigPath = "./WindowsServer/Config";
-#elif UNITY_STANDALONE_WIN
-        private const string ServerExePath = "./server/moorestech_server.exe";
-        private const string ServerConfigPath = "./server/Config";
-#endif
 
         private void Start()
         {
@@ -30,8 +22,8 @@ namespace MainMenu
         private void StartLocalServer()
         {
             _serverProcess = new Process();
-            _serverProcess.StartInfo.FileName = GetFullPath(ServerExePath);
-            _serverProcess.StartInfo.Arguments = $"{GetFullPath(ServerConfigPath)}";
+            _serverProcess.StartInfo.FileName = ServerConst.ServerExePath;
+            _serverProcess.StartInfo.Arguments = ServerConst.ServerConfigPath;
             _serverProcess.Start();
 
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;
