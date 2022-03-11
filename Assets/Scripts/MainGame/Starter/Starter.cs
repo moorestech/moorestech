@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using GameConst;
 using MainGame.Control.Game;
 using MainGame.Control.Game.MouseKeyboard;
 using MainGame.Control.UI.Command;
@@ -28,10 +29,10 @@ namespace MainGame.Starter
 {
     public class Starter : LifetimeScope
     {
-        private string IPAddress = "127.0.0.1";
-        private int Port = 11564;
+        private string IPAddress = ServerConst.LocalServerIp;
+        private int Port = ServerConst.LocalServerPort;
         
-        private int PlayerId = 1;
+        private int PlayerId = ServerConst.DefaultPlayerId;
         
         private bool isLocal = false;
         private Process localServerProcess = null;
