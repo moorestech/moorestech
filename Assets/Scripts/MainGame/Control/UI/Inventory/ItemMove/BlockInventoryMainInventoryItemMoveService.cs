@@ -1,6 +1,7 @@
 using MainGame.GameLogic.Inventory;
 using MainGame.Network;
 using MainGame.Network.Send;
+using MainGame.Network.Settings;
 using UnityEngine;
 
 namespace MainGame.Control.UI.Inventory.ItemMove

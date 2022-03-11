@@ -6,6 +6,7 @@ using MainGame.GameLogic.Inventory;
 using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Send;
+using MainGame.Network.Settings;
 using MainGame.UnityView;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;

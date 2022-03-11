@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using MainGame.Network;
 using MainGame.Network.Send;
+using MainGame.Network.Settings;
 using MainGame.Network.Util;
 using NUnit.Framework;
 using Test.TestModule;

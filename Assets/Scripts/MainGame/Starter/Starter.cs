@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using MainGame.Control.Game;
 using MainGame.Control.Game.MouseKeyboard;
 using MainGame.Control.UI.Command;
@@ -13,6 +14,7 @@ using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
+using MainGame.Network.Settings;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.UI.Inventory.Element;
@@ -26,9 +28,23 @@ namespace MainGame.Starter
 {
     public class Starter : LifetimeScope
     {
-        private const string DefaultIp = "127.0.0.1";
-        private const int DefaultPort = 11564;
-        private const int PlayerId = 1;
+        private string IPAddress = "127.0.0.1";
+        private int Port = 11564;
+        
+        private int PlayerId = 1;
+        
+        private bool isLocal = false;
+        private Process localServerProcess = null;
+
+        public void SetProperty(MainGameStartProprieties proprieties)
+        {
+            IPAddress = proprieties.serverIp;
+            Port = proprieties.serverPort;
+            isLocal = proprieties.isLocal;
+            
+            PlayerId = proprieties.playerId;
+            localServerProcess = proprieties.localServerProcess;
+        }
         
 
         private IObjectResolver _resolver;
@@ -77,7 +93,8 @@ namespace MainGame.Starter
         {
             var builder = new ContainerBuilder();
             //サーバーに接続するためのインスタンス
-            builder.RegisterInstance(new ConnectionServerConfig(DefaultIp,DefaultPort));
+            builder.RegisterInstance(new ServerProcessSetting(isLocal,localServerProcess));
+            builder.RegisterInstance(new ConnectionServerConfig(IPAddress,Port));
             builder.RegisterInstance(new PlayerConnectionSetting(PlayerId));
             builder.RegisterEntryPoint<ConnectionServer>();
             builder.Register<SocketInstanceCreate, SocketInstanceCreate>(Lifetime.Singleton);

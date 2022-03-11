@@ -1,9 +1,7 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.UI;
 using static System.IO.Path;
-using Debug = UnityEngine.Debug;
 
 namespace MainMenu
 {

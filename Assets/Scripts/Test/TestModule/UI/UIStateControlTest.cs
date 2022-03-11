@@ -4,6 +4,7 @@ using MainGame.GameLogic.Inventory;
 using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Send;
+using MainGame.Network.Settings;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 
