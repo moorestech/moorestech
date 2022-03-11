@@ -46,7 +46,7 @@ namespace MainMenu
                 isLocal,_serverProcess,
                 ServerConst.LocalServerIp,
                 ServerConst.LocalServerPort,
-                PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey,ServerConst.DefaultPlayerId)));
+                PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey)));
         }
         
     }
