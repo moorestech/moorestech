@@ -36,8 +36,6 @@ namespace MainGame.Control.UI.PauseMenu
 
         private void OnDestroy() { Disconnect(); }
 
-        private void OnDisable() { Disconnect(); }
-
 
         private void Disconnect()
         {
