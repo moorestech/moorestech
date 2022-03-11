@@ -10,11 +10,12 @@ namespace GameConst
 
         public const int DefaultPlayerId = 1;
         
+        public const string StandAloneServerDirectory = "server";
         
 #if UNITY_EDITOR_WIN
         public static readonly string ServerDirectory = GetFullPath("./WindowsServer");
 #elif UNITY_STANDALONE_WIN
-        public static readonly string ServerDirectory = GetFullPath("./server");
+        public static readonly string ServerDirectory = GetFullPath("./" + StandAloneServerDirectory);
 #endif
         public static readonly string ServerExePath = Combine(ServerDirectory,"moorestech_server.exe");
         public static readonly string ServerConfigDirectory = Combine(ServerDirectory,"Config");
