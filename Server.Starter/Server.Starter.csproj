@@ -23,4 +23,27 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="ReleaseConfig\block.json" />
+      <Content Include="ReleaseConfig\block.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="ReleaseConfig\craftRecipe.json" />
+      <Content Include="ReleaseConfig\craftRecipe.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="ReleaseConfig\item.json" />
+      <Content Include="ReleaseConfig\item.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="ReleaseConfig\machineRecipe.json" />
+      <Content Include="ReleaseConfig\machineRecipe.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="ReleaseConfig\ore.json" />
+      <Content Include="ReleaseConfig\ore.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
 </Project>
