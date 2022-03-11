@@ -5,8 +5,8 @@ namespace MainGame.Control.UI.UIState.UIState
 {
     public class GameScreenState : IUIState
     {
-        private MoorestechInputSettings _input;
-        private IBlockClickDetect _blockClickDetect;
+        private readonly MoorestechInputSettings _input;
+        private readonly IBlockClickDetect _blockClickDetect;
         private readonly SelectHotBarControl _selectHotBarControl;
 
         public GameScreenState(MoorestechInputSettings input,IBlockClickDetect blockClickDetect,SelectHotBarControl selectHotBarControl)
@@ -18,30 +18,10 @@ namespace MainGame.Control.UI.UIState.UIState
 
         public bool IsNext()
         {
-            if (_input.UI.OpenInventory.triggered)
-            {
-                return true;
-            }
-            if (_input.UI.OpenMenu.triggered)
-            {
-                return true;
-            }
-
-            if (_blockClickDetect.IsBlockClicked())
-            {
-                return true;
-            }
-            if (_input.UI.BlockDelete.triggered)
-            {
-                return true;
-            }
-
-            if (_selectHotBarControl.IsClicked)
-            {
-                return true;
-            }
-
-            return false;
+            return _input.UI.OpenInventory.triggered || _input.UI.OpenMenu.triggered || 
+                   _blockClickDetect.IsBlockClicked() || 
+                   _input.UI.BlockDelete.triggered || _selectHotBarControl.IsClicked || 
+                   _input.UI.HotBar.ReadValue<int>() != 0;
         }
 
         public UIStateEnum GetNext()
@@ -62,7 +42,7 @@ namespace MainGame.Control.UI.UIState.UIState
             {
                 return UIStateEnum.DeleteBar;
             }
-            if (_selectHotBarControl.IsClicked)
+            if (_selectHotBarControl.IsClicked || _input.UI.HotBar.ReadValue<int>() != 0)
             {
                 return UIStateEnum.BlockPlace;
             }
