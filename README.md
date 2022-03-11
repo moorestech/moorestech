@@ -12,3 +12,12 @@ https://github.com/dbrizov/NaughtyCharacter
 
 NuGetForUnity
 https://github.com/GlitchEnzo/NuGetForUnity
+
+
+### フォントラインセンスに関する表記
+
+Noto Sans Japanese
+https://fonts.google.com/noto/specimen/Noto+Sans+JP
+
+Noto Sans
+https://fonts.google.com/noto/specimen/Noto+Sans

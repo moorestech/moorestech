@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using GameConst;
+using MainGame.Basic;
+using MainGame.Starter;
 using MainMenu.PopUp;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace MainMenu
@@ -38,7 +42,7 @@ namespace MainMenu
             }
             if (port <= 1024)
             {
-                serverConnectPopup.SetText("ポート番号は1025異常である必要があります");
+                serverConnectPopup.SetText("ポート番号は1024以上である必要があります");
                 return;
             }
 
@@ -51,7 +55,11 @@ namespace MainMenu
 
                 if (socket.Connected)
                 {
-                    //接続が確認出来たので実際にゲームに移行
+                    //接続が確認出来たのでソケットを閉じて実際にゲームに移行
+                    socket.Close();
+                    
+                    SceneManager.sceneLoaded += OnMainGameSceneLoaded;
+                    SceneManager.LoadScene(SceneConstant.MainGameSceneName);
                 }
             }
             catch (Exception e)
@@ -59,6 +67,20 @@ namespace MainMenu
                 serverConnectPopup.SetText("サーバーへの接続に失敗しました\n"+e);
                 return;
             }
+        }
+        
+        private void OnMainGameSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            SceneManager.sceneLoaded -= OnMainGameSceneLoaded;
+            var starter = GameObject.FindObjectOfType<Starter>();
+
+            var isLocal = false;
+            
+            starter.SetProperty(new MainGameStartProprieties(
+                isLocal,null,
+                serverIp.text,
+                int.Parse(serverPort.text),
+                PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey)));
         }
     }
 }
