@@ -6,9 +6,9 @@ using UnityEngine.InputSystem.Utilities;
 #if UNITY_EDITOR
 #endif
 
-#if UNITY_EDITOR
 namespace InputSystem
 {
+#if UNITY_EDITOR
     [InitializeOnLoad]
 #endif
     [DisplayStringFormat("{select0}/{select1}/{select2}/{select3}/{select4}/{select5}/{select6}/{select7}/{select8}")]
