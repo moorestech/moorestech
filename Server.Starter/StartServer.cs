@@ -18,26 +18,42 @@ namespace Server
         
         public static void Main(string[] args)
         {
+            try
+            {
 #if DEBUG
-            var configPath = DebugFolderPath;
+                var configPath = DebugFolderPath;
 #else
-            var configPath = ReleasesFolderPath;
+                var configPath = ReleasesFolderPath;
+                if (args.Length == 0)
+                {
+                    Console.WriteLine("コマンドライン引数にコンフィグのパスが指定されていませんでした。デフォルトコンフィグパスを使用します。");
+                } 
+                else
+                {
+                    configPath = args[0];
+                }
 #endif
             
             
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(configPath);
+                var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(configPath);
 
-            new Thread(() =>
-            {
-                new PacketHandler().StartServer(packet);
-            }).Start();
-            new Thread(() =>
-            {
-                while (true)
+                new Thread(() =>
                 {
-                    GameUpdate.Update();
-                }
-            }).Start();
+                    new PacketHandler().StartServer(packet);
+                }).Start();
+                new Thread(() =>
+                {
+                    while (true)
+                    {
+                        GameUpdate.Update();
+                    }
+                }).Start();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                Console.ReadKey();
+            }
         }
 
         
