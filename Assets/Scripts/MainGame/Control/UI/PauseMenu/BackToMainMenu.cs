@@ -1,3 +1,4 @@
+using System;
 using MainGame.Basic;
 using MainGame.Network;
 using MainGame.Network.Settings;
@@ -8,6 +9,7 @@ using VContainer;
 
 namespace MainGame.Control.UI.PauseMenu
 {
+    //ゲームが終了したときかメインメニューに戻るときはサーバーを終了させます
     public class BackToMainMenu : MonoBehaviour
     {
         [SerializeField] private Button backToMainMenuButton;
@@ -28,12 +30,22 @@ namespace MainGame.Control.UI.PauseMenu
 
         void Back()
         {
+            Disconnect();
+            SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+        }
+
+        private void OnDestroy() { Disconnect(); }
+
+        private void OnDisable() { Disconnect(); }
+
+
+        private void Disconnect()
+        {
             if (_serverProcessSetting.isLocal)
             {
                 _serverProcessSetting.localServerProcess.Kill();
             }
             _socket.Close();
-            SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
         }
     }
 }
