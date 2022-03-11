@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "Server.Starter/1.0.0": {
+      "moorestech_server/1.0.0": {
         "dependencies": {
           "Game.Crafting": "1.0.0",
           "Game.PlayerInventory": "1.0.0",
@@ -21,7 +21,7 @@
           "Server.Util": "1.0.0"
         },
         "runtime": {
-          "Server.Starter.dll": {}
+          "moorestech_server.dll": {}
         }
       },
       "Microsoft.CSharp/4.0.1": {
@@ -597,7 +597,7 @@
     }
   },
   "libraries": {
-    "Server.Starter/1.0.0": {
+    "moorestech_server/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
