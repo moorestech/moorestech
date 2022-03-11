@@ -30,7 +30,7 @@ namespace MainGame.Control.UI.PauseMenu
         {
             if (_serverProcessSetting.isLocal)
             {
-                _serverProcessSetting.localServerProcess.Close();
+                _serverProcessSetting.localServerProcess.Kill();
             }
             _socket.Close();
             SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
