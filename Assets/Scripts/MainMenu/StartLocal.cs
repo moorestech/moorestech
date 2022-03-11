@@ -16,6 +16,9 @@ namespace MainMenu
 #if UNITY_EDITOR_WIN
         private const string ServerExePath = "./WindowsServer/moorestech_server.exe";
         private const string ServerConfigPath = "./WindowsServer/Config";
+#elif UNITY_STANDALONE_WIN
+        private const string ServerExePath = "./server/moorestech_server.exe";
+        private const string ServerConfigPath = "./server/Config";
 #endif
 
         private void Start()
