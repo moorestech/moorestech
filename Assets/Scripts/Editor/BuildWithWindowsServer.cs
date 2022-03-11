@@ -29,5 +29,7 @@ public class BuildWithWindowsServer
         buildOptions.locationPathName = path + "/moorestech.exe";
             
         BuildPipeline.BuildPlayer(buildOptions);
+        
+        EditorUtility.RevealInFinder( path );
     }
 }
