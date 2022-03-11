@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using Core.Item;
 using Core.Update;
+using Game.Save.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using PlayerInventory;
 using Server.Event;
@@ -33,10 +34,13 @@ namespace Server
                     configPath = args[0];
                 }
 #endif
-            
-            
+                
                 var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(configPath);
-
+                
+                //マップをロードする
+                serviceProvider.GetService<ILoadRepository>().Load();
+                
+                //サーバーの起動とゲームアップデートの開始
                 new Thread(() =>
                 {
                     new PacketHandler().StartServer(packet);
