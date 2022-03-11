@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using GameConst;
 using UnityEditor;
 using UnityEngine;
@@ -27,6 +28,7 @@ public class BuildWithWindowsServer
         var buildOptions = new BuildPlayerOptions();
         buildOptions.target = BuildTarget.StandaloneWindows;
         buildOptions.locationPathName = path + "/moorestech.exe";
+        buildOptions.scenes = EditorBuildSettings.scenes.Select(s => s.path).ToArray();
             
         BuildPipeline.BuildPlayer(buildOptions);
         
