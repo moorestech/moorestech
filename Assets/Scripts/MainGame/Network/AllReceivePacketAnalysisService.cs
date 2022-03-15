@@ -21,7 +21,7 @@ namespace MainGame.Network
             _analysisPacketList.Add(new ReceiveChunkDataProtocol(networkReceivedChunkDataEvent));
             _analysisPacketList.Add(new DummyProtocol());//TODO 将来的に他プレイヤー座標のパケットが入る
             _analysisPacketList.Add(new ReceiveEventProtocol(networkReceivedChunkDataEvent,mainInventoryUpdateEvent,craftingInventoryUpdateEvent,blockInventoryUpdateEvent));
-            _analysisPacketList.Add(new ReceivePlayerInventoryProtocol(mainInventoryUpdateEvent,new CraftingInventoryUpdateEvent()));
+            _analysisPacketList.Add(new ReceivePlayerInventoryProtocol(mainInventoryUpdateEvent,craftingInventoryUpdateEvent));
             _analysisPacketList.Add(new DummyProtocol()); //TODO 地面のマップデータのパケットが入る
             _analysisPacketList.Add(new ReceiveBlockInventoryProtocol(blockInventoryUpdateEvent));
             

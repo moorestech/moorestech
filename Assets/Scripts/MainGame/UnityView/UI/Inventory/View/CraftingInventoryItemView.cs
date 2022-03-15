@@ -28,8 +28,8 @@ namespace MainGame.UnityView.UI.Inventory.View
 
         public void OnInventoryUpdate(int slot, ItemStack item)
         {
-            var sprite = _itemImages.GetItemViewData(item.ID);
-            _slots[slot].SetItem(sprite,item.Count);
+            var itemViewData = _itemImages.GetItemViewData(item.ID);
+            _slots[slot].SetItem(itemViewData,item.Count);
         }
 
         public void SetResultItem(ItemStack resultItem, bool canCraft)
