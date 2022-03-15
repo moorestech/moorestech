@@ -59,7 +59,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         //スロットをアップデートする
         public void BlockInventoryUpdate(int slot, int itemId, int count)
         {
-            var sprite = _itemImages.GetItemImage(itemId);
+            var sprite = _itemImages.GetItemViewData(itemId);
             if (slot < _inputSlotCount)
             {
                 _inputInventorySlots[slot].SetItem(sprite,count);
@@ -73,7 +73,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         
         public void MainInventoryUpdate(int slot, int itemId, int count)
         {
-            var sprite = _itemImages.GetItemImage(itemId);
+            var sprite = _itemImages.GetItemViewData(itemId);
             _mainInventorySlots[slot].SetItem(sprite,count);
         }
         

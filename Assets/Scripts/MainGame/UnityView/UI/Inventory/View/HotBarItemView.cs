@@ -38,7 +38,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             
             if (slot < startHotBarSlot) return;
             
-            var sprite = _itemImages.GetItemImage(itemId);
+            var sprite = _itemImages.GetItemViewData(itemId);
             slot -= startHotBarSlot;
             _slots[slot].SetItem(sprite,count);
 

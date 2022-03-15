@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory.Element
@@ -6,10 +7,10 @@ namespace MainGame.UnityView.UI.Inventory.Element
     [CreateAssetMenu(fileName = "ItemImages", menuName = "ItemImages", order = 0)]
     public class ItemImages : ScriptableObject
     {
-        [SerializeField] private List<Sprite> itemImageList;
-        [SerializeField] private Sprite nothingIndexItemImage;
+        [SerializeField] private List<ItemViewData> itemImageList;
+        [SerializeField] private ItemViewData nothingIndexItemImage;
 
-        public Sprite GetItemImage(int index)
+        public ItemViewData GetItemViewData(int index)
         {
             if (itemImageList.Count <= index)
             {
@@ -18,5 +19,12 @@ namespace MainGame.UnityView.UI.Inventory.Element
 
             return itemImageList[index];
         }
+    }
+
+    [Serializable]
+    public class ItemViewData
+    {
+        public Sprite itemImage;
+        public string itemName;
     }
 }

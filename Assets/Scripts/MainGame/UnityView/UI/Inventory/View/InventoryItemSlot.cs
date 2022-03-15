@@ -1,31 +1,44 @@
 ﻿using System;
+using MainGame.UnityView.UI.Inventory.Element;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace MainGame.UnityView.UI.Inventory.View
 {
-    public class InventoryItemSlot: MonoBehaviour
+    public class InventoryItemSlot: MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
     {
+        private const string EmptyItemName = "EmptyItem";
+        
         public delegate void OnItemSlotClicked(int slotIndex);
 
         [SerializeField] private Image image;
         public Image Image => image;
 
-        [SerializeField] private TextMeshProUGUI countText;
-        public TextMeshProUGUI CountText => countText;
+        
+        [SerializeField] private TMP_Text countText;
+        public TMP_Text CountText => countText;
 
+        
+        [SerializeField] private ItemNameText itemNameText;
+        
+        
         private Button _button;
         private int _slotIndex = -1;
+        private string _itemName = EmptyItemName;
+        
         public void Construct(int slotIndex)
         {
             _button = GetComponent<Button>();
             _slotIndex = slotIndex;
         }
         
-        public void SetItem(Sprite sprite, int count)
+        public void SetItem(ItemViewData itemView, int count)
         {
-            image.sprite = sprite;
+            image.sprite = itemView.itemImage;
+            itemNameText.SetText(itemView.itemName);
+            _itemName = itemView.itemName;
             
             if (count == 0)
             {
@@ -46,6 +59,22 @@ namespace MainGame.UnityView.UI.Inventory.View
         public void SubscribeOnItemSlotClick(OnItemSlotClicked onItemSlotClicked)
         {
             _button.onClick.AddListener(() => onItemSlotClicked(_slotIndex));
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (EmptyItemName != _itemName)
+            {
+                itemNameText.SetActive(true);
+            }
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (EmptyItemName != _itemName)
+            {
+                itemNameText.SetActive(false);
+            }
         }
     }
 }

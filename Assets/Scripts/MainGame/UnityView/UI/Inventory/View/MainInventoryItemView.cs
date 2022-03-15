@@ -22,7 +22,7 @@ namespace MainGame.UnityView.UI.Inventory.View
 
         public void OnInventoryUpdate(int slot, int itemId, int count)
         {
-            var sprite = _itemImages.GetItemImage(itemId);
+            var sprite = _itemImages.GetItemViewData(itemId);
             _slots[slot].SetItem(sprite,count);
         }
         
