@@ -64,6 +64,22 @@
           {
             "oreId": 1,
             "time": 1000
+          },
+          {
+            "oreId": 2,
+            "time": 1000
+          },
+          {
+            "oreId": 3,
+            "time": 1000
+          },
+          {
+            "oreId": 4,
+            "time": 1000
+          },
+          {
+            "oreId": 5,
+            "time": 1000
           }
         ]
       }
@@ -93,7 +109,23 @@
         "oreSetting": [
           {
             "oreId": 1,
-            "time": 1000
+            "time": 500
+          },
+          {
+            "oreId": 2,
+            "time": 500
+          },
+          {
+            "oreId": 3,
+            "time": 500
+          },
+          {
+            "oreId": 4,
+            "time": 500
+          },
+          {
+            "oreId": 5,
+            "time": 500
           }
         ]
       }
@@ -108,7 +140,23 @@
         "oreSetting": [
           {
             "oreId": 1,
-            "time": 1000
+            "time": 100
+          },
+          {
+            "oreId": 2,
+            "time": 100
+          },
+          {
+            "oreId": 3,
+            "time": 100
+          },
+          {
+            "oreId": 4,
+            "time": 100
+          },
+          {
+            "oreId": 5,
+            "time": 100
           }
         ]
       }
