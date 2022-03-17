@@ -176,7 +176,7 @@
       "type": "Machine",
       "itemId": 38,
       "param": {
-        "inputSlot": 1,
+        "inputSlot": 3,
         "outputSlot": 1,
         "requiredPower": 100
       }
@@ -211,7 +211,7 @@
       "type": "Machine",
       "itemId": 49,
       "param": {
-        "inputSlot": 1,
+        "inputSlot": 2,
         "outputSlot": 1,
         "requiredPower": 100
       }
@@ -221,7 +221,7 @@
       "type": "Machine",
       "itemId": 50,
       "param": {
-        "inputSlot": 1,
+        "inputSlot": 2,
         "outputSlot": 1,
         "requiredPower": 100
       }
