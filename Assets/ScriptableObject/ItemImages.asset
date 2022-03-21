@@ -15,8 +15,20 @@ MonoBehaviour:
   itemImageList:
   - itemImage: {fileID: 21300000, guid: 5b1b09df14a2aba498897db911b3eec3, type: 3}
     itemName: EmptyItem
-  - itemImage: {fileID: 21300000, guid: 76daa48da74a94c7d8a24fc1c53facbc, type: 3}
-    itemName: iron item
+  - itemImage: {fileID: 21300000, guid: affce68aeb38f554a8f3a8ca88240cb7, type: 3}
+    itemName: "\u9244\u9271\u77F3"
+  - itemImage: {fileID: 21300000, guid: 23f92d10e8444a643961fe5684af8e01, type: 3}
+    itemName: "\u9244"
+  - itemImage: {fileID: 21300000, guid: 2ce0f2127336bc54eba0401b751af3ce, type: 3}
+    itemName: "\u9244\u306E\u68D2"
+  - itemImage: {fileID: 21300000, guid: 2b43b21b6c876a640ae8dce17dca8f75, type: 3}
+    itemName: "\u9244\u306E\u6B6F\u8ECA"
+  - itemImage: {fileID: 21300000, guid: d4ef932e37e18594a8ef3919f0f7c905, type: 3}
+    itemName: "\u306D\u3058"
+  - itemImage: {fileID: 21300000, guid: 0116caa3fc69ff8449ce1815bb5d8501, type: 3}
+    itemName: "\u9244\u677F"
+  - itemImage: {fileID: 21300000, guid: 0116caa3fc69ff8449ce1815bb5d8501, type: 3}
+    itemName: "\u30D9\u30EB\u30C8\u30B3\u30F3\u30D9\u30A2"
   nothingIndexItemImage:
     itemImage: {fileID: 21300000, guid: 76daa48da74a94c7d8a24fc1c53facbc, type: 3}
     itemName: undefined item
