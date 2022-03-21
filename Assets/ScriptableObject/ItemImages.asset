@@ -13,5 +13,10 @@ MonoBehaviour:
   m_Name: ItemImages
   m_EditorClassIdentifier: 
   itemImageList:
-  - {fileID: 21300000, guid: 5b1b09df14a2aba498897db911b3eec3, type: 3}
-  nothingIndexItemImage: {fileID: 21300000, guid: 76daa48da74a94c7d8a24fc1c53facbc, type: 3}
+  - itemImage: {fileID: 21300000, guid: 5b1b09df14a2aba498897db911b3eec3, type: 3}
+    itemName: EmptyItem
+  - itemImage: {fileID: 21300000, guid: 76daa48da74a94c7d8a24fc1c53facbc, type: 3}
+    itemName: iron item
+  nothingIndexItemImage:
+    itemImage: {fileID: 21300000, guid: 76daa48da74a94c7d8a24fc1c53facbc, type: 3}
+    itemName: undefined item
