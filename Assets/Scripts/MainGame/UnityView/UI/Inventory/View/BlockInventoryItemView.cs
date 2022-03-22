@@ -61,7 +61,7 @@ namespace MainGame.UnityView.UI.Inventory.View
                 _outputInventorySlots[i].Construct(PlayerInventoryConstant.MainInventorySize + input + i);
             }
 
-            machineName.text = _blockObjects.GetBlock(blockId).name;
+            machineName.text = _blockObjects.GetName(blockId);
         }
 
         //スロットをアップデートする

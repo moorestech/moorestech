@@ -19,6 +19,15 @@ namespace MainGame.UnityView.Block
 
             return BlockObjectList[index].BlockObject;
         }
+        public string GetName(int index)
+        {
+            if (BlockObjectList.Count <= index)
+            {
+                return "Null";
+            }
+
+            return BlockObjectList[index].name;
+        }
     }
     [System.Serializable]
     public class Block{
