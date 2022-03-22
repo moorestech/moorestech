@@ -1,34 +1,259 @@
 ﻿{
   "items": [
     {
-      "name": "Test1",
+      "name": "null",
       "id": 0,
       "max_stacks": 100
     },
     {
-      "name": "Test2",
+      "name": "鉄鉱石",
       "id": 1,
-      "max_stacks": 50
+      "max_stacks": 100
     },
     {
-      "name": "Test3",
+      "name": "鉄",
       "id": 2,
-      "max_stacks": 300
+      "max_stacks": 100
     },
     {
-      "name": "Test4",
+      "name": "鉄の棒",
       "id": 3,
-      "max_stacks": 55
+      "max_stacks": 100
     },
     {
-      "name": "Test5",
+      "name": "鉄の歯車",
       "id": 4,
-      "max_stacks": 200
+      "max_stacks": 100
     },
     {
-      "name": "Test6",
+      "name": "ねじ",
       "id": 5,
-      "max_stacks": 30
+      "max_stacks": 100
+    },
+    {
+      "name": "鉄板",
+      "id": 6,
+      "max_stacks": 100
+    },
+    {
+      "name": "ベルトコンベア",
+      "id": 7,
+      "max_stacks": 100
+    },
+    {
+      "name": "電柱",
+      "id": 8,
+      "max_stacks": 100
+    },
+    {
+      "name": "銅鉱石",
+      "id": 9,
+      "max_stacks": 100
+    },
+    {
+      "name": "銅",
+      "id": 10,
+      "max_stacks": 100
+    },
+    {
+      "name": "銅線",
+      "id": 11,
+      "max_stacks": 100
+    },
+    {
+      "name": "基本回路",
+      "id": 12,
+      "max_stacks": 100
+    },
+    {
+      "name": "マシンケース",
+      "id": 13,
+      "max_stacks": 100
+    },
+    {
+      "name": "粉砕機",
+      "id": 14,
+      "max_stacks": 100
+    },
+    {
+      "name": "圧縮機",
+      "id": 15,
+      "max_stacks": 100
+    },
+    {
+      "name": "火力発電機",
+      "id": 16,
+      "max_stacks": 100
+    },
+    {
+      "name": "採掘機",
+      "id": 17,
+      "max_stacks": 100
+    },
+    {
+      "name": "石炭",
+      "id": 18,
+      "max_stacks": 100
+    },
+    {
+      "name": "石炭紛",
+      "id": 19,
+      "max_stacks": 100
+    },
+    {
+      "name": "鋼鉄",
+      "id": 20,
+      "max_stacks": 100
+    },
+    {
+      "name": "鋼鉄ネジ",
+      "id": 21,
+      "max_stacks": 100
+    },
+    {
+      "name": "鋼鉄の歯車",
+      "id": 22,
+      "max_stacks": 100
+    },
+    {
+      "name": "金鉱石",
+      "id": 23,
+      "max_stacks": 100
+    },
+    {
+      "name": "金鉱石紛",
+      "id": 24,
+      "max_stacks": 100
+    },
+    {
+      "name": "金",
+      "id": 25,
+      "max_stacks": 100
+    },
+    {
+      "name": "金ワイヤー",
+      "id": 26,
+      "max_stacks": 100
+    },
+    {
+      "name": "発展回路",
+      "id": 27,
+      "max_stacks": 100
+    },
+    {
+      "name": "発展マシンケース",
+      "id": 28,
+      "max_stacks": 100
+    },
+    {
+      "name": "火力発電mk2",
+      "id": 29,
+      "max_stacks": 100
+    },
+    {
+      "name": "採掘機mk2",
+      "id": 30,
+      "max_stacks": 100
+    },
+    {
+      "name": "シリコン加工機",
+      "id": 31,
+      "max_stacks": 100
+    },
+    {
+      "name": "精密回路",
+      "id": 32,
+      "max_stacks": 100
+    },
+    {
+      "name": "精密歯車",
+      "id": 33,
+      "max_stacks": 100
+    },
+    {
+      "name": "砂",
+      "id": 34,
+      "max_stacks": 100
+    },
+    {
+      "name": "シリコン",
+      "id": 35,
+      "max_stacks": 100
+    },
+    {
+      "name": "シリコンウェハー",
+      "id": 36,
+      "max_stacks": 100
+    },
+    {
+      "name": "精密モーター",
+      "id": 37,
+      "max_stacks": 100
+    },
+    {
+      "name": "ICチップ組み立て機",
+      "id": 38,
+      "max_stacks": 100
+    },
+    {
+      "name": "ICチップ",
+      "id": 39,
+      "max_stacks": 100
+    },
+    {
+      "name": "火力発電mk3",
+      "id": 40,
+      "max_stacks": 100
+    },
+    {
+      "name": "グラフィックボード",
+      "id": 41,
+      "max_stacks": 100
+    },
+    {
+      "name": "マイニングマシン",
+      "id": 42,
+      "max_stacks": 100
+    },
+    {
+      "name": "1BTC",
+      "id": 43,
+      "max_stacks": 100
+    },
+    {
+      "name": "10BTC",
+      "id": 44,
+      "max_stacks": 100
+    },
+    {
+      "name": "10BTC",
+      "id": 45,
+      "max_stacks": 100
+    },
+    {
+      "name": "100BTC",
+      "id": 46,
+      "max_stacks": 100
+    },
+    {
+      "name": "1000BTC",
+      "id": 47,
+      "max_stacks": 100
+    },
+    {
+      "name": "10000BTC",
+      "id": 48,
+      "max_stacks": 100
+    },
+    {
+      "name": "精錬機",
+      "id": 49,
+      "max_stacks": 100
+    },
+    {
+      "name": "精密組み立て機",
+      "id": 50,
+      "max_stacks": 100
     }
   ]
 }
