@@ -12,5 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 680af686203e4d62996b7caeede432c4, type: 3}
   m_Name: BlockObjects
   m_EditorClassIdentifier: 
-  BlockObjectList: []
+  BlockObjectList:
+  - BlockObject: {fileID: -4404788463801551958, guid: c297eff442e9c419db5659a81dba7084, type: 3}
+    name: 
+  - BlockObject: {fileID: -5903144362087603808, guid: 57dddaed5e986a94c83e73dc6c8b2d8c, type: 3}
+    name: "\u30D9\u30EB\u30C8\u30B3\u30F3\u30D9\u30A2"
+  - BlockObject: {fileID: -5903144362087603808, guid: 57dddaed5e986a94c83e73dc6c8b2d8c, type: 3}
+    name: 
   NothingIndexBlockObject: {fileID: -4404788463801551958, guid: c297eff442e9c419db5659a81dba7084, type: 3}
