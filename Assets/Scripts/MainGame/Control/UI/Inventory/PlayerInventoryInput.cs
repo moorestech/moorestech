@@ -92,7 +92,6 @@ namespace MainGame.Control.UI.Inventory
             }
 
             MoveItem(_equippedItemSlot,_isFromCrafting,slot,false);
-            EquippedItemSlotOff();
         }
 
         private void EquippedItemSlotOff()

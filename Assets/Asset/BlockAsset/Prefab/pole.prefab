@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2483042803108950382}
   - component: {fileID: -137816740721745819}
+  - component: {fileID: -2871439705837211214}
   m_Layer: 0
   m_Name: pole
   m_TagString: Untagged
@@ -24,7 +25,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3244533668147376327}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -45,6 +46,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0fa9e8f924e4c71a322896a9c88033e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!65 &-2871439705837211214
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3244533668147376327}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!1001 &3781681620468062201
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -127,3 +141,22 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 33383101a61e05243a6a9048f1c3ce5c, type: 3}
   m_PrefabInstance: {fileID: 3781681620468062201}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &4087670545604307624 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 33383101a61e05243a6a9048f1c3ce5c, type: 3}
+  m_PrefabInstance: {fileID: 3781681620468062201}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &8524469988370752568
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4087670545604307624}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 1769844376353330802, guid: 33383101a61e05243a6a9048f1c3ce5c, type: 3}

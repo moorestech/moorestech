@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3428999715311039314}
   - component: {fileID: 4791228372191743918}
+  - component: {fileID: 1075295851484032603}
   m_Layer: 0
   m_Name: smelting
   m_TagString: Untagged
@@ -45,6 +46,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0fa9e8f924e4c71a322896a9c88033e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!65 &1075295851484032603
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8804947521572568169}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!1001 &6419852473880096565
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -110,6 +124,25 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0f7bbea9eafcf5645b400b85cf70a686, type: 3}
+--- !u!1 &6185285199992197732 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 0f7bbea9eafcf5645b400b85cf70a686, type: 3}
+  m_PrefabInstance: {fileID: 6419852473880096565}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &7686379981565444106
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6185285199992197732}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -5495902117074765545, guid: 0f7bbea9eafcf5645b400b85cf70a686, type: 3}
 --- !u!4 &6817707334084872414 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0f7bbea9eafcf5645b400b85cf70a686, type: 3}
