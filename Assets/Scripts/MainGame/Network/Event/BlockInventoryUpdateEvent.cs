@@ -22,9 +22,9 @@ namespace MainGame.Network.Event
             OnSettingBlock += onSettingBlock;
         }
 
-        public void InvokeSettingBlock(List<ItemStack> items, string uiType, params short[] uiParams)
+        public void InvokeSettingBlock(List<ItemStack> items, string uiType,int blockId, params short[] uiParams)
         {
-            OnSettingBlock?.Invoke(new SettingBlockInventoryProperties(items, uiType, uiParams));
+            OnSettingBlock?.Invoke(new SettingBlockInventoryProperties(items, uiType, uiParams, blockId));
         }
 
         public void InvokeBlockInventorySlotUpdate(Vector2Int pos, int slot, int id, int count)
@@ -54,12 +54,14 @@ namespace MainGame.Network.Event
         public readonly  List<ItemStack> items;
         public readonly string uiType;
         public readonly short[] uiParams;
+        public readonly int blockId;
 
-        public SettingBlockInventoryProperties(List<ItemStack> items, string uiType, short[] uiParams)
+        public SettingBlockInventoryProperties(List<ItemStack> items, string uiType, short[] uiParams, int blockId)
         {
             this.items = items;
             this.uiType = uiType;
             this.uiParams = uiParams;
+            this.blockId = blockId;
         }
     }
 }

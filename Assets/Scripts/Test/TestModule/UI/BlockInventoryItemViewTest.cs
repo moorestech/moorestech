@@ -8,6 +8,7 @@ using MainGame.Network.Event;
 using MainGame.Network.Send;
 using MainGame.Network.Settings;
 using MainGame.UnityView;
+using MainGame.UnityView.Block;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
@@ -20,11 +21,12 @@ namespace Test.TestModule.UI
         [SerializeField] private BlockInventoryItemView blockInventoryItemView;
         [SerializeField] private BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet;
         [SerializeField] private ItemImages itemImages;
+        [SerializeField] private BlockObjects blockObjects;
         [SerializeField] private BlockInventoryInput blockInventoryInput;
 
         private void Start()
         {
-            blockInventoryItemView.Construct(itemImages);
+            blockInventoryItemView.Construct(itemImages,blockObjects);
             var blockInventory = new BlockInventoryDataCache(new BlockInventoryUpdateEvent(),blockInventoryItemView);
             var playerInventory = GetComponent<InventoryViewTestModule>().MainInventoryDataCache;
             

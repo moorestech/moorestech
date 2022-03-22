@@ -20,6 +20,8 @@ namespace MainGame.Network.Receive
             var bytes = new ByteArrayEnumerator(data);
             bytes.MoveNextToGetShort(); //packet id
             var itemNum = bytes.MoveNextToGetShort();
+            
+            var blockId = bytes.MoveNextToGetInt();
 
             var items = new List<ItemStack>();
             for (int i = 0; i < itemNum; i++)
@@ -33,7 +35,7 @@ namespace MainGame.Network.Receive
             var inputNum = bytes.MoveNextToGetShort();
             var outputNum = bytes.MoveNextToGetShort();
             
-            _blockInventoryUpdateEvent.InvokeSettingBlock(items,"",inputNum,outputNum);
+            _blockInventoryUpdateEvent.InvokeSettingBlock(items,"",blockId,inputNum,outputNum);
         }
     }
 }

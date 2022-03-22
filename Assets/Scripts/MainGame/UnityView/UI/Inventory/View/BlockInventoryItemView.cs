@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using MainGame.Basic;
+using MainGame.UnityView.Block;
 using MainGame.UnityView.UI.Inventory.Element;
+using TMPro;
 using UnityEngine;
 using VContainer;
 
@@ -17,20 +19,24 @@ namespace MainGame.UnityView.UI.Inventory.View
         [SerializeField] private RectTransform outputItems;
 
         [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
+        [SerializeField] private TMP_Text machineName;
+        
         private readonly List<InventoryItemSlot> _mainInventorySlots = new();
         private readonly List<InventoryItemSlot> _inputInventorySlots = new();
         private readonly List<InventoryItemSlot> _outputInventorySlots = new();
         private ItemImages _itemImages;
         private int _inputSlotCount;
+        private BlockObjects _blockObjects;
         
         [Inject]
-        public void Construct(ItemImages itemImages)
+        public void Construct(ItemImages itemImages,BlockObjects blockObjects)
         {
+            _blockObjects = blockObjects;
             _itemImages = itemImages;
         }
 
         //ブロックのインベントリを開く
-        public void SettingBlockInventory(string uiType, params short[] param)
+        public void SettingBlockInventory(string uiType,int blockId, params short[] param)
         {
             //ステータスとステUitypeを渡しているけど現在は使っていない
             //ここは共通インベントリ基盤を作成する
@@ -54,6 +60,8 @@ namespace MainGame.UnityView.UI.Inventory.View
                 _outputInventorySlots[i].gameObject.SetActive(true);
                 _outputInventorySlots[i].Construct(PlayerInventoryConstant.MainInventorySize + input + i);
             }
+
+            machineName.text = _blockObjects.GetBlock(blockId).name;
         }
 
         //スロットをアップデートする

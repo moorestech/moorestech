@@ -392,7 +392,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 {
                     ""name"": """",
                     ""id"": ""1541a9fa-f950-453c-bbcd-9a3a24057279"",
-                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""path"": ""<Mouse>/rightButton"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",

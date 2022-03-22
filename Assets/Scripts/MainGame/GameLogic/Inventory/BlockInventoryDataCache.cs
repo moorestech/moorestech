@@ -45,7 +45,7 @@ namespace MainGame.GameLogic.Inventory
             MainThreadExecutionQueue.Instance.Insert(() =>
             {
                 //UIを開く
-                _blockInventoryItemView.SettingBlockInventory(onSettingBlock.uiType,onSettingBlock.uiParams);
+                _blockInventoryItemView.SettingBlockInventory(onSettingBlock.uiType,onSettingBlock.blockId,onSettingBlock.uiParams);
                 //UIを更新する
                 for (var i = 0; i < items.Count; i++)
                 {

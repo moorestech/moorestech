@@ -73,7 +73,6 @@ namespace MainGame.Control.UI.Inventory
                 return;
             }
             MoveItem(_equippedItemSlot,_isFromCrafting,slot,true);
-            EquippedItemSlotOff();
         }
         
         //メインインベントリのボタンがクリックされた時に呼び出される
@@ -126,6 +125,7 @@ namespace MainGame.Control.UI.Inventory
             
             //アイテムを全部おく
             _mainInventoryCraftInventoryItemMoveService.MoveAllItemStack(fromSlot, fromIsCrafting, toSlot, toIsCrafting);
+            EquippedItemSlotOff();
         }
     }
 }
