@@ -355,50 +355,6 @@
     {
       "items": [
         {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        }
-      ],
-      "result" : {
-        "id" : 0,
-        "count" : 1
-      }
-    },
-    {
-      "items": [
-        {
           "id" : 6,
           "count" : 1
         },
@@ -745,50 +701,6 @@
       ],
       "result" : {
         "id" : 21,
-        "count" : 1
-      }
-    },
-    {
-      "items": [
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        }
-      ],
-      "result" : {
-        "id" : 0,
         "count" : 1
       }
     },
@@ -1195,50 +1107,6 @@
           "count" : 0
         },
         {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        }
-      ],
-      "result" : {
-        "id" : 0,
-        "count" : 1
-      }
-    },
-    {
-      "items": [
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
           "id" : 32,
           "count" : 1
         },
@@ -1317,50 +1185,6 @@
       ],
       "result" : {
         "id" : 40,
-        "count" : 1
-      }
-    },
-    {
-      "items": [
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        }
-      ],
-      "result" : {
-        "id" : 0,
         "count" : 1
       }
     },

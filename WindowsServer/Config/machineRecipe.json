@@ -56,23 +56,6 @@
       ]
     },
     {
-      "BlockID": 3,
-      "time": 3000,
-      "input": [
-        {
-          "id": 23,
-          "count": 1
-        }
-      ],
-      "output": [
-        {
-          "id": 24,
-          "count": 1,
-          "percent": 1
-        }
-      ]
-    },
-    {
       "BlockID": 14,
       "time": 3000,
       "input": [
