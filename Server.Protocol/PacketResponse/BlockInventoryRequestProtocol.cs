@@ -61,6 +61,7 @@ namespace Server.Protocol.PacketResponse
             
             response.AddRange(ToByteList.Convert((short) ProtocolId));
             response.AddRange(ToByteList.Convert((short) block.GetSlotSize()));
+            response.AddRange(ToByteList.Convert(_blockDatastore.GetBlock(x,y).GetBlockId()));
             
             for (int i = 0; i < block.GetSlotSize(); i++)
             {

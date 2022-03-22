@@ -39,6 +39,9 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(6,response.MoveNextToGetShort()); //packet id
             Assert.AreEqual(InputSlotNum + OutPutSlotNum,response.MoveNextToGetShort()); // slot num
             
+            
+            Assert.AreEqual(MachineBlockId,response.MoveNextToGetInt()); // block id
+            
             Assert.AreEqual(1,response.MoveNextToGetInt()); // item id
             Assert.AreEqual(2,response.MoveNextToGetInt()); // item count
             
