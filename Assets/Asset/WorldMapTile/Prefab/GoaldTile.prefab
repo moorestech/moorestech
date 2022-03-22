@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4342540878160154271}
   - component: {fileID: 4342540878160154270}
   - component: {fileID: 4342540878160154273}
+  - component: {fileID: 8208438486657652685}
   m_Layer: 0
   m_Name: Plane
   m_TagString: Untagged
@@ -61,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 376173343bc586941a00e335ab1b4d3d, type: 2}
+  - {fileID: 2100000, guid: 31010f94d01b88b429370b60379da5a1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -83,6 +84,20 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &8208438486657652685
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4342540878160154272}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &4342540879179323562
 GameObject:
   m_ObjectHideFlags: 0
@@ -93,11 +108,11 @@ GameObject:
   m_Component:
   - component: {fileID: 4342540879179323563}
   - component: {fileID: -1218328166402749699}
-  - component: {fileID: -6043414723829347663}
-  - component: {fileID: -1179963922749677505}
-  - component: {fileID: 4416096708362825398}
+  - component: {fileID: -7774222007220653475}
+  - component: {fileID: -7247767681942226254}
+  - component: {fileID: -6536903931796064334}
   m_Layer: 0
-  m_Name: IronTile
+  m_Name: GoaldTile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -131,7 +146,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f6e619098b14f049aa411fe01b94213, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &-6043414723829347663
+--- !u!114 &-7774222007220653475
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -143,7 +158,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ecb18b9c0f848c58a4b141a939a15bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &-1179963922749677505
+--- !u!114 &-7247767681942226254
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -155,7 +170,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!65 &4416096708362825398
+--- !u!65 &-6536903931796064334
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
