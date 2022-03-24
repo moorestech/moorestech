@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6013820649039860630}
   - component: {fileID: 7009543188529524546}
   - component: {fileID: -839624316134363963}
+  - component: {fileID: 6940838716907418756}
   m_Layer: 0
   m_Name: IC chip assembler
   m_TagString: Untagged
@@ -59,6 +60,18 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0.5, z: 0}
+--- !u!114 &6940838716907418756
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4794130394722810197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d6cf5db143e7b40af4a02c50f58e9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1245901697547371463
 PrefabInstance:
   m_ObjectHideFlags: 0

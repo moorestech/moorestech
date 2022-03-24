@@ -15,5 +15,10 @@ namespace Test.TestModule.UI
         {
             return Vector2Int.zero;
         }
+
+        public GameObject GetClickedObject()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

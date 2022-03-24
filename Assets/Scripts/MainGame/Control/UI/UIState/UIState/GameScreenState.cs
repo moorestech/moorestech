@@ -1,5 +1,6 @@
 ﻿using MainGame.Control.Game.MouseKeyboard;
 using MainGame.Control.UI.Inventory;
+using MainGame.UnityView.Block;
 
 namespace MainGame.Control.UI.UIState.UIState
 {
@@ -19,7 +20,7 @@ namespace MainGame.Control.UI.UIState.UIState
         public bool IsNext()
         {
             return _input.UI.OpenInventory.triggered || _input.UI.OpenMenu.triggered || 
-                   _blockClickDetect.IsBlockClicked() || 
+                   IsClickOpenableBlock() || 
                    _input.UI.BlockDelete.triggered || _selectHotBarControl.IsClicked || 
                    _input.UI.HotBar.ReadValue<int>() != 0;
         }
@@ -34,7 +35,7 @@ namespace MainGame.Control.UI.UIState.UIState
             {
                 return UIStateEnum.PauseMenu;
             }
-            if (_blockClickDetect.IsBlockClicked())
+            if (IsClickOpenableBlock())
             {
                 return UIStateEnum.BlockInventory;
             }
@@ -53,5 +54,15 @@ namespace MainGame.Control.UI.UIState.UIState
 
         public void OnEnter() { }
         public void OnExit() { }
+
+        private bool IsClickOpenableBlock()
+        {
+            if (_blockClickDetect.IsBlockClicked() && _blockClickDetect.GetClickedObject().GetComponent<OpenableInventoryBlock>())
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using MainGame.Control.UI.Inventory;
 using MainGame.Control.UI.Inventory.ItemMove;
 using MainGame.Network.Send;
@@ -49,6 +50,18 @@ namespace MainGame.Control.Game.MouseKeyboard
             {
                 return Vector2Int.zero;
             }
+        }
+
+        public GameObject GetClickedObject()
+        {
+            var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
+            var ray = _mainCamera.ScreenPointToRay(mousePosition);
+            
+            if (Physics.Raycast(ray, out var hit) && hit.collider.gameObject.GetComponent<BlockGameObject>())
+            {
+                return hit.collider.gameObject;
+            }
+            throw new Exception("クリックしたオブジェクトが見つかりませんでした");
         }
     }
 }

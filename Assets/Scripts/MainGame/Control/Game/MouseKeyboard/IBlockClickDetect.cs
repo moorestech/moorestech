@@ -6,5 +6,6 @@ namespace MainGame.Control.Game.MouseKeyboard
     {
         public bool IsBlockClicked();
         public Vector2Int GetClickPosition();
+        public GameObject GetClickedObject();
     }
 }
