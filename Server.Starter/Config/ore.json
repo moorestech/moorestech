@@ -11,7 +11,7 @@
     {
       "oreId": 2,
       "name": "銅鉱石",
-      "miningItemId": 4,
+      "miningItemId": 9,
       "veinSize" : 1,
       "veinFrequency" : 1,
       "priority" : 90
