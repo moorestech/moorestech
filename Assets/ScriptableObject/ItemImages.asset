@@ -59,8 +59,8 @@ MonoBehaviour:
     itemName: "\u92FC\u9244\u30CD\u30B8"
   - itemImage: {fileID: 21300000, guid: 5384201bbb1025745be4bc679c4e7532, type: 3}
     itemName: "\u92FC\u9244\u306E\u6B6F\u8ECA"
-  - itemImage: {fileID: 21300000, guid: fe3bca521bfe74447860f178f2120bf3, type: 3}
-    itemName: "\u92FC\u9244\u306E\u6B6F\u8ECA"
+  - itemImage: {fileID: 21300000, guid: fcdcab6e0c752db47a5a556e56bfe686, type: 3}
+    itemName: "\u91D1\u9271\u77F3"
   - itemImage: {fileID: 21300000, guid: 1534d3f29c70c904a95961a648725dd4, type: 3}
     itemName: "\u91D1\u9271\u77F3\u7D1B"
   - itemImage: {fileID: 21300000, guid: fe3bca521bfe74447860f178f2120bf3, type: 3}
