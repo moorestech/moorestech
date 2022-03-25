@@ -16,16 +16,21 @@ namespace Game.World.EventHandler
             {
                 {
                     VanillaBlockType.Machine, new IoConnectionData(
-                        new ConnectionPosition[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)},
-                        new ConnectionPosition[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)})
+                        new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)},
+                        new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)})
+                },
+                {
+                    VanillaBlockType.Chest, new IoConnectionData(
+                        new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)},
+                        new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)})
                 },
 
                 {
                     VanillaBlockType.BeltConveyor, new IoConnectionData(
                         // 南、西、東をからの接続を受け、アイテムをインプットする
-                        new ConnectionPosition[] {new(-1, 0), new(0, 1), new(0, -1)},
+                        new ConnectDirection[] {new(-1, 0), new(0, 1), new(0, -1)},
                         //北向きに出力する
-                        new ConnectionPosition[] {new(1, 0)})
+                        new ConnectDirection[] {new(1, 0)})
                 }
             };
         }
@@ -37,19 +42,19 @@ namespace Game.World.EventHandler
     /// </summary>
     public class IoConnectionData
     {
-        public readonly ConnectionPosition[] InputConnector;
-        public readonly ConnectionPosition[] OutputConnector;
+        public readonly ConnectDirection[] InputConnector;
+        public readonly ConnectDirection[] OutputConnector;
 
-        public IoConnectionData(ConnectionPosition[] inputConnector, ConnectionPosition[] outputConnector)
+        public IoConnectionData(ConnectDirection[] inputConnector, ConnectDirection[] outputConnector)
         {
             InputConnector = inputConnector;
             OutputConnector = outputConnector;
         }
     }
 
-    public class ConnectionPosition : IEquatable<ConnectionPosition>
+    public class ConnectDirection : IEquatable<ConnectDirection>
     {
-        public ConnectionPosition(int north, int east)
+        public ConnectDirection(int north, int east)
         {
             North = north;
             East = east;
@@ -58,7 +63,7 @@ namespace Game.World.EventHandler
         public readonly int North;
         public readonly int East;
 
-        public bool Equals(ConnectionPosition other)
+        public bool Equals(ConnectDirection other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -70,7 +75,7 @@ namespace Game.World.EventHandler
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((ConnectionPosition) obj);
+            return Equals((ConnectDirection) obj);
         }
 
         public override int GetHashCode()

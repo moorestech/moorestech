@@ -29,8 +29,7 @@ namespace Core.Block.Blocks.Miner
         private int _nowPower = 0;
         private double _remainingMillSecond = int.MaxValue;
 
-        public VanillaMiner(int blockId, int entityId, int requestPower, int outputSlot,
-            ItemStackFactory itemStackFactory)
+        public VanillaMiner(int blockId, int entityId, int requestPower, int outputSlot, ItemStackFactory itemStackFactory)
         {
             _blockId = blockId;
             _entityId = entityId;
@@ -40,8 +39,7 @@ namespace Core.Block.Blocks.Miner
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdate.AddUpdateObject(this);
         }
-        public VanillaMiner(string saveData,int blockId, int entityId, int requestPower, int miningTime ,
-            ItemStackFactory itemStackFactory)
+        public VanillaMiner(string saveData,int blockId, int entityId, int requestPower, int miningTime , ItemStackFactory itemStackFactory)
         {
             _blockId = blockId;
             _entityId = entityId;

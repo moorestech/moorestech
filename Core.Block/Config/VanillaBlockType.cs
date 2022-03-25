@@ -8,5 +8,6 @@ namespace Core.Block.Config
         public const string Miner = "Miner";
         public const string Generator = "Generator";
         public const string ElectricPole = "ElectricPole";
+        public const string Chest = "Chest";
     }
 }

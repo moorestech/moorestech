@@ -12,15 +12,17 @@ namespace Core.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyor : IBlock, IUpdate, IBlockInventory
     {
+        private readonly int _blockId;
+        private readonly int _entityId;
+        
         private readonly int _inventoryItemNum;
         private readonly double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
 
-        private readonly List<BeltConveyorInventoryItem> _inventoryItems = new List<BeltConveyorInventoryItem>();
+        private readonly List<BeltConveyorInventoryItem> _inventoryItems = new();
         private IBlockInventory _connector;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public VanillaBeltConveyor(int blockId, int entityId, ItemStackFactory itemStackFactory, int inventoryItemNum,
-            int timeOfItemEnterToExit)
+        public VanillaBeltConveyor(int blockId, int entityId, ItemStackFactory itemStackFactory, int inventoryItemNum, int timeOfItemEnterToExit)
         {
             _blockId = blockId;
             _entityId = entityId;
@@ -32,16 +34,8 @@ namespace Core.Block.Blocks.BeltConveyor
         }
 
         public VanillaBeltConveyor(int blockId, int entityId, string state, ItemStackFactory itemStackFactory,
-            int inventoryItemNum, int timeOfItemEnterToExit)
+            int inventoryItemNum, int timeOfItemEnterToExit) : this(blockId, entityId, itemStackFactory, inventoryItemNum,timeOfItemEnterToExit)
         {
-            _blockId = blockId;
-            _entityId = entityId;
-            _itemStackFactory = itemStackFactory;
-            _inventoryItemNum = inventoryItemNum;
-            _timeOfItemEnterToExit = timeOfItemEnterToExit;
-            _connector = new NullIBlockInventory(_itemStackFactory);
-            GameUpdate.AddUpdateObject(this);
-
             //stateから復元
             //データがないときは何もしない
             if (state == String.Empty) return;
@@ -92,10 +86,7 @@ namespace Core.Block.Blocks.BeltConveyor
             return itemStack;
         }
 
-        public void AddOutputConnector(IBlockInventory blockInventory)
-        {
-            _connector = blockInventory;
-        }
+        public void AddOutputConnector(IBlockInventory blockInventory) { _connector = blockInventory; }
 
         public void RemoveOutputConnector(IBlockInventory blockInventory)
         {
@@ -143,19 +134,6 @@ namespace Core.Block.Blocks.BeltConveyor
             }
         }
 
-        private int _blockId;
-        private int _entityId;
-
-        public int GetEntityId()
-        {
-            return _entityId;
-        }
-
-        public int GetBlockId()
-        {
-            return _blockId;
-        }
-
         public string GetSaveState()
         {
             if (_inventoryItems.Count == 0) return String.Empty;
@@ -185,5 +163,7 @@ namespace Core.Block.Blocks.BeltConveyor
             var limitTime = _inventoryItems[slot].RemainingTime;
             _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.Id, _timeOfItemEnterToExit, limitTime);
         }
+        public int GetEntityId() { return _entityId; }
+        public int GetBlockId() { return _blockId; }
     }
 }

@@ -4,7 +4,6 @@ using Core.Block.Config;
 using Core.Block.Event;
 using Core.Block.RecipeConfig;
 using Core.Item;
-using Core.Ore;
 
 namespace Core.Block.BlockFactory
 {
@@ -26,6 +25,7 @@ namespace Core.Block.BlockFactory
             BlockTypesDictionary.Add(VanillaBlockType.ElectricPole, new VanillaElectricPoleTemplate());
             BlockTypesDictionary.Add(VanillaBlockType.Generator, new VanillaPowerGeneratorTemplate(itemStackFactory));
             BlockTypesDictionary.Add(VanillaBlockType.Miner, new VanillaMinerTemplate(itemStackFactory));
+            BlockTypesDictionary.Add(VanillaBlockType.Chest, new VanillaChestTemplate(itemStackFactory,blockInventoryUpdateEvent));
         }
     }
 }
