@@ -24,6 +24,16 @@ namespace Game.World.EventHandler
                         new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)},
                         new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)})
                 },
+                {
+                    VanillaBlockType.Generator, new IoConnectionData(
+                        new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)},
+                        new ConnectDirection[] {})
+                },
+                {
+                    VanillaBlockType.Miner, new IoConnectionData(
+                        new ConnectDirection[] {},
+                        new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)})
+                },
 
                 {
                     VanillaBlockType.BeltConveyor, new IoConnectionData(

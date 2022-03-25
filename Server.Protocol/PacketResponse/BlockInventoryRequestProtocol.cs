@@ -31,6 +31,8 @@ namespace Server.Protocol.PacketResponse
             
             //インベントリがあるブロックのレスポンスの設定
             _inventoryResponseDictionary.Add(VanillaBlockType.Machine,MachineInventoryResponse);
+            _inventoryResponseDictionary.Add(VanillaBlockType.Generator,GeneratorInventoryResponse);
+            _inventoryResponseDictionary.Add(VanillaBlockType.Chest,ChestInventoryResponse);
         }
 
         public List<byte[]> GetResponse(List<byte> payload)
@@ -83,6 +85,30 @@ namespace Server.Protocol.PacketResponse
             response.AddRange(ToByteList.Convert((short) 1)); //UI type idが1
             response.AddRange(ToByteList.Convert((short)param.InputSlot));
             response.AddRange(ToByteList.Convert((short)param.OutputSlot));
+            
+            return response.ToArray();
+        }
+        //Generator固有のレスポンスを行う
+        private byte[] GeneratorInventoryResponse(int x,int y,IBlockConfigParam config)
+        {
+            var param = config as PowerGeneratorConfigParam;
+            
+            var response = GetResponseBase(x, y);
+            response.AddRange(ToByteList.Convert((short) 1)); //UI type idが1
+            response.AddRange(ToByteList.Convert((short)param.FuelSlot));
+            response.AddRange(ToByteList.Convert(0));
+            
+            return response.ToArray();
+        }
+        //Chest固有のレスポンスを行う
+        private byte[] ChestInventoryResponse(int x,int y,IBlockConfigParam config)
+        {
+            var param = config as ChestConfigParam;
+            
+            var response = GetResponseBase(x, y);
+            response.AddRange(ToByteList.Convert((short) 1)); //UI type idが1
+            response.AddRange(ToByteList.Convert((short)param.ChestItemNum));
+            response.AddRange(ToByteList.Convert((short)0));
             
             return response.ToArray();
         }
