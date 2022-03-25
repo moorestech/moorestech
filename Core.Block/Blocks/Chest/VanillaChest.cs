@@ -13,7 +13,6 @@ namespace Core.Block.Blocks.Chest
         private readonly int _blockId;
         private readonly int _entityId;
         private readonly VanillaChestBlockInventory _vanillaChestBlockInventory;
-        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         
         public VanillaChest(int paramBlockId, int entityId, ItemStackFactory itemStackFactory,VanillaChestBlockInventory vanillaChestBlockInventory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate,int chestChestItemNum)
@@ -22,7 +21,6 @@ namespace Core.Block.Blocks.Chest
             _entityId = entityId;
             _vanillaChestBlockInventory = vanillaChestBlockInventory;
             _blockInventoryUpdate = blockInventoryUpdate;
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, chestChestItemNum);
         }
 
         public VanillaChest(int paramBlockId, int entityId, string itemStackFactory, ItemStackFactory chestChestItemNum, int chestItemNum)
@@ -64,7 +62,8 @@ namespace Core.Block.Blocks.Chest
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            return _itemDataStoreService.InsertItem(itemStack);
+            
+            return _vanillaChestBlockInventory.InsertItem(itemStack);
         }
 
         public void AddOutputConnector(IBlockInventory blockInventory)
@@ -84,7 +83,8 @@ namespace Core.Block.Blocks.Chest
 
         public void SetItem(int slot, int itemId, int count)
         {
-            _itemDataStoreService.SetItem(slot, itemId, count);
+            
+            _vanillaChestBlockInventory.SetItem(slot, itemId, count);
         }
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
@@ -94,8 +94,8 @@ namespace Core.Block.Blocks.Chest
 
         public IItemStack GetItem(int slot)
         {
-
-            return _itemDataStoreService.GetItem(slot);
+            
+            return _vanillaChestBlockInventory.GetItem(slot);
         }
 
         void IBlockInventory.SetItem(int slot, IItemStack itemStack)

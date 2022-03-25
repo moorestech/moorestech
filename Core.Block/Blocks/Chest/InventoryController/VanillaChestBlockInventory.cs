@@ -9,7 +9,7 @@ using Core.Update;
 
 namespace Core.Block.Blocks.Chest.InventoryController
 {
-    public class VanillaChestBlockInventory : IUpdate
+    public class VanillaChestBlockInventory : IUpdate,IOpenableInventory
     {
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
@@ -61,12 +61,56 @@ namespace Core.Block.Blocks.Chest.InventoryController
         {
             InsertConnectInventory(); 
         }
+        
+        
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            _itemDataStoreService.SetItem(slot,itemStack);
+        }
+
+        public void SetItem(int slot, int itemId, int count)
+        {
+            _itemDataStoreService.SetItem(slot,itemId,count);
+        }
+
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack)
+        {
+            return _itemDataStoreService.ReplaceItem(slot, itemStack);
+        }
+
+        public IItemStack ReplaceItem(int slot, int itemId, int count)
+        {
+            return _itemDataStoreService.ReplaceItem(slot, itemId, count);
+        }
+
+        public IItemStack InsertItem(IItemStack itemStack)
+        {
+            return _itemDataStoreService.InsertItem(itemStack);
+        }
+
+        public IItemStack InsertItem(int itemId, int count)
+        {
+            return _itemDataStoreService.InsertItem(itemId, count);
+        }
+
+        public int GetSlotSize()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public IItemStack GetItem(int slot)
+        {
+            return _itemDataStoreService.GetItem(slot);
+        }
+        
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
                 _entityId, slot + _inputSlotSize, itemStack));
         }
+        
+        
         
     }
 }
