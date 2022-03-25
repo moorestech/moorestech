@@ -19,9 +19,6 @@ namespace Core.Block.Blocks.Chest
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly int _slotSize;
-        
-        
-        public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;
 
         public VanillaChest(int blockId,int entityId,int slotNum, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate)
         {
@@ -59,9 +56,10 @@ namespace Core.Block.Blocks.Chest
 
         public void Update()
         {
-            for (int i = 0; i < OutputSlot.Count; i++)
+            for (int i = 0; i < _itemDataStoreService.Inventory.Count; i++)
             {
-                _itemDataStoreService.SetItem(i,_connectInventoryService.InsertItem(OutputSlot[i]));
+                _itemDataStoreService.SetItem(i,
+                    _connectInventoryService.InsertItem(_itemDataStoreService.Inventory[i]));
             }
         }
         

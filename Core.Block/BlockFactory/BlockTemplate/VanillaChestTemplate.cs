@@ -11,7 +11,6 @@ namespace Core.Block.BlockFactory.BlockTemplate
     {
         private readonly ItemStackFactory _itemStackFactory;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
-        private IBlockTemplate _blockTemplateImplementation;
 
         public VanillaChestTemplate(ItemStackFactory itemStackFactory,IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
