@@ -1455,50 +1455,6 @@
     {
       "items": [
         {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 47,
-          "count" : 10
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        },
-        {
-          "id" : 0,
-          "count" : 0
-        }
-      ],
-      "result" : {
-        "id" : 48,
-        "count" : 1
-      }
-    },
-    {
-      "items": [
-        {
           "id" : 2,
           "count" : 1
         },
