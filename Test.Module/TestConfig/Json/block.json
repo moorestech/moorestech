@@ -68,6 +68,14 @@
           }
         ]
       }
+    },
+    {
+      "name": "TestChest",
+      "type": "Chest",
+      "itemId": 8,
+      "param": {
+        "slot": 5
+      }
     }
   ]
 }

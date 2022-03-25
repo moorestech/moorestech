@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.Block.BlockFactory.BlockTemplate;
+using Core.Block.Blocks.Chest.InventoryController;
 using Core.Block.Config;
 using Core.Block.Event;
 using Core.Block.RecipeConfig;
@@ -26,6 +27,7 @@ namespace Core.Block.BlockFactory
             BlockTypesDictionary.Add(VanillaBlockType.ElectricPole, new VanillaElectricPoleTemplate());
             BlockTypesDictionary.Add(VanillaBlockType.Generator, new VanillaPowerGeneratorTemplate(itemStackFactory));
             BlockTypesDictionary.Add(VanillaBlockType.Miner, new VanillaMinerTemplate(itemStackFactory));
+            BlockTypesDictionary.Add(VanillaBlockType.Chest, new VanillaChestTemplate(itemStackFactory,blockInventoryUpdateEvent));
         }
     }
 }
