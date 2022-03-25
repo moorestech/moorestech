@@ -86,9 +86,9 @@ namespace Game.World.EventHandler
             var distanceY = destinationY - sourceY;
 
             //接続元ブロックに対応するアウトプット座標があるかチェック
-            if (!sourceBlockOutputConnector.Contains(new ConnectionPosition(distanceX, distanceY))) return;
+            if (!sourceBlockOutputConnector.Contains(new ConnectDirection(distanceX, distanceY))) return;
             //接続先ブロックに対応するインプット座標があるかチェック
-            if (!destinationBlockInputConnector.Contains(new ConnectionPosition(-distanceX, -distanceY))) return;
+            if (!destinationBlockInputConnector.Contains(new ConnectDirection(-distanceX, -distanceY))) return;
 
 
             //接続元ブロックと接続先ブロックを接続
@@ -102,13 +102,13 @@ namespace Game.World.EventHandler
         /// <param name="blockType"></param>
         /// <param name="blockDirection"></param>
         /// <returns></returns>
-        private (List<ConnectionPosition>, List<ConnectionPosition>) GetConnectionPositions(string blockType,
+        private (List<ConnectDirection>, List<ConnectDirection>) GetConnectionPositions(string blockType,
             BlockDirection blockDirection)
         {
             var rawInputConnector = _ioConnectionDataDictionary[blockType].InputConnector;
             var rawOutputConnector = _ioConnectionDataDictionary[blockType].OutputConnector;
-            var inputConnectionPositions = new List<ConnectionPosition>();
-            var outputConnectionPositions = new List<ConnectionPosition>();
+            var inputConnectionPositions = new List<ConnectDirection>();
+            var outputConnectionPositions = new List<ConnectDirection>();
 
             //デフォルトは北向きなので、北向き以外の時は値を変更
             switch (blockDirection)
@@ -119,20 +119,20 @@ namespace Game.World.EventHandler
                     break;
                 case BlockDirection.East:
                     inputConnectionPositions =
-                        rawInputConnector.Select(p => new ConnectionPosition(-p.East, p.North)).ToList();
-                    outputConnectionPositions = rawOutputConnector.Select(p => new ConnectionPosition(-p.East, p.North))
+                        rawInputConnector.Select(p => new ConnectDirection(-p.East, p.North)).ToList();
+                    outputConnectionPositions = rawOutputConnector.Select(p => new ConnectDirection(-p.East, p.North))
                         .ToList();
                     break;
                 case BlockDirection.South:
-                    inputConnectionPositions = rawInputConnector.Select(p => new ConnectionPosition(-p.North, -p.East))
+                    inputConnectionPositions = rawInputConnector.Select(p => new ConnectDirection(-p.North, -p.East))
                         .ToList();
                     outputConnectionPositions =
-                        rawOutputConnector.Select(p => new ConnectionPosition(-p.North, -p.East)).ToList();
+                        rawOutputConnector.Select(p => new ConnectDirection(-p.North, -p.East)).ToList();
                     break;
                 case BlockDirection.West:
                     inputConnectionPositions =
-                        rawInputConnector.Select(p => new ConnectionPosition(p.East, -p.North)).ToList();
-                    outputConnectionPositions = rawOutputConnector.Select(p => new ConnectionPosition(p.East, -p.North))
+                        rawInputConnector.Select(p => new ConnectDirection(p.East, -p.North)).ToList();
+                    outputConnectionPositions = rawOutputConnector.Select(p => new ConnectDirection(p.East, -p.North))
                         .ToList();
                     break;
             }
