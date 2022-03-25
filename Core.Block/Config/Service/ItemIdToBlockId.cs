@@ -18,7 +18,8 @@ namespace Core.Block.Config.Service
                 var itemId = blockConfig.GetBlockConfig(id).ItemId;
                 
                 if (_idTable.ContainsKey(itemId)) 
-                    throw new Exception("アイテムIDが重複しています");
+                    throw new Exception("アイテムIDからブロックIDへの対応付けに失敗。１つのアイテムIDが2つ以上のブロックが指定したアイテムIDと重複しています");
+                
                 
                 _idTable.Add(itemId, id);
             }

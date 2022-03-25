@@ -206,9 +206,9 @@
     {
       "name": "鋼鉄チェスト",
       "type": "Chest",
-      "itemId": 8,
+      "itemId": 52,
       "param": {
-        "slot": 52
+        "slot": 10
       }
     }
   ]
