@@ -28,7 +28,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
         public IBlock Load(BlockConfigData param, int entityId, string state)
         {
             var chest = param.Param as ChestConfigParam;
-            return new VanillaChest(param.BlockId, entityId,chest.ChestItemNum,_itemStackFactory, _blockInventoryUpdateEvent);
+            return new VanillaChest(state,param.BlockId, entityId,chest.ChestItemNum,_itemStackFactory, _blockInventoryUpdateEvent);
         }
     }
 }

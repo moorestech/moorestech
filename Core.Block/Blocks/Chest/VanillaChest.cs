@@ -31,6 +31,11 @@ namespace Core.Block.Blocks.Chest
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdate.AddUpdateObject(this);
         }
+
+        public VanillaChest(string state,int blockId,int entityId,int slotNum, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate) : this( blockId,entityId,slotNum,  itemStackFactory,blockInventoryUpdate)
+        {
+            
+        }
         
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
@@ -63,7 +68,10 @@ namespace Core.Block.Blocks.Chest
             }
         }
         
-        
+        public string GetSaveState()
+        {
+            throw new System.NotImplementedException();
+        }
         
         
         public void SetItem(int slot, IItemStack itemStack) { _itemDataStoreService.SetItem(slot,itemStack); }
@@ -84,10 +92,5 @@ namespace Core.Block.Blocks.Chest
         public int GetEntityId() { return _entityId; }
 
         public int GetBlockId() { return _blockId; }
-
-        public string GetSaveState()
-        {
-            throw new System.NotImplementedException();
-        }
     }
 }
