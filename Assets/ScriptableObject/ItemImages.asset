@@ -113,6 +113,10 @@ MonoBehaviour:
     itemName: "\u7CBE\u932C\u6A5F"
   - itemImage: {fileID: 21300000, guid: 5bb6833c51cf4cc4190f1a02ff2cebe1, type: 3}
     itemName: "\u7CBE\u5BC6\u7D44\u307F\u7ACB\u3066\u6A5F"
+  - itemImage: {fileID: 21300000, guid: 41d6600b97e48f449aeb431283ccde29, type: 3}
+    itemName: "\u9244\u30C1\u30A7\u30B9\u30C8"
+  - itemImage: {fileID: 21300000, guid: 32ecd3b98720978409bb776cbfcb60aa, type: 3}
+    itemName: "\u92FC\u9244\u30C1\u30A7\u30B9\u30C8"
   nothingIndexItemImage:
     itemImage: {fileID: 21300000, guid: 76daa48da74a94c7d8a24fc1c53facbc, type: 3}
     itemName: undefined item

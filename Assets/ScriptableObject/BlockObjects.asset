@@ -21,8 +21,6 @@ MonoBehaviour:
     name: "\u96FB\u67F1"
   - BlockObject: {fileID: 4871770198473019591, guid: 562d641c5fcd7ef49b4f89c211fb4bbf, type: 3}
     name: "\u7C89\u7815\u6A5F"
-  - BlockObject: {fileID: 4871770198473019591, guid: 562d641c5fcd7ef49b4f89c211fb4bbf, type: 3}
-    name: "\u7C89\u7815\u6A5F"
   - BlockObject: {fileID: -340677999396128482, guid: c12941c940d97294c9c356852b9f0463, type: 3}
     name: "\u5727\u7E2E\u6A5F"
   - BlockObject: {fileID: 4592201991168489600, guid: 13592f052c9445a4c812036b49af1929, type: 3}
@@ -45,4 +43,8 @@ MonoBehaviour:
     name: "\u7CBE\u932C\u6A5F"
   - BlockObject: {fileID: 8901583829454390494, guid: 7b4696d31466c1c44a6d4a34d4c0c5ec, type: 3}
     name: "\u7CBE\u5BC6\u7D44\u307F\u7ACB\u3066\u6A5F"
+  - BlockObject: {fileID: 2168308101759040260, guid: 6f66b5f793cadea49bd28b222c6c710b, type: 3}
+    name: "\u9244\u30C1\u30A7\u30B9\u30C8"
+  - BlockObject: {fileID: 7760532388739630082, guid: 5ce3b59d11b0043458c6baa21b4033e7, type: 3}
+    name: "\u92FC\u9244\u30C1\u30A7\u30B9\u30C8"
   NothingIndexBlockObject: {fileID: -4404788463801551958, guid: c297eff442e9c419db5659a81dba7084, type: 3}
