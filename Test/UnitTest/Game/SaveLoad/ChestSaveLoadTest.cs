@@ -23,7 +23,7 @@ namespace Test.UnitTest.Game.SaveLoad
             
             chest.SetItem(0,5,7);
             chest.SetItem(2,10,45);
-            chest.SetItem(6,100,3);
+            chest.SetItem(4,100,3);
 
             var save = chest.GetSaveState();
             
@@ -31,7 +31,7 @@ namespace Test.UnitTest.Game.SaveLoad
             
             Assert.AreEqual(chest.GetItem(0),chest2.GetItem(0));
             Assert.AreEqual(chest.GetItem(2),chest2.GetItem(2));
-            Assert.AreEqual(chest.GetItem(6),chest2.GetItem(6));
+            Assert.AreEqual(chest.GetItem(4),chest2.GetItem(4));
         }
     }
 }

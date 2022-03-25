@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Service;
 using Core.Block.Event;
@@ -32,9 +33,17 @@ namespace Core.Block.Blocks.Chest
             GameUpdate.AddUpdateObject(this);
         }
 
-        public VanillaChest(string state,int blockId,int entityId,int slotNum, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate) : this( blockId,entityId,slotNum,  itemStackFactory,blockInventoryUpdate)
+        public VanillaChest(string saveData,int blockId,int entityId,int slotNum, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate) : this( blockId,entityId,slotNum,  itemStackFactory,blockInventoryUpdate)
         {
-            
+            var split = saveData.Split(',');
+            Console.WriteLine(saveData);
+            for (var i = 0; i < split.Length; i += 2)
+            {
+                var itemId = int.Parse(split[i]);
+                var itemCount = int.Parse(split[i + 1]);
+                var item = itemStackFactory.Create(itemId, itemCount);
+                _itemDataStoreService.SetItem(i/2, item);
+            }
         }
         
         private void InvokeEvent(int slot, IItemStack itemStack)
@@ -70,7 +79,13 @@ namespace Core.Block.Blocks.Chest
         
         public string GetSaveState()
         {
-            throw new System.NotImplementedException();
+            //itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
+            var saveState = "";
+            foreach (var itemStack in _itemDataStoreService.Inventory)
+            {
+                saveState += $"{itemStack.Id},{itemStack.Count},";
+            }
+            return saveState.TrimEnd(',');
         }
         
         
