@@ -1,117 +1,95 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using Core.Block.BlockInventory;
-using Core.Block.Blocks.Chest.InventoryController;
+using Core.Block.Blocks.Service;
 using Core.Block.Event;
 using Core.Inventory;
 using Core.Item;
+using Core.Update;
 
 namespace Core.Block.Blocks.Chest
 {
     
-    public class VanillaChest: IBlock, IBlockInventory, IOpenableInventory
+    public class VanillaChest: IBlock, IBlockInventory, IOpenableInventory,IUpdate
     {
-        private readonly int _blockId;
         private readonly int _entityId;
-        private readonly VanillaChestBlockInventory _vanillaChestBlockInventory;
+        private readonly int _blockId;
+        
+        private readonly List<IBlockInventory> _connectInventory = new();
+        private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
+        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
+        private readonly int _slotSize;
         
-        public VanillaChest(int paramBlockId, int entityId, ItemStackFactory itemStackFactory,VanillaChestBlockInventory vanillaChestBlockInventory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate,int chestChestItemNum)
+        
+        public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;
+
+        public VanillaChest(int blockId,int entityId,int slotNum, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate)
         {
-            _blockId = paramBlockId;
-            _entityId = entityId;
-            _vanillaChestBlockInventory = vanillaChestBlockInventory;
+            _slotSize = slotNum;
             _blockInventoryUpdate = blockInventoryUpdate;
-        }
-
-        public VanillaChest(int paramBlockId, int entityId, string itemStackFactory, ItemStackFactory chestChestItemNum, int chestItemNum)
-        {
+            _entityId = entityId;
+            _blockId = blockId;
             
-        }
-
-
-        public int GetEntityId()
-        {
-            return _entityId;
-        }
-
-        public int GetBlockId()
-        {
-            return _blockId;
-        }
-
-        public string GetSaveState()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public IItemStack ReplaceItem(int slot, int itemId, int count)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        
-        public IItemStack InsertItem(int itemId, int count)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        int IOpenableInventory.GetSlotSize()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public IItemStack InsertItem(IItemStack itemStack)
-        {
-            
-            return _vanillaChestBlockInventory.InsertItem(itemStack);
-        }
-
-        public void AddOutputConnector(IBlockInventory blockInventory)
-        {
-            _vanillaChestBlockInventory.AddConnectInventory(blockInventory);
-        }
-
-        public void RemoveOutputConnector(IBlockInventory blockInventory)
-        {
-            _vanillaChestBlockInventory.RemoveConnectInventory(blockInventory);
-        }
-        
-        void IOpenableInventory.SetItem(int slot, IItemStack itemStack)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void SetItem(int slot, int itemId, int count)
-        {
-            
-            _vanillaChestBlockInventory.SetItem(slot, itemId, count);
-        }
-
-        public IItemStack ReplaceItem(int slot, IItemStack itemStack)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public IItemStack GetItem(int slot)
-        {
-            
-            return _vanillaChestBlockInventory.GetItem(slot);
-        }
-
-        void IBlockInventory.SetItem(int slot, IItemStack itemStack)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        int IBlockInventory.GetSlotSize()
-        {
-            throw new System.NotImplementedException();
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,slotNum);
+            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
+            GameUpdate.AddUpdateObject(this);
         }
         
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
-                _entityId,slot,itemStack));
+                _entityId, slot + _slotSize, itemStack));
+        }
+
+        public void AddOutputConnector(IBlockInventory blockInventory)
+        {
+            _connectInventory.Add(blockInventory);
+            //NullInventoryは削除しておく
+            for (int i = _connectInventory.Count - 1; i >= 0; i--)
+            {
+                if (_connectInventory[i] is NullIBlockInventory)
+                {
+                    _connectInventory.RemoveAt(i);
+                }
+            }
+        }
+
+        public void RemoveOutputConnector(IBlockInventory blockInventory) { _connectInventory.Remove(blockInventory); }
+
+
+        public void Update()
+        {
+            for (int i = 0; i < OutputSlot.Count; i++)
+            {
+                _itemDataStoreService.SetItem(i,_connectInventoryService.InsertItem(OutputSlot[i]));
+            }
+        }
+        
+        
+        
+        
+        public void SetItem(int slot, IItemStack itemStack) { _itemDataStoreService.SetItem(slot,itemStack); }
+
+        public void SetItem(int slot, int itemId, int count) { _itemDataStoreService.SetItem(slot,itemId,count); }
+
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack) { return _itemDataStoreService.ReplaceItem(slot, itemStack); }
+
+        public IItemStack ReplaceItem(int slot, int itemId, int count) { return _itemDataStoreService.ReplaceItem(slot, itemId, count); }
+
+        public IItemStack InsertItem(IItemStack itemStack) { return _itemDataStoreService.InsertItem(itemStack); }
+
+        public IItemStack InsertItem(int itemId, int count) { return _itemDataStoreService.InsertItem(itemId, count); }
+
+        public int GetSlotSize() { return _slotSize; }
+
+        public IItemStack GetItem(int slot) { return _itemDataStoreService.GetItem(slot); }
+        public int GetEntityId() { return _entityId; }
+
+        public int GetBlockId() { return _blockId; }
+
+        public string GetSaveState()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

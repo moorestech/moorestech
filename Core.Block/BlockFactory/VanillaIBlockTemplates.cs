@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using Core.Block.BlockFactory.BlockTemplate;
-using Core.Block.Blocks.Chest.InventoryController;
 using Core.Block.Config;
 using Core.Block.Event;
 using Core.Block.RecipeConfig;
 using Core.Item;
-using Core.Ore;
 
 namespace Core.Block.BlockFactory
 {
