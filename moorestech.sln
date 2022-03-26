@@ -56,6 +56,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Crafting.Interface", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Const", "Core.Const\Core.Const.csproj", "{27C0BAD9-84E6-400F-AFB6-C3077C7CD529}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoorestechSinglePlayInterface", "MoorestechSinglePlayInterface\MoorestechSinglePlayInterface.csproj", "{298EC478-CE4A-49B1-8424-C539D67059F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -162,6 +164,10 @@ Global
 		{27C0BAD9-84E6-400F-AFB6-C3077C7CD529}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27C0BAD9-84E6-400F-AFB6-C3077C7CD529}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27C0BAD9-84E6-400F-AFB6-C3077C7CD529}.Release|Any CPU.Build.0 = Release|Any CPU
+		{298EC478-CE4A-49B1-8424-C539D67059F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{298EC478-CE4A-49B1-8424-C539D67059F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{298EC478-CE4A-49B1-8424-C539D67059F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{298EC478-CE4A-49B1-8424-C539D67059F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A0A2C6F4-AAA1-430C-8DAF-034CF14D192E} = {6D142E32-204D-41A7-B121-423F9A073676}
