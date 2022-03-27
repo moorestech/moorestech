@@ -14,10 +14,14 @@ namespace GameConst
         
 #if UNITY_EDITOR_WIN
         public static readonly string ServerDirectory = GetFullPath("./WindowsServer");
+#elif UNITY_EDITOR_OSX
+            //TODO:
+        public static readonly string ServerDirectory = GetFullPath("./WindowsServer");
 #elif UNITY_STANDALONE_WIN
         public static readonly string ServerDirectory = GetFullPath("./" + StandAloneServerDirectory);
 #endif
-        public static readonly string ServerExePath = Combine(ServerDirectory,"moorestech_server.exe");
+        public static readonly string ServerExePath = Combine(
+        ServerDirectory,"moorestech_server.exe");
         public static readonly string ServerConfigDirectory = Combine(ServerDirectory,"Config");
     }
 }
