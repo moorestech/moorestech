@@ -17,7 +17,7 @@ namespace Server
     {
         private const int argsCount = 1;
         
-        public static void Main(string[] args)
+        public static void Start(string[] args)
         {
             try
             {

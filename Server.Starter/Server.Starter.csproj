@@ -16,6 +16,7 @@
         <ProjectReference Include="..\Game.WorldMap\Game.WorldMap.csproj" />
         <ProjectReference Include="..\Server.Event\Server.Event.csproj" />
         <ProjectReference Include="..\Server.Protocol\Server.Protocol.csproj" />
+        <ProjectReference Include="..\Server.StartServerSystem\Server.StartServerSystem.csproj" />
         <ProjectReference Include="..\Server.Util\Server.Util.csproj" />
         <ProjectReference Include="..\Game.World\Game.World.csproj" />
     </ItemGroup>
