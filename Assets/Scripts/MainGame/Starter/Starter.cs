@@ -22,6 +22,7 @@ using MainGame.UnityView.UI.CraftRecipe;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.WorldMapTile;
+using MoorestechSinglePlayInterface;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -97,6 +98,9 @@ namespace MainGame.Starter
         void Start()
         {
             var builder = new ContainerBuilder();
+            //シングルプレイ用のインスタンス
+            builder.RegisterInstance(new SinglePlayInterface(ServerConst.ServerConfigDirectory));
+            
             //サーバーに接続するためのインスタンス
             builder.RegisterInstance(new ServerProcessSetting(isLocal,localServerProcess));
             builder.RegisterInstance(new ConnectionServerConfig(IPAddress,Port));
