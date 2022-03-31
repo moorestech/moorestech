@@ -46,7 +46,7 @@ namespace MainGame.Control.UI.UIState.UIState
             return UIStateEnum.BlockPlace;
         }
 
-        public void OnEnter()
+        public void OnEnter(UIStateEnum lastStateEnum)
         {
             _selectHotBarView.SetActiveSelectHotBar(true);
         }

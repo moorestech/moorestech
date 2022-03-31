@@ -24,11 +24,13 @@ namespace MainGame.Control.UI.UIState
         {
             //UIステートが変更されたら
             if (!_uiStateDictionary.GetState(_currentState).IsNext()) return;
+
+            var lastState = _currentState;
             
             //現在のUIステートを終了し、次のステートを呼び出す
             _uiStateDictionary.GetState(_currentState).OnExit();
             _currentState = _uiStateDictionary.GetState(_currentState).GetNext();
-            _uiStateDictionary.GetState(_currentState).OnEnter();
+            _uiStateDictionary.GetState(_currentState).OnEnter(lastState);
         }
     }
 }

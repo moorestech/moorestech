@@ -4,7 +4,7 @@
     {
         public bool IsNext();
         public UIStateEnum GetNext();
-        public void OnEnter();
+        public void OnEnter(UIStateEnum lastStateEnum);
         public void OnExit();
     }
 }

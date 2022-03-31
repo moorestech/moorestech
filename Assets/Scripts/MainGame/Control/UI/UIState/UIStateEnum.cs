@@ -8,5 +8,6 @@
         PauseMenu,
         DeleteBar,
         BlockPlace,
+        RecipeViewer,
     }
 }

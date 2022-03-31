@@ -45,7 +45,7 @@ namespace MainGame.Control.UI.UIState.UIState
             return UIStateEnum.BlockInventory;
         }
 
-        public void OnEnter()
+        public void OnEnter(UIStateEnum lastStateEnum)
         {
             var blockPos = _blockClickDetect.GetClickPosition();
             

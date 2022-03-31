@@ -51,7 +51,7 @@ namespace MainGame.Control.UI.UIState.UIState
             return UIStateEnum.DeleteBar;
         }
 
-        public void OnEnter()
+        public void OnEnter(UIStateEnum lastStateEnum)
         {
             _deleteBarObject.gameObject.SetActive(true);
         }

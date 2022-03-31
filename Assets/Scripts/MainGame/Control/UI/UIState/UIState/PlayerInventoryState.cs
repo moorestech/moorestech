@@ -39,7 +39,7 @@ namespace MainGame.Control.UI.UIState.UIState
             return UIStateEnum.PlayerInventory;
         }
 
-        public void OnEnter()
+        public void OnEnter(UIStateEnum lastStateEnum)
         {
             _playerInventory.gameObject.SetActive(true);
             _requestPlayerInventoryProtocol.Send();

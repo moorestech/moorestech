@@ -30,7 +30,7 @@ namespace MainGame.Control.UI.UIState.UIState
             return UIStateEnum.PauseMenu;
         }
 
-        public void OnEnter() { _pauseMenu.gameObject.SetActive(true); }
+        public void OnEnter(UIStateEnum lastStateEnum) { _pauseMenu.gameObject.SetActive(true); }
 
         public void OnExit() { _pauseMenu.gameObject.SetActive(false); }
     }

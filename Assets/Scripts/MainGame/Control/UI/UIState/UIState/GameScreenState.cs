@@ -52,7 +52,7 @@ namespace MainGame.Control.UI.UIState.UIState
             return UIStateEnum.GameScreen;
         }
 
-        public void OnEnter() { }
+        public void OnEnter(UIStateEnum lastStateEnum) { }
         public void OnExit() { }
 
         private bool IsClickOpenableBlock()
