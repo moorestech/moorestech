@@ -9,5 +9,7 @@ namespace Core.Block.RecipeConfig
         public IMachineRecipeData GetRecipeData(int BlockId, IReadOnlyList<IItemStack> inputItem);
         public IMachineRecipeData GetNullRecipeData();
         public IMachineRecipeData GetRecipeData(int id);
+
+        public IReadOnlyList<IMachineRecipeData> GetAllRecipeData();
     }
 }

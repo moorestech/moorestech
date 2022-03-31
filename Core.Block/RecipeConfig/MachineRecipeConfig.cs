@@ -37,10 +37,9 @@ namespace Core.Block.RecipeConfig
             return _recipedatas[id];
         }
 
-        public IMachineRecipeData GetNullRecipeData()
-        {
-            return new NullMachineRecipeData();
-        }
+        public IReadOnlyList<IMachineRecipeData> GetAllRecipeData() { return _recipedatas; }
+
+        public IMachineRecipeData GetNullRecipeData() { return new NullMachineRecipeData(); }
 
 
         /// <summary>
