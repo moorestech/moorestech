@@ -85,6 +85,8 @@ namespace MainGame.Starter
         [SerializeField] private PlayerInventoryObject playerInventoryObject;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
+        [SerializeField] private RecipeViewerObject recipeViewerObject;
+        
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
         [SerializeField] private SaveButton saveButton;
@@ -148,6 +150,7 @@ namespace MainGame.Starter
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
             builder.Register<DeleteObjectInventoryState>(Lifetime.Singleton);
             builder.Register<BlockPlaceState>(Lifetime.Singleton);
+            builder.Register<RecipeViewState>(Lifetime.Singleton);
             
             
             //ScriptableObjectの登録
@@ -181,6 +184,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(blockInventoryObject);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
+            builder.RegisterComponent(recipeViewerObject);
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
             

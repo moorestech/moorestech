@@ -5,15 +5,15 @@ namespace MainGame.Control.UI.UIState.UIState
     public class RecipeViewState : IUIState
     {
         private readonly MoorestechInputSettings _inputSettings;
-        private readonly RecipeViewObject _recipeViewObject;
+        private readonly RecipeViewerObject _recipeViewerObject;
         
 
         private UIStateEnum _lastUI;
 
-        public RecipeViewState(MoorestechInputSettings inputSettings, RecipeViewObject recipeViewObject)
+        public RecipeViewState(MoorestechInputSettings inputSettings, RecipeViewerObject recipeViewerObject)
         {
             _inputSettings = inputSettings;
-            _recipeViewObject = recipeViewObject;
+            _recipeViewerObject = recipeViewerObject;
         }
 
         public bool IsNext()
