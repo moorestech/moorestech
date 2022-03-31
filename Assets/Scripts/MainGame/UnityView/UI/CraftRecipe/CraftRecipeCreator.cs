@@ -3,14 +3,16 @@ using System.Linq;
 using Core.Item;
 using MainGame.Basic;
 using SinglePlay;
+using VContainer.Unity;
 
 namespace MainGame.UnityView.UI.CraftRecipe
 {
-    public class CraftRecipeCreator
+    public class CraftRecipeCreator : IInitializable
     {
+        private readonly CraftingView _craftingView;
         private readonly Dictionary<int, List<Recipe>> _itemIdToRecipe = new();
 
-        public CraftRecipeCreator(ItemListViewer itemListViewer,SinglePlayInterface singlePlayInterface)
+        public CraftRecipeCreator(ItemListViewer itemListViewer,SinglePlayInterface singlePlayInterface,CraftingView craftingView)
         {
             //レシピ表示用のDictionaryを構築する
             var craftRecipe = singlePlayInterface.CraftingConfig.GetCraftingConfigList();
@@ -41,7 +43,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
                         _itemIdToRecipe[output.OutputItem.Id] = list;
                     }
                     
-                    list.Add(new Recipe(recipe.ItemInputs,resultItem,RecipeType.Machine));
+                    list.Add(new Recipe(recipe.ItemInputs,resultItem,RecipeType.Machine,recipe.BlockId));
                 }
             }
             
@@ -49,12 +51,28 @@ namespace MainGame.UnityView.UI.CraftRecipe
             
             //イベントをサブスクライブ
             itemListViewer.OnItemListClick += OnItemListClick;
+            _craftingView = craftingView;
         }
 
         private void OnItemListClick(int itemId)
         {
-            
+            if (!_itemIdToRecipe.ContainsKey(itemId))
+            {
+                return;
+            }
+            //TODO 複数レシピに対応させる
+            var recipe = _itemIdToRecipe[itemId][0];
+            if (recipe.RecipeType == RecipeType.Craft)
+            {
+                _craftingView.SetCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0]);
+            }
+            else if (recipe.RecipeType == RecipeType.Machine) 
+            {
+                _craftingView.SetMachineCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0],recipe.BlockId);
+            }
         }
+
+        public void Initialize() { }
     }
 
     class Recipe
@@ -62,8 +80,9 @@ namespace MainGame.UnityView.UI.CraftRecipe
         public readonly List<ItemStack> ItemStacks = new();
         public readonly List<ItemStack> ResultItem = new();
         public readonly RecipeType RecipeType;
+        public readonly int BlockId;
 
-        public Recipe(List<IItemStack> itemStacks, List<IItemStack> resultItem, RecipeType recipeType)
+        public Recipe(List<IItemStack> itemStacks, List<IItemStack> resultItem, RecipeType recipeType,int blockId)
         {
             foreach (var item in itemStacks)
             {
@@ -73,7 +92,8 @@ namespace MainGame.UnityView.UI.CraftRecipe
             {
                 ResultItem.Add(new ItemStack(item.Id,item.Count));
             }
-            
+
+            BlockId = blockId;
             RecipeType = recipeType;
         }
         public Recipe(List<IItemStack> itemStacks, IItemStack resultItem, RecipeType recipeType)

@@ -35,7 +35,7 @@ namespace MainGame.Control.Game.MouseKeyboard
 
         private bool IsBlockClicked()
         {
-            var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
+             var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
 
             // マウスでクリックした位置にタイルマップがあるとき

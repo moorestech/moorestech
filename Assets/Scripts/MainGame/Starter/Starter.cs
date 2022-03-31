@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using GameConst;
+using MainGame.Basic;
 using MainGame.Control.Game;
 using MainGame.Control.Game.MouseKeyboard;
 using MainGame.Control.UI.Command;
@@ -157,6 +158,8 @@ namespace MainGame.Starter
             builder.Register<DeleteObjectInventoryState>(Lifetime.Singleton);
             builder.Register<BlockPlaceState>(Lifetime.Singleton);
             builder.Register<RecipeViewState>(Lifetime.Singleton);
+            
+            builder.RegisterEntryPoint<CraftRecipeCreator>();
             
             
             //ScriptableObjectの登録

@@ -7,13 +7,16 @@
         "GUID:1db6beb8cad366b44877a53dc3b13784",
         "GUID:b0214a6008ed146ff8f122a6a9c2f6cc",
         "GUID:c5282e7b4d76b9642aa6ad635765a6bf",
-        "GUID:0d784122ef68486abe7501b3cbb06672"
+        "GUID:0d784122ef68486abe7501b3cbb06672",
+        "GUID:60cf3696e547a4b23af8c85a573acd1b"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "SinglePlay.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
