@@ -22,7 +22,7 @@ using MainGame.UnityView.UI.CraftRecipe;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.WorldMapTile;
-using MoorestechSinglePlayInterface;
+using SinglePlay;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
