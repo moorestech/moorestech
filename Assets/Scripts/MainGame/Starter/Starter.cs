@@ -18,6 +18,7 @@ using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Settings;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
+using MainGame.UnityView.UI.CraftRecipe;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.WorldMapTile;
@@ -86,6 +87,7 @@ namespace MainGame.Starter
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private RecipeViewerObject recipeViewerObject;
+        [SerializeField] private ItemListViewer itemListViewer;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
@@ -184,6 +186,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(blockInventoryObject);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
+            builder.RegisterComponent(itemListViewer);
             builder.RegisterComponent(recipeViewerObject);
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);

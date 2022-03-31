@@ -19,6 +19,8 @@ namespace MainGame.UnityView.UI.Inventory.Element
 
             return itemImageList[index];
         }
+
+        public int GetItemNum() { return itemImageList.Count; }
     }
 
     [Serializable]

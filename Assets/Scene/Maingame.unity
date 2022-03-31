@@ -636,6 +636,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8338988566280778637, guid: 64dce48905ffd9b4293e595fa6941544, type: 3}
   m_PrefabInstance: {fileID: 1762682258}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &702721346 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3978477083281486116, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cea87218810c4ef79cea7614f5791a1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &758237237 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5189563605911181631, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
@@ -952,6 +963,7 @@ MonoBehaviour:
   pauseMenuObject: {fileID: 816961701}
   deleteBarObject: {fileID: 110116535}
   recipeViewerObject: {fileID: 140883334}
+  itemListViewer: {fileID: 702721346}
   blockPlacePreview: {fileID: 1341326065}
   oreMapTileClickDetect: {fileID: 1857732744}
   saveButton: {fileID: 104714908}
