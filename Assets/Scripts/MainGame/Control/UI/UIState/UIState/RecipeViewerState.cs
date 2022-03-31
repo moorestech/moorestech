@@ -1,4 +1,5 @@
 using MainGame.Control.UI.UIState.UIObject;
+using MainGame.UnityView.UI.CraftRecipe;
 
 namespace MainGame.Control.UI.UIState.UIState
 {
@@ -6,12 +7,14 @@ namespace MainGame.Control.UI.UIState.UIState
     {
         private readonly MoorestechInputSettings _inputSettings;
         private readonly RecipeViewerObject _recipeViewerObject;
+        private readonly ItemListViewer _itemListViewer;
         
 
         private UIStateEnum _lastUI;
 
-        public RecipeViewState(MoorestechInputSettings inputSettings, RecipeViewerObject recipeViewerObject)
+        public RecipeViewState(MoorestechInputSettings inputSettings, RecipeViewerObject recipeViewerObject,ItemListViewer itemListViewer)
         {
+            _itemListViewer = itemListViewer;
             _inputSettings = inputSettings;
             _recipeViewerObject = recipeViewerObject;
         }
@@ -39,11 +42,14 @@ namespace MainGame.Control.UI.UIState.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             _lastUI = lastStateEnum;
+            _itemListViewer.gameObject.SetActive(true);
+            _recipeViewerObject.gameObject.SetActive(true);
         }
 
         public void OnExit()
         {
-            
+            _itemListViewer.gameObject.SetActive(false);
+            _recipeViewerObject.gameObject.SetActive(false);
         }
     }
 }

@@ -41,8 +41,6 @@ namespace MainGame.Control.UI.UIState.UIState
                 return UIStateEnum.PauseMenu;
             }
             
-            
-            
             return UIStateEnum.BlockPlace;
         }
 

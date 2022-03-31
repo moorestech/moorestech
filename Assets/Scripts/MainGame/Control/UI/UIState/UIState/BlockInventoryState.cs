@@ -2,6 +2,7 @@ using MainGame.Control.Game.MouseKeyboard;
 using MainGame.Control.UI.Inventory.ItemMove;
 using MainGame.Control.UI.UIState.UIObject;
 using MainGame.Network.Send;
+using MainGame.UnityView.UI.CraftRecipe;
 using UnityEngine;
 
 namespace MainGame.Control.UI.UIState.UIState
@@ -10,6 +11,7 @@ namespace MainGame.Control.UI.UIState.UIState
     {
         private readonly MoorestechInputSettings _inputSettings;
         private readonly BlockInventoryObject _blockInventory;
+        private readonly ItemListViewer _itemListViewer;
         
         private readonly RequestBlockInventoryProtocol _requestBlockInventoryProtocol;
         private readonly SendBlockInventoryOpenCloseControl _sendBlockInventoryOpenCloseControl;
@@ -19,8 +21,10 @@ namespace MainGame.Control.UI.UIState.UIState
 
         public BlockInventoryState(MoorestechInputSettings inputSettings, BlockInventoryObject blockInventory,
             RequestBlockInventoryProtocol requestBlockInventoryProtocol,
-            BlockInventoryMainInventoryItemMoveService itemMoveService,IBlockClickDetect blockClickDetect,SendBlockInventoryOpenCloseControl sendBlockInventoryOpenCloseControl)
+            BlockInventoryMainInventoryItemMoveService itemMoveService,IBlockClickDetect blockClickDetect,SendBlockInventoryOpenCloseControl sendBlockInventoryOpenCloseControl,
+            ItemListViewer itemListViewer)
         {
+            _itemListViewer = itemListViewer;
             _requestBlockInventoryProtocol = requestBlockInventoryProtocol;
             _itemMoveService = itemMoveService;
             _blockClickDetect = blockClickDetect;
@@ -56,9 +60,14 @@ namespace MainGame.Control.UI.UIState.UIState
             _sendBlockInventoryOpenCloseControl.Send(blockPos.x,blockPos.y,true);
             _itemMoveService.SetBlockPosition(blockPos.x,blockPos.y);
             
+            _itemListViewer.gameObject.SetActive(true);
             _blockInventory.gameObject.SetActive(true);
         }
 
-        public void OnExit() { _blockInventory.gameObject.SetActive(false); }
+        public void OnExit()
+        {
+            _blockInventory.gameObject.SetActive(false);
+            _itemListViewer.gameObject.SetActive(false);
+        }
     }
 }

@@ -14,11 +14,11 @@ namespace MainGame.UnityView.UI.CraftRecipe
         {
             for (int i = 0; i < itemImages.GetItemNum(); i++)
             {
-                var g = Instantiate(inventoryItemSlotPrefab);
+                var g = Instantiate(inventoryItemSlotPrefab, transform, true);
                 g.Construct(i);
                 g.SetItem(itemImages.GetItemViewData(i),0);
-                
-                g.transform.parent = transform;
+
+                g.transform.localScale = new Vector3(1,1,1);
             }
         }
     }
