@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using MainGame.Basic;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.UI.Inventory.Element;
@@ -23,7 +24,8 @@ namespace MainGame.UnityView.UI.CraftRecipe
         [SerializeField] private List<InventoryItemSlot> machineCraftingRecipeSlots;
         [SerializeField] private InventoryItemSlot machineCraftingResultSlot;
         [SerializeField] private TMP_Text machineNameText;
-
+        
+        public event ItemListViewer.ItemSlotClick OnCraftSlotClick;
         
         [Inject]
         public void Construct(ItemImages itemImages,BlockObjects blockObjects)
@@ -41,6 +43,8 @@ namespace MainGame.UnityView.UI.CraftRecipe
             {
                 var item = itemStacks[i];
                 craftingRecipeSlots[i].SetItem(_itemImages.GetItemViewData(item.ID),item.Count);
+                craftingRecipeSlots[i].Construct(item.ID);
+                craftingRecipeSlots[i].SubscribeOnItemSlotClick(OnClick);
             }
             craftingResultSlot.SetItem(_itemImages.GetItemViewData(result.ID),result.Count);
         }
@@ -63,8 +67,15 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 machineCraftingRecipeSlots[i].gameObject.SetActive(true);
                 var item = itemStacks[i];
                 machineCraftingRecipeSlots[i].SetItem(_itemImages.GetItemViewData(item.ID),item.Count);
+                machineCraftingRecipeSlots[i].Construct(item.ID);
+                machineCraftingRecipeSlots[i].SubscribeOnItemSlotClick(OnClick);
             }
             machineCraftingResultSlot.SetItem(_itemImages.GetItemViewData(result.ID),result.Count);
+        }
+
+        private void OnClick(int id)
+        {
+            OnCraftSlotClick?.Invoke(id);
         }
     }
 }

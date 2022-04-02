@@ -9,8 +9,8 @@ namespace MainGame.UnityView.UI.CraftRecipe
     {
         [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
 
-        public delegate void ItemListClick(int itemId);
-        public event ItemListClick OnItemListClick;
+        public delegate void ItemSlotClick(int itemId);
+        public event ItemSlotClick OnItemListClick;
         
         
         [Inject]

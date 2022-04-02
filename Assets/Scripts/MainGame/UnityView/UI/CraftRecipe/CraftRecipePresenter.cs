@@ -54,6 +54,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
             
             //イベントをサブスクライブ
             itemListViewer.OnItemListClick += OnItemListClick;
+            craftingView.OnCraftSlotClick += OnItemListClick;
             _craftingView = craftingView;
         }
 

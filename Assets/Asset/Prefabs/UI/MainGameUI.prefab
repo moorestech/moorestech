@@ -589,7 +589,7 @@ MonoBehaviour:
   - {fileID: 4594387163865982501}
   - {fileID: 1191701023680984646}
   machineCraftingResultSlot: {fileID: 3211264935970176220}
-  MachineNameText: {fileID: 960764915238112041}
+  machineNameText: {fileID: 960764915238112041}
 --- !u!1 &2096420525332121774
 GameObject:
   m_ObjectHideFlags: 0
