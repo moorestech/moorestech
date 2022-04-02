@@ -22,7 +22,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
         
         [SerializeField] private List<InventoryItemSlot> machineCraftingRecipeSlots;
         [SerializeField] private InventoryItemSlot machineCraftingResultSlot;
-        [SerializeField] private TMP_Text MachineNameText;
+        [SerializeField] private TMP_Text machineNameText;
 
         
         [Inject]
@@ -50,7 +50,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
             craftingRecipeView.SetActive(false);
             machineCraftingRecipeView.SetActive(true);
 
-            MachineNameText.text = _blockObjects.GetName(blockId);
+            machineNameText.text = _blockObjects.GetName(blockId);
             
             for (int i = 0; i < machineCraftingRecipeSlots.Count; i++)
             {
