@@ -79,7 +79,7 @@ namespace MainGame.Starter
         [SerializeField] private CraftExecute craftExecute;
         [SerializeField] private PlayerPosition playerPosition;
         [SerializeField] private SelectHotBarView selectHotBarView;
-        [SerializeField] private CraftingView craftingView;
+        [SerializeField] private ItemRecipeView itemRecipeView;
         
         [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
         [SerializeField] private BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet;
@@ -160,7 +160,7 @@ namespace MainGame.Starter
             builder.Register<BlockPlaceState>(Lifetime.Singleton);
             builder.Register<RecipeViewState>(Lifetime.Singleton);
             
-            builder.Register<CraftRecipePresenter>(Lifetime.Singleton);
+            builder.Register<ItemRecipePresenter>(Lifetime.Singleton);
             
             
             //ScriptableObjectの登録
@@ -188,7 +188,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(selectHotBarControl);
             builder.RegisterComponent(craftExecute);
             builder.RegisterComponent(selectHotBarView);
-            builder.RegisterComponent(craftingView);
+            builder.RegisterComponent(itemRecipeView);
             
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(playerInventoryObject);

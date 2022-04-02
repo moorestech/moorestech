@@ -8,15 +8,15 @@ using VContainer.Unity;
 
 namespace MainGame.UnityView.UI.CraftRecipe
 {
-    public class CraftRecipePresenter : IInitializable,IFixedTickable
+    public class ItemRecipePresenter : IInitializable,IFixedTickable
     {
-        private readonly CraftingView _craftingView;
+        private readonly ItemRecipeView _itemRecipeView;
         private readonly Dictionary<int, List<Recipe>> _itemIdToRecipe = new();
         
         public bool IsClicked => _isClickedCount == 0 || _isClickedCount == 1;
         private int _isClickedCount = -1;
 
-        public CraftRecipePresenter(ItemListViewer itemListViewer,SinglePlayInterface singlePlayInterface,CraftingView craftingView)
+        public ItemRecipePresenter(ItemListViewer itemListViewer,SinglePlayInterface singlePlayInterface,ItemRecipeView itemRecipeView)
         {
             //レシピ表示用のDictionaryを構築する
             var craftRecipe = singlePlayInterface.CraftingConfig.GetCraftingConfigList();
@@ -55,8 +55,8 @@ namespace MainGame.UnityView.UI.CraftRecipe
             
             //イベントをサブスクライブ
             itemListViewer.OnItemListClick += OnItemListClick;
-            craftingView.OnCraftSlotClick += OnItemListClick;
-            _craftingView = craftingView;
+            itemRecipeView.OnCraftSlotClick += OnItemListClick;
+            _itemRecipeView = itemRecipeView;
         }
 
         private void OnItemListClick(int itemId)
@@ -72,11 +72,11 @@ namespace MainGame.UnityView.UI.CraftRecipe
             var recipe = _itemIdToRecipe[itemId][0];
             if (recipe.RecipeType == RecipeType.Craft)
             {
-                _craftingView.SetCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0]);
+                _itemRecipeView.SetCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0]);
             }
             else if (recipe.RecipeType == RecipeType.Machine) 
             {
-                _craftingView.SetMachineCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0],recipe.BlockId);
+                _itemRecipeView.SetMachineCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0],recipe.BlockId);
             }
         }
 

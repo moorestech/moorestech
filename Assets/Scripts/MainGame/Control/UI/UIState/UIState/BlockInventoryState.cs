@@ -12,7 +12,7 @@ namespace MainGame.Control.UI.UIState.UIState
         private readonly MoorestechInputSettings _inputSettings;
         private readonly BlockInventoryObject _blockInventory;
         private readonly ItemListViewer _itemListViewer;
-        private readonly CraftRecipePresenter _craftRecipePresenter;
+        private readonly ItemRecipePresenter _itemRecipePresenter;
 
         private readonly RequestBlockInventoryProtocol _requestBlockInventoryProtocol;
         private readonly SendBlockInventoryOpenCloseControl _sendBlockInventoryOpenCloseControl;
@@ -23,10 +23,10 @@ namespace MainGame.Control.UI.UIState.UIState
         public BlockInventoryState(MoorestechInputSettings inputSettings, BlockInventoryObject blockInventory,
             RequestBlockInventoryProtocol requestBlockInventoryProtocol,
             BlockInventoryMainInventoryItemMoveService itemMoveService,IBlockClickDetect blockClickDetect,SendBlockInventoryOpenCloseControl sendBlockInventoryOpenCloseControl,
-            ItemListViewer itemListViewer,CraftRecipePresenter craftRecipePresenter)
+            ItemListViewer itemListViewer,ItemRecipePresenter itemRecipePresenter)
         {
             _itemListViewer = itemListViewer;
-            _craftRecipePresenter = craftRecipePresenter;
+            _itemRecipePresenter = itemRecipePresenter;
             _requestBlockInventoryProtocol = requestBlockInventoryProtocol;
             _itemMoveService = itemMoveService;
             _blockClickDetect = blockClickDetect;
@@ -38,7 +38,7 @@ namespace MainGame.Control.UI.UIState.UIState
 
         public bool IsNext()
         {
-            return _inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered || _craftRecipePresenter.IsClicked;
+            return _inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered || _itemRecipePresenter.IsClicked;
         }
 
         public UIStateEnum GetNext()
@@ -48,7 +48,7 @@ namespace MainGame.Control.UI.UIState.UIState
                 return UIStateEnum.GameScreen;
             }
 
-            if (_craftRecipePresenter.IsClicked)
+            if (_itemRecipePresenter.IsClicked)
             {
                 return UIStateEnum.RecipeViewer;
             }

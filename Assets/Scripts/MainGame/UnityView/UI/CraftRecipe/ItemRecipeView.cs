@@ -10,7 +10,7 @@ using VContainer;
 
 namespace MainGame.UnityView.UI.CraftRecipe
 {
-    public class CraftingView : MonoBehaviour
+    public class ItemRecipeView : MonoBehaviour
     {
         private ItemImages _itemImages;
         private BlockObjects _blockObjects;
