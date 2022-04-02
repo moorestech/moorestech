@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using MainGame.Basic;
+using MainGame.UnityView.Block;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
+using TMPro;
 using UnityEngine;
 using VContainer;
 
@@ -10,6 +12,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
     public class CraftingView : MonoBehaviour
     {
         private ItemImages _itemImages;
+        private BlockObjects _blockObjects;
         
         [SerializeField] private GameObject craftingRecipeView;
         [SerializeField] private GameObject machineCraftingRecipeView;
@@ -19,11 +22,13 @@ namespace MainGame.UnityView.UI.CraftRecipe
         
         [SerializeField] private List<InventoryItemSlot> machineCraftingRecipeSlots;
         [SerializeField] private InventoryItemSlot machineCraftingResultSlot;
+        [SerializeField] private TMP_Text MachineNameText;
 
         
         [Inject]
-        public void Construct(ItemImages itemImages)
+        public void Construct(ItemImages itemImages,BlockObjects blockObjects)
         {
+            _blockObjects = blockObjects;
             _itemImages = itemImages;
         }
         
@@ -44,6 +49,8 @@ namespace MainGame.UnityView.UI.CraftRecipe
         {
             craftingRecipeView.SetActive(false);
             machineCraftingRecipeView.SetActive(true);
+
+            MachineNameText.text = _blockObjects.GetName(blockId);
             
             for (int i = 0; i < machineCraftingRecipeSlots.Count; i++)
             {
