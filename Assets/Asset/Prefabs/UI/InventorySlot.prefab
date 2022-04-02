@@ -275,6 +275,7 @@ MonoBehaviour:
   image: {fileID: 1885320552950913259}
   countText: {fileID: 1014375674738587960}
   itemNameText: {fileID: 4453292072524855584}
+  button: {fileID: 1014375675779259838}
 --- !u!1 &4422766288424241644
 GameObject:
   m_ObjectHideFlags: 0

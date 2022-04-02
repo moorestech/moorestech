@@ -23,14 +23,13 @@ namespace MainGame.UnityView.UI.Inventory.View
         
         [SerializeField] private ItemNameText itemNameText;
         
-        
-        private Button _button;
+        [SerializeField]
+        private Button button;
         private int _slotIndex = -1;
         private string _itemName = EmptyItemName;
         
         public void Construct(int slotIndex)
         {
-            _button = GetComponent<Button>();
             _slotIndex = slotIndex;
         }
         
@@ -58,7 +57,7 @@ namespace MainGame.UnityView.UI.Inventory.View
 
         public void SubscribeOnItemSlotClick(OnItemSlotClicked onItemSlotClicked)
         {
-            _button.onClick.AddListener(() => onItemSlotClicked(_slotIndex));
+            button.onClick.AddListener(() => onItemSlotClicked(_slotIndex));
         }
 
         public void OnPointerEnter(PointerEventData eventData)

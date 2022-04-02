@@ -32,6 +32,14 @@ namespace MainGame.UnityView.UI.CraftRecipe
         {
             _blockObjects = blockObjects;
             _itemImages = itemImages;
+            foreach (var slot in craftingRecipeSlots)
+            {
+                slot.SubscribeOnItemSlotClick(OnClick);
+            }
+            foreach (var slot in machineCraftingRecipeSlots)
+            {
+                slot.SubscribeOnItemSlotClick(OnClick);
+            }
         }
         
         public void SetCraftRecipe(List<ItemStack> itemStacks,ItemStack result)
@@ -44,7 +52,6 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 var item = itemStacks[i];
                 craftingRecipeSlots[i].SetItem(_itemImages.GetItemViewData(item.ID),item.Count);
                 craftingRecipeSlots[i].Construct(item.ID);
-                craftingRecipeSlots[i].SubscribeOnItemSlotClick(OnClick);
             }
             craftingResultSlot.SetItem(_itemImages.GetItemViewData(result.ID),result.Count);
         }
@@ -68,7 +75,6 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 var item = itemStacks[i];
                 machineCraftingRecipeSlots[i].SetItem(_itemImages.GetItemViewData(item.ID),item.Count);
                 machineCraftingRecipeSlots[i].Construct(item.ID);
-                machineCraftingRecipeSlots[i].SubscribeOnItemSlotClick(OnClick);
             }
             machineCraftingResultSlot.SetItem(_itemImages.GetItemViewData(result.ID),result.Count);
         }
