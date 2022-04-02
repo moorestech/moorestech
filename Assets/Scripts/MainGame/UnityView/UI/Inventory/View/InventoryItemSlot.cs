@@ -70,10 +70,7 @@ namespace MainGame.UnityView.UI.Inventory.View
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            if (EmptyItemName != _itemName)
-            {
-                itemNameText.SetActive(false);
-            }
+            itemNameText.SetActive(false);
         }
     }
 }

@@ -955,7 +955,7 @@ MonoBehaviour:
   craftExecute: {fileID: 135985973}
   playerPosition: {fileID: 1264384480}
   selectHotBarView: {fileID: 289673340}
-  craftingView: {fileID: 2090249934}
+  itemRecipeView: {fileID: 2090249934}
   playerInventoryEquippedItemImageSet: {fileID: 135985978}
   blockInventoryEquippedItemImageSet: {fileID: 135985977}
   uIStateControl: {fileID: 1520253678}
