@@ -10,7 +10,7 @@ namespace MainGame.Control.UI.UIState.UIState
         private readonly ItemListViewer _itemListViewer;
         
 
-        private UIStateEnum _lastUI;
+        private UIStateEnum _lastInventoryUI;
 
         public RecipeViewState(MoorestechInputSettings inputSettings, RecipeViewerObject recipeViewerObject,ItemListViewer itemListViewer)
         {
@@ -33,7 +33,7 @@ namespace MainGame.Control.UI.UIState.UIState
 
             if (_inputSettings.UI.CloseUI.triggered)
             {
-                return _lastUI;
+                return _lastInventoryUI;
             }
 
             return UIStateEnum.RecipeViewer;
@@ -41,7 +41,11 @@ namespace MainGame.Control.UI.UIState.UIState
 
         public void OnEnter(UIStateEnum lastStateEnum)
         {
-            _lastUI = lastStateEnum;
+            //連続してレシピをクリックされたとき(前回もRecipeViewerだった時)は_lastInventoryUIにデータを入れない
+            if (lastStateEnum != UIStateEnum.RecipeViewer)
+            {
+                _lastInventoryUI = lastStateEnum;
+            }
             _itemListViewer.gameObject.SetActive(true);
             _recipeViewerObject.gameObject.SetActive(true);
         }

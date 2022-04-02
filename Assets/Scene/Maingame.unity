@@ -955,6 +955,7 @@ MonoBehaviour:
   craftExecute: {fileID: 135985973}
   playerPosition: {fileID: 1264384480}
   selectHotBarView: {fileID: 289673340}
+  craftingView: {fileID: 2090249934}
   playerInventoryEquippedItemImageSet: {fileID: 135985978}
   blockInventoryEquippedItemImageSet: {fileID: 135985977}
   uIStateControl: {fileID: 1520253678}
@@ -1434,6 +1435,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 79768f6700a64f3badb3a98ed67abe75, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2090249934 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2543833984019787275, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54f2540b693e4b418a9d7b6998f90549, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &2134570746 stripped

@@ -7,12 +7,15 @@ using VContainer.Unity;
 
 namespace MainGame.UnityView.UI.CraftRecipe
 {
-    public class CraftRecipeCreator : IInitializable
+    public class CraftRecipePresenter : IInitializable,IFixedTickable
     {
         private readonly CraftingView _craftingView;
         private readonly Dictionary<int, List<Recipe>> _itemIdToRecipe = new();
+        
+        public bool IsClicked => _isClickedCount == 0 || _isClickedCount == 1;
+        private int _isClickedCount = -1;
 
-        public CraftRecipeCreator(ItemListViewer itemListViewer,SinglePlayInterface singlePlayInterface,CraftingView craftingView)
+        public CraftRecipePresenter(ItemListViewer itemListViewer,SinglePlayInterface singlePlayInterface,CraftingView craftingView)
         {
             //レシピ表示用のDictionaryを構築する
             var craftRecipe = singlePlayInterface.CraftingConfig.GetCraftingConfigList();
@@ -60,6 +63,9 @@ namespace MainGame.UnityView.UI.CraftRecipe
             {
                 return;
             }
+
+            _isClickedCount = 0;
+            
             //TODO 複数レシピに対応させる
             var recipe = _itemIdToRecipe[itemId][0];
             if (recipe.RecipeType == RecipeType.Craft)
@@ -73,6 +79,17 @@ namespace MainGame.UnityView.UI.CraftRecipe
         }
 
         public void Initialize() { }
+        public void FixedTick()
+        {
+            if (_isClickedCount == 0 || _isClickedCount == 1)
+            {
+                _isClickedCount++;
+            }
+            if (_isClickedCount == 2)
+            {
+                _isClickedCount = -1;
+            }
+        }
     }
 
     class Recipe

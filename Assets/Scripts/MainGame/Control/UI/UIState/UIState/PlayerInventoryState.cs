@@ -13,15 +13,17 @@ namespace MainGame.Control.UI.UIState.UIState
         private readonly RequestPlayerInventoryProtocol _requestPlayerInventoryProtocol;
 
         private readonly ItemListViewer _itemListViewer;
+        private readonly CraftRecipePresenter _craftRecipePresenter;
 
         public PlayerInventoryState( MoorestechInputSettings inputSettings, PlayerInventoryObject playerInventory,
-            RequestPlayerInventoryProtocol requestPlayerInventoryProtocol,ItemListViewer itemListViewer)
+            RequestPlayerInventoryProtocol requestPlayerInventoryProtocol,ItemListViewer itemListViewer,CraftRecipePresenter craftRecipePresenter)
         {
             _inputSettings = inputSettings;
             _playerInventory = playerInventory;
             _requestPlayerInventoryProtocol = requestPlayerInventoryProtocol;
             _itemListViewer = itemListViewer;
-            
+            _craftRecipePresenter = craftRecipePresenter;
+
             //起動時に初回のインベントリを取得
             _requestPlayerInventoryProtocol.Send();
             
@@ -30,7 +32,7 @@ namespace MainGame.Control.UI.UIState.UIState
 
         public bool IsNext()
         {
-            return _inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered;
+            return _inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered || _craftRecipePresenter.IsClicked;
         }
 
         public UIStateEnum GetNext()
@@ -38,6 +40,11 @@ namespace MainGame.Control.UI.UIState.UIState
             if (_inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered)
             {
                 return UIStateEnum.GameScreen;
+            }
+
+            if (_craftRecipePresenter.IsClicked)
+            {
+                return UIStateEnum.RecipeViewer;
             }
 
             return UIStateEnum.PlayerInventory;
