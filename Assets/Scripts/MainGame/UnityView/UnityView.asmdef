@@ -7,7 +7,8 @@
         "VContainer",
         "Unity.TextMeshPro",
         "Constant",
-        "GameConst"
+        "GameConst",
+        "Server"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
