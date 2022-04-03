@@ -194,6 +194,22 @@
         "outputSlot": 1,
         "requiredPower": 100
       }
+    },
+    {
+      "name": "鉄チェスト",
+      "type": "Chest",
+      "itemId": 51,
+      "param": {
+        "slot": 5
+      }
+    },
+    {
+      "name": "鋼鉄チェスト",
+      "type": "Chest",
+      "itemId": 52,
+      "param": {
+        "slot": 10
+      }
     }
   ]
 }

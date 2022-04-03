@@ -226,33 +226,38 @@
       "max_stacks": 100
     },
     {
-      "name": "10BTC",
+      "name": "100BTC",
       "id": 45,
       "max_stacks": 100
     },
     {
-      "name": "100BTC",
+      "name": "1000BTC",
       "id": 46,
       "max_stacks": 100
     },
     {
-      "name": "1000BTC",
+      "name": "10000BTC",
       "id": 47,
       "max_stacks": 100
     },
     {
-      "name": "10000BTC",
+      "name": "精錬機",
       "id": 48,
       "max_stacks": 100
     },
     {
-      "name": "精錬機",
+      "name": "精密組み立て機",
       "id": 49,
       "max_stacks": 100
     },
     {
-      "name": "精密組み立て機",
+      "name": "鉄チェスト",
       "id": 50,
+      "max_stacks": 100
+    },
+    {
+      "name": "鋼鉄チェスト",
+      "id": 51,
       "max_stacks": 100
     }
   ]
