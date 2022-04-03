@@ -100,15 +100,15 @@ MonoBehaviour:
   - itemImage: {fileID: 21300000, guid: 6e901ea1b1e649a4f8b895307ce7d3b8, type: 3}
     itemName: "\u30DE\u30A4\u30CB\u30F3\u30B0\u30DE\u30B7\u30F3"
   - itemImage: {fileID: 21300000, guid: 72e7509427ba7ea42b12b12c840ea29c, type: 3}
-    itemName: "1BTC\u30F3"
+    itemName: 1BTC
   - itemImage: {fileID: 21300000, guid: 504e607e9b7bd2b48819336fc0ff7537, type: 3}
-    itemName: "10BTC\u30F3"
+    itemName: 10BTC
   - itemImage: {fileID: 21300000, guid: 6990282bb93cc7d46ba0fbb310273ead, type: 3}
-    itemName: "100BTC\u30F3"
+    itemName: 100BTC
   - itemImage: {fileID: 21300000, guid: 4f9bb0a846a479b45b692a047387443f, type: 3}
-    itemName: "1000BTC\u30F3"
+    itemName: 1000BTC
   - itemImage: {fileID: 21300000, guid: 7eb3c0887c216244e974aceddedfc85a, type: 3}
-    itemName: "10000BTC\u30F3"
+    itemName: 10000BTC
   - itemImage: {fileID: 21300000, guid: e2c2c102db4ab884682b957338f4cadc, type: 3}
     itemName: "\u7CBE\u932C\u6A5F"
   - itemImage: {fileID: 21300000, guid: 5bb6833c51cf4cc4190f1a02ff2cebe1, type: 3}
