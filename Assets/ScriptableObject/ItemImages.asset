@@ -69,7 +69,7 @@ MonoBehaviour:
     itemName: "\u91D1\u30EF\u30A4\u30E4\u30FC"
   - itemImage: {fileID: 21300000, guid: cfc73e5a05087ca42a53c5c4fddeed47, type: 3}
     itemName: "\u767A\u5C55\u56DE\u8DEF"
-  - itemImage: {fileID: 21300000, guid: cfc73e5a05087ca42a53c5c4fddeed47, type: 3}
+  - itemImage: {fileID: 21300000, guid: 7544d614ce5e99a4cba6e4aa8f9c6f12, type: 3}
     itemName: "\u767A\u5C55\u30DE\u30B7\u30F3\u30B1\u30FC\u30B9"
   - itemImage: {fileID: 21300000, guid: 98d65f4c805e3564c8a9da2e2655a4d5, type: 3}
     itemName: "\u706B\u529B\u767A\u96FBmk2"
