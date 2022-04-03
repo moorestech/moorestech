@@ -4,19 +4,23 @@ using Core.Item;
 using MainGame.Basic;
 using SinglePlay;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace MainGame.UnityView.UI.CraftRecipe
 {
-    public class ItemRecipePresenter : IInitializable,IFixedTickable
+    public class ItemRecipePresenter : MonoBehaviour
     {
-        private readonly ItemRecipeView _itemRecipeView;
         private readonly Dictionary<int, List<Recipe>> _itemIdToRecipe = new();
+        
+        
+        private  ItemRecipeView _itemRecipeView;
         
         public bool IsClicked => _isClickedCount == 0 || _isClickedCount == 1;
         private int _isClickedCount = -1;
 
-        public ItemRecipePresenter(ItemListViewer itemListViewer,SinglePlayInterface singlePlayInterface,ItemRecipeView itemRecipeView)
+        [Inject]
+        public void Construct(ItemListViewer itemListViewer,SinglePlayInterface singlePlayInterface,ItemRecipeView itemRecipeView)
         {
             //レシピ表示用のDictionaryを構築する
             var craftRecipe = singlePlayInterface.CraftingConfig.GetCraftingConfigList();
@@ -79,9 +83,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 _itemRecipeView.SetMachineCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0],recipe.BlockId);
             }
         }
-
-        public void Initialize() { }
-        public void FixedTick()
+        public void FixedUpdate()
         {
             if (_isClickedCount == 0 || _isClickedCount == 1)
             {
