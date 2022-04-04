@@ -71,7 +71,7 @@ namespace MainGame.Control.UI.Inventory
                 _equippedItem.SetEquippedMainItemSlot(slot);
                 
                 //クリックしたアイテムを「持つ」ために、もとのスロットを非表示にする
-                _mainInventoryItemView.OnInventoryUpdate(slot,ItemConstant.NullItemId,ItemConstant.NullItemCount);
+                _mainInventoryItemView.ItemEquipped(slot);
                 
                 return;
             }
@@ -94,20 +94,11 @@ namespace MainGame.Control.UI.Inventory
                 _equippedItem.SetEquippedCraftItemSlot(slot);
                 
                 //クリックしたアイテムを「持つ」ために、もとのスロットを非表示にする
-                _craftingInventoryItemView.OnInventoryUpdate(slot,new ItemStack(ItemConstant.NullItemId));
+                _craftingInventoryItemView.ItemEquipped(slot);
                 
                 return;
             }
             MoveItem(_equippedItemSlot,_isFromCrafting,slot,true);
-        }
-
-        private void EquippedItemSlotOff()
-        {
-            _equippedItemSlot = -1;
-            _equippedItem.gameObject.SetActive(false);
-            
-            //次に持っているアイテムの表示をオンにすると前回の場所で一瞬表示されてしまうので、見えない位置に移動させておく
-            _equippedItem.GetComponent<RectTransform>().anchoredPosition = new Vector2(-100, -100);
         }
 
         /// <summary>
@@ -132,6 +123,20 @@ namespace MainGame.Control.UI.Inventory
             //アイテムを全部おく
             _mainInventoryCraftInventoryItemMoveService.MoveAllItemStack(fromSlot, fromIsCrafting, toSlot, toIsCrafting);
             EquippedItemSlotOff();
+        }
+        
+
+        private void EquippedItemSlotOff()
+        {
+            _equippedItemSlot = -1;
+            _equippedItem.gameObject.SetActive(false);
+            
+            //次に持っているアイテムの表示をオンにすると前回の場所で一瞬表示されてしまうので、見えない位置に移動させておく
+            _equippedItem.GetComponent<RectTransform>().anchoredPosition = new Vector2(-100, -100);
+
+            //全部置くときだけアイテムの「持つ」が終了したため、アイテムの非表示を元に戻す
+            _mainInventoryItemView.ItemUnequipped();
+            _craftingInventoryItemView.ItemUnequipped();
         }
     }
 }

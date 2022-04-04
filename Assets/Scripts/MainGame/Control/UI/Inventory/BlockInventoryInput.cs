@@ -65,14 +65,14 @@ namespace MainGame.Control.UI.Inventory
                 _blockInventoryEquippedItemImageSet.gameObject.SetActive(true);
                 
                 
-                //クリックしたアイテムを「持つ」ために、もとのスロットを非表示にする
+                //クリックしたアイテムを「持つ」ために、もとのスロットを非表示にする必要があるため、ItemEquippedを発火する
                 if (IsBlock(slot,out var clickedBlockSlot))
                 {
-                    _blockInventoryItemView.BlockInventoryUpdate(clickedBlockSlot, ItemConstant.NullItemId, ItemConstant.NullItemCount);
+                    _blockInventoryItemView.ItemEquipped(clickedBlockSlot);
                 }
                 else
                 {
-                    _mainInventoryItemView.OnInventoryUpdate(slot, ItemConstant.NullItemId, ItemConstant.NullItemCount);
+                    _mainInventoryItemView.ItemEquipped(slot);
                 }
                 
                 return;
@@ -82,6 +82,7 @@ namespace MainGame.Control.UI.Inventory
             var fromIsBlock = false;
             var toSlot = slot;
             var toIsBlock = false;
+            
             //slot数がプレイヤーインベントリのslot数よりも多いときはブロックないのインベントリと判断する
             if (IsBlock(fromSlot,out var blockSlot))
             {
@@ -112,6 +113,11 @@ namespace MainGame.Control.UI.Inventory
             _blockInventoryMainInventoryItemMoveService.MoveAllItemStack(fromSlot,fromIsBlock,toSlot,toIsBlock);
             _equippedItemIndex = -1;
             _blockInventoryEquippedItemImageSet.gameObject.SetActive(false);
+            
+            
+            //全部置くときだけアイテムの「持つ」が終了したため、アイテムの非表示を元に戻す
+            _blockInventoryItemView.ItemUnequipped();
+            _mainInventoryItemView.ItemUnequipped();
         }
         
         private bool IsSlotEmpty(int slot)

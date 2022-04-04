@@ -48,12 +48,6 @@ namespace MainGame.UnityView.UI.Inventory.View
                 countText.text = count.ToString();
             }
         }
-        
-        public void CopyItem(InventoryItemSlot other)
-        {
-            image.sprite = other.image.sprite;
-            countText.text = other.countText.text;
-        }
 
         public void SubscribeOnItemSlotClick(OnItemSlotClicked onItemSlotClicked)
         {

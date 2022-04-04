@@ -1,6 +1,8 @@
 ﻿using MainGame.Basic;
+using MainGame.GameLogic.Inventory;
 using MainGame.Network.Event;
 using MainGame.UnityView;
+using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -15,15 +17,18 @@ namespace MainGame.Control.UI.Inventory
         private InventoryItemSlot _equippedItem;
         private int _equippedItemIndex = 0;
         
-        private BlockInventoryItemView _blockInventoryItemView;
+        private BlockInventoryDataCache _blockInventoryDataCache;
+
+        private ItemImages _itemImages;
         
         
         [Inject]
-        public void Construct(BlockInventoryItemView blockInventoryItemView, IMainInventoryUpdateEvent mainInventoryUpdateEvent,
-            IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
+        public void Construct(BlockInventoryDataCache blockInventoryDataCache, IMainInventoryUpdateEvent mainInventoryUpdateEvent,
+            IBlockInventoryUpdateEvent blockInventoryUpdateEvent, ItemImages itemImages)
         {
-            _blockInventoryItemView = blockInventoryItemView;
+            _blockInventoryDataCache = blockInventoryDataCache;
             _equippedItem = GetComponent<InventoryItemSlot>();
+            _itemImages = itemImages;
             
             mainInventoryUpdateEvent.Subscribe(p=>{},MainInventorySlotUpdate);
             blockInventoryUpdateEvent.Subscribe(BlockInventorySlotUpdate,p => {});
@@ -56,8 +61,8 @@ namespace MainGame.Control.UI.Inventory
         {
             MainThreadExecutionQueue.Instance.Insert(() =>
             {
-                var fromItem = _blockInventoryItemView.GetOpenedInventoryItemSlot(slot);
-                _equippedItem.CopyItem(fromItem);
+                var fromItem = _blockInventoryDataCache.GetItemStack(slot);
+                _equippedItem.SetItem(_itemImages.GetItemViewData(fromItem.ID),fromItem.Count);
             });
         }
     }
