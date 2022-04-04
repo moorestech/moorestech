@@ -128,15 +128,26 @@ namespace MainGame.Control.UI.Inventory
 
         private void EquippedItemSlotOff()
         {
+            //全部置くときだけアイテムの「持つ」が終了したため、アイテムの非表示を元に戻す
+            _mainInventoryItemView.ItemUnequipped();
+            _craftingInventoryItemView.ItemUnequipped();
+            
+            if (_isFromCrafting)
+            {
+                var item = _craftingInventoryDataCache.GetItemStack(_equippedItemSlot);
+                _craftingInventoryItemView.OnInventoryUpdate(_equippedItemSlot,item);
+            }
+            else
+            {
+                var item = _mainInventoryDataCache.GetItemStack(_equippedItemSlot);
+                _mainInventoryItemView.OnInventoryUpdate(_equippedItemSlot,item.ID,item.Count);
+            }
+            
             _equippedItemSlot = -1;
             _equippedItem.gameObject.SetActive(false);
             
             //次に持っているアイテムの表示をオンにすると前回の場所で一瞬表示されてしまうので、見えない位置に移動させておく
             _equippedItem.GetComponent<RectTransform>().anchoredPosition = new Vector2(-100, -100);
-
-            //全部置くときだけアイテムの「持つ」が終了したため、アイテムの非表示を元に戻す
-            _mainInventoryItemView.ItemUnequipped();
-            _craftingInventoryItemView.ItemUnequipped();
         }
     }
 }

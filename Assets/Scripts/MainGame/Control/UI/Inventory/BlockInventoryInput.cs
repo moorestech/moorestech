@@ -110,14 +110,25 @@ namespace MainGame.Control.UI.Inventory
             }
             
             //アイテムを全部おく
-            _blockInventoryMainInventoryItemMoveService.MoveAllItemStack(fromSlot,fromIsBlock,toSlot,toIsBlock);
-            _equippedItemIndex = -1;
-            _blockInventoryEquippedItemImageSet.gameObject.SetActive(false);
             
+            if (IsBlock(_equippedItemIndex,out blockSlot))
+            {
+                var item = _blockInventoryDataCache.GetItemStack(blockSlot);
+                _blockInventoryItemView.BlockInventoryUpdate(blockSlot,item.ID,item.Count);
+            }
+            else
+            {
+                var item = _mainInventoryDataCache.GetItemStack(_equippedItemIndex);
+                _mainInventoryItemView.OnInventoryUpdate(_equippedItemIndex,item.ID,item.Count);
+            }
             
             //全部置くときだけアイテムの「持つ」が終了したため、アイテムの非表示を元に戻す
             _blockInventoryItemView.ItemUnequipped();
             _mainInventoryItemView.ItemUnequipped();
+            
+            _blockInventoryMainInventoryItemMoveService.MoveAllItemStack(fromSlot,fromIsBlock,toSlot,toIsBlock);
+            _equippedItemIndex = -1;
+            _blockInventoryEquippedItemImageSet.gameObject.SetActive(false);
         }
         
         private bool IsSlotEmpty(int slot)
