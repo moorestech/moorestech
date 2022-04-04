@@ -56,25 +56,6 @@ namespace MainGame.Control.UI.Inventory
             }
         }
 
-
-        //クラフトインベントリのボタンがクリックされた時に呼び出される
-        private void OnCraftSlotClick(int slot)
-        {
-            if (_equippedItemSlot == -1)
-            {
-                //スロットがからの時はそのまま処理を終了
-                var slotEmpty = _craftingInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
-                if (slotEmpty)return;
-
-                _isFromCrafting = true;
-                _equippedItemSlot = slot;
-                _equippedItem.gameObject.SetActive(true);
-                _equippedItem.SetEquippedCraftItemSlot(slot);
-                return;
-            }
-            MoveItem(_equippedItemSlot,_isFromCrafting,slot,true);
-        }
-        
         //メインインベントリのボタンがクリックされた時に呼び出される
         private void OnMainSlotClick(int slot)
         {
@@ -88,10 +69,36 @@ namespace MainGame.Control.UI.Inventory
                 _equippedItemSlot = slot;
                 _equippedItem.gameObject.SetActive(true);
                 _equippedItem.SetEquippedMainItemSlot(slot);
+                
+                //クリックしたアイテムを「持つ」ために、もとのスロットを非表示にする
+                _mainInventoryItemView.OnInventoryUpdate(slot,ItemConstant.NullItemId,ItemConstant.NullItemCount);
+                
                 return;
             }
 
             MoveItem(_equippedItemSlot,_isFromCrafting,slot,false);
+        }
+        
+        //クラフトインベントリのボタンがクリックされた時に呼び出される
+        private void OnCraftSlotClick(int slot)
+        {
+            if (_equippedItemSlot == -1)
+            {
+                //スロットがからの時はそのまま処理を終了
+                var slotEmpty = _craftingInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
+                if (slotEmpty)return;
+
+                _isFromCrafting = true;
+                _equippedItemSlot = slot;
+                _equippedItem.gameObject.SetActive(true);
+                _equippedItem.SetEquippedCraftItemSlot(slot);
+                
+                //クリックしたアイテムを「持つ」ために、もとのスロットを非表示にする
+                _craftingInventoryItemView.OnInventoryUpdate(slot,new ItemStack(ItemConstant.NullItemId));
+                
+                return;
+            }
+            MoveItem(_equippedItemSlot,_isFromCrafting,slot,true);
         }
 
         private void EquippedItemSlotOff()

@@ -10,7 +10,7 @@ namespace Test.TestModule.UI
 {
     public class InventoryViewTestModule : MonoBehaviour
     {
-        [SerializeField] private MainInventoryItemView mainInventoryItemView;
+        [SerializeField] public MainInventoryItemView mainInventoryItemView;
         [SerializeField] private CraftingInventoryItemView craftingInventoryItemView;
         [SerializeField] private HotBarItemView hotBarItemView;
         [SerializeField] private ItemImages itemImages;
