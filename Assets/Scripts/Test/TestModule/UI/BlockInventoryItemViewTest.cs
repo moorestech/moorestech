@@ -41,7 +41,7 @@ namespace Test.TestModule.UI
                 new SendMainInventoryMoveItemProtocol(new TestSocketModule(),playerConnection));
 
             blockInventoryInput.Construct(blockInventoryItemView,itemMove,blockInventory,blockInventoryEquippedItemImageSet,playerInventory,mainInventoryView);
-            blockInventoryEquippedItemImageSet.Construct(blockInventory,new MainInventoryUpdateEvent(),new BlockInventoryUpdateEvent(),itemImages);
+            blockInventoryEquippedItemImageSet.Construct(blockInventory,new MainInventoryUpdateEvent(),new BlockInventoryUpdateEvent(),itemImages,null);
             
             //プレイヤーインベントリのアイテム設定
             

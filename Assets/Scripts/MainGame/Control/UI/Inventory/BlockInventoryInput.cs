@@ -60,18 +60,19 @@ namespace MainGame.Control.UI.Inventory
                 if (IsSlotEmpty(slot))return;
                 
                 _equippedItemIndex = slot;
-                //アイテムをクリックしたときに追従する画像の設定
-                _blockInventoryEquippedItemImageSet.SetEquippedItemIndex(slot);
                 _blockInventoryEquippedItemImageSet.gameObject.SetActive(true);
                 
                 
                 //クリックしたアイテムを「持つ」ために、もとのスロットを非表示にする必要があるため、ItemEquippedを発火する
+                //アイテムをクリックしたときに追従する画像の設定
                 if (IsBlock(slot,out var clickedBlockSlot))
                 {
+                    _blockInventoryEquippedItemImageSet.SetBlockEquippedItemIndex(clickedBlockSlot);
                     _blockInventoryItemView.ItemEquipped(clickedBlockSlot);
                 }
                 else
                 {
+                    _blockInventoryEquippedItemImageSet.SetMainEquippedItemIndex(slot);
                     _mainInventoryItemView.ItemEquipped(slot);
                 }
                 

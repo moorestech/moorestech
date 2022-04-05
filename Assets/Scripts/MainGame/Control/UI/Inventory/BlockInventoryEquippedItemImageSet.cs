@@ -18,17 +18,19 @@ namespace MainGame.Control.UI.Inventory
         private int _equippedItemIndex = 0;
         
         private BlockInventoryDataCache _blockInventoryDataCache;
+        private MainInventoryDataCache _mainInventoryDataCache;
 
         private ItemImages _itemImages;
         
         
         [Inject]
         public void Construct(BlockInventoryDataCache blockInventoryDataCache, IMainInventoryUpdateEvent mainInventoryUpdateEvent,
-            IBlockInventoryUpdateEvent blockInventoryUpdateEvent, ItemImages itemImages)
+            IBlockInventoryUpdateEvent blockInventoryUpdateEvent, ItemImages itemImages,MainInventoryDataCache mainInventoryDataCache)
         {
             _blockInventoryDataCache = blockInventoryDataCache;
             _equippedItem = GetComponent<InventoryItemSlot>();
             _itemImages = itemImages;
+            _mainInventoryDataCache = mainInventoryDataCache;
             
             mainInventoryUpdateEvent.Subscribe(p=>{},MainInventorySlotUpdate);
             blockInventoryUpdateEvent.Subscribe(BlockInventorySlotUpdate,p => {});
@@ -39,7 +41,7 @@ namespace MainGame.Control.UI.Inventory
         private void MainInventorySlotUpdate(MainInventorySlotUpdateProperties properties)
         {
             if (properties.SlotId != _equippedItemIndex) return;
-            SetItem(properties.SlotId);
+            SetItem(_mainInventoryDataCache.GetItemStack(properties.SlotId));
         }
         
         //ブロックインベントリが更新したときにequippedItemの更新を行うためにイベントを登録
@@ -47,22 +49,26 @@ namespace MainGame.Control.UI.Inventory
         {
             var blockSlot = properties.Slot + PlayerInventoryConstant.MainInventorySize;
             if (blockSlot != _equippedItemIndex) return;
-            SetItem(blockSlot);
+            SetItem(_blockInventoryDataCache.GetItemStack(blockSlot));
         }
 
-
-        public void SetEquippedItemIndex(int index)
+        public void SetMainEquippedItemIndex(int index)
         {
             _equippedItemIndex = index;
-            SetItem(index);
+            SetItem(_mainInventoryDataCache.GetItemStack(index));
         }
 
-        private void SetItem(int slot)
+        public void SetBlockEquippedItemIndex(int index)
+        {
+            _equippedItemIndex = index;
+            SetItem(_blockInventoryDataCache.GetItemStack(index));
+        }
+
+        private void SetItem(ItemStack itemStack)
         {
             MainThreadExecutionQueue.Instance.Insert(() =>
             {
-                var fromItem = _blockInventoryDataCache.GetItemStack(slot);
-                _equippedItem.SetItem(_itemImages.GetItemViewData(fromItem.ID),fromItem.Count);
+                _equippedItem.SetItem(_itemImages.GetItemViewData(itemStack.ID),itemStack.Count);
             });
         }
     }
