@@ -58,7 +58,7 @@
       "type": "Miner",
       "itemId": 17,
       "param": {
-        "requiredPower": 100,
+        "requiredPower": 0,
         "outputSlot": 3,
         "oreSetting": [
           {
