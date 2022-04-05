@@ -13,6 +13,8 @@ namespace MainGame.UnityView.UI.Inventory.View
         private ItemImages _itemImages;
         
         
+        private int _equippedItemIndex = -1;
+        
         [Inject]
         public void Construct(ItemImages itemImages)
         {
@@ -22,8 +24,24 @@ namespace MainGame.UnityView.UI.Inventory.View
 
         public void OnInventoryUpdate(int slot, int itemId, int count)
         {
+            if (_equippedItemIndex == slot)
+            {
+                return;
+            }
+            
             var sprite = _itemImages.GetItemViewData(itemId);
             _slots[slot].SetItem(sprite,count);
+        }
+        
+        public void ItemEquipped(int slot)
+        {
+            _equippedItemIndex = slot;
+            _slots[slot].SetItem(_itemImages.GetItemViewData(0),0);
+        }
+        
+        public void ItemUnequipped()
+        {
+            _equippedItemIndex = -1;
         }
         
         public IReadOnlyList<InventoryItemSlot> GetInventoryItemSlots()

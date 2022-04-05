@@ -14,7 +14,11 @@ namespace MainGame.Control.UI.Inventory
         private BlockInventoryItemView _blockInventoryItemView;
         private BlockInventoryMainInventoryItemMoveService _blockInventoryMainInventoryItemMoveService;
         private BlockInventoryDataCache _blockInventoryDataCache;
+        
         private MainInventoryDataCache _mainInventoryDataCache;
+        private MainInventoryItemView _mainInventoryItemView;
+        
+        
         private BlockInventoryEquippedItemImageSet _blockInventoryEquippedItemImageSet;
         
         private MoorestechInputSettings _inputSettings;
@@ -26,13 +30,14 @@ namespace MainGame.Control.UI.Inventory
             BlockInventoryItemView blockInventoryItemView,
             BlockInventoryMainInventoryItemMoveService blockInventoryMainInventoryItemMoveService,
             BlockInventoryDataCache blockInventoryDataCache,
-            BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet,MainInventoryDataCache mainInventoryDataCache)
+            BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet,MainInventoryDataCache mainInventoryDataCache,MainInventoryItemView mainInventoryItemView)
         {
             _blockInventoryItemView = blockInventoryItemView;
             _blockInventoryMainInventoryItemMoveService = blockInventoryMainInventoryItemMoveService;
             _blockInventoryDataCache = blockInventoryDataCache;
             _blockInventoryEquippedItemImageSet = blockInventoryEquippedItemImageSet;
             _mainInventoryDataCache = mainInventoryDataCache;
+            _mainInventoryItemView = mainInventoryItemView;
 
             _blockInventoryEquippedItemImageSet.gameObject.SetActive(false);
             _inputSettings = new();
@@ -58,6 +63,18 @@ namespace MainGame.Control.UI.Inventory
                 //アイテムをクリックしたときに追従する画像の設定
                 _blockInventoryEquippedItemImageSet.SetEquippedItemIndex(slot);
                 _blockInventoryEquippedItemImageSet.gameObject.SetActive(true);
+                
+                
+                //クリックしたアイテムを「持つ」ために、もとのスロットを非表示にする必要があるため、ItemEquippedを発火する
+                if (IsBlock(slot,out var clickedBlockSlot))
+                {
+                    _blockInventoryItemView.ItemEquipped(clickedBlockSlot);
+                }
+                else
+                {
+                    _mainInventoryItemView.ItemEquipped(slot);
+                }
+                
                 return;
             }
 
@@ -65,15 +82,16 @@ namespace MainGame.Control.UI.Inventory
             var fromIsBlock = false;
             var toSlot = slot;
             var toIsBlock = false;
+            
             //slot数がプレイヤーインベントリのslot数よりも多いときはブロックないのインベントリと判断する
-            if (PlayerInventoryConstant.MainInventorySize <= fromSlot)
+            if (IsBlock(fromSlot,out var blockSlot))
             {
-                fromSlot -= PlayerInventoryConstant.MainInventorySize;
+                fromSlot = blockSlot;
                 fromIsBlock = true;
             }
-            if (PlayerInventoryConstant.MainInventorySize <= toSlot)
+            if (IsBlock(toSlot,out blockSlot))
             {
-                toSlot -= PlayerInventoryConstant.MainInventorySize;
+                toSlot = blockSlot;
                 toIsBlock = true;
             }
             
@@ -92,6 +110,22 @@ namespace MainGame.Control.UI.Inventory
             }
             
             //アイテムを全部おく
+            
+            if (IsBlock(_equippedItemIndex,out blockSlot))
+            {
+                var item = _blockInventoryDataCache.GetItemStack(blockSlot);
+                _blockInventoryItemView.BlockInventoryUpdate(blockSlot,item.ID,item.Count);
+            }
+            else
+            {
+                var item = _mainInventoryDataCache.GetItemStack(_equippedItemIndex);
+                _mainInventoryItemView.OnInventoryUpdate(_equippedItemIndex,item.ID,item.Count);
+            }
+            
+            //全部置くときだけアイテムの「持つ」が終了したため、アイテムの非表示を元に戻す
+            _blockInventoryItemView.ItemUnequipped();
+            _mainInventoryItemView.ItemUnequipped();
+            
             _blockInventoryMainInventoryItemMoveService.MoveAllItemStack(fromSlot,fromIsBlock,toSlot,toIsBlock);
             _equippedItemIndex = -1;
             _blockInventoryEquippedItemImageSet.gameObject.SetActive(false);
@@ -105,6 +139,18 @@ namespace MainGame.Control.UI.Inventory
                 return _blockInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
             }
             return _mainInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
+        }
+
+        private bool IsBlock(int slot, out int blockSlot)
+        {
+            if (PlayerInventoryConstant.MainInventorySize <= slot)
+            {
+                blockSlot = slot - PlayerInventoryConstant.MainInventorySize;
+                return true;
+            }
+
+            blockSlot = slot;
+            return false;
         }
     }
 }

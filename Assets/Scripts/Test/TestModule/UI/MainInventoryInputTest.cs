@@ -41,7 +41,7 @@ namespace Test.TestModule.UI
                 mainInventoryDataCache,craftingInventoryDataCache,
                 sendMain,sendCraft,sendCraftMain);
             
-            playerInventoryEquippedItemImageSet.Construct(mainInventoryItem,craftingInventoryItem,new MainInventoryUpdateEvent(),new CraftingInventoryUpdateEvent());
+            playerInventoryEquippedItemImageSet.Construct(mainInventoryDataCache,craftingInventoryDataCache,new MainInventoryUpdateEvent(),new CraftingInventoryUpdateEvent(),null);
             playerInventoryInput.Construct(playerInventoryEquippedItemImageSet,itemMove,
             mainInventoryItem,mainInventoryDataCache,craftingInventoryItem, craftingInventoryDataCache);
         }

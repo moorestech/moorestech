@@ -18,6 +18,7 @@
           "Microsoft.Extensions.DependencyInjection": "6.0.0",
           "Server.Event": "1.0.0",
           "Server.Protocol": "1.0.0",
+          "Server.StartServerSystem": "1.0.0",
           "Server.Util": "1.0.0"
         },
         "runtime": {
@@ -586,6 +587,20 @@
           "Server.Protocol.dll": {}
         }
       },
+      "Server.StartServerSystem/1.0.0": {
+        "dependencies": {
+          "Game.Crafting": "1.0.0",
+          "Game.Crafting.Interface": "1.0.0",
+          "Game.PlayerInventory": "1.0.0",
+          "Game.SaveLoad": "1.0.0",
+          "Game.World": "1.0.0",
+          "Game.World.EventHandler": "1.0.0",
+          "Server.Protocol": "1.0.0"
+        },
+        "runtime": {
+          "Server.StartServerSystem.dll": {}
+        }
+      },
       "Server.Util/1.0.0": {
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection": "6.0.0"
@@ -976,6 +991,11 @@
       "sha512": ""
     },
     "Server.Protocol/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Server.StartServerSystem/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

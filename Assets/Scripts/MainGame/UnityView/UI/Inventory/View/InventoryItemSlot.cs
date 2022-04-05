@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace MainGame.UnityView.UI.Inventory.View
 {
-    public class InventoryItemSlot: MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
+    public class InventoryItemSlot: MonoBehaviour,IPointerEnterHandler,IPointerExitHandler,IPointerDownHandler
     {
         private const string EmptyItemName = "EmptyItem";
         
@@ -23,10 +23,10 @@ namespace MainGame.UnityView.UI.Inventory.View
         
         [SerializeField] private ItemNameText itemNameText;
         
-        [SerializeField]
-        private Button button;
+        
         private int _slotIndex = -1;
         private string _itemName = EmptyItemName;
+        private event OnItemSlotClicked ItemSlotClickedEvent;
         
         public void Construct(int slotIndex)
         {
@@ -48,16 +48,18 @@ namespace MainGame.UnityView.UI.Inventory.View
                 countText.text = count.ToString();
             }
         }
-        
-        public void CopyItem(InventoryItemSlot other)
-        {
-            image.sprite = other.image.sprite;
-            countText.text = other.countText.text;
-        }
 
         public void SubscribeOnItemSlotClick(OnItemSlotClicked onItemSlotClicked)
         {
-            button.onClick.AddListener(() => onItemSlotClicked(_slotIndex));
+            ItemSlotClickedEvent += onItemSlotClicked;
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (eventData.pointerId == 2)
+            {
+                ItemSlotClickedEvent?.Invoke(_slotIndex);
+            }
         }
 
         public void OnPointerEnter(PointerEventData eventData)

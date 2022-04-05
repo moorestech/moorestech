@@ -18,8 +18,9 @@ namespace MainGame.UnityView.UI.Inventory.View
         
         List<InventoryItemSlot> _slots;
         private ItemImages _itemImages;
-
-
+        
+        private int _equippedItemIndex = -1;
+        
         [Inject]
         public void Construct(ItemImages itemImages)
         {
@@ -28,8 +29,24 @@ namespace MainGame.UnityView.UI.Inventory.View
 
         public void OnInventoryUpdate(int slot, ItemStack item)
         {
+            if (_equippedItemIndex == slot)
+            {
+                return;
+            }
             var itemViewData = _itemImages.GetItemViewData(item.ID);
             _slots[slot].SetItem(itemViewData,item.Count);
+        }
+        
+        
+        public void ItemEquipped(int slot)
+        {
+            _equippedItemIndex = slot;
+            _slots[slot].SetItem(_itemImages.GetItemViewData(0),0);
+        }
+        
+        public void ItemUnequipped()
+        {
+            _equippedItemIndex = -1;
         }
 
         public void SetResultItem(ItemStack resultItem, bool canCraft)

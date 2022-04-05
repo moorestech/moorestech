@@ -1,5 +1,7 @@
-﻿using MainGame.Network.Event;
+﻿using MainGame.GameLogic.Inventory;
+using MainGame.Network.Event;
 using MainGame.UnityView;
+using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -15,17 +17,21 @@ namespace MainGame.Control.UI.Inventory
         private int _equippedItemIndex = 0;
         private bool _isCraftingInventory = false;
         
-        private MainInventoryItemView _mainInventoryItemView;
-        private CraftingInventoryItemView _craftingInventoryItemView;
+        private MainInventoryDataCache _mainInventoryDataCache;
+        private CraftingInventoryDataCache _craftingInventoryDataCache;
+
+        private ItemImages _itemImages;
+        
         
         [Inject]
-        public void Construct(MainInventoryItemView mainInventoryItemView,CraftingInventoryItemView craftingInventoryItemView,
-            IMainInventoryUpdateEvent mainInventoryUpdateEvent,ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent)
+        public void Construct(MainInventoryDataCache mainInventoryDataCache,CraftingInventoryDataCache craftingInventoryDataCache,
+            IMainInventoryUpdateEvent mainInventoryUpdateEvent,ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent,ItemImages itemImages)
         {
-            _mainInventoryItemView = mainInventoryItemView;
-            _craftingInventoryItemView = craftingInventoryItemView;
+            _mainInventoryDataCache = mainInventoryDataCache;
+            _craftingInventoryDataCache = craftingInventoryDataCache;
             _equippedItem = GetComponent<InventoryItemSlot>();
             
+            _itemImages = itemImages;
             
             //equippedItemの更新を行うためにイベントを登録
             mainInventoryUpdateEvent.Subscribe(MainInventoryUpdate,MainInventorySlotUpdate);
@@ -63,8 +69,8 @@ namespace MainGame.Control.UI.Inventory
         }
         private void SetMainItem(int slot)
         {
-            var fromItem = _mainInventoryItemView.GetInventoryItemSlots()[slot];
-            _equippedItem.CopyItem(fromItem);
+            var fromItem = _mainInventoryDataCache.GetItemStack(slot);
+            _equippedItem.SetItem(_itemImages.GetItemViewData(fromItem.ID),fromItem.Count);
         }
 
         
@@ -77,8 +83,8 @@ namespace MainGame.Control.UI.Inventory
 
         private void SetCraftItem(int slot)
         {
-            var fromItem = _craftingInventoryItemView.GetInventoryItemSlots()[slot];
-            _equippedItem.CopyItem(fromItem);
+            var fromItem = _craftingInventoryDataCache.GetItemStack(slot);
+            _equippedItem.SetItem(_itemImages.GetItemViewData(fromItem.ID),fromItem.Count);
         }
     }
 }
