@@ -4,6 +4,7 @@ using Core.Block.BlockFactory;
 using Core.Block.Blocks.PowerGenerator;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
+using Core.Inventory;
 using Core.Item;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -36,12 +37,11 @@ namespace Test.UnitTest.Game.SaveLoad
                 .SetValue(powerGenerator, fuelItemId);
             type.GetField("_remainingFuelTime", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(powerGenerator, remainingFuelTime);
-            var fuelItemStacks = (List<IItemStack>) type
-                .GetField("_fuelItemStacks", BindingFlags.NonPublic | BindingFlags.Instance)
+            var fuelItemStacks = (OpenableInventoryItemDataStoreService) type
+                .GetField("_itemDataStoreService", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(powerGenerator);
-            fuelItemStacks[0] = itemStackFactory.Create(1, 5);
-            fuelItemStacks[2] = itemStackFactory.Create(3, 5);
-
+            fuelItemStacks.SetItem(0,itemStackFactory.Create(1, 5));
+            fuelItemStacks.SetItem(2,itemStackFactory.Create(3 ,5));
             //セーブのテキストを取得
             var saveText = powerGenerator.GetSaveState();
 
@@ -55,15 +55,15 @@ namespace Test.UnitTest.Game.SaveLoad
                 .GetField("_remainingFuelTime", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadedPowerGenerator);
             Assert.AreEqual(remainingFuelTime, loadedRemainingFuelTime);
-            var loadedFuelItemStacks = (List<IItemStack>) type
-                .GetField("_fuelItemStacks", BindingFlags.NonPublic | BindingFlags.Instance)
+            var loadedFuelItemStacks = (OpenableInventoryItemDataStoreService) type
+                .GetField("_itemDataStoreService", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadedPowerGenerator);
 
             //燃料スロットの検証
-            Assert.AreEqual(fuelItemStacks.Count, loadedFuelItemStacks.Count);
+            Assert.AreEqual(fuelItemStacks.GetSlotSize(), loadedFuelItemStacks.GetSlotSize());
             for (int i = 0; i < fuelSlotCount; i++)
             {
-                Assert.AreEqual(fuelItemStacks[i], loadedFuelItemStacks[i]);
+                Assert.AreEqual(fuelItemStacks.Inventory[i], loadedFuelItemStacks.Inventory[i]);
             }
         }
     }
