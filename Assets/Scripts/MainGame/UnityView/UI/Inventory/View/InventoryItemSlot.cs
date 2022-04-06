@@ -70,9 +70,8 @@ namespace MainGame.UnityView.UI.Inventory.View
             }
         }
 
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            itemNameText.SetActive(false);
-        }
+        public void OnPointerExit(PointerEventData eventData) { itemNameText.SetActive(false); }
+
+        private void OnDisable() { itemNameText.SetActive(false); }
     }
 }
