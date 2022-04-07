@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PlayerInventory;
 using Server.Event;
 using Server.PacketHandle;
+using Server.Protocol;
 using World;
 using World.Event;
 
@@ -58,7 +59,13 @@ namespace Server
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine("StackTrace");
+                Console.WriteLine(e.StackTrace);
+                
+                Console.WriteLine();
+                Console.WriteLine("Message");
+                
+                Console.WriteLine(e.Message);
                 Console.ReadKey();
             }
         }

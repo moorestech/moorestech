@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
@@ -14,12 +15,19 @@ namespace Core.Item.Config
 
         public ItemConfig(ConfigPath configPath)
         {
-            var json = File.ReadAllText(configPath.ItemConfigPath);
-            var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
-            ms.Seek(0, SeekOrigin.Begin);
-            var serializer = new DataContractJsonSerializer(typeof(ItemJson));
-            var data = serializer.ReadObject(ms) as ItemJson;
-            _itemDatas = data.Items;
+            try
+            {
+                var json = File.ReadAllText(configPath.ItemConfigPath);
+                var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
+                ms.Seek(0, SeekOrigin.Begin);
+                var serializer = new DataContractJsonSerializer(typeof(ItemJson));
+                var data = serializer.ReadObject(ms) as ItemJson;
+                _itemDatas = data.Items;
+            }
+            catch (SerializationException e)
+            {
+                throw new Exception($"{e} \n\n {configPath.ItemConfigPath} のロードでエラーが発生しました。\n JSONの構造が正しいか確認してください。");
+            }
         }
 
         public ItemConfigData GetItemConfig(int id)
