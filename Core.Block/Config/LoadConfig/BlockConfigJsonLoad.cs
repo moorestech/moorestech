@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using Core.Block.Config.LoadConfig.ConfigParamGenerator;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Const;
@@ -20,9 +22,16 @@ namespace Core.Block.Config.LoadConfig
 
         public Dictionary<int, BlockConfigData> LoadJsonFromPath(string jsonPath)
         {
-            //JSONファイルを読み込む
-            var json = File.ReadAllText(jsonPath);
-            return LoadJsonFromText(json);
+            try
+            {
+                //JSONファイルを読み込む
+                var json = File.ReadAllText(jsonPath);
+                return LoadJsonFromText(json);
+            }
+            catch (SerializationException e)
+            {
+                throw new Exception($"{e} \n\n {jsonPath} のロードでエラーが発生しました。\n JSONの構造が正しいか確認してください。");
+            }
         }
 
         public Dictionary<int, BlockConfigData> LoadJsonFromText(string jsonText)
