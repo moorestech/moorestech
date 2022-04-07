@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -12,11 +13,19 @@ namespace Core.Block.RecipeConfig
 {
     internal class MachineRecipeJsonLoad
     {
-        public MachineRecipeJsonLoad()
+        internal List<IMachineRecipeData> LoadConfig(ItemStackFactory itemStackFactory,string configPath)
         {
+            try
+            {
+                return Load(itemStackFactory, configPath);
+            }
+            catch (SerializationException e)
+            {
+                throw new Exception($"{e} \n\n {configPath} のロードでエラーが発生しました。\n JSONの構造が正しいか確認してください。");
+            }
         }
 
-        internal List<IMachineRecipeData> LoadConfig(ItemStackFactory itemStackFactory,string configPath)
+        private List<IMachineRecipeData> Load(ItemStackFactory itemStackFactory,string configPath)
         {
             //JSONデータの読み込み
             var json = File.ReadAllText(configPath);
