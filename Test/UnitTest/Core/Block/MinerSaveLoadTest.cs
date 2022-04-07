@@ -23,7 +23,7 @@ namespace Test.UnitTest.Core.Block
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var originalMiner = blockFactory.Create(MinerId, 1);
-            double originalRemainingMillSecond = 350;
+            int originalRemainingMillSecond = 350;
             
             var outputSlot = 
                 (List<IItemStack>)typeof(VanillaMiner).
@@ -45,7 +45,7 @@ namespace Test.UnitTest.Core.Block
                     GetField("_outputSlot", BindingFlags.Instance | BindingFlags.NonPublic).
                     GetValue(loadedMiner);
             var loadedRemainingMillSecond = 
-                (double)typeof(VanillaMiner).
+                (int)typeof(VanillaMiner).
                     GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic).
                     GetValue(loadedMiner);
             
