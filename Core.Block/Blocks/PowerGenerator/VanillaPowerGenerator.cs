@@ -126,15 +126,9 @@ namespace Core.Block.Blocks.PowerGenerator
         }
 
 
-        public void AddOutputConnector(IBlockInventory blockInventory)
-        {
-            throw new Exception("発電機にアイテム出力スロットはありません");
-        }
-
-        public void RemoveOutputConnector(IBlockInventory blockInventory)
-        {
-            throw new Exception("発電機にアイテム出力スロットはありません");
-        }
+        //発電機は何かを出力したりしない
+        public void AddOutputConnector(IBlockInventory blockInventory) { }
+        public void RemoveOutputConnector(IBlockInventory blockInventory) { }
 
         public IItemStack GetItem(int slot) { return _itemDataStoreService.GetItem(slot);}
         public void SetItem(int slot, IItemStack itemStack) { _itemDataStoreService.SetItem(slot,itemStack); }
