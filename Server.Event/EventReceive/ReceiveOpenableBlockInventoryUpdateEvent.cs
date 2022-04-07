@@ -29,6 +29,7 @@ namespace Server.Event.EventReceive
 
         private void InventoryUpdateEvent(BlockOpenableInventoryUpdateEventProperties properties)
         {
+            Console.WriteLine("InventoryUpdateEvent " + properties.Slot);
             //そのブロックを開いているプレイヤーをリストアップ
             var playerIds = _inventoryOpenStateDataStore.GetBlockInventoryOpenPlayers(properties.EntityId);
             if (playerIds.Count == 0) return;

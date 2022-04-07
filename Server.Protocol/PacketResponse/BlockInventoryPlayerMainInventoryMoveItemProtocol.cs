@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item;
@@ -24,6 +25,7 @@ namespace Server.Protocol.PacketResponse
 
         public List<byte[]> GetResponse(List<byte> payload)
         {
+            
             var byteListEnumerator = new ByteListEnumerator(payload);
             byteListEnumerator.MoveNextToGetShort();
             var flag = byteListEnumerator.MoveNextToGetShort();
@@ -33,6 +35,7 @@ namespace Server.Protocol.PacketResponse
             var blockY = byteListEnumerator.MoveNextToGetInt();
             var blockInventorySlot = byteListEnumerator.MoveNextToGetInt();
             var moveItemCount = byteListEnumerator.MoveNextToGetInt();
+            Console.WriteLine("BlockInventoryPlayerMainInventoryMoveItemProtocol " + blockInventorySlot);
 
             var blockInventory = (IOpenableInventory) _worldBlockDatastore.GetBlock(blockX, blockY);
             var playerMainInventory = _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory;

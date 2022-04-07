@@ -19,11 +19,9 @@ namespace Core.Block.Blocks.Chest
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
-        private readonly int _slotSize;
 
         public VanillaChest(int blockId,int entityId,int slotNum, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate)
         {
-            _slotSize = slotNum;
             _blockInventoryUpdate = blockInventoryUpdate;
             _entityId = entityId;
             _blockId = blockId;
@@ -49,7 +47,7 @@ namespace Core.Block.Blocks.Chest
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
-                _entityId, slot + _slotSize, itemStack));
+                _entityId, slot, itemStack));
         }
 
         public void AddOutputConnector(IBlockInventory blockInventory)
@@ -101,7 +99,7 @@ namespace Core.Block.Blocks.Chest
 
         public IItemStack InsertItem(int itemId, int count) { return _itemDataStoreService.InsertItem(itemId, count); }
 
-        public int GetSlotSize() { return _slotSize; }
+        public int GetSlotSize() { return _itemDataStoreService.GetSlotSize(); }
 
         public IItemStack GetItem(int slot) { return _itemDataStoreService.GetItem(slot); }
         public int GetEntityId() { return _entityId; }
