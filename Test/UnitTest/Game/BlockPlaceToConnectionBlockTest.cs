@@ -8,6 +8,7 @@ using Core.Block.Blocks.Chest;
 using Core.Block.Blocks.Machine;
 using Core.Block.Blocks.Machine.Inventory;
 using Core.Block.Blocks.Machine.InventoryController;
+using Game.World.EventHandler;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,26 +38,26 @@ namespace Test.UnitTest.Game
 
             //北向きにベルトコンベアを設置した時、機械とつながるかをテスト
             var (blockEntityId, connectorEntityId) = BlockPlaceToGetMachineIdAndConnectorId(
-                10, 0,
-                9, 0, BlockDirection.North, blockFactory, world);
+                0, 10,
+                0, 9, BlockDirection.North, blockFactory, world);
             Assert.AreEqual(blockEntityId, connectorEntityId);
 
             //東向きにベルトコンベアを設置した時、機械とつながるかをテスト
             (blockEntityId, connectorEntityId) = BlockPlaceToGetMachineIdAndConnectorId(
-                0, 10,
-                0, 9, BlockDirection.East, blockFactory, world);
+                10, 0,
+                9, 0, BlockDirection.East, blockFactory, world);
             Assert.AreEqual(blockEntityId, connectorEntityId);
 
             //南向きにベルトコンベアを設置した時、機械とつながるかをテスト
             (blockEntityId, connectorEntityId) = BlockPlaceToGetMachineIdAndConnectorId(
-                -10, 0,
-                -9, 0, BlockDirection.South, blockFactory, world);
+                0, -10,
+                0, -9, BlockDirection.South, blockFactory, world);
             Assert.AreEqual(blockEntityId, connectorEntityId);
 
             //西向きにベルトコンベアを設置した時、機械とつながるかをテスト
             (blockEntityId, connectorEntityId) = BlockPlaceToGetMachineIdAndConnectorId(
-                0, -10,
-                0, -9, BlockDirection.West, blockFactory, world);
+                -10, 0,
+                -9, 0, BlockDirection.West, blockFactory, world);
             Assert.AreEqual(blockEntityId, connectorEntityId);
         }
 

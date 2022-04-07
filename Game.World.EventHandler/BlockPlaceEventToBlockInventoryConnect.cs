@@ -89,9 +89,9 @@ namespace Game.World.EventHandler
             var distanceY = destinationY - sourceY;
 
             //接続元ブロックに対応するアウトプット座標があるかチェック
-            if (!sourceBlockOutputConnector.Contains(new ConnectDirection(distanceX, distanceY))) return;
+            if (!sourceBlockOutputConnector.Contains(new ConnectDirection(distanceY, distanceX))) return;
             //接続先ブロックに対応するインプット座標があるかチェック
-            if (!destinationBlockInputConnector.Contains(new ConnectDirection(-distanceX, -distanceY))) return;
+            if (!destinationBlockInputConnector.Contains(new ConnectDirection(-distanceY,-distanceX))) return;
 
 
             //接続元ブロックと接続先ブロックを接続
