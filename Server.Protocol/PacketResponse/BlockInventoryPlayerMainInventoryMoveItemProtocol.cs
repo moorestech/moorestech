@@ -35,7 +35,6 @@ namespace Server.Protocol.PacketResponse
             var blockY = byteListEnumerator.MoveNextToGetInt();
             var blockInventorySlot = byteListEnumerator.MoveNextToGetInt();
             var moveItemCount = byteListEnumerator.MoveNextToGetInt();
-            Console.WriteLine("BlockInventoryPlayerMainInventoryMoveItemProtocol " + blockInventorySlot);
 
             var blockInventory = (IOpenableInventory) _worldBlockDatastore.GetBlock(blockX, blockY);
             var playerMainInventory = _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory;
