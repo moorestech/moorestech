@@ -4,6 +4,7 @@ using System.Reflection;
 using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.BeltConveyor;
+using Core.Block.Blocks.Chest;
 using Core.Block.Blocks.Machine;
 using Core.Block.Blocks.Machine.Inventory;
 using Core.Block.Blocks.Machine.InventoryController;
@@ -20,6 +21,7 @@ namespace Test.UnitTest.Game
     {
         const int MachineId = 1;
         const int BeltConveyorId = 3;
+        private const int ChestId = 7;
 
         /// <summary>
         /// 機械にベルトコンベアが自動でつながるかをテストする
@@ -139,5 +141,48 @@ namespace Test.UnitTest.Game
             //接続しているコネクターが消えているか確認
             Assert.AreEqual(0, connectInventory.Count);
         }
+
+
+
+        /// <summary>
+        /// ベルトコンベアを設置した後チェストを設置する
+        /// ベルトコンベアのコネクターが正しく設定されているかをチェックする
+        /// </summary>
+        [Test]
+        public void BeltConveyorToChestConnectTest()
+        {
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var world = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            
+            //チェストの設置
+            var vanillaChest = (VanillaChest) blockFactory.Create(ChestId, EntityId.NewEntityId());
+            world.AddBlock(vanillaChest, 0, 0, BlockDirection.North);
+            
+            
+            //北向きにベルトコンベアを設置してチェック
+            BeltConveyorPlaceAndCheckConnector(0,-1,BlockDirection.North,vanillaChest,blockFactory,world);
+            
+            //東向きにベルトコンベアを設置してチェック
+            BeltConveyorPlaceAndCheckConnector(-1,0,BlockDirection.East,vanillaChest,blockFactory,world);
+            
+            //南向きにベルトコンベアを設置してチェック
+            BeltConveyorPlaceAndCheckConnector(0,1,BlockDirection.South,vanillaChest,blockFactory,world);
+            
+            //西向きにベルトコンベアを設置してチェック
+            BeltConveyorPlaceAndCheckConnector(1,0,BlockDirection.West,vanillaChest,blockFactory,world);
+        }
+
+        private void BeltConveyorPlaceAndCheckConnector(int beltConveyorX,int beltConveyorY,BlockDirection direction,VanillaChest targetChest,BlockFactory blockFactory,IWorldBlockDatastore world)
+        {
+            var northBeltConveyor = (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, EntityId.NewEntityId());
+            world.AddBlock(northBeltConveyor, beltConveyorX, beltConveyorY, direction);
+            var connector = (VanillaChest) typeof(VanillaBeltConveyor)
+                .GetField("_connector", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(northBeltConveyor);
+            
+            Assert.AreEqual(targetChest.GetEntityId(),connector.GetEntityId());
+        }
+        
+        
     }
 }
