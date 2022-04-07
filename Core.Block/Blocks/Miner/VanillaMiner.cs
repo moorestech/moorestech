@@ -63,7 +63,12 @@ namespace Core.Block.Blocks.Miner
 
         public void Update()
         {
-            _remainingMillSecond -= (int)(GameUpdate.UpdateTime * (_nowPower / (double) _requestPower));
+            var subTime = (int) (GameUpdate.UpdateTime * (_nowPower / (double) _requestPower));
+            if (subTime <= 0)
+            {
+                return;
+            }
+            _remainingMillSecond -= subTime;
 
             if (_remainingMillSecond <= 0)
             {

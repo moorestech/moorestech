@@ -34,7 +34,6 @@ namespace Core.Block.Blocks.Chest
         public VanillaChest(string saveData,int blockId,int entityId,int slotNum, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate) : this( blockId,entityId,slotNum,  itemStackFactory,blockInventoryUpdate)
         {
             var split = saveData.Split(',');
-            Console.WriteLine(saveData);
             for (var i = 0; i < split.Length; i += 2)
             {
                 var itemId = int.Parse(split[i]);
