@@ -5,6 +5,7 @@ using MainGame.Starter;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Debug = UnityEngine.Debug;
 
 namespace MainMenu
 {
@@ -23,7 +24,7 @@ namespace MainMenu
         {
             _serverProcess = new Process();
             _serverProcess.StartInfo.FileName = ServerConst.ServerExePath;
-            _serverProcess.StartInfo.Arguments = ServerConst.ServerConfigDirectory;
+            _serverProcess.StartInfo.Arguments ="startupFromClient";
             _serverProcess.Start();
 
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;
