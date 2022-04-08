@@ -24,7 +24,11 @@ namespace MainMenu
         {
             _serverProcess = new Process();
             _serverProcess.StartInfo.FileName = ServerConst.ServerExePath;
+#if UNITY_EDITOR_WIN
+            _serverProcess.StartInfo.Arguments = ServerConst.ServerConfigDirectory;
+#elif UNITY_STANDALONE_WIN
             _serverProcess.StartInfo.Arguments ="startupFromClient";
+#endif
             _serverProcess.Start();
 
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;
