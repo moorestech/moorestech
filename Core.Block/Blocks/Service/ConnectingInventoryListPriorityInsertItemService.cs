@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Block.BlockInventory;
+using Core.Const;
 using Core.Item;
 
 namespace Core.Block.Blocks.Service
@@ -17,15 +18,15 @@ namespace Core.Block.Blocks.Service
             _blockInventories = blockInventories;
         }
 
-        private int index = 0;
+        private int _index = -1;
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            for (int i = 0; i < _blockInventories.Count; i++)
+            for (int i = 0; i < _blockInventories.Count && itemStack.Id != ItemConst.EmptyItemId; i++)
             {
                 lock (_blockInventories)
                 {
                     AddIndex();
-                    itemStack = _blockInventories[index].InsertItem(itemStack);
+                    itemStack = _blockInventories[_index].InsertItem(itemStack);
                 }
             }
 
@@ -34,10 +35,10 @@ namespace Core.Block.Blocks.Service
 
         private void AddIndex()
         {
-            index++;
-            if (_blockInventories.Count <= index)
+            _index++;
+            if (_blockInventories.Count <= _index)
             {
-                index = 0;
+                _index = 0;
             }
         }
     }
