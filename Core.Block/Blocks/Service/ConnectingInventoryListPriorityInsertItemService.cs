@@ -22,11 +22,12 @@ namespace Core.Block.Blocks.Service
         {
             for (int i = 0; i < _blockInventories.Count; i++)
             {
-                itemStack = _blockInventories[index].InsertItem(itemStack);
-                AddIndex();
+                lock (_blockInventories)
+                {
+                    AddIndex();
+                    itemStack = _blockInventories[index].InsertItem(itemStack);
+                }
             }
-            //次に挿入するインベントリのインデックスを追加
-            AddIndex();
 
             return itemStack;
         }
