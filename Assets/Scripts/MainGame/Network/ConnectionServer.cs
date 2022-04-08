@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MainGame.Network.Send;
@@ -68,6 +69,12 @@ namespace MainGame.Network
                     catch (Exception e)
                     {
                         Debug.LogError("受信パケット解析失敗：" + e);
+                        var packets = new StringBuilder();
+                        foreach (var @byte in bytes)
+                        {
+                            packets.Append(@bytes);
+                        }
+                        Debug.LogError("受信パケット内容：" + packets);
                     }
                 }
                 catch (Exception e)
