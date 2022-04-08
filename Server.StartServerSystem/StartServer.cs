@@ -25,9 +25,9 @@ namespace Server.StartServerSystem
                 {
                     Console.WriteLine("コマンドライン引数にコンフィグのパスが指定されていませんでした。デフォルトコンフィグパスを使用します。");
                 } 
-                else
+                else if(args[0] == "startupFromClient")
                 {
-                    configPath = args[0];
+                    configPath = StartupFromClientFolderPath;
                 }
 #endif
                 
@@ -83,6 +83,15 @@ namespace Server.StartServerSystem
             {
                 DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
                 return Path.Combine(di.FullName, "Config");
+            }
+        }
+        
+        private static string StartupFromClientFolderPath
+        {
+            get
+            {
+                DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
+                return Path.Combine(di.FullName,"server", "Config");
             }
         }
     }
