@@ -29,6 +29,10 @@ namespace Server.StartServerSystem
                 {
                     configPath = StartupFromClientFolderPath;
                 }
+                else
+                {
+                    configPath = args[0];
+                }
 #endif
                 
                 var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(configPath);
