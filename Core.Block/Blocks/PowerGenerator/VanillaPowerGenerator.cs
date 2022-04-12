@@ -96,12 +96,12 @@ namespace Core.Block.Blocks.PowerGenerator
             for (var i = 0; i < _itemDataStoreService.GetSlotSize(); i++)
             {
                 //スロットに燃料がある場合
-                var slotId = _itemDataStoreService.Inventory[i].Id;
-                if (!_fuelSettings.ContainsKey(slotId)) continue;
+                var slotItemId = _itemDataStoreService.Inventory[i].Id;
+                if (!_fuelSettings.ContainsKey(slotItemId)) continue;
                 
                 //ID、残り時間を設定
-                _fuelItemId = _fuelSettings[slotId].ItemId;
-                _remainingFuelTime = _fuelSettings[slotId].Time;
+                _fuelItemId = _fuelSettings[slotItemId].ItemId;
+                _remainingFuelTime = _fuelSettings[slotItemId].Time;
                 
                 //アイテムを1個減らす
                 _itemDataStoreService.SetItem(i,_itemDataStoreService.Inventory[i].SubItem(1));
@@ -122,19 +122,13 @@ namespace Core.Block.Blocks.PowerGenerator
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
-                _entityId, slot + _itemDataStoreService.GetSlotSize(), itemStack));
+                _entityId, slot, itemStack));
         }
 
 
-        public void AddOutputConnector(IBlockInventory blockInventory)
-        {
-            throw new Exception("発電機にアイテム出力スロットはありません");
-        }
-
-        public void RemoveOutputConnector(IBlockInventory blockInventory)
-        {
-            throw new Exception("発電機にアイテム出力スロットはありません");
-        }
+        //発電機は何かを出力したりしない
+        public void AddOutputConnector(IBlockInventory blockInventory) { }
+        public void RemoveOutputConnector(IBlockInventory blockInventory) { }
 
         public IItemStack GetItem(int slot) { return _itemDataStoreService.GetItem(slot);}
         public void SetItem(int slot, IItemStack itemStack) { _itemDataStoreService.SetItem(slot,itemStack); }

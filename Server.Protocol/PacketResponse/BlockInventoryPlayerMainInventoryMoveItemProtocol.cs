@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item;
@@ -24,6 +25,7 @@ namespace Server.Protocol.PacketResponse
 
         public List<byte[]> GetResponse(List<byte> payload)
         {
+            
             var byteListEnumerator = new ByteListEnumerator(payload);
             byteListEnumerator.MoveNextToGetShort();
             var flag = byteListEnumerator.MoveNextToGetShort();

@@ -41,7 +41,7 @@ namespace Game.World.EventHandler
             var x = blockPlaceEvent.Coordinate.X;
             var y = blockPlaceEvent.Coordinate.Y;
 
-            //設置されたブロックが発電機だった時の処理
+            //設置されたブロックが発電機か機械以外はスルー処理
             if (!IsElectricMachine(x, y)) return;
 
             //最大の電柱の接続範囲を取得探索して接続する
@@ -51,8 +51,9 @@ namespace Game.World.EventHandler
             {
                 for (int j = startMachineY; j < startMachineY + _maxMachineConnectionRange; j++)
                 {
-                    //範囲内に電柱がある場合
                     if (!_electricPoleDatastore.ExistsComponentBlock(i, j)) continue;
+                    //範囲内に電柱がある場合
+                    
                     //電柱に接続
                     ConnectToElectricPole(i, j, x, y);
                 }
@@ -70,7 +71,7 @@ namespace Game.World.EventHandler
         {
             //電柱を取得
             var pole = _electricPoleDatastore.GetBlock(poleX, poleY);
-            //その電柱の個んぃぐを取得
+            //その電柱のコンフィグを取得
             var configParam =
                 _blockConfig.GetBlockConfig(((IBlock) pole).GetBlockId()).Param as ElectricPoleConfigParam;
             var range = configParam.machineConnectionRange;

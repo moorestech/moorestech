@@ -39,7 +39,6 @@ namespace World.Service
             }
 
             //マージ後のセグメントを追加する
-            //ぎゃははっはははははっははははｈ
             _electricSegmentDatastore.SetElectricSegment(mergedElectricSegment);
 
             return mergedElectricSegment;

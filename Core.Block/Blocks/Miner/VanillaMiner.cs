@@ -27,7 +27,7 @@ namespace Core.Block.Blocks.Miner
         private int _miningItemId = ItemConst.EmptyItemId;
         
         private int _nowPower = 0;
-        private double _remainingMillSecond = int.MaxValue;
+        private int _remainingMillSecond = int.MaxValue;
 
         public VanillaMiner(int blockId, int entityId, int requestPower, int outputSlot, ItemStackFactory itemStackFactory)
         {
@@ -63,7 +63,12 @@ namespace Core.Block.Blocks.Miner
 
         public void Update()
         {
-            _remainingMillSecond -= GameUpdate.UpdateTime * (_nowPower / (double) _requestPower);
+            var subTime = (int) (GameUpdate.UpdateTime * (_nowPower / (double) _requestPower));
+            if (subTime <= 0)
+            {
+                return;
+            }
+            _remainingMillSecond -= subTime;
 
             if (_remainingMillSecond <= 0)
             {

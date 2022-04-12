@@ -1,24 +1,19 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
-using Core.Item;
+using System.Threading.Tasks;
 using Core.Update;
 using Game.Save.Interface;
 using Microsoft.Extensions.DependencyInjection;
-using PlayerInventory;
-using Server.Event;
 using Server.PacketHandle;
-using Server.Protocol;
-using World;
-using World.Event;
 
-namespace Server
+namespace Server.StartServerSystem
 {
     public static class StartServer
     {
         private const int argsCount = 1;
         
-        public static void Start(string[] args)
+        public static async Task Start(string[] args)
         {
             try
             {
@@ -30,6 +25,10 @@ namespace Server
                 {
                     Console.WriteLine("コマンドライン引数にコンフィグのパスが指定されていませんでした。デフォルトコンフィグパスを使用します。");
                 } 
+                else if(args[0] == "startupFromClient")
+                {
+                    configPath = StartupFromClientFolderPath;
+                }
                 else
                 {
                     configPath = args[0];
@@ -54,6 +53,8 @@ namespace Server
                         GameUpdate.Update();
                     }
                 }).Start();
+
+                await new AutoSaveSystem(serviceProvider.GetService<ISaveRepository>()).AutoSave();
 
                 Console.ReadKey();
             }
@@ -86,6 +87,15 @@ namespace Server
             {
                 DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
                 return Path.Combine(di.FullName, "Config");
+            }
+        }
+        
+        private static string StartupFromClientFolderPath
+        {
+            get
+            {
+                DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
+                return Path.Combine(di.FullName,"server", "Config");
             }
         }
     }

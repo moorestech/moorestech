@@ -28,9 +28,12 @@ namespace Game.World.EventHandler
             blockPlaceEvent.Subscribe(OnBlockPlace);
         }
 
+        /// <summary>
+        /// 置かれたブロックの東西南北にあるブロックと接続を試みる
+        /// </summary>
+        /// <param name="blockPlaceEvent"></param>
         private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
         {
-            //置かれたブロックの東西南北にあるブロックと接続を試みる
             var connectOffsetBlockPositions = new List<(int, int)>() {(1, 0), (-1, 0), (0, 1), (0, -1)};
             int x = blockPlaceEvent.Coordinate.X;
             int y = blockPlaceEvent.Coordinate.Y;
@@ -86,9 +89,9 @@ namespace Game.World.EventHandler
             var distanceY = destinationY - sourceY;
 
             //接続元ブロックに対応するアウトプット座標があるかチェック
-            if (!sourceBlockOutputConnector.Contains(new ConnectDirection(distanceX, distanceY))) return;
+            if (!sourceBlockOutputConnector.Contains(new ConnectDirection(distanceY, distanceX))) return;
             //接続先ブロックに対応するインプット座標があるかチェック
-            if (!destinationBlockInputConnector.Contains(new ConnectDirection(-distanceX, -distanceY))) return;
+            if (!destinationBlockInputConnector.Contains(new ConnectDirection(-distanceY,-distanceX))) return;
 
 
             //接続元ブロックと接続先ブロックを接続
