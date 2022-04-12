@@ -83,7 +83,7 @@ namespace Core.Item.Implementation
                    item.Count + Count <= tmpStack;
         }
 
-        public bool IsAllowedToAddButRemain(IItemStack item)
+        public bool IsAllowedToAddWithRemain(IItemStack item)
         {
             return Id == item.Id || item.Id == ItemConst.EmptyItemId;
         }
