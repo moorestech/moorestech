@@ -1398,7 +1398,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemImages: {fileID: 11400000, guid: f3f5e541a0fc649389c5ffefa1f0082a, type: 2}
-  playerInventorySlotsInput: {fileID: 868143883}
+  playerInventorySlotsInputControl: {fileID: 868143883}
   playerInventoryView: {fileID: 868143882}
 --- !u!4 &389496337
 Transform:
@@ -5733,6 +5733,10 @@ PrefabInstance:
     - target: {fileID: 1014375675779259832, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
       propertyPath: m_Name
       value: PlayerEquippedItem
+      objectReference: {fileID: 0}
+    - target: {fileID: 1014375675779259832, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1014375675779259833, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
       propertyPath: m_Pivot.x

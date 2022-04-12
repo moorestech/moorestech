@@ -24,6 +24,9 @@ namespace MainGame.Inventory
                 mainInventorySlots[i].SetItem(_itemImages.GetItemView(item.ID),item.Count);
             }
 
+            playerInventoryModel.OnItemEquipped += () => equippedItem.gameObject.SetActive(true);
+            playerInventoryModel.OnItemUnequipped += () => equippedItem.gameObject.SetActive(false);
+            
             
             playerInventoryModel.OnSlotUpdate += (slot, item) => mainInventorySlots[slot].SetItem(_itemImages.GetItemView(item.ID),item.Count);
             playerInventoryModel.OnEquippedItemUpdate += item => equippedItem.SetItem(_itemImages.GetItemView(item.ID),item.Count);

@@ -6,13 +6,11 @@ using VContainer;
 
 namespace MainGame.Inventory
 {
-    public class PlayerInventorySlotsInput : MonoBehaviour
+    public class PlayerInventorySlotsInputControl : MonoBehaviour
     {
         [SerializeField] private List<InventoryItemSlot> mainInventorySlots;
 
         private PlayerInventoryModel _playerInventoryModel;
-
-        private bool _isEquippedItem;
 
         [Inject]
         public void Construct(PlayerInventoryModel playerInventoryModel)
@@ -24,19 +22,26 @@ namespace MainGame.Inventory
         {
             foreach (var mainInventory in mainInventorySlots)
             {
-                mainInventory.OnLeftClick += OnSlotLeftClicked;
-                mainInventory.OnRightClick += OnSlotRightClicked;
+                mainInventory.OnLeftClickDown += LeftClickDown;
+                mainInventory.OnRightClickDown += RightClickDown;
             }
         }
 
-        private void OnSlotRightClicked(InventoryItemSlot slot)
+        private void RightClickDown(InventoryItemSlot slot)
         {
-            
         }
         
-        private void OnSlotLeftClicked(InventoryItemSlot slot)
+        private void LeftClickDown(InventoryItemSlot slot)
         {
-            
+            var slotIndex = mainInventorySlots.FindIndex(s => s == slot);
+            if (_playerInventoryModel.IsEquipped)
+            {
+                _playerInventoryModel.PlaceItem(slotIndex);
+            }
+            else
+            {
+                _playerInventoryModel.EquippedItem(slotIndex);
+            }
         }
         
         

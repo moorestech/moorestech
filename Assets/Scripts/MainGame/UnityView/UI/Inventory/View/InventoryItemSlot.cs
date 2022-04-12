@@ -7,10 +7,10 @@ using UnityEngine.UI;
 
 namespace MainGame.UnityView.UI.Inventory.View
 {
-    public class InventoryItemSlot: MonoBehaviour
+    public class InventoryItemSlot: MonoBehaviour,IPointerDownHandler
     {
-        public event Action<InventoryItemSlot> OnRightClick;
-        public event Action<InventoryItemSlot> OnLeftClick;
+        public event Action<InventoryItemSlot> OnRightClickDown;
+        public event Action<InventoryItemSlot> OnLeftClickDown;
 
         [SerializeField] private Image image;
         [SerializeField] private TMP_Text countText;
@@ -30,8 +30,18 @@ namespace MainGame.UnityView.UI.Inventory.View
             }
         }
 
-        
-        
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            switch (eventData.pointerId)
+            {
+                case -1:
+                    OnLeftClickDown?.Invoke(this);
+                    break;
+                case -2:
+                    OnRightClickDown?.Invoke(this);
+                    break;
+            }
+        }
         
         
         

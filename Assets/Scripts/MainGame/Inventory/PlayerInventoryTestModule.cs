@@ -12,7 +12,7 @@ namespace MainGame.Inventory
     {
         [SerializeField] private ItemImages itemImages;
         
-        [SerializeField] private PlayerInventorySlotsInput playerInventorySlotsInput;
+        [SerializeField] private PlayerInventorySlotsInputControl playerInventorySlotsInputControl;
         [SerializeField] private PlayerInventoryView playerInventoryView;
         
         private void Start()
@@ -23,7 +23,7 @@ namespace MainGame.Inventory
             
             inventoryList[0] = new ItemStack(1,100);
             
-            playerInventorySlotsInput.Construct(inventory);
+            playerInventorySlotsInputControl.Construct(inventory);
             playerInventoryView.Construct(inventory,itemImages);
         }
     }
