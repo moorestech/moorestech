@@ -73,7 +73,7 @@ namespace Core.Inventory
         public IItemStack InsertItem(int slot, IItemStack itemStack)
         {
             if (itemStack.Equals(_itemStackFactory.CreatEmpty())) return itemStack;
-            if (!_inventory[slot].IsAllowedToAddButRemain(itemStack)) return itemStack;
+            if (!_inventory[slot].IsAllowedToAddWithRemain(itemStack)) return itemStack;
             
             var result = _inventory[slot].AddItem(itemStack);
 
@@ -92,7 +92,7 @@ namespace Core.Inventory
             for (var i = 0; i < _inventory.Count; i++)
             {
                 //挿入できるスロットを探索
-                if (!_inventory[i].IsAllowedToAddButRemain(itemStack)) continue;
+                if (!_inventory[i].IsAllowedToAddWithRemain(itemStack)) continue;
                 
                 //挿入実行
                 var remain = InsertItem(i, itemStack);

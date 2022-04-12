@@ -30,7 +30,7 @@ namespace Core.Item.Implementation
             return true;
         }
 
-        public bool IsAllowedToAddButRemain(IItemStack item)
+        public bool IsAllowedToAddWithRemain(IItemStack item)
         {
             return true;
         }

@@ -22,7 +22,7 @@ namespace Core.Item
         /// IDが違うことで追加ができない場合はfalseを返します
         /// </summary>
         /// <returns>あまりが出ても追加できるときはtrue</returns>
-        bool IsAllowedToAddButRemain(IItemStack item);
+        bool IsAllowedToAddWithRemain(IItemStack item);
         IItemStack Clone();
     }
 }
