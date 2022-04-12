@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using GameConst;
 using MainGame.Basic;
 using MainGame.UnityView.UI.Inventory.Element;
+using SinglePlay;
 using UnityEngine;
 
 namespace MainGame.Inventory
@@ -17,7 +19,7 @@ namespace MainGame.Inventory
         
         private void Start()
         {
-            var inventory = new PlayerInventoryModel();
+            var inventory = new PlayerInventoryModel(new SinglePlayInterface(ServerConst.ServerConfigDirectory));
             var inventoryList = (List<ItemStack>) typeof(PlayerInventoryModel)
                 .GetField("_mainInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(inventory);
             

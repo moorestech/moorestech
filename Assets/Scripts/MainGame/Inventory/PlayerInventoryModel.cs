@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using MainGame.Basic;
+using SinglePlay;
 
 namespace MainGame.Inventory
 {
@@ -8,11 +9,14 @@ namespace MainGame.Inventory
     {
         public IReadOnlyList<ItemStack> MainInventory => _mainInventory;
         private readonly List<ItemStack> _mainInventory = new ();
+        private SinglePlayInterface _singlePlayInterface;
         
         public bool IsEquipped => _isEquipped;
         private bool _isEquipped = false;
 
         private ItemStack _equippedItem;
+
+
         
 
         public event Action<int,ItemStack> OnSlotUpdate;
@@ -24,8 +28,9 @@ namespace MainGame.Inventory
         
 
 
-        public PlayerInventoryModel()
+        public PlayerInventoryModel(SinglePlayInterface singlePlayInterface)
         {
+            _singlePlayInterface = singlePlayInterface;
             for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
             {
                 _mainInventory.Add(new ItemStack());
@@ -56,7 +61,29 @@ namespace MainGame.Inventory
 
         public void PlaceOneItem(int slot)
         {
+            if (_mainInventory[slot].ID == _equippedItem.ID)
+            {
+                _mainInventory[slot] = new ItemStack(_mainInventory[slot].ID,_mainInventory[slot].Count + 1);
+                _equippedItem.Count--;
+                
+                OnSlotUpdate?.Invoke(slot,_mainInventory[slot]);
+                OnEquippedItemUpdate?.Invoke(_equippedItem);
+            }
+            if (_mainInventory[slot].ID == 0)
+            {
+                _equippedItem.Count--;
+                _mainInventory[slot] = new ItemStack(_equippedItem.ID,1);
+                
+                OnSlotUpdate?.Invoke(slot,_mainInventory[slot]);
+                OnEquippedItemUpdate?.Invoke(_equippedItem);
+            }
             
+            if (_equippedItem.Count == 0)
+            {
+                _equippedItem = new ItemStack();
+                OnItemUnequipped?.Invoke();
+                _isEquipped = false;
+            }
         }
         
         public void DragStartSlot(int slot)

@@ -29,6 +29,11 @@ namespace MainGame.Inventory
 
         private void RightClickDown(InventoryItemSlot slot)
         {
+            var slotIndex = mainInventorySlots.FindIndex(s => s == slot);
+            if (_playerInventoryModel.IsEquipped)
+            {
+                _playerInventoryModel.PlaceOneItem(slotIndex);
+            }
         }
         
         private void LeftClickDown(InventoryItemSlot slot)
