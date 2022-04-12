@@ -3,7 +3,7 @@ using MainGame.Network.Send;
 using MainGame.Network.Settings;
 using UnityEngine;
 
-namespace MainGame.Presenter.ItemMove
+namespace MainGame.Presenter.Inventory.ItemMove
 {
     /// <summary>
     /// プレイヤーインベントリ、ブロックインベントリの間でアイテムを移動する際に使用するサービスクラス
@@ -12,7 +12,7 @@ namespace MainGame.Presenter.ItemMove
     {
         private readonly int _playerId;
         
-        private readonly BlockInventoryDataCache _blockInventoryDataCache;
+        private readonly BlockInventoryPresenter _blockInventoryPresenter;
         private readonly MainInventoryDataCache _mainInventoryDataCache;
         
         private readonly SendBlockInventoryMoveItemProtocol _blockInventoryMove;
@@ -21,13 +21,13 @@ namespace MainGame.Presenter.ItemMove
 
         public BlockInventoryMainInventoryItemMoveService(
             PlayerConnectionSetting setting, 
-            BlockInventoryDataCache blockInventoryDataCache, MainInventoryDataCache mainInventoryDataCache, 
+            BlockInventoryPresenter blockInventoryPresenter, MainInventoryDataCache mainInventoryDataCache, 
             SendBlockInventoryMoveItemProtocol blockInventoryMove, 
             SendBlockInventoryMainInventoryMoveItemProtocol blockInventoryMainInventoryMove, 
             SendMainInventoryMoveItemProtocol mainInventoryMove)
         {
             _playerId = setting.PlayerId;
-            _blockInventoryDataCache = blockInventoryDataCache;
+            _blockInventoryPresenter = blockInventoryPresenter;
             _mainInventoryDataCache = mainInventoryDataCache;
             _blockInventoryMove = blockInventoryMove;
             _blockInventoryMainInventoryMove = blockInventoryMainInventoryMove;
@@ -53,7 +53,7 @@ namespace MainGame.Presenter.ItemMove
         
         private int GetItemStackCount(int slot,bool isBlock)
         {
-            if (isBlock) return _blockInventoryDataCache.GetItemStack(slot).Count;
+            if (isBlock) return _blockInventoryPresenter.GetItemStack(slot).Count;
             
             return _mainInventoryDataCache.GetItemStack(slot).Count;
         }

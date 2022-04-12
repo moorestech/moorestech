@@ -1,14 +1,18 @@
 ﻿using MainGame.Basic;
 using MainGame.Network.Event;
+using MainGame.UnityView.WorldMapTile;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace MainGame.Model.DataStore.Chunk
+namespace MainGame.Presenter.Chunk
 {
     public class WorldMapTilePresenter : IInitializable
     {
-        public WorldMapTilePresenter(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent)
+        private readonly WorldMapTileGameObjectDataStore _worldMapTileGameObjectDataStore;
+
+        public WorldMapTilePresenter(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,WorldMapTileGameObjectDataStore worldMapTileGameObjectDataStore)
         {
+            _worldMapTileGameObjectDataStore = worldMapTileGameObjectDataStore;
             networkReceivedChunkDataEvent.Subscribe(OnChunkUpdate,p => {});
         }
 
@@ -23,7 +27,7 @@ namespace MainGame.Model.DataStore.Chunk
                 {
                     var pos = chunkPos + new Vector2Int(i, j);
                     var id = properties.MapTileIds[i, j];
-                    //todo イベントにする_worldMapTileGameObjectDataStore.GameObjectBlockPlace(pos,id);
+                    _worldMapTileGameObjectDataStore.GameObjectBlockPlace(pos,id);
                 }
             }
         }

@@ -1,20 +1,23 @@
 using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Network.Event;
+using MainGame.UnityView.Chunk;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace MainGame.Model.DataStore.Chunk
+namespace MainGame.Presenter.Chunk
 {
     /// <summary>
     /// サーバーからのパケットを受け取り、Viewにブロックの更新情報を渡す
     /// IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しています
     /// </summary>
-    public class ChunkDataStoreCache : IInitializable
+    public class ChunkDataPresenter : IInitializable
     {
+        private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private readonly Dictionary<Vector2Int, int[,]> _chunk = new();
-        public ChunkDataStoreCache(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent)
+        public ChunkDataPresenter(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
         {
+            _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             //イベントをサブスクライブする
             networkReceivedChunkDataEvent.Subscribe(OnChunkUpdate,OnBlockUpdate);
         }
@@ -40,7 +43,7 @@ namespace MainGame.Model.DataStore.Chunk
             {
                 for (int j = 0; j < ChunkConstant.ChunkSize; j++)
                 {
-                    //todo イベントにする　ViewPlaceOrRemoveBlock(chunkPos + new Vector2Int(i,j),properties.BlockIds[i,j],properties.BlockDirections[i,j]);
+                    ViewPlaceOrRemoveBlock(chunkPos + new Vector2Int(i,j),properties.BlockIds[i,j],properties.BlockDirections[i,j]);
                 }
             }
         }
@@ -62,7 +65,17 @@ namespace MainGame.Model.DataStore.Chunk
             _chunk[chunkPos][i, j] = properties.BlockId;
             
             //viewにブロックがおかれたことを通知する
-            //todo イベントにする　ViewPlaceOrRemoveBlock(blockPos, properties.BlockId,properties.BlockDirection);
+            ViewPlaceOrRemoveBlock(blockPos, properties.BlockId,properties.BlockDirection);
+        }
+
+        private void ViewPlaceOrRemoveBlock(Vector2Int position,int id,BlockDirection blockDirection)
+        {
+            if (id == BlockConstant.NullBlockId)
+            {
+                _chunkBlockGameObjectDataStore.GameObjectBlockRemove(position);
+                return;
+            }
+            _chunkBlockGameObjectDataStore.GameObjectBlockPlace(position,id,blockDirection);
         }
 
 

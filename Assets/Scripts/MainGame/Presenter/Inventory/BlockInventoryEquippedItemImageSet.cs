@@ -7,7 +7,7 @@ using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.Presenter
+namespace MainGame.Presenter.Inventory
 {
     /// <summary>
     /// ブロックインベントリのEquippedItem（インベントリでスロットをクリックしたときにマウスカーソルについてくる画像）の画像や数字の更新を行います
@@ -17,17 +17,17 @@ namespace MainGame.Presenter
         private InventoryItemSlot _equippedItem;
         private int _equippedItemIndex = 0;
         
-        private BlockInventoryDataCache _blockInventoryDataCache;
+        private BlockInventoryPresenter _blockInventoryPresenter;
         private MainInventoryDataCache _mainInventoryDataCache;
 
         private ItemImages _itemImages;
         
         
         [Inject]
-        public void Construct(BlockInventoryDataCache blockInventoryDataCache, IMainInventoryUpdateEvent mainInventoryUpdateEvent,
+        public void Construct(BlockInventoryPresenter blockInventoryPresenter, IMainInventoryUpdateEvent mainInventoryUpdateEvent,
             IBlockInventoryUpdateEvent blockInventoryUpdateEvent, ItemImages itemImages,MainInventoryDataCache mainInventoryDataCache)
         {
-            _blockInventoryDataCache = blockInventoryDataCache;
+            _blockInventoryPresenter = blockInventoryPresenter;
             _equippedItem = GetComponent<InventoryItemSlot>();
             _itemImages = itemImages;
             _mainInventoryDataCache = mainInventoryDataCache;
@@ -49,7 +49,7 @@ namespace MainGame.Presenter
         {
             var blockSlot = properties.Slot + PlayerInventoryConstant.MainInventorySize;
             if (blockSlot != _equippedItemIndex) return;
-            SetItem(_blockInventoryDataCache.GetItemStack(blockSlot));
+            SetItem(_blockInventoryPresenter.GetItemStack(blockSlot));
         }
 
         public void SetMainEquippedItemIndex(int index)
@@ -61,7 +61,7 @@ namespace MainGame.Presenter
         public void SetBlockEquippedItemIndex(int index)
         {
             _equippedItemIndex = index;
-            SetItem(_blockInventoryDataCache.GetItemStack(index));
+            SetItem(_blockInventoryPresenter.GetItemStack(index));
         }
 
         private void SetItem(ItemStack itemStack)

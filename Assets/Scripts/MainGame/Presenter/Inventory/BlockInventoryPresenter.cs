@@ -1,16 +1,19 @@
 using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Network.Event;
+using MainGame.UnityView;
+using MainGame.UnityView.UI.Inventory.View;
 
-namespace MainGame.Model.DataStore.Inventory
-{
-    public class BlockInventoryDataCache
+namespace MainGame.Presenter.Inventory
+{    public class BlockInventoryPresenter
     {
+        private readonly BlockInventoryItemView _blockInventoryItemView;
         private List<ItemStack> _itemStackList;
 
 
-        public BlockInventoryDataCache(IBlockInventoryUpdateEvent blockInventory)
+        public BlockInventoryPresenter(IBlockInventoryUpdateEvent blockInventory,BlockInventoryItemView blockInventoryItemView)
         {
+            _blockInventoryItemView = blockInventoryItemView;
             blockInventory.Subscribe(OnBlockInventorySlotUpdate,OnSettingBlockInventory);
         }
 
@@ -21,8 +24,10 @@ namespace MainGame.Model.DataStore.Inventory
             var count = properties.Count;
             
             
-           
-            //todo イベントにする_blockInventoryItemView.BlockInventoryUpdate(slot,id,count);
+            MainThreadExecutionQueue.Instance.Insert(() =>
+            {
+                _blockInventoryItemView.BlockInventoryUpdate(slot,id,count);
+            });
             
             if (slot < _itemStackList.Count)
             {
@@ -35,8 +40,17 @@ namespace MainGame.Model.DataStore.Inventory
             var items = onSettingBlock.items;
             _itemStackList = items;
             
-            //todo イベントにする _blockInventoryItemView.SettingBlockInventory(onSettingBlock.uiType,onSettingBlock.blockId,onSettingBlock.uiParams);
-            //todo イベントにする_blockInventoryItemView.BlockInventoryUpdate(i,item.ID,item.Count);
+            MainThreadExecutionQueue.Instance.Insert(() =>
+            {
+                //UIを開く
+                _blockInventoryItemView.SettingBlockInventory(onSettingBlock.uiType,onSettingBlock.blockId,onSettingBlock.uiParams);
+                //UIを更新する
+                for (var i = 0; i < items.Count; i++)
+                {
+                    var item = items[i];
+                    _blockInventoryItemView.BlockInventoryUpdate(i,item.ID,item.Count);
+                }
+            });
         }
         
         public ItemStack GetItemStack(int slot)

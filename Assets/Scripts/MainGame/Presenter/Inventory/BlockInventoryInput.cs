@@ -1,19 +1,19 @@
 using MainGame.Basic;
 using MainGame.Model.DataStore.Inventory;
-using MainGame.Presenter;
+using MainGame.Presenter.Inventory.ItemMove;
 using MainGame.Presenter.ItemMove;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.Control.UI.Inventory
+namespace MainGame.Presenter.Inventory
 {
     public class BlockInventoryInput : MonoBehaviour
     {
         private int _equippedItemIndex = -1;
         private BlockInventoryItemView _blockInventoryItemView;
         private BlockInventoryMainInventoryItemMoveService _blockInventoryMainInventoryItemMoveService;
-        private BlockInventoryDataCache _blockInventoryDataCache;
+        private BlockInventoryPresenter _blockInventoryPresenter;
         
         private MainInventoryDataCache _mainInventoryDataCache;
         private MainInventoryItemView _mainInventoryItemView;
@@ -29,12 +29,12 @@ namespace MainGame.Control.UI.Inventory
         public void Construct(
             BlockInventoryItemView blockInventoryItemView,
             BlockInventoryMainInventoryItemMoveService blockInventoryMainInventoryItemMoveService,
-            BlockInventoryDataCache blockInventoryDataCache,
+            BlockInventoryPresenter blockInventoryPresenter,
             BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet,MainInventoryDataCache mainInventoryDataCache,MainInventoryItemView mainInventoryItemView)
         {
             _blockInventoryItemView = blockInventoryItemView;
             _blockInventoryMainInventoryItemMoveService = blockInventoryMainInventoryItemMoveService;
-            _blockInventoryDataCache = blockInventoryDataCache;
+            _blockInventoryPresenter = blockInventoryPresenter;
             _blockInventoryEquippedItemImageSet = blockInventoryEquippedItemImageSet;
             _mainInventoryDataCache = mainInventoryDataCache;
             _mainInventoryItemView = mainInventoryItemView;
@@ -114,7 +114,7 @@ namespace MainGame.Control.UI.Inventory
             
             if (IsBlock(_equippedItemIndex,out blockSlot))
             {
-                var item = _blockInventoryDataCache.GetItemStack(blockSlot);
+                var item = _blockInventoryPresenter.GetItemStack(blockSlot);
                 _blockInventoryItemView.BlockInventoryUpdate(blockSlot,item.ID,item.Count);
             }
             else
@@ -137,7 +137,7 @@ namespace MainGame.Control.UI.Inventory
             if (PlayerInventoryConstant.MainInventorySize <= slot)
             {
                 slot -= PlayerInventoryConstant.MainInventorySize;
-                return _blockInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
+                return _blockInventoryPresenter.GetItemStack(slot).ID == ItemConstant.NullItemId;
             }
             return _mainInventoryDataCache.GetItemStack(slot).ID == ItemConstant.NullItemId;
         }
