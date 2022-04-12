@@ -71,7 +71,7 @@ namespace MainGame.Presenter.Inventory
         private void SetMainItem(int slot)
         {
             var fromItem = _mainInventoryDataCache.GetItemStack(slot);
-            _equippedItem.SetItem(_itemImages.GetItemViewData(fromItem.ID),fromItem.Count);
+            _equippedItem.SetItem(_itemImages.GetItemView(fromItem.ID),fromItem.Count);
         }
 
         
@@ -85,7 +85,7 @@ namespace MainGame.Presenter.Inventory
         private void SetCraftItem(int slot)
         {
             var fromItem = _craftingInventoryDataCache.GetItemStack(slot);
-            _equippedItem.SetItem(_itemImages.GetItemViewData(fromItem.ID),fromItem.Count);
+            _equippedItem.SetItem(_itemImages.GetItemView(fromItem.ID),fromItem.Count);
         }
     }
 }

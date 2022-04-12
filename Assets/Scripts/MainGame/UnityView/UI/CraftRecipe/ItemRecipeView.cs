@@ -50,10 +50,10 @@ namespace MainGame.UnityView.UI.CraftRecipe
             for (int i = 0; i < craftingRecipeSlots.Count; i++)
             {
                 var item = itemStacks[i];
-                craftingRecipeSlots[i].SetItem(_itemImages.GetItemViewData(item.ID),item.Count);
+                craftingRecipeSlots[i].SetItem(_itemImages.GetItemView(item.ID),item.Count);
                 craftingRecipeSlots[i].Construct(item.ID);
             }
-            craftingResultSlot.SetItem(_itemImages.GetItemViewData(result.ID),result.Count);
+            craftingResultSlot.SetItem(_itemImages.GetItemView(result.ID),result.Count);
         }
         
         public void SetMachineCraftRecipe(List<ItemStack> itemStacks,ItemStack result,int blockId)
@@ -73,10 +73,10 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 
                 machineCraftingRecipeSlots[i].gameObject.SetActive(true);
                 var item = itemStacks[i];
-                machineCraftingRecipeSlots[i].SetItem(_itemImages.GetItemViewData(item.ID),item.Count);
+                machineCraftingRecipeSlots[i].SetItem(_itemImages.GetItemView(item.ID),item.Count);
                 machineCraftingRecipeSlots[i].Construct(item.ID);
             }
-            machineCraftingResultSlot.SetItem(_itemImages.GetItemViewData(result.ID),result.Count);
+            machineCraftingResultSlot.SetItem(_itemImages.GetItemView(result.ID),result.Count);
         }
 
         private void OnClick(int id)

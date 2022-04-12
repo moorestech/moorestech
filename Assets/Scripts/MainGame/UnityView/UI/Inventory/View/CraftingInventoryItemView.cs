@@ -33,7 +33,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             {
                 return;
             }
-            var itemViewData = _itemImages.GetItemViewData(item.ID);
+            var itemViewData = _itemImages.GetItemView(item.ID);
             _slots[slot].SetItem(itemViewData,item.Count);
         }
         
@@ -41,7 +41,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         public void ItemEquipped(int slot)
         {
             _equippedItemIndex = slot;
-            _slots[slot].SetItem(_itemImages.GetItemViewData(0),0);
+            _slots[slot].SetItem(_itemImages.GetItemView(0),0);
         }
         
         public void ItemUnequipped()
@@ -52,7 +52,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         public void SetResultItem(ItemStack resultItem, bool canCraft)
         {
             //結果のアイテムを設定
-            craftResultItemView.SetItem(_itemImages.GetItemViewData(resultItem.ID), resultItem.Count);
+            craftResultItemView.SetItem(_itemImages.GetItemView(resultItem.ID), resultItem.Count);
             //クラフトできない時は矢印にバツを表示する
             canNotCraftImage.gameObject.SetActive(!canCraft);
         }

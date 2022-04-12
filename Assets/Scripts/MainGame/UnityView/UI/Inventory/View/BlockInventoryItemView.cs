@@ -74,7 +74,7 @@ namespace MainGame.UnityView.UI.Inventory.View
                 return;
             }
             
-            var sprite = _itemImages.GetItemViewData(itemId);
+            var sprite = _itemImages.GetItemView(itemId);
             if (slot < _inputSlotCount)
             {
                 _inputInventorySlots[slot].SetItem(sprite,count);
@@ -88,7 +88,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         
         public void MainInventoryUpdate(int slot, int itemId, int count)
         {
-            var sprite = _itemImages.GetItemViewData(itemId);
+            var sprite = _itemImages.GetItemView(itemId);
             _mainInventorySlots[slot].SetItem(sprite,count);
         }
         
@@ -96,7 +96,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         public void ItemEquipped(int slot)
         {
             _equippedItemIndex = slot;
-            _mainInventorySlots[slot].SetItem(_itemImages.GetItemViewData(0),0);
+            _mainInventorySlots[slot].SetItem(_itemImages.GetItemView(0),0);
         }
         
         public void ItemUnequipped()

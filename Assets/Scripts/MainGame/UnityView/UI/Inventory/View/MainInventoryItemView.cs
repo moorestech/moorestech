@@ -29,14 +29,14 @@ namespace MainGame.UnityView.UI.Inventory.View
                 return;
             }
             
-            var sprite = _itemImages.GetItemViewData(itemId);
+            var sprite = _itemImages.GetItemView(itemId);
             _slots[slot].SetItem(sprite,count);
         }
         
         public void ItemEquipped(int slot)
         {
             _equippedItemIndex = slot;
-            _slots[slot].SetItem(_itemImages.GetItemViewData(0),0);
+            _slots[slot].SetItem(_itemImages.GetItemView(0),0);
         }
         
         public void ItemUnequipped()

@@ -20,7 +20,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
             {
                 var g = Instantiate(inventoryItemSlotPrefab, transform, true);
                 g.Construct(i);
-                g.SetItem(itemImages.GetItemViewData(i),0);
+                g.SetItem(itemImages.GetItemView(i),0);
                 g.SubscribeOnItemSlotClick(InvokeEvent);
 
                 g.transform.localScale = new Vector3(1,1,1);

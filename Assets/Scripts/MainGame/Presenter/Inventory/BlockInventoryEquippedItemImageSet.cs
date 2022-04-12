@@ -68,7 +68,7 @@ namespace MainGame.Presenter.Inventory
         {
             MainThreadExecutionQueue.Instance.Insert(() =>
             {
-                _equippedItem.SetItem(_itemImages.GetItemViewData(itemStack.ID),itemStack.Count);
+                _equippedItem.SetItem(_itemImages.GetItemView(itemStack.ID),itemStack.Count);
             });
         }
     }

@@ -10,7 +10,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
         [SerializeField] private List<ItemViewData> itemImageList;
         [SerializeField] private ItemViewData nothingIndexItemImage;
 
-        public ItemViewData GetItemViewData(int index)
+        public ItemViewData GetItemView(int index)
         {
             if (itemImageList.Count <= index)
             {
