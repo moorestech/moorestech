@@ -1,27 +1,31 @@
 using System.Diagnostics;
 using GameConst;
-using MainGame.Basic;
-using MainGame.Control.Game;
-using MainGame.Control.Game.MouseKeyboard;
-using MainGame.Control.UI.Command;
 using MainGame.Control.UI.Inventory;
-using MainGame.Control.UI.Inventory.ItemMove;
 using MainGame.Control.UI.PauseMenu;
-using MainGame.Control.UI.UIState;
 using MainGame.Control.UI.UIState.UIObject;
 using MainGame.Control.UI.UIState.UIState;
-using MainGame.GameLogic.Chunk;
 using MainGame.GameLogic.Inventory;
+using MainGame.Model.DataStore.Inventory;
+using MainGame.Model.Network.Send;
 using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Settings;
+using MainGame.Presenter;
+using MainGame.Presenter.Chunk;
+using MainGame.Presenter.Command;
+using MainGame.Presenter.Inventory;
+using MainGame.Presenter.Inventory.ItemMove;
+using MainGame.Presenter.ItemMove;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
+using MainGame.UnityView.Control.MouseKeyboard;
+using MainGame.UnityView.Game;
 using MainGame.UnityView.UI.CraftRecipe;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
+using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.WorldMapTile;
 using SinglePlay;
 using UnityEngine;
@@ -139,12 +143,12 @@ namespace MainGame.Starter
             
             
             //データストア、ゲームロジック系
-            builder.RegisterEntryPoint<ChunkDataStoreCache>();
+            builder.RegisterEntryPoint<ChunkDataPresenter>();
             builder.RegisterEntryPoint<WorldMapTilePresenter>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
             builder.Register<MainInventoryDataCache>(Lifetime.Singleton);
             builder.Register<CraftingInventoryDataCache>(Lifetime.Singleton);
-            builder.Register<BlockInventoryDataCache>(Lifetime.Singleton);
+            builder.Register<BlockInventoryPresenter>(Lifetime.Singleton);
             builder.Register<BlockInventoryMainInventoryItemMoveService>(Lifetime.Singleton);
             builder.Register<MainInventoryCraftInventoryItemMoveService>(Lifetime.Singleton);
             
