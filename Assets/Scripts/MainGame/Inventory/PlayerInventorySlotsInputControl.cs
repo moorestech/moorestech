@@ -34,6 +34,11 @@ namespace MainGame.Inventory
             {
                 _playerInventoryModel.PlaceOneItem(slotIndex);
             }
+            else
+            {
+                _playerInventoryModel.EquippedHalfItem(slotIndex);
+            }
+            
         }
         
         private void LeftClickDown(InventoryItemSlot slot)

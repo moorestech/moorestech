@@ -49,6 +49,15 @@ namespace MainGame.Inventory
             SetEquippedWithInvokeEvent(true,_mainInventory[slot]);
             SetInventoryWithInvokeEvent(slot,_itemStackFactory.CreatEmpty());
         }
+        public void EquippedHalfItem(int slot)
+        {
+            var equippedItemNum = _mainInventory[slot].Count/2;
+            var slotItemNum = _mainInventory[slot].Count - equippedItemNum;
+            var id = _mainInventory[slot].Id;
+            
+            SetEquippedWithInvokeEvent(true,_itemStackFactory.Create(id,equippedItemNum));
+            SetInventoryWithInvokeEvent(slot,_itemStackFactory.Create(id,slotItemNum));
+        }
 
         public void PlaceItem(int slot)
         {
