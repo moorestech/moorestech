@@ -19,8 +19,9 @@ namespace MainGame.Inventory
         private IItemStack _equippedItem;
 
         public bool IsEquipped => _isEquipped;
-
         private bool _isEquipped;
+        
+        public bool IsItemSplitDragging => _isItemSplitDragging;
 
 
         public event Action<int,ItemStack> OnSlotUpdate;
@@ -65,6 +66,7 @@ namespace MainGame.Inventory
             //アイテムを足しても余らない時はそのままおく
             if (item.IsAllowedToAdd(_equippedItem))
             {
+                ItemSplitDragStart(slot,_equippedItem);
                 var result = item.AddItem(_equippedItem);
                 SetInventoryWithInvokeEvent(slot,result.ProcessResultItemStack);
                 SetEquippedWithInvokeEvent(false);
@@ -72,8 +74,8 @@ namespace MainGame.Inventory
             //あまりがでて、アイテム数が最大じゃない時は加算して、あまりをEquippedに入れる
             else if (item.IsAllowedToAddWithRemain(_equippedItem) && item.Count != _itemConfig.GetItemConfig(item.Id).MaxStack)
             {
+                ItemSplitDragStart(slot,_equippedItem);
                 var result = item.AddItem(_equippedItem);
-                
                 SetInventoryWithInvokeEvent(slot,result.ProcessResultItemStack);
                 SetEquippedWithInvokeEvent(true,result.RemainderItemStack);
             }
@@ -90,38 +92,99 @@ namespace MainGame.Inventory
         public void PlaceOneItem(int slot)
         {
             var addItem = _itemStackFactory.Create(_equippedItem.Id, 1);
+            if (!_mainInventory[slot].IsAllowedToAdd(addItem)) return;
             //アイテムを1個置ける時だけアイテムをおく
-            if (_mainInventory[slot].IsAllowedToAdd(addItem))
-            {
-                //アイテムを加算する
-                SetInventoryWithInvokeEvent(slot,_mainInventory[slot].AddItem(addItem).ProcessResultItemStack);
+            
+            
+            //アイテムを加算する
+            SetInventoryWithInvokeEvent(slot,_mainInventory[slot].AddItem(addItem).ProcessResultItemStack);
                 
-                //持っているアイテムを減らす
-                var newEquippedItem = _equippedItem.SubItem(1);
+            //持っているアイテムを減らす
+            var newEquippedItem = _equippedItem.SubItem(1);
+            if (newEquippedItem.Count == 0)
+            {
                 //持っているアイテムがなくなったら持ち状態を解除する
-                if (newEquippedItem.Count == 0)
-                {
-                    SetEquippedWithInvokeEvent(false);
-                }
-                else
-                {
-                    SetEquippedWithInvokeEvent(true,newEquippedItem);
-                }
+                SetEquippedWithInvokeEvent(false);
+            }
+            else
+            {
+                //なくなってない時は持っているアイテムを加算する
+                SetEquippedWithInvokeEvent(true,newEquippedItem);
             }
         }
         
-        public void DragStartSlot(int slot)
-        {
-        }
+        
+        
+        private bool _isItemSplitDragging;
+        private readonly List<ItemSplitDragSlot> _itemSplitDragSlots = new ();
+        private IItemStack _dragStartEquippedItem;
 
-        public void DragSlot(int slot)
+        private void ItemSplitDragStart(int startSlot,IItemStack startEquippedItem)
         {
+            _itemSplitDragSlots.Clear();
             
+            
+            _isItemSplitDragging = true;
+            _itemSplitDragSlots.Add(new ItemSplitDragSlot(startSlot,_mainInventory[startSlot]));
+            _dragStartEquippedItem = startEquippedItem;
         }
         
-        public void DragEndSlot(int slot)
+
+        public void ItemSplitDragSlot(int slot)
         {
+            if (!_mainInventory[slot].IsAllowedToAddWithRemain(_equippedItem) && _isItemSplitDragging) return;
+
+            
+            //まだスロットをドラッグしてない時
+            if (!_itemSplitDragSlots.Exists(i => i.Slot == slot))
+            {
+                //ドラッグ中のアイテムに設定
+                _itemSplitDragSlots.Add(new ItemSplitDragSlot(slot,_mainInventory[slot]));
+            }
+
+            var id = _dragStartEquippedItem.Id;
+            
+            //1スロットあたりのアイテム数
+            var dragItemCount = _dragStartEquippedItem.Count/_itemSplitDragSlots.Count;
+            //余っているアイテム数
+            var remainItemNum = _dragStartEquippedItem.Count - dragItemCount*_itemSplitDragSlots.Count;
+            
+            foreach (var dragSlot in _itemSplitDragSlots)
+            {
+                //ドラッグ中のスロットにアイテムを加算する
+                var addedItem = dragSlot.BeforeDragItem.AddItem(_itemStackFactory.Create(id,dragItemCount));
+
+                SetInventoryWithInvokeEvent(dragSlot.Slot,addedItem.ProcessResultItemStack);
+                //Debug.Log(addedItem.ProcessResultItemStack);
+                //Debug.Log(addedItem.RemainderItemStack);
+                //余ったアイテムを加算する
+                remainItemNum += addedItem.RemainderItemStack.Count;
+            }
+
+            if (remainItemNum == 0)
+            {
+                //余ったアイテムがなくなったら持ち状態を解除する
+                SetEquippedWithInvokeEvent(false);
+            }
+            else
+            {
+                //持っているアイテムを設定
+                SetEquippedWithInvokeEvent(true,_itemStackFactory.Create(id,remainItemNum));
+            }
         }
+        
+        public void ItemSplitDragEndSlot(int slot)
+        {
+            _isItemSplitDragging = false;
+        }
+        
+        
+        
+        
+        
+        
+        
+        
         
         
         private void SetEquippedWithInvokeEvent(bool isEquipped,IItemStack itemStack = null)
@@ -151,6 +214,18 @@ namespace MainGame.Inventory
         public static ItemStack ToStructItemStack(this  IItemStack itemStack)
         {
             return new ItemStack(itemStack.Id,itemStack.Count);
+        }
+    }
+
+    class ItemSplitDragSlot
+    {
+        public readonly int Slot;
+        public readonly IItemStack BeforeDragItem;
+
+        public ItemSplitDragSlot(int slot,IItemStack beforeDragItem)
+        {
+            BeforeDragItem = beforeDragItem;
+            Slot = slot;
         }
     }
 }
