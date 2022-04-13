@@ -1,7 +1,8 @@
-using System;
+
+
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
+using Core.Item;
 using GameConst;
 using MainGame.Basic;
 using MainGame.UnityView.UI.Inventory.Element;
@@ -19,11 +20,16 @@ namespace MainGame.Inventory
         
         private void Start()
         {
-            var inventory = new PlayerInventoryModel(new SinglePlayInterface(ServerConst.ServerConfigDirectory));
-            var inventoryList = (List<ItemStack>) typeof(PlayerInventoryModel)
+            var single = new SinglePlayInterface(ServerConst.ServerConfigDirectory);
+            var itemStackFactory = single.ItemStackFactory;
+            var inventory = new PlayerInventoryModel(itemStackFactory,single.ItemConfig);
+            var inventoryList = (List<IItemStack>) typeof(PlayerInventoryModel)
                 .GetField("_mainInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(inventory);
             
-            inventoryList[0] = new ItemStack(1,100);
+            inventoryList[0] = itemStackFactory.Create(1,100);
+            inventoryList[1] = itemStackFactory.Create(1,100);
+            inventoryList[2] = itemStackFactory.Create(2,100);
+            inventoryList[3] = itemStackFactory.Create(2,100);
             
             playerInventorySlotsInputControl.Construct(inventory);
             playerInventoryView.Construct(inventory,itemImages);
