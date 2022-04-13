@@ -38,11 +38,19 @@ namespace MainGame.Inventory
                 //ドラッグ中の時はマウスカーソルが乗ったスロットをドラッグされたと判定する
                 _playerInventoryModel.ItemSplitDragSlot(slotIndex);
             }
+            else if (_playerInventoryModel.IsItemOneDragging)
+            {
+                _playerInventoryModel.PlaceOneItem(slotIndex);
+            }
         }
 
         private void RightClickUp(InventoryItemSlot slot)
         {
             var slotIndex = mainInventorySlots.FindIndex(s => s == slot);
+            if (_playerInventoryModel.IsItemOneDragging)
+            {
+                _playerInventoryModel.ItemOneDragEnd();
+            }
         }
 
         private void LeftClickUp(InventoryItemSlot slot)

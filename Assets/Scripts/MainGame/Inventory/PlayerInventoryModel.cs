@@ -22,6 +22,7 @@ namespace MainGame.Inventory
         private bool _isEquipped;
         
         public bool IsItemSplitDragging => _isItemSplitDragging;
+        public bool IsItemOneDragging => _isItemOneDragging;
 
 
         public event Action<int,ItemStack> OnSlotUpdate;
@@ -109,12 +110,13 @@ namespace MainGame.Inventory
             else
             {
                 //なくなってない時は持っているアイテムを加算する
+                ItemOneDragStart();
                 SetEquippedWithInvokeEvent(true,newEquippedItem);
             }
         }
-        
-        
-        
+
+        #region SplitDrag
+
         private bool _isItemSplitDragging;
         private readonly List<ItemSplitDragSlot> _itemSplitDragSlots = new ();
         private IItemStack _dragStartEquippedItem;
@@ -155,8 +157,6 @@ namespace MainGame.Inventory
                 var addedItem = dragSlot.BeforeDragItem.AddItem(_itemStackFactory.Create(id,dragItemCount));
 
                 SetInventoryWithInvokeEvent(dragSlot.Slot,addedItem.ProcessResultItemStack);
-                //Debug.Log(addedItem.ProcessResultItemStack);
-                //Debug.Log(addedItem.RemainderItemStack);
                 //余ったアイテムを加算する
                 remainItemNum += addedItem.RemainderItemStack.Count;
             }
@@ -177,8 +177,27 @@ namespace MainGame.Inventory
         {
             _isItemSplitDragging = false;
         }
+
+        #endregion
+
+
+
+
+        #region OneDrag
+
+        private bool _isItemOneDragging;
         
-        
+        private void ItemOneDragStart()
+        {
+            _isItemOneDragging = true;
+        }
+
+        public void ItemOneDragEnd()
+        {
+            _isItemOneDragging = false;
+        }
+
+        #endregion
         
         
         
