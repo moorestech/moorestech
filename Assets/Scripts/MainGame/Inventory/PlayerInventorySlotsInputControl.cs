@@ -27,6 +27,20 @@ namespace MainGame.Inventory
                 mainInventory.OnLeftClickUp += LeftClickUp;
                 mainInventory.OnRightClickUp += RightClickUp;
                 mainInventory.OnCursorEnter += CursorEnter;
+                mainInventory.OnDoubleClick += DoubleClick;
+            }
+        }
+
+        private void DoubleClick(InventoryItemSlot slot)
+        {
+            var slotIndex = mainInventorySlots.FindIndex(s => s == slot);
+            if (_playerInventoryModel.IsEquipped)
+            {
+                _playerInventoryModel.CollectEquippedItem();
+            }
+            else
+            {
+                _playerInventoryModel.CollectSlotItem(slotIndex);
             }
         }
 

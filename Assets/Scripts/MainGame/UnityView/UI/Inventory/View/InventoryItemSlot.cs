@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace MainGame.UnityView.UI.Inventory.View
 {
-    public class InventoryItemSlot: MonoBehaviour,IPointerDownHandler,IPointerUpHandler,IPointerEnterHandler
+    public class InventoryItemSlot: MonoBehaviour,IPointerDownHandler,IPointerUpHandler,IPointerEnterHandler,IPointerClickHandler
     {
         public event Action<InventoryItemSlot> OnRightClickDown;
         public event Action<InventoryItemSlot> OnLeftClickDown;
@@ -15,6 +15,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         public event Action<InventoryItemSlot> OnRightClickUp;
         public event Action<InventoryItemSlot> OnLeftClickUp;
         public event Action<InventoryItemSlot> OnCursorEnter;
+        public event Action<InventoryItemSlot> OnDoubleClick;
         
 
         [SerializeField] private Image image;
@@ -63,6 +64,12 @@ namespace MainGame.UnityView.UI.Inventory.View
         public void OnPointerEnter(PointerEventData eventData)
         {
             OnCursorEnter?.Invoke(this);
+        }
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if(2 == eventData.clickCount){
+                OnDoubleClick?.Invoke(this);
+            }
         }
         
         

@@ -44,7 +44,7 @@ namespace MainGame.Inventory
             }
         }
 
-
+        #region EquippedPlaceItem
 
         public void EquippedItem(int slot)
         {
@@ -115,6 +115,8 @@ namespace MainGame.Inventory
             }
         }
 
+        #endregion
+
         #region SplitDrag
 
         private bool _isItemSplitDragging;
@@ -179,10 +181,7 @@ namespace MainGame.Inventory
         }
 
         #endregion
-
-
-
-
+        
         #region OneDrag
 
         private bool _isItemOneDragging;
@@ -198,6 +197,52 @@ namespace MainGame.Inventory
         }
 
         #endregion
+
+        public void CollectSlotItem(int slot)
+        {
+            //同じIDのアイテムで少ない数のスロット順で並べる
+            var collectTargetIndex = GetCollectItemTarget(_mainInventory[slot].Id);
+            //ただし自分のスロットは除外する
+            collectTargetIndex.Remove(slot);
+
+            SetInventoryWithInvokeEvent(slot, CollectItem(collectTargetIndex, _mainInventory[slot]));
+        }
+        public void CollectEquippedItem()
+        {
+            //同じIDのアイテムで少ない数のスロット順で並べる
+            var collectTargetIndex = GetCollectItemTarget(_equippedItem.Id);
+            
+            SetEquippedWithInvokeEvent(true,CollectItem(collectTargetIndex,_equippedItem));
+        }
+
+        private List<int> GetCollectItemTarget(int itemId)
+        {
+            return _mainInventory.
+                Select((item,index) => new {item,index}).
+                Where(i => i.item.Id == itemId).
+                OrderBy(i => i.item.Count).
+                Select(i => i.index).ToList();
+        }
+
+        private IItemStack CollectItem(List<int> collectTargetIndex,IItemStack collectFromItem)
+        {
+            foreach (var index in collectTargetIndex)
+            {
+                var added = collectFromItem.AddItem(_mainInventory[index]);
+                collectFromItem = added.ProcessResultItemStack;
+                SetInventoryWithInvokeEvent(index,added.RemainderItemStack);
+                
+                //足したあまりがあるということはスロットにそれ以上入らないということなので、ここで処理を終了する
+                if (added.RemainderItemStack.Count != 0)
+                {
+                    break;
+                }
+            }
+
+            return collectFromItem;
+        }
+        
+        
         
         
         
