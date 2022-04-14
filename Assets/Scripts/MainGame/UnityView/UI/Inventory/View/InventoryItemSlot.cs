@@ -67,7 +67,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         }
         public void OnPointerClick(PointerEventData eventData)
         {
-            if(2 == eventData.clickCount){
+            if(2 == eventData.clickCount && eventData.pointerId == -1){
                 OnDoubleClick?.Invoke(this);
             }
         }
