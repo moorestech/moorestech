@@ -8,7 +8,7 @@ namespace MainGame.Inventory
 {
     public class PlayerInventorySlotsInputControl : MonoBehaviour
     {
-        [SerializeField] private List<InventoryItemSlot> mainInventorySlots;
+        [SerializeField] private PlayerInventorySlots playerInventorySlots;
 
         private PlayerInventoryModel _playerInventoryModel;
 
@@ -20,20 +20,17 @@ namespace MainGame.Inventory
         
         private void Awake()
         {
-            foreach (var mainInventory in mainInventorySlots)
-            {
-                mainInventory.OnLeftClickDown += LeftClickDown;
-                mainInventory.OnRightClickDown += RightClickDown;
-                mainInventory.OnLeftClickUp += LeftClickUp;
-                mainInventory.OnRightClickUp += RightClickUp;
-                mainInventory.OnCursorEnter += CursorEnter;
-                mainInventory.OnDoubleClick += DoubleClick;
-            }
+            playerInventorySlots.OnLeftClickDown += LeftClickDown;
+            playerInventorySlots.OnRightClickDown += RightClickDown;
+            playerInventorySlots.OnLeftClickUp += LeftClickUp;
+            playerInventorySlots.OnRightClickUp += RightClickUp;
+            playerInventorySlots.OnCursorEnter += CursorEnter;
+            playerInventorySlots.OnDoubleClick += DoubleClick;
+            
         }
 
-        private void DoubleClick(InventoryItemSlot slot)
+        private void DoubleClick(int slotIndex)
         {
-            var slotIndex = mainInventorySlots.FindIndex(s => s == slot);
             if (_playerInventoryModel.IsEquipped)
             {
                 _playerInventoryModel.CollectEquippedItem();
@@ -44,9 +41,8 @@ namespace MainGame.Inventory
             }
         }
 
-        private void CursorEnter(InventoryItemSlot slot)
+        private void CursorEnter(int slotIndex)
         {
-            var slotIndex = mainInventorySlots.FindIndex(s => s == slot);
             if (_playerInventoryModel.IsItemSplitDragging)
             {
                 //ドラッグ中の時はマウスカーソルが乗ったスロットをドラッグされたと判定する
@@ -58,18 +54,16 @@ namespace MainGame.Inventory
             }
         }
 
-        private void RightClickUp(InventoryItemSlot slot)
+        private void RightClickUp(int slotIndex)
         {
-            var slotIndex = mainInventorySlots.FindIndex(s => s == slot);
             if (_playerInventoryModel.IsItemOneDragging)
             {
                 _playerInventoryModel.ItemOneDragEnd();
             }
         }
 
-        private void LeftClickUp(InventoryItemSlot slot)
+        private void LeftClickUp(int slotIndex)
         {
-            var slotIndex = mainInventorySlots.FindIndex(s => s == slot);
             //左クリックを離したときはドラッグ中のスロットを解除する
             if (_playerInventoryModel.IsItemSplitDragging)
             {
@@ -77,9 +71,8 @@ namespace MainGame.Inventory
             }
         }
 
-        private void RightClickDown(InventoryItemSlot slot)
+        private void RightClickDown(int slotIndex)
         {
-            var slotIndex = mainInventorySlots.FindIndex(s => s == slot);
             if (_playerInventoryModel.IsEquipped)
             {
                 //アイテムを持っている時に右クリックするとアイテム1個だけ置く処理
@@ -93,9 +86,8 @@ namespace MainGame.Inventory
             
         }
         
-        private void LeftClickDown(InventoryItemSlot slot)
+        private void LeftClickDown(int slotIndex)
         {
-            var slotIndex = mainInventorySlots.FindIndex(s => s == slot);
             if (_playerInventoryModel.IsEquipped)
             {
                 //アイテムを持っている時に左クリックするとアイテムを置くもしくは置き換える処理

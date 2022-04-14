@@ -9,7 +9,7 @@ namespace MainGame.Inventory
 {
     public class PlayerInventoryView : MonoBehaviour
     {
-        [SerializeField] private List<InventoryItemSlot> mainInventorySlots;
+        [SerializeField] private PlayerInventorySlots playerInventorySlots;
         [SerializeField] private InventoryItemSlot equippedItem;
 
         private ItemImages _itemImages;
@@ -21,14 +21,14 @@ namespace MainGame.Inventory
             for (var i = 0; i < playerInventoryModel.MainInventory.Count; i++)
             {
                 var item = playerInventoryModel.MainInventory[i];
-                mainInventorySlots[i].SetItem(_itemImages.GetItemView(item.ID),item.Count);
+                playerInventorySlots.SetImage(i,_itemImages.GetItemView(item.ID),item.Count);
             }
 
             playerInventoryModel.OnItemEquipped += () => equippedItem.gameObject.SetActive(true);
             playerInventoryModel.OnItemUnequipped += () => equippedItem.gameObject.SetActive(false);
             
             
-            playerInventoryModel.OnSlotUpdate += (slot, item) => mainInventorySlots[slot].SetItem(_itemImages.GetItemView(item.ID),item.Count);
+            playerInventoryModel.OnSlotUpdate += (slot, item) => playerInventorySlots.SetImage(slot,_itemImages.GetItemView(item.ID),item.Count);
             playerInventoryModel.OnEquippedItemUpdate += item => equippedItem.SetItem(_itemImages.GetItemView(item.ID),item.Count);
         }
     }
