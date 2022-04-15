@@ -14,8 +14,6 @@ namespace Test.CombinedTest.Game
         public void MoveTest()
         {
             int playerId = 1;
-            int playerSlotIndex = 2;
-            int blockInventorySlotIndex = 0;
 
             //初期設定----------------------------------------------------------
 

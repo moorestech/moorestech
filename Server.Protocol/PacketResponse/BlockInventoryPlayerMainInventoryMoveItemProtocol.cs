@@ -39,7 +39,7 @@ namespace Server.Protocol.PacketResponse
             var blockInventory = (IOpenableInventory) _worldBlockDatastore.GetBlock(blockX, blockY);
             var playerMainInventory = _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory;
 
-            var inventoryItemMove = new InventoryItemMove();
+            var inventoryItemMove = new InventoryItemMoveService();
             //フラグが0の時はメインインベントリからブロックインベントリにアイテムを移す
             if (flag == 0)
             {
