@@ -3,7 +3,7 @@ using Core.Item;
 
 namespace Server.Protocol.PacketResponse.Util
 {
-    public class InventoryItemMove
+    public class InventoryItemMoveService
     {
         public void Move(ItemStackFactory itemStackFactory, IOpenableInventory sourceOpenableInventory, int sourceSlot,
             IOpenableInventory destinationOpenableInventory, int destinationSlot, int itemCount)
