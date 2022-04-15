@@ -12,24 +12,25 @@ namespace MainGame.Inventory
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
         [SerializeField] private InventoryItemSlot equippedItem;
 
-        private ItemImages _itemImages;
-
         [Inject]
-        public void Construct(PlayerInventoryModel playerInventoryModel,ItemImages itemImages)
+        public void Construct(PlayerInventoryModelController playerInventoryModelController,ItemImages itemImages,PlayerInventoryModel playerInventoryModel)
         {
-            _itemImages = itemImages;
-            for (var i = 0; i < playerInventoryModel.MainInventory.Count; i++)
-            {
-                var item = playerInventoryModel.MainInventory[i];
-                playerInventorySlots.SetImage(i,_itemImages.GetItemView(item.ID),item.Count);
-            }
 
-            playerInventoryModel.OnItemEquipped += () => equippedItem.gameObject.SetActive(true);
-            playerInventoryModel.OnItemUnequipped += () => equippedItem.gameObject.SetActive(false);
+            playerInventoryModelController.OnItemEquipped += () => equippedItem.gameObject.SetActive(true);
+            playerInventoryModelController.OnItemUnequipped += () => equippedItem.gameObject.SetActive(false);
             
             
-            playerInventoryModel.OnSlotUpdate += (slot, item) => playerInventorySlots.SetImage(slot,_itemImages.GetItemView(item.ID),item.Count);
-            playerInventoryModel.OnEquippedItemUpdate += item => equippedItem.SetItem(_itemImages.GetItemView(item.ID),item.Count);
+            playerInventoryModelController.OnSlotUpdate += (slot, item) => playerInventorySlots.SetImage(slot,itemImages.GetItemView(item.ID),item.Count);
+            playerInventoryModelController.OnEquippedItemUpdate += item => equippedItem.SetItem(itemImages.GetItemView(item.ID),item.Count);
+
+            playerInventoryModel.OnInventoryUpdate += () =>
+            {
+                for (var i = 0; i < playerInventoryModel.Count; i++)
+                {
+                    var item = playerInventoryModel[i];
+                    playerInventorySlots.SetImage(i,itemImages.GetItemView(item.Id),item.Count);
+                }
+            };
         }
     }
 }

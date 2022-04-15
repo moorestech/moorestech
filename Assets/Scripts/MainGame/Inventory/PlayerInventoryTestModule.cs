@@ -1,10 +1,13 @@
 
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Core.Item;
+using Game.PlayerInventory.Interface;
 using GameConst;
 using MainGame.Basic;
+using MainGame.Inventory.SubInventory;
 using MainGame.UnityView.UI.Inventory.Element;
 using SinglePlay;
 using UnityEngine;
@@ -14,7 +17,8 @@ namespace MainGame.Inventory
     public class PlayerInventoryTestModule : MonoBehaviour
     {
         [SerializeField] private ItemImages itemImages;
-        
+
+        [SerializeField] private PlayerInventorySlots playerInventorySlots;
         [SerializeField] private PlayerInventorySlotsInputControl playerInventorySlotsInputControl;
         [SerializeField] private PlayerInventoryView playerInventoryView;
         
@@ -22,17 +26,34 @@ namespace MainGame.Inventory
         {
             var single = new SinglePlayInterface(ServerConst.ServerConfigDirectory);
             var itemStackFactory = single.ItemStackFactory;
-            var inventory = new PlayerInventoryModel(itemStackFactory,single.ItemConfig);
-            var inventoryList = (List<IItemStack>) typeof(PlayerInventoryModel)
-                .GetField("_mainInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(inventory);
+            var inventoryModel = new PlayerInventoryModel(itemStackFactory);
+            var inventoryController = new PlayerInventoryModelController(itemStackFactory,single.ItemConfig,inventoryModel);
+
+            playerInventorySlotsInputControl.Construct(inventoryController);
+            playerInventoryView.Construct(inventoryController,itemImages,inventoryModel);
             
-            inventoryList[0] = itemStackFactory.Create(1,100);
-            inventoryList[1] = itemStackFactory.Create(1,100);
-            inventoryList[2] = itemStackFactory.Create(2,100);
-            inventoryList[3] = itemStackFactory.Create(2,100);
+            var oneSlots = new List<OneSlot>() {new(172,272,0)};
+            var arraySlots = new List<ArraySlot>() {new(-172,272,10,3,3)};
+            var subInventoryData = new SubInventoryViewData(oneSlots, arraySlots);
             
-            playerInventorySlotsInputControl.Construct(inventory);
-            playerInventoryView.Construct(inventory,itemImages);
+            playerInventorySlots.SetSubSlots(subInventoryData);
+            
+            
+            var mainInventory = new ItemStack[PlayerInventoryConst.MainInventorySize];
+            mainInventory[0] = new (1,100);
+            mainInventory[1] = new (1,100);
+            mainInventory[2] = new (2,100);
+            mainInventory[3] = new (2,100);
+            
+            inventoryModel.SetMainInventory(mainInventory.ToList());
+            
+            
+            var subInventory = new ItemStack[PlayerInventoryConst.CraftingInventorySize];
+            subInventory[0] = new (1,100);
+            subInventory[1] = new (2,100);
+            
+            
+            inventoryModel.SetSubInventory(subInventory.ToList());
         }
     }
 }
