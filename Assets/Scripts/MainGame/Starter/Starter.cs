@@ -118,15 +118,10 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
             builder.RegisterEntryPoint<SendPlayerPositionProtocolProtocol>(); //プレイヤー位置送信は一定時間ごとに送信するのでRegisterEntryPointを使う
             builder.Register<RequestPlayerInventoryProtocol>(Lifetime.Singleton);
-            builder.Register<SendBlockInventoryMoveItemProtocol>(Lifetime.Singleton);
-            builder.Register<SendBlockInventoryMainInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);
-            builder.Register<SendMainInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<RequestBlockInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendCommandProtocol>(Lifetime.Singleton);
             builder.Register<SendCraftProtocol>(Lifetime.Singleton);
-            builder.Register<SendCraftingInventoryMoveItemProtocol>(Lifetime.Singleton);
-            builder.Register<SendCraftingInventoryMainInventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockInventoryOpenCloseControl>(Lifetime.Singleton);
             builder.Register<SendBlockRemoveProtocol>(Lifetime.Singleton);
             builder.Register<SendMiningProtocol>(Lifetime.Singleton);
