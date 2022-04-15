@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Core.Item;
 using MainGame.Basic;
+using UnityEngine;
 
 namespace MainGame.Inventory
 {
@@ -35,6 +36,7 @@ namespace MainGame.Inventory
                 if (index < _mainInventory.Count)
                 {
                     _mainInventory[index] = value;
+                    return;
                 }
                 _subInventory[index - _mainInventory.Count] = value;
             }
