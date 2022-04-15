@@ -3,6 +3,7 @@ using MainGame.Network.Send;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.UI.Inventory.View;
+using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
 using UnityEngine;
 using VContainer;

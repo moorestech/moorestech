@@ -1,7 +1,7 @@
-using System.Linq;
+using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
 
-namespace MainGame.UnityView.UI.Inventory.View
+namespace MainGame.UnityView.UI.Inventory.View.HotBar
 {
     public class SelectHotBarControl : MonoBehaviour
     {

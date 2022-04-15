@@ -3,9 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using Core.Item;
 using MainGame.Basic;
-using UnityEngine;
 
-namespace MainGame.Inventory
+namespace MainGame.UnityView.UI.Inventory.Control
 {
     public class PlayerInventoryModel : IEnumerable<IItemStack>
     {

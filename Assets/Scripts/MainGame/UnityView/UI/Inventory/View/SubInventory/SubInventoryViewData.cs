@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MainGame.Inventory.SubInventory
+namespace MainGame.UnityView.UI.Inventory.View.SubInventory
 {
     public interface ISubInventoryElement
     {

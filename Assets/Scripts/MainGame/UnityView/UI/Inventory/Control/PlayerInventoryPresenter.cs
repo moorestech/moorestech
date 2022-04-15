@@ -1,13 +1,11 @@
-using System.Collections.Generic;
-using MainGame.Basic;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.Inventory
+namespace MainGame.UnityView.UI.Inventory.Control
 {
-    public class PlayerInventoryView : MonoBehaviour
+    public class PlayerInventoryPresenter : MonoBehaviour
     {
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
         [SerializeField] private InventoryItemSlot equippedItem;

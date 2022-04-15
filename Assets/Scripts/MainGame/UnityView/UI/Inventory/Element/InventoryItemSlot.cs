@@ -1,11 +1,10 @@
 ﻿using System;
-using MainGame.UnityView.UI.Inventory.Element;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace MainGame.UnityView.UI.Inventory.View
+namespace MainGame.UnityView.UI.Inventory.Element
 {
     public class InventoryItemSlot: MonoBehaviour,IPointerDownHandler,IPointerUpHandler,IPointerEnterHandler,IPointerClickHandler
     {

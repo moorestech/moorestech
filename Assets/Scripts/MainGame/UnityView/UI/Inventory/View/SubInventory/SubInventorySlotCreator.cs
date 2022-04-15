@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using MainGame.UnityView.UI.Inventory.View;
+using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MainGame.Inventory.SubInventory
+namespace MainGame.UnityView.UI.Inventory.View.SubInventory
 {
     public class SubInventorySlotCreator : MonoBehaviour
     {

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using MainGame.UnityView.UI.Inventory.View;
+using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
 
-namespace MainGame.Inventory.SubInventory
+namespace MainGame.UnityView.UI.Inventory.View.SubInventory
 {
     public class InventoryArraySlot : MonoBehaviour
     {

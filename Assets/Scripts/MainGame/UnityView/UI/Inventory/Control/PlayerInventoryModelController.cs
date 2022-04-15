@@ -4,10 +4,8 @@ using System.Linq;
 using Core.Item;
 using Core.Item.Config;
 using MainGame.Basic;
-using SinglePlay;
-using UnityEngine;
 
-namespace MainGame.Inventory
+namespace MainGame.UnityView.UI.Inventory.Control
 {
     public class PlayerInventoryModelController
     {

@@ -5,7 +5,7 @@ using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.UnityView.UI.Inventory.View
+namespace MainGame.UnityView.UI.Inventory.View.HotBar
 {
     public class HotBarItemView : MonoBehaviour
     {

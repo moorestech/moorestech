@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MainGame.Inventory.SubInventory;
 using MainGame.UnityView.UI.Inventory.Element;
-using MainGame.UnityView.UI.Inventory.View;
+using MainGame.UnityView.UI.Inventory.View.SubInventory;
 using UnityEngine;
 
-namespace MainGame.Inventory
+namespace MainGame.UnityView.UI.Inventory.View
 {
     public class PlayerInventorySlots : MonoBehaviour
     {
