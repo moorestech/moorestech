@@ -14,6 +14,7 @@ using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
+    //todo equip スロットに対応させる
     public class PlayerMainInventoryUpdateTest
     {
         [Test]

@@ -13,6 +13,7 @@ namespace Test.CombinedTest.Server.PacketTest
 {
     public class PlayerMainInventoryItemMoveProtocolTest
     {
+        //TODO 新しく作る持っているアイテムスロットのテストためにとっておく
         [Test]
         public void InventoryItemMove()
         {
