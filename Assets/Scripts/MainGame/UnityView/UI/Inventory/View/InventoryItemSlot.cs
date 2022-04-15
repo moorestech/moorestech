@@ -71,16 +71,5 @@ namespace MainGame.UnityView.UI.Inventory.View
                 OnDoubleClick?.Invoke(this);
             }
         }
-        
-        
-        
-        
-        
-        /// <summary>
-        /// これより下削除予定
-        /// </summary>
-        public delegate void OnItemSlotClicked(int slotIndex);
-        public void SubscribeOnItemSlotClick(OnItemSlotClicked onItemSlotClicked) { }
-        public void Construct(int slotIndex) { }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using MainGame.Basic;
 using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
@@ -11,7 +12,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         
         [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
         List<InventoryItemSlot> _slots;
-        public IReadOnlyList<InventoryItemSlot> Slots => _slots;
+        public ReadOnlyCollection<InventoryItemSlot> Slots => _slots.AsReadOnly();
         
         private ItemImages _itemImages;
         
@@ -24,7 +25,6 @@ namespace MainGame.UnityView.UI.Inventory.View
             for (int i = 0; i < PlayerInventoryConstant.MainInventoryColumns; i++)
             {
                 var slot = Instantiate(inventoryItemSlotPrefab.gameObject, transform).GetComponent<InventoryItemSlot>();
-                slot.Construct(i);
                 _slots.Add(slot);
             }
         }

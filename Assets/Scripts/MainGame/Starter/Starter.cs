@@ -12,12 +12,9 @@ using MainGame.Network.Event;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Settings;
-using MainGame.Presenter;
 using MainGame.Presenter.Chunk;
 using MainGame.Presenter.Command;
 using MainGame.Presenter.Inventory;
-using MainGame.Presenter.Inventory.ItemMove;
-using MainGame.Presenter.ItemMove;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
@@ -71,11 +68,6 @@ namespace MainGame.Starter
         [SerializeField] private WorldMapTileGameObjectDataStore worldMapTileGameObjectDataStore;
         
         [SerializeField] private HotBarItemView hotBarItemView;
-        [SerializeField] private MainInventoryItemView mainInventoryItemView;
-        [SerializeField] private CraftingInventoryItemView craftingInventoryItemView;
-        [SerializeField] private PlayerInventoryInput playerInventoryInput;
-        [SerializeField] private BlockInventoryItemView blockInventoryItemView;
-        [SerializeField] private BlockInventoryInput blockInventoryInput;
         [SerializeField] private BlockClickDetect blockClickDetect;
         [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private DetectGroundClickToSendBlockPlacePacket detectGroundClickToSendBlockPlacePacket;
@@ -86,15 +78,13 @@ namespace MainGame.Starter
         [SerializeField] private ItemRecipeView itemRecipeView;
         
         [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
-        [SerializeField] private BlockInventoryEquippedItemImageSet blockInventoryEquippedItemImageSet;
-        
+
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private BlockInventoryObject blockInventoryObject;
         [SerializeField] private PlayerInventoryObject playerInventoryObject;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private RecipeViewerObject recipeViewerObject;
-        [SerializeField] private ItemListViewer itemListViewer;
         [SerializeField] private ItemRecipePresenter itemRecipePresenter;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
@@ -148,9 +138,6 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
             builder.Register<MainInventoryDataCache>(Lifetime.Singleton);
             builder.Register<CraftingInventoryDataCache>(Lifetime.Singleton);
-            builder.Register<BlockInventoryPresenter>(Lifetime.Singleton);
-            builder.Register<BlockInventoryMainInventoryItemMoveService>(Lifetime.Singleton);
-            builder.Register<MainInventoryCraftInventoryItemMoveService>(Lifetime.Singleton);
             
             //インプット
             builder.Register<MoorestechInputSettings>(Lifetime.Singleton);
@@ -178,14 +165,8 @@ namespace MainGame.Starter
             builder.RegisterComponent(oreMapTileClickDetect);
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(groundPlane);
-            builder.RegisterComponent(mainInventoryItemView);
-            builder.RegisterComponent(craftingInventoryItemView);
-            builder.RegisterComponent(playerInventoryInput);
-            builder.RegisterComponent(blockInventoryItemView);
-            builder.RegisterComponent(blockInventoryInput);
             builder.RegisterComponent(detectGroundClickToSendBlockPlacePacket);
             builder.RegisterComponent(playerInventoryEquippedItemImageSet);
-            builder.RegisterComponent(blockInventoryEquippedItemImageSet);
             builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarItemView);
             builder.RegisterComponent(selectHotBarControl);
@@ -198,7 +179,6 @@ namespace MainGame.Starter
             builder.RegisterComponent(blockInventoryObject);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
-            builder.RegisterComponent(itemListViewer);
             builder.RegisterComponent(recipeViewerObject);
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
@@ -217,10 +197,6 @@ namespace MainGame.Starter
             _resolver = builder.Build();
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();
             _resolver.Resolve<DetectGroundClickToSendBlockPlacePacket>();
-            _resolver.Resolve<MainInventoryItemView>();
-            _resolver.Resolve<PlayerInventoryInput>();
-            _resolver.Resolve<BlockInventoryItemView>();
-            _resolver.Resolve<BlockInventoryInput>();
             _resolver.Resolve<CommandUIInput>();
             _resolver.Resolve<UIStateControl>();
 

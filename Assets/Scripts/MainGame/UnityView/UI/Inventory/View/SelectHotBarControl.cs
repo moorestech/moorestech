@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory.View
@@ -23,15 +24,16 @@ namespace MainGame.UnityView.UI.Inventory.View
 
             foreach (var slot in hotBarItemView.Slots)
             {
-                slot.SubscribeOnItemSlotClick(ClickItem);
+                slot.OnLeftClickDown += ClickItem;
             }
+            
         }
 
-        private void ClickItem(int slot)
+        private void ClickItem(InventoryItemSlot inventoryItemSlot)
         {
+            var slot = hotBarItemView.Slots.IndexOf(inventoryItemSlot);
             _selectIndex = slot;
             _isClickedCount = 0;
-            Debug.Log("Clicked");
             selectHotBarView.SetSelect(slot);
         }
 
