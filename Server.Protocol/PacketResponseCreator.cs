@@ -22,14 +22,14 @@ namespace Server.Protocol
             _packetResponseList.Add(new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
             _packetResponseList.Add(new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseList.Add(new BlockInventoryPlayerMainInventoryMoveItemProtocol(serviceProvider));
-            _packetResponseList.Add(new MainInventoryMoveItemProtocol(serviceProvider));
-            _packetResponseList.Add(new BlockInventoryMoveItemProtocol(serviceProvider));
+            _packetResponseList.Add(new DummyProtocol());
+            _packetResponseList.Add(new DummyProtocol());
             _packetResponseList.Add(new SendPlaceHotBarBlockProtocol(serviceProvider));
             _packetResponseList.Add(new BlockInventoryRequestProtocol(serviceProvider));
             _packetResponseList.Add(new RemoveBlockProtocol(serviceProvider));
             _packetResponseList.Add(new SendCommandProtocol(serviceProvider));
-            _packetResponseList.Add(new CraftInventoryPlayerMainInventoryMoveItemProtocol(serviceProvider));
-            _packetResponseList.Add(new CraftInventoryMoveItemProtocol(serviceProvider));
+            _packetResponseList.Add(new DummyProtocol());
+            _packetResponseList.Add(new DummyProtocol());
             _packetResponseList.Add(new CraftProtocol(serviceProvider));
             _packetResponseList.Add(new MiningOperationProtocol(serviceProvider)); 
             _packetResponseList.Add(new BlockInventoryOpenCloseProtocol(serviceProvider));
