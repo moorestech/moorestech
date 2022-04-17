@@ -1,4 +1,5 @@
 using Core.Inventory;
+using Core.Item;
 
 namespace Game.PlayerInventory.Interface
 {
@@ -6,6 +7,7 @@ namespace Game.PlayerInventory.Interface
     {
         public readonly IOpenableInventory MainOpenableInventory;
         public readonly ICraftingOpenableInventory CraftingOpenableInventory;
+        public readonly IOpenableInventory EquipmentInventory;
 
         public PlayerInventoryData(IOpenableInventory mainOpenableInventory, ICraftingOpenableInventory craftingOpenableInventory)
         {
