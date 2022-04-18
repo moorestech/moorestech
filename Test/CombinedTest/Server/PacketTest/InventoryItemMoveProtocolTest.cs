@@ -34,6 +34,27 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(itemStackFactory.Create(1,7), equipmentInventory.GetItem(0));
         }
 
+        [Test]
+        public void CraftInventoryMoveTest()
+        {
+            
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).CraftingOpenableInventory;
+            var equipmentInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).EquipmentInventory;
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+
+            //インベントリの設定
+            craftInventory.SetItem(0,1,10);
+
+            //インベントリを持っているアイテムに移す
+            packet.GetPacketResponse(GetPacket(true, 0, 0, 7));
+            
+            //移っているかチェック
+            Assert.AreEqual(itemStackFactory.Create(1,3), craftInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(1,7), equipmentInventory.GetItem(0));
+        }
+
         //sourceInventoryIdは 0 メイン　1 クラフト 2 ブロック 
         private List<byte> GetPacket(bool toEquipment,byte sourceInventoryId,int inventorySlot,int itemCount,int x = 0,int y = 0)
         {
