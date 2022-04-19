@@ -87,6 +87,7 @@ namespace Server
             services.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
             services.AddSingleton<ICraftInventoryUpdateEvent, CraftInventoryUpdateEvent>();
+            services.AddSingleton<IEquipmentInventoryUpdateEvent, EquipmentInventoryUpdateEvent>();
 
             //イベントレシーバーを登録
             services.AddSingleton<ReceiveMainInventoryUpdateEvent, ReceiveMainInventoryUpdateEvent>();

@@ -14,9 +14,9 @@ using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
-    //todo equip スロットに対応させる
     public class PlayerMainInventoryUpdateTest
     {
+        private const int PlayerId = 0;
         [Test]
         public void UpdateTest()
         {
@@ -48,7 +48,8 @@ namespace Test.CombinedTest.Server.PacketTest.Event
 
             //インベントリ内のアイテムの移動を実際に移動のプロトコルを用いてテストする
             //分割のテスト
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(5, 4, 3, 0));
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true,5,  3));
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false,4, 3));
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(2, response.Count);
             var byteData1 = new ByteListEnumerator(response[0].ToList());
@@ -72,7 +73,9 @@ namespace Test.CombinedTest.Server.PacketTest.Event
 
 
             //合成のテスト
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(4, 5, 3, 0));
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true,4,  3));
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false,5, 3));
+            
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(2, response.Count);
             byteData1 = new ByteListEnumerator(response[0].ToList());
@@ -103,16 +106,18 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             payload.AddRange(ToByteList.Convert(plyaerID));
             return payload;
         }
-
-
-        private List<byte> PlayerInventoryItemMove(int fromSlot, int toSlot, int itemCount, int playerId)
+        private List<byte> PlayerInventoryItemMove(bool toEquipment,int inventorySlot,int itemCount)
         {
             var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 6));
-            payload.AddRange(ToByteList.Convert(playerId));
-            payload.AddRange(ToByteList.Convert(fromSlot));
-            payload.AddRange(ToByteList.Convert(toSlot));
+            payload.AddRange(ToByteList.Convert((short) 5));
+            payload.Add(toEquipment ? (byte) 0 : (byte) 1);
+            payload.Add(0);
+            payload.AddRange(ToByteList.Convert(PlayerId));
+            payload.AddRange(ToByteList.Convert(inventorySlot));
             payload.AddRange(ToByteList.Convert(itemCount));
+            payload.AddRange(ToByteList.Convert(0));
+            payload.AddRange(ToByteList.Convert(0));
+
             return payload;
         }
     }

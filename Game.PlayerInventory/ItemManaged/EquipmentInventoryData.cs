@@ -10,19 +10,19 @@ namespace PlayerInventory.ItemManaged
     public class EquipmentInventoryData : IOpenableInventory
     {
         private readonly int _playerId;
-        private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
+        private readonly EquipmentInventoryUpdateEvent _equipmentInventoryUpdateEvent;
         private readonly OpenableInventoryItemDataStoreService _openableInventoryService;
 
-        public EquipmentInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent,
+        public EquipmentInventoryData(int playerId, EquipmentInventoryUpdateEvent equipmentInventoryUpdateEvent,
             ItemStackFactory itemStackFactory)
         {
             _playerId = playerId;
-            _mainInventoryUpdateEvent = mainInventoryUpdateEvent;
+            _equipmentInventoryUpdateEvent = equipmentInventoryUpdateEvent;
             _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent,
                 itemStackFactory, 1);
         }
-        public EquipmentInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent, ItemStackFactory itemStackFactory,IItemStack itemStacks) : 
-            this(playerId, mainInventoryUpdateEvent, itemStackFactory)
+        public EquipmentInventoryData(int playerId, EquipmentInventoryUpdateEvent equipmentInventoryUpdateEvent, ItemStackFactory itemStackFactory,IItemStack itemStacks) : 
+            this(playerId, equipmentInventoryUpdateEvent, itemStackFactory)
         {
             _openableInventoryService.SetItemWithoutEvent(0,itemStacks);
         }
@@ -31,7 +31,7 @@ namespace PlayerInventory.ItemManaged
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
-            _mainInventoryUpdateEvent.OnInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(
+            _equipmentInventoryUpdateEvent.OnInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(
                 _playerId,slot,itemStack));
         }
         
