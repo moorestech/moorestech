@@ -46,7 +46,6 @@ namespace Game.World.EventHandler
             }
         }
 
-
         /// <summary>
         /// ブロックを接続元から接続先に接続できるなら接続する
         /// その場所にブロックがあるか、
