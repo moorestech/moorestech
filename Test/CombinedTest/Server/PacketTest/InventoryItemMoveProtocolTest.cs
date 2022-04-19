@@ -104,7 +104,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //持っているアイテムをインベントリに移す
-            packet.GetPacketResponse(GetPacket(false, 1, 0, 5,5,10));
+            packet.GetPacketResponse(GetPacket(false, 2, 1, 5,5,10));
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,8), chest.GetItem(1));
