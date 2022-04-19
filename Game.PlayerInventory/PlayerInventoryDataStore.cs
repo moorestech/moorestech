@@ -39,8 +39,9 @@ namespace PlayerInventory
             {
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
                 var craft = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService);
+                var equip = new EquipmentInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
                 
-                _playerInventoryData.Add(playerId, new PlayerInventoryData(main,craft));
+                _playerInventoryData.Add(playerId, new PlayerInventoryData(main,craft,equip));
             }
 
             return _playerInventoryData[playerId];
@@ -67,13 +68,14 @@ namespace PlayerInventory
             foreach (var saveInventory in saveInventoryDataList)
             {
                 var playerId = saveInventory.PlayerId;
-                var (main, craft) = saveInventory.GetPlayerInventoryData(_itemStackFactory);
+                var (mainItems, craftItems,equipItem) = saveInventory.GetPlayerInventoryData(_itemStackFactory);
 
                 //アイテムを復元
-                var mainInventory = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,main);
-                var craftingInventory = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent,
-                    _itemStackFactory,_isCreatableJudgementService,craft);
-                var playerInventory = new PlayerInventoryData(mainInventory, craftingInventory);
+                var mainInventory = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,mainItems);
+                var craftingInventory = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService,craftItems);
+                var equipmentInventory = new EquipmentInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,equipItem);
+                
+                var playerInventory = new PlayerInventoryData(mainInventory, craftingInventory,equipmentInventory);
                 
                 //インベントリの追加を行う　既にあるなら置き換える
                 if (_playerInventoryData.ContainsKey(playerId))

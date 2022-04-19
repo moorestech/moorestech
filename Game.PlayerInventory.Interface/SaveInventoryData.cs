@@ -11,9 +11,11 @@ namespace Game.PlayerInventory.Interface
         [JsonProperty("MainItemCount")] public List<int> MainItemCount;
         [JsonProperty("CraftItemId")] public List<int> CraftItemId;
         [JsonProperty("CraftItemCount")] public List<int> CraftItemCount;
+        [JsonProperty("EquipItemId")] public int EquipItemId;
+        [JsonProperty("EquipItemCount")] public int EquipItemCount;
         [JsonProperty("PlayerId")] public int PlayerId;
 
-        public (List<IItemStack>,List<IItemStack>) GetPlayerInventoryData(ItemStackFactory itemStackFactory)
+        public (List<IItemStack> mainInventory,List<IItemStack> craftInventory,IItemStack equipItem) GetPlayerInventoryData(ItemStackFactory itemStackFactory)
         {
             var mainItemStack = new List<IItemStack>();
             for (var i = 0; i < MainItemId.Count; i++)
@@ -25,7 +27,7 @@ namespace Game.PlayerInventory.Interface
             {
                 craftItemStack.Add(itemStackFactory.Create(CraftItemId[i], CraftItemCount[i]));
             }
-            return (mainItemStack, craftItemStack);
+            return (mainItemStack, craftItemStack, itemStackFactory.Create(EquipItemId, EquipItemCount));
         }
 
         public SaveInventoryData(){}
