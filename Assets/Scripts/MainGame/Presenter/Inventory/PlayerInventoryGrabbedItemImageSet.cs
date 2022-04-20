@@ -1,6 +1,6 @@
 ﻿using MainGame.GameLogic.Inventory;
 using MainGame.Model.DataStore.Inventory;
-using MainGame.Network.Event;
+using MainGame.Model.Network.Event;
 using MainGame.UnityView;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;

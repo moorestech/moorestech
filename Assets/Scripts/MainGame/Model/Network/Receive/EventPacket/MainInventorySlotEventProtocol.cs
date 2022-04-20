@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.Network.Event;
+using MainGame.Model.Network.Event;
 using MainGame.Network.Util;
 
-namespace MainGame.Network.Receive.EventPacket
+namespace MainGame.Model.Network.Receive.EventPacket
 {
-    public class MainInventorySlotEvent : IAnalysisEventPacket
+    public class MainInventorySlotEventProtocol : IAnalysisEventPacket
     {
         private MainInventoryUpdateEvent _mainInventoryUpdateEvent;
 
-        public MainInventorySlotEvent(IMainInventoryUpdateEvent mainInventorySlotEvent)
+        public MainInventorySlotEventProtocol(IMainInventoryUpdateEvent mainInventorySlotEvent)
         {
             _mainInventoryUpdateEvent = mainInventorySlotEvent as MainInventoryUpdateEvent;
         }

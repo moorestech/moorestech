@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using MainGame.Basic;
-using static MainGame.Network.Event.IMainInventoryUpdateEvent;
+using static MainGame.Model.Network.Event.IMainInventoryUpdateEvent;
 
-namespace MainGame.Network.Event
+namespace MainGame.Model.Network.Event
 {
     public interface IMainInventoryUpdateEvent
     {

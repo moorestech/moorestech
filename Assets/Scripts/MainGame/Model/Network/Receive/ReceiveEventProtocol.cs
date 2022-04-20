@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using MainGame.Network.Event;
-using MainGame.Network.Receive.EventPacket;
+using MainGame.Model.Network.Event;
+using MainGame.Model.Network.Receive.EventPacket;
 using MainGame.Network.Util;
 using UnityEngine;
 
@@ -13,11 +13,11 @@ namespace MainGame.Network.Receive
         public ReceiveEventProtocol(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,
             IMainInventoryUpdateEvent mainInventoryUpdateEvent,ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent,IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
         {
-            _eventPacketList.Add(new BlockPlaceEvent(networkReceivedChunkDataEvent));
-            _eventPacketList.Add(new MainInventorySlotEvent(mainInventoryUpdateEvent));
-            _eventPacketList.Add(new BlockInventorySlotUpdateEvent(blockInventoryUpdateEvent));
-            _eventPacketList.Add(new BlockRemoveEvent(networkReceivedChunkDataEvent));
-            _eventPacketList.Add(new CraftingInventorySlotEvent(craftingInventoryUpdateEvent));
+            _eventPacketList.Add(new BlockPlaceEventProtocol(networkReceivedChunkDataEvent));
+            _eventPacketList.Add(new MainInventorySlotEventProtocol(mainInventoryUpdateEvent));
+            _eventPacketList.Add(new BlockInventorySlotUpdateEventProtocol(blockInventoryUpdateEvent));
+            _eventPacketList.Add(new BlockRemoveEventProtocol(networkReceivedChunkDataEvent));
+            _eventPacketList.Add(new CraftingInventorySlotEventProtocol(craftingInventoryUpdateEvent));
         }
         
         /// <summary>

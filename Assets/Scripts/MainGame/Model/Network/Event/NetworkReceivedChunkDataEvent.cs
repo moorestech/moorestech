@@ -1,8 +1,8 @@
 ﻿using MainGame.Basic;
 using UnityEngine;
-using static MainGame.Network.Event.INetworkReceivedChunkDataEvent;
+using static MainGame.Model.Network.Event.INetworkReceivedChunkDataEvent;
 
-namespace MainGame.Network.Event
+namespace MainGame.Model.Network.Event
 {
     public interface INetworkReceivedChunkDataEvent
     {

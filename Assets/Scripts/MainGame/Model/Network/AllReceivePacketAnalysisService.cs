@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using MainGame.Network.Event;
+using MainGame.Model.Network.Event;
 using MainGame.Network.Receive;
 using MainGame.Network.Util;
 using UnityEngine;

@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.Network.Event;
+using MainGame.Model.Network.Event;
 using MainGame.Network.Util;
 using UnityEngine;
 
-namespace MainGame.Network.Receive.EventPacket
+namespace MainGame.Model.Network.Receive.EventPacket
 {
-    public class BlockPlaceEvent : IAnalysisEventPacket
+    public class BlockPlaceEventProtocol : IAnalysisEventPacket
     {
         readonly NetworkReceivedChunkDataEvent _networkReceivedChunkDataEvent;
 
-        public BlockPlaceEvent(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent)
+        public BlockPlaceEventProtocol(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent)
         {
             _networkReceivedChunkDataEvent = networkReceivedChunkDataEvent as NetworkReceivedChunkDataEvent;
         }

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using MainGame.Basic;
 using UnityEngine;
-using static MainGame.Network.Event.IBlockInventoryUpdateEvent;
+using static MainGame.Model.Network.Event.IBlockInventoryUpdateEvent;
 
-namespace MainGame.Network.Event
+namespace MainGame.Model.Network.Event
 {
     public interface IBlockInventoryUpdateEvent
     {

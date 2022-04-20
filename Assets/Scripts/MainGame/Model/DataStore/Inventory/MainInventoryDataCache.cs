@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.Network.Event;
+using MainGame.Model.Network.Event;
 using VContainer.Unity;
 
 namespace MainGame.Model.DataStore.Inventory

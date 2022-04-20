@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.Network.Event;
+using MainGame.Model.Network.Event;
 using MainGame.Network.Util;
 
-namespace MainGame.Network.Receive.EventPacket
+namespace MainGame.Model.Network.Receive.EventPacket
 {
-    public class CraftingInventorySlotEvent : IAnalysisEventPacket
+    public class CraftingInventorySlotEventProtocol : IAnalysisEventPacket
     {
         private readonly CraftingInventoryUpdateEvent _craftingInventoryUpdateEvent;
-        public CraftingInventorySlotEvent(ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent)
+        public CraftingInventorySlotEventProtocol(ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent)
         {
             _craftingInventoryUpdateEvent = craftingInventoryUpdateEvent as CraftingInventoryUpdateEvent;
         }

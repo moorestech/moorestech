@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
-using MainGame.Network.Event;
+using MainGame.Model.Network.Event;
 using MainGame.Network.Util;
 using UnityEngine;
 
-namespace MainGame.Network.Receive.EventPacket
+namespace MainGame.Model.Network.Receive.EventPacket
 {
-    public class BlockInventorySlotUpdateEvent : IAnalysisEventPacket
+    public class BlockInventorySlotUpdateEventProtocol : IAnalysisEventPacket
     {
         private readonly BlockInventoryUpdateEvent _blockInventoryUpdateEvent;
 
-        public BlockInventorySlotUpdateEvent(IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
+        public BlockInventorySlotUpdateEventProtocol(IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent as BlockInventoryUpdateEvent;
         }
