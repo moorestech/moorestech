@@ -1,30 +1,34 @@
+using System;
 using System.Collections.Generic;
 using Game.World.Interface.Event;
 using Server.Util;
 
 namespace Server.Event.EventReceive
 {
-    public class ReceiveRemoveBlockEvent
+    public class PlaceBlockToSetEventPacket
     {
+        private const short EventId = 0;
         private readonly EventProtocolProvider _eventProtocolProvider;
-        private const short EventId = 3;
 
-        public ReceiveRemoveBlockEvent(IBlockRemoveEvent blockRemoveEvent, EventProtocolProvider eventProtocolProvider)
+        public PlaceBlockToSetEventPacket(IBlockPlaceEvent blockPlaceEvent, EventProtocolProvider eventProtocolProvider)
         {
-            blockRemoveEvent.Subscribe(ReceivedEvent);
+            blockPlaceEvent.Subscribe(ReceivedEvent);
             _eventProtocolProvider = eventProtocolProvider;
         }
 
-        private void ReceivedEvent(BlockRemoveEventProperties blockPlaceEventProperties)
+        private void ReceivedEvent(BlockPlaceEventProperties blockPlaceEventProperties)
         {
             var c = blockPlaceEventProperties.Coordinate;
+            var id = blockPlaceEventProperties.Block.GetBlockId();
             var payload = new List<byte>();
 
             payload.AddRange(ToByteList.Convert(ServerEventConst.EventPacketId));
             payload.AddRange(ToByteList.Convert(EventId));
             payload.AddRange(ToByteList.Convert(c.X));
             payload.AddRange(ToByteList.Convert(c.Y));
-
+            payload.AddRange(ToByteList.Convert(id));
+            payload.Add((byte)blockPlaceEventProperties.BlockDirection);
+            
             _eventProtocolProvider.AddBroadcastEvent(payload.ToArray());
         }
     }

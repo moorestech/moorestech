@@ -1,15 +1,16 @@
+using System;
 using System.Collections.Generic;
 using Game.PlayerInventory.Interface.Event;
 using Server.Util;
 
 namespace Server.Event.EventReceive
 {
-    public class ReceiveGrabInventoryUpdateEvent
+    public class MainInventoryUpdateToSetEventPacket
     {
         private readonly EventProtocolProvider _eventProtocolProvider;
-        private const short EventId = 5;
+        private const short EventId = 1;
 
-        public ReceiveGrabInventoryUpdateEvent(IGrabInventoryUpdateEvent mainInventoryUpdateEvent,
+        public MainInventoryUpdateToSetEventPacket(IMainInventoryUpdateEvent mainInventoryUpdateEvent,
             EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;

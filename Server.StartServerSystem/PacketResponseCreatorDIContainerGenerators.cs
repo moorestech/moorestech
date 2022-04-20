@@ -90,12 +90,12 @@ namespace Server
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
 
             //イベントレシーバーを登録
-            services.AddSingleton<ReceiveMainInventoryUpdateEvent>();
-            services.AddSingleton<ReceiveCraftingInventoryUpdateEvent>();
-            services.AddSingleton<ReceiveOpenableBlockInventoryUpdateEvent>();
-            services.AddSingleton<ReceiveGrabInventoryUpdateEvent>();
-            services.AddSingleton<ReceivePlaceBlockEvent>();
-            services.AddSingleton<ReceiveRemoveBlockEvent>();
+            services.AddSingleton<MainInventoryUpdateToSetEventPacket>();
+            services.AddSingleton<CraftingInventoryUpdateToSetEventPacket>();
+            services.AddSingleton<OpenableBlockInventoryUpdateToSetEventPacket>();
+            services.AddSingleton<GrabInventoryUpdateToSetEventPacket>();
+            services.AddSingleton<PlaceBlockToSetEventPacket>();
+            services.AddSingleton<RemoveBlockToSetEventPacket>();
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect>();
             services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect>();
             services.AddSingleton<ConnectElectricPoleToElectricSegment>();
@@ -114,12 +114,12 @@ namespace Server
 
             //イベントレシーバーをインスタンス化する
             //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
-            serviceProvider.GetService<ReceiveMainInventoryUpdateEvent>();
-            serviceProvider.GetService<ReceiveCraftingInventoryUpdateEvent>();
-            serviceProvider.GetService<ReceiveOpenableBlockInventoryUpdateEvent>();
-            serviceProvider.GetService<ReceiveGrabInventoryUpdateEvent>();
-            serviceProvider.GetService<ReceivePlaceBlockEvent>();
-            serviceProvider.GetService<ReceiveRemoveBlockEvent>();
+            serviceProvider.GetService<MainInventoryUpdateToSetEventPacket>();
+            serviceProvider.GetService<CraftingInventoryUpdateToSetEventPacket>();
+            serviceProvider.GetService<OpenableBlockInventoryUpdateToSetEventPacket>();
+            serviceProvider.GetService<GrabInventoryUpdateToSetEventPacket>();
+            serviceProvider.GetService<PlaceBlockToSetEventPacket>();
+            serviceProvider.GetService<RemoveBlockToSetEventPacket>();
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();
             serviceProvider.GetService<ConnectElectricPoleToElectricSegment>();

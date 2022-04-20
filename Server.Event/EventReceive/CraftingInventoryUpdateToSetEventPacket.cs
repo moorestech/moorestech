@@ -5,13 +5,13 @@ using Server.Util;
 
 namespace Server.Event.EventReceive
 {
-    public class ReceiveCraftingInventoryUpdateEvent
+    public class CraftingInventoryUpdateToSetEventPacket
     {
         private const short EventId = 4;
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
-        public ReceiveCraftingInventoryUpdateEvent(EventProtocolProvider eventProtocolProvider,
+        public CraftingInventoryUpdateToSetEventPacket(EventProtocolProvider eventProtocolProvider,
             ICraftInventoryUpdateEvent craftInventoryUpdateEvent,IPlayerInventoryDataStore playerInventoryDataStore)
         {
             _eventProtocolProvider = eventProtocolProvider;
