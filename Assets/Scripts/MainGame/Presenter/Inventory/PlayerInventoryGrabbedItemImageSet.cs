@@ -10,12 +10,12 @@ using VContainer;
 namespace MainGame.Presenter.Inventory
 {
     /// <summary>
-    /// プレイヤーインベントリのEquippedItem（インベントリでスロットをクリックしたときにマウスカーソルについてくる画像）の画像や数字の更新を行います
+    /// プレイヤーインベントリのGrabbedItem（インベントリでスロットをクリックしたときにマウスカーソルについてくる画像）の画像や数字の更新を行います
     /// </summary>
-    public class PlayerInventoryEquippedItemImageSet : MonoBehaviour
+    public class PlayerInventoryGrabbedItemImageSet : MonoBehaviour
     {
-        private InventoryItemSlot _equippedItem;
-        private int _equippedItemIndex = 0;
+        private InventoryItemSlot _grabbedItem;
+        private int _grabbedItemIndex = 0;
         private bool _isCraftingInventory = false;
         
         private MainInventoryDataCache _mainInventoryDataCache;
@@ -30,11 +30,11 @@ namespace MainGame.Presenter.Inventory
         {
             _mainInventoryDataCache = mainInventoryDataCache;
             _craftingInventoryDataCache = craftingInventoryDataCache;
-            _equippedItem = GetComponent<InventoryItemSlot>();
+            _grabbedItem = GetComponent<InventoryItemSlot>();
             
             _itemImages = itemImages;
             
-            //equippedItemの更新を行うためにイベントを登録
+            //grabbedItemの更新を行うためにイベントを登録
             mainInventoryUpdateEvent.Subscribe(MainInventoryUpdate,MainInventorySlotUpdate);
             craftingInventoryUpdateEvent.Subscribe(CraftingInventoryUpdate,CraftingInventorySlotUpdate);
         }
@@ -44,7 +44,7 @@ namespace MainGame.Presenter.Inventory
         private void MainInventorySlotUpdate(MainInventorySlotUpdateProperties properties)
         {
             //持っているアイテムのスロットがクラフトインベントリでなく、同じであれば更新
-            if (!_isCraftingInventory && properties.SlotId == _equippedItemIndex)
+            if (!_isCraftingInventory && properties.SlotId == _grabbedItemIndex)
             {
                 MainThreadExecutionQueue.Instance.Insert(() => SetMainItem(properties.SlotId));
             }
@@ -55,29 +55,29 @@ namespace MainGame.Presenter.Inventory
         private void CraftingInventorySlotUpdate(CraftingInventorySlotUpdateProperties properties)
         {
             //持っているアイテムのスロットがクラフトインベントリで、同じであれば更新
-            if (_isCraftingInventory && properties.SlotId == _equippedItemIndex)
+            if (_isCraftingInventory && properties.SlotId == _grabbedItemIndex)
             {
                 MainThreadExecutionQueue.Instance.Insert(() => SetCraftItem(properties.SlotId));
             }
             
         }
         
-        public void SetEquippedMainItemSlot(int index)
+        public void SetGrabbedMainItemSlot(int index)
         {
-            _equippedItemIndex = index;
+            _grabbedItemIndex = index;
             _isCraftingInventory = false;
             SetMainItem(index);
         }
         private void SetMainItem(int slot)
         {
             var fromItem = _mainInventoryDataCache.GetItemStack(slot);
-            _equippedItem.SetItem(_itemImages.GetItemView(fromItem.ID),fromItem.Count);
+            _grabbedItem.SetItem(_itemImages.GetItemView(fromItem.ID),fromItem.Count);
         }
 
         
-        public void SetEquippedCraftItemSlot(int index)
+        public void SetGrabbedCraftItemSlot(int index)
         {
-            _equippedItemIndex = index;
+            _grabbedItemIndex = index;
             _isCraftingInventory = true;
             SetCraftItem(index);
         }
@@ -85,7 +85,7 @@ namespace MainGame.Presenter.Inventory
         private void SetCraftItem(int slot)
         {
             var fromItem = _craftingInventoryDataCache.GetItemStack(slot);
-            _equippedItem.SetItem(_itemImages.GetItemView(fromItem.ID),fromItem.Count);
+            _grabbedItem.SetItem(_itemImages.GetItemView(fromItem.ID),fromItem.Count);
         }
     }
 }

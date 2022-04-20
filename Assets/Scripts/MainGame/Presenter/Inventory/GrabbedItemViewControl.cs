@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace MainGame.Presenter.Inventory
 {
-    public class EquippedItemViewControl : MonoBehaviour
+    public class GrabbedItemViewControl : MonoBehaviour
     {
          RectTransform _canvasRect;
 

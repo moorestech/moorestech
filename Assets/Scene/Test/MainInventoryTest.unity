@@ -1549,7 +1549,7 @@ MonoBehaviour:
   itemImages: {fileID: 11400000, guid: f3f5e541a0fc649389c5ffefa1f0082a, type: 2}
   playerInventorySlots: {fileID: 868143884}
   playerInventorySlotsInputControl: {fileID: 868143883}
-  playerInventoryView: {fileID: 868143882}
+  playerInventoryPresenter: {fileID: 868143882}
 --- !u!4 &389496337
 Transform:
   m_ObjectHideFlags: 0
@@ -2819,7 +2819,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerInventorySlots: {fileID: 868143884}
-  equippedItem: {fileID: 8768510182708484927}
+  grabbedItem: {fileID: 8768510182708484927}
 --- !u!114 &868143883
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5756,7 +5756,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1014375675779259832, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
       propertyPath: m_Name
-      value: PlayerEquippedItem
+      value: PlayerGrabbedItem
       objectReference: {fileID: 0}
     - target: {fileID: 1014375675779259832, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
       propertyPath: m_IsActive

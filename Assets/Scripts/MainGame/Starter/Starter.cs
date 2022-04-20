@@ -78,7 +78,7 @@ namespace MainGame.Starter
         [SerializeField] private SelectHotBarView selectHotBarView;
         [SerializeField] private ItemRecipeView itemRecipeView;
         
-        [SerializeField] private PlayerInventoryEquippedItemImageSet playerInventoryEquippedItemImageSet;
+        [SerializeField] private PlayerInventoryGrabbedItemImageSet playerInventoryGrabbedItemImageSet;
 
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private BlockInventoryObject blockInventoryObject;
@@ -162,7 +162,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(groundPlane);
             builder.RegisterComponent(detectGroundClickToSendBlockPlacePacket);
-            builder.RegisterComponent(playerInventoryEquippedItemImageSet);
+            builder.RegisterComponent(playerInventoryGrabbedItemImageSet);
             builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarItemView);
             builder.RegisterComponent(selectHotBarControl);

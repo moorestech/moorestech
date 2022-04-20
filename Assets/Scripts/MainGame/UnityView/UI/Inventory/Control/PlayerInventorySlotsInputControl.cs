@@ -29,9 +29,9 @@ namespace MainGame.UnityView.UI.Inventory.Control
 
         private void DoubleClick(int slotIndex)
         {
-            if (_playerInventoryModelController.IsEquipped)
+            if (_playerInventoryModelController.IsGrabbed)
             {
-                _playerInventoryModelController.CollectEquippedItem();
+                _playerInventoryModelController.CollectGrabbedItem();
             }
             else
             {
@@ -71,7 +71,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
 
         private void RightClickDown(int slotIndex)
         {
-            if (_playerInventoryModelController.IsEquipped)
+            if (_playerInventoryModelController.IsGrabbed)
             {
                 //アイテムを持っている時に右クリックするとアイテム1個だけ置く処理
                 _playerInventoryModelController.PlaceOneItem(slotIndex);
@@ -79,14 +79,14 @@ namespace MainGame.UnityView.UI.Inventory.Control
             else
             {
                 //アイテムを持ってない時に右クリックするとアイテムを半分とる処理
-                _playerInventoryModelController.EquippedHalfItem(slotIndex);
+                _playerInventoryModelController.GrabbedHalfItem(slotIndex);
             }
             
         }
         
         private void LeftClickDown(int slotIndex)
         {
-            if (_playerInventoryModelController.IsEquipped)
+            if (_playerInventoryModelController.IsGrabbed)
             {
                 //アイテムを持っている時に左クリックするとアイテムを置くもしくは置き換える処理
                 _playerInventoryModelController.PlaceItem(slotIndex);
@@ -94,7 +94,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
             else
             {
                 //アイテムを持ってない時に左クリックするとアイテムを取る処理
-                _playerInventoryModelController.EquippedItem(slotIndex);
+                _playerInventoryModelController.GrabbedItem(slotIndex);
             }
         }
         

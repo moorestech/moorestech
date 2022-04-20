@@ -8,18 +8,18 @@ namespace MainGame.UnityView.UI.Inventory.Control
     public class PlayerInventoryPresenter : MonoBehaviour
     {
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
-        [SerializeField] private InventoryItemSlot equippedItem;
+        [SerializeField] private InventoryItemSlot grabbedItem;
 
         [Inject]
         public void Construct(PlayerInventoryModelController playerInventoryModelController,ItemImages itemImages,PlayerInventoryModel playerInventoryModel)
         {
 
-            playerInventoryModelController.OnItemEquipped += () => equippedItem.gameObject.SetActive(true);
-            playerInventoryModelController.OnItemUnequipped += () => equippedItem.gameObject.SetActive(false);
+            playerInventoryModelController.OnItemGrabbed += () => grabbedItem.gameObject.SetActive(true);
+            playerInventoryModelController.OnItemUngrabbed += () => grabbedItem.gameObject.SetActive(false);
             
             
             playerInventoryModelController.OnSlotUpdate += (slot, item) => playerInventorySlots.SetImage(slot,itemImages.GetItemView(item.ID),item.Count);
-            playerInventoryModelController.OnEquippedItemUpdate += item => equippedItem.SetItem(itemImages.GetItemView(item.ID),item.Count);
+            playerInventoryModelController.OnGrabbedItemUpdate += item => grabbedItem.SetItem(itemImages.GetItemView(item.ID),item.Count);
 
             playerInventoryModel.OnInventoryUpdate += () =>
             {
