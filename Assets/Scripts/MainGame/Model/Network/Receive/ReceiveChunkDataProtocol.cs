@@ -5,15 +5,15 @@ using MainGame.Model.Network.Event;
 using MainGame.Network.Util;
 using UnityEngine;
 
-namespace MainGame.Network.Receive
+namespace MainGame.Model.Network.Receive
 {
     public class ReceiveChunkDataProtocol : IAnalysisPacket
     {
         private readonly NetworkReceivedChunkDataEvent _networkReceivedChunkDataEvent;
 
-        public ReceiveChunkDataProtocol(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent)
+        public ReceiveChunkDataProtocol(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent)
         {
-            _networkReceivedChunkDataEvent = networkReceivedChunkDataEvent as NetworkReceivedChunkDataEvent;
+            _networkReceivedChunkDataEvent = networkReceivedChunkDataEvent;
         }
 
         public void Analysis(List<byte> data)

@@ -1,11 +1,9 @@
 using System.Diagnostics;
 using GameConst;
-using MainGame.Control.UI.Inventory;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.Control.UI.UIState.UIObject;
 using MainGame.Control.UI.UIState.UIState;
-using MainGame.GameLogic.Inventory;
-using MainGame.Model.DataStore.Inventory;
+using MainGame.Model.Network;
 using MainGame.Model.Network.Event;
 using MainGame.Model.Network.Send;
 using MainGame.Network;
@@ -109,10 +107,10 @@ namespace MainGame.Starter
             builder.Register<ISocket, SocketObject>(Lifetime.Singleton);
 
             //パケット受け取りイベント
-            builder.Register<INetworkReceivedChunkDataEvent,NetworkReceivedChunkDataEvent>(Lifetime.Singleton);
-            builder.Register<IMainInventoryUpdateEvent,MainInventoryUpdateEvent>(Lifetime.Singleton);
-            builder.Register<ICraftingInventoryUpdateEvent,CraftingInventoryUpdateEvent>(Lifetime.Singleton);
-            builder.Register<IBlockInventoryUpdateEvent,BlockInventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<NetworkReceivedChunkDataEvent>(Lifetime.Singleton);
+            builder.Register<MainInventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<CraftingInventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<BlockInventoryUpdateEvent>(Lifetime.Singleton);
             
             //パケット送信インスタンス
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う

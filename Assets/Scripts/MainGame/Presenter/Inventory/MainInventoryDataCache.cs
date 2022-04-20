@@ -3,17 +3,17 @@ using MainGame.Basic;
 using MainGame.Model.Network.Event;
 using VContainer.Unity;
 
-namespace MainGame.Model.DataStore.Inventory
+namespace MainGame.Presenter.Inventory
 {
     //IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しておく
     public class MainInventoryDataCache : IInitializable
     {
         private List<ItemStack> _items = new(new ItemStack[PlayerInventoryConstant.MainInventorySize]);
         
-        public MainInventoryDataCache(
-            IMainInventoryUpdateEvent mainInventoryUpdateEvent)
+        public MainInventoryDataCache(MainInventoryUpdateEvent mainInventoryUpdateEvent)
         {
-            mainInventoryUpdateEvent.Subscribe(UpdateInventory,UpdateSlotInventory);
+            mainInventoryUpdateEvent.OnMainInventoryUpdateEvent +=UpdateInventory;
+            mainInventoryUpdateEvent.OnMainInventorySlotUpdateEvent +=UpdateSlotInventory;
         }
 
         public void UpdateInventory(MainInventoryUpdateProperties properties)

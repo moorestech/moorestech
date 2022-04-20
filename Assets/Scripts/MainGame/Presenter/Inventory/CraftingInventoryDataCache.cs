@@ -2,17 +2,17 @@ using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Model.Network.Event;
 
-namespace MainGame.GameLogic.Inventory
+namespace MainGame.Presenter.Inventory
 {
     public class CraftingInventoryDataCache
     {
         
         private List<ItemStack> _items = new(new ItemStack[PlayerInventoryConstant.CraftingInventorySize]);
         
-        public CraftingInventoryDataCache(
-            ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent)
+        public CraftingInventoryDataCache(CraftingInventoryUpdateEvent craftingInventoryUpdateEvent)
         {
-            craftingInventoryUpdateEvent.Subscribe(UpdateInventory,UpdateSlotInventory);
+            craftingInventoryUpdateEvent.OnCraftingInventoryUpdate += UpdateInventory;
+            craftingInventoryUpdateEvent.OnCraftingInventorySlotUpdate += UpdateSlotInventory;
         }
 
         public void UpdateInventory(CraftingInventoryUpdateProperties properties)

@@ -8,9 +8,9 @@ namespace MainGame.Model.Network.Receive.EventPacket
     public class CraftingInventorySlotEventProtocol : IAnalysisEventPacket
     {
         private readonly CraftingInventoryUpdateEvent _craftingInventoryUpdateEvent;
-        public CraftingInventorySlotEventProtocol(ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent)
+        public CraftingInventorySlotEventProtocol(CraftingInventoryUpdateEvent craftingInventoryUpdateEvent)
         {
-            _craftingInventoryUpdateEvent = craftingInventoryUpdateEvent as CraftingInventoryUpdateEvent;
+            _craftingInventoryUpdateEvent = craftingInventoryUpdateEvent;
         }
 
         public void Analysis(List<byte> packet)

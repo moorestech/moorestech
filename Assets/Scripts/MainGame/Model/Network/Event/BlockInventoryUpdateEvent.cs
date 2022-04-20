@@ -1,33 +1,22 @@
+using System;
 using System.Collections.Generic;
 using MainGame.Basic;
 using UnityEngine;
-using static MainGame.Model.Network.Event.IBlockInventoryUpdateEvent;
 
 namespace MainGame.Model.Network.Event
 {
-    public interface IBlockInventoryUpdateEvent
-    {
-        public delegate void BlockInventorySlotUpdate(BlockInventorySlotUpdateProperties properties);
-        public delegate void SettingBlockInventory(SettingBlockInventoryProperties properties);
-        public void Subscribe(BlockInventorySlotUpdate onBlockInventorySlot, SettingBlockInventory onSettingBlock);
-    }
     
-    public class BlockInventoryUpdateEvent : IBlockInventoryUpdateEvent
+    public class BlockInventoryUpdateEvent 
     {
-        private event BlockInventorySlotUpdate OnBlockInventorySlotUpdate;
-        private event SettingBlockInventory OnSettingBlock;
-        public void Subscribe(BlockInventorySlotUpdate onBlockInventorySlot, SettingBlockInventory onSettingBlock)
-        {
-            OnBlockInventorySlotUpdate += onBlockInventorySlot;
-            OnSettingBlock += onSettingBlock;
-        }
+        public event Action<BlockInventorySlotUpdateProperties> OnBlockInventorySlotUpdate;
+        public event Action<SettingBlockInventoryProperties> OnSettingBlock;
 
-        public void InvokeSettingBlock(List<ItemStack> items, string uiType,int blockId, params short[] uiParams)
+        internal void InvokeSettingBlock(List<ItemStack> items, string uiType,int blockId, params short[] uiParams)
         {
             OnSettingBlock?.Invoke(new SettingBlockInventoryProperties(items, uiType, uiParams, blockId));
         }
 
-        public void InvokeBlockInventorySlotUpdate(Vector2Int pos, int slot, int id, int count)
+        internal void InvokeBlockInventorySlotUpdate(Vector2Int pos, int slot, int id, int count)
         {
             OnBlockInventorySlotUpdate?.Invoke(new BlockInventorySlotUpdateProperties(pos, slot, id, count));
         }

@@ -2,17 +2,16 @@ using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Model.Network.Event;
 using MainGame.Network.Util;
-using UnityEngine;
 
-namespace MainGame.Network.Receive
+namespace MainGame.Model.Network.Receive
 {
     public class ReceiveBlockInventoryProtocol : IAnalysisPacket
     {
         private readonly BlockInventoryUpdateEvent _blockInventoryUpdateEvent;
 
-        public ReceiveBlockInventoryProtocol(IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
+        public ReceiveBlockInventoryProtocol(BlockInventoryUpdateEvent blockInventoryUpdateEvent)
         {
-            _blockInventoryUpdateEvent = blockInventoryUpdateEvent as BlockInventoryUpdateEvent;
+            _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
         }
 
         public void Analysis(List<byte> data)

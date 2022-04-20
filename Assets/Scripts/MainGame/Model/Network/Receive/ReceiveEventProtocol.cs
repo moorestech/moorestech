@@ -4,14 +4,14 @@ using MainGame.Model.Network.Receive.EventPacket;
 using MainGame.Network.Util;
 using UnityEngine;
 
-namespace MainGame.Network.Receive
+namespace MainGame.Model.Network.Receive
 {
     public class ReceiveEventProtocol : IAnalysisPacket
     {
-        List<IAnalysisEventPacket> _eventPacketList = new List<IAnalysisEventPacket>();
+        readonly List<IAnalysisEventPacket> _eventPacketList = new();
 
-        public ReceiveEventProtocol(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,
-            IMainInventoryUpdateEvent mainInventoryUpdateEvent,ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent,IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
+        public ReceiveEventProtocol(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent, MainInventoryUpdateEvent mainInventoryUpdateEvent,
+            CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,BlockInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             _eventPacketList.Add(new BlockPlaceEventProtocol(networkReceivedChunkDataEvent));
             _eventPacketList.Add(new MainInventorySlotEventProtocol(mainInventoryUpdateEvent));

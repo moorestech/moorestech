@@ -3,7 +3,7 @@ using MainGame.Basic;
 using MainGame.Model.Network.Event;
 using MainGame.Network.Util;
 
-namespace MainGame.Network.Receive
+namespace MainGame.Model.Network.Receive
 {
     /// <summary>
     /// Analysis player inventory data 
@@ -13,11 +13,10 @@ namespace MainGame.Network.Receive
         private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
         private readonly CraftingInventoryUpdateEvent _craftingInventoryUpdateEvent;
         
-        public ReceivePlayerInventoryProtocol(
-            IMainInventoryUpdateEvent mainInventoryUpdateEvent,ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent)
+        public ReceivePlayerInventoryProtocol(MainInventoryUpdateEvent mainInventoryUpdateEvent,CraftingInventoryUpdateEvent craftingInventoryUpdateEvent)
         {
-            _mainInventoryUpdateEvent = mainInventoryUpdateEvent as MainInventoryUpdateEvent;
-            _craftingInventoryUpdateEvent = craftingInventoryUpdateEvent as CraftingInventoryUpdateEvent;
+            _mainInventoryUpdateEvent = mainInventoryUpdateEvent;
+            _craftingInventoryUpdateEvent = craftingInventoryUpdateEvent;
         }
 
 

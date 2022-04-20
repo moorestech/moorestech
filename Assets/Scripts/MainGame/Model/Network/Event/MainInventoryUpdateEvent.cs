@@ -1,34 +1,21 @@
+using System;
 using System.Collections.Generic;
 using MainGame.Basic;
-using static MainGame.Model.Network.Event.IMainInventoryUpdateEvent;
 
 namespace MainGame.Model.Network.Event
 {
-    public interface IMainInventoryUpdateEvent
+    public class MainInventoryUpdateEvent
     {
-        public delegate void MainInventoryUpdate(MainInventoryUpdateProperties properties);
-        public delegate void MainInventorySlotUpdate(MainInventorySlotUpdateProperties properties);
+        public event Action<MainInventoryUpdateProperties> OnMainInventoryUpdateEvent;
+        public event Action<MainInventorySlotUpdateProperties> OnMainInventorySlotUpdateEvent;
 
-        public void Subscribe(MainInventoryUpdate onMainInventoryUpdate, MainInventorySlotUpdate onMainInventorySlotUpdate);
-    }
-    public class MainInventoryUpdateEvent : IMainInventoryUpdateEvent
-    {
-        private event MainInventoryUpdate OnMainInventoryUpdateEvent;
-        private event MainInventorySlotUpdate OnMainInventorySlotUpdateEvent;
-        public void Subscribe(MainInventoryUpdate onMainInventoryUpdate, MainInventorySlotUpdate onMainInventorySlotUpdate)
-        {
-            OnMainInventoryUpdateEvent += onMainInventoryUpdate;
-            OnMainInventorySlotUpdateEvent += onMainInventorySlotUpdate;
-        }
 
-        public void InvokeMainInventoryUpdate(
-            MainInventoryUpdateProperties properties)
+        internal void InvokeMainInventoryUpdate(MainInventoryUpdateProperties properties)
         {
             OnMainInventoryUpdateEvent?.Invoke(properties);
         }
 
-        public void InvokeMainInventorySlotUpdate(
-            MainInventorySlotUpdateProperties properties)
+        internal void InvokeMainInventorySlotUpdate(MainInventorySlotUpdateProperties properties)
         {
             OnMainInventorySlotUpdateEvent?.Invoke(properties);
         }

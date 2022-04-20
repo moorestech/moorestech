@@ -1,9 +1,6 @@
-﻿using MainGame.GameLogic.Inventory;
-using MainGame.Model.DataStore.Inventory;
-using MainGame.Model.Network.Event;
+﻿using MainGame.Model.Network.Event;
 using MainGame.UnityView;
 using MainGame.UnityView.UI.Inventory.Element;
-using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
 
@@ -26,7 +23,7 @@ namespace MainGame.Presenter.Inventory
         
         [Inject]
         public void Construct(MainInventoryDataCache mainInventoryDataCache,CraftingInventoryDataCache craftingInventoryDataCache,
-            IMainInventoryUpdateEvent mainInventoryUpdateEvent,ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent,ItemImages itemImages)
+            MainInventoryUpdateEvent mainInventoryUpdateEvent,CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,ItemImages itemImages)
         {
             _mainInventoryDataCache = mainInventoryDataCache;
             _craftingInventoryDataCache = craftingInventoryDataCache;
@@ -35,8 +32,10 @@ namespace MainGame.Presenter.Inventory
             _itemImages = itemImages;
             
             //grabbedItemの更新を行うためにイベントを登録
-            mainInventoryUpdateEvent.Subscribe(MainInventoryUpdate,MainInventorySlotUpdate);
-            craftingInventoryUpdateEvent.Subscribe(CraftingInventoryUpdate,CraftingInventorySlotUpdate);
+            mainInventoryUpdateEvent.OnMainInventoryUpdateEvent += MainInventoryUpdate;
+            mainInventoryUpdateEvent.OnMainInventorySlotUpdateEvent += MainInventorySlotUpdate;
+            craftingInventoryUpdateEvent.OnCraftingInventoryUpdate += CraftingInventoryUpdate;
+            craftingInventoryUpdateEvent.OnCraftingInventorySlotUpdate += CraftingInventorySlotUpdate;
         }
         
         //メインインベントリの更新イベント

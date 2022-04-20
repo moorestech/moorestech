@@ -1,34 +1,20 @@
+using System;
 using System.Collections.Generic;
 using MainGame.Basic;
-using static MainGame.Model.Network.Event.ICraftingInventoryUpdateEvent;
 
 namespace MainGame.Model.Network.Event
 {
-    public interface ICraftingInventoryUpdateEvent
+    public class CraftingInventoryUpdateEvent
     {
-        public delegate void CraftingInventoryUpdate(CraftingInventoryUpdateProperties properties);
-        public delegate void CraftingInventorySlotUpdate(CraftingInventorySlotUpdateProperties properties);
+        public event Action<CraftingInventoryUpdateProperties> OnCraftingInventoryUpdate;
+        public event Action<CraftingInventorySlotUpdateProperties> OnCraftingInventorySlotUpdate;
 
-        public void Subscribe(CraftingInventoryUpdate craftingInventoryUpdate, CraftingInventorySlotUpdate craftingInventorySlotUpdate);
-    }
-    public class CraftingInventoryUpdateEvent : ICraftingInventoryUpdateEvent
-    {
-        private event CraftingInventoryUpdate OnCraftingInventoryUpdate;
-        private event CraftingInventorySlotUpdate OnCraftingInventorySlotUpdate;
-        
-        public void Subscribe(CraftingInventoryUpdate craftingInventoryUpdate,
-            CraftingInventorySlotUpdate craftingInventorySlotUpdate)
-        {
-            OnCraftingInventoryUpdate += craftingInventoryUpdate;
-            OnCraftingInventorySlotUpdate += craftingInventorySlotUpdate;
-        }
-
-        public void InvokeCraftingInventorySlotUpdate(CraftingInventorySlotUpdateProperties properties)
+        internal void InvokeCraftingInventorySlotUpdate(CraftingInventorySlotUpdateProperties properties)
         {
             OnCraftingInventorySlotUpdate?.Invoke(properties);
         }
 
-        public void InvokeCraftingInventoryUpdate(CraftingInventoryUpdateProperties properties)
+        internal void InvokeCraftingInventoryUpdate(CraftingInventoryUpdateProperties properties)
         {
             OnCraftingInventoryUpdate?.Invoke(properties);
         }

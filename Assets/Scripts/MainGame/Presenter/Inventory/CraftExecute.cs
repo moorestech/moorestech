@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
-namespace MainGame.Control.UI.Inventory
+namespace MainGame.Presenter.Inventory
 {
     public class CraftExecute : MonoBehaviour
     {

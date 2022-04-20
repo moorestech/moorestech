@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using MainGame.Model.Network.Event;
-using MainGame.Network.Receive;
+using MainGame.Model.Network.Receive;
 using MainGame.Network.Util;
 using UnityEngine;
 
-namespace MainGame.Network
+namespace MainGame.Model.Network
 {
     public class AllReceivePacketAnalysisService
     {
@@ -14,8 +14,7 @@ namespace MainGame.Network
         
         
         public AllReceivePacketAnalysisService(
-            INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,
-            IMainInventoryUpdateEvent mainInventoryUpdateEvent,ICraftingInventoryUpdateEvent craftingInventoryUpdateEvent,IBlockInventoryUpdateEvent blockInventoryUpdateEvent)
+            NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent, MainInventoryUpdateEvent mainInventoryUpdateEvent,CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,BlockInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             _analysisPacketList.Add(new DummyProtocol());
             _analysisPacketList.Add(new ReceiveChunkDataProtocol(networkReceivedChunkDataEvent));

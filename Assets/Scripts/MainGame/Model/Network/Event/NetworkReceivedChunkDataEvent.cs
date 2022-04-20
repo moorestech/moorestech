@@ -1,24 +1,13 @@
-﻿using MainGame.Basic;
+﻿using System;
+using MainGame.Basic;
 using UnityEngine;
-using static MainGame.Model.Network.Event.INetworkReceivedChunkDataEvent;
 
 namespace MainGame.Model.Network.Event
 {
-    public interface INetworkReceivedChunkDataEvent
+    public class NetworkReceivedChunkDataEvent
     {
-        public delegate void ChunkUpdate(OnChunkUpdateEventProperties properties);
-        public delegate void BlockUpdate(OnBlockUpdateEventProperties properties);
-        public void Subscribe(ChunkUpdate onChunkUpdate, BlockUpdate onBlockUpdate);
-    }
-    public class NetworkReceivedChunkDataEvent : INetworkReceivedChunkDataEvent
-    {
-        private event ChunkUpdate OnChunkUpdateEvent;
-        private event BlockUpdate OnBlockUpdateEvent;
-        public void Subscribe(ChunkUpdate onChunkUpdate, BlockUpdate onBlockUpdate)
-        {
-            OnChunkUpdateEvent += onChunkUpdate;
-            OnBlockUpdateEvent += onBlockUpdate;
-        }
+        public event Action<OnChunkUpdateEventProperties> OnChunkUpdateEvent;
+        public event Action<OnBlockUpdateEventProperties> OnBlockUpdateEvent;
 
         public void InvokeChunkUpdateEvent(OnChunkUpdateEventProperties properties)
         {

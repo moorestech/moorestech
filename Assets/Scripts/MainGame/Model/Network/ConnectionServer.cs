@@ -1,15 +1,12 @@
 using System;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace MainGame.Network
+namespace MainGame.Model.Network
 {
     public class ConnectionServer : IPostStartable
     {

@@ -7,11 +7,11 @@ namespace MainGame.Model.Network.Receive.EventPacket
 {
     public class MainInventorySlotEventProtocol : IAnalysisEventPacket
     {
-        private MainInventoryUpdateEvent _mainInventoryUpdateEvent;
+        private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
 
-        public MainInventorySlotEventProtocol(IMainInventoryUpdateEvent mainInventorySlotEvent)
+        public MainInventorySlotEventProtocol(MainInventoryUpdateEvent mainInventorySlotEvent)
         {
-            _mainInventoryUpdateEvent = mainInventorySlotEvent as MainInventoryUpdateEvent;
+            _mainInventoryUpdateEvent = mainInventorySlotEvent;
         }
 
         public void Analysis(List<byte> packet)
