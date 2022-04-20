@@ -90,19 +90,20 @@ namespace Server
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
 
             //イベントレシーバーを登録
-            services.AddSingleton<ReceiveMainInventoryUpdateEvent, ReceiveMainInventoryUpdateEvent>();
-            services.AddSingleton<ReceiveCraftingInventoryUpdateEvent, ReceiveCraftingInventoryUpdateEvent>();
-            services.AddSingleton<ReceiveOpenableBlockInventoryUpdateEvent, ReceiveOpenableBlockInventoryUpdateEvent>();
-            services.AddSingleton<ReceivePlaceBlockEvent, ReceivePlaceBlockEvent>();
-            services.AddSingleton<ReceiveRemoveBlockEvent, ReceiveRemoveBlockEvent>();
-            services.AddSingleton<BlockPlaceEventToBlockInventoryConnect, BlockPlaceEventToBlockInventoryConnect>();
-            services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect, BlockRemoveEventToBlockInventoryDisconnect>();
-            services.AddSingleton<ConnectElectricPoleToElectricSegment, ConnectElectricPoleToElectricSegment>();
-            services.AddSingleton<DisconnectElectricPoleToFromElectricSegment, DisconnectElectricPoleToFromElectricSegment>();
-            services.AddSingleton<ConnectMachineToElectricSegment, ConnectMachineToElectricSegment>();
-            services.AddSingleton<SetMiningItemToMiner, SetMiningItemToMiner>();
-            services.AddSingleton<DisconnectTwoOreMoreElectricPoleFromSegmentService, DisconnectTwoOreMoreElectricPoleFromSegmentService>();
-            services.AddSingleton<DisconnectOneElectricPoleFromSegmentService, DisconnectOneElectricPoleFromSegmentService>();
+            services.AddSingleton<ReceiveMainInventoryUpdateEvent>();
+            services.AddSingleton<ReceiveCraftingInventoryUpdateEvent>();
+            services.AddSingleton<ReceiveOpenableBlockInventoryUpdateEvent>();
+            services.AddSingleton<ReceiveGrabInventoryUpdateEvent>();
+            services.AddSingleton<ReceivePlaceBlockEvent>();
+            services.AddSingleton<ReceiveRemoveBlockEvent>();
+            services.AddSingleton<BlockPlaceEventToBlockInventoryConnect>();
+            services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect>();
+            services.AddSingleton<ConnectElectricPoleToElectricSegment>();
+            services.AddSingleton<DisconnectElectricPoleToFromElectricSegment>();
+            services.AddSingleton<ConnectMachineToElectricSegment>();
+            services.AddSingleton<SetMiningItemToMiner>();
+            services.AddSingleton<DisconnectTwoOreMoreElectricPoleFromSegmentService>();
+            services.AddSingleton<DisconnectOneElectricPoleFromSegmentService>();
 
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -116,6 +117,7 @@ namespace Server
             serviceProvider.GetService<ReceiveMainInventoryUpdateEvent>();
             serviceProvider.GetService<ReceiveCraftingInventoryUpdateEvent>();
             serviceProvider.GetService<ReceiveOpenableBlockInventoryUpdateEvent>();
+            serviceProvider.GetService<ReceiveGrabInventoryUpdateEvent>();
             serviceProvider.GetService<ReceivePlaceBlockEvent>();
             serviceProvider.GetService<ReceiveRemoveBlockEvent>();
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
