@@ -8,7 +8,7 @@ using Server.Util;
 
 namespace Server.Event.EventReceive
 {
-    public class ReceiveOpenableBlockInventoryUpdateEvent
+    public class OpenableBlockInventoryUpdateToSetEventPacket
     {
         private const short EventId = 2;
         
@@ -16,7 +16,7 @@ namespace Server.Event.EventReceive
         private readonly IBlockInventoryOpenStateDataStore _inventoryOpenStateDataStore;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
 
-        public ReceiveOpenableBlockInventoryUpdateEvent(
+        public OpenableBlockInventoryUpdateToSetEventPacket(
             EventProtocolProvider eventProtocolProvider, IBlockInventoryOpenStateDataStore inventoryOpenStateDataStore,
             IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, IWorldBlockDatastore worldBlockDatastore)
         {
