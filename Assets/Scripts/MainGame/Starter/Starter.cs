@@ -22,6 +22,7 @@ using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
+using MainGame.UnityView.UI.UIState.UIObject;
 using MainGame.UnityView.WorldMapTile;
 using SinglePlay;
 using UnityEngine;

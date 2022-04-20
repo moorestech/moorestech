@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
 
-namespace MainGame.Control.UI.UIState.UIObject
+namespace MainGame.UnityView.UI.UIState.UIObject
 {
     public class PlayerInventoryObject : MonoBehaviour
     {
-        
+        public void SetCraftInventory()
+        {
+            
+        }
     }
 }
