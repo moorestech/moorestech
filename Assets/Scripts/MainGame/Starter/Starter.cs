@@ -126,6 +126,7 @@ namespace MainGame.Starter
             builder.Register<SendBlockRemoveProtocol>(Lifetime.Singleton);
             builder.Register<SendMiningProtocol>(Lifetime.Singleton);
             builder.Register<SendSaveProtocol>(Lifetime.Singleton);
+            builder.Register<InventoryMoveItemProtocol>(Lifetime.Singleton);
             
             
             //データストア、ゲームロジック系
