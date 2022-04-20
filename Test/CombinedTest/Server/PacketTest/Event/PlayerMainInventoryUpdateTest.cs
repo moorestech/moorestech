@@ -56,23 +56,36 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             
-            Assert.AreEqual(2, response.Count);
-            var byteData1 = new ByteListEnumerator(response[0].ToList());
-            var byteData2 = new ByteListEnumerator(response[1].ToList());
-            byteData1.MoveNextToGetShort();
-            byteData2.MoveNextToGetShort();
+            Assert.AreEqual(4, response.Count);
+            var grabUp = new ByteListEnumerator(response[0].ToList());
+            var setMainInventory = new ByteListEnumerator(response[1].ToList());
+            var outMainInventory = new ByteListEnumerator(response[2].ToList());
+            var grabDwon = new ByteListEnumerator(response[3].ToList());
+            
+            grabUp.MoveNextToGetShort();//イベントパケットを示すID
+            setMainInventory.MoveNextToGetShort();
+            outMainInventory.MoveNextToGetShort();
+            grabDwon.MoveNextToGetShort();
 
-            Assert.AreEqual(1, byteData1.MoveNextToGetShort()); //イベントIDの確認
-            Assert.AreEqual(1, byteData2.MoveNextToGetShort());
+            Assert.AreEqual(5, grabUp.MoveNextToGetShort()); //イベントIDの確認 アイテムを持ち上げる
+            Assert.AreEqual(1, setMainInventory.MoveNextToGetShort()); //インベントリのアイテムがへる
+            Assert.AreEqual(1, outMainInventory.MoveNextToGetShort()); //インベントリにアイテムがセットされる
+            Assert.AreEqual(5, grabDwon.MoveNextToGetShort());//アイテムが置かれる
 
-            Assert.AreEqual(5,byteData1.MoveNextToGetInt()); //移動時のスロット確認
-            Assert.AreEqual(4,byteData2.MoveNextToGetInt());
+            Assert.AreEqual(0,grabUp.MoveNextToGetInt()); //移動時のスロット確認
+            Assert.AreEqual(5,setMainInventory.MoveNextToGetInt());
+            Assert.AreEqual(4, outMainInventory.MoveNextToGetInt());
+            Assert.AreEqual(0, grabDwon.MoveNextToGetInt());
 
-            Assert.AreEqual(1, byteData1.MoveNextToGetInt()); //アイテムIDの確認
-            Assert.AreEqual(1, byteData2.MoveNextToGetInt());
+            Assert.AreEqual(1, grabUp.MoveNextToGetInt()); //アイテムIDの確認
+            Assert.AreEqual(1, setMainInventory.MoveNextToGetInt());
+            Assert.AreEqual(1, outMainInventory.MoveNextToGetInt());
+            Assert.AreEqual(0, grabDwon.MoveNextToGetInt());
 
-            Assert.AreEqual(2,byteData1.MoveNextToGetInt()); //アイテム数の確認
-            Assert.AreEqual(3,byteData2.MoveNextToGetInt());
+            Assert.AreEqual(3,grabUp.MoveNextToGetInt()); //アイテム数の確認
+            Assert.AreEqual(2,setMainInventory.MoveNextToGetInt());
+            Assert.AreEqual(3, outMainInventory.MoveNextToGetInt());
+            Assert.AreEqual(0, grabDwon.MoveNextToGetInt());
 
             
             
@@ -85,22 +98,36 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             
-            Assert.AreEqual(2, response.Count);
-            byteData1 = new ByteListEnumerator(response[0].ToList());
-            byteData2 = new ByteListEnumerator(response[1].ToList());
-            byteData1.MoveNextToGetShort();
-            byteData2.MoveNextToGetShort();
-            Assert.AreEqual(1, byteData1.MoveNextToGetShort());
-            Assert.AreEqual(1, byteData2.MoveNextToGetShort()); //イベントIDの確認
+            Assert.AreEqual(4, response.Count);
+            grabUp = new ByteListEnumerator(response[0].ToList());
+            setMainInventory = new ByteListEnumerator(response[1].ToList());
+            outMainInventory = new ByteListEnumerator(response[2].ToList());
+            grabDwon = new ByteListEnumerator(response[3].ToList());
+            
+            grabUp.MoveNextToGetShort();
+            setMainInventory.MoveNextToGetShort();
+            outMainInventory.MoveNextToGetShort();
+            grabDwon.MoveNextToGetShort();
+            
+            Assert.AreEqual(5, grabUp.MoveNextToGetShort()); //イベントIDの確認 アイテムを持ち上げる
+            Assert.AreEqual(1, setMainInventory.MoveNextToGetShort()); //インベントリのアイテムがへる
+            Assert.AreEqual(1, outMainInventory.MoveNextToGetShort()); //インベントリにアイテムがセットされる
+            Assert.AreEqual(5, grabDwon.MoveNextToGetShort());//アイテムが置かれる
 
-            Assert.AreEqual(4,byteData1.MoveNextToGetInt());
-            Assert.AreEqual(5,byteData2.MoveNextToGetInt()); //移動時のスロット確認
+            Assert.AreEqual(0,grabUp.MoveNextToGetInt()); //移動時のスロット確認
+            Assert.AreEqual(4,setMainInventory.MoveNextToGetInt());
+            Assert.AreEqual(5, outMainInventory.MoveNextToGetInt());
+            Assert.AreEqual(0, grabDwon.MoveNextToGetInt());
 
-            Assert.AreEqual(0,byteData1.MoveNextToGetInt());
-            Assert.AreEqual(1,byteData2.MoveNextToGetInt()); //アイテムIDの確認
+            Assert.AreEqual(1,grabUp.MoveNextToGetInt());//アイテムIDの確認
+            Assert.AreEqual(0,setMainInventory.MoveNextToGetInt()); 
+            Assert.AreEqual(1, outMainInventory.MoveNextToGetInt());
+            Assert.AreEqual(0, grabDwon.MoveNextToGetInt());
 
-            Assert.AreEqual(0,byteData1.MoveNextToGetInt());
-            Assert.AreEqual(5,byteData2.MoveNextToGetInt()); //アイテム数の確認
+            Assert.AreEqual(3,grabUp.MoveNextToGetInt()); //アイテム数の確認
+            Assert.AreEqual(0,setMainInventory.MoveNextToGetInt());
+            Assert.AreEqual(5, outMainInventory.MoveNextToGetInt());
+            Assert.AreEqual(0, grabDwon.MoveNextToGetInt());
         }
 
 
