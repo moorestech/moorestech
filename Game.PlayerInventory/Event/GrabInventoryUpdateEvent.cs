@@ -1,9 +1,9 @@
 using Game.PlayerInventory.Interface.Event;
-using static Game.PlayerInventory.Interface.Event.IEquipmentInventoryUpdateEvent;
+using static Game.PlayerInventory.Interface.Event.IGrabInventoryUpdateEvent;
 
 namespace PlayerInventory.Event
 {
-    public class EquipmentInventoryUpdateEvent : IEquipmentInventoryUpdateEvent
+    public class GrabInventoryUpdateEvent : IGrabInventoryUpdateEvent
     {
         public event UpdateInventoryEvent OnPlayerInventoryUpdate;
 

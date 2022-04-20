@@ -26,7 +26,7 @@ namespace Server.Protocol.PacketResponse
         {
             var byteListEnumerator = new ByteListEnumerator(payload);
             byteListEnumerator.MoveNextToGetShort();//packet id
-            var toEquip = byteListEnumerator.MoveNextToGetByte() == 0;
+            var toGrab = byteListEnumerator.MoveNextToGetByte() == 0;
             var inventoryId = byteListEnumerator.MoveNextToGetByte();
             var playerId = byteListEnumerator.MoveNextToGetInt();
             var slot = byteListEnumerator.MoveNextToGetInt();
@@ -37,19 +37,19 @@ namespace Server.Protocol.PacketResponse
             var inventory = GetInventory(inventoryId, playerId, x, y);
             if (inventory == null)return new List<byte[]>();
             
-            var equipInventory = _playerInventoryDataStore.GetInventoryData(playerId).EquipmentInventory;
+            var grabInventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
 
             
             
-            if (toEquip)
+            if (toGrab)
             {
                 new InventoryItemMoveService().Move(
-                    _itemStackFactory,inventory,slot,equipInventory,0,moveItemCount);
+                    _itemStackFactory,inventory,slot,grabInventory,0,moveItemCount);
             }
             else
             {
                 new InventoryItemMoveService().Move(
-                    _itemStackFactory,equipInventory,0,inventory,slot,moveItemCount);
+                    _itemStackFactory,grabInventory,0,inventory,slot,moveItemCount);
             }
 
             return new List<byte[]>();

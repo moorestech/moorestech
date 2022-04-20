@@ -106,11 +106,11 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             payload.AddRange(ToByteList.Convert(plyaerID));
             return payload;
         }
-        private List<byte> PlayerInventoryItemMove(bool toEquipment,int inventorySlot,int itemCount)
+        private List<byte> PlayerInventoryItemMove(bool toGrab,int inventorySlot,int itemCount)
         {
             var payload = new List<byte>();
             payload.AddRange(ToByteList.Convert((short) 5));
-            payload.Add(toEquipment ? (byte) 0 : (byte) 1);
+            payload.Add(toGrab ? (byte) 0 : (byte) 1);
             payload.Add(0);
             payload.AddRange(ToByteList.Convert(PlayerId));
             payload.AddRange(ToByteList.Convert(inventorySlot));

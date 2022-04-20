@@ -1,6 +1,6 @@
 namespace Game.PlayerInventory.Interface.Event
 {
-    public interface IEquipmentInventoryUpdateEvent
+    public interface IGrabInventoryUpdateEvent
     {
         public delegate void UpdateInventoryEvent(
             PlayerInventoryUpdateEventProperties playerInventoryUpdateEventProperties);

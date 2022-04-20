@@ -23,7 +23,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
-            var equipmentInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).EquipmentInventory;
+            var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             
@@ -35,7 +35,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,3), mainInventory.GetItem(0));
-            Assert.AreEqual(itemStackFactory.Create(1,7), equipmentInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(1,7), grabInventory.GetItem(0));
             
             
             
@@ -44,7 +44,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,8), mainInventory.GetItem(0));
-            Assert.AreEqual(itemStackFactory.Create(1,2), equipmentInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(1,2), grabInventory.GetItem(0));
         }
 
         [Test]
@@ -53,7 +53,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).CraftingOpenableInventory;
-            var equipmentInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).EquipmentInventory;
+            var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             //インベントリの設定
@@ -64,7 +64,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,3), craftInventory.GetItem(0));
-            Assert.AreEqual(itemStackFactory.Create(1,7), equipmentInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(1,7), grabInventory.GetItem(0));
             
             
             
@@ -73,7 +73,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,8), craftInventory.GetItem(0));
-            Assert.AreEqual(itemStackFactory.Create(1,2), equipmentInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(1,2), grabInventory.GetItem(0));
         }
 
         [Test]
@@ -81,7 +81,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             
-            var equipmentInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).EquipmentInventory;
+            var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
@@ -99,7 +99,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,3), chest.GetItem(1));
-            Assert.AreEqual(itemStackFactory.Create(1,7), equipmentInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(1,7), grabInventory.GetItem(0));
             
             
             
@@ -108,16 +108,16 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,8), chest.GetItem(1));
-            Assert.AreEqual(itemStackFactory.Create(1,2), equipmentInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(1,2), grabInventory.GetItem(0));
         }
         
 
         //sourceInventoryIdは 0 メイン　1 クラフト 2 ブロック 
-        private List<byte> GetPacket(bool toEquipment,byte sourceInventoryId,int inventorySlot,int itemCount,int x = 0,int y = 0)
+        private List<byte> GetPacket(bool toGrab,byte sourceInventoryId,int inventorySlot,int itemCount,int x = 0,int y = 0)
         {
             var payload = new List<byte>();
             payload.AddRange(ToByteList.Convert((short) 5));
-            payload.Add(toEquipment ? (byte) 0 : (byte) 1);
+            payload.Add(toGrab ? (byte) 0 : (byte) 1);
             payload.Add(sourceInventoryId);
             payload.AddRange(ToByteList.Convert(PlayerId));
             payload.AddRange(ToByteList.Convert(inventorySlot));

@@ -7,22 +7,22 @@ using PlayerInventory.Event;
 
 namespace PlayerInventory.ItemManaged
 {
-    public class EquipmentInventoryData : IOpenableInventory
+    public class GrabInventoryData : IOpenableInventory
     {
         private readonly int _playerId;
-        private readonly EquipmentInventoryUpdateEvent _equipmentInventoryUpdateEvent;
+        private readonly GrabInventoryUpdateEvent _grabInventoryUpdateEvent;
         private readonly OpenableInventoryItemDataStoreService _openableInventoryService;
 
-        public EquipmentInventoryData(int playerId, EquipmentInventoryUpdateEvent equipmentInventoryUpdateEvent,
+        public GrabInventoryData(int playerId, GrabInventoryUpdateEvent grabInventoryUpdateEvent,
             ItemStackFactory itemStackFactory)
         {
             _playerId = playerId;
-            _equipmentInventoryUpdateEvent = equipmentInventoryUpdateEvent;
+            _grabInventoryUpdateEvent = grabInventoryUpdateEvent;
             _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent,
                 itemStackFactory, 1);
         }
-        public EquipmentInventoryData(int playerId, EquipmentInventoryUpdateEvent equipmentInventoryUpdateEvent, ItemStackFactory itemStackFactory,IItemStack itemStacks) : 
-            this(playerId, equipmentInventoryUpdateEvent, itemStackFactory)
+        public GrabInventoryData(int playerId, GrabInventoryUpdateEvent grabInventoryUpdateEvent, ItemStackFactory itemStackFactory,IItemStack itemStacks) : 
+            this(playerId, grabInventoryUpdateEvent, itemStackFactory)
         {
             _openableInventoryService.SetItemWithoutEvent(0,itemStacks);
         }
@@ -31,7 +31,7 @@ namespace PlayerInventory.ItemManaged
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
-            _equipmentInventoryUpdateEvent.OnInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(
+            _grabInventoryUpdateEvent.OnInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(
                 _playerId,slot,itemStack));
         }
         

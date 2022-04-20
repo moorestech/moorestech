@@ -128,7 +128,7 @@ namespace Test.UnitTest.Game.SaveLoad
             var worldBlockDatastore =
                 new WorldBlockDatastore(new BlockPlaceEvent(), blockFactory, new BlockRemoveEvent());
             var playerInventoryDataStore = new PlayerInventoryDataStore(new MainInventoryUpdateEvent(),new CraftInventoryUpdateEvent(),
-                itemFactory,new IsCreatableJudgementService(new CraftConfig(itemFactory,config),itemFactory),new EquipmentInventoryUpdateEvent());
+                itemFactory,new IsCreatableJudgementService(new CraftConfig(itemFactory,config),itemFactory),new GrabInventoryUpdateEvent());
             var assembleSaveJsonText = new AssembleSaveJsonText(playerInventoryDataStore, worldBlockDatastore);
             var loadJsonText = new LoadJsonFile(new SaveJsonFileName(""), worldBlockDatastore,playerInventoryDataStore);
 
