@@ -1,4 +1,5 @@
-﻿using MainGame.UnityView.UI.Inventory.Element;
+﻿using MainGame.Model.Network.Event;
+using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
 using VContainer;
 
@@ -13,10 +14,17 @@ namespace MainGame.Presenter.Inventory
         private ItemImages _itemImages;
 
         [Inject]
-        public void Construct(ItemImages itemImages)
+        public void Construct(ItemImages itemImages,GrabInventoryUpdateEvent grabInventoryUpdateEvent)
         {
             _itemImages = itemImages;
-            //todo もったアイテムの更新イベントをサブスクライブする
+            grabInventoryUpdateEvent.OnGrabInventoryUpdateEvent += UpdateGrabbedItemImage;
+        }
+
+        private void UpdateGrabbedItemImage(GrabInventoryUpdateEventProperties properties)
+        {
+            var id = properties.ItemStack.ID;
+            var count = properties.ItemStack.Count;
+            grabbedItem.SetItem(_itemImages.GetItemView(id),count);
         }
     }
 }
