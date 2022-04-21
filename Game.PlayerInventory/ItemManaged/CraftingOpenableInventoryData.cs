@@ -60,6 +60,16 @@ namespace PlayerInventory.ItemManaged
             _openableInventoryService.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, addedOutputSlot);
         }
 
+        public void AllCraft()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void OneStackCraft()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public IItemStack GetCreatableItem() { return _isCreatableJudgementService.GetResult(CraftingItems); }
         public bool IsCreatable() { return _isCreatableJudgementService.IsCreatable(CraftingItems) && IsResultSlotAddCreatableItem(); }
         
