@@ -2,14 +2,15 @@ using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Model.Network.Event;
 using MainGame.UnityView.UI.Inventory.Control;
+using VContainer.Unity;
 
 namespace MainGame.Presenter.Inventory
 {
-    public class CraftingInventoryDataCache
+    public class CraftingInventoryPresenter : IInitializable
     {
         private readonly PlayerInventoryViewModelController _playerInventoryViewModel;
 
-        public CraftingInventoryDataCache(CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModel)
+        public CraftingInventoryPresenter(CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModel)
         {
             _playerInventoryViewModel = playerInventoryViewModel;
             craftingInventoryUpdateEvent.OnCraftingInventoryUpdate += UpdateInventory;

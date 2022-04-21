@@ -132,8 +132,9 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<ChunkDataPresenter>();
             builder.RegisterEntryPoint<WorldMapTilePresenter>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
-            builder.Register<MainInventoryDataCache>(Lifetime.Singleton);
-            builder.Register<CraftingInventoryDataCache>(Lifetime.Singleton);
+            builder.Register<MainInventoryPresenter>(Lifetime.Singleton);
+            builder.Register<CraftingInventoryPresenter>(Lifetime.Singleton);
+            builder.Register<BlockInventoryPresenter>(Lifetime.Singleton);
             
             //インプット
             builder.Register<MoorestechInputSettings>(Lifetime.Singleton);
