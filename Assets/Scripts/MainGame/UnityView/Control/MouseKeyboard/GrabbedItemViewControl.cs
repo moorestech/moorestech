@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MainGame.Presenter.Inventory
+namespace MainGame.UnityView.Control.MouseKeyboard
 {
     public class GrabbedItemViewControl : MonoBehaviour
     {

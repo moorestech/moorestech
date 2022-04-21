@@ -3,7 +3,7 @@ using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.UI.UIState;
 using VContainer.Unity;
 
-namespace MainGame.Presenter.Inventory
+namespace MainGame.Presenter.Inventory.Send
 {
     public class DeleteBlockDetectToSendPacket : ITickable
     {

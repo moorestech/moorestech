@@ -1,23 +1,23 @@
-using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Model.Network.Event;
 using MainGame.UnityView.UI.Inventory.Control;
 using VContainer.Unity;
 
-namespace MainGame.Presenter.Inventory
+namespace MainGame.Presenter.Inventory.Receive
 {
-    public class CraftingInventoryViewPresenter : IInitializable
+    public class BlockInventoryViewPresenter : IInitializable
     {
+        private readonly BlockInventoryUpdateEvent _blockInventoryUpdateEvent;
         private readonly PlayerInventoryViewModelController _playerInventoryViewModel;
 
-        public CraftingInventoryViewPresenter(CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModel)
+        public BlockInventoryViewPresenter(BlockInventoryUpdateEvent blockInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModel)
         {
             _playerInventoryViewModel = playerInventoryViewModel;
-            craftingInventoryUpdateEvent.OnCraftingInventoryUpdate += UpdateInventory;
-            craftingInventoryUpdateEvent.OnCraftingInventorySlotUpdate += UpdateSlotInventory;
+            blockInventoryUpdateEvent.OnSettingBlockInventory += SettingBlockInventory;
+            blockInventoryUpdateEvent.OnBlockInventorySlotUpdate += BlockInventoryUpdate;
         }
 
-        public void UpdateInventory(CraftingInventoryUpdateProperties properties)
+        public void SettingBlockInventory(SettingBlockInventoryProperties properties)
         {
             //イベントの発火
             for (int i = 0; i < properties.ItemStacks.Count; i++)
@@ -29,11 +29,11 @@ namespace MainGame.Presenter.Inventory
             }
         }
 
-        public void UpdateSlotInventory(CraftingInventorySlotUpdateProperties properties)
+        public void BlockInventoryUpdate(BlockInventorySlotUpdateProperties properties)
         {
-            var slot = properties.SlotId;
-            var id = properties.ItemStack.ID;
-            var count = properties.ItemStack.Count;
+            var slot = properties.Slot;
+            var id = properties.Id;
+            var count = properties.Count;
             
             _playerInventoryViewModel.SetItem(PlayerInventoryConstant.MainInventorySize + slot,id,count);
         }

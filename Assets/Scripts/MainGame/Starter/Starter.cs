@@ -12,6 +12,8 @@ using MainGame.Network.Settings;
 using MainGame.Presenter.Chunk;
 using MainGame.Presenter.Command;
 using MainGame.Presenter.Inventory;
+using MainGame.Presenter.Inventory.Receive;
+using MainGame.Presenter.Inventory.Send;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
@@ -76,7 +78,7 @@ namespace MainGame.Starter
         [SerializeField] private SelectHotBarView selectHotBarView;
         [SerializeField] private ItemRecipeView itemRecipeView;
         
-        [SerializeField] private PlayerInventoryGrabbedItemImageSet playerInventoryGrabbedItemImageSet;
+        [SerializeField] private GrabbedItemImagePresenter grabbedItemImagePresenter;
 
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private BlockInventoryObject blockInventoryObject;
@@ -162,7 +164,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(groundPlane);
             builder.RegisterComponent(detectGroundClickToSendBlockPlacePacket);
-            builder.RegisterComponent(playerInventoryGrabbedItemImageSet);
+            builder.RegisterComponent(grabbedItemImagePresenter);
             builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarItemView);
             builder.RegisterComponent(selectHotBarControl);

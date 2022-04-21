@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using MainGame.Basic;
-using MainGame.Model.Network.Event;
+﻿using MainGame.Model.Network.Event;
 using MainGame.UnityView.UI.Inventory.Control;
 using VContainer.Unity;
 
-namespace MainGame.Presenter.Inventory
+namespace MainGame.Presenter.Inventory.Receive
 {
     //IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しておく
     public class MainInventoryViewPresenter : IInitializable

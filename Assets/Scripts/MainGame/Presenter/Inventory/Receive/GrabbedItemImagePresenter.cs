@@ -3,12 +3,12 @@ using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.Presenter.Inventory
+namespace MainGame.Presenter.Inventory.Receive
 {
     /// <summary>
     /// プレイヤーインベントリのGrabbedItem（インベントリでスロットをクリックしたときにマウスカーソルについてくる画像）の画像や数字の更新を行います
     /// </summary>
-    public class PlayerInventoryGrabbedItemImageSet : MonoBehaviour
+    public class GrabbedItemImagePresenter : MonoBehaviour
     {
         [SerializeField] private InventoryItemSlot grabbedItem;
         private ItemImages _itemImages;

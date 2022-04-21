@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
-namespace MainGame.Presenter.Inventory
+namespace MainGame.Presenter.Inventory.Send
 {
     public class CraftExecute : MonoBehaviour
     {
