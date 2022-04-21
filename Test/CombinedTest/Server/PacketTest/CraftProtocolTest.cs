@@ -20,9 +20,8 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             //クラフトインベントリの作成
-            var craftInventory =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
-            
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
+            var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).GrabInventory;
             //CraftConfigの作成
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[0];
             
@@ -43,7 +42,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //クラフト結果がResultSlotにアイテムが入っているかチェック
-            Assert.AreEqual(craftConfig.Result,craftInventory.GetItem(PlayerInventoryConst.CraftingInventorySize - 1 ));
+            Assert.AreEqual(craftConfig.Result,grabInventory.GetItem(0));
         }
 
         [Test]
