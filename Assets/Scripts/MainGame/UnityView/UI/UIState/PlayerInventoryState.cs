@@ -1,4 +1,5 @@
-﻿using MainGame.Control.UI.UIState;
+﻿using System;
+using MainGame.Control.UI.UIState;
 using MainGame.Control.UI.UIState.UIObject;
 using MainGame.UnityView.UI.CraftRecipe;
 using MainGame.UnityView.UI.UIState.UIObject;
@@ -14,6 +15,9 @@ namespace MainGame.UnityView.UI.UIState
         private readonly ItemListViewer _itemListViewer;
         private readonly ItemRecipePresenter _itemRecipePresenter;
 
+
+        public event Action OnOpenInventory;
+
         public PlayerInventoryState( MoorestechInputSettings inputSettings, PlayerInventoryObject playerInventory,
             ItemListViewer itemListViewer,ItemRecipePresenter itemRecipePresenter)
         {
@@ -22,9 +26,6 @@ namespace MainGame.UnityView.UI.UIState
             _itemListViewer = itemListViewer;
             _itemRecipePresenter = itemRecipePresenter;
 
-            //起動時に初回のインベントリを取得
-            //todo イベント化　_requestPlayerInventoryProtocol.Send();
-            
             playerInventory.gameObject.SetActive(false);
         }
 
@@ -53,7 +54,8 @@ namespace MainGame.UnityView.UI.UIState
             _playerInventory.gameObject.SetActive(true);
             _playerInventory.SetCraftInventory();
             _itemListViewer.gameObject.SetActive(true);
-            //todo イベント_requestPlayerInventoryProtocol.Send();
+            
+            OnOpenInventory?.Invoke();
         }
 
         public void OnExit()

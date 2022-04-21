@@ -137,6 +137,7 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<CraftingInventoryViewPresenter>();
             builder.RegisterEntryPoint<BlockInventoryViewPresenter>();
             builder.RegisterEntryPoint<BlockInventoryRequestPacketSend>();
+            builder.RegisterEntryPoint<PlayerInventoryRequestPacketSend>();
             
             //インプット
             builder.Register<MoorestechInputSettings>(Lifetime.Singleton);
