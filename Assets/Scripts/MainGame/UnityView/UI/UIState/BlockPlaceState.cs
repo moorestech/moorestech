@@ -1,5 +1,4 @@
 ﻿using MainGame.Control.UI.UIState;
-using MainGame.Control.UI.UIState.UIState;
 using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 

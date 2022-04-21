@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using MainGame.Control.UI.UIState.UIState;
 
 namespace MainGame.UnityView.UI.UIState
 {

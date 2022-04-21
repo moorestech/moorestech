@@ -1,5 +1,4 @@
 ﻿using MainGame.Control.UI.UIState;
-using MainGame.Control.UI.UIState.UIState;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.UI.Inventory.View;

@@ -7,11 +7,11 @@ using VContainer.Unity;
 namespace MainGame.Presenter.Inventory
 {
     //IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しておく
-    public class MainInventoryPresenter : IInitializable
+    public class MainInventoryViewPresenter : IInitializable
     {
         private readonly PlayerInventoryViewModelController _playerInventoryViewModel;
         
-        public MainInventoryPresenter(MainInventoryUpdateEvent mainInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModel)
+        public MainInventoryViewPresenter(MainInventoryUpdateEvent mainInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModel)
         {
             _playerInventoryViewModel = playerInventoryViewModel;
             mainInventoryUpdateEvent.OnMainInventoryUpdateEvent +=UpdateInventory;

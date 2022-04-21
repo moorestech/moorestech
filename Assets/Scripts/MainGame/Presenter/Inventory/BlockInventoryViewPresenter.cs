@@ -5,12 +5,12 @@ using VContainer.Unity;
 
 namespace MainGame.Presenter.Inventory
 {
-    public class BlockInventoryPresenter : IInitializable
+    public class BlockInventoryViewPresenter : IInitializable
     {
         private readonly BlockInventoryUpdateEvent _blockInventoryUpdateEvent;
         private readonly PlayerInventoryViewModelController _playerInventoryViewModel;
 
-        public BlockInventoryPresenter(BlockInventoryUpdateEvent blockInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModel)
+        public BlockInventoryViewPresenter(BlockInventoryUpdateEvent blockInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModel)
         {
             _playerInventoryViewModel = playerInventoryViewModel;
             blockInventoryUpdateEvent.OnSettingBlockInventory += SettingBlockInventory;

@@ -2,7 +2,6 @@ using System.Diagnostics;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.Control.UI.UIState.UIObject;
-using MainGame.Control.UI.UIState.UIState;
 using MainGame.Model.Network;
 using MainGame.Model.Network.Event;
 using MainGame.Model.Network.Send;
@@ -132,9 +131,9 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<ChunkDataPresenter>();
             builder.RegisterEntryPoint<WorldMapTilePresenter>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
-            builder.Register<MainInventoryPresenter>(Lifetime.Singleton);
-            builder.Register<CraftingInventoryPresenter>(Lifetime.Singleton);
-            builder.Register<BlockInventoryPresenter>(Lifetime.Singleton);
+            builder.Register<MainInventoryViewPresenter>(Lifetime.Singleton);
+            builder.Register<CraftingInventoryViewPresenter>(Lifetime.Singleton);
+            builder.Register<BlockInventoryViewPresenter>(Lifetime.Singleton);
             
             //インプット
             builder.Register<MoorestechInputSettings>(Lifetime.Singleton);

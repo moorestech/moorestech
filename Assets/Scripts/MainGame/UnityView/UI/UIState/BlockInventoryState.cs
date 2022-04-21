@@ -1,9 +1,8 @@
 using MainGame.Control.UI.UIState.UIObject;
 using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.UI.CraftRecipe;
-using MainGame.UnityView.UI.UIState;
 
-namespace MainGame.Control.UI.UIState.UIState
+namespace MainGame.UnityView.UI.UIState
 {
     public class BlockInventoryState : IUIState
     {

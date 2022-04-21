@@ -6,11 +6,11 @@ using VContainer.Unity;
 
 namespace MainGame.Presenter.Inventory
 {
-    public class CraftingInventoryPresenter : IInitializable
+    public class CraftingInventoryViewPresenter : IInitializable
     {
         private readonly PlayerInventoryViewModelController _playerInventoryViewModel;
 
-        public CraftingInventoryPresenter(CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModel)
+        public CraftingInventoryViewPresenter(CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModel)
         {
             _playerInventoryViewModel = playerInventoryViewModel;
             craftingInventoryUpdateEvent.OnCraftingInventoryUpdate += UpdateInventory;
