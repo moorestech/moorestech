@@ -6,7 +6,11 @@ using MainGame.Basic;
 
 namespace MainGame.UnityView.UI.Inventory.Control
 {
-    public class PlayerInventoryModel : IEnumerable<IItemStack>
+    /// <summary>
+    /// プレイヤーの操作に応じてローカルでもっておくインベントリのアイテムリスト
+    /// 実際のインベントリとのラグを軽減するためのキャッシュ機構で、実際のインベントリを更新するパケットが到着したら適宜入れ替える（ロールバックを発生させる）
+    /// </summary>
+    public class PlayerInventoryViewModel : IEnumerable<IItemStack>
     {
         private List<IItemStack> _mainInventory = new();
         private List<IItemStack> _subInventory = new();
@@ -15,7 +19,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
         public int Count => _mainInventory.Count + _subInventory.Count;
 
 
-        public PlayerInventoryModel(ItemStackFactory itemStackFactory)
+        public PlayerInventoryViewModel(ItemStackFactory itemStackFactory)
         {
             _itemStackFactory = itemStackFactory;
         }

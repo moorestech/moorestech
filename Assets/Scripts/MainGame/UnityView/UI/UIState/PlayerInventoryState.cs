@@ -51,6 +51,7 @@ namespace MainGame.UnityView.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             _playerInventory.gameObject.SetActive(true);
+            _playerInventory.SetCraftInventory();
             _itemListViewer.gameObject.SetActive(true);
             //todo イベント_requestPlayerInventoryProtocol.Send();
         }

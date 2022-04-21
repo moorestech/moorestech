@@ -28,8 +28,8 @@ namespace MainGame.Inventory
         {
             var single = new SinglePlayInterface(ServerConst.ServerConfigDirectory);
             var itemStackFactory = single.ItemStackFactory;
-            var inventoryModel = new PlayerInventoryModel(itemStackFactory);
-            var inventoryController = new PlayerInventoryModelController(itemStackFactory,single.ItemConfig,inventoryModel);
+            var inventoryModel = new PlayerInventoryViewModel(itemStackFactory);
+            var inventoryController = new PlayerInventoryViewModelController(itemStackFactory,single.ItemConfig,inventoryModel);
 
             playerInventorySlotsInputControl.Construct(inventoryController);
             playerInventoryPresenter.Construct(inventoryController,itemImages,inventoryModel);

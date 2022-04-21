@@ -11,21 +11,21 @@ namespace MainGame.UnityView.UI.Inventory.Control
         [SerializeField] private InventoryItemSlot grabbedItem;
 
         [Inject]
-        public void Construct(PlayerInventoryModelController playerInventoryModelController,ItemImages itemImages,PlayerInventoryModel playerInventoryModel)
+        public void Construct(PlayerInventoryViewModelController playerInventoryViewModelController,ItemImages itemImages,PlayerInventoryViewModel playerInventoryViewModel)
         {
 
-            playerInventoryModelController.OnItemGrabbed += () => grabbedItem.gameObject.SetActive(true);
-            playerInventoryModelController.OnItemUngrabbed += () => grabbedItem.gameObject.SetActive(false);
+            playerInventoryViewModelController.OnItemGrabbed += () => grabbedItem.gameObject.SetActive(true);
+            playerInventoryViewModelController.OnItemUnGrabbed += () => grabbedItem.gameObject.SetActive(false);
             
             
-            playerInventoryModelController.OnSlotUpdate += (slot, item) => playerInventorySlots.SetImage(slot,itemImages.GetItemView(item.ID),item.Count);
-            playerInventoryModelController.OnGrabbedItemUpdate += item => grabbedItem.SetItem(itemImages.GetItemView(item.ID),item.Count);
+            playerInventoryViewModelController.OnSlotUpdate += (slot, item) => playerInventorySlots.SetImage(slot,itemImages.GetItemView(item.ID),item.Count);
+            playerInventoryViewModelController.OnGrabbedItemUpdate += item => grabbedItem.SetItem(itemImages.GetItemView(item.ID),item.Count);
 
-            playerInventoryModel.OnInventoryUpdate += () =>
+            playerInventoryViewModel.OnInventoryUpdate += () =>
             {
-                for (var i = 0; i < playerInventoryModel.Count; i++)
+                for (var i = 0; i < playerInventoryViewModel.Count; i++)
                 {
-                    var item = playerInventoryModel[i];
+                    var item = playerInventoryViewModel[i];
                     playerInventorySlots.SetImage(i,itemImages.GetItemView(item.Id),item.Count);
                 }
             };
