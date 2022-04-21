@@ -1,17 +1,18 @@
 ﻿using System.Collections.Generic;
+using MainGame.Network;
 using MainGame.Network.Settings;
 using MainGame.Network.Util;
 
-namespace MainGame.Network.Send
+namespace MainGame.Model.Network.Send
 {
-    public class SendBlockInventoryOpenCloseControl
+    public class SendBlockInventoryOpenCloseControlProtocol
     {
         private readonly ISocket _socket;
         private const short ProtocolId = 16;
         private readonly int _playerId;
 
         
-        public SendBlockInventoryOpenCloseControl(PlayerConnectionSetting playerConnectionSetting,ISocket socket)
+        public SendBlockInventoryOpenCloseControlProtocol(PlayerConnectionSetting playerConnectionSetting,ISocket socket)
         {
             _socket = socket;
             _playerId = playerConnectionSetting.PlayerId;

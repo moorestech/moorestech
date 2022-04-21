@@ -122,20 +122,21 @@ namespace MainGame.Starter
             builder.Register<RequestBlockInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendCommandProtocol>(Lifetime.Singleton);
             builder.Register<SendCraftProtocol>(Lifetime.Singleton);
-            builder.Register<SendBlockInventoryOpenCloseControl>(Lifetime.Singleton);
+            builder.Register<SendBlockInventoryOpenCloseControlProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockRemoveProtocol>(Lifetime.Singleton);
             builder.Register<SendMiningProtocol>(Lifetime.Singleton);
             builder.Register<SendSaveProtocol>(Lifetime.Singleton);
             builder.Register<InventoryMoveItemProtocol>(Lifetime.Singleton);
             
             
-            //データストア、ゲームロジック系
+            //プレゼンターアセンブリ
             builder.RegisterEntryPoint<ChunkDataPresenter>();
             builder.RegisterEntryPoint<WorldMapTilePresenter>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
-            builder.Register<MainInventoryViewPresenter>(Lifetime.Singleton);
-            builder.Register<CraftingInventoryViewPresenter>(Lifetime.Singleton);
-            builder.Register<BlockInventoryViewPresenter>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<MainInventoryViewPresenter>();
+            builder.RegisterEntryPoint<CraftingInventoryViewPresenter>();
+            builder.RegisterEntryPoint<BlockInventoryViewPresenter>();
+            builder.RegisterEntryPoint<BlockInventoryRequestPacketSend>();
             
             //インプット
             builder.Register<MoorestechInputSettings>(Lifetime.Singleton);

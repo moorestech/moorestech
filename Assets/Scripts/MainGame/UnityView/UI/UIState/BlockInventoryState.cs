@@ -1,5 +1,5 @@
+using System;
 using MainGame.Control.UI.UIState.UIObject;
-using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.UI.CraftRecipe;
 
 namespace MainGame.UnityView.UI.UIState
@@ -10,16 +10,14 @@ namespace MainGame.UnityView.UI.UIState
         private readonly BlockInventoryObject _blockInventory;
         private readonly ItemListViewer _itemListViewer;
         private readonly ItemRecipePresenter _itemRecipePresenter;
-        
-        private readonly IBlockClickDetect _blockClickDetect;
+        public event Action OnOpenBlockInventory;
+        public event Action OnCloseBlockInventory;
 
         public BlockInventoryState(MoorestechInputSettings inputSettings, BlockInventoryObject blockInventory,
-            IBlockClickDetect blockClickDetect,
             ItemListViewer itemListViewer,ItemRecipePresenter itemRecipePresenter)
         {
             _itemListViewer = itemListViewer;
             _itemRecipePresenter = itemRecipePresenter;
-            _blockClickDetect = blockClickDetect;
             _inputSettings = inputSettings;
             _blockInventory = blockInventory;
             blockInventory.gameObject.SetActive(false);
@@ -47,14 +45,7 @@ namespace MainGame.UnityView.UI.UIState
 
         public void OnEnter(UIStateEnum lastStateEnum)
         {
-            var blockPos = _blockClickDetect.GetClickPosition();
-            
-            //その位置のブロックインベントリを取得するパケットを送信する
-            //実際にインベントリのパケットを取得できてからUIを開くため、実際の開く処理はNetworkアセンブリで行う
-            //ここで呼び出す処理が多くなった場合イベントを使うことを検討する
-            //todo イベント化　_requestBlockInventoryProtocol.Send(blockPos.x,blockPos.y);
-            //todo イベント化　_sendBlockInventoryOpenCloseControl.Send(blockPos.x,blockPos.y,true);
-            //_itemMoveService.SetBlockPosition(blockPos.x,blockPos.y);
+            OnOpenBlockInventory?.Invoke();
             
             _itemListViewer.gameObject.SetActive(true);
             _blockInventory.gameObject.SetActive(true);
@@ -62,6 +53,8 @@ namespace MainGame.UnityView.UI.UIState
 
         public void OnExit()
         {
+            OnCloseBlockInventory?.Invoke();
+            
             _blockInventory.gameObject.SetActive(false);
             _itemListViewer.gameObject.SetActive(false);
         }
