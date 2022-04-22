@@ -55,6 +55,38 @@ namespace Test.CombinedTest.Server.PacketTest
         public void AllCraftReminderTest()
         {
             
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            //クラフトインベントリの作成
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+
+
+            //craftingInventoryにアイテムを入れる
+            craftInventory.SetItem(0,itemStackFactory.Create(1, 100));
+
+            //メインインベントリに2つのスロットを開けてアイテムを入れる
+            for (int i = 2; i < mainInventory.GetSlotSize(); i++)
+            {
+                mainInventory.SetItem(i,itemStackFactory.Create(2, 100));
+            }
+            
+            
+            
+            //プロトコルで全てクラフト実行
+            var payLoad = new List<byte>();
+            payLoad.AddRange(ToByteList.Convert(PacketId));
+            payLoad.AddRange(ToByteList.Convert(PlayerId));
+            payLoad.Add(1);
+            packet.GetPacketResponse(payLoad);
+            
+            
+            //メインインベントリのクラフト結果のチェック
+            Assert.AreEqual(itemStackFactory.Create(1, 100),mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(1, 60),mainInventory.GetItem(1));
+            //クラフトインベントリのアイテムが減ったことをチェックする
+            Assert.AreEqual(itemStackFactory.Create(1, 98),mainInventory.GetItem(0));
         }
         
         /// <summary>
