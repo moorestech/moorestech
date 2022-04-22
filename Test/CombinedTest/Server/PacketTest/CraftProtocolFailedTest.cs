@@ -95,7 +95,6 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void AllCanNotCraftTest()
         {
-            
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
@@ -133,7 +132,34 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void OneCanNotStackCraftTest()
         {
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            //クラフトインベントリの作成
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+
+
+            //craftingInventoryにアイテムを入れる
+            craftInventory.SetItem(0,itemStackFactory.Create(1, 100));
+
+            //メインインベントリに全てのスロットにアイテムを入れる
+            for (int i = 0; i < mainInventory.GetSlotSize(); i++)
+            {
+                mainInventory.SetItem(i,itemStackFactory.Create(2, 100));
+            }
+            
+            
+            //プロトコルで一スタッククラフト実行
+            var payLoad = new List<byte>();
+            payLoad.AddRange(ToByteList.Convert(PacketId));
+            payLoad.AddRange(ToByteList.Convert(PlayerId));
+            payLoad.Add(2);
+            packet.GetPacketResponse(payLoad);
+            
+            
+            //クラフトインベントリのアイテムが減っていないことをチェック
+            Assert.AreEqual(itemStackFactory.Create(1, 100),mainInventory.GetItem(0));
         }
         
     }
