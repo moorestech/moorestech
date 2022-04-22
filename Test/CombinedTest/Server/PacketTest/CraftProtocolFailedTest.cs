@@ -127,6 +127,48 @@ namespace Test.CombinedTest.Server.PacketTest
 
         
         /// <summary>
+        /// 1スタッククラフトを実行した時にインベントリがいっぱいだとインベントリが満杯になり、クラフトスロットに材料が余るテスト
+        /// </summary>
+        [Test]
+        public void OneStackCraftReminderTest(){
+        
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            //クラフトインベントリの作成
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+
+
+            //craftingInventoryにアイテムを入れる
+            craftInventory.SetItem(0,itemStackFactory.Create(1, 100));
+
+            //メインインベントリに1つのスロットを開けてアイテムを入れる
+            for (int i = 1; i < mainInventory.GetSlotSize(); i++)
+            {
+                mainInventory.SetItem(i,itemStackFactory.Create(2, 100));
+            }
+            //1回だけクラフトできる量をメインインベントリに入れておく
+            mainInventory.SetItem(0,itemStackFactory.Create(1, 20));
+            
+            
+            
+            //プロトコルで1スタッククラフト実行
+            var payLoad = new List<byte>();
+            payLoad.AddRange(ToByteList.Convert(PacketId));
+            payLoad.AddRange(ToByteList.Convert(PlayerId));
+            payLoad.Add(2);
+            packet.GetPacketResponse(payLoad);
+            
+            
+            //メインインベントリのクラフト結果のチェック
+            Assert.AreEqual(itemStackFactory.Create(1, 100),mainInventory.GetItem(0));
+            //クラフトインベントリのアイテムが減ったことをチェックする
+            Assert.AreEqual(itemStackFactory.Create(1, 99),mainInventory.GetItem(0));
+        }
+        
+        
+        /// <summary>
         /// インベントリがいっぱいで1スタックのクラフトを実行できないテスト
         /// </summary>
         [Test]
