@@ -15,6 +15,8 @@ namespace Test.CombinedTest.Server.PacketTest
         private const short PacketId = 14;
         private const int PlayerId = 1;
         
+        private const int TestCraftItemId = 10;
+        
         /// <summary>
         /// 別のアイテムを持っていてクラフトできないテスト
         /// </summary>
@@ -28,11 +30,11 @@ namespace Test.CombinedTest.Server.PacketTest
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).GrabInventory;
 
             //craftingInventoryにアイテムを入れる
-            var item = itemStackFactory.Create(1, 2);
+            var item = itemStackFactory.Create(TestCraftItemId, 2);
             craftInventory.SetItem(0,item);
             
             //持っているスロットに別のアイテムを入れる
-            grabInventory.SetItem(0,itemStackFactory.Create(2, 2));
+            grabInventory.SetItem(0,itemStackFactory.Create(2, 1));
             
             
             //プロトコルでクラフト実行
@@ -64,12 +66,12 @@ namespace Test.CombinedTest.Server.PacketTest
 
 
             //craftingInventoryにアイテムを入れる
-            craftInventory.SetItem(0,itemStackFactory.Create(1, 100));
+            craftInventory.SetItem(0,itemStackFactory.Create(TestCraftItemId, 100));
 
             //メインインベントリに2つのスロットを開けてアイテムを入れる
             for (int i = 2; i < mainInventory.GetSlotSize(); i++)
             {
-                mainInventory.SetItem(i,itemStackFactory.Create(2, 100));
+                mainInventory.SetItem(i,itemStackFactory.Create(2, 1));
             }
             
             
@@ -83,10 +85,10 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //メインインベントリのクラフト結果のチェック
-            Assert.AreEqual(itemStackFactory.Create(1, 100),mainInventory.GetItem(0));
-            Assert.AreEqual(itemStackFactory.Create(1, 60),mainInventory.GetItem(1));
+            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 100),mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 60),mainInventory.GetItem(1));
             //クラフトインベントリのアイテムが減ったことをチェックする
-            Assert.AreEqual(itemStackFactory.Create(1, 98),mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 98),mainInventory.GetItem(0));
         }
         
         /// <summary>
@@ -104,12 +106,12 @@ namespace Test.CombinedTest.Server.PacketTest
 
 
             //craftingInventoryにアイテムを入れる
-            craftInventory.SetItem(0,itemStackFactory.Create(1, 100));
+            craftInventory.SetItem(0,itemStackFactory.Create(TestCraftItemId, 100));
 
             //メインインベントリに全てのスロットにアイテムを入れる
             for (int i = 0; i < mainInventory.GetSlotSize(); i++)
             {
-                mainInventory.SetItem(i,itemStackFactory.Create(2, 100));
+                mainInventory.SetItem(i,itemStackFactory.Create(2, 1));
             }
             
             
@@ -122,7 +124,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //クラフトインベントリのアイテムが減っていないことをチェック
-            Assert.AreEqual(itemStackFactory.Create(1, 100),mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 100),mainInventory.GetItem(0));
         }
 
         
@@ -141,15 +143,15 @@ namespace Test.CombinedTest.Server.PacketTest
 
 
             //craftingInventoryにアイテムを入れる
-            craftInventory.SetItem(0,itemStackFactory.Create(1, 100));
+            craftInventory.SetItem(0,itemStackFactory.Create(TestCraftItemId, 100));
 
             //メインインベントリに1つのスロットを開けてアイテムを入れる
             for (int i = 1; i < mainInventory.GetSlotSize(); i++)
             {
-                mainInventory.SetItem(i,itemStackFactory.Create(2, 100));
+                mainInventory.SetItem(i,itemStackFactory.Create(2, 1));
             }
             //1回だけクラフトできる量をメインインベントリに入れておく
-            mainInventory.SetItem(0,itemStackFactory.Create(1, 20));
+            mainInventory.SetItem(0,itemStackFactory.Create(TestCraftItemId, 20));
             
             
             
@@ -162,9 +164,9 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //メインインベントリのクラフト結果のチェック
-            Assert.AreEqual(itemStackFactory.Create(1, 100),mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 100),mainInventory.GetItem(0));
             //クラフトインベントリのアイテムが減ったことをチェックする
-            Assert.AreEqual(itemStackFactory.Create(1, 99),mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 99),mainInventory.GetItem(0));
         }
         
         
@@ -183,12 +185,12 @@ namespace Test.CombinedTest.Server.PacketTest
 
 
             //craftingInventoryにアイテムを入れる
-            craftInventory.SetItem(0,itemStackFactory.Create(1, 100));
+            craftInventory.SetItem(0,itemStackFactory.Create(TestCraftItemId, 100));
 
             //メインインベントリに全てのスロットにアイテムを入れる
             for (int i = 0; i < mainInventory.GetSlotSize(); i++)
             {
-                mainInventory.SetItem(i,itemStackFactory.Create(2, 100));
+                mainInventory.SetItem(i,itemStackFactory.Create(2, 1));
             }
             
             
@@ -201,7 +203,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //クラフトインベントリのアイテムが減っていないことをチェック
-            Assert.AreEqual(itemStackFactory.Create(1, 100),mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 100),mainInventory.GetItem(0));
         }
         
     }
