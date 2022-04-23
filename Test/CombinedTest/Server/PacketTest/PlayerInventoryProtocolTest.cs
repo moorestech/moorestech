@@ -46,7 +46,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 Assert.AreEqual(0, response.MoveNextToGetInt());
             }
             //クラフトインベントリの検証
-            for (int i = 0; i < PlayerInventoryConst.CraftingInventorySize; i++)
+            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
                 Assert.AreEqual(0, response.MoveNextToGetInt());
