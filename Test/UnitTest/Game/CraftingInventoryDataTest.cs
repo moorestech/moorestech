@@ -21,14 +21,16 @@ namespace Test.UnitTest.Game
         [Test]
         public void GetCreatableItemTest()
         {
-            ItemStackFactory itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
+            var itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
             IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
             
             var craftConfig = config.GetCraftingConfigList()[0];
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service);
+            var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
+            var grab = new GrabInventoryData(PlayerId, new GrabInventoryUpdateEvent(), itemStackFactory);
+            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service,main,grab);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
@@ -45,13 +47,14 @@ namespace Test.UnitTest.Game
             var itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
             IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
+            var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
             var grabInventory = new GrabInventoryData(PlayerId,new GrabInventoryUpdateEvent(),itemStackFactory);
 
             var craftConfig = config.GetCraftingConfigList()[0];
             
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service,main,grabInventory);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
@@ -78,12 +81,13 @@ namespace Test.UnitTest.Game
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
             IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
             var grabInventory = new GrabInventoryData(PlayerId,new GrabInventoryUpdateEvent(),itemStackFactory);
+            var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
             
             var craftConfig = config.GetCraftingConfigList()[0];
             
             
             //craftingInventoryに1つ余分にアイテムを入れる
-            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service,main,grabInventory);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 var itemId = craftConfig.Items[i].Id;
@@ -120,8 +124,10 @@ namespace Test.UnitTest.Game
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
             IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
             var grabInventory = new GrabInventoryData(PlayerId,new GrabInventoryUpdateEvent(),itemStackFactory);
+            var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
+            
 
-            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service,main,grabInventory);
             
             //クラフト結果が何もないことをチェック
             Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetCreatableItem());
@@ -139,17 +145,18 @@ namespace Test.UnitTest.Game
         {
             //初期セットアップ
             var itemConfig = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath));
-            ItemStackFactory itemStackFactory = new ItemStackFactory(itemConfig);
+            var itemStackFactory = new ItemStackFactory(itemConfig);
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
             IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
             var grabInventory = new GrabInventoryData(PlayerId,new GrabInventoryUpdateEvent(),itemStackFactory); 
+            var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
             
             var craftConfig = config.GetCraftingConfigList()[0];
             var resultId = craftConfig.Result.Id;
             
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service,main,grabInventory);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);

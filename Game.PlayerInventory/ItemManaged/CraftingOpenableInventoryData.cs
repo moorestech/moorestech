@@ -15,18 +15,23 @@ namespace PlayerInventory.ItemManaged
         private readonly CraftInventoryUpdateEvent _craftInventoryUpdateEvent;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
+        private readonly GrabInventoryData _grabInventoryData;
+        private readonly MainOpenableInventoryData _mainOpenableInventoryData;
+
         public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService)
+            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData)
         {
             _playerId = playerId;
             
             _craftInventoryUpdateEvent = craftInventoryUpdateEvent;
             _isCreatableJudgementService = isCreatableJudgementService;
+            _mainOpenableInventoryData = mainOpenableInventoryData;
+            _grabInventoryData = grabInventoryData;
             _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, 
                 itemStackFactory, PlayerInventoryConst.CraftingSlotSize);
         }
-        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService,List<IItemStack> itemStacks) : 
-            this(playerId, craftInventoryUpdateEvent, itemStackFactory,isCreatableJudgementService)
+        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService,List<IItemStack> itemStacks, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData) : 
+            this(playerId, craftInventoryUpdateEvent, itemStackFactory,isCreatableJudgementService, mainOpenableInventoryData, grabInventoryData)
         {
             for (int i = 0; i < itemStacks.Count; i++)
             {
