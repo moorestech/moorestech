@@ -39,11 +39,15 @@ namespace PlayerInventory.ItemManaged
             }
         }
 
-        public void Craft()
+        
+        
+        
+        
+        public void NormalCraft()
         {
             //クラフトが可能なアイテムの配置かチェック
-            //クラフト結果のアイテムを出力スロットに追加可能か判定
-            if (!IsCreatable()) return;
+            //クラフト結果のアイテムを持ちスロットに追加可能か判定
+            if (!IsCreatable() && !_grabInventoryData.GetItem(0).IsAllowedToAdd(_isCreatableJudgementService.GetResult(CraftingItems))) return;
             
             //クラフト結果のアイテムを取得しておく
             var result = _isCreatableJudgementService.GetResult(CraftingItems);
@@ -59,11 +63,15 @@ namespace PlayerInventory.ItemManaged
             }
             
             
-            //元のクラフト結果のアイテムを足したアイテムを出力スロットに追加
-            var outputSlotItem = _openableInventoryService.GetItem(PlayerInventoryConst.CraftingSlotSize - 1);
+            //元のクラフト結果のアイテムを足したアイテムを持ちインベントリに追加
+            var outputSlotItem = _grabInventoryData.GetItem(0);
             var addedOutputSlot = outputSlotItem.AddItem(result).ProcessResultItemStack;
-            _openableInventoryService.SetItem(PlayerInventoryConst.CraftingSlotSize - 1, addedOutputSlot);
+            _grabInventoryData.SetItem(0, addedOutputSlot);
         }
+        
+        
+        
+        
 
         public void AllCraft()
         {
@@ -76,13 +84,9 @@ namespace PlayerInventory.ItemManaged
         }
 
         public IItemStack GetCreatableItem() { return _isCreatableJudgementService.GetResult(CraftingItems); }
+        public bool IsCreatable() { return _isCreatableJudgementService.IsCreatable(CraftingItems); }
 
-        //todo 持っているアイテムのスロットか、メインインベントリを見てクラフト可能かどうかを判断するロジックを作る
-        public bool IsCreatable()
-        {
-            return _isCreatableJudgementService.IsCreatable(CraftingItems); }
-        
-        
+
         private List<IItemStack> CraftingItems
         {
             get

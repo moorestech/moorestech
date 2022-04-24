@@ -72,7 +72,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             
             //クラフト実行
-            craftingInventory.Craft();
+            craftingInventory.NormalCraft();
             
             
             

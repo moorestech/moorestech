@@ -63,7 +63,7 @@ namespace Test.UnitTest.Game
             }
             
             //クラフト実行
-            craftingInventory.Craft();
+            craftingInventory.NormalCraft();
             
             //todo grabInventoryにアイテムが入っているかチェック
             Assert.AreEqual(craftConfig.Result,grabInventory.GetItem(0));
@@ -100,7 +100,7 @@ namespace Test.UnitTest.Game
             }
             
             //クラフト実行
-            craftingInventory.Craft();
+            craftingInventory.NormalCraft();
             
             //grabInventoryにアイテムが入っているかチェック
             Assert.AreEqual(craftConfig.Result,grabInventory.GetItem(0));
@@ -137,7 +137,7 @@ namespace Test.UnitTest.Game
             Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetCreatableItem());
             
             //クラフトしてもgrabInventoryに何もないテスト
-            craftingInventory.Craft();
+            craftingInventory.NormalCraft();
             Assert.AreEqual(itemStackFactory.CreatEmpty(),grabInventory.GetItem(0));
             
         }
@@ -174,7 +174,7 @@ namespace Test.UnitTest.Game
             grabInventory.SetItem(0, setItem);
             
             //クラフト実行
-            craftingInventory.Craft();
+            craftingInventory.NormalCraft();
             
             //出力スロットのアイテムが変わっていないかチェック
             Assert.AreEqual(setItem,grabInventory.GetItem(0));

@@ -78,7 +78,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 playerInventoryData.CraftingOpenableInventory.SetItem(i,id,count * 2);
             }
             //クラフトを実行する　ここでアイテムが消費される
-            playerInventoryData.CraftingOpenableInventory.Craft();
+            playerInventoryData.CraftingOpenableInventory.NormalCraft();
 
             
             

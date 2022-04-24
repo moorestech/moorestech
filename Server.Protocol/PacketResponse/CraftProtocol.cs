@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse
             switch (craftType)
             {
                 case 0:
-                    craftingInventory.Craft();
+                    craftingInventory.NormalCraft();
                     break;
                 case 1:
                     craftingInventory.AllCraft();
