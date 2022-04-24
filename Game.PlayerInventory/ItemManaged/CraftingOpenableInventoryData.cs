@@ -41,9 +41,7 @@ namespace PlayerInventory.ItemManaged
             }
         }
 
-        
-        
-        
+        #region CraftLogic
         
         public void NormalCraft()
         {
@@ -70,10 +68,6 @@ namespace PlayerInventory.ItemManaged
             var addedOutputSlot = outputSlotItem.AddItem(result).ProcessResultItemStack;
             _grabInventoryData.SetItem(0, addedOutputSlot);
         }
-        
-        
-        
-        
 
         public void AllCraft()
         {
@@ -85,18 +79,17 @@ namespace PlayerInventory.ItemManaged
             throw new System.NotImplementedException();
         }
 
+        #endregion
+        
+        
+        
+
         public IItemStack GetCreatableItem() { return _isCreatableJudgementService.GetResult(CraftingItems); }
         public bool IsCreatable() { return _isCreatableJudgementService.IsCreatable(CraftingItems); }
 
-
         private IReadOnlyList<IItemStack> CraftingItems => _openableInventoryService.Inventory;
 
-        private void InvokeEvent(int slot, IItemStack itemStack)
-        {
-            _craftInventoryUpdateEvent.OnInventoryUpdateInvoke(
-                new PlayerInventoryUpdateEventProperties(_playerId,slot,itemStack));
-        }
-
+        
 
         #region delgate to PlayerInventoryItemDataStoreService
         public ReadOnlyCollection<IItemStack> Items => _openableInventoryService.Items;
@@ -108,6 +101,9 @@ namespace PlayerInventory.ItemManaged
         public IItemStack InsertItem(IItemStack itemStack) { return _openableInventoryService.InsertItem(itemStack); }
         public IItemStack InsertItem(int itemId, int count) { return _openableInventoryService.InsertItem(itemId, count); }
         public int GetSlotSize() { return _openableInventoryService.GetSlotSize(); }
+        
+        
+        private void InvokeEvent(int slot, IItemStack itemStack) { _craftInventoryUpdateEvent.OnInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(_playerId,slot,itemStack)); }
 
         #endregion
     }
