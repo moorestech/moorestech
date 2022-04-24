@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Core.Inventory;
 using Core.Item;
 using Game.Crafting.Interface;
@@ -88,18 +89,7 @@ namespace PlayerInventory.ItemManaged
         public bool IsCreatable() { return _isCreatableJudgementService.IsCreatable(CraftingItems); }
 
 
-        private List<IItemStack> CraftingItems
-        {
-            get
-            {
-                var items = new List<IItemStack>();
-                for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
-                {
-                    items.Add(_openableInventoryService.GetItem(i));
-                }
-                return items;
-            }
-        }
+        private IReadOnlyList<IItemStack> CraftingItems => _openableInventoryService.Inventory;
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {

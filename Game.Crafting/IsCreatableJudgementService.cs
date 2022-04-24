@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Inventory;
 using Core.Item;
 using Core.Item.Config;
@@ -43,7 +44,7 @@ namespace Game.Crafting
         /// </summary>
         /// <param name="craftingItems">クラフトスロット</param>
         /// <returns>クラフト可能か</returns>
-        public bool IsCreatable(List<IItemStack> craftingItems)
+        public bool IsCreatable(IReadOnlyList<IItemStack> craftingItems)
         {
             //アイテムIDが足りているかをチェックする
             var key = GetCraftingConfigCacheKey(craftingItems);
@@ -71,7 +72,7 @@ namespace Game.Crafting
         /// </summary>
         /// <param name="craftingItems">クラフトスロット</param>
         /// <returns>結果のアイテム</returns>
-        public IItemStack GetResult(List<IItemStack> craftingItems)
+        public IItemStack GetResult(IReadOnlyList<IItemStack> craftingItems)
         {
             var key = GetCraftingConfigCacheKey(craftingItems);
             if (_craftingConfigDataCache.ContainsKey(key))
@@ -82,7 +83,7 @@ namespace Game.Crafting
             throw new Exception("クラフト可能なアイテムがありません。この関数を使用する前にIsCreatableを使用してください。");
         }
 
-        public CraftingConfigData GetCraftingConfigData(List<IItemStack> craftingItems)
+        public CraftingConfigData GetCraftingConfigData(IReadOnlyList<IItemStack> craftingItems)
         {
             var key = GetCraftingConfigCacheKey(craftingItems);
             if (_craftingConfigDataCache.ContainsKey(key))
@@ -100,7 +101,7 @@ namespace Game.Crafting
         /// <param name="craftingItems">クラフトスロットにおいてあるアイテム</param>
         /// <param name="mainInventoryItems">クラフト結果を入れるメインインベントリ</param>
         /// <returns>クラフト可能な個数</returns>
-        public int CalcAllCraftItemNum(List<IItemStack> craftingItems,List<IItemStack> mainInventoryItems)
+        public int CalcAllCraftItemNum(IReadOnlyList<IItemStack> craftingItems,IReadOnlyList<IItemStack> mainInventoryItems)
         {
             //クラフト不可能ならそのまま終了
             if (!IsCreatable(craftingItems)) return 0;
@@ -117,7 +118,7 @@ namespace Game.Crafting
         /// <param name="craftingItems">クラフトスロットにおいてあるアイテム</param>
         /// <param name="mainInventoryItems">クラフト結果を入れるメインインベントリ</param>
         /// <returns>クラフト可能な個数</returns>
-        public int CalcOneStackCraftItemNum(List<IItemStack> craftingItems, List<IItemStack> mainInventoryItems)
+        public int CalcOneStackCraftItemNum(IReadOnlyList<IItemStack> craftingItems, IReadOnlyList<IItemStack> mainInventoryItems)
         {
             //クラフト不可能ならそのまま終了
             if (!IsCreatable(craftingItems))return 0;
@@ -137,7 +138,7 @@ namespace Game.Crafting
             return MainInventoryCanInsertNum(oneStackMaxCraftNum,resultItem,mainInventoryItems);;
         }
 
-        private int MainInventoryCanInsertNum(int maxNum,IItemStack insertItem,List<IItemStack> mainInventoryItems)
+        private int MainInventoryCanInsertNum(int maxNum,IItemStack insertItem,IReadOnlyList<IItemStack> mainInventoryItems)
         {
             //クラフト可能な個数を求めるために仮のインベントリを作成する
             var tempMainInventory = new OpenableInventoryItemDataStoreService((_,_) => {},_itemStackFactory,PlayerInventoryConst.MainInventorySize);
@@ -161,7 +162,7 @@ namespace Game.Crafting
             return creatableCount;
         }
 
-        private int CalcMaxCraftNum(List<IItemStack> craftingItems)
+        private int CalcMaxCraftNum(IReadOnlyList<IItemStack> craftingItems)
         {
             var config = GetCraftingConfigData(craftingItems);
             var craftCount = 0;
@@ -178,11 +179,9 @@ namespace Game.Crafting
             return craftCount;
         }
 
-        private string GetCraftingConfigCacheKey(List<IItemStack> itemId)
+        private string GetCraftingConfigCacheKey(IReadOnlyList<IItemStack> itemId)
         {
-            var items = "";
-            itemId.ForEach(i => { items = items + "_" + i.Id; });
-            return items;
+            return itemId.Aggregate("", (current, i) => current + "_" + i.Id);
         }
     }
 }
