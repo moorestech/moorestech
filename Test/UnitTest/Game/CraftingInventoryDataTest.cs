@@ -21,9 +21,10 @@ namespace Test.UnitTest.Game
         [Test]
         public void GetCreatableItemTest()
         {
-            var itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
+            var itemConfig = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath));
+            var itemStackFactory = new ItemStackFactory(itemConfig);
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
-            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory,itemConfig);
             
             var craftConfig = config.GetCraftingConfigList()[0];
             
@@ -44,9 +45,10 @@ namespace Test.UnitTest.Game
         [Test]
         public void CraftTest()
         {
+            var itemConfig = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath));
             var itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
-            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory,itemConfig);
             var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
             var grabInventory = new GrabInventoryData(PlayerId,new GrabInventoryUpdateEvent(),itemStackFactory);
 
@@ -77,9 +79,10 @@ namespace Test.UnitTest.Game
         [Test]
         public void CraftRemainderItemTest()
         {
+            var itemConfig = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath));
             ItemStackFactory itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
-            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory,itemConfig);
             var grabInventory = new GrabInventoryData(PlayerId,new GrabInventoryUpdateEvent(),itemStackFactory);
             var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
             
@@ -120,9 +123,10 @@ namespace Test.UnitTest.Game
         //アイテムが足りないときはクラフトできないテスト
         public void NoneCraftSlotItemTest()
         {
+            var itemConfig = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath));
             ItemStackFactory itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
-            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory,itemConfig);
             var grabInventory = new GrabInventoryData(PlayerId,new GrabInventoryUpdateEvent(),itemStackFactory);
             var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
             
@@ -147,7 +151,7 @@ namespace Test.UnitTest.Game
             var itemConfig = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath));
             var itemStackFactory = new ItemStackFactory(itemConfig);
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
-            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory,itemConfig);
             var grabInventory = new GrabInventoryData(PlayerId,new GrabInventoryUpdateEvent(),itemStackFactory); 
             var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
             

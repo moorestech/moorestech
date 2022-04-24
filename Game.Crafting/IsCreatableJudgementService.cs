@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item;
+using Core.Item.Config;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 
@@ -15,11 +16,13 @@ namespace Game.Crafting
         private readonly ItemStackFactory _itemStackFactory;
         private readonly Dictionary<string, CraftingConfigData> _craftingConfigDataCache = new();
         private readonly CraftingConfigData _nullCraftingConfigData;
+        private readonly IItemConfig _itemConfig;
 
-        public IsCreatableJudgementService(ICraftingConfig craftingConfig, ItemStackFactory itemStackFactory)
+        public IsCreatableJudgementService(ICraftingConfig craftingConfig, ItemStackFactory itemStackFactory, IItemConfig itemConfig)
         {
             _itemStackFactory = itemStackFactory;
-            
+            _itemConfig = itemConfig;
+
             //_craftingConfigDataCacheの作成
             foreach (var c in craftingConfig.GetCraftingConfigList())
             {
@@ -89,8 +92,7 @@ namespace Game.Crafting
 
             return _nullCraftingConfigData;
         }
-
-
+        
         
         /// <summary>
         /// 全てクラフトするときのクラフト可能な個数を返す
@@ -101,12 +103,42 @@ namespace Game.Crafting
         public int CalcAllCraftItemNum(List<IItemStack> craftingItems,List<IItemStack> mainInventoryItems)
         {
             //クラフト不可能ならそのまま終了
-            if (!IsCreatable(craftingItems))return 0;
-            
+            if (!IsCreatable(craftingItems)) return 0;
             var resultItem = GetResult(craftingItems);
             //最大のクラフト回数を求める
             var maxCraftItemNum = CalcMaxCraftNum(craftingItems);
+
+            return MainInventoryCanInsertNum(maxCraftItemNum,resultItem,mainInventoryItems);
+        }
+
+        /// <summary>
+        /// 1スタッククラフトするときのクラフト可能な個数を返す
+        /// </summary>
+        /// <param name="craftingItems"></param>
+        /// <param name="mainInventoryItems"></param>
+        /// <returns></returns>
+        public int CalcOneStackCraftItemNum(List<IItemStack> craftingItems, List<IItemStack> mainInventoryItems)
+        {
+            //クラフト不可能ならそのまま終了
+            if (!IsCreatable(craftingItems))return 0;
             
+            var resultItem = GetResult(craftingItems);
+            
+            //1スタックの最大クラフト数の取得
+            var oneStackMaxCraftNum = _itemConfig.GetItemConfig(resultItem.Id).MaxStack / resultItem.Count;
+            
+            //最大のクラフト回数を求める
+            var maxCraftItemNum = CalcMaxCraftNum(craftingItems);
+            //アイテムが足りないなどの理由で最大個数に到達しない場合は最大クラフト回数を使用する
+            if (maxCraftItemNum < oneStackMaxCraftNum)
+            {
+                oneStackMaxCraftNum = maxCraftItemNum;
+            }
+            return MainInventoryCanInsertNum(oneStackMaxCraftNum,resultItem,mainInventoryItems);;
+        }
+
+        private int MainInventoryCanInsertNum(int maxNum,IItemStack insertItem,List<IItemStack> mainInventoryItems)
+        {
             //クラフト可能な個数を求めるために仮のインベントリを作成する
             var tempMainInventory = new OpenableInventoryItemDataStoreService((_,_) => {},_itemStackFactory,PlayerInventoryConst.MainInventorySize);
             //仮インベントリにアイテムをセットする
@@ -115,9 +147,9 @@ namespace Game.Crafting
 
             var creatableCount = 0;
             //アイテムをinsertしてアイテムが入るかどうかをチェックする
-            for (int i = 0; i < maxCraftItemNum; i++)
+            for (int i = 0; i < maxNum; i++)
             {
-                var reminderItem = tempMainInventory.InsertItem(resultItem);
+                var reminderItem = tempMainInventory.InsertItem(insertItem);
                 //個数が0ではない＝アイテムがいっぱいだったのでその時点での個数を出力する
                 if (reminderItem.Count != 0)
                 {
