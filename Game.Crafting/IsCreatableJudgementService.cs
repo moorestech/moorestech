@@ -114,9 +114,9 @@ namespace Game.Crafting
         /// <summary>
         /// 1スタッククラフトするときのクラフト可能な個数を返す
         /// </summary>
-        /// <param name="craftingItems"></param>
-        /// <param name="mainInventoryItems"></param>
-        /// <returns></returns>
+        /// <param name="craftingItems">クラフトスロットにおいてあるアイテム</param>
+        /// <param name="mainInventoryItems">クラフト結果を入れるメインインベントリ</param>
+        /// <returns>クラフト可能な個数</returns>
         public int CalcOneStackCraftItemNum(List<IItemStack> craftingItems, List<IItemStack> mainInventoryItems)
         {
             //クラフト不可能ならそのまま終了
