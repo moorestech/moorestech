@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Service;
 using Core.Block.Event;
@@ -86,6 +87,7 @@ namespace Core.Block.Blocks.Chest
         }
         
         
+        public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
         public void SetItem(int slot, IItemStack itemStack) { _itemDataStoreService.SetItem(slot,itemStack); }
 
         public void SetItem(int slot, int itemId, int count) { _itemDataStoreService.SetItem(slot,itemId,count); }

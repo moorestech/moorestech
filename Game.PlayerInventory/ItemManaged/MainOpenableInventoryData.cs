@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Core.Inventory;
 using Core.Item;
 using Game.PlayerInventory.Interface;
@@ -38,6 +39,7 @@ namespace PlayerInventory.ItemManaged
                 _playerId,slot,itemStack));
         }
         
+        public ReadOnlyCollection<IItemStack> Items => _openableInventoryService.Items;
         public IItemStack GetItem(int slot) { return _openableInventoryService.GetItem(slot); }
         public void SetItem(int slot, IItemStack itemStack) { _openableInventoryService.SetItem(slot, itemStack); }
         public void SetItem(int slot, int itemId, int count) { _openableInventoryService.SetItem(slot, itemId,count); }
