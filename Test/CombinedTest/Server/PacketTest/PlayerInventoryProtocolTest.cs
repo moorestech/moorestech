@@ -46,7 +46,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 Assert.AreEqual(0, response.MoveNextToGetInt());
             }
             //クラフトインベントリの検証
-            for (int i = 0; i < PlayerInventoryConst.CraftingInventorySize; i++)
+            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
                 Assert.AreEqual(0, response.MoveNextToGetInt());
@@ -78,7 +78,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 playerInventoryData.CraftingOpenableInventory.SetItem(i,id,count * 2);
             }
             //クラフトを実行する　ここでアイテムが消費される
-            playerInventoryData.CraftingOpenableInventory.Craft();
+            playerInventoryData.CraftingOpenableInventory.NormalCraft();
 
             
             
@@ -119,10 +119,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 Assert.AreEqual(craftConfig.Items[i].Id, response.MoveNextToGetInt());
                 Assert.AreEqual(craftConfig.Items[i].Count, response.MoveNextToGetInt());
             }
-            //クラフト結果スロットのアイテムの検証
-            Assert.AreEqual(craftConfig.Result.Id, response.MoveNextToGetInt());
-            Assert.AreEqual(craftConfig.Result.Count, response.MoveNextToGetInt());
-            
+
             //クラフト結果アイテムの検証
             Assert.AreEqual(craftConfig.Result.Id, response.MoveNextToGetInt());
             Assert.AreEqual(craftConfig.Result.Count, response.MoveNextToGetInt());

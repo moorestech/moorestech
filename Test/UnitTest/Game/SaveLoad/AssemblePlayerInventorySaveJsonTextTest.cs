@@ -73,7 +73,7 @@ namespace Test.UnitTest.Game.SaveLoad
                 Assert.AreEqual(itemStackFactory.CreatEmpty(),loadedPlayerInventory.MainOpenableInventory.GetItem(i));
             }
             //クラフトのインベントリのチェック
-            for (int i = 0; i < PlayerInventoryConst.CraftingInventorySize; i++)
+            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 if (craftItems.ContainsKey(i))
                 {

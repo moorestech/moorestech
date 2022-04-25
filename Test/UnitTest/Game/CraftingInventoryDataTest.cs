@@ -21,14 +21,17 @@ namespace Test.UnitTest.Game
         [Test]
         public void GetCreatableItemTest()
         {
-            ItemStackFactory itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
+            var itemConfig = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath));
+            var itemStackFactory = new ItemStackFactory(itemConfig);
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
-            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory,itemConfig);
             
             var craftConfig = config.GetCraftingConfigList()[0];
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service);
+            var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
+            var grab = new GrabInventoryData(PlayerId, new GrabInventoryUpdateEvent(), itemStackFactory);
+            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service,main,grab);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
@@ -42,25 +45,28 @@ namespace Test.UnitTest.Game
         [Test]
         public void CraftTest()
         {
-            ItemStackFactory itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
+            var itemConfig = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath));
+            var itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
-            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
-            
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory,itemConfig);
+            var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
+            var grabInventory = new GrabInventoryData(PlayerId,new GrabInventoryUpdateEvent(),itemStackFactory);
+
             var craftConfig = config.GetCraftingConfigList()[0];
             
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service,main,grabInventory);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
             }
             
             //クラフト実行
-            craftingInventory.Craft();
+            craftingInventory.NormalCraft();
             
-            //ResultSlotにアイテムが入っているかチェック
-            Assert.AreEqual(craftConfig.Result,craftingInventory.GetItem(PlayerInventoryConst.CraftingInventorySize - 1 ));
+            //todo grabInventoryにアイテムが入っているかチェック
+            Assert.AreEqual(craftConfig.Result,grabInventory.GetItem(0));
             
             //クラフトスロットからアイテムが消えているかチェック
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
@@ -73,15 +79,18 @@ namespace Test.UnitTest.Game
         [Test]
         public void CraftRemainderItemTest()
         {
+            var itemConfig = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath));
             ItemStackFactory itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
-            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
-
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory,itemConfig);
+            var grabInventory = new GrabInventoryData(PlayerId,new GrabInventoryUpdateEvent(),itemStackFactory);
+            var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
+            
             var craftConfig = config.GetCraftingConfigList()[0];
             
             
             //craftingInventoryに1つ余分にアイテムを入れる
-            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service,main,grabInventory);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 var itemId = craftConfig.Items[i].Id;
@@ -91,10 +100,10 @@ namespace Test.UnitTest.Game
             }
             
             //クラフト実行
-            craftingInventory.Craft();
+            craftingInventory.NormalCraft();
             
-            //ResultSlotにアイテムが入っているかチェック
-            Assert.AreEqual(craftConfig.Result,craftingInventory.GetItem(PlayerInventoryConst.CraftingInventorySize - 1 ));
+            //grabInventoryにアイテムが入っているかチェック
+            Assert.AreEqual(craftConfig.Result,grabInventory.GetItem(0));
             
             //クラフトスロットにアイテムが1つ残っているかチェック
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
@@ -114,18 +123,20 @@ namespace Test.UnitTest.Game
         //アイテムが足りないときはクラフトできないテスト
         public void NoneCraftSlotItemTest()
         {
+            var itemConfig = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath));
             ItemStackFactory itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
-            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory,itemConfig);
+            var grabInventory = new GrabInventoryData(PlayerId,new GrabInventoryUpdateEvent(),itemStackFactory);
+            var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
+            
 
-            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service,main,grabInventory);
+
             
-            //クラフト結果が何もないことをチェック
-            Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetCreatableItem());
-            
-            //クラフトしても出力スロットに何もないテスト
-            craftingInventory.Craft();
-            Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetItem(PlayerInventoryConst.CraftingInventorySize - 1));
+            //クラフトしてもgrabInventoryに何もないテスト
+            craftingInventory.NormalCraft();
+            Assert.AreEqual(itemStackFactory.CreatEmpty(),grabInventory.GetItem(0));
             
         }
         
@@ -136,16 +147,18 @@ namespace Test.UnitTest.Game
         {
             //初期セットアップ
             var itemConfig = new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath));
-            ItemStackFactory itemStackFactory = new ItemStackFactory(itemConfig);
+            var itemStackFactory = new ItemStackFactory(itemConfig);
             ICraftingConfig config = new CraftConfig(itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath));
-            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory);
+            IIsCreatableJudgementService service = new IsCreatableJudgementService(config,itemStackFactory,itemConfig);
+            var grabInventory = new GrabInventoryData(PlayerId,new GrabInventoryUpdateEvent(),itemStackFactory); 
+            var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
             
             var craftConfig = config.GetCraftingConfigList()[0];
             var resultId = craftConfig.Result.Id;
             
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service);
+            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service,main,grabInventory);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
@@ -156,13 +169,13 @@ namespace Test.UnitTest.Game
             //すでに別のアイテムがあってクラフトできないテスト
             //出力スロットに他の別のアイテムを入れる
             var setItem = itemStackFactory.Create(resultId + 1, 1);
-            craftingInventory.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, setItem);
+            grabInventory.SetItem(0, setItem);
             
             //クラフト実行
-            craftingInventory.Craft();
+            craftingInventory.NormalCraft();
             
             //出力スロットのアイテムが変わっていないかチェック
-            Assert.AreEqual(setItem,craftingInventory.GetItem(PlayerInventoryConst.CraftingInventorySize - 1));
+            Assert.AreEqual(setItem,grabInventory.GetItem(0));
             //クラフトのスロットが変わっていないことをチェック
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
@@ -175,10 +188,13 @@ namespace Test.UnitTest.Game
             //すでにアイテムが満杯である時はクラフトできないテスト
             //出力スロットにアイテムを入れる
             setItem = itemStackFactory.Create(resultId,itemConfig.GetItemConfig(resultId).MaxStack);
-            craftingInventory.SetItem(PlayerInventoryConst.CraftingInventorySize - 1, setItem);
+            grabInventory.SetItem(0, setItem);
+
+            //クラフト実行
+            craftingInventory.NormalCraft();
             
             //出力スロットのアイテムが変わっていないかチェック
-            Assert.AreEqual(setItem,craftingInventory.GetItem(PlayerInventoryConst.CraftingInventorySize - 1));
+            Assert.AreEqual(setItem,grabInventory.GetItem(0));
             //クラフトのスロットが変わっていないことをチェック
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {

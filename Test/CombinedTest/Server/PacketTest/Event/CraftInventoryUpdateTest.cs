@@ -72,7 +72,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             
             //クラフト実行
-            craftingInventory.Craft();
+            craftingInventory.NormalCraft();
             
             
             
@@ -82,18 +82,14 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             response = packetResponse.GetPacketResponse(EventRequest());
             Assert.AreEqual(craftEventCount + 1,response.Count); //クラフトすると全てのスロットが更新されるため、craftEventCount + 1個のイベントが発生する
             
-            //最初のパケットが出力スロットであるため、その検証をする
+            //つかみインベントリが更新されてるかチェック
             checkSlot = craftEventCount + 1 - 1;
             enumerator = new ByteListEnumerator(response[checkSlot].ToList());
             Assert.AreEqual(3,enumerator.MoveNextToGetShort()); //パケットID
-            Assert.AreEqual(4,enumerator.MoveNextToGetShort()); //イベントID
-            Assert.AreEqual(9,enumerator.MoveNextToGetInt()); //インベントリスロット
+            Assert.AreEqual(5,enumerator.MoveNextToGetShort()); //イベントID
+            Assert.AreEqual(0,enumerator.MoveNextToGetInt()); //インベントリスロット
             Assert.AreEqual(craftConfig.Result.Id,enumerator.MoveNextToGetInt()); //更新アイテムID
             Assert.AreEqual(craftConfig.Result.Count,enumerator.MoveNextToGetInt()); //更新アイテム数
-            
-            Assert.AreEqual(ItemConst.EmptyItemId,enumerator.MoveNextToGetInt()); //結果のアイテムID
-            Assert.AreEqual(0,enumerator.MoveNextToGetInt()); //結果のアイテム数
-            Assert.AreEqual(0,enumerator.MoveNextToGetByte()); //クラフトできないので0
         }
         
         

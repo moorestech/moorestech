@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Core.Block.Blocks.Machine.Inventory;
 using Core.Item;
 using Core.Item.Util;
@@ -14,6 +16,18 @@ namespace Core.Block.Blocks.Machine.InventoryController
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
+        }
+
+
+        public ReadOnlyCollection<IItemStack> Items
+        {
+            get
+            {
+                var items = new List<IItemStack>();
+                items.AddRange(_vanillaMachineInputInventory.InputSlot);
+                items.AddRange(_vanillaMachineOutputInventory.OutputSlot);
+                return new ReadOnlyCollection<IItemStack>(items);
+            }
         }
 
         public IItemStack GetItem(int slot)

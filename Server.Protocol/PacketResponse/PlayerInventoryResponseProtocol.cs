@@ -33,7 +33,7 @@ namespace Server.Protocol.PacketResponse
             }
             
             //クラフトインベントリのアイテムを設定
-            for (int i = 0; i < PlayerInventoryConst.CraftingInventorySize; i++)
+            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetItem(i).Id));
                 response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetItem(i).Count));
