@@ -15,21 +15,7 @@ namespace MainGame.Network.Send
             _socket = socket;
             _playerId = playerConnectionSetting.PlayerId;
         }
-
-        public void Send(int x, int y,bool isOpen)
-        {
-            
-            var packet = new List<byte>();
-            
-            packet.AddRange(ToByteList.Convert(ProtocolId));
-            packet.AddRange(ToByteList.Convert(x));
-            packet.AddRange(ToByteList.Convert(y));
-            packet.AddRange(ToByteList.Convert(_playerId));
-            packet.Add(isOpen ? (byte)1 : (byte)0);
-
-            _socket.Send(packet.ToArray());
-        }
-        private List<byte> Send(bool toGrab,InventoryType inventoryType,int inventorySlot,int itemCount,int x = 0,int y = 0)
+        public List<byte> Send(bool toGrab,InventoryType inventoryType,int inventorySlot,int itemCount,int x = 0,int y = 0)
         {
             var payload = new List<byte>();
             payload.AddRange(ToByteList.Convert((short) 5));

@@ -14,7 +14,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
         public void Construct(PlayerInventoryViewModelController playerInventoryViewModelController,ItemImages itemImages,PlayerInventoryViewModel playerInventoryViewModel)
         {
 
-            playerInventoryViewModelController.OnItemGrabbed += _ => grabbedItem.gameObject.SetActive(true);
+            playerInventoryViewModelController.OnItemGrabbed += (_,_) => grabbedItem.gameObject.SetActive(true);
             playerInventoryViewModelController.OnItemUnGrabbed += () => grabbedItem.gameObject.SetActive(false);
             
             

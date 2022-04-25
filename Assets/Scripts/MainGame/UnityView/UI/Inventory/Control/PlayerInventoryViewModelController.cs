@@ -30,10 +30,10 @@ namespace MainGame.UnityView.UI.Inventory.Control
         public event Action<int,ItemStack> OnSlotUpdate;
         public event Action<ItemStack> OnGrabbedItemUpdate;
         
-        public event Action<int, int> OnItemAdded; 
+        public event Action<int, int> OnItemSlotAdded; 
         
         //int:grabしたインベントリのスロット
-        public event Action<int> OnItemGrabbed;
+        public event Action<int,int> OnItemGrabbed;
         public event Action OnItemUnGrabbed;
         
 
@@ -55,6 +55,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
 
         public void GrabbedItem(int slot)
         {
+            OnItemGrabbed?.Invoke(slot,_playerInventoryViewModel[slot].Count);
             SetGrabbedWithInvokeEvent(true,slot,_playerInventoryViewModel[slot]);
             SetInventoryWithInvokeEvent(slot,_itemStackFactory.CreatEmpty());
         }
@@ -64,6 +65,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
             var slotItemNum = _playerInventoryViewModel[slot].Count - grabbedItemNum;
             var id = _playerInventoryViewModel[slot].Id;
             
+            OnItemGrabbed?.Invoke(slot,grabbedItemNum);
             SetGrabbedWithInvokeEvent(true,slot,_itemStackFactory.Create(id,grabbedItemNum));
             SetInventoryWithInvokeEvent(slot,_itemStackFactory.Create(id,slotItemNum));
         }
@@ -78,7 +80,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 var result = item.AddItem(_grabbedItem);
                 SetInventoryWithInvokeEvent(slot,result.ProcessResultItemStack);
                 SetGrabbedWithInvokeEvent(false,slot);
-                OnItemAdded?.Invoke(slot,result.ProcessResultItemStack.Count);
+                OnItemSlotAdded?.Invoke(slot,result.ProcessResultItemStack.Count);
             }
             //あまりがでて、アイテム数が最大じゃない時は加算して、あまりをGrabbedに入れる
             else if (item.IsAllowedToAddWithRemain(_grabbedItem) && item.Count != _itemConfig.GetItemConfig(item.Id).MaxStack)
@@ -87,14 +89,14 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 var result = item.AddItem(_grabbedItem);
                 SetInventoryWithInvokeEvent(slot,result.ProcessResultItemStack);
                 SetGrabbedWithInvokeEvent(true,slot,result.RemainderItemStack);
-                OnItemAdded?.Invoke(slot,result.ProcessResultItemStack.Count);
+                OnItemSlotAdded?.Invoke(slot,result.ProcessResultItemStack.Count);
             }
             //加算できない時か最大数がスロットにある時はアイテムを入れ替える
             else
             {
                 SetInventoryWithInvokeEvent(slot,_grabbedItem);
                 SetGrabbedWithInvokeEvent(true,slot);
-                OnItemAdded?.Invoke(slot,_grabbedItem.Count);
+                OnItemSlotAdded?.Invoke(slot,_grabbedItem.Count);
             }
         }
         
@@ -121,7 +123,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 //なくなってない時は持っているアイテムを加算する
                 ItemOneDragStart();
                 SetGrabbedWithInvokeEvent(true,slot,newGrabbedItem);
-                OnItemAdded?.Invoke(slot,1);
+                OnItemSlotAdded?.Invoke(slot,1);
             }
         }
 
@@ -191,7 +193,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
             var dragItemCount = _dragStartGrabbedItem.Count/_itemSplitDragSlots.Count;
             foreach (var slots in _itemSplitDragSlots)
             {
-                OnItemAdded?.Invoke(slots.Slot,dragItemCount);
+                OnItemSlotAdded?.Invoke(slots.Slot,dragItemCount);
             }
         }
 
@@ -273,10 +275,6 @@ namespace MainGame.UnityView.UI.Inventory.Control
             
             if (isGrabbed)
             {
-                if (slot != -1)
-                {
-                    OnItemGrabbed?.Invoke(slot);
-                }
                 OnGrabbedItemUpdate?.Invoke(_grabbedItem.ToStructItemStack());
             }
             else

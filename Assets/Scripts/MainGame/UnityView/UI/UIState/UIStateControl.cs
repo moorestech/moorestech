@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using VContainer;
 
 namespace MainGame.UnityView.UI.UIState
@@ -10,6 +11,8 @@ namespace MainGame.UnityView.UI.UIState
         public UIStateEnum CurrentState => _currentState;
 
         private UIStateDictionary _uiStateDictionary;
+        
+        public event Action<UIStateEnum> OnStateChanged;
         
         [Inject]
         public void Construct(UIStateDictionary uiStateDictionary,MoorestechInputSettings inputSettings)
@@ -31,6 +34,8 @@ namespace MainGame.UnityView.UI.UIState
             _uiStateDictionary.GetState(_currentState).OnExit();
             _currentState = _uiStateDictionary.GetState(_currentState).GetNext();
             _uiStateDictionary.GetState(_currentState).OnEnter(lastState);
+            
+            OnStateChanged?.Invoke(_currentState);
         }
     }
 }
