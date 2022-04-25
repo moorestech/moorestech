@@ -3,10 +3,11 @@ using MainGame.Network.Send;
 using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.UIState;
 using UnityEngine;
+using VContainer.Unity;
 
 namespace MainGame.Presenter.Inventory.Send
 {
-    public class PlayerInventoryMoveItemPacketSend
+    public class PlayerInventoryMoveItemPacketSend : IInitializable
     {
         private readonly InventoryMoveItemProtocol _inventoryMoveItem;
         
@@ -58,5 +59,7 @@ namespace MainGame.Presenter.Inventory.Send
                     break;
             }
         }
+
+        public void Initialize() { }
     }
 }
