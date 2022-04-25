@@ -7,7 +7,7 @@ namespace MainGame.Network.Send
     public class InventoryMoveItemProtocol
     {
         private readonly ISocket _socket;
-        private const short ProtocolId = 16;
+        private const short ProtocolId = 5;
         private readonly int _playerId;
 
         public InventoryMoveItemProtocol(PlayerConnectionSetting playerConnectionSetting,ISocket socket)
@@ -15,10 +15,11 @@ namespace MainGame.Network.Send
             _socket = socket;
             _playerId = playerConnectionSetting.PlayerId;
         }
-        public List<byte> Send(bool toGrab,InventoryType inventoryType,int inventorySlot,int itemCount,int x = 0,int y = 0)
+        public void Send(bool toGrab, InventoryType inventoryType, int inventorySlot, int itemCount, int x = 0,
+            int y = 0)
         {
             var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 5));
+            payload.AddRange(ToByteList.Convert(ProtocolId));
             payload.Add(toGrab ? (byte) 0 : (byte) 1);
             payload.Add((byte)inventoryType);
             payload.AddRange(ToByteList.Convert(_playerId));
@@ -26,8 +27,8 @@ namespace MainGame.Network.Send
             payload.AddRange(ToByteList.Convert(itemCount));
             payload.AddRange(ToByteList.Convert(x));
             payload.AddRange(ToByteList.Convert(y));
-
-            return payload;
+            
+            _socket.Send(payload.ToArray());
         }
     }
 
