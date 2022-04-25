@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using MainGame.Network;
 using MainGame.Network.Settings;
 using MainGame.Network.Util;
 
-namespace MainGame.Model.Network.Send
+namespace MainGame.Network.Send
 {
     public class InventoryMoveItemProtocol
     {

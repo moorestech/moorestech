@@ -4,7 +4,7 @@ using MainGame.Model.Network.Event;
 using MainGame.Network.Util;
 using UnityEngine;
 
-namespace MainGame.Model.Network.Receive.EventPacket
+namespace MainGame.Network.Receive.EventPacket
 {
     public class BlockPlaceEventProtocol : IAnalysisEventPacket
     {

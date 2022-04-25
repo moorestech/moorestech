@@ -3,7 +3,7 @@ using MainGame.Basic;
 using MainGame.Model.Network.Event;
 using MainGame.Network.Util;
 
-namespace MainGame.Model.Network.Receive.EventPacket
+namespace MainGame.Network.Receive.EventPacket
 {
     public class CraftingInventorySlotEventProtocol : IAnalysisEventPacket
     {

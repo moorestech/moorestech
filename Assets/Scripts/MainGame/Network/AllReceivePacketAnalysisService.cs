@@ -2,10 +2,11 @@
 using System.Linq;
 using MainGame.Model.Network.Event;
 using MainGame.Model.Network.Receive;
+using MainGame.Network.Receive;
 using MainGame.Network.Util;
 using UnityEngine;
 
-namespace MainGame.Model.Network
+namespace MainGame.Network
 {
     public class AllReceivePacketAnalysisService
     {

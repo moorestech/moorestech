@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using MainGame.Model.Network.Receive;
 
-namespace MainGame.Model.Network.Receive
+namespace MainGame.Network.Receive
 {
     public class DummyProtocol : IAnalysisPacket
     {
