@@ -119,10 +119,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 Assert.AreEqual(craftConfig.Items[i].Id, response.MoveNextToGetInt());
                 Assert.AreEqual(craftConfig.Items[i].Count, response.MoveNextToGetInt());
             }
-            //クラフト結果スロットのアイテムの検証
-            Assert.AreEqual(craftConfig.Result.Id, response.MoveNextToGetInt());
-            Assert.AreEqual(craftConfig.Result.Count, response.MoveNextToGetInt());
-            
+
             //クラフト結果アイテムの検証
             Assert.AreEqual(craftConfig.Result.Id, response.MoveNextToGetInt());
             Assert.AreEqual(craftConfig.Result.Count, response.MoveNextToGetInt());
