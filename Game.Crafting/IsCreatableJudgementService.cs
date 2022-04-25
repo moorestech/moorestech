@@ -169,7 +169,10 @@ namespace Game.Crafting
 
             for (int i = 0; i < config.Items.Count; i++)
             {
+                if (config.Items[i].Count == 0) continue;
+                
                 var count = craftingItems[i].Count / config.Items[i].Count;
+
                 if (craftCount < count)
                 {
                     craftCount = count;

@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using Core.Item;
+using Core.Item.Config;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,12 +53,13 @@ namespace Test.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
             
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var itemConfig = serviceProvider.GetService<IItemConfig>();
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[3]; //id3のレシピはこのテスト用のレシピ
+            var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[2]; //id2のレシピはこのテスト用のレシピ
             
             //craftingInventoryに2つ分のアイテムを入れる
-            craftInventory.SetItem(0,itemStackFactory.Create(1,2));
+            craftInventory.SetItem(0,itemStackFactory.Create(10,2));
             
             
             
@@ -82,10 +85,10 @@ namespace Test.CombinedTest.Server.PacketTest
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[3]; //id3のレシピはこのテスト用のレシピ
+            var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[2]; //id2のレシピはこのテスト用のレシピ
             
             //craftingInventoryに2つ分のアイテムを入れる
-            craftInventory.SetItem(0,itemStackFactory.Create(1,2));
+            craftInventory.SetItem(0,itemStackFactory.Create(10,2));
             
             
             

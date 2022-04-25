@@ -12,6 +12,7 @@ namespace Core.Item.Config
     public class ItemConfig : IItemConfig
     {
         private ItemConfigData[] _itemDatas;
+        private const int DefaultItemMaxCount = 100;
 
         public ItemConfig(ConfigPath configPath)
         {
@@ -35,7 +36,7 @@ namespace Core.Item.Config
             //アイテムが登録されてないときの仮
             if (_itemDatas.Length - 1 < id)
             {
-                return new ItemConfigData("undefined id " + id, id, MaxValue);
+                return new ItemConfigData("undefined id " + id, id, DefaultItemMaxCount);
             }
 
             return _itemDatas[id];
