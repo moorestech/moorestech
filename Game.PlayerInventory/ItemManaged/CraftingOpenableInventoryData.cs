@@ -53,15 +53,7 @@ namespace PlayerInventory.ItemManaged
             var result = _isCreatableJudgementService.GetResult(CraftingItems);
             
             //クラフトしたアイテムを消費する
-            var craftConfig = _isCreatableJudgementService.GetCraftingConfigData(CraftingItems);
-            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
-            {
-                //クラフトしたアイテムを消費する
-                var subItem = _openableInventoryService.Inventory[i].SubItem(craftConfig.Items[i].Count);
-                //インベントリにセット
-                _openableInventoryService.SetItem(i, subItem);
-            }
-            
+            ConsumptionCraftItem(1, CraftingItems);
             
             //元のクラフト結果のアイテムを足したアイテムを持ちインベントリに追加
             var outputSlotItem = _grabInventoryData.GetItem(0);
@@ -71,12 +63,34 @@ namespace PlayerInventory.ItemManaged
 
         public void AllCraft()
         {
-            throw new System.NotImplementedException();
+            var craftNum = _isCreatableJudgementService.CalcAllCraftItemNum(CraftingItems,_mainOpenableInventoryData.Items);
+            var result = _isCreatableJudgementService.GetResult(CraftingItems);
+            for (int i = 0; i < craftNum; i++)
+            {
+                _mainOpenableInventoryData.InsertItem(result);
+            }
+            ConsumptionCraftItem(craftNum, CraftingItems);
         }
 
         public void OneStackCraft()
         {
             throw new System.NotImplementedException();
+        }
+
+
+        private void ConsumptionCraftItem(int itemCount,IReadOnlyList<IItemStack> craftingItems)
+        {
+            for (int i = 0; i < itemCount; i++)
+            {
+                var craftConfig = _isCreatableJudgementService.GetCraftingConfigData(craftingItems);
+                for (int j = 0; j < PlayerInventoryConst.CraftingSlotSize; j++)
+                {
+                    //クラフトしたアイテムを消費する
+                    var subItem = _openableInventoryService.Inventory[j].SubItem(craftConfig.Items[j].Count);
+                    //インベントリにセット
+                    _openableInventoryService.SetItem(j, subItem);
+                }
+            }
         }
 
         #endregion
