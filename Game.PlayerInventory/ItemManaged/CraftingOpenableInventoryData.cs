@@ -15,6 +15,7 @@ namespace PlayerInventory.ItemManaged
         private readonly OpenableInventoryItemDataStoreService _openableInventoryService;
         private readonly int _playerId;
         private readonly CraftInventoryUpdateEvent _craftInventoryUpdateEvent;
+        private readonly ItemStackFactory _itemStackFactory;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
         private readonly GrabInventoryData _grabInventoryData;
@@ -26,6 +27,7 @@ namespace PlayerInventory.ItemManaged
             _playerId = playerId;
             
             _craftInventoryUpdateEvent = craftInventoryUpdateEvent;
+            _itemStackFactory = itemStackFactory;
             _isCreatableJudgementService = isCreatableJudgementService;
             _mainOpenableInventoryData = mainOpenableInventoryData;
             _grabInventoryData = grabInventoryData;
@@ -105,7 +107,7 @@ namespace PlayerInventory.ItemManaged
         
         
 
-        public IItemStack GetCreatableItem() { return _isCreatableJudgementService.GetResult(CraftingItems); }
+        public IItemStack GetCreatableItem() { return　IsCreatable() ? _isCreatableJudgementService.GetResult(CraftingItems) : _itemStackFactory.CreatEmpty(); }
         public bool IsCreatable() { return _isCreatableJudgementService.IsCreatable(CraftingItems); }
 
         private IReadOnlyList<IItemStack> CraftingItems => _openableInventoryService.Inventory;
