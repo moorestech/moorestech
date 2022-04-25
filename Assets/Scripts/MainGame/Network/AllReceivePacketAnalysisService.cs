@@ -15,12 +15,12 @@ namespace MainGame.Network
         
         
         public AllReceivePacketAnalysisService(
-            NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent, MainInventoryUpdateEvent mainInventoryUpdateEvent,CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,BlockInventoryUpdateEvent blockInventoryUpdateEvent)
+            NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent, MainInventoryUpdateEvent mainInventoryUpdateEvent,CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,BlockInventoryUpdateEvent blockInventoryUpdateEvent,GrabInventoryUpdateEvent grabInventoryUpdateEvent)
         {
             _analysisPacketList.Add(new DummyProtocol());
             _analysisPacketList.Add(new ReceiveChunkDataProtocol(networkReceivedChunkDataEvent));
             _analysisPacketList.Add(new DummyProtocol());
-            _analysisPacketList.Add(new ReceiveEventProtocol(networkReceivedChunkDataEvent,mainInventoryUpdateEvent,craftingInventoryUpdateEvent,blockInventoryUpdateEvent));
+            _analysisPacketList.Add(new ReceiveEventProtocol(networkReceivedChunkDataEvent,mainInventoryUpdateEvent,craftingInventoryUpdateEvent,blockInventoryUpdateEvent,grabInventoryUpdateEvent));
             _analysisPacketList.Add(new ReceivePlayerInventoryProtocol(mainInventoryUpdateEvent,craftingInventoryUpdateEvent));
             _analysisPacketList.Add(new DummyProtocol());
             _analysisPacketList.Add(new ReceiveBlockInventoryProtocol(blockInventoryUpdateEvent));

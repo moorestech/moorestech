@@ -11,13 +11,14 @@ namespace MainGame.Model.Network.Receive
         readonly List<IAnalysisEventPacket> _eventPacketList = new();
 
         public ReceiveEventProtocol(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent, MainInventoryUpdateEvent mainInventoryUpdateEvent,
-            CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,BlockInventoryUpdateEvent blockInventoryUpdateEvent)
+            CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,BlockInventoryUpdateEvent blockInventoryUpdateEvent,GrabInventoryUpdateEvent grabInventoryUpdateEvent)
         {
             _eventPacketList.Add(new BlockPlaceEventProtocol(networkReceivedChunkDataEvent));
             _eventPacketList.Add(new MainInventorySlotEventProtocol(mainInventoryUpdateEvent));
             _eventPacketList.Add(new BlockInventorySlotUpdateEventProtocol(blockInventoryUpdateEvent));
             _eventPacketList.Add(new BlockRemoveEventProtocol(networkReceivedChunkDataEvent));
             _eventPacketList.Add(new CraftingInventorySlotEventProtocol(craftingInventoryUpdateEvent));
+            _eventPacketList.Add(new GrabInventoryUpdateEventProtocol(grabInventoryUpdateEvent));
         }
         
         /// <summary>
