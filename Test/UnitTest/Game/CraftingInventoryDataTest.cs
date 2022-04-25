@@ -132,9 +132,7 @@ namespace Test.UnitTest.Game
             
 
             var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service,main,grabInventory);
-            
-            //クラフト結果が何もないことをチェック
-            Assert.AreEqual(itemStackFactory.CreatEmpty(),craftingInventory.GetCreatableItem());
+
             
             //クラフトしてもgrabInventoryに何もないテスト
             craftingInventory.NormalCraft();
