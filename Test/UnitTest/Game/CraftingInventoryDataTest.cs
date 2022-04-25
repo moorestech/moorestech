@@ -191,9 +191,12 @@ namespace Test.UnitTest.Game
             //出力スロットにアイテムを入れる
             setItem = itemStackFactory.Create(resultId,itemConfig.GetItemConfig(resultId).MaxStack);
             grabInventory.SetItem(0, setItem);
+
+            //クラフト実行
+            craftingInventory.NormalCraft();
             
             //出力スロットのアイテムが変わっていないかチェック
-            Assert.AreEqual(setItem,craftingInventory.GetItem(0));
+            Assert.AreEqual(setItem,grabInventory.GetItem(0));
             //クラフトのスロットが変わっていないことをチェック
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {

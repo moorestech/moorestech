@@ -47,11 +47,12 @@ namespace PlayerInventory.ItemManaged
         {
             //クラフトが可能なアイテムの配置かチェック
             //クラフト結果のアイテムを持ちスロットに追加可能か判定
-            if (!IsCreatable() && !_grabInventoryData.GetItem(0).IsAllowedToAdd(_isCreatableJudgementService.GetResult(CraftingItems))) return;
+            if (!IsCreatable()) return;
             
             //クラフト結果のアイテムを取得しておく
             var result = _isCreatableJudgementService.GetResult(CraftingItems);
-            
+            if (!_grabInventoryData.GetItem(0).IsAllowedToAdd(result)) return;
+
             //クラフトしたアイテムを消費する
             ConsumptionCraftItem(1, CraftingItems);
             
