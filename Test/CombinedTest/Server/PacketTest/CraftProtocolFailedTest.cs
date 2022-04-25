@@ -88,7 +88,7 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 100),mainInventory.GetItem(0));
             Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 60),mainInventory.GetItem(1));
             //クラフトインベントリのアイテムが減ったことをチェックする
-            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 98),mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 98),craftInventory.GetItem(0));
         }
         
         /// <summary>
@@ -124,7 +124,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //クラフトインベントリのアイテムが減っていないことをチェック
-            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 100),mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 100),craftInventory.GetItem(0));
         }
 
         
@@ -166,7 +166,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //メインインベントリのクラフト結果のチェック
             Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 100),mainInventory.GetItem(0));
             //クラフトインベントリのアイテムが減ったことをチェックする
-            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 99),mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 99),craftInventory.GetItem(0));
         }
         
         
@@ -203,7 +203,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //クラフトインベントリのアイテムが減っていないことをチェック
-            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 100),mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(TestCraftItemId, 100),craftInventory.GetItem(0));
         }
         
     }
