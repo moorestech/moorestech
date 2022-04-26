@@ -7,10 +7,12 @@ namespace MainGame.Presenter.Inventory.Receive
     //IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しておく
     public class MainInventoryViewPresenter : IInitializable
     {
-        private readonly PlayerInventoryViewModelController _playerInventoryViewModel;
-        
-        public MainInventoryViewPresenter(MainInventoryUpdateEvent mainInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModel)
+        private readonly PlayerInventoryViewModelController _playerInventoryViewModelController;
+        private readonly PlayerInventoryViewModel _playerInventoryViewModel;
+
+        public MainInventoryViewPresenter(MainInventoryUpdateEvent mainInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModelController,PlayerInventoryViewModel playerInventoryViewModel)
         {
+            _playerInventoryViewModelController = playerInventoryViewModelController;
             _playerInventoryViewModel = playerInventoryViewModel;
             mainInventoryUpdateEvent.OnMainInventoryUpdateEvent +=UpdateInventory;
             mainInventoryUpdateEvent.OnMainInventorySlotUpdateEvent +=UpdateSlotInventory;
@@ -18,13 +20,14 @@ namespace MainGame.Presenter.Inventory.Receive
 
         public void UpdateInventory(MainInventoryUpdateProperties properties)
         {
+            _playerInventoryViewModel.SetMainInventory(properties.ItemStacks);
             for (int i = 0; i < properties.ItemStacks.Count; i++)
             {
                 var id = properties.ItemStacks[i].ID;
                 var count = properties.ItemStacks[i].Count;
                 var slot = i;
                 //View側を更新する
-                _playerInventoryViewModel.SetItem(slot,id,count);
+                _playerInventoryViewModelController.SetItem(slot,id,count);
             }
         }
 
@@ -32,7 +35,7 @@ namespace MainGame.Presenter.Inventory.Receive
         {
             
             //View側を更新する
-            _playerInventoryViewModel.SetItem(properties.SlotId,properties.ItemStack.ID,properties.ItemStack.Count);
+            _playerInventoryViewModelController.SetItem(properties.SlotId,properties.ItemStack.ID,properties.ItemStack.Count);
         }
         public void Initialize() { }
     }
