@@ -1388,6 +1388,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64a41fd042b1451e9694de8fdda59bd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &340415641 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 973472567877495847, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 444702c38aa74957a573527a4703509c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &367739779
 GameObject:
   m_ObjectHideFlags: 0
@@ -1929,7 +1940,7 @@ MonoBehaviour:
   detectGroundClickToSendBlockPlacePacket: {fileID: 1684657584}
   selectHotBarControl: {fileID: 135985975}
   playerPosition: {fileID: 1264384480}
-  selectHotBarView: {fileID: 0}
+  selectHotBarView: {fileID: 340415641}
   itemRecipeView: {fileID: 2090249934}
   grabbedItemImagePresenter: {fileID: 135985977}
   uIStateControl: {fileID: 1520253678}
