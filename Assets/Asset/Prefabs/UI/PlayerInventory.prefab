@@ -49,6 +49,7 @@ GameObject:
   - component: {fileID: 762520133390832204}
   - component: {fileID: 762520133390832203}
   - component: {fileID: 762520133390832202}
+  - component: {fileID: 6613772632020395576}
   m_Layer: 5
   m_Name: PlayerInventory
   m_TagString: Untagged
@@ -181,6 +182,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inventoryItemSlotPrefab: {fileID: 7226362693378105453, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
   inventoryArraySlotPrefab: {fileID: 2899649785497079085, guid: 5287158464c764ccfabb8c0b5176b16e, type: 3}
+--- !u!114 &6613772632020395576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 762520133390832207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2107544fb6a94656872abd8a095603b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  grabbedItem: {fileID: 8297043974313484620}
 --- !u!1 &4657748957928752940
 GameObject:
   m_ObjectHideFlags: 0

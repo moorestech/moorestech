@@ -73,7 +73,6 @@ namespace MainGame.Starter
         [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private DetectGroundClickToSendBlockPlacePacket detectGroundClickToSendBlockPlacePacket;
         [SerializeField] private SelectHotBarControl selectHotBarControl;
-        [SerializeField] private CraftExecute craftExecute;
         [SerializeField] private PlayerPosition playerPosition;
         [SerializeField] private SelectHotBarView selectHotBarView;
         [SerializeField] private ItemRecipeView itemRecipeView;
@@ -171,7 +170,6 @@ namespace MainGame.Starter
             builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarItemView);
             builder.RegisterComponent(selectHotBarControl);
-            builder.RegisterComponent(craftExecute);
             builder.RegisterComponent(selectHotBarView);
             builder.RegisterComponent(itemRecipeView);
             
