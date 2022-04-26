@@ -49,15 +49,12 @@ namespace MainGame.Presenter.Inventory.Send
 
         private void OnStateChanged(UIStateEnum state)
         {
-            switch (state)
+            _currentInventoryType = state switch
             {
-                case UIStateEnum.PlayerInventory:
-                    _currentInventoryType = InventoryType.CraftInventory;
-                    break;
-                case UIStateEnum.BlockInventory:
-                    _currentInventoryType = InventoryType.BlockInventory;
-                    break;
-            }
+                UIStateEnum.PlayerInventory => InventoryType.CraftInventory,
+                UIStateEnum.BlockInventory => InventoryType.BlockInventory,
+                _ => _currentInventoryType
+            };
         }
 
         public void Initialize() { }
