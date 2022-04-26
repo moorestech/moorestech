@@ -1,9 +1,5 @@
-
-
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Core.Item;
 using Game.PlayerInventory.Interface;
 using GameConst;
 using MainGame.Basic;
@@ -14,7 +10,7 @@ using MainGame.UnityView.UI.Inventory.View.SubInventory;
 using SinglePlay;
 using UnityEngine;
 
-namespace MainGame.Inventory
+namespace Test
 {
     public class PlayerInventoryTestModule : MonoBehaviour
     {
@@ -27,9 +23,8 @@ namespace MainGame.Inventory
         private void Start()
         {
             var single = new SinglePlayInterface(ServerConst.ServerConfigDirectory);
-            var itemStackFactory = single.ItemStackFactory;
-            var inventoryModel = new PlayerInventoryViewModel(itemStackFactory);
-            var inventoryController = new PlayerInventoryViewModelController(itemStackFactory,single.ItemConfig,inventoryModel);
+            var inventoryModel = new PlayerInventoryViewModel(single);
+            var inventoryController = new PlayerInventoryViewModelController(single,inventoryModel);
 
             playerInventorySlotsInputControl.Construct(inventoryController);
             playerInventoryPresenter.Construct(inventoryController,itemImages,inventoryModel);

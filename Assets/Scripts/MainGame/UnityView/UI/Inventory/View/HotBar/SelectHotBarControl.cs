@@ -31,7 +31,14 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
 
         private void ClickItem(InventoryItemSlot inventoryItemSlot)
         {
-            var slot = hotBarItemView.Slots.IndexOf(inventoryItemSlot);
+            var slot = 0;
+            for (var i = 0; i < hotBarItemView.Slots.Count; i++)
+            {
+                if (inventoryItemSlot == hotBarItemView.Slots[i])
+                {
+                    slot = i;
+                }
+            }
             _selectIndex = slot;
             _isClickedCount = 0;
             selectHotBarView.SetSelect(slot);

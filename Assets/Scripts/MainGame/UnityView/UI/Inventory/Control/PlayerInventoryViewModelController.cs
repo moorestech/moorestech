@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Item;
 using Core.Item.Config;
 using MainGame.Basic;
+using SinglePlay;
 
 namespace MainGame.UnityView.UI.Inventory.Control
 {
@@ -38,10 +39,10 @@ namespace MainGame.UnityView.UI.Inventory.Control
         
 
 
-        public PlayerInventoryViewModelController(ItemStackFactory itemStackFactory, IItemConfig itemConfig, PlayerInventoryViewModel playerInventoryViewModel)
+        public PlayerInventoryViewModelController(SinglePlayInterface singlePlayInterface,PlayerInventoryViewModel playerInventoryViewModel)
         {
-            _itemStackFactory = itemStackFactory;
-            _itemConfig = itemConfig;
+            _itemStackFactory = singlePlayInterface.ItemStackFactory;
+            _itemConfig = singlePlayInterface.ItemConfig;
             _playerInventoryViewModel = playerInventoryViewModel;
         }
 

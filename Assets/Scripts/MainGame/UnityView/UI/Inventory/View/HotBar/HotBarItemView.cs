@@ -12,8 +12,21 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
     {
         [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
         List<InventoryItemSlot> _slots;
-        public ReadOnlyCollection<InventoryItemSlot> Slots => _slots.AsReadOnly();
-        
+        public IReadOnlyList<InventoryItemSlot> Slots
+        {
+            get
+            {
+                if (_slots != null) return _slots;
+                _slots = new List<InventoryItemSlot>();
+                for (int i = 0; i < PlayerInventoryConstant.MainInventoryColumns; i++)
+                {
+                    var slot = Instantiate(inventoryItemSlotPrefab.gameObject, transform).GetComponent<InventoryItemSlot>();
+                    _slots.Add(slot);
+                } 
+                return _slots;
+            }
+        }
+
         private ItemImages _itemImages;
         
         
@@ -21,13 +34,6 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
         public void Construct(ItemImages itemImages,PlayerInventoryViewModelController playerInventoryViewModelController)
         {
             _itemImages = itemImages;
-            _slots = new List<InventoryItemSlot>();
-            for (int i = 0; i < PlayerInventoryConstant.MainInventoryColumns; i++)
-            {
-                var slot = Instantiate(inventoryItemSlotPrefab.gameObject, transform).GetComponent<InventoryItemSlot>();
-                _slots.Add(slot);
-            }
-
             playerInventoryViewModelController.OnSlotUpdate += OnInventoryUpdate;
         }
 

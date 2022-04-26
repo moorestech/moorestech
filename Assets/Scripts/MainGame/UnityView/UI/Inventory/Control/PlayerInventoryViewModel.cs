@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Core.Item;
 using MainGame.Basic;
+using SinglePlay;
 
 namespace MainGame.UnityView.UI.Inventory.Control
 {
@@ -19,9 +20,9 @@ namespace MainGame.UnityView.UI.Inventory.Control
         public int Count => _mainInventory.Count + _subInventory.Count;
 
 
-        public PlayerInventoryViewModel(ItemStackFactory itemStackFactory)
+        public PlayerInventoryViewModel(SinglePlayInterface single)
         {
-            _itemStackFactory = itemStackFactory;
+            _itemStackFactory = single.ItemStackFactory;
         }
 
         public IItemStack this[int index]

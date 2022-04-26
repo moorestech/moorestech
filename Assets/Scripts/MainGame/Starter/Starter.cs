@@ -19,6 +19,7 @@ using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.Game;
 using MainGame.UnityView.UI.CraftRecipe;
+using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
@@ -86,11 +87,14 @@ namespace MainGame.Starter
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private RecipeViewerObject recipeViewerObject;
         [SerializeField] private ItemRecipePresenter itemRecipePresenter;
+        [SerializeField] private ItemListViewer itemListViewer;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
+
+        [SerializeField] private PlayerInventorySlotsInputControl playerInventorySlotsInputControl;
 
         void Start()
         {
@@ -112,6 +116,7 @@ namespace MainGame.Starter
             builder.Register<MainInventoryUpdateEvent>(Lifetime.Singleton);
             builder.Register<CraftingInventoryUpdateEvent>(Lifetime.Singleton);
             builder.Register<BlockInventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<GrabInventoryUpdateEvent>(Lifetime.Singleton);
             
             //パケット送信インスタンス
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
@@ -126,7 +131,12 @@ namespace MainGame.Starter
             builder.Register<SendMiningProtocol>(Lifetime.Singleton);
             builder.Register<SendSaveProtocol>(Lifetime.Singleton);
             builder.Register<InventoryMoveItemProtocol>(Lifetime.Singleton);
-            
+
+            //インベントリのUIコントロール
+            builder.Register<PlayerInventoryPresenter>(Lifetime.Singleton);
+            builder.Register<PlayerInventoryViewModel>(Lifetime.Singleton);
+            builder.Register<PlayerInventoryViewModelController>(Lifetime.Singleton);
+            builder.RegisterComponent(playerInventorySlotsInputControl);
             
             //プレゼンターアセンブリ
             builder.RegisterEntryPoint<ChunkDataPresenter>();
@@ -182,6 +192,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(itemRecipePresenter);
+            builder.RegisterComponent(itemListViewer);
             
             
             builder.RegisterComponent<IPlayerPosition>(playerPosition);
