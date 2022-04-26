@@ -66,13 +66,14 @@ namespace MainGame.Network
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError("受信パケット解析失敗：" + e);
+                        Debug.LogError("受信パケット解析失敗 " + e);
                         var packets = new StringBuilder();
                         foreach (var @byte in bytes)
                         {
-                            packets.Append(@bytes);
+                            packets.Append(@byte);
                         }
                         Debug.LogError("受信パケット内容：" + packets);
+                        throw;
                     }
                 }
                 catch (Exception e)
@@ -83,7 +84,7 @@ namespace MainGame.Network
                     {
                         _socketInstanceCreate.GetSocket().Close();
                     }
-                    return;
+                    throw;
                 }
             }
         }
