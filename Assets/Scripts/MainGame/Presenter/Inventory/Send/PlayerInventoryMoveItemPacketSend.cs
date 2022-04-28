@@ -17,12 +17,12 @@ namespace MainGame.Presenter.Inventory.Send
         public PlayerInventoryMoveItemPacketSend(UIStateControl uiStateControl, PlayerInventoryViewModelController playerInventoryViewModelController,InventoryMoveItemProtocol inventoryMoveItem)
         {
             uiStateControl.OnStateChanged += OnStateChanged;
-            playerInventoryViewModelController.OnItemGrabbed += OnItemGrabbed;
+            playerInventoryViewModelController.OnItemSlotGrabbed += ItemSlotGrabbed;
             playerInventoryViewModelController.OnItemSlotAdded += ItemSlotAdded;
             _inventoryMoveItem = inventoryMoveItem;
         }
 
-        private void OnItemGrabbed(int slot, int count)
+        private void ItemSlotGrabbed(int slot, int count)
         {
             if (slot < PlayerInventoryConstant.MainInventorySize)
             {

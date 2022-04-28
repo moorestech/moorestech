@@ -2,6 +2,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 namespace MainGame.UnityView.UI.Inventory.Element
@@ -37,12 +38,12 @@ namespace MainGame.UnityView.UI.Inventory.Element
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            switch (eventData.pointerId)
+            switch (eventData.button)
             {
-                case -1:
+                case PointerEventData.InputButton.Left:
                     OnLeftClickDown?.Invoke(this);
                     break;
-                case -2:
+                case PointerEventData.InputButton.Right:
                     OnRightClickDown?.Invoke(this);
                     break;
             }
@@ -50,12 +51,12 @@ namespace MainGame.UnityView.UI.Inventory.Element
         
         public void OnPointerUp(PointerEventData eventData)
         {
-            switch (eventData.pointerId)
+            switch (eventData.button)
             {
-                case -1:
+                case PointerEventData.InputButton.Left:
                     OnLeftClickUp?.Invoke(this);
                     break;
-                case -2:
+                case PointerEventData.InputButton.Right:
                     OnRightClickUp?.Invoke(this);
                     break;
             }
@@ -66,7 +67,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
         }
         public void OnPointerClick(PointerEventData eventData)
         {
-            if(2 == eventData.clickCount && eventData.pointerId == -1){
+            if(2 == eventData.clickCount && eventData.button == PointerEventData.InputButton.Left){
                 OnDoubleClick?.Invoke(this);
             }
         }

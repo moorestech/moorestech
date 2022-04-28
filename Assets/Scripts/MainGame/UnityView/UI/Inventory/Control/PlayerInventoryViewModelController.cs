@@ -33,8 +33,18 @@ namespace MainGame.UnityView.UI.Inventory.Control
         
         public event Action<int, int> OnItemSlotAdded; 
         
-        //int:grabしたインベントリのスロット
-        public event Action<int,int> OnItemGrabbed;
+        
+        /// <summary>
+        /// int:grabしたインベントリのスロット　int:grabしたインベントリのアイテム数
+        /// スロットを持った時に発生させるイベント
+        /// </summary>
+        public event Action<int,int> OnItemSlotGrabbed;
+        
+        /// <summary>
+        /// ドラッグでアイテムを持った時に発生させるイベント
+        /// </summary>
+        public event Action OnItemGrabbed;
+        
         public event Action OnItemUnGrabbed;
         
 
@@ -56,7 +66,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
 
         public void GrabbedItem(int slot)
         {
-            OnItemGrabbed?.Invoke(slot,_playerInventoryViewModel[slot].Count);
+            OnItemSlotGrabbed?.Invoke(slot,_playerInventoryViewModel[slot].Count);
             SetGrabbedWithInvokeEvent(true,slot,_playerInventoryViewModel[slot]);
             SetInventoryWithInvokeEvent(slot,_itemStackFactory.CreatEmpty());
         }
@@ -66,7 +76,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
             var slotItemNum = _playerInventoryViewModel[slot].Count - grabbedItemNum;
             var id = _playerInventoryViewModel[slot].Id;
             
-            OnItemGrabbed?.Invoke(slot,grabbedItemNum);
+            OnItemSlotGrabbed?.Invoke(slot,grabbedItemNum);
             SetGrabbedWithInvokeEvent(true,slot,_itemStackFactory.Create(id,grabbedItemNum));
             SetInventoryWithInvokeEvent(slot,_itemStackFactory.Create(id,slotItemNum));
         }
@@ -277,6 +287,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
             if (isGrabbed)
             {
                 OnGrabbedItemUpdate?.Invoke(_grabbedItem.ToStructItemStack());
+                OnItemGrabbed?.Invoke();
             }
             else
             {

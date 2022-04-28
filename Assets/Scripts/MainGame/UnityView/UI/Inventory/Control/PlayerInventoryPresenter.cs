@@ -14,7 +14,8 @@ namespace MainGame.UnityView.UI.Inventory.Control
         [Inject]
         public void Construct(PlayerInventoryViewModelController playerInventoryViewModelController,ItemImages itemImages,PlayerInventoryViewModel playerInventoryViewModel)
         {
-            playerInventoryViewModelController.OnItemGrabbed += (_,_) => grabbedItem.gameObject.SetActive(true);
+            playerInventoryViewModelController.OnItemSlotGrabbed += (_,_) => grabbedItem.gameObject.SetActive(true);
+            playerInventoryViewModelController.OnItemGrabbed += () => grabbedItem.gameObject.SetActive(true);
             playerInventoryViewModelController.OnItemUnGrabbed += () => grabbedItem.gameObject.SetActive(false);
             playerInventoryViewModelController.OnGrabbedItemUpdate += item => grabbedItem.SetItem(itemImages.GetItemView(item.ID),item.Count);
             
