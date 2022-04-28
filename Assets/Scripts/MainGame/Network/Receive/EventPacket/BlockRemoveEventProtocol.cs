@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.Model.Network.Event;
+using MainGame.Network.Event;
 using MainGame.Network.Util;
 using UnityEngine;
 
@@ -24,7 +24,7 @@ namespace MainGame.Network.Receive.EventPacket
             var y = bytes.MoveNextToGetInt();
             
             _networkReceivedChunkDataEvents.InvokeBlockUpdateEvent(
-                new OnBlockUpdateEventProperties(new Vector2Int(x,y),BlockConstant.NullBlockId,BlockDirection.North));
+                new BlockUpdateEventProperties(new Vector2Int(x,y),BlockConstant.NullBlockId,BlockDirection.North));
         }
     }
 }

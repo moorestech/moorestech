@@ -3,9 +3,9 @@ using GameConst;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.Control.UI.UIState.UIObject;
 using MainGame.Model.Network;
-using MainGame.Model.Network.Event;
 using MainGame.Model.Network.Send;
 using MainGame.Network;
+using MainGame.Network.Event;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Settings;
@@ -88,6 +88,7 @@ namespace MainGame.Starter
         [SerializeField] private RecipeViewerObject recipeViewerObject;
         [SerializeField] private ItemRecipePresenter itemRecipePresenter;
         [SerializeField] private ItemListViewer itemListViewer;
+        [SerializeField] private PlayerInventoryPresenter playerInventoryPresenter;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
@@ -133,10 +134,10 @@ namespace MainGame.Starter
             builder.Register<InventoryMoveItemProtocol>(Lifetime.Singleton);
 
             //インベントリのUIコントロール
-            builder.Register<PlayerInventoryPresenter>(Lifetime.Singleton);
             builder.Register<PlayerInventoryViewModel>(Lifetime.Singleton);
             builder.Register<PlayerInventoryViewModelController>(Lifetime.Singleton);
             builder.RegisterComponent(playerInventorySlotsInputControl);
+            builder.RegisterComponent(playerInventoryPresenter);
             
             //プレゼンターアセンブリ
             builder.RegisterEntryPoint<ChunkDataPresenter>();

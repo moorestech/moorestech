@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.Model.Network.Event;
+using MainGame.Network.Event;
 using MainGame.Network.Util;
 using UnityEngine;
 
@@ -34,7 +34,7 @@ namespace MainGame.Network.Receive.EventPacket
             };
 
             //ブロックをセットする
-            _networkReceivedChunkDataEvent.InvokeBlockUpdateEvent(new OnBlockUpdateEventProperties(new Vector2Int(x,y), blockId,direction));
+            _networkReceivedChunkDataEvent.InvokeBlockUpdateEvent(new BlockUpdateEventProperties(new Vector2Int(x,y), blockId,direction));
         }
     }
 }

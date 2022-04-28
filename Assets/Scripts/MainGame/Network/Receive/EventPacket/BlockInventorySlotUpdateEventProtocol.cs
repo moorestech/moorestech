@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using MainGame.Model.Network.Event;
+using MainGame.Network.Event;
 using MainGame.Network.Util;
 using UnityEngine;
 

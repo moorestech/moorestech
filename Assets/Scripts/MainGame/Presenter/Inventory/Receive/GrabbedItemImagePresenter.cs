@@ -1,4 +1,4 @@
-﻿using MainGame.Model.Network.Event;
+﻿using MainGame.Network.Event;
 using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
 using VContainer;

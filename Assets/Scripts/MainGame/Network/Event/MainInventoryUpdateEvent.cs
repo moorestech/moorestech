@@ -1,23 +1,32 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using MainGame.Basic;
 
-namespace MainGame.Model.Network.Event
+namespace MainGame.Network.Event
 {
     public class MainInventoryUpdateEvent
     {
+        private SynchronizationContext _mainThread;
+        
+        public MainInventoryUpdateEvent()
+        {
+            _mainThread = SynchronizationContext.Current;
+        }
+        
+        
         public event Action<MainInventoryUpdateProperties> OnMainInventoryUpdateEvent;
         public event Action<MainInventorySlotUpdateProperties> OnMainInventorySlotUpdateEvent;
 
 
         internal void InvokeMainInventoryUpdate(MainInventoryUpdateProperties properties)
         {
-            OnMainInventoryUpdateEvent?.Invoke(properties);
+            _mainThread.Post(_ => OnMainInventoryUpdateEvent?.Invoke(properties), null);
         }
 
         internal void InvokeMainInventorySlotUpdate(MainInventorySlotUpdateProperties properties)
         {
-            OnMainInventorySlotUpdateEvent?.Invoke(properties);
+            _mainThread.Post(_ => OnMainInventorySlotUpdateEvent?.Invoke(properties), null);
         }
     }
     

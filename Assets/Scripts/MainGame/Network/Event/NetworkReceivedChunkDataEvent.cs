@@ -1,28 +1,37 @@
 ﻿using System;
+using System.Threading;
 using MainGame.Basic;
 using UnityEngine;
 
-namespace MainGame.Model.Network.Event
+namespace MainGame.Network.Event
 {
     public class NetworkReceivedChunkDataEvent
     {
-        public event Action<OnChunkUpdateEventProperties> OnChunkUpdateEvent;
-        public event Action<OnBlockUpdateEventProperties> OnBlockUpdateEvent;
-
-        public void InvokeChunkUpdateEvent(OnChunkUpdateEventProperties properties)
+        private SynchronizationContext _mainThread;
+        
+        public NetworkReceivedChunkDataEvent()
         {
-            OnChunkUpdateEvent?.Invoke(properties);
+            //Unityではメインスレッドでしか実行できないのでメインスレッドを保存しておく
+            _mainThread = SynchronizationContext.Current;
         }
-        public void InvokeBlockUpdateEvent(OnBlockUpdateEventProperties properties)
+        
+        public event Action<ChunkUpdateEventProperties> OnChunkUpdateEvent;
+        public event Action<BlockUpdateEventProperties> OnBlockUpdateEvent;
+
+        public void InvokeChunkUpdateEvent(ChunkUpdateEventProperties properties)
         {
-            OnBlockUpdateEvent?.Invoke(properties);
+            _mainThread.Post(_ => OnChunkUpdateEvent?.Invoke(properties), null);
+        }
+        public void InvokeBlockUpdateEvent(BlockUpdateEventProperties properties)
+        {
+            _mainThread.Post(_ => OnBlockUpdateEvent?.Invoke(properties), null);
         }
 
     }
     
     
 
-    public class OnChunkUpdateEventProperties
+    public class ChunkUpdateEventProperties
     {
         public readonly Vector2Int ChunkPos;
         public readonly int[,] BlockIds;
@@ -30,7 +39,7 @@ namespace MainGame.Model.Network.Event
         
         public readonly int[,] MapTileIds;
 
-        public OnChunkUpdateEventProperties(Vector2Int chunkPos, int[,] blockIds, BlockDirection[,] blockDirections, int[,] mapTileIds)
+        public ChunkUpdateEventProperties(Vector2Int chunkPos, int[,] blockIds, BlockDirection[,] blockDirections, int[,] mapTileIds)
         {
             ChunkPos = chunkPos;
             BlockIds = blockIds;
@@ -39,13 +48,13 @@ namespace MainGame.Model.Network.Event
         }
     }
 
-    public class OnBlockUpdateEventProperties
+    public class BlockUpdateEventProperties
     {
         public readonly Vector2Int BlockPos;
         public readonly  int BlockId;
         public readonly BlockDirection BlockDirection;
 
-        public OnBlockUpdateEventProperties(Vector2Int blockPos, int blockId, BlockDirection blockDirection)
+        public BlockUpdateEventProperties(Vector2Int blockPos, int blockId, BlockDirection blockDirection)
         {
             this.BlockPos = blockPos;
             this.BlockId = blockId;

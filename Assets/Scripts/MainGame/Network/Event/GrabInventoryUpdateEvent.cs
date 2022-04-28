@@ -1,16 +1,23 @@
 using System;
-using System.Collections.Generic;
+using System.Threading;
 using MainGame.Basic;
 
-namespace MainGame.Model.Network.Event
+namespace MainGame.Network.Event
 {
     public class GrabInventoryUpdateEvent
     {
+        private SynchronizationContext _mainThread;
+        
+        public GrabInventoryUpdateEvent()
+        {
+            //Unityではメインスレッドでしか実行できないのでメインスレッドを保存しておく
+            _mainThread = SynchronizationContext.Current;
+        }
         public event Action<GrabInventoryUpdateEventProperties> OnGrabInventoryUpdateEvent;
 
         internal void GrabInventoryUpdateEventInvoke(GrabInventoryUpdateEventProperties obj)
         {
-            OnGrabInventoryUpdateEvent?.Invoke(obj);
+            _mainThread.Post(_ => OnGrabInventoryUpdateEvent?.Invoke(obj), null);
         }
     }
 

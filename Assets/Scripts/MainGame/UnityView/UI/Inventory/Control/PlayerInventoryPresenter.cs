@@ -2,6 +2,7 @@ using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
 namespace MainGame.UnityView.UI.Inventory.Control
 {
@@ -13,13 +14,11 @@ namespace MainGame.UnityView.UI.Inventory.Control
         [Inject]
         public void Construct(PlayerInventoryViewModelController playerInventoryViewModelController,ItemImages itemImages,PlayerInventoryViewModel playerInventoryViewModel)
         {
-
             playerInventoryViewModelController.OnItemGrabbed += (_,_) => grabbedItem.gameObject.SetActive(true);
             playerInventoryViewModelController.OnItemUnGrabbed += () => grabbedItem.gameObject.SetActive(false);
-            
+            playerInventoryViewModelController.OnGrabbedItemUpdate += item => grabbedItem.SetItem(itemImages.GetItemView(item.ID),item.Count);
             
             playerInventoryViewModelController.OnSlotUpdate += (slot, item) => playerInventorySlots.SetImage(slot,itemImages.GetItemView(item.ID),item.Count);
-            playerInventoryViewModelController.OnGrabbedItemUpdate += item => grabbedItem.SetItem(itemImages.GetItemView(item.ID),item.Count);
 
             playerInventoryViewModel.OnInventoryUpdate += () =>
             {

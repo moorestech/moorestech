@@ -1,5 +1,5 @@
 ﻿using MainGame.Basic;
-using MainGame.Model.Network.Event;
+using MainGame.Network.Event;
 using MainGame.UnityView.WorldMapTile;
 using UnityEngine;
 using VContainer.Unity;
@@ -17,7 +17,7 @@ namespace MainGame.Presenter.Chunk
         }
 
 
-        private void OnChunkUpdate(OnChunkUpdateEventProperties properties)
+        private void OnChunkUpdate(ChunkUpdateEventProperties properties)
         {
             var chunkPos = properties.ChunkPos;
             

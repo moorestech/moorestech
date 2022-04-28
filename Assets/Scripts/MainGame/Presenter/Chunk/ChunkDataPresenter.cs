@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.Model.Network.Event;
+using MainGame.Network.Event;
 using MainGame.UnityView.Chunk;
 using UnityEngine;
 using VContainer.Unity;
@@ -26,7 +26,7 @@ namespace MainGame.Presenter.Chunk
         /// <summary>
         /// チャンクの更新イベント
         /// </summary>
-        private void OnChunkUpdate(OnChunkUpdateEventProperties properties)
+        private void OnChunkUpdate(ChunkUpdateEventProperties properties)
         {
             var chunkPos = properties.ChunkPos;
             //チャンクの情報を追加か更新
@@ -52,7 +52,7 @@ namespace MainGame.Presenter.Chunk
         /// <summary>
         /// 単一のブロックの更新イベント
         /// </summary>
-        private void OnBlockUpdate(OnBlockUpdateEventProperties properties)
+        private void OnBlockUpdate(BlockUpdateEventProperties properties)
         {
             var blockPos = properties.BlockPos;
             var chunkPos = ChunkConstant.BlockPositionToChunkOriginPosition(blockPos);

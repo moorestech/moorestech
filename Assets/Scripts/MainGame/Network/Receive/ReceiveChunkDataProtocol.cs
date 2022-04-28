@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using MainGame.Basic;
-using MainGame.Model.Network.Event;
+using MainGame.Network.Event;
 using MainGame.Network.Util;
 using UnityEngine;
 
@@ -49,7 +49,7 @@ namespace MainGame.Model.Network.Receive
             }
             
             //chunk data event
-            _networkReceivedChunkDataEvent.InvokeChunkUpdateEvent(new OnChunkUpdateEventProperties(chunkPos, chunkBlocks,blockDirections,mapTiles));
+            _networkReceivedChunkDataEvent.InvokeChunkUpdateEvent(new ChunkUpdateEventProperties(chunkPos, chunkBlocks,blockDirections,mapTiles));
         }
 
         private int GetBlockId(BitListEnumerator bits)
