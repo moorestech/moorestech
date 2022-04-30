@@ -42,7 +42,7 @@ namespace MainGame.Presenter.Inventory.Send
             }
             else
             {
-                _inventoryMoveItem.Send(true,_currentInventoryType, slot - PlayerInventoryConstant.MainInventorySize, addCount,_blockPos.x,_blockPos.y);
+                _inventoryMoveItem.Send(false,_currentInventoryType, slot - PlayerInventoryConstant.MainInventorySize, addCount,_blockPos.x,_blockPos.y);
             }
             
         }
