@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Core.Update;
 using Game.Save.Interface;
 using Microsoft.Extensions.DependencyInjection;
-using Server.PacketHandle;
+using Server.StartServerSystem.PacketHandle;
 
 namespace Server.StartServerSystem
 {
@@ -42,17 +42,8 @@ namespace Server.StartServerSystem
                 Console.WriteLine("マップをロード又は新規作成します。");
                 
                 //サーバーの起動とゲームアップデートの開始
-                new Thread(() =>
-                {
-                    new PacketHandler().StartServer(packet);
-                }).Start();
-                new Thread(() =>
-                {
-                    while (true)
-                    {
-                        GameUpdate.Update();
-                    }
-                }).Start();
+                new Thread(() => new PacketHandler().StartServer(packet)).Start();
+                new Thread(() => { while (true) { GameUpdate.Update(); } }).Start();
 
                 await new AutoSaveSystem(serviceProvider.GetService<ISaveRepository>()).AutoSave();
 
