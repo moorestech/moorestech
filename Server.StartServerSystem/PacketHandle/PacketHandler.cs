@@ -5,21 +5,20 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol;
 
-namespace Server.PacketHandle
+namespace Server.StartServerSystem.PacketHandle
 {
     public class PacketHandler
     {
-        const int port = 11564;
+        const int Port = 11564;
 
         public void StartServer(PacketResponseCreator packetResponseCreator)
         {
             //ソケットの作成
             Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             //通信の受け入れ準備
-            listener.Bind(new IPEndPoint(IPAddress.Any, port));
+            listener.Bind(new IPEndPoint(IPAddress.Any, Port));
             listener.Listen(10);
             Console.WriteLine("moorestechサーバー 起動準備完了");
 
