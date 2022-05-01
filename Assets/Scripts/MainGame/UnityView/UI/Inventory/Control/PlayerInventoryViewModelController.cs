@@ -64,13 +64,14 @@ namespace MainGame.UnityView.UI.Inventory.Control
             _playerInventoryViewModel = playerInventoryViewModel;
         }
 
-        public void SetItem(int slot,int id,int count)
+        public void SetItemFromNetwork(int slot,int id,int count)
         {
             SetInventoryWithInvokeEvent(slot, _itemStackFactory.Create(id, count));
         }
 
-        public void SetGrabItem(int id, int count)
+        public void SetGrabItemFromNetwork(int id, int count)
         {
+            if (id != ItemConstant.NullItemId) return;
             SetGrabbedWithInvokeEvent(true, _itemStackFactory.Create(id, count));
         }
         

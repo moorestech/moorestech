@@ -25,7 +25,7 @@ namespace MainGame.Presenter.Inventory.Receive
                 //viewのUIにインベントリが更新されたことを通知する
                 var id = properties.ItemStacks[i].ID;
                 var count = properties.ItemStacks[i].Count;
-                _playerInventoryViewModel.SetItem(PlayerInventoryConstant.MainInventorySize + i,id,count);
+                _playerInventoryViewModel.SetItemFromNetwork(PlayerInventoryConstant.MainInventorySize + i,id,count);
             }
         }
 
@@ -35,7 +35,7 @@ namespace MainGame.Presenter.Inventory.Receive
             var id = properties.Id;
             var count = properties.Count;
             
-            _playerInventoryViewModel.SetItem(PlayerInventoryConstant.MainInventorySize + slot,id,count);
+            _playerInventoryViewModel.SetItemFromNetwork(PlayerInventoryConstant.MainInventorySize + slot,id,count);
         }
 
         public void Initialize() { }

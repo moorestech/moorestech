@@ -23,7 +23,7 @@ namespace MainGame.Presenter.Inventory.Receive
         {
             var id = properties.ItemStack.ID;
             var count = properties.ItemStack.Count;
-            _playerInventoryViewModel.SetGrabItem(id,count);
+            _playerInventoryViewModel.SetGrabItemFromNetwork(id,count);
         }
     }
 }
