@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
 using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,7 +41,12 @@ namespace Server.Protocol
 
         public List<byte[]> GetPacketResponse(List<byte> payload)
         {
-            return _packetResponseList[new ByteListEnumerator(payload).MoveNextToGetShort()].GetResponse(payload);
+            var id = new ByteListEnumerator(payload).MoveNextToGetShort();
+            if (id != 4 && id != 2)
+            {
+                Console.WriteLine("受信　" + _packetResponseList[id].GetType());
+            }
+            return _packetResponseList[id].GetResponse(payload);
         }
     }
 }
