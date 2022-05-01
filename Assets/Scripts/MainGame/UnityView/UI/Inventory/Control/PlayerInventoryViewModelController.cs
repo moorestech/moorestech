@@ -40,6 +40,13 @@ namespace MainGame.UnityView.UI.Inventory.Control
         /// スロットを持った時に発生させるイベント
         /// </summary>
         public event Action<int,int> OnItemSlotGrabbed;
+
+
+        /// <summary>
+        /// アイテムをダブルクリックで集めた時に発生するイベント
+        /// int:収集したインベントリのスロット　int:収集したアイテム数
+        /// </summary>
+        public event Action<int, int> OnItemSlotCollect;
         
         /// <summary>
         /// ドラッグでアイテムを持った時に発生させるイベント
@@ -234,14 +241,14 @@ namespace MainGame.UnityView.UI.Inventory.Control
             //ただし自分のスロットは除外する
             collectTargetIndex.Remove(slot);
 
-            SetInventoryWithInvokeEvent(slot, CollectItem(collectTargetIndex, _playerInventoryViewModel[slot]));
+            SetInventoryWithInvokeEvent(slot, CollectItemWithInvokeEvent(collectTargetIndex, _playerInventoryViewModel[slot]));
         }
         public void CollectGrabbedItem()
         {
             //同じIDのアイテムで少ない数のスロット順で並べる
             var collectTargetIndex = GetCollectItemTarget(_grabbedItem.Id);
             
-            SetGrabbedWithInvokeEvent(true,-1,CollectItem(collectTargetIndex,_grabbedItem));
+            SetGrabbedWithInvokeEvent(true,-1,CollectItemWithInvokeEvent(collectTargetIndex,_grabbedItem));
         }
 
         private List<int> GetCollectItemTarget(int itemId)
@@ -253,11 +260,16 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 Select(i => i.index).ToList();
         }
 
-        private IItemStack CollectItem(List<int> collectTargetIndex,IItemStack collectFromItem)
+        private IItemStack CollectItemWithInvokeEvent(List<int> collectTargetIndex,IItemStack collectFromItem)
         {
             foreach (var index in collectTargetIndex)
             {
                 var added = collectFromItem.AddItem(_playerInventoryViewModel[index]);
+                
+                //calc collect item count
+                var collectItemCount = _playerInventoryViewModel[index].Count - added.RemainderItemStack.Count;
+                OnItemSlotCollect?.Invoke(index,collectItemCount);
+                
                 collectFromItem = added.ProcessResultItemStack;
                 SetInventoryWithInvokeEvent(index,added.RemainderItemStack);
                 

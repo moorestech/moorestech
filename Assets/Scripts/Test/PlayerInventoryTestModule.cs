@@ -26,14 +26,9 @@ namespace Test
             var inventoryModel = new PlayerInventoryViewModel(single);
             var inventoryController = new PlayerInventoryViewModelController(single,inventoryModel);
 
-            inventoryController.OnItemSlotGrabbed += (slot, count) =>
-            {
-                Debug.Log($"grab {slot} {count}");
-            };
-            inventoryController.OnItemSlotAdded += (slot, count) =>
-            {
-                Debug.Log($"put {slot} {count}");
-            };
+            inventoryController.OnItemSlotGrabbed += (slot, count) =>  Debug.Log($"grab {slot} {count}");
+            inventoryController.OnItemSlotAdded += (slot, count) => Debug.Log($"put {slot} {count}");
+            inventoryController.OnItemSlotCollect += (slot, count) => Debug.Log($"collect {slot} {count}");
 
             playerInventorySlotsInputControl.Construct(inventoryController);
             playerInventoryPresenter.Construct(inventoryController,itemImages,inventoryModel);
