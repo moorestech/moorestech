@@ -1,5 +1,5 @@
 ﻿using MainGame.Network.Event;
-using MainGame.UnityView.UI.Inventory.Element;
+using MainGame.UnityView.UI.Inventory.Control;
 using UnityEngine;
 using VContainer;
 
@@ -10,21 +10,20 @@ namespace MainGame.Presenter.Inventory.Receive
     /// </summary>
     public class GrabbedItemImagePresenter : MonoBehaviour
     {
-        [SerializeField] private InventoryItemSlot grabbedItem;
-        private ItemImages _itemImages;
+        private PlayerInventoryViewModelController _playerInventoryViewModel;
 
         [Inject]
-        public void Construct(ItemImages itemImages,GrabInventoryUpdateEvent grabInventoryUpdateEvent)
+        public void Construct(GrabInventoryUpdateEvent grabInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModel)
         {
-            _itemImages = itemImages;
             grabInventoryUpdateEvent.OnGrabInventoryUpdateEvent += UpdateGrabbedItemImage;
+            _playerInventoryViewModel = playerInventoryViewModel;
         }
 
         private void UpdateGrabbedItemImage(GrabInventoryUpdateEventProperties properties)
         {
             var id = properties.ItemStack.ID;
             var count = properties.ItemStack.Count;
-            grabbedItem.SetItem(_itemImages.GetItemView(id),count);
+            _playerInventoryViewModel.SetGrabItem(id,count);
         }
     }
 }

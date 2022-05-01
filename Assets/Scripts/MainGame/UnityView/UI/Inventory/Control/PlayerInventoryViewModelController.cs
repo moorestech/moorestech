@@ -68,6 +68,11 @@ namespace MainGame.UnityView.UI.Inventory.Control
         {
             SetInventoryWithInvokeEvent(slot, _itemStackFactory.Create(id, count));
         }
+
+        public void SetGrabItem(int id, int count)
+        {
+            SetGrabbedWithInvokeEvent(true, _itemStackFactory.Create(id, count));
+        }
         
         
         #region GrabbedPlaceItem
@@ -75,7 +80,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
         public void GrabbedItem(int slot)
         {
             OnItemSlotGrabbed?.Invoke(slot,_playerInventoryViewModel[slot].Count);
-            SetGrabbedWithInvokeEvent(true,slot,_playerInventoryViewModel[slot]);
+            SetGrabbedWithInvokeEvent(true,_playerInventoryViewModel[slot]);
             SetInventoryWithInvokeEvent(slot,_itemStackFactory.CreatEmpty());
         }
         public void GrabbedHalfItem(int slot)
@@ -85,7 +90,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
             var id = _playerInventoryViewModel[slot].Id;
             
             OnItemSlotGrabbed?.Invoke(slot,grabbedItemNum);
-            SetGrabbedWithInvokeEvent(true,slot,_itemStackFactory.Create(id,grabbedItemNum));
+            SetGrabbedWithInvokeEvent(true,_itemStackFactory.Create(id,grabbedItemNum));
             SetInventoryWithInvokeEvent(slot,_itemStackFactory.Create(id,slotItemNum));
         }
 
@@ -98,7 +103,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 ItemSplitDragStart(slot,_grabbedItem);
                 var result = item.AddItem(_grabbedItem);
                 SetInventoryWithInvokeEvent(slot,result.ProcessResultItemStack);
-                SetGrabbedWithInvokeEvent(false,slot);
+                SetGrabbedWithInvokeEvent(false);
             }
             //あまりがでて、アイテム数が最大じゃない時は加算して、あまりをGrabbedに入れる
             else if (item.IsAllowedToAddWithRemain(_grabbedItem) && item.Count != _itemConfig.GetItemConfig(item.Id).MaxStack)
@@ -106,13 +111,13 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 ItemSplitDragStart(slot,_grabbedItem);
                 var result = item.AddItem(_grabbedItem);
                 SetInventoryWithInvokeEvent(slot,result.ProcessResultItemStack);
-                SetGrabbedWithInvokeEvent(true,slot,result.RemainderItemStack);
+                SetGrabbedWithInvokeEvent(true,result.RemainderItemStack);
             }
             //加算できない時か最大数がスロットにある時はアイテムを入れ替える
             else
             {
                 SetInventoryWithInvokeEvent(slot,_grabbedItem);
-                SetGrabbedWithInvokeEvent(true,slot);
+                SetGrabbedWithInvokeEvent(true);
                 OnItemSlotAdded?.Invoke(slot,_grabbedItem.Count);
             }
         }
@@ -133,13 +138,13 @@ namespace MainGame.UnityView.UI.Inventory.Control
             if (newGrabbedItem.Count == 0)
             {
                 //持っているアイテムがなくなったら持ち状態を解除する
-                SetGrabbedWithInvokeEvent(false,slot);
+                SetGrabbedWithInvokeEvent(false);
             }
             else
             {
                 //なくなってない時は持っているアイテムを加算する
                 ItemOneDragStart();
-                SetGrabbedWithInvokeEvent(true,slot,newGrabbedItem);
+                SetGrabbedWithInvokeEvent(true,newGrabbedItem);
                 OnItemSlotAdded?.Invoke(slot,1);
             }
         }
@@ -195,12 +200,12 @@ namespace MainGame.UnityView.UI.Inventory.Control
             if (remainItemNum == 0)
             {
                 //余ったアイテムがなくなったら持ち状態を解除する
-                SetGrabbedWithInvokeEvent(false,slot);
+                SetGrabbedWithInvokeEvent(false);
             }
             else
             {
                 //持っているアイテムを設定
-                SetGrabbedWithInvokeEvent(true,slot,_itemStackFactory.Create(id,remainItemNum));
+                SetGrabbedWithInvokeEvent(true,_itemStackFactory.Create(id,remainItemNum));
             }
         }
         
@@ -248,7 +253,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
             //同じIDのアイテムで少ない数のスロット順で並べる
             var collectTargetIndex = GetCollectItemTarget(_grabbedItem.Id);
             
-            SetGrabbedWithInvokeEvent(true,-1,CollectItemWithInvokeEvent(collectTargetIndex,_grabbedItem));
+            SetGrabbedWithInvokeEvent(true,CollectItemWithInvokeEvent(collectTargetIndex,_grabbedItem));
         }
 
         private List<int> GetCollectItemTarget(int itemId)
@@ -292,7 +297,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
         
         
         
-        private void SetGrabbedWithInvokeEvent(bool isGrabbed,int slot = -1,IItemStack itemStack = null)
+        private void SetGrabbedWithInvokeEvent(bool isGrabbed,IItemStack itemStack = null)
         {
             _grabbedItem = itemStack ?? _itemStackFactory.CreatEmpty();
             _isGrabbed = isGrabbed;
