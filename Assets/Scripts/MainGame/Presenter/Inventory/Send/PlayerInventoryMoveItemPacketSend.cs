@@ -38,7 +38,7 @@ namespace MainGame.Presenter.Inventory.Send
         {
             if (slot < PlayerInventoryConstant.MainInventorySize)
             {
-                _inventoryMoveItem.Send(true,InventoryType.MainInventory, slot, addCount,_blockPos.x,_blockPos.y);
+                _inventoryMoveItem.Send(false,InventoryType.MainInventory, slot, addCount,_blockPos.x,_blockPos.y);
             }
             else
             {

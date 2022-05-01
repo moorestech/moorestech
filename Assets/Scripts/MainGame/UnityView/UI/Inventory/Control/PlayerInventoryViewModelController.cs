@@ -5,6 +5,7 @@ using Core.Item;
 using Core.Item.Config;
 using MainGame.Basic;
 using SinglePlay;
+using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory.Control
 {
@@ -91,7 +92,6 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 var result = item.AddItem(_grabbedItem);
                 SetInventoryWithInvokeEvent(slot,result.ProcessResultItemStack);
                 SetGrabbedWithInvokeEvent(false,slot);
-                OnItemSlotAdded?.Invoke(slot,result.ProcessResultItemStack.Count);
             }
             //あまりがでて、アイテム数が最大じゃない時は加算して、あまりをGrabbedに入れる
             else if (item.IsAllowedToAddWithRemain(_grabbedItem) && item.Count != _itemConfig.GetItemConfig(item.Id).MaxStack)
@@ -100,7 +100,6 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 var result = item.AddItem(_grabbedItem);
                 SetInventoryWithInvokeEvent(slot,result.ProcessResultItemStack);
                 SetGrabbedWithInvokeEvent(true,slot,result.RemainderItemStack);
-                OnItemSlotAdded?.Invoke(slot,result.ProcessResultItemStack.Count);
             }
             //加算できない時か最大数がスロットにある時はアイテムを入れ替える
             else
@@ -202,6 +201,8 @@ namespace MainGame.UnityView.UI.Inventory.Control
         {
             _isItemSplitDragging = false;
             var dragItemCount = _dragStartGrabbedItem.Count/_itemSplitDragSlots.Count;
+            
+            //通常通り一個だけアイテムが置かれた場合でもDragEndとして扱われるのでアイテムを置いた時のイベントはDragEndで発火する
             foreach (var slots in _itemSplitDragSlots)
             {
                 OnItemSlotAdded?.Invoke(slots.Slot,dragItemCount);
