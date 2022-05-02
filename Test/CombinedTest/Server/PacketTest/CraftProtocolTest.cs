@@ -16,6 +16,7 @@ namespace Test.CombinedTest.Server.PacketTest
     {
         private const short PacketId = 14;
         private const int PlayerId = 1;
+        private const int TestCraftItemId = 6;
         
         [Test]
         public void CraftTest()
@@ -59,7 +60,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[2]; //id2のレシピはこのテスト用のレシピ
             
             //craftingInventoryに2つ分のアイテムを入れる
-            craftInventory.SetItem(0,itemStackFactory.Create(10,2));
+            craftInventory.SetItem(0,itemStackFactory.Create(TestCraftItemId,2));
             
             
             
@@ -88,7 +89,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[2]; //id2のレシピはこのテスト用のレシピ
             
             //craftingInventoryに2つ分のアイテムを入れる
-            craftInventory.SetItem(0,itemStackFactory.Create(10,2));
+            craftInventory.SetItem(0,itemStackFactory.Create(TestCraftItemId,2));
             
             
             

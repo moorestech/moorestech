@@ -15,7 +15,7 @@ namespace Test.CombinedTest.Server.PacketTest
         private const short PacketId = 14;
         private const int PlayerId = 1;
         
-        private const int TestCraftItemId = 10;
+        private const int TestCraftItemId = 6;
         
         /// <summary>
         /// 別のアイテムを持っていてクラフトできないテスト

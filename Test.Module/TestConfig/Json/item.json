@@ -29,6 +29,11 @@
       "name": "Test6",
       "id": 5,
       "max_stacks": 30
+    },
+    {
+      "name": "Test6",
+      "id": 6,
+      "max_stacks":  100
     }
   ]
 }
