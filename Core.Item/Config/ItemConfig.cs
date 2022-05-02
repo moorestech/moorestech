@@ -12,7 +12,7 @@ namespace Core.Item.Config
     public class ItemConfig : IItemConfig
     {
         private ItemConfigData[] _itemDatas;
-        private const int DefaultItemMaxCount = 100;
+        private const int DefaultItemMaxCount = int.MaxValue;
 
         public ItemConfig(ConfigPath configPath)
         {
