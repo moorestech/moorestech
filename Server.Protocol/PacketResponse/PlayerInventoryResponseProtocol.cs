@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using Game.PlayerInventory.Interface;
 using Server.Util;
 
@@ -24,20 +26,57 @@ namespace Server.Protocol.PacketResponse
             response.AddRange(ToByteList.Convert((short) 4));
             response.AddRange(ToByteList.Convert(playerId));
             response.AddRange(ToByteList.Convert((short) 0));
+            
+            
+            //ログ用のstring
+            var inventory = new StringBuilder();
+            inventory.Append("Main");
+            inventory.Append("\n");
 
             //メインインベントリのアイテムを設定
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
                 response.AddRange(ToByteList.Convert(playerInventory.MainOpenableInventory.GetItem(i).Id));
                 response.AddRange(ToByteList.Convert(playerInventory.MainOpenableInventory.GetItem(i).Count));
+                
+                inventory.Append(playerInventory.MainOpenableInventory.GetItem(i));
+                inventory.Append("　");
+                if ((i+1) % PlayerInventoryConst.MainInventoryColumns == 0)
+                {
+                    inventory.Append("\n");
+                }
             }
+            
+            
+            //グラブインベントリのアイテムを設定
+            response.AddRange(ToByteList.Convert(playerInventory.GrabInventory.GetItem(0).Id));
+            response.AddRange(ToByteList.Convert(playerInventory.GrabInventory.GetItem(0).Count));
+            
+            
+            inventory.Append("Grab");
+            inventory.Append("\n");
+            inventory.Append(playerInventory.GrabInventory.GetItem(0));
+            inventory.Append("\n");
+            inventory.Append("Craft");
+            
             
             //クラフトインベントリのアイテムを設定
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetItem(i).Id));
                 response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetItem(i).Count));
+                
+                
+                inventory.Append(playerInventory.MainOpenableInventory.GetItem(i));
+                inventory.Append("　");
+                if ((i+1) % PlayerInventoryConst.CraftingInventoryRows == 0)
+                {
+                    inventory.Append("\n");
+                }
             }
+            
+            Console.WriteLine(inventory.ToString());
+            
             //クラフト結果のアイテムを設定
             response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetCreatableItem().Id));
             response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetCreatableItem().Count));
