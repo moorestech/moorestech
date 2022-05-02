@@ -13,11 +13,13 @@ namespace MainGame.Model.Network.Receive
     {
         private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
         private readonly CraftingInventoryUpdateEvent _craftingInventoryUpdateEvent;
-        
-        public ReceivePlayerInventoryProtocol(MainInventoryUpdateEvent mainInventoryUpdateEvent,CraftingInventoryUpdateEvent craftingInventoryUpdateEvent)
+        private readonly GrabInventoryUpdateEvent _grabInventoryUpdateEvent;
+
+        public ReceivePlayerInventoryProtocol(MainInventoryUpdateEvent mainInventoryUpdateEvent,CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,GrabInventoryUpdateEvent grabInventoryUpdateEvent)
         {
             _mainInventoryUpdateEvent = mainInventoryUpdateEvent;
             _craftingInventoryUpdateEvent = craftingInventoryUpdateEvent;
+            _grabInventoryUpdateEvent = grabInventoryUpdateEvent;
         }
 
 
@@ -31,6 +33,8 @@ namespace MainGame.Model.Network.Receive
             //padding
             bytes.MoveNextToGetShort();
             
+            
+            
             //main inventory items
             var mainItems = new List<ItemStack>();
             for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
@@ -43,6 +47,15 @@ namespace MainGame.Model.Network.Receive
                 new MainInventoryUpdateProperties(
                     playerId,
                     mainItems));
+            
+            
+            
+            
+            //grab inventory items
+            var grabItem = new ItemStack(bytes.MoveNextToGetInt(), bytes.MoveNextToGetInt());
+            _grabInventoryUpdateEvent.GrabInventoryUpdateEventInvoke(new GrabInventoryUpdateEventProperties(grabItem));
+            
+            
             
             
             //craft inventory items

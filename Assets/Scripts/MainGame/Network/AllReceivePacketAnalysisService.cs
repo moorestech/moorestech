@@ -21,7 +21,7 @@ namespace MainGame.Network
             _analysisPacketList.Add(new ReceiveChunkDataProtocol(networkReceivedChunkDataEvent));
             _analysisPacketList.Add(new DummyProtocol());
             _analysisPacketList.Add(new ReceiveEventProtocol(networkReceivedChunkDataEvent,mainInventoryUpdateEvent,craftingInventoryUpdateEvent,blockInventoryUpdateEvent,grabInventoryUpdateEvent));
-            _analysisPacketList.Add(new ReceivePlayerInventoryProtocol(mainInventoryUpdateEvent,craftingInventoryUpdateEvent));
+            _analysisPacketList.Add(new ReceivePlayerInventoryProtocol(mainInventoryUpdateEvent,craftingInventoryUpdateEvent,grabInventoryUpdateEvent));
             _analysisPacketList.Add(new DummyProtocol());
             _analysisPacketList.Add(new ReceiveBlockInventoryProtocol(blockInventoryUpdateEvent));
             
