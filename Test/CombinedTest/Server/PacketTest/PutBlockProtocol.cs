@@ -1,16 +1,10 @@
 using System.Collections.Generic;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using PlayerInventory;
 using Server;
-using Server.Event;
-using Server.PacketHandle;
 using Server.Util;
 using Test.Module.TestConfig;
-using World;
-using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest
 {

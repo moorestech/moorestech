@@ -2,20 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Block.Blocks;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Event;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using PlayerInventory;
 using Server;
 using Server.Event;
-using Server.PacketHandle;
-using Server.Protocol;
 using Server.Util;
 using Test.Module.TestConfig;
-using World;
-using World.DataStore;
 using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
