@@ -39,7 +39,7 @@ namespace Server.Protocol
             serviceProvider.GetService<VeinGenerator>();
         }
 
-        public  List<byte[]> GetPacketResponse(List<byte> payload)
+        public  List<List<byte>> GetPacketResponse(List<byte> payload)
         {
             var id = new ByteListEnumerator(payload).MoveNextToGetShort();
             if (id != 4 && id != 2)

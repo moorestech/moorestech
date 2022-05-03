@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse
             _worldBlockComponentDatastore = serviceProvider.GetService<IWorldBlockComponentDatastore<IBlockInventory>>();
         }
         
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             
             var byteListEnumerator = new ByteListEnumerator(payload);
@@ -83,7 +83,7 @@ namespace Server.Protocol.PacketResponse
                 _worldBlockDatastore.RemoveBlock(x, y);
             }
 
-            return new List<byte[]>();
+            return new List<List<byte>>();
         }
 
     }

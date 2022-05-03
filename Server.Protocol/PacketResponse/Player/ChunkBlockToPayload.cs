@@ -9,7 +9,7 @@ namespace Server.Protocol.PacketResponse.Player
 {
     public static class ChunkBlockToPayload
     {
-        public static byte[] Convert(Coordinate chunkCoordinate,IWorldBlockDatastore worldBlockDatastore, WorldMapTile worldMapTile)
+        public static List<byte> Convert(Coordinate chunkCoordinate,IWorldBlockDatastore worldBlockDatastore, WorldMapTile worldMapTile)
         {
             
             var payload = new List<bool>();
@@ -41,7 +41,7 @@ namespace Server.Protocol.PacketResponse.Player
             }
             
             
-            return BitListToByteList.Convert(payload).ToArray();
+            return BitListToByteList.Convert(payload);
         }
 
         private static void SetIdToPayload(List<bool> payload,int id)

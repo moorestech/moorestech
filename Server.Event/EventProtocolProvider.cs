@@ -8,9 +8,9 @@ namespace Server.Event
     /// </summary>
     public class EventProtocolProvider
     {
-        private Dictionary<int, List<byte[]>> _events = new Dictionary<int, List<byte[]>>();
+        private Dictionary<int, List<List<byte>>> _events = new();
 
-        public void AddEvent(int playerId, byte[] eventByteArray)
+        public void AddEvent(int playerId, List<byte> eventByteArray)
         {
             if (_events.ContainsKey(playerId))
             {
@@ -18,11 +18,11 @@ namespace Server.Event
             }
             else
             {
-                _events.Add(playerId, new List<byte[]>() {eventByteArray});
+                _events.Add(playerId, new List<List<byte>>() {eventByteArray});
             }
         }
 
-        public void AddBroadcastEvent(byte[] eventByteArray)
+        public void AddBroadcastEvent(List<byte> eventByteArray)
         {
             foreach (var key in _events.Keys)
             {
@@ -30,7 +30,7 @@ namespace Server.Event
             }
         }
 
-        public List<byte[]> GetEventBytesList(int playerId)
+        public List<List<byte>> GetEventBytesList(int playerId)
         {
             if (_events.ContainsKey(playerId))
             {
@@ -41,7 +41,7 @@ namespace Server.Event
             else
             {
                 //ブロードキャストイベントの時に使うので、Dictionaryにキーを追加しておく
-                _events.Add(playerId, new List<byte[]>());
+                _events.Add(playerId, new List<List<byte>>());
                 return _events[playerId];
             }
         }

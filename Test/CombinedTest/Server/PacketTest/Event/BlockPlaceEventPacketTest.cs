@@ -92,7 +92,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             }
         }
 
-        TestBlockData AnalysisResponsePacket(byte[] payload)
+        TestBlockData AnalysisResponsePacket(List<byte> payload)
         {
             var b = new ByteListEnumerator(payload.ToList());
             b.MoveNextToGetShort();

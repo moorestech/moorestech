@@ -15,7 +15,7 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
         
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var byteListEnumerator = new ByteListEnumerator(payload);
             byteListEnumerator.MoveNextToGetShort(); // Packet ID
@@ -39,7 +39,7 @@ namespace Server.Protocol.PacketResponse
                     break;
             }
 
-            return new List<byte[]>();
+            return new List<List<byte>>();
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Server.Protocol.PacketResponse
             _worldMapTile = serviceProvider.GetService<WorldMapTile>();
         }
 
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             //プレイヤー座標の解析
             var b = new ByteListEnumerator(payload);
@@ -46,7 +46,7 @@ namespace Server.Protocol.PacketResponse
             //プレイヤーの座標から返すチャンクのブロックデータを取得をする
             //byte配列に変換して返す
 
-            var responseChunk = new List<byte[]>();
+            var responseChunk = new List<List<byte>>();
             
             var responseChunkCoordinates = _responses[playerId].GetResponseChunkCoordinates(new Coordinate((int) x, (int) y));
             foreach (var chunkCoordinate in responseChunkCoordinates)

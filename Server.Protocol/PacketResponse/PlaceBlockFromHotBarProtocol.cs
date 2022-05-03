@@ -24,7 +24,7 @@ namespace Server.Protocol.PacketResponse
             _blockFactory = serviceProvider.GetService<BlockFactory>();
         }
 
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var byteListEnumerator = new ByteListEnumerator(payload);
             byteListEnumerator.MoveNextToGetShort();
@@ -40,9 +40,9 @@ namespace Server.Protocol.PacketResponse
             
             
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
-            if (!_itemIdToBlockId.CanConvert(item.Id)) return new List<byte[]>();
+            if (!_itemIdToBlockId.CanConvert(item.Id)) return new List<List<byte>>();
             //すでにブロックがある場合はそもまま処理を終了
-            if (_worldBlockDatastore.Exists(x,y))  return new List<byte[]>();
+            if (_worldBlockDatastore.Exists(x,y))  return new List<List<byte>>();
 
             
             var blockDirection = directionByte switch
@@ -65,7 +65,7 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory.SetItem(inventorySlot, item);
             
             
-            return new List<byte[]>();
+            return new List<List<byte>>();
         }
     }
 }

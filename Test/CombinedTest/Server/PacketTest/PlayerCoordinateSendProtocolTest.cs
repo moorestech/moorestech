@@ -248,9 +248,9 @@ namespace Test.CombinedTest.Server.PacketTest
             return p;
         }
 
-        ChunkData PayloadToBlock(byte[] payload)
+        ChunkData PayloadToBlock(List<byte> payload)
         {
-            var bit = new BitListEnumerator(payload.ToList());
+            var bit = new BitListEnumerator(payload);
             bit.MoveNextToShort();
             var x = bit.MoveNextToInt();
             var y = bit.MoveNextToInt();

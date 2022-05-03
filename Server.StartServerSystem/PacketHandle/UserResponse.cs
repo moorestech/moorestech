@@ -36,6 +36,7 @@ namespace Server.StartServerSystem.PacketHandle
                         break;
                     }
 
+                    //受信データをパケットに分割
                     var packets = parser.Parse(bytes, length);
                     
                     foreach (var packet in packets)
@@ -57,7 +58,7 @@ namespace Server.StartServerSystem.PacketHandle
             var results = await Task.Run(() => _packetResponseCreator.GetPacketResponse(bytes));
             foreach (var result in results)
             {
-                _client.Send(result);
+                _client.Send(result.ToArray());
             }
         }
 

@@ -16,7 +16,7 @@ namespace Server.Protocol.PacketResponse
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var byteListEnumerator = new ByteListEnumerator(payload);
             byteListEnumerator.MoveNextToGetShort();//packet id
@@ -32,7 +32,7 @@ namespace Server.Protocol.PacketResponse
             }
             
             
-            return new List<byte[]>();
+            return new List<List<byte>>();
         }
     }
 }

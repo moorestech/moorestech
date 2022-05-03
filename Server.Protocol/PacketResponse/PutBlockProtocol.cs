@@ -25,7 +25,7 @@ namespace Server.Protocol.PacketResponse
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             //パケットのパース、接続元、接続先のインスタンス取得
             var byteListEnumerator = new ByteListEnumerator(payload);
@@ -40,7 +40,7 @@ namespace Server.Protocol.PacketResponse
 
             _worldBlockDatastore.AddBlock(block, x, y, BlockDirection.North);
             //返すものはない
-            return new List<byte[]>();
+            return new List<List<byte>>();
         }
     }
 }

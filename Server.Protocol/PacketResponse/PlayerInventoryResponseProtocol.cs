@@ -15,7 +15,7 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = playerInventoryDataStore;
         }
 
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var byteListEnumerator = new ByteListEnumerator(payload);
             byteListEnumerator.MoveNextToGetShort();
@@ -91,7 +91,7 @@ namespace Server.Protocol.PacketResponse
                 response.Add(0);
             }
 
-            return new List<byte[]>() {response.ToArray()};
+            return new List<List<byte>>() {response};
         }
     }
 }

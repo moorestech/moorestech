@@ -82,7 +82,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             return payload;
         }
 
-        (int, int) AnalysisResponsePacket(byte[] payload)
+        (int, int) AnalysisResponsePacket(List<byte> payload)
         {
             var b = new ByteListEnumerator(payload.ToList());
             b.MoveNextToGetShort();
