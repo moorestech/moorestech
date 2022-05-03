@@ -4,7 +4,10 @@ using System.Linq;
 
 namespace Server.Util
 {
-    public class PacketParser
+    /// <summary>
+    /// 複数のパケットがバッファーに入っていた場合にそれらのパケットを別々のパケットに分割するクラス
+    /// </summary>
+    public class PacketBufferParser
     {
         List<byte> _protocol = new();
         int _packetLength = 0;

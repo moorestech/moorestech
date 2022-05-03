@@ -26,7 +26,7 @@ namespace Server.StartServerSystem.PacketHandle
             //切断されるまでパケットを受信
             try
             {
-                var parser = new PacketParser();
+                var parser = new PacketBufferParser();
                 while (true)
                 {
                     int length = _client.Receive(buffer);
