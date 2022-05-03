@@ -22,14 +22,14 @@ namespace Server.StartServerSystem.PacketHandle
 
         public void StartListen()
         {
-            byte[] bytes = new byte[10];
+            var buffer = new byte[4096];
             //切断されるまでパケットを受信
             try
             {
                 var parser = new PacketParser();
                 while (true)
                 {
-                    int length = _client.Receive(bytes);
+                    int length = _client.Receive(buffer);
                     if (length == 0)
                     {
                         Console.WriteLine("切断されました");
@@ -37,7 +37,7 @@ namespace Server.StartServerSystem.PacketHandle
                     }
 
                     //受信データをパケットに分割
-                    var packets = parser.Parse(bytes, length);
+                    var packets = parser.Parse(buffer, length);
                     
                     foreach (var packet in packets)
                     {
