@@ -39,7 +39,7 @@ namespace Server.Protocol.PacketResponse
                 response.AddRange(ToByteList.Convert(playerInventory.MainOpenableInventory.GetItem(i).Id));
                 response.AddRange(ToByteList.Convert(playerInventory.MainOpenableInventory.GetItem(i).Count));
                 
-                inventory.Append(playerInventory.MainOpenableInventory.GetItem(i));
+                inventory.Append(playerInventory.MainOpenableInventory.GetItem(i).Id + " " + playerInventory.MainOpenableInventory.GetItem(i).Count);
                 inventory.Append("　");
                 if ((i+1) % PlayerInventoryConst.MainInventoryColumns == 0)
                 {
@@ -53,11 +53,13 @@ namespace Server.Protocol.PacketResponse
             response.AddRange(ToByteList.Convert(playerInventory.GrabInventory.GetItem(0).Count));
             
             
+            inventory.Append("\n");
             inventory.Append("Grab");
             inventory.Append("\n");
-            inventory.Append(playerInventory.GrabInventory.GetItem(0));
+            inventory.Append(playerInventory.GrabInventory.GetItem(0).Id + " " + playerInventory.GrabInventory.GetItem(0).Count);
             inventory.Append("\n");
             inventory.Append("Craft");
+            inventory.Append("\n");
             
             
             //クラフトインベントリのアイテムを設定
@@ -66,8 +68,7 @@ namespace Server.Protocol.PacketResponse
                 response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetItem(i).Id));
                 response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetItem(i).Count));
                 
-                
-                inventory.Append(playerInventory.MainOpenableInventory.GetItem(i));
+                inventory.Append(playerInventory.CraftingOpenableInventory.GetItem(i).Id + " " + playerInventory.CraftingOpenableInventory.GetItem(i).Count);
                 inventory.Append("　");
                 if ((i+1) % PlayerInventoryConst.CraftingInventoryRows == 0)
                 {
