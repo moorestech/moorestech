@@ -18,6 +18,7 @@ namespace MainGame.Network.Send
         }
         public void Send(bool toGrab, InventoryType inventoryType, int inventorySlot, int itemCount, int x = 0, int y = 0)
         {
+            Debug.Log("Inventory Item " + (toGrab ? "持つ" : "置く"));
             var payload = new List<byte>();
             payload.AddRange(ToByteList.Convert(ProtocolId));
             payload.Add(toGrab ? (byte) 0 : (byte) 1);

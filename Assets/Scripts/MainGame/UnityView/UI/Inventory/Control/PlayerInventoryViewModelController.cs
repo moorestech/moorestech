@@ -64,14 +64,14 @@ namespace MainGame.UnityView.UI.Inventory.Control
             _playerInventoryViewModel = playerInventoryViewModel;
         }
 
-        public void SetItemFromNetwork(int slot,int id,int count)
+        public void SetInventoryItem(int slot,int id,int count)
         {
             SetInventoryWithInvokeEvent(slot, _itemStackFactory.Create(id, count));
         }
 
-        public void SetGrabItemFromNetwork(int id, int count)
+        public void SetGrabInventoryItem(int id, int count)
         {
-            if (id != ItemConstant.NullItemId) return;
+            if (id == ItemConstant.NullItemId) return;
             SetGrabbedWithInvokeEvent(true, _itemStackFactory.Create(id, count));
         }
         
@@ -80,12 +80,18 @@ namespace MainGame.UnityView.UI.Inventory.Control
 
         public void GrabbedItem(int slot)
         {
+            //空スロットの時はアイテムを持たない
+            if (_playerInventoryViewModel[slot].Id == ItemConstant.NullItemId) return;
+            
             OnItemSlotGrabbed?.Invoke(slot,_playerInventoryViewModel[slot].Count);
             SetGrabbedWithInvokeEvent(true,_playerInventoryViewModel[slot]);
             SetInventoryWithInvokeEvent(slot,_itemStackFactory.CreatEmpty());
         }
         public void GrabbedHalfItem(int slot)
         {
+            //空スロットの時はアイテムを持たない
+            if (_playerInventoryViewModel[slot].Id == ItemConstant.NullItemId) return;
+            
             var grabbedItemNum = _playerInventoryViewModel[slot].Count/2;
             var slotItemNum = _playerInventoryViewModel[slot].Count - grabbedItemNum;
             var id = _playerInventoryViewModel[slot].Id;

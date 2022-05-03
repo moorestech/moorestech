@@ -25,7 +25,6 @@ namespace MainGame.Presenter.Inventory.Send
 
         private void ItemSlotGrabbed(int slot, int count)
         {
-            Debug.Log("send true");
             if (slot < PlayerInventoryConstant.MainInventorySize)
             {
                 _inventoryMoveItem.Send(true,InventoryType.MainInventory, slot, count,_blockPos.x,_blockPos.y);
