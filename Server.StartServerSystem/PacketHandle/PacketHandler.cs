@@ -25,46 +25,10 @@ namespace Server.StartServerSystem.PacketHandle
             while (true)
             {
                 //通信の確率
-                var handler = listener.Accept();
-                //スレッドでパケットの受信、応答を行う
-                new Thread(() =>
-                {
-                    Socket client = handler;
-                    byte[] bytes = new byte[4096];
-                    Console.WriteLine("接続確立");
-                    //切断されるまでパケットを受信
-                    try
-                    {
-                        while (true)
-                        {
-                            int length = client.Receive(bytes);
-                            if (length == 0)
-                            {
-                                Console.WriteLine("切断されました");
-                                break;
-                            }
-
-                            //パケットを受信したら応答を返す
-                            var result = packetResponseCreator.GetPacketResponse(bytes.ToList());
-                            SendPackets(client, result);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("エラーによる切断");
-                        Console.WriteLine(e);
-                    }
-                }).Start();
-            }
-        }
-
-        async void SendPackets(Socket client, List<byte[]> packets)
-        {
-            //一度にまとめて送るとクライアント側でさばき切れないので、0.1秒おきにパケットを送信する
-            foreach (var packet in packets)
-            {
-                client.Send(packet);
-                await Task.Delay(10);
+                var client = listener.Accept();
+                Console.WriteLine("接続確立");
+                //性能が足りなくなってきたら非同期メソッドを使うようにする
+                Task.Run(() => new UserResponse(client, packetResponseCreator).StartListen());
             }
         }
     }
