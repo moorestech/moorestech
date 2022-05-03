@@ -40,8 +40,7 @@ namespace Server.StartServerSystem.PacketHandle
                     
                     foreach (var packet in packets)
                     {
-                        //Task.Run(() => ResponsesPacket(packet));
-                        Console.WriteLine(Encoding.UTF8.GetString(packet.ToArray()));
+                        Task.Run(() => ResponsesPacket(packet));
                     }
                 }
             }

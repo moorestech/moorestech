@@ -6,17 +6,17 @@ namespace Server.Util
 {
     public class PacketParser
     {
-        readonly List<byte> _protocol = new List<byte>();
+        List<byte> _protocol = new();
         int _packetLength = 0;
         int _nextPacketLengthOffset = 0;
         
-        public List<byte[]> Parse(byte[] packet,int length)
+        public List<List<byte>> Parse(byte[] packet,int length)
         {
             //プロトコル長から実際のプロトコルを作る
             var packetIndex = 0;
             var reminderLength = length;
             
-            var result = new List<byte[]>();
+            var result = new List<List<byte>>();
             
             //受信したパケットの最後までループ
             while (0 < reminderLength)
@@ -51,9 +51,9 @@ namespace Server.Util
                     _protocol.Add(packet[packetIndex]);
                 }
                         
-                result.Add(_protocol.ToArray());
+                result.Add(_protocol);
                 //受信したパケットに対する応答を返す
-                _protocol.Clear();
+                _protocol = new();
             }
 
             return result;
