@@ -49,51 +49,42 @@ namespace MainGame.Network
             Debug.Log("サーバーに接続しました");
             var buffer = new byte[4096];
             
-            try
+            var parser = new PacketBufferParser();
+            while (true)
             {
-                
-                var parser = new PacketBufferParser();
-                while (true)
+                //Receiveで受信
+                var length = _socketInstanceCreate.GetSocket().Receive(buffer);
+                if (length == 0)
                 {
-                    //Receiveで受信
-                    var length = _socketInstanceCreate.GetSocket().Receive(buffer);
-                    if (length == 0)
+                    Debug.LogError("サーバーから切断されました");
+                    break;
+                }
+                    
+                //解析をしてunity viewに送る
+                var packets = parser.Parse(buffer, length);
+                try
+                {
+                    foreach (var packet in packets)
                     {
-                        Debug.LogError("サーバーから切断されました");
-                        break;
+                        _allReceivePacketAnalysisService.Analysis(packet);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("エラーによりサーバーから切断されました");
+                    if (_socketInstanceCreate.GetSocket().Connected)
+                    {
+                        _socketInstanceCreate.GetSocket().Close();
                     }
 
-                    try
+                    var packetsStr = new StringBuilder();
+                    foreach (var @byte in buffer)
                     {
-                        //解析をしてunity viewに送る
-                        var packets = parser.Parse(buffer, length);
-                        foreach (var packet in packets)
-                        {
-                            _allReceivePacketAnalysisService.Analysis(packet);
-                        }
+                        packetsStr.Append(@byte + " ");
                     }
-                    catch (Exception e)
-                    {
-                        Debug.LogError("受信パケット解析失敗 " + e);
-                        var packets = new StringBuilder();
-                        foreach (var @byte in buffer)
-                        {
-                            packets.Append(@byte);
-                        }
-                        Debug.LogError("受信パケット内容：" + packets);
-                        throw;
-                    }
+                    Debug.LogError("受信パケット内容：" + packetsStr);
+                    throw new Exception("受信パケット解析失敗", e);
                 }
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("エラーによりサーバーから切断されました "+e);
-                    
-                if (_socketInstanceCreate.GetSocket().Connected)
-                {
-                    _socketInstanceCreate.GetSocket().Close();
-                }
-                throw;
             }
         }
     }

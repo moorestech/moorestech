@@ -59,7 +59,7 @@ namespace MainGame.Network.Receive
             
             //craft inventory items
             var craftItems = new List<ItemStack>();
-            for (int i = 0; i < PlayerInventoryConstant.CraftingInventorySize; i++)
+            for (int i = 0; i < PlayerInventoryConstant.CraftingSlotSize; i++)
             {
                 var id = bytes.MoveNextToGetInt();
                 var count = bytes.MoveNextToGetInt();

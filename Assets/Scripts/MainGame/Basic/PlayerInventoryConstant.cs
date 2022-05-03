@@ -9,8 +9,5 @@
         public const int CraftingInventoryColumns = 3;
         public const int CraftingInventoryRows = 3;
         public const int CraftingSlotSize = CraftingInventoryColumns * CraftingInventoryRows;
-        
-        public const int CraftingOutputSlotSize = 1;
-        public const int CraftingInventorySize = CraftingSlotSize + CraftingOutputSlotSize;
     }
 }
