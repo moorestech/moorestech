@@ -58,6 +58,8 @@ namespace Server.StartServerSystem.PacketHandle
             var results = await Task.Run(() => _packetResponseCreator.GetPacketResponse(bytes));
             foreach (var result in results)
             {
+                //パケット長を先端に追加
+                result.InsertRange(0, ToByteList.Convert((short)result.Count));
                 _client.Send(result.ToArray());
             }
         }
