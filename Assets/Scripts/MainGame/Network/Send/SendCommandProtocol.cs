@@ -22,7 +22,7 @@ namespace MainGame.Network.Send
             packet.AddRange(ToByteList.Convert((short)command.Length));
             packet.AddRange(ToByteList.Convert(command));
             
-            _socket.Send(packet.ToArray());
+            _socket.Send(packet);
         }
     }
 }

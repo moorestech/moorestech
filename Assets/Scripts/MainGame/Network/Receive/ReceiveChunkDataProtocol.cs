@@ -5,7 +5,7 @@ using MainGame.Network.Event;
 using MainGame.Network.Util;
 using UnityEngine;
 
-namespace MainGame.Model.Network.Receive
+namespace MainGame.Network.Receive
 {
     public class ReceiveChunkDataProtocol : IAnalysisPacket
     {

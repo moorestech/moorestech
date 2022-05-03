@@ -4,7 +4,7 @@ using MainGame.Network.Receive.EventPacket;
 using MainGame.Network.Util;
 using UnityEngine;
 
-namespace MainGame.Model.Network.Receive
+namespace MainGame.Network.Receive
 {
     public class ReceiveEventProtocol : IAnalysisPacket
     {

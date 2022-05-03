@@ -3,7 +3,7 @@ using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
 
-namespace MainGame.Model.Network.Receive
+namespace MainGame.Network.Receive
 {
     public class ReceiveBlockInventoryProtocol : IAnalysisPacket
     {

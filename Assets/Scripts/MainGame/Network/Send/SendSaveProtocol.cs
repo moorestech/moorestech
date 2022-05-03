@@ -20,7 +20,7 @@ namespace MainGame.Network.Send
             
             packet.AddRange(ToByteList.Convert(ProtocolId));
             
-            _socket.Send(packet.ToArray());
+            _socket.Send(packet);
         }
     }
 }

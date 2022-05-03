@@ -2,9 +2,8 @@
 using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
-using UnityEngine;
 
-namespace MainGame.Model.Network.Receive
+namespace MainGame.Network.Receive
 {
     /// <summary>
     /// Analysis player inventory data 

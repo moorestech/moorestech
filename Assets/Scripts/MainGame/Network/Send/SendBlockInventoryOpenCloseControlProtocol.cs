@@ -29,7 +29,7 @@ namespace MainGame.Model.Network.Send
             packet.AddRange(ToByteList.Convert(_playerId));
             packet.Add(isOpen ? (byte)1 : (byte)0);
 
-            _socket.Send(packet.ToArray());
+            _socket.Send(packet);
         }
     }
 }

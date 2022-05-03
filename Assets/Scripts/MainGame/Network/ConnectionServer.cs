@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading;
 using MainGame.Model.Network;
 using MainGame.Network.Send.SocketUtil;
+using MainGame.Network.Util;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -46,14 +47,17 @@ namespace MainGame.Network
             }
             
             Debug.Log("サーバーに接続しました");
-            byte[] bytes = new byte[4096];
-            while (true)
+            var buffer = new byte[4096];
+            
+            try
             {
-                try
+                
+                var parser = new PacketBufferParser();
+                while (true)
                 {
                     //Receiveで受信
-                    var len = _socketInstanceCreate.GetSocket().Receive(bytes);
-                    if (len == 0)
+                    var length = _socketInstanceCreate.GetSocket().Receive(buffer);
+                    if (length == 0)
                     {
                         Debug.LogError("サーバーから切断されました");
                         break;
@@ -61,14 +65,18 @@ namespace MainGame.Network
 
                     try
                     {
-                        //解析を行う
-                        _allReceivePacketAnalysisService.Analysis(bytes);
+                        //解析をしてunity viewに送る
+                        var packets = parser.Parse(buffer, length);
+                        foreach (var packet in packets)
+                        {
+                            _allReceivePacketAnalysisService.Analysis(packet);
+                        }
                     }
                     catch (Exception e)
                     {
                         Debug.LogError("受信パケット解析失敗 " + e);
                         var packets = new StringBuilder();
-                        foreach (var @byte in bytes)
+                        foreach (var @byte in buffer)
                         {
                             packets.Append(@byte);
                         }
@@ -76,16 +84,16 @@ namespace MainGame.Network
                         throw;
                     }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogError("エラーによりサーバーから説残されました "+e);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("エラーによりサーバーから切断されました "+e);
                     
-                    if (_socketInstanceCreate.GetSocket().Connected)
-                    {
-                        _socketInstanceCreate.GetSocket().Close();
-                    }
-                    throw;
+                if (_socketInstanceCreate.GetSocket().Connected)
+                {
+                    _socketInstanceCreate.GetSocket().Close();
                 }
+                throw;
             }
         }
     }

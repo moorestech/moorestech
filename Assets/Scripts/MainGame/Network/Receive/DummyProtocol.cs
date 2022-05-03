@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using MainGame.Model.Network.Receive;
 
 namespace MainGame.Network.Receive
 {

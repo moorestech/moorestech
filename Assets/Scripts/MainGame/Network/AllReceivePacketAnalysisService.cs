@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using MainGame.Model.Network.Receive;
 using MainGame.Network.Event;
 using MainGame.Network.Receive;
 using MainGame.Network.Util;
@@ -27,11 +26,10 @@ namespace MainGame.Network
             
         }
 
-        public void Analysis(byte[] bytes)
+        public void Analysis(List<byte> packet)
         {
             //get packet id
-            var bytesList = bytes.ToList();
-            var packetId = new ByteArrayEnumerator(bytesList).MoveNextToGetShort();
+            var packetId = new ByteArrayEnumerator(packet).MoveNextToGetShort();
 
             
             //receive debug
@@ -40,7 +38,7 @@ namespace MainGame.Network
             
             
             //analysis packet
-            _analysisPacketList[packetId].Analysis(bytesList);
+            _analysisPacketList[packetId].Analysis(packet);
         }
     }
 }

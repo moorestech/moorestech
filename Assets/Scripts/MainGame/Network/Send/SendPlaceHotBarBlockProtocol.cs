@@ -29,7 +29,7 @@ namespace MainGame.Network.Send
             packet.AddRange(ToByteList.Convert(_playerId));
             packet.Add(GetBlockDirectionId(blockDirection));
 
-            _socket.Send(packet.ToArray());
+            _socket.Send(packet);
         }
 
         private byte GetBlockDirectionId(BlockDirection blockDirection)
