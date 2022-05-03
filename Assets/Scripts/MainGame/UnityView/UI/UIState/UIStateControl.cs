@@ -23,7 +23,7 @@ namespace MainGame.UnityView.UI.UIState
         
         
         //UIステート
-        private void FixedUpdate()
+        private void Update()
         {
             //UIステートが変更されたら
             if (!_uiStateDictionary.GetState(_currentState).IsNext()) return;

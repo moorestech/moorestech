@@ -53,13 +53,8 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
                 _selectIndex = _inputSettings.UI.HotBar.ReadValue<int>() - 1;
                 selectHotBarView.SetSelect(_selectIndex);
             }
-        }
-
-        /// <summary>
-        /// ButtonがクリックされたことをFixedUpdate内で確認したいのでクリックされてから2フレームはtrueとする
-        /// </summary>
-        public void FixedUpdate()
-        {
+            
+            // ButtonがクリックされたことをUpdate内で確認したいのでクリックされてから2フレームはtrueとする
             if (_isClickedCount == 0 || _isClickedCount == 1)
             {
                 _isClickedCount++;
