@@ -71,8 +71,15 @@ namespace MainGame.UnityView.UI.Inventory.Control
 
         public void SetGrabInventoryItem(int id, int count)
         {
-            if (id == ItemConstant.NullItemId) return;
-            SetGrabbedWithInvokeEvent(true, _itemStackFactory.Create(id, count));
+            if (id == ItemConstant.NullItemId)
+            {
+                SetGrabbedWithInvokeEvent(false, _itemStackFactory.Create(id, count));   
+            }
+            else
+            {
+                SetGrabbedWithInvokeEvent(true, _itemStackFactory.Create(id, count));
+            }
+
         }
         
         
