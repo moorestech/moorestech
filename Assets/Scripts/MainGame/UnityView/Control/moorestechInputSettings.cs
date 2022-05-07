@@ -386,6 +386,24 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""AllCraft"",
+                    ""type"": ""Button"",
+                    ""id"": ""8c3efc46-7724-4341-a7e8-9402cddefebf"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""OneStackCraft"",
+                    ""type"": ""Button"",
+                    ""id"": ""ed8ecda3-c72b-4262-95fe-d2a5b75d1a64"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -575,6 +593,28 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""action"": ""BlockDelete"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5c85fb7f-2f33-4d90-85b5-1d0a0e84a185"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AllCraft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3f46df6d-d6f6-4384-9c48-2728241e9222"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""OneStackCraft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -650,6 +690,8 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         m_UI_HotBar = m_UI.FindAction("HotBar", throwIfNotFound: true);
         m_UI_SwitchHotBar = m_UI.FindAction("SwitchHotBar", throwIfNotFound: true);
         m_UI_BlockDelete = m_UI.FindAction("BlockDelete", throwIfNotFound: true);
+        m_UI_AllCraft = m_UI.FindAction("AllCraft", throwIfNotFound: true);
+        m_UI_OneStackCraft = m_UI.FindAction("OneStackCraft", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -823,6 +865,8 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     private readonly InputAction m_UI_HotBar;
     private readonly InputAction m_UI_SwitchHotBar;
     private readonly InputAction m_UI_BlockDelete;
+    private readonly InputAction m_UI_AllCraft;
+    private readonly InputAction m_UI_OneStackCraft;
     public struct UIActions
     {
         private @MoorestechInputSettings m_Wrapper;
@@ -835,6 +879,8 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         public InputAction @HotBar => m_Wrapper.m_UI_HotBar;
         public InputAction @SwitchHotBar => m_Wrapper.m_UI_SwitchHotBar;
         public InputAction @BlockDelete => m_Wrapper.m_UI_BlockDelete;
+        public InputAction @AllCraft => m_Wrapper.m_UI_AllCraft;
+        public InputAction @OneStackCraft => m_Wrapper.m_UI_OneStackCraft;
         public InputActionMap Get() { return m_Wrapper.m_UI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -868,6 +914,12 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 @BlockDelete.started -= m_Wrapper.m_UIActionsCallbackInterface.OnBlockDelete;
                 @BlockDelete.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnBlockDelete;
                 @BlockDelete.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnBlockDelete;
+                @AllCraft.started -= m_Wrapper.m_UIActionsCallbackInterface.OnAllCraft;
+                @AllCraft.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnAllCraft;
+                @AllCraft.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnAllCraft;
+                @OneStackCraft.started -= m_Wrapper.m_UIActionsCallbackInterface.OnOneStackCraft;
+                @OneStackCraft.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnOneStackCraft;
+                @OneStackCraft.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnOneStackCraft;
             }
             m_Wrapper.m_UIActionsCallbackInterface = instance;
             if (instance != null)
@@ -896,6 +948,12 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 @BlockDelete.started += instance.OnBlockDelete;
                 @BlockDelete.performed += instance.OnBlockDelete;
                 @BlockDelete.canceled += instance.OnBlockDelete;
+                @AllCraft.started += instance.OnAllCraft;
+                @AllCraft.performed += instance.OnAllCraft;
+                @AllCraft.canceled += instance.OnAllCraft;
+                @OneStackCraft.started += instance.OnOneStackCraft;
+                @OneStackCraft.performed += instance.OnOneStackCraft;
+                @OneStackCraft.canceled += instance.OnOneStackCraft;
             }
         }
     }
@@ -959,5 +1017,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         void OnHotBar(InputAction.CallbackContext context);
         void OnSwitchHotBar(InputAction.CallbackContext context);
         void OnBlockDelete(InputAction.CallbackContext context);
+        void OnAllCraft(InputAction.CallbackContext context);
+        void OnOneStackCraft(InputAction.CallbackContext context);
     }
 }
