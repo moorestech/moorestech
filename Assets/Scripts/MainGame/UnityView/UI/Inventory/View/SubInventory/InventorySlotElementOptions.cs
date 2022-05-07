@@ -5,6 +5,11 @@
         /// <summary>
         /// そのスロットでアイテムを持てるかどうか
         /// </summary>
-        public bool IsGrabbable;
+        public bool IsGrabbable = true;
+
+        /// <summary>
+        /// そのスロットのボタンが有効かどうか
+        /// </summary>
+        public bool IsButtonEnable = true;
     }
 }

@@ -26,6 +26,7 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory
                     rect.anchoredPosition = new Vector2(oneSlot.X, oneSlot.Y);
                     slots.Add(slot);
                     
+                    slot.SetSlotOptions(oneSlot.Options);
                 }
                 else if (element.ElementType == SubInventoryElementType.ArraySlot)
                 {

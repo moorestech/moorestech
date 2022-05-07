@@ -1,4 +1,5 @@
 ﻿using System;
+using MainGame.UnityView.UI.Inventory.View.SubInventory;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -21,6 +22,8 @@ namespace MainGame.UnityView.UI.Inventory.Element
         [SerializeField] private Image image;
         [SerializeField] private TMP_Text countText;
 
+        private InventorySlotElementOptions _slotOptions = new();
+
         
         public void SetItem(ItemViewData itemView, int count)
         {
@@ -36,8 +39,19 @@ namespace MainGame.UnityView.UI.Inventory.Element
             }
         }
 
+        public void SetSlotOptions(InventorySlotElementOptions slotOptions)
+        {
+            _slotOptions = slotOptions;
+            GetComponent<Button>().enabled = slotOptions.IsButtonEnable;
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
+            if (!_slotOptions.IsGrabbable)
+            {
+                return;
+            }
+            
             switch (eventData.button)
             {
                 case PointerEventData.InputButton.Left:
@@ -51,6 +65,11 @@ namespace MainGame.UnityView.UI.Inventory.Element
         
         public void OnPointerUp(PointerEventData eventData)
         {
+            if (!_slotOptions.IsGrabbable)
+            {
+                return;
+            }
+            
             switch (eventData.button)
             {
                 case PointerEventData.InputButton.Left:
@@ -63,10 +82,20 @@ namespace MainGame.UnityView.UI.Inventory.Element
         }
         public void OnPointerEnter(PointerEventData eventData)
         {
+            if (!_slotOptions.IsGrabbable)
+            {
+                return;
+            }
+
             OnCursorEnter?.Invoke(this);
         }
         public void OnPointerClick(PointerEventData eventData)
         {
+            if (!_slotOptions.IsGrabbable)
+            {
+                return;
+            }
+
             if(2 == eventData.clickCount && eventData.button == PointerEventData.InputButton.Left){
                 OnDoubleClick?.Invoke(this);
             }
