@@ -1,4 +1,7 @@
-﻿namespace MainGame.UnityView.UI.Inventory.View.SubInventory
+﻿using System;
+using MainGame.UnityView.UI.Inventory.Element;
+
+namespace MainGame.UnityView.UI.Inventory.View.SubInventory
 {
     public class InventorySlotElementOptions
     {
@@ -11,5 +14,20 @@
         /// そのスロットのボタンが有効かどうか
         /// </summary>
         public bool IsButtonEnable = true;
+        
+        
+        /// <summary>
+        /// 右クリックされた時に発生するイベント
+        /// IsEnableControllerEventがfalseでも発生する
+        /// </summary>
+        public event Action<InventoryItemSlot> OnRightClickDown;
+        public void InvokeOnRightClickDown(InventoryItemSlot slot) { OnRightClickDown?.Invoke(slot); }
+        
+        /// <summary>
+        /// 左クリックされた時に発生するイベント
+        /// IsEnableControllerEventがfalseでも発生する
+        /// </summary>
+        public event Action<InventoryItemSlot> OnLeftClickDown;
+        public void InvokeOnLeftClickDown(InventoryItemSlot slot) { OnLeftClickDown?.Invoke(slot); }
     }
 }

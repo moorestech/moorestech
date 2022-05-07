@@ -47,14 +47,18 @@ namespace MainGame.UnityView.UI.Inventory.Element
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (!_slotOptions.IsEnableControllerEvent)return;
-            
             switch (eventData.button)
             {
                 case PointerEventData.InputButton.Left:
+                    _slotOptions.InvokeOnLeftClickDown(this);
+                    
+                    if (!_slotOptions.IsEnableControllerEvent)return;
                     OnLeftClickDown?.Invoke(this);
                     break;
                 case PointerEventData.InputButton.Right:
+                    _slotOptions.InvokeOnRightClickDown(this);
+                    
+                    if (!_slotOptions.IsEnableControllerEvent)return;
                     OnRightClickDown?.Invoke(this);
                     break;
             }
