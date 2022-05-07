@@ -23,7 +23,8 @@ namespace MainGame.UnityView.UI.UIState.UIObject
             var craftSubInventoryData = new SubInventoryViewData(new List<OneSlot>() {resultSlot}, craftSlot);
             
             //結果スロットは収集から除外する
-            var subInventoryOption = new SubInventoryOptions(){WithoutCollectSlots = new List<int> {PlayerInventoryConstant.CraftingSlotSize}};
+            var withoutSlot = PlayerInventoryConstant.CraftingSlotSize + PlayerInventoryConstant.MainInventorySize;
+            var subInventoryOption = new SubInventoryOptions(){WithoutCollectSlots = new List<int> {withoutSlot}};
             
             playerInventorySlots.SetSubSlots(craftSubInventoryData,subInventoryOption);
         }
