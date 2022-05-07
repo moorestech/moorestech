@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MainGame.Basic;
 using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.UI.Inventory.View.SubInventory;
 using UnityEngine;
@@ -21,8 +22,10 @@ namespace MainGame.UnityView.UI.UIState.UIObject
             var craftSlot = new List<ArraySlot>() {new(-172,272,10,3,3)};
             var craftSubInventoryData = new SubInventoryViewData(new List<OneSlot>() {resultSlot}, craftSlot);
             
+            //結果スロットは収集から除外する
+            var subInventoryOption = new SubInventoryOptions(){WithoutCollectSlots = new List<int> {PlayerInventoryConstant.CraftingSlotSize}};
             
-            playerInventorySlots.SetSubSlots(craftSubInventoryData,);
+            playerInventorySlots.SetSubSlots(craftSubInventoryData,subInventoryOption);
         }
     }
 }
