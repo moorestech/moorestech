@@ -3,9 +3,9 @@
     public class InventorySlotElementOptions
     {
         /// <summary>
-        /// そのスロットでアイテムを持てるかどうか
+        /// そのスロットでイベントを発生させるかどうか
         /// </summary>
-        public bool IsGrabbable = true;
+        public bool IsEnableControllerEvent = true;
 
         /// <summary>
         /// そのスロットのボタンが有効かどうか

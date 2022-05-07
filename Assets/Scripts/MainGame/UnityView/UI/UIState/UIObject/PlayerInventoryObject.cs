@@ -11,7 +11,7 @@ namespace MainGame.UnityView.UI.UIState.UIObject
         public void SetCraftInventory()
         {
             //todo クラフト画面を動的に構築する
-            var resultSlotOption = new InventorySlotElementOptions(){IsGrabbable = false};
+            var resultSlotOption = new InventorySlotElementOptions(){IsEnableControllerEvent = false};
             var resultSlot = new OneSlot(172, 272, 0,resultSlotOption);
             
             var craftSlot = new List<ArraySlot>() {new(-172,272,10,3,3)};

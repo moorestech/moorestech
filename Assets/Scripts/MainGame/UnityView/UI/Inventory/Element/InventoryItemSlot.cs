@@ -47,10 +47,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (!_slotOptions.IsGrabbable)
-            {
-                return;
-            }
+            if (!_slotOptions.IsEnableControllerEvent)return;
             
             switch (eventData.button)
             {
@@ -65,10 +62,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
         
         public void OnPointerUp(PointerEventData eventData)
         {
-            if (!_slotOptions.IsGrabbable)
-            {
-                return;
-            }
+            if (!_slotOptions.IsEnableControllerEvent)return;
             
             switch (eventData.button)
             {
@@ -82,19 +76,13 @@ namespace MainGame.UnityView.UI.Inventory.Element
         }
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (!_slotOptions.IsGrabbable)
-            {
-                return;
-            }
-
+            if (!_slotOptions.IsEnableControllerEvent)return;
+            
             OnCursorEnter?.Invoke(this);
         }
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (!_slotOptions.IsGrabbable)
-            {
-                return;
-            }
+            if (!_slotOptions.IsEnableControllerEvent)return;
 
             if(2 == eventData.clickCount && eventData.button == PointerEventData.InputButton.Left){
                 OnDoubleClick?.Invoke(this);
