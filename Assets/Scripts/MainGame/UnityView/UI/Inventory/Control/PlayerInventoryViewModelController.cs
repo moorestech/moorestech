@@ -32,6 +32,10 @@ namespace MainGame.UnityView.UI.Inventory.Control
         public event Action<int,ItemStack> OnSlotUpdate;
         public event Action<ItemStack> OnGrabbedItemUpdate;
         
+        /// <summary>
+        /// 持っているアイテムをスロットに置いたときのイベント
+        /// int:置いたインベントリのスロット　int:grabしたインベントリのアイテム数
+        /// </summary>
         public event Action<int, int> OnItemSlotAdded; 
         
         
@@ -261,6 +265,9 @@ namespace MainGame.UnityView.UI.Inventory.Control
             collectTargetIndex.Remove(slot);
 
             SetInventoryWithInvokeEvent(slot, CollectItemWithInvokeEvent(collectTargetIndex, _playerInventoryViewModel[slot]));
+            //ダブルクリック時に置いたアイテムを持ち状態にする
+            SetGrabbedWithInvokeEvent(true,_playerInventoryViewModel[slot]);
+            OnItemSlotCollect?.Invoke(slot,_playerInventoryViewModel[slot].Count);
         }
         public void CollectGrabbedItem()
         {
