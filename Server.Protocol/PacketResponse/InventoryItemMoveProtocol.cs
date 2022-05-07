@@ -42,13 +42,11 @@ namespace Server.Protocol.PacketResponse
             
             if (toGrab)
             {
-                Console.WriteLine("アイテム持つ　スロット:" + slot + " アイテム数：" + moveItemCount);
                 new InventoryItemMoveService().Move(
                     _itemStackFactory,inventory,slot,grabInventory,0,moveItemCount);
             }
             else
             {
-                Console.WriteLine("アイテム置く　スロット:" + slot + " アイテム数：" + moveItemCount);
                 new InventoryItemMoveService().Move(
                     _itemStackFactory,grabInventory,0,inventory,slot,moveItemCount);
             }

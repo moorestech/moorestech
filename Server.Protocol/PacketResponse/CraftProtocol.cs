@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Item;
 using Game.PlayerInventory.Interface;
@@ -38,6 +39,9 @@ namespace Server.Protocol.PacketResponse
                     craftingInventory.OneStackCraft();
                     break;
             }
+            
+            Console.WriteLine("クラフト " + craftType);
+            
 
             return new List<List<byte>>();
         }
