@@ -42,7 +42,12 @@ namespace MainGame.UnityView.UI.Inventory.Control
                     _mainInventory[index] = value;
                     return;
                 }
-                _subInventory[index - _mainInventory.Count] = value;
+
+                var subIndex = index - _mainInventory.Count;
+                if (subIndex < _subInventory.Count)
+                {
+                    _subInventory[subIndex] = value;
+                }
             }
         }
 
