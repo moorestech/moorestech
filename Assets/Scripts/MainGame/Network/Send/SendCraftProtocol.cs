@@ -16,14 +16,32 @@ namespace MainGame.Network.Send
             _socket = socket;
         }
         
-        public void Send()
+        public void SendOneCraft()
         {
             var packet = new List<byte>();
             packet.AddRange(ToByteList.Convert(ProtocolId));
             packet.AddRange(ToByteList.Convert(_playerId));
+            packet.Add(0);
             
             _socket.Send(packet);
+        }
+        public void SendAllCraft()
+        {
+            var packet = new List<byte>();
+            packet.AddRange(ToByteList.Convert(ProtocolId));
+            packet.AddRange(ToByteList.Convert(_playerId));
+            packet.Add(1);
             
+            _socket.Send(packet);
+        }
+        public void SendOneStackCraft()
+        {
+            var packet = new List<byte>();
+            packet.AddRange(ToByteList.Convert(ProtocolId));
+            packet.AddRange(ToByteList.Convert(_playerId));
+            packet.Add(2);
+            
+            _socket.Send(packet);
         }
     }
 }

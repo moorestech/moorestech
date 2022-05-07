@@ -149,6 +149,7 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<BlockInventoryRequestPacketSend>();
             builder.RegisterEntryPoint<PlayerInventoryRequestPacketSend>();
             builder.RegisterEntryPoint<PlayerInventoryMoveItemPacketSend>();
+            builder.RegisterEntryPoint<CraftPacketSend>();
             
             //インプット
             builder.Register<MoorestechInputSettings>(Lifetime.Singleton);
