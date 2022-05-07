@@ -18,6 +18,19 @@ namespace MainGame.Presenter.Inventory.Send
 
         private void OnCraft()
         {
+            if (_inputSettings.UI.AllCraft.IsPressed())
+            {
+                _sendCraftProtocol.SendAllCraft();
+                return;
+            }
+
+            if (_inputSettings.UI.OneStackCraft.IsPressed())
+            {
+                _sendCraftProtocol.SendOneStackCraft();
+                return;
+            }
+            
+            _sendCraftProtocol.SendOneCraft();
         }
 
         public void Initialize() { }
