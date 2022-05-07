@@ -21,6 +21,8 @@ namespace MainGame.UnityView.UI.Inventory.View
         public event Action<int> OnLeftClickUp;
         public event Action<int> OnCursorEnter;
         public event Action<int> OnDoubleClick;
+        
+        public event Action<SubInventoryOptions> OnSetSubInventory;
 
         private void Awake()
         {
@@ -51,8 +53,9 @@ namespace MainGame.UnityView.UI.Inventory.View
 
 
 
-        public void SetSubSlots(SubInventoryViewData subInventoryViewData)
+        public void SetSubSlots(SubInventoryViewData subInventoryViewData,SubInventoryOptions subInventoryOptions)
         {
+            OnSetSubInventory?.Invoke(subInventoryOptions);
             foreach (var subSlot in _subInventorySlots)
             {
                 Destroy(subSlot.gameObject);

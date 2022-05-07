@@ -25,7 +25,10 @@ namespace MainGame.Presenter.Inventory.Receive
             var subInventory = new List<ItemStack>();
             subInventory.AddRange(properties.ItemStacks);
             subInventory.Add(properties.ResultItemStack);
+            
             _playerInventoryViewModel.SetSubInventory(subInventory);
+            
+            
             //イベントの発火
             for (int i = 0; i < properties.ItemStacks.Count; i++)
             {

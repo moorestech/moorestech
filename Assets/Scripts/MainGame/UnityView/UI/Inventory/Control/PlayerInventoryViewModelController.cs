@@ -4,6 +4,8 @@ using System.Linq;
 using Core.Item;
 using Core.Item.Config;
 using MainGame.Basic;
+using MainGame.UnityView.UI.Inventory.View;
+using MainGame.UnityView.UI.Inventory.View.SubInventory;
 using SinglePlay;
 using UnityEngine;
 
@@ -61,18 +63,24 @@ namespace MainGame.UnityView.UI.Inventory.Control
         
 
 
-        public PlayerInventoryViewModelController(SinglePlayInterface singlePlayInterface,PlayerInventoryViewModel playerInventoryViewModel)
+        public PlayerInventoryViewModelController(SinglePlayInterface singlePlayInterface,PlayerInventoryViewModel playerInventoryViewModel,PlayerInventorySlots playerInventorySlots)
         {
             _itemStackFactory = singlePlayInterface.ItemStackFactory;
             _itemConfig = singlePlayInterface.ItemConfig;
             _playerInventoryViewModel = playerInventoryViewModel;
+            playerInventorySlots.OnSetSubInventory += OnSetSubInventory;
+        }
+
+        private List<int> _withoutCollectSlots = new();
+        private void OnSetSubInventory(SubInventoryOptions options)
+        {
+            _withoutCollectSlots = options.WithoutCollectSlots;
         }
 
         public void SetInventoryItem(int slot,int id,int count)
         {
             SetInventoryWithInvokeEvent(slot, _itemStackFactory.Create(id, count));
         }
-
         public void SetGrabInventoryItem(int id, int count)
         {
             if (id == ItemConstant.NullItemId)

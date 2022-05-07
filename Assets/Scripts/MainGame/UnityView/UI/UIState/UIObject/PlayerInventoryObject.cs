@@ -22,7 +22,7 @@ namespace MainGame.UnityView.UI.UIState.UIObject
             var craftSubInventoryData = new SubInventoryViewData(new List<OneSlot>() {resultSlot}, craftSlot);
             
             
-            playerInventorySlots.SetSubSlots(craftSubInventoryData);
+            playerInventorySlots.SetSubSlots(craftSubInventoryData,);
         }
     }
 }
