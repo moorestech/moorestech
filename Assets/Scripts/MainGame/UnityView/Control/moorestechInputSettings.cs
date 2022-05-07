@@ -394,7 +394,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": false
+                    ""initialStateCheck"": true
                 },
                 {
                     ""name"": ""OneStackCraft"",
@@ -403,7 +403,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": false
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -597,10 +597,10 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 {
                     ""name"": """",
                     ""id"": ""5c85fb7f-2f33-4d90-85b5-1d0a0e84a185"",
-                    ""path"": ""<Keyboard>/leftShift"",
+                    ""path"": ""<Keyboard>/shift"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""KeyboardMouse"",
                     ""action"": ""AllCraft"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -611,7 +611,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""path"": ""<Keyboard>/leftCtrl"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""KeyboardMouse"",
                     ""action"": ""OneStackCraft"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
