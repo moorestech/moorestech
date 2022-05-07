@@ -265,8 +265,11 @@ namespace MainGame.UnityView.UI.Inventory.Control
             collectTargetIndex.Remove(slot);
 
             SetInventoryWithInvokeEvent(slot, CollectItemWithInvokeEvent(collectTargetIndex, _playerInventoryViewModel[slot]));
+            
             //ダブルクリック時に置いたアイテムを持ち状態にする
             SetGrabbedWithInvokeEvent(true,_playerInventoryViewModel[slot]);
+            SetInventoryWithInvokeEvent(slot,_itemStackFactory.CreatEmpty());
+            
             OnItemSlotCollect?.Invoke(slot,_playerInventoryViewModel[slot].Count);
         }
         public void CollectGrabbedItem()
