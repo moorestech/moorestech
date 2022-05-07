@@ -40,8 +40,6 @@ namespace Server.Protocol.PacketResponse
                     break;
             }
             
-            Console.WriteLine("クラフト " + craftType);
-            
 
             return new List<List<byte>>();
         }
