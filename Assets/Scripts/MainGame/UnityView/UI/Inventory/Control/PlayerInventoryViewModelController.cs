@@ -265,6 +265,8 @@ namespace MainGame.UnityView.UI.Inventory.Control
 
         #endregion
 
+        
+        #region CollectItem
         public void CollectSlotItem(int slot)
         {
             //同じIDのアイテムで少ない数のスロット順で並べる
@@ -292,7 +294,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
         {
             return _playerInventoryViewModel.
                 Select((item,index) => new {item,index}).
-                Where(i => i.item.Id == itemId).
+                Where(i => i.item.Id == itemId && !_withoutCollectSlots.Contains(i.index)).
                 OrderBy(i => i.item.Count).
                 Select(i => i.index).ToList();
         }
@@ -320,15 +322,11 @@ namespace MainGame.UnityView.UI.Inventory.Control
             return collectFromItem;
         }
         
+        #endregion
         
         
-        
-        
-        
-        
-        
-        
-        
+
+
         private void SetGrabbedWithInvokeEvent(bool isGrabbed,IItemStack itemStack = null)
         {
             _grabbedItem = itemStack ?? _itemStackFactory.CreatEmpty();
