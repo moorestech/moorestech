@@ -24,7 +24,7 @@ namespace Test
         {
             var single = new SinglePlayInterface(ServerConst.ServerConfigDirectory);
             var inventoryModel = new PlayerInventoryViewModel(single);
-            var inventoryController = new PlayerInventoryViewModelController(single,inventoryModel);
+            var inventoryController = new PlayerInventoryViewModelController(single,inventoryModel,playerInventorySlots);
 
             inventoryController.OnItemSlotGrabbed += (slot, count) =>  Debug.Log($"grab {slot} {count}");
             inventoryController.OnItemSlotAdded += (slot, count) => Debug.Log($"put {slot} {count}");
@@ -37,7 +37,7 @@ namespace Test
             var arraySlots = new List<ArraySlot>() {new(-172,272,10,3,3)};
             var subInventoryData = new SubInventoryViewData(oneSlots, arraySlots);
             
-            playerInventorySlots.SetSubSlots(subInventoryData);
+            playerInventorySlots.SetSubSlots(subInventoryData,new SubInventoryOptions());
             
             
             var mainInventory = new ItemStack[PlayerInventoryConst.MainInventorySize];
