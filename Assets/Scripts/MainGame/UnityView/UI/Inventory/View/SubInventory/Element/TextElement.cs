@@ -10,7 +10,7 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory.Element
         public readonly string DefaultText;
         public readonly int FontSize;
         
-        public TextElement(int priority, float x, float y, string defaultText, int fontSize)
+        public TextElement( float x, float y,int priority, string defaultText, int fontSize)
         {
             Priority = priority;
             X = x;
