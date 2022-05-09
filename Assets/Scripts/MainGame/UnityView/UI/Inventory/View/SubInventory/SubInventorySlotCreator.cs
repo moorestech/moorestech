@@ -43,7 +43,7 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory
                     rect.sizeDelta = new Vector2(arraySlot.Width * slotSize.x, arraySlot.Height * slotSize.y);
                 
                 
-                    slots.AddRange(slot.SetArraySlot(arraySlot.Height,arraySlot.Width,inventoryItemSlotPrefab));
+                    slots.AddRange(slot.SetArraySlot(arraySlot.Height,arraySlot.Width,arraySlot.BottomBlank,inventoryItemSlotPrefab));
                     
                 }
             }
