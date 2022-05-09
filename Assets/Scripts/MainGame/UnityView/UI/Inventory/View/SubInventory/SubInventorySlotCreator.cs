@@ -39,7 +39,7 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory
 
         private InventoryTextElement CreateTextElement(TextElement element, Transform parent)
         {
-            var text = Instantiate(inventoryTextElementPrefab, parent);
+            var text = Instantiate(inventoryTextElementPrefab.gameObject, parent).GetComponent<InventoryTextElement>();
             var rect = text.GetComponent<RectTransform>();
             rect.SetAnchor(AnchorPresets.MiddleCenter);
             rect.anchoredPosition = new Vector2(element.X, element.Y);
