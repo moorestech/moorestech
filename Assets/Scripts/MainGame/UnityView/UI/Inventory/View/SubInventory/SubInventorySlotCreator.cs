@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View.SubInventory.Element;
@@ -17,37 +18,55 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory
 
             foreach (var element in subInventoryViewBluePrint.Elements)
             {
-                if (element.ElementType == SubInventoryElementType.OneSlot)
+                switch (element.ElementType)
                 {
-                    var slot = Instantiate(inventoryItemSlotPrefab, parent);
-                    var rect = slot.GetComponent<RectTransform>();
-                    rect.SetAnchor(AnchorPresets.MiddleCenter);
-                    
-                    var oneSlot = element as OneSlot;
-                    rect.anchoredPosition = new Vector2(oneSlot.X, oneSlot.Y);
-                    slots.Add(slot);
-                    
-                    slot.SetSlotOptions(oneSlot.Options);
-                }
-                else if (element.ElementType == SubInventoryElementType.ArraySlot)
-                {
-                    var slot = Instantiate(inventoryArraySlotPrefab, parent);
-                    var slotSize = inventoryItemSlotPrefab.GetComponent<RectTransform>().sizeDelta;
-                    slot.GetComponent<GridLayoutGroup>().cellSize = slotSize;
-                    
-                    var arraySlot = element as ArraySlot;
-                
-                    var rect = slot.GetComponent<RectTransform>();
-                    rect.SetAnchor(AnchorPresets.MiddleCenter);
-                    rect.anchoredPosition = new Vector2(arraySlot.X, arraySlot.Y);
-                    rect.sizeDelta = new Vector2(arraySlot.Width * slotSize.x, arraySlot.Height * slotSize.y);
-                
-                
-                    slots.AddRange(slot.SetArraySlot(arraySlot.Height,arraySlot.Width,arraySlot.BottomBlank,inventoryItemSlotPrefab));
-                    
+                    case SubInventoryElementType.OneSlot:
+                        slots.Add(CreateOneSlot(element as OneSlot, parent));
+                        break;
+                    case SubInventoryElementType.ArraySlot:
+                        slots.AddRange(CreateArraySlot(element as ArraySlot, parent));
+                        break;
+                    case SubInventoryElementType.Text:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(element.ElementType + " の実装がありません");
                 }
             }
             return slots;
         }
+
+
+        
+        
+        
+        private InventoryItemSlot CreateOneSlot(OneSlot oneSlot,Transform parent)
+        {
+            var slot = Instantiate(inventoryItemSlotPrefab, parent);
+            var rect = slot.GetComponent<RectTransform>();
+            rect.SetAnchor(AnchorPresets.MiddleCenter);
+            
+            rect.anchoredPosition = new Vector2(oneSlot.X, oneSlot.Y);
+                    
+            slot.SetSlotOptions(oneSlot.Options);
+
+            return slot;
+        }
+
+
+        private List<InventoryItemSlot> CreateArraySlot(ArraySlot arraySlot, Transform parent)
+        {
+            var slot = Instantiate(inventoryArraySlotPrefab, parent);
+            var slotSize = inventoryItemSlotPrefab.GetComponent<RectTransform>().sizeDelta;
+            slot.GetComponent<GridLayoutGroup>().cellSize = slotSize;
+                
+            var rect = slot.GetComponent<RectTransform>();
+            rect.SetAnchor(AnchorPresets.MiddleCenter);
+            rect.anchoredPosition = new Vector2(arraySlot.X, arraySlot.Y);
+            rect.sizeDelta = new Vector2(arraySlot.Width * slotSize.x, arraySlot.Height * slotSize.y);
+
+            return slot.SetArraySlot(arraySlot.Height, arraySlot.Width, arraySlot.BottomBlank, inventoryItemSlotPrefab);
+        }
+        
+
     }
 }
