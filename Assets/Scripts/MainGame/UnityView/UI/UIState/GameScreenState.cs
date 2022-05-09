@@ -1,7 +1,5 @@
-﻿using MainGame.Control.UI.UIState;
-using MainGame.UnityView.Block;
+﻿using MainGame.UnityView.Block;
 using MainGame.UnityView.Control.MouseKeyboard;
-using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 
 namespace MainGame.UnityView.UI.UIState
