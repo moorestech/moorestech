@@ -4,16 +4,16 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory.Element
 {
     public class SubInventoryViewBluePrint
     {
-        public List<OneSlot> OneSlots;
-        public List<ArraySlot> ArraySlots;
+        private readonly List<OneSlot> _oneSlots;
+        private readonly List<ArraySlot> _arraySlots;
         
         public List<ISubInventoryElement> Elements
         {
             get
             {
                 var list = new List<ISubInventoryElement>();
-                list.AddRange(OneSlots);
-                list.AddRange(ArraySlots);
+                list.AddRange(_oneSlots);
+                list.AddRange(_arraySlots);
                 list.Sort((a,b) => b.Priority - a.Priority);
                 return list;
             }
@@ -21,8 +21,8 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory.Element
 
         public SubInventoryViewBluePrint(List<OneSlot> oneSlots, List<ArraySlot> arraySlots)
         {
-            OneSlots = oneSlots;
-            ArraySlots = arraySlots;
+            _oneSlots = oneSlots;
+            _arraySlots = arraySlots;
         }
     }
 }
