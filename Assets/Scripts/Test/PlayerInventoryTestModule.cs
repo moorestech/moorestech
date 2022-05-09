@@ -56,7 +56,7 @@ namespace Test
             inventoryModel.SetMainInventory(mainInventory.ToList());
             
             
-            var subInventory = new ItemStack[PlayerInventoryConst.CraftingInventorySize];
+            var subInventory = new ItemStack[PlayerInventoryConst.CraftingSlotSize];
             subInventory[0] = new (1,100);
             subInventory[1] = new (2,100);
             
