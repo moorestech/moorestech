@@ -13,7 +13,7 @@ namespace Server.Protocol.PacketResponse
             _eventProtocolProvider = eventProtocolProvider;
         }
 
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             //パケットのパース、接続元、接続先のインスタンス取得
             var byteListEnumerator = new ByteListEnumerator(payload);

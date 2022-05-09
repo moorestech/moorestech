@@ -42,7 +42,7 @@ namespace Server.Event.EventReceive
         
         private DateTime now = DateTime.Now;
         
-        private byte[] GetPayload(BlockOpenableInventoryUpdateEventProperties properties)
+        private List<byte> GetPayload(BlockOpenableInventoryUpdateEventProperties properties)
         {
             var (x, y) = _worldBlockDatastore.GetBlockPosition(properties.EntityId);
             
@@ -56,7 +56,7 @@ namespace Server.Event.EventReceive
             payload.AddRange(ToByteList.Convert(x));
             payload.AddRange(ToByteList.Convert(y));
             
-            return payload.ToArray();
+            return payload;
         }
 
     }

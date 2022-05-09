@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Item;
 using Game.PlayerInventory.Interface;
@@ -15,18 +16,32 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
         
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var byteListEnumerator = new ByteListEnumerator(payload);
             byteListEnumerator.MoveNextToGetShort(); // Packet ID
             var playerId = byteListEnumerator.MoveNextToGetInt();
+            var craftType = byteListEnumerator.MoveNextToGetByte();
 
             var craftingInventory = _playerInventoryDataStore.GetInventoryData(playerId).CraftingOpenableInventory;
             
+            
             //クラフトの実行
-            craftingInventory.Craft();
+            switch (craftType)
+            {
+                case 0:
+                    craftingInventory.NormalCraft();
+                    break;
+                case 1:
+                    craftingInventory.AllCraft();
+                    break;
+                case 2:
+                    craftingInventory.OneStackCraft();
+                    break;
+            }
+            
 
-            return new List<byte[]>();
+            return new List<List<byte>>();
         }
     }
 }

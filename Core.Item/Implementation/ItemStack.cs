@@ -29,7 +29,7 @@ namespace Core.Item.Implementation
 
             if (itemConfig.GetItemConfig(id).MaxStack < count)
             {
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException("アイテムスタック数の最大値を超えています ID:" + id + " Count:" + count);
             }
 
             Id = id;

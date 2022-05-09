@@ -25,7 +25,7 @@ namespace Server.Event.EventReceive
             payload.AddRange(ToByteList.Convert(c.X));
             payload.AddRange(ToByteList.Convert(c.Y));
 
-            _eventProtocolProvider.AddBroadcastEvent(payload.ToArray());
+            _eventProtocolProvider.AddBroadcastEvent(payload);
         }
     }
 }

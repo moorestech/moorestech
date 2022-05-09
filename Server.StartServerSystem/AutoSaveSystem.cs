@@ -17,8 +17,7 @@ namespace Server.StartServerSystem
         {
             while (true)
             {
-                Console.WriteLine("オートセーブ実行");
-                await Task.Delay(TimeSpan.FromSeconds(10));
+                await Task.Delay(TimeSpan.FromSeconds(30));
                 _saveRepository.Save();
             }
         }

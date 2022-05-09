@@ -29,7 +29,7 @@ namespace Server.Event.EventReceive
             payload.AddRange(ToByteList.Convert(playerInventoryUpdateEvent.ItemId));
             payload.AddRange(ToByteList.Convert(playerInventoryUpdateEvent.Count));
 
-            _eventProtocolProvider.AddEvent(playerInventoryUpdateEvent.PlayerId, payload.ToArray());
+            _eventProtocolProvider.AddEvent(playerInventoryUpdateEvent.PlayerId, payload);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Core.Block.BlockInventory;
+﻿using System.Collections.ObjectModel;
+using Core.Block.BlockInventory;
 using Core.Block.Blocks.Machine.InventoryController;
 using Core.Block.Blocks.Machine.SaveLoad;
 using Core.Electric;
@@ -57,6 +58,8 @@ namespace Core.Block.Blocks.Machine
         
 
         #region IOpenableInventory implementation
+        
+        public ReadOnlyCollection<IItemStack> Items => _vanillaMachineInventory.Items;
         public IItemStack GetItem(int slot) { return _vanillaMachineInventory.GetItem(slot); }
         
         public void SetItem(int slot, IItemStack itemStack) { _vanillaMachineInventory.SetItem(slot, itemStack); }

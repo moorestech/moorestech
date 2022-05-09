@@ -35,7 +35,7 @@ namespace Server.Protocol.PacketResponse
             _inventoryResponseDictionary.Add(VanillaBlockType.Chest,ChestInventoryResponse);
         }
 
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var byteListEnumerator = new ByteListEnumerator(payload);
             byteListEnumerator.MoveNextToGetShort();
@@ -49,10 +49,10 @@ namespace Server.Protocol.PacketResponse
             if (_inventoryResponseDictionary.ContainsKey(blockConfig.Type))
             {
                 var response = _inventoryResponseDictionary[blockConfig.Type](x, y, blockConfig.Param);
-                return new List<byte[]> {response.ToArray()};
+                return new List<List<byte>> {response.ToList()};
             }
 
-            return new List<byte[]>();
+            return new List<List<byte>>();
         }
 
         //アイテムやスロット数など基本的なデータを返す

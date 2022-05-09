@@ -46,7 +46,7 @@ namespace Server.Event.EventReceive
             }
             
 
-            _eventProtocolProvider.AddEvent(properties.PlayerId, payload.ToArray());
+            _eventProtocolProvider.AddEvent(properties.PlayerId, payload);
         }
     }
     

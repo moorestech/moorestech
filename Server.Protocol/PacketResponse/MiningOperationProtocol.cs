@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse
 
         }
 
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var byteListEnumerator = new ByteListEnumerator(payload);
             byteListEnumerator.MoveNextToGetShort();
@@ -50,7 +50,7 @@ namespace Server.Protocol.PacketResponse
             playerMainInventory.InsertItem(_itemStackFactory.Create(oreItemId,1));
             
             
-            return new List<byte[]>();
+            return new List<List<byte>>();
         }
         
 

@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Game.PlayerInventory.Interface;
 using Game.Save.Interface;
@@ -26,7 +27,14 @@ namespace Game.Save.Json
             if (File.Exists(_saveJsonFileName.FullSaveFilePath))
             {
                 var json = File.ReadAllText(_saveJsonFileName.FullSaveFilePath);
-                Load(json);
+                try
+                {
+                    Load(json);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("セーブファイルのロードに失敗しました。セーブファイルを確認してください。", e);
+                }
             }
         }
 

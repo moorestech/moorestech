@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Core.Item;
 
 namespace Core.Inventory
@@ -114,6 +115,7 @@ namespace Core.Inventory
         
         
         
+        public ReadOnlyCollection<IItemStack> Items => new(_inventory);
         public int GetSlotSize() { return _inventory.Count; }
         public IItemStack GetItem(int slot) { return _inventory[slot]; }
 

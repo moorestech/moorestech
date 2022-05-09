@@ -5,8 +5,10 @@ namespace Game.Crafting.Interface
 {
     public interface IIsCreatableJudgementService
     {
-        public bool IsCreatable(List<IItemStack> craftingItems);
-        public IItemStack GetResult(List<IItemStack> craftingItems);
-        public CraftingConfigData GetCraftingConfigData(List<IItemStack> craftingItems);
+        public bool IsCreatable(IReadOnlyList<IItemStack> craftingItems);
+        public IItemStack GetResult(IReadOnlyList<IItemStack> craftingItems);
+        public CraftingConfigData GetCraftingConfigData(IReadOnlyList<IItemStack> craftingItems);
+        public int CalcAllCraftItemNum(IReadOnlyList<IItemStack> craftingItems, IReadOnlyList<IItemStack> mainInventoryItems);
+        public int CalcOneStackCraftItemNum(IReadOnlyList<IItemStack> craftingItems, IReadOnlyList<IItemStack> mainInventoryItems);
     }
 }

@@ -1,3 +1,4 @@
+using Core.Block.Config;
 using Core.Block.RecipeConfig;
 using Core.Item;
 using Core.Item.Config;
@@ -13,6 +14,7 @@ namespace SinglePlay
         public readonly IMachineRecipeConfig MachineRecipeConfig;
         public readonly IItemConfig ItemConfig;
         public readonly ItemStackFactory ItemStackFactory;
+        public readonly IBlockConfig BlockConfig; 
 
         public SinglePlayInterface(string configPath)
         {
@@ -22,6 +24,7 @@ namespace SinglePlay
             MachineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
             ItemConfig = serviceProvider.GetService<IItemConfig>();
             ItemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            BlockConfig = serviceProvider.GetService<IBlockConfig>();
         }
     }
 }

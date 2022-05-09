@@ -29,7 +29,7 @@ namespace Server.Event.EventReceive
             payload.AddRange(ToByteList.Convert(id));
             payload.Add((byte)blockPlaceEventProperties.BlockDirection);
             
-            _eventProtocolProvider.AddBroadcastEvent(payload.ToArray());
+            _eventProtocolProvider.AddBroadcastEvent(payload);
         }
     }
 }

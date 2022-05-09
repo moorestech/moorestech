@@ -12,12 +12,12 @@ namespace Server.Protocol.PacketResponse
         {
             _saveRepository = serviceProvider.GetService<ISaveRepository>();
         }
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             Console.WriteLine("セーブ開始");
             _saveRepository.Save();
             Console.WriteLine("セーブ完了");
-            return new List<byte[]>();
+            return new List<List<byte>>();
         }
     }
 }

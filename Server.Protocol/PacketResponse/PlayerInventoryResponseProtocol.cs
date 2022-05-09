@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using Game.PlayerInventory.Interface;
 using Server.Util;
 
@@ -13,7 +15,7 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = playerInventoryDataStore;
         }
 
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var byteListEnumerator = new ByteListEnumerator(payload);
             byteListEnumerator.MoveNextToGetShort();
@@ -32,12 +34,19 @@ namespace Server.Protocol.PacketResponse
                 response.AddRange(ToByteList.Convert(playerInventory.MainOpenableInventory.GetItem(i).Count));
             }
             
+            
+            //グラブインベントリのアイテムを設定
+            response.AddRange(ToByteList.Convert(playerInventory.GrabInventory.GetItem(0).Id));
+            response.AddRange(ToByteList.Convert(playerInventory.GrabInventory.GetItem(0).Count));
+
+
             //クラフトインベントリのアイテムを設定
-            for (int i = 0; i < PlayerInventoryConst.CraftingInventorySize; i++)
+            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetItem(i).Id));
                 response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetItem(i).Count));
             }
+            
             //クラフト結果のアイテムを設定
             response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetCreatableItem().Id));
             response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetCreatableItem().Count));
@@ -51,7 +60,7 @@ namespace Server.Protocol.PacketResponse
                 response.Add(0);
             }
 
-            return new List<byte[]>() {response.ToArray()};
+            return new List<List<byte>>() {response};
         }
     }
 }

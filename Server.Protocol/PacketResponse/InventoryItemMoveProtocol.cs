@@ -22,7 +22,7 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
-        public List<byte[]> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var byteListEnumerator = new ByteListEnumerator(payload);
             byteListEnumerator.MoveNextToGetShort();//packet id
@@ -35,11 +35,10 @@ namespace Server.Protocol.PacketResponse
             var y = byteListEnumerator.MoveNextToGetInt();
 
             var inventory = GetInventory(inventoryId, playerId, x, y);
-            if (inventory == null)return new List<byte[]>();
+            if (inventory == null)return new List<List<byte>>();
             
             var grabInventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
 
-            
             
             if (toGrab)
             {
@@ -52,7 +51,7 @@ namespace Server.Protocol.PacketResponse
                     _itemStackFactory,grabInventory,0,inventory,slot,moveItemCount);
             }
 
-            return new List<byte[]>();
+            return new List<List<byte>>();
         }
 
         private IOpenableInventory GetInventory(int inventoryId,int playerId, int x, int y)
