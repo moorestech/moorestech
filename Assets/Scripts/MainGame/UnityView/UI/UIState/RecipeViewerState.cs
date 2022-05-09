@@ -26,12 +26,7 @@ namespace MainGame.UnityView.UI.UIState
 
         public UIStateEnum GetNext()
         {
-            if (_inputSettings.UI.OpenInventory.triggered)
-            {
-                return UIStateEnum.GameScreen;
-            }
-
-            if (_inputSettings.UI.CloseUI.triggered)
+            if (_inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered)
             {
                 return _lastInventoryUI;
             }
