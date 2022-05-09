@@ -54,7 +54,7 @@ namespace MainGame.UnityView.UI.Inventory.View
 
 
 
-        public void SetSubSlots(SubInventoryViewData subInventoryViewData,SubInventoryOptions subInventoryOptions)
+        public void SetSubSlots(SubInventoryViewBluePrint subInventoryViewBluePrint,SubInventoryOptions subInventoryOptions)
         {
             OnSetSubInventory?.Invoke(subInventoryOptions);
             foreach (var subSlot in _subInventorySlots)
@@ -64,7 +64,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             _subInventorySlots.Clear();
             
             
-            _subInventorySlots = subInventorySlotCreator.CreateSlots(subInventoryViewData,subInventorySlotsParent);
+            _subInventorySlots = subInventorySlotCreator.CreateSlots(subInventoryViewBluePrint,subInventorySlotsParent);
             _subInventorySlots.
                 Select((slot,index) => new{slot,index}).ToList().
                 ForEach(slot =>

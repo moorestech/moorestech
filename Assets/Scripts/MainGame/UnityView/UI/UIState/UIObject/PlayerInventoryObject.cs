@@ -21,7 +21,7 @@ namespace MainGame.UnityView.UI.UIState.UIObject
             var resultSlot = new OneSlot(172, 272, 0,resultSlotOption);
             
             var craftSlot = new List<ArraySlot>() {new(-172,272,10,3,3)};
-            var craftSubInventoryData = new SubInventoryViewData(new List<OneSlot>() {resultSlot}, craftSlot);
+            var craftSubInventoryData = new SubInventoryViewBluePrint(new List<OneSlot>() {resultSlot}, craftSlot);
             
             //結果スロットは収集から除外する
             var withoutSlot = PlayerInventoryConstant.CraftingSlotSize + PlayerInventoryConstant.MainInventorySize;

@@ -10,12 +10,12 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory
     {
         [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
         [SerializeField] private InventoryArraySlot inventoryArraySlotPrefab;
-        public List<InventoryItemSlot> CreateSlots(SubInventoryViewData subInventoryViewData,Transform parent)
+        public List<InventoryItemSlot> CreateSlots(SubInventoryViewBluePrint subInventoryViewBluePrint,Transform parent)
         {
             var slots = new List<InventoryItemSlot>();
 
 
-            foreach (var element in subInventoryViewData.Elements)
+            foreach (var element in subInventoryViewBluePrint.Elements)
             {
                 if (element.ElementType == SubInventoryElementType.OneSlot)
                 {

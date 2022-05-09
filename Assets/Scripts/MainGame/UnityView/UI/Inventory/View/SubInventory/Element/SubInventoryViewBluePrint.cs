@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace MainGame.UnityView.UI.Inventory.View.SubInventory.Element
 {
-    public class SubInventoryViewData
+    public class SubInventoryViewBluePrint
     {
         public List<OneSlot> OneSlots;
         public List<ArraySlot> ArraySlots;
@@ -19,7 +19,7 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory.Element
             }
         }
 
-        public SubInventoryViewData(List<OneSlot> oneSlots, List<ArraySlot> arraySlots)
+        public SubInventoryViewBluePrint(List<OneSlot> oneSlots, List<ArraySlot> arraySlots)
         {
             OneSlots = oneSlots;
             ArraySlots = arraySlots;
