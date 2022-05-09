@@ -7,6 +7,7 @@ using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.UI.Inventory.View.SubInventory;
+using MainGame.UnityView.UI.Inventory.View.SubInventory.Element;
 using SinglePlay;
 using UnityEngine;
 
