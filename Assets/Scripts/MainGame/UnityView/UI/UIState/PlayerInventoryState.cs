@@ -1,6 +1,4 @@
 ﻿using System;
-using MainGame.Control.UI.UIState;
-using MainGame.Control.UI.UIState.UIObject;
 using MainGame.UnityView.UI.CraftRecipe;
 using MainGame.UnityView.UI.UIState.UIObject;
 
