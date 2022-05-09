@@ -10,13 +10,18 @@ namespace MainGame.UnityView.Chunk
     {
         private BlockObjects _blockObjects;
         
-        private Dictionary<Vector2Int,BlockGameObject> _blockObjectsDictionary = new();
+        private readonly Dictionary<Vector2Int,BlockGameObject> _blockObjectsDictionary = new();
 
         [Inject]
         public void Construct(BlockObjects blockObjects)
         {
             _blockObjects = blockObjects;
         }
+
+        
+        public BlockGameObject GetBlockGameObject(Vector2Int position) { return _blockObjectsDictionary.ContainsKey(position) ? _blockObjectsDictionary[position] : null; }
+        public bool ContainsBlockGameObject(Vector2Int position) { return _blockObjectsDictionary.ContainsKey(position); }
+        
         
         public void GameObjectBlockPlace(Vector2Int blockPosition, int blockId,BlockDirection blockDirection)
         {
