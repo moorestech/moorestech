@@ -11,6 +11,7 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory
     {
         [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
         [SerializeField] private InventoryArraySlot inventoryArraySlotPrefab;
+        [SerializeField] private InventoryTextElement inventoryTextElementPrefab;
         public List<InventoryItemSlot> CreateSlots(SubInventoryViewBluePrint subInventoryViewBluePrint,Transform parent)
         {
             var slots = new List<InventoryItemSlot>();
@@ -27,6 +28,7 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory
                         slots.AddRange(CreateArraySlot(element as ArraySlot, parent));
                         break;
                     case SubInventoryElementType.Text:
+                        CreateTextElement(element as TextElement, parent);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(element.ElementType + " の実装がありません");
@@ -35,16 +37,24 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory
             return slots;
         }
 
+        private InventoryTextElement CreateTextElement(TextElement element, Transform parent)
+        {
+            var text = Instantiate(inventoryTextElementPrefab, parent);
+            var rect = text.GetComponent<RectTransform>();
+            rect.SetAnchor(AnchorPresets.MiddleCenter);
+            rect.anchoredPosition = new Vector2(element.X, element.Y);
+            
+            text.SetText(element.DefaultText,element.FontSize);
 
-        
-        
-        
+            return text;
+        }
+
+
         private InventoryItemSlot CreateOneSlot(OneSlot oneSlot,Transform parent)
         {
             var slot = Instantiate(inventoryItemSlotPrefab, parent);
             var rect = slot.GetComponent<RectTransform>();
             rect.SetAnchor(AnchorPresets.MiddleCenter);
-            
             rect.anchoredPosition = new Vector2(oneSlot.X, oneSlot.Y);
                     
             slot.SetSlotOptions(oneSlot.Options);
