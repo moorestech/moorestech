@@ -4,25 +4,21 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory.Element
 {
     public class SubInventoryViewBluePrint
     {
-        private readonly List<OneSlot> _oneSlots;
-        private readonly List<ArraySlot> _arraySlots;
-        
+        public List<OneSlot> OneSlots = new();
+        public List<ArraySlot> ArraySlots = new();
+        public List<TextElement> TextElements = new();
+
         public List<ISubInventoryElement> Elements
         {
             get
             {
                 var list = new List<ISubInventoryElement>();
-                list.AddRange(_oneSlots);
-                list.AddRange(_arraySlots);
+                list.AddRange(OneSlots);
+                list.AddRange(ArraySlots);
+                list.AddRange(TextElements);
                 list.Sort((a,b) => b.Priority - a.Priority);
                 return list;
             }
-        }
-
-        public SubInventoryViewBluePrint(List<OneSlot> oneSlots, List<ArraySlot> arraySlots)
-        {
-            _oneSlots = oneSlots;
-            _arraySlots = arraySlots;
         }
     }
 }

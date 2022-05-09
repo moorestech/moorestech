@@ -36,7 +36,11 @@ namespace Test
             
             var oneSlots = new List<OneSlot>() {new(172,272,0,new InventorySlotElementOptions())};
             var arraySlots = new List<ArraySlot>() {new(-172,272,10,3,3)};
-            var subInventoryData = new SubInventoryViewBluePrint(oneSlots, arraySlots);
+            var subInventoryData = new SubInventoryViewBluePrint()
+            {
+                OneSlots = oneSlots, 
+                ArraySlots = arraySlots,
+            };
             
             playerInventorySlots.SetSubSlots(subInventoryData,new SubInventoryOptions());
             
