@@ -1,10 +1,17 @@
+using TMPro;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory.View.SubInventory
 {
     public class InventoryTextElement : MonoBehaviour
     {
-        public void SetText(string text,int fontSize){}
+        [SerializeField] private TMP_Text tmpText;
+
+        public void SetText(string text, int fontSize)
+        {
+            tmpText.text = text;
+            tmpText.fontSize = fontSize;
+        }
         
     }
 }
