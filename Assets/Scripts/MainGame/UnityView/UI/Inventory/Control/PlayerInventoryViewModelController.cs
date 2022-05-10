@@ -143,8 +143,8 @@ namespace MainGame.UnityView.UI.Inventory.Control
             else
             {
                 SetInventoryWithInvokeEvent(slot,_grabbedItem);
-                SetGrabbedWithInvokeEvent(true);
-                OnItemSlotAdded?.Invoke(slot,_grabbedItem.Count);
+                SetGrabbedWithInvokeEvent(true,item);
+                OnItemSlotAdded?.Invoke(slot,item.Count);
             }
         }
         
