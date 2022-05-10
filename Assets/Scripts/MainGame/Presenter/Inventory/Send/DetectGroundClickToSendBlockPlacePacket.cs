@@ -40,7 +40,7 @@ namespace MainGame.Presenter.Inventory.Send
             _input.Enable();
         }
 
-        private void FixedUpdate()
+        private void Update()
         {
             BlockDirectionControl();
             GroundClickControl();
