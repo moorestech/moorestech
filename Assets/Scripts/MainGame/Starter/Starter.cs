@@ -13,6 +13,7 @@ using MainGame.Presenter.Command;
 using MainGame.Presenter.Inventory;
 using MainGame.Presenter.Inventory.Receive;
 using MainGame.Presenter.Inventory.Send;
+using MainGame.Presenter.Player;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
@@ -121,7 +122,7 @@ namespace MainGame.Starter
             
             //パケット送信インスタンス
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
-            builder.RegisterEntryPoint<SendPlayerPositionProtocolProtocol>(); //プレイヤー位置送信は一定時間ごとに送信するのでRegisterEntryPointを使う
+            builder.Register<SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
             builder.Register<RequestPlayerInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);
             builder.Register<RequestBlockInventoryProtocol>(Lifetime.Singleton);
@@ -150,6 +151,7 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<PlayerInventoryRequestPacketSend>();
             builder.RegisterEntryPoint<PlayerInventoryMoveItemPacketSend>();
             builder.RegisterEntryPoint<CraftPacketSend>();
+            builder.RegisterEntryPoint<PlayerPositionSender>();
             
             //インプット
             builder.Register<MoorestechInputSettings>(Lifetime.Singleton);

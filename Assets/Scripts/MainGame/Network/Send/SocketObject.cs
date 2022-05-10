@@ -20,6 +20,8 @@ namespace MainGame.Network.Send
 
         public void Send(List<byte> data)
         {
+            if (!_socket.Connected) return;
+            
             //パケット長を設定
             data.InsertRange(0, ToByteList.Convert((short)data.Count));
             _socket.Send(data.ToArray());
