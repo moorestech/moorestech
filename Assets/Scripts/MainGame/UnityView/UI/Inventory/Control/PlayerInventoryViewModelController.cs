@@ -142,9 +142,9 @@ namespace MainGame.UnityView.UI.Inventory.Control
             //加算できない時か最大数がスロットにある時はアイテムを入れ替える
             else
             {
+                OnItemSlotAdded?.Invoke(slot,item.Count);
                 SetInventoryWithInvokeEvent(slot,_grabbedItem);
                 SetGrabbedWithInvokeEvent(true,item);
-                OnItemSlotAdded?.Invoke(slot,item.Count);
             }
         }
         
