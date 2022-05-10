@@ -59,6 +59,12 @@ namespace MainGame.UnityView.UI.Inventory.Control
         /// </summary>
         public event Action OnItemGrabbed;
         
+        /// <summary>
+        /// 持っているアイテムが入れ替わった時のイベント
+        /// int :入れ替わったインベントリのスロット　int:入れ替わったアイテム数
+        /// </summary>
+        public event Action<int,int> OnGrabItemReplaced;
+        
         public event Action OnItemUnGrabbed;
         
 
@@ -142,7 +148,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
             //加算できない時か最大数がスロットにある時はアイテムを入れ替える
             else
             {
-                OnItemSlotAdded?.Invoke(slot,item.Count);
+                OnGrabItemReplaced?.Invoke(slot,item.Count);
                 SetInventoryWithInvokeEvent(slot,_grabbedItem);
                 SetGrabbedWithInvokeEvent(true,item);
             }

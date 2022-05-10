@@ -19,6 +19,7 @@ namespace MainGame.Presenter.Inventory.Send
             uiStateControl.OnStateChanged += OnStateChanged;
             playerInventoryViewModelController.OnItemSlotGrabbed += ItemSlotGrabbed;
             playerInventoryViewModelController.OnItemSlotCollect += ItemSlotGrabbed;
+            playerInventoryViewModelController.OnGrabItemReplaced += ItemSlotGrabbed;
             playerInventoryViewModelController.OnItemSlotAdded += ItemSlotAdded;
             _inventoryMoveItem = inventoryMoveItem;
         }
