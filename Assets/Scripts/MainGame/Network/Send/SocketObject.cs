@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -13,9 +14,16 @@ namespace MainGame.Network.Send
     public class SocketObject : ISocket
     {
         private readonly Socket _socket;
+        public event Action OnConnected;
+        
         public SocketObject(SocketInstanceCreate socketInstanceCreate)
         {
             _socket = socketInstanceCreate.GetSocket();
+            Task.Run(() =>
+            {
+                while (!_socket.Connected) { }
+                OnConnected?.Invoke();
+            });
         }
 
         public void Send(List<byte> data)
