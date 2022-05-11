@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace MainGame.UnityView.Control.MouseKeyboard
 {
-    public class GrabbedItemViewControl : MonoBehaviour
+    public class UICursorFollowControl : MonoBehaviour
     {
          RectTransform _canvasRect;
 
