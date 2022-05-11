@@ -35,7 +35,7 @@ namespace MainGame.UnityView.UI.Inventory.View
                 itemNameTextGameObject.SetActive(false);
                 return;
             }
-            itemNameText.text = _itemImages.GetItemView(slot).itemName;
+            itemNameText.text = _itemImages.GetItemView(item.Id).itemName;
             itemNameTextGameObject.SetActive(true);
         }
     }
