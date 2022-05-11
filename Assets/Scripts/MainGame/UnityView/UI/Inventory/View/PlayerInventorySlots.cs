@@ -23,6 +23,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         public event Action<int> OnRightClickUp;
         public event Action<int> OnLeftClickUp;
         public event Action<int> OnCursorEnter;
+        public event Action<int> OnCursorExit;
         public event Action<int> OnDoubleClick;
         
         public event Action<SubInventoryOptions> OnSetSubInventory;
@@ -39,6 +40,7 @@ namespace MainGame.UnityView.UI.Inventory.View
                     slot.slot.OnRightClickUp += _ => OnRightClickUp?.Invoke(slot.index);
                     slot.slot.OnLeftClickUp += _ => OnLeftClickUp?.Invoke(slot.index);
                     slot.slot.OnCursorEnter += _ => OnCursorEnter?.Invoke(slot.index);
+                    slot.slot.OnCursorExit += _ => OnCursorExit?.Invoke(slot.index);
                     slot.slot.OnDoubleClick += _ => OnDoubleClick?.Invoke(slot.index);
                 });
         }
@@ -78,6 +80,7 @@ namespace MainGame.UnityView.UI.Inventory.View
                     slot.slot.OnRightClickUp += _ => OnRightClickUp?.Invoke(slotIndex);
                     slot.slot.OnLeftClickUp += _ => OnLeftClickUp?.Invoke(slotIndex);
                     slot.slot.OnCursorEnter += _ => OnCursorEnter?.Invoke(slotIndex);
+                    slot.slot.OnCursorExit += _ => OnCursorExit?.Invoke(slot.index);
                     slot.slot.OnDoubleClick += _ => OnDoubleClick?.Invoke(slotIndex);
                 });
         }

@@ -4,7 +4,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
 {
     public class UICursorFollowControl : MonoBehaviour
     {
-         RectTransform _canvasRect;
+        RectTransform _canvasRect;
 
          private void Start()
          {

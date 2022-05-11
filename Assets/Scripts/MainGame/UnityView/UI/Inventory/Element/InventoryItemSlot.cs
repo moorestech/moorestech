@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace MainGame.UnityView.UI.Inventory.Element
 {
-    public class InventoryItemSlot: MonoBehaviour,IPointerDownHandler,IPointerUpHandler,IPointerEnterHandler,IPointerClickHandler
+    public class InventoryItemSlot: MonoBehaviour,IPointerDownHandler,IPointerUpHandler,IPointerEnterHandler,IPointerClickHandler,IPointerExitHandler
     {
         public event Action<InventoryItemSlot> OnRightClickDown;
         public event Action<InventoryItemSlot> OnLeftClickDown;
@@ -16,6 +16,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
         public event Action<InventoryItemSlot> OnRightClickUp;
         public event Action<InventoryItemSlot> OnLeftClickUp;
         public event Action<InventoryItemSlot> OnCursorEnter;
+        public event Action<InventoryItemSlot> OnCursorExit;
         public event Action<InventoryItemSlot> OnDoubleClick;
         
 
@@ -91,6 +92,13 @@ namespace MainGame.UnityView.UI.Inventory.Element
             if(2 == eventData.clickCount && eventData.button == PointerEventData.InputButton.Left){
                 OnDoubleClick?.Invoke(this);
             }
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (!_slotOptions.IsEnableControllerEvent)return;
+            
+            OnCursorExit?.Invoke(this);
         }
     }
 }
