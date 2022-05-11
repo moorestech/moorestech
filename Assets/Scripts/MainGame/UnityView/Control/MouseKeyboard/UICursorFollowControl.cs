@@ -4,6 +4,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
 {
     public class UICursorFollowControl : MonoBehaviour
     {
+        [SerializeField] private Vector3 offSet = Vector3.zero;
         RectTransform _canvasRect;
 
          private void Start()
@@ -21,7 +22,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             itemPos.y = Input.mousePosition.y * magnification - _canvasRect.sizeDelta.y / 2;
             itemPos.z = transform.localPosition.z;
 
-            transform.localPosition = itemPos;
+            transform.localPosition = itemPos + offSet;
         }
         
         
