@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Core.Item;
 using MainGame.Basic;
 using SinglePlay;
+using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory.Control
 {
@@ -33,7 +34,13 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 {
                     return _mainInventory[index];
                 }
-                return _subInventory[index - _mainInventory.Count];
+                var subIndex = index - _mainInventory.Count;
+                if (subIndex < _subInventory.Count)
+                {
+                    return _subInventory[index - _mainInventory.Count];
+                }
+                Debug.LogError("sub inventory index out of range");
+                return _itemStackFactory.CreatEmpty();
             }
             set
             {
@@ -47,7 +54,9 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 if (subIndex < _subInventory.Count)
                 {
                     _subInventory[subIndex] = value;
+                    return;
                 }
+                Debug.LogError("sub inventory index out of range");
             }
         }
 
