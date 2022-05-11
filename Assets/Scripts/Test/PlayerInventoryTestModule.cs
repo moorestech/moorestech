@@ -65,7 +65,7 @@ namespace Test
             inventoryModel.SetSubInventory(subInventory.ToList());
             
             
-            playerInventoryItemNamePresenter.Construct(inventoryModel,itemImages);
+            playerInventoryItemNamePresenter.Construct(inventoryModel,inventoryController,itemImages);
         }
     }
 }

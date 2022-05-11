@@ -15,11 +15,14 @@ namespace MainGame.UnityView.UI.Inventory.View
         private ItemImages _itemImages;
         
         private PlayerInventoryViewModel _playerInventoryViewModel;
+        private PlayerInventoryViewModelController _playerInventoryViewModelController;
+        
 
         [Inject]
-        public void Construct(PlayerInventoryViewModel playerInventoryViewModel,ItemImages itemImages)
+        public void Construct(PlayerInventoryViewModel playerInventoryViewModel,PlayerInventoryViewModelController playerInventoryViewModelController,ItemImages itemImages)
         {
             _playerInventoryViewModel = playerInventoryViewModel;
+            _playerInventoryViewModelController = playerInventoryViewModelController;
             _itemImages = itemImages;
             playerInventorySlots.OnCursorEnter += OnCursorEnter;
             playerInventorySlots.OnCursorExit += _ => itemNameTextGameObject.SetActive(false);
@@ -27,6 +30,8 @@ namespace MainGame.UnityView.UI.Inventory.View
 
         private void OnCursorEnter(int slot)
         {
+            if (_playerInventoryViewModelController.IsGrabbed)return;
+            
             var item = _playerInventoryViewModel[slot];
             
             if (item.Count == ItemConst.EmptyItemId)
