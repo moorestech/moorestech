@@ -39,7 +39,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 {
                     return _subInventory[index - _mainInventory.Count];
                 }
-                Debug.LogError("sub inventory index out of range");
+                Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + index);
                 return _itemStackFactory.CreatEmpty();
             }
             set
@@ -56,7 +56,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
                     _subInventory[subIndex] = value;
                     return;
                 }
-                Debug.LogError("sub inventory index out of range");
+                Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + index); 
             }
         }
 
