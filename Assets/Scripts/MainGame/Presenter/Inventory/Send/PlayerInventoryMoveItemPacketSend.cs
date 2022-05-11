@@ -1,5 +1,6 @@
 using MainGame.Basic;
 using MainGame.Network.Send;
+using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.UIState;
 using UnityEngine;
@@ -10,11 +11,12 @@ namespace MainGame.Presenter.Inventory.Send
     public class PlayerInventoryMoveItemPacketSend : IInitializable
     {
         private readonly InventoryMoveItemProtocol _inventoryMoveItem;
-        
+        private readonly IBlockClickDetect _blockClickDetect;
+
         private InventoryType _currentInventoryType;
         private Vector2Int _blockPos;
 
-        public PlayerInventoryMoveItemPacketSend(UIStateControl uiStateControl, PlayerInventoryViewModelController playerInventoryViewModelController,InventoryMoveItemProtocol inventoryMoveItem)
+        public PlayerInventoryMoveItemPacketSend(UIStateControl uiStateControl, PlayerInventoryViewModelController playerInventoryViewModelController,InventoryMoveItemProtocol inventoryMoveItem,IBlockClickDetect blockClickDetect)
         {
             uiStateControl.OnStateChanged += OnStateChanged;
             playerInventoryViewModelController.OnItemSlotGrabbed += ItemSlotGrabbed;
@@ -22,6 +24,7 @@ namespace MainGame.Presenter.Inventory.Send
             playerInventoryViewModelController.OnGrabItemReplaced += ItemSlotGrabbed;
             playerInventoryViewModelController.OnItemSlotAdded += ItemSlotAdded;
             _inventoryMoveItem = inventoryMoveItem;
+            _blockClickDetect = blockClickDetect;
         }
 
         private void ItemSlotGrabbed(int slot, int count)
@@ -57,6 +60,7 @@ namespace MainGame.Presenter.Inventory.Send
                 UIStateEnum.BlockInventory => InventoryType.BlockInventory,
                 _ => _currentInventoryType
             };
+            _blockPos = _blockClickDetect.GetClickPosition();
         }
 
         public void Initialize() { }
