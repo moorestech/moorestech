@@ -25,7 +25,20 @@ namespace MainGame.UnityView.UI.Inventory.View
             _playerInventoryViewModelController = playerInventoryViewModelController;
             _itemImages = itemImages;
             playerInventorySlots.OnCursorEnter += OnCursorEnter;
+            playerInventorySlots.OnCursorMove += OnCursorEnter;
             playerInventorySlots.OnCursorExit += _ => itemNameTextGameObject.SetActive(false);
+            
+            //アイテムが置かれたことを検知してアイテム名を表示する
+            _playerInventoryViewModelController.OnItemSlotAdded += (slot,count) =>
+            {
+                if (_playerInventoryViewModelController.IsGrabbed)return;
+                itemNameTextGameObject.SetActive(true);
+            };
+            //持っているアイテムが更新された時はテキストも更新しておく
+            _playerInventoryViewModelController.OnGrabbedItemUpdate += (item) =>
+            {
+                itemNameText.text = _itemImages.GetItemView(item.ID).itemName;
+            };
         }
 
         private void OnCursorEnter(int slot)

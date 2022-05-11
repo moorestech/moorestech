@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace MainGame.UnityView.UI.Inventory.Element
 {
-    public class InventoryItemSlot: MonoBehaviour,IPointerDownHandler,IPointerUpHandler,IPointerEnterHandler,IPointerClickHandler,IPointerExitHandler
+    public class InventoryItemSlot: MonoBehaviour,IPointerDownHandler,IPointerUpHandler,IPointerEnterHandler,IPointerClickHandler,IPointerExitHandler,IPointerMoveHandler
     {
         public event Action<InventoryItemSlot> OnRightClickDown;
         public event Action<InventoryItemSlot> OnLeftClickDown;
@@ -18,14 +18,16 @@ namespace MainGame.UnityView.UI.Inventory.Element
         public event Action<InventoryItemSlot> OnCursorEnter;
         public event Action<InventoryItemSlot> OnCursorExit;
         public event Action<InventoryItemSlot> OnDoubleClick;
+        public event Action<InventoryItemSlot> OnCursorMove;
         
 
         [SerializeField] private Image image;
         [SerializeField] private TMP_Text countText;
 
         private InventorySlotElementOptions _slotOptions = new();
-
         
+
+
         public void SetItem(ItemViewData itemView, int count)
         {
             image.sprite = itemView.itemImage;
@@ -99,6 +101,13 @@ namespace MainGame.UnityView.UI.Inventory.Element
             if (!_slotOptions.IsEnableControllerEvent)return;
             
             OnCursorExit?.Invoke(this);
+        }
+
+        public void OnPointerMove(PointerEventData eventData)
+        {
+            if (!_slotOptions.IsEnableControllerEvent)return;
+            
+            OnCursorMove?.Invoke(this);
         }
     }
 }

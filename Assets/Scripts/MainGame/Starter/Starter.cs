@@ -90,6 +90,7 @@ namespace MainGame.Starter
         [SerializeField] private ItemListViewer itemListViewer;
         [SerializeField] private PlayerInventoryPresenter playerInventoryPresenter;
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
+        [SerializeField] private PlayerInventoryItemNamePresenter playerInventoryItemNamePresenter;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
@@ -198,6 +199,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(itemRecipePresenter);
             builder.RegisterComponent(itemListViewer);
             builder.RegisterComponent(playerInventorySlots);
+            builder.RegisterComponent(playerInventoryItemNamePresenter);
             
             
             builder.RegisterComponent<IPlayerPosition>(playerPosition);
