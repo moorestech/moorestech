@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace MainGame.Network
 {
@@ -6,5 +7,6 @@ namespace MainGame.Network
     {
         public void Send(List<byte> data);
         public void Close();
+        public event Action OnConnected;
     }
 }
