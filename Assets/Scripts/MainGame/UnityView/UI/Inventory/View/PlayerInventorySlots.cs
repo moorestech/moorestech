@@ -13,7 +13,9 @@ namespace MainGame.UnityView.UI.Inventory.View
         [SerializeField] private List<InventoryItemSlot> mainInventorySlots;
         [SerializeField] private SubInventorySlotCreator subInventorySlotCreator;
         [SerializeField] private Transform subInventorySlotsParent;
+        
         private List<InventoryItemSlot> _subInventorySlots = new();
+        private List<GameObject> _subInventorySlotsObjects = new();
 
         public event Action<int> OnRightClickDown;
         public event Action<int> OnLeftClickDown;
@@ -57,14 +59,15 @@ namespace MainGame.UnityView.UI.Inventory.View
         public void SetSubSlots(SubInventoryViewBluePrint subInventoryViewBluePrint,SubInventoryOptions subInventoryOptions)
         {
             OnSetSubInventory?.Invoke(subInventoryOptions);
-            foreach (var subSlot in _subInventorySlots)
+            foreach (var subSlot in _subInventorySlotsObjects)
             {
-                Destroy(subSlot.gameObject);
+                Destroy(subSlot);
             }
             _subInventorySlots.Clear();
+            _subInventorySlotsObjects.Clear();
             
             
-            _subInventorySlots = subInventorySlotCreator.CreateSlots(subInventoryViewBluePrint,subInventorySlotsParent);
+            (_subInventorySlots,_subInventorySlotsObjects) = subInventorySlotCreator.CreateSlots(subInventoryViewBluePrint,subInventorySlotsParent);
             _subInventorySlots.
                 Select((slot,index) => new{slot,index}).ToList().
                 ForEach(slot =>

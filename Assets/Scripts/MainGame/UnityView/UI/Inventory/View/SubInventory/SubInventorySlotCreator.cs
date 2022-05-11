@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View.SubInventory.Element;
 using UnityEngine;
@@ -12,29 +13,34 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory
         [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
         [SerializeField] private InventoryArraySlot inventoryArraySlotPrefab;
         [SerializeField] private InventoryTextElement inventoryTextElementPrefab;
-        public List<InventoryItemSlot> CreateSlots(SubInventoryViewBluePrint subInventoryViewBluePrint,Transform parent)
+        public (List<InventoryItemSlot>,List<GameObject>) CreateSlots(SubInventoryViewBluePrint subInventoryViewBluePrint,Transform parent)
         {
             var slots = new List<InventoryItemSlot>();
-
+            var gameObjects = new List<GameObject>();
 
             foreach (var element in subInventoryViewBluePrint.Elements)
             {
                 switch (element.ElementType)
                 {
                     case SubInventoryElementType.OneSlot:
-                        slots.Add(CreateOneSlot(element as OneSlot, parent));
+                        var item = CreateOneSlot(element as OneSlot, parent);
+                        slots.Add(item);
+                        gameObjects.Add(item.gameObject);
                         break;
                     case SubInventoryElementType.ArraySlot:
-                        slots.AddRange(CreateArraySlot(element as ArraySlot, parent));
+                        var array = CreateArraySlot(element as ArraySlot, parent);
+                        slots.AddRange(array);
+                        gameObjects.AddRange(array.Select(x => x.gameObject));
                         break;
                     case SubInventoryElementType.Text:
-                        CreateTextElement(element as TextElement, parent);
+                        var text = CreateTextElement(element as TextElement, parent);
+                        gameObjects.Add(text.gameObject);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(element.ElementType + " の実装がありません");
                 }
             }
-            return slots;
+            return (slots,gameObjects);
         }
 
         private InventoryTextElement CreateTextElement(TextElement element, Transform parent)
