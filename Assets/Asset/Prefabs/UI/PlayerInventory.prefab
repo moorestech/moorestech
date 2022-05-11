@@ -674,7 +674,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 782514829e3049d2be9e9cf6cfbde95b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  offSet: {x: 10, y: 0, z: 0}
+  offSet: {x: 0, y: 60, z: 0}
 --- !u!1 &7806178277926331240
 GameObject:
   m_ObjectHideFlags: 0
