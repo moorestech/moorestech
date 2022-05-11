@@ -23,16 +23,13 @@ namespace MainGame.UnityView.WorldMapTile
                 return;
             }
             
-            MainThreadExecutionQueue.Instance.Insert(() =>
-            {
-                var tile = Instantiate(
-                    _worldMapTileObjects.GetTile(tileId),
-                    new Vector3(tilePosition.x, 0, tilePosition.y),
-                    Quaternion.Euler(0, 0, 0),
-                    transform).GetComponent<MapTileObject>();
+            var tile = Instantiate(
+                _worldMapTileObjects.GetTile(tileId),
+                new Vector3(tilePosition.x, 0, tilePosition.y),
+                Quaternion.Euler(0, 0, 0),
+                transform).GetComponent<MapTileObject>();
                 
-                _blockObjectsDictionary.Add(tilePosition, tile);
-            });
+            _blockObjectsDictionary.Add(tilePosition, tile);
         }
     }
 }

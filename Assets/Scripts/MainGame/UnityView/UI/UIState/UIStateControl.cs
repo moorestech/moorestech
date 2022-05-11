@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using VContainer;
 
 namespace MainGame.UnityView.UI.UIState
@@ -11,6 +12,8 @@ namespace MainGame.UnityView.UI.UIState
 
         private UIStateDictionary _uiStateDictionary;
         
+        public event Action<UIStateEnum> OnStateChanged;
+        
         [Inject]
         public void Construct(UIStateDictionary uiStateDictionary,MoorestechInputSettings inputSettings)
         {
@@ -20,7 +23,7 @@ namespace MainGame.UnityView.UI.UIState
         
         
         //UIステート
-        private void FixedUpdate()
+        private void Update()
         {
             //UIステートが変更されたら
             if (!_uiStateDictionary.GetState(_currentState).IsNext()) return;
@@ -31,6 +34,8 @@ namespace MainGame.UnityView.UI.UIState
             _uiStateDictionary.GetState(_currentState).OnExit();
             _currentState = _uiStateDictionary.GetState(_currentState).GetNext();
             _uiStateDictionary.GetState(_currentState).OnEnter(lastState);
+            
+            OnStateChanged?.Invoke(_currentState);
         }
     }
 }

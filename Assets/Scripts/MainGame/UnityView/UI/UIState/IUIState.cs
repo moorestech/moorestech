@@ -1,6 +1,4 @@
-﻿using MainGame.Control.UI.UIState;
-
-namespace MainGame.UnityView.UI.UIState
+﻿namespace MainGame.UnityView.UI.UIState
 {
     public interface IUIState
     {

@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.neuecc.unirx": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
     "com.unity.cinemachine": "2.8.4",
     "com.unity.collab-proxy": "1.15.13",
     "com.unity.ide.rider": "3.0.12",

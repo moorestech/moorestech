@@ -36,16 +36,13 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
             
-            if (Physics.Raycast(ray, out var hit))
-            {            
-                var x = Mathf.RoundToInt(hit.point.x);
-                var y = Mathf.RoundToInt(hit.point.z);
-                return new Vector2Int(x, y);
-            }
-            else
-            {
-                return Vector2Int.zero;
-            }
+            if (!_input.Playable.ScreenClick.triggered) return Vector2Int.zero;
+            if (!Physics.Raycast(ray, out var hit)) return Vector2Int.zero;
+            if (hit.collider.gameObject.GetComponent<BlockGameObject>() == null) return Vector2Int.zero;
+            
+            
+            var blockPos = hit.collider.gameObject.GetComponent<BlockGameObject>().transform.position;
+            return new Vector2Int((int)blockPos.x,(int)blockPos.z);
         }
 
         public GameObject GetClickedObject()

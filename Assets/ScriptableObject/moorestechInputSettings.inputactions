@@ -364,6 +364,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "AllCraft",
+                    "type": "Button",
+                    "id": "8c3efc46-7724-4341-a7e8-9402cddefebf",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "OneStackCraft",
+                    "type": "Button",
+                    "id": "ed8ecda3-c72b-4262-95fe-d2a5b75d1a64",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -551,6 +569,28 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "BlockDelete",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5c85fb7f-2f33-4d90-85b5-1d0a0e84a185",
+                    "path": "<Keyboard>/shift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "AllCraft",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3f46df6d-d6f6-4384-9c48-2728241e9222",
+                    "path": "<Keyboard>/leftCtrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "OneStackCraft",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

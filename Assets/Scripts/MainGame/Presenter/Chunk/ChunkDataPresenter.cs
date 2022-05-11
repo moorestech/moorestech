@@ -15,17 +15,18 @@ namespace MainGame.Presenter.Chunk
     {
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private readonly Dictionary<Vector2Int, int[,]> _chunk = new();
-        public ChunkDataPresenter(INetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
+        public ChunkDataPresenter(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             //イベントをサブスクライブする
-            networkReceivedChunkDataEvent.Subscribe(OnChunkUpdate,OnBlockUpdate);
+            networkReceivedChunkDataEvent.OnChunkUpdateEvent += OnChunkUpdate;
+            networkReceivedChunkDataEvent.OnBlockUpdateEvent += OnBlockUpdate;
         }
         
         /// <summary>
         /// チャンクの更新イベント
         /// </summary>
-        private void OnChunkUpdate(OnChunkUpdateEventProperties properties)
+        private void OnChunkUpdate(ChunkUpdateEventProperties properties)
         {
             var chunkPos = properties.ChunkPos;
             //チャンクの情報を追加か更新
@@ -51,7 +52,7 @@ namespace MainGame.Presenter.Chunk
         /// <summary>
         /// 単一のブロックの更新イベント
         /// </summary>
-        private void OnBlockUpdate(OnBlockUpdateEventProperties properties)
+        private void OnBlockUpdate(BlockUpdateEventProperties properties)
         {
             var blockPos = properties.BlockPos;
             var chunkPos = ChunkConstant.BlockPositionToChunkOriginPosition(blockPos);

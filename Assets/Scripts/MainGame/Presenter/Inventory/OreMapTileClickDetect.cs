@@ -24,7 +24,7 @@ namespace MainGame.Presenter.Inventory
             _input.Enable();
         }
 
-        private void FixedUpdate()
+        private void Update()
         {
             if (IsBlockClicked() && _uiStateControl.CurrentState == UIStateEnum.DeleteBar)
             {

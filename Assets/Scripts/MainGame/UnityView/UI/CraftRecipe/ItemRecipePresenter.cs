@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
@@ -83,8 +84,10 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 _itemRecipeView.SetMachineCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0],recipe.BlockId);
             }
         }
-        public void FixedUpdate()
+
+        private void Update()
         {
+            // ButtonがクリックされたことをUpdate内で確認したいのでクリックされてから2フレームはtrueとする
             if (_isClickedCount == 0 || _isClickedCount == 1)
             {
                 _isClickedCount++;
