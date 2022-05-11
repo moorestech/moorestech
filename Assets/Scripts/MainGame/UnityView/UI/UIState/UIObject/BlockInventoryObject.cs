@@ -16,7 +16,7 @@ namespace MainGame.UnityView.UI.UIState.UIObject
             var arraySlot = new List<ArraySlot>();
             arraySlot.Add(CreateArraySlot(0,272,10,slot,PlayerInventoryConst.MainInventoryColumns));
             
-            var text = new List<TextElement>(){new(0,330,0,blockName,30)};
+            var text = new List<TextElement>(){new(0,436,0,blockName,30)};
             
             var blockInventory = new SubInventoryViewBluePrint(){ArraySlots = arraySlot,TextElements = text};
             
@@ -27,10 +27,10 @@ namespace MainGame.UnityView.UI.UIState.UIObject
         {
             const int maxSlotColumns = 5;
             var arraySlot = new List<ArraySlot>();
-            arraySlot.Add(CreateArraySlot(100,272,10,input,maxSlotColumns));
-            arraySlot.Add(CreateArraySlot(-100,272,10,output,maxSlotColumns));
+            arraySlot.Add(CreateArraySlot(330,272,10,input,maxSlotColumns));
+            arraySlot.Add(CreateArraySlot(-330,272,10,output,maxSlotColumns));
             
-            var text = new List<TextElement>(){new(0,330,0,blockName,30)};
+            var text = new List<TextElement>(){new(0,436,0,blockName,30)};
             
             var blockInventory = new SubInventoryViewBluePrint(){ArraySlots = arraySlot,TextElements = text};
             
