@@ -14,6 +14,8 @@ namespace MainGame.Network.Send
         {
             playerId = playerConnectionSetting.PlayerId;
             _socket = socket;
+            //接続した時の初回送信
+            _socket.OnConnected += Send;
         }
         
         public void Send()
