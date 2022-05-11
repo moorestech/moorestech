@@ -894,6 +894,7 @@ MonoBehaviour:
   itemListViewer: {fileID: 529398943}
   playerInventoryPresenter: {fileID: 2030610761}
   playerInventorySlots: {fileID: 2030610762}
+  playerInventoryItemNamePresenter: {fileID: 1834001113}
   blockPlacePreview: {fileID: 1341326065}
   oreMapTileClickDetect: {fileID: 1857732744}
   saveButton: {fileID: 104714908}
@@ -1287,6 +1288,17 @@ PrefabInstance:
       objectReference: {fileID: -944628639613478452, guid: 1f92d864daf694b8a99b807fa2721014, type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 64dce48905ffd9b4293e595fa6941544, type: 3}
+--- !u!114 &1834001113 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2280525633465901022, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f3a376eff5f44c2baec2c440d804f5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1857732741
 GameObject:
   m_ObjectHideFlags: 0
