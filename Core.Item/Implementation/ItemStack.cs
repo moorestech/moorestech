@@ -88,10 +88,7 @@ namespace Core.Item.Implementation
             return Id == item.Id || item.Id == ItemConst.EmptyItemId;
         }
 
-        public IItemStack Clone()
-        {
-            return _itemStackFactory.Create(Id, Count);
-        }
+
 
         public override bool Equals(object? obj)
         {

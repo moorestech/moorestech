@@ -23,6 +23,5 @@ namespace Core.Item
         /// </summary>
         /// <returns>あまりが出ても追加できるときはtrue</returns>
         bool IsAllowedToAddWithRemain(IItemStack item);
-        IItemStack Clone();
     }
 }
