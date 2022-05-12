@@ -7,14 +7,14 @@ namespace MainGame.UnityView.UI.UIState
     {
         private readonly MoorestechInputSettings _inputSettings;
         private readonly RecipeViewerObject _recipeViewerObject;
-        private readonly ItemListViewer _itemListViewer;
+        private readonly CraftRecipeItemListViewer _craftRecipeItemListViewer;
         
 
         private UIStateEnum _lastInventoryUI;
 
-        public RecipeViewState(MoorestechInputSettings inputSettings, RecipeViewerObject recipeViewerObject,ItemListViewer itemListViewer)
+        public RecipeViewState(MoorestechInputSettings inputSettings, RecipeViewerObject recipeViewerObject,CraftRecipeItemListViewer craftRecipeItemListViewer)
         {
-            _itemListViewer = itemListViewer;
+            _craftRecipeItemListViewer = craftRecipeItemListViewer;
             _inputSettings = inputSettings;
             _recipeViewerObject = recipeViewerObject;
         }
@@ -41,13 +41,13 @@ namespace MainGame.UnityView.UI.UIState
             {
                 _lastInventoryUI = lastStateEnum;
             }
-            _itemListViewer.gameObject.SetActive(true);
+            _craftRecipeItemListViewer.gameObject.SetActive(true);
             _recipeViewerObject.gameObject.SetActive(true);
         }
 
         public void OnExit()
         {
-            _itemListViewer.gameObject.SetActive(false);
+            _craftRecipeItemListViewer.gameObject.SetActive(false);
             _recipeViewerObject.gameObject.SetActive(false);
         }
     }

@@ -87,10 +87,11 @@ namespace MainGame.Starter
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private RecipeViewerObject recipeViewerObject;
         [SerializeField] private ItemRecipePresenter itemRecipePresenter;
-        [SerializeField] private ItemListViewer itemListViewer;
+        [SerializeField] private CraftRecipeItemListViewer craftRecipeItemListViewer;
         [SerializeField] private PlayerInventoryPresenter playerInventoryPresenter;
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
         [SerializeField] private PlayerInventoryItemNamePresenter playerInventoryItemNamePresenter;
+        [SerializeField] private RecipeViewerItemNamePresenter recipeViewerItemNamePresenter;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
@@ -197,9 +198,10 @@ namespace MainGame.Starter
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(itemRecipePresenter);
-            builder.RegisterComponent(itemListViewer);
+            builder.RegisterComponent(craftRecipeItemListViewer);
             builder.RegisterComponent(playerInventorySlots);
             builder.RegisterComponent(playerInventoryItemNamePresenter);
+            builder.RegisterComponent(recipeViewerItemNamePresenter);
             
             
             builder.RegisterComponent<IPlayerPosition>(playerPosition);

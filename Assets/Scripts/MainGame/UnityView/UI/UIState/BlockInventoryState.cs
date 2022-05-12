@@ -14,7 +14,7 @@ namespace MainGame.UnityView.UI.UIState
     {
         private readonly MoorestechInputSettings _inputSettings;
         private readonly BlockInventoryObject _blockInventory;
-        private readonly ItemListViewer _itemListViewer;
+        private readonly CraftRecipeItemListViewer _craftRecipeItemListViewer;
         
         private readonly ItemRecipePresenter _itemRecipePresenter;
         
@@ -25,9 +25,9 @@ namespace MainGame.UnityView.UI.UIState
         public event Action OnCloseBlockInventory;
 
         public BlockInventoryState(MoorestechInputSettings inputSettings, BlockInventoryObject blockInventory,
-            ItemListViewer itemListViewer,ItemRecipePresenter itemRecipePresenter,IBlockClickDetect blockClickDetect,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,SinglePlayInterface singlePlayInterface)
+            CraftRecipeItemListViewer craftRecipeItemListViewer,ItemRecipePresenter itemRecipePresenter,IBlockClickDetect blockClickDetect,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,SinglePlayInterface singlePlayInterface)
         {
-            _itemListViewer = itemListViewer;
+            _craftRecipeItemListViewer = craftRecipeItemListViewer;
             _itemRecipePresenter = itemRecipePresenter;
             _blockClickDetect = blockClickDetect;
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
@@ -61,7 +61,7 @@ namespace MainGame.UnityView.UI.UIState
         {
             OnOpenBlockInventory?.Invoke();
             
-            _itemListViewer.gameObject.SetActive(true);
+            _craftRecipeItemListViewer.gameObject.SetActive(true);
             _blockInventory.gameObject.SetActive(true);
 
             
@@ -100,7 +100,7 @@ namespace MainGame.UnityView.UI.UIState
             OnCloseBlockInventory?.Invoke();
             
             _blockInventory.gameObject.SetActive(false);
-            _itemListViewer.gameObject.SetActive(false);
+            _craftRecipeItemListViewer.gameObject.SetActive(false);
         }
     }
 }

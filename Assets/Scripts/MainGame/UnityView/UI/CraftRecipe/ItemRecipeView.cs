@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
@@ -26,7 +27,10 @@ namespace MainGame.UnityView.UI.CraftRecipe
         [SerializeField] private InventoryItemSlot machineCraftingResultSlot;
         [SerializeField] private TMP_Text machineNameText;
         
-        public event ItemListViewer.ItemSlotClick OnCraftSlotClick;
+        public event CraftRecipeItemListViewer.ItemSlotClick OnCraftSlotClick;
+
+        public event Action<ItemStack> OnCursorEnter;
+        public event Action<ItemStack> OnCursorExit;
         
         [Inject]
         public void Construct(ItemImages itemImages,BlockObjects blockObjects)
@@ -36,15 +40,24 @@ namespace MainGame.UnityView.UI.CraftRecipe
             foreach (var slot in craftingRecipeSlots)
             {
                 slot.OnLeftClickDown += OnClick;
+                slot.OnCursorEnter += InvokeCursorEnter;
+                slot.OnCursorExit += InvokeCursorExit;
             }
             foreach (var slot in machineCraftingRecipeSlots)
             {
                 slot.OnLeftClickDown += OnClick;
+                slot.OnCursorEnter += InvokeCursorEnter;
+                slot.OnCursorExit += InvokeCursorExit;
             }
+            craftingResultSlot.OnCursorEnter += _ => OnCursorEnter?.Invoke(_craftResultItemStack);
+            craftingResultSlot.OnCursorExit += _ => OnCursorExit?.Invoke(_craftResultItemStack);
+            machineCraftingResultSlot.OnCursorEnter += _ => OnCursorEnter?.Invoke(_machineCraftResultItemStack);
+            machineCraftingResultSlot.OnCursorExit += _ => OnCursorExit?.Invoke(_machineCraftResultItemStack);
         }
         
         
         private List<ItemStack> _craftItemStacks = new();
+        private ItemStack _craftResultItemStack;
         
         public void SetCraftRecipe(List<ItemStack> itemStacks,ItemStack result)
         {
@@ -57,11 +70,14 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 craftingRecipeSlots[i].SetItem(_itemImages.GetItemView(item.ID),item.Count);
             }
             craftingResultSlot.SetItem(_itemImages.GetItemView(result.ID),result.Count);
+            _craftResultItemStack = result;
             
             _craftItemStacks = itemStacks;
         }
         
         private List<ItemStack> _machineCraftItemStacks = new();
+        private ItemStack _machineCraftResultItemStack;
+        
         public void SetMachineCraftRecipe(List<ItemStack> itemStacks,ItemStack result,int blockId)
         {
             craftingRecipeView.SetActive(false);
@@ -81,24 +97,31 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 var item = itemStacks[i];
                 machineCraftingRecipeSlots[i].SetItem(_itemImages.GetItemView(item.ID),item.Count);
             }
+            _machineCraftResultItemStack = result;
             machineCraftingResultSlot.SetItem(_itemImages.GetItemView(result.ID),result.Count);
             _machineCraftItemStacks = itemStacks;
         }
 
-        private void OnClick(InventoryItemSlot inventoryItemSlot)
+        private void OnClick(InventoryItemSlot inventoryItemSlot) { OnCraftSlotClick?.Invoke(GetItemStack(inventoryItemSlot).ID); }
+        private void InvokeCursorEnter(InventoryItemSlot inventoryItemSlot) { OnCursorEnter?.Invoke(GetItemStack(inventoryItemSlot)); }
+        private void InvokeCursorExit(InventoryItemSlot inventoryItemSlot) { OnCursorExit?.Invoke(GetItemStack(inventoryItemSlot)); }
+
+
+        private ItemStack GetItemStack(InventoryItemSlot inventoryItemSlot)
         {
             var craftIndex = craftingRecipeSlots.IndexOf(inventoryItemSlot);
             var machineCraftIndex = machineCraftingRecipeSlots.IndexOf(inventoryItemSlot);
             
             if (craftIndex != -1)
             {
-                OnCraftSlotClick?.Invoke(_craftItemStacks[craftIndex].ID);
+                return _craftItemStacks[craftIndex];
             }
             else if (machineCraftIndex != -1)
             {
-                OnCraftSlotClick?.Invoke(_machineCraftItemStacks[machineCraftIndex].ID);
+                return _machineCraftItemStacks[machineCraftIndex];
             }
-            
+
+            return new ItemStack();
         }
     }
 }

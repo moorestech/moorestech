@@ -21,7 +21,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
         private int _isClickedCount = -1;
 
         [Inject]
-        public void Construct(ItemListViewer itemListViewer,SinglePlayInterface singlePlayInterface,ItemRecipeView itemRecipeView)
+        public void Construct(CraftRecipeItemListViewer craftRecipeItemListViewer,SinglePlayInterface singlePlayInterface,ItemRecipeView itemRecipeView)
         {
             //レシピ表示用のDictionaryを構築する
             var craftRecipe = singlePlayInterface.CraftingConfig.GetCraftingConfigList();
@@ -59,7 +59,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
             
             
             //イベントをサブスクライブ
-            itemListViewer.OnItemListClick += OnItemListClick;
+            craftRecipeItemListViewer.OnItemListClick += OnItemListClick;
             itemRecipeView.OnCraftSlotClick += OnItemListClick;
             _itemRecipeView = itemRecipeView;
         }

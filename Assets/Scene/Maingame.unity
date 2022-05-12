@@ -891,10 +891,11 @@ MonoBehaviour:
   deleteBarObject: {fileID: 110116535}
   recipeViewerObject: {fileID: 140883334}
   itemRecipePresenter: {fileID: 1868551568}
-  itemListViewer: {fileID: 529398943}
+  craftRecipeItemListViewer: {fileID: 529398943}
   playerInventoryPresenter: {fileID: 2030610761}
   playerInventorySlots: {fileID: 2030610762}
   playerInventoryItemNamePresenter: {fileID: 1834001113}
+  recipeViewerItemNamePresenter: {fileID: 1379452831}
   blockPlacePreview: {fileID: 1341326065}
   oreMapTileClickDetect: {fileID: 1857732744}
   saveButton: {fileID: 104714908}
@@ -1031,6 +1032,17 @@ MonoBehaviour:
   m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
   m_DeselectOnBackgroundClick: 1
   m_PointerBehavior: 0
+--- !u!114 &1379452831 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6293454036772858141, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b8ff6b7ca83415f991e2c841ebf2868, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1402827283
 PrefabInstance:
   m_ObjectHideFlags: 0
