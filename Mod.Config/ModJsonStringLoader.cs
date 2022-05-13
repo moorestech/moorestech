@@ -13,7 +13,7 @@ namespace Mod.Config
         private const string CraftRecipeConfigPath = "config/craft_recipe.json";
         
         
-        public Dictionary<string,ConfigJson> GetConfigString(string[] zipFileList)
+        public static Dictionary<string,ConfigJson> GetConfigString(string[] zipFileList)
         {
             var configDict = new Dictionary<string, ConfigJson>();
             //zipファイルの中身のjsonファイルを読み込む
@@ -34,7 +34,7 @@ namespace Mod.Config
             return configDict;
         }
 
-        private string LoadConfigFromZip(ZipArchive zip, string configPath)
+        private static string LoadConfigFromZip(ZipArchive zip, string configPath)
         {
             var itemJson = zip.GetEntry(configPath);
             if (itemJson == null) return string.Empty;
