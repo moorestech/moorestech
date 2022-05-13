@@ -14,7 +14,7 @@ namespace Core.Item.Config
         private ItemConfigData[] _itemDatas;
         private const int DefaultItemMaxCount = int.MaxValue;
 
-        public ItemConfig(ConfigPath configPath)
+        public ItemConfig(ConfigJsonList configPath)
         {
             try
             {

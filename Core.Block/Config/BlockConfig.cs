@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Block.Config.LoadConfig;
 using Core.Block.Config.LoadConfig.Param;
@@ -9,22 +10,22 @@ namespace Core.Block.Config
 {
     public class BlockConfig : IBlockConfig
     {
-        private readonly Dictionary<int, BlockConfigData> _blockConfigDictionary;
+        private readonly List<BlockConfigData> _blockConfigList;
 
-        public BlockConfig(ConfigPath configPath)
+        public BlockConfig(ConfigJsonList configJson)
         {
-            _blockConfigDictionary = new BlockConfigJsonLoad().LoadJsonFromPath(configPath.BlockConfigPath);
-        }
-        public BlockConfig(string jsonText)
-        {
-            _blockConfigDictionary = new BlockConfigJsonLoad().LoadJsonFromText(jsonText);
+            _blockConfigList = new BlockConfigJsonLoad().LoadFromJsons(configJson.SortedBlockConfigJsonList);
         }
 
         public BlockConfigData GetBlockConfig(int id)
         {
-            if (_blockConfigDictionary.ContainsKey(id))
+            if (id < 0)
             {
-                return _blockConfigDictionary[id];
+                throw new ArgumentException("id must be greater than 0 ID:" + id);
+            }
+            if (id < _blockConfigList.Count)
+            {
+                return _blockConfigList[id];
             }
 
             //未定義の時はNullBlockConfigを返す
@@ -33,11 +34,6 @@ namespace Core.Block.Config
                 VanillaBlockType.Block,
                 new NullBlockConfigParam(),
                 ItemConst.EmptyItemId);
-        }
-
-        public List<int> GetBlockIds()
-        {
-            return new List<int>(_blockConfigDictionary.Keys);
         }
     }
 }
