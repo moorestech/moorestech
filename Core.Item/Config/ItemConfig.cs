@@ -22,6 +22,8 @@ namespace Core.Item.Config
 
         public ItemConfigData GetItemConfig(int id)
         {
+            //0は何も持っていないことを表すので1から始める
+            id -= 1;
             if (id < 0)
             {
                 throw new ArgumentException("id must be greater than 0 ID:" + id);

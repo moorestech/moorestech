@@ -19,6 +19,8 @@ namespace Core.Block.Config
 
         public BlockConfigData GetBlockConfig(int id)
         {
+            //0は空気ブロックなので1を引いておく
+            id -= 1;
             if (id < 0)
             {
                 throw new ArgumentException("id must be greater than 0 ID:" + id);
