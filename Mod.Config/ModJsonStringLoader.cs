@@ -36,10 +36,10 @@ namespace Mod.Config
 
         private static string LoadConfigFromZip(ZipArchive zip, string configPath)
         {
-            var itemJson = zip.GetEntry(configPath);
-            if (itemJson == null) return string.Empty;
+            var config = zip.GetEntry(configPath);
+            if (config == null) return string.Empty;
             
-            using var itemJsonStream = itemJson.Open();
+            using var itemJsonStream = config.Open();
             using var itemJsonString = new StreamReader(itemJsonStream);
             return itemJsonString.ReadToEnd();
         }

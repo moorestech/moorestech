@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Mod.Config;
 using NUnit.Framework;
@@ -10,19 +11,21 @@ namespace Test.UnitTest.Mod
         [Test]
         public void LoadConfigTest()
         {
-            var zipFileList = Directory.GetFiles(TestModDirectory.FolderDirectory, "*.zip");
+            var zipFileList = Directory.GetFiles(TestModDirectory.ConfigOnlyDirectory, "*.zip");
+            Assert.AreEqual(zipFileList.Length, 2);
             var loaded = ModJsonStringLoader.GetConfigString(zipFileList);
             
             Assert.AreEqual(loaded.Count, 2);
-            Assert.AreEqual(loaded["testConfigOnlyMod1.zip"].ItemConfigJson, "testBlockJson1");
-            Assert.AreEqual(loaded["testConfigOnlyMod1.zip"].BlockConfigJson, "testItemJson1");
-            Assert.AreEqual(loaded["testConfigOnlyMod1.zip"].MachineRecipeConfigJson, "");
-            Assert.AreEqual(loaded["testConfigOnlyMod1.zip"].CraftRecipeConfigJson, "");
             
-            Assert.AreEqual(loaded["testConfigOnlyMod2.zip"].ItemConfigJson, "");
-            Assert.AreEqual(loaded["testConfigOnlyMod2.zip"].BlockConfigJson, "");
-            Assert.AreEqual(loaded["testConfigOnlyMod2.zip"].MachineRecipeConfigJson, "testCraftRecipeJson1");
-            Assert.AreEqual(loaded["testConfigOnlyMod2.zip"].CraftRecipeConfigJson, "testMachineRecipeJson1");
+            Assert.AreEqual("testItemJson1",loaded["testConfigOnlyMod1"].ItemConfigJson);
+            Assert.AreEqual("testBlockJson1",loaded["testConfigOnlyMod1"].BlockConfigJson);
+            Assert.AreEqual("",loaded["testConfigOnlyMod1"].MachineRecipeConfigJson);
+            Assert.AreEqual("",loaded["testConfigOnlyMod1"].CraftRecipeConfigJson);
+            
+            Assert.AreEqual("",loaded["testConfigOnlyMod2"].ItemConfigJson);
+            Assert.AreEqual("",loaded["testConfigOnlyMod2"].BlockConfigJson);
+            Assert.AreEqual("testMachineRecipeJson1",loaded["testConfigOnlyMod2"].MachineRecipeConfigJson);
+            Assert.AreEqual("testCraftRecipeJson1",loaded["testConfigOnlyMod2"].CraftRecipeConfigJson);
 
         }
         

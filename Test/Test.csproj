@@ -19,6 +19,7 @@
         <ProjectReference Include="..\Game.Crafting\Game.Crafting.csproj" />
         <ProjectReference Include="..\Game.PlayerInventory\Game.PlayerInventory.csproj" />
         <ProjectReference Include="..\Game.SaveLoad\Game.SaveLoad.csproj" />
+        <ProjectReference Include="..\Mod.Config\Mod.Config.csproj" />
         <ProjectReference Include="..\Server.Starter\Server.Starter.csproj" />
         <ProjectReference Include="..\Game.World\Game.World.csproj" />
         <ProjectReference Include="..\Test.Module\Test.Module.csproj" />
