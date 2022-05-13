@@ -7,6 +7,7 @@ namespace Test.UnitTest.Mod
 {
     public class ModGetConfigStringTest
     {
+        [Test]
         public void LoadConfigTest()
         {
             var zipFileList = Directory.GetFiles(TestModDirectory.FolderDirectory, "*.zip");
