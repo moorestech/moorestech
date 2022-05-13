@@ -26,7 +26,7 @@ namespace Core.Block.Config.LoadConfig
             return jsons.SelectMany(LoadFormOneJson).ToList();
         }
 
-        public List<BlockConfigData> LoadFormOneJson(string jsonText)
+        private List<BlockConfigData> LoadFormOneJson(string jsonText)
         {
             //JSONを動的にデシリアライズする
             dynamic person = JObject.Parse(jsonText);

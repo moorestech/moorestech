@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -11,35 +12,26 @@ namespace Core.Item.Config
 {
     public class ItemConfig : IItemConfig
     {
-        private ItemConfigData[] _itemDatas;
+        private readonly List<ItemConfigData> _itemConfigList;
         private const int DefaultItemMaxCount = int.MaxValue;
 
         public ItemConfig(ConfigJsonList configPath)
         {
-            try
-            {
-                var json = File.ReadAllText(configPath.ItemConfigPath);
-                var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
-                ms.Seek(0, SeekOrigin.Begin);
-                var serializer = new DataContractJsonSerializer(typeof(ItemJson));
-                var data = serializer.ReadObject(ms) as ItemJson;
-                _itemDatas = data.Items;
-            }
-            catch (SerializationException e)
-            {
-                throw new Exception($"{e} \n\n {configPath.ItemConfigPath} のロードでエラーが発生しました。\n JSONの構造が正しいか確認してください。");
-            }
+            _itemConfigList = new ItemConfigLoad().LoadFromJsons(configPath.SortedItemConfigJsonList);
         }
 
         public ItemConfigData GetItemConfig(int id)
         {
-            //アイテムが登録されてないときの仮
-            if (_itemDatas.Length - 1 < id)
+            if (id < 0)
             {
-                return new ItemConfigData("undefined id " + id, id, DefaultItemMaxCount);
+                throw new ArgumentException("id must be greater than 0 ID:" + id);
+            }
+            if (id < _itemConfigList.Count)
+            {
+                return _itemConfigList[id];
             }
 
-            return _itemDatas[id];
+            return new ItemConfigData("undefined id " + id, id, DefaultItemMaxCount);
         }
     }
 

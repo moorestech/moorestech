@@ -35,5 +35,7 @@ namespace Core.Block.Config
                 new NullBlockConfigParam(),
                 ItemConst.EmptyItemId);
         }
+
+        public int GetBlockConfigCount() { return _blockConfigList.Count; }
     }
 }
