@@ -12,6 +12,7 @@ namespace Mod.Config
         private const string BlockConfigPath = "config/block.json";
         private const string MachineRecipeConfigPath = "config/machine_recipe.json";
         private const string CraftRecipeConfigPath = "config/craft_recipe.json";
+        private const string OreConfigPath = "config/ore.json";
         
         
         public static Dictionary<string,ConfigJson> GetConfigString(string[] zipFileList)
@@ -26,10 +27,11 @@ namespace Mod.Config
                 var blockConfigJson = LoadConfigFromZip(zip,BlockConfigPath);
                 var machineRecipeConfigJson = LoadConfigFromZip(zip,MachineRecipeConfigPath);
                 var craftRecipeConfigJson = LoadConfigFromZip(zip,CraftRecipeConfigPath);
+                var oreConfigJson = LoadConfigFromZip(zip,OreConfigPath);
                 
                 var zipFileName = Path.GetFileNameWithoutExtension(zipFile);
                 
-                configDict.Add(zipFileName,new ConfigJson(zipFileName,itemConfigJson,blockConfigJson,machineRecipeConfigJson,craftRecipeConfigJson));
+                configDict.Add(zipFileName,new ConfigJson(zipFileName,itemConfigJson,blockConfigJson,machineRecipeConfigJson,craftRecipeConfigJson,oreConfigJson));
             }
 
             return configDict;
