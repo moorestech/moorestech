@@ -14,9 +14,9 @@ namespace Core.Block.RecipeConfig
         private readonly Dictionary<string, IMachineRecipeData> _recipeDataCache;
 
         //IDからレシピデータを取得する
-        public MachineRecipeConfig(ItemStackFactory itemStackFactory,ConfigPath configPath)
+        public MachineRecipeConfig(ItemStackFactory itemStackFactory,ConfigJsonList configJson)
         {
-            _recipedatas = new MachineRecipeJsonLoad().LoadConfig(itemStackFactory,configPath.MachineRecipeConfigPath);
+            _recipedatas = new MachineRecipeJsonLoad().LoadConfig(itemStackFactory,configJson.SortedMachineRecipeConfigJsonList);
 
             _recipeDataCache = new Dictionary<string, IMachineRecipeData>();
             _recipedatas.ToList().ForEach(recipe =>

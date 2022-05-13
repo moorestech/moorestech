@@ -1,38 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
-using System.Text;
 using Core.Block.RecipeConfig.Data;
-using Core.ConfigJson;
 using Core.Item;
+using Newtonsoft.Json;
 
 namespace Core.Block.RecipeConfig
 {
     internal class MachineRecipeJsonLoad
     {
-        internal List<IMachineRecipeData> LoadConfig(ItemStackFactory itemStackFactory,string configPath)
+        internal List<IMachineRecipeData> LoadConfig(ItemStackFactory itemStackFactory,List<string> configJsons)
         {
-            try
+            var recipes = new List<IMachineRecipeData>();
+            foreach (var json in configJsons)
             {
-                return Load(itemStackFactory, configPath);
+                recipes.AddRange(Load(itemStackFactory,json));
             }
-            catch (SerializationException e)
-            {
-                throw new Exception($"{e} \n\n {configPath} のロードでエラーが発生しました。\n JSONの構造が正しいか確認してください。");
-            }
+
+            return recipes;
         }
 
-        private List<IMachineRecipeData> Load(ItemStackFactory itemStackFactory,string configPath)
+        private List<IMachineRecipeData> Load(ItemStackFactory itemStackFactory,string json)
         {
             //JSONデータの読み込み
-            var json = File.ReadAllText(configPath);
-            var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
-            ms.Seek(0, SeekOrigin.Begin);
-            var serializer = new DataContractJsonSerializer(typeof(PurseJsonMachineRecipes));
-            var data = serializer.ReadObject(ms) as PurseJsonMachineRecipes;
+            var data = JsonConvert.DeserializeObject<PurseJsonMachineRecipes>(json);
 
             //レシピデータを実際に使用する形式に変換
             var r = data.Recipes.ToList().Select((r, index) =>
