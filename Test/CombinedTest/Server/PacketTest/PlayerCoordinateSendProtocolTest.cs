@@ -16,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Protocol.PacketResponse.Const;
+using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
 using EntityId = Game.World.Interface.Util.EntityId;

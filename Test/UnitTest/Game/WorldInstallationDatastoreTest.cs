@@ -10,6 +10,7 @@ using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.StartServerSystem;
 using Test.Module.TestConfig;
 using EntityId = Game.World.Interface.Util.EntityId;
 

@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using Core.ConfigJson;
 
-namespace Mod.Config
+namespace Server.StartServerSystem
 {
     public class ModJsonStringLoader
     {

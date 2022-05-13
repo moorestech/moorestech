@@ -1,3 +1,4 @@
+using System.IO;
 using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Miner;
@@ -36,16 +37,17 @@ using World.DataStore;
 using World.Event;
 using World.Service;
 
-namespace Server
+namespace Server.StartServerSystem
 {
     public class PacketResponseCreatorDiContainerGenerators
     {
-        public (PacketResponseCreator, ServiceProvider) Create(string serverConfig)
+        public (PacketResponseCreator, ServiceProvider) Create(string modConfig)
         {
             var services = new ServiceCollection();
             
             //コンフィグ、ファクトリーのインスタンスを登録
-            services.AddSingleton(new ConfigPath(serverConfig));
+            var zipFileList = Directory.GetFiles(modConfig, "*.zip");
+            services.AddSingleton(new ConfigJsonList(ModJsonStringLoader.GetConfigString(zipFileList)));
             services.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
             services.AddSingleton<IItemConfig, ItemConfig>();
             services.AddSingleton<ICraftingConfig, CraftConfig>();

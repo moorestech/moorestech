@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Event;
+using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
 using World.Event;

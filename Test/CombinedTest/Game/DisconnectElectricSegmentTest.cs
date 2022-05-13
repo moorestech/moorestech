@@ -4,6 +4,7 @@ using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.StartServerSystem;
 using Test.Module.TestConfig;
 
 namespace Test.CombinedTest.Game

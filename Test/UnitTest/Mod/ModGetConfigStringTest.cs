@@ -1,7 +1,7 @@
 using System;
 using System.IO;
-using Mod.Config;
 using NUnit.Framework;
+using Server.StartServerSystem;
 using Test.Module.TestMod;
 
 namespace Test.UnitTest.Mod
