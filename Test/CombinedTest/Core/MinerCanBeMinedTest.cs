@@ -8,6 +8,7 @@ using NUnit.Framework;
 using Server;
 using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Core
 {
@@ -17,7 +18,7 @@ namespace Test.CombinedTest.Core
         [Test]
         public void MinerTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();

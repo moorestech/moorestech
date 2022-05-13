@@ -5,9 +5,12 @@ using Core.Item;
 using Core.Item.Config;
 using Core.Item.Implementation;
 using Core.Item.Util;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server.StartServerSystem;
 using Test.Module;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.UnitTest.Core.Other
 {
@@ -18,7 +21,8 @@ namespace Test.UnitTest.Core.Other
         [SetUp]
         public void Setup()
         {
-            _itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 
         [TestCase(1, 1, 1, 1, 2, 0, 1, ItemConst.EmptyItemId)]

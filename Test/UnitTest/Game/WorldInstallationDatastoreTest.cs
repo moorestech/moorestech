@@ -12,6 +12,7 @@ using NUnit.Framework;
 using Server;
 using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 using EntityId = Game.World.Interface.Util.EntityId;
 
 namespace Test.UnitTest.Game
@@ -21,7 +22,7 @@ namespace Test.UnitTest.Game
         [Test]
         public void RegisteredDataCoordinateFromFetchTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var random = new Random(131513);
@@ -43,7 +44,7 @@ namespace Test.UnitTest.Game
         [Test]
         public void AlreadyRegisteredEntityIdSecondTimeFailTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var entityId = EntityId.NewEntityId();
@@ -58,7 +59,7 @@ namespace Test.UnitTest.Game
         [Test]
         public void AlreadyCoordinateSecondTimeFailTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var i = CreateMachine(1, EntityId.NewEntityId());
@@ -75,10 +76,8 @@ namespace Test.UnitTest.Game
         {
             if (_blockFactory == null)
             {
-                var config = new ConfigPath(TestModuleConfigPath.FolderPath);
-                var itemStackFactory = new ItemStackFactory(new ItemConfig(config));
-                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                    new VanillaIBlockTemplates(new MachineRecipeConfig(itemStackFactory,config), itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
+                var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                _blockFactory = serviceProvider.GetService<BlockFactory>();
             }
 
             var machine = _blockFactory.Create(id, entityId) as VanillaMachine;

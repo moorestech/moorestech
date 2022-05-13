@@ -10,6 +10,7 @@ using Server;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -24,7 +25,7 @@ namespace Test.CombinedTest.Server.PacketTest
             int playerSlotIndex = 0;
             var oreId = 0;
             
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var oreConfig = serviceProvider.GetService<IOreConfig>();
             var seed = serviceProvider.GetService<Seed>();
             
@@ -32,7 +33,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             
             //500×500マス内にある鉱石を探知
-            var veinGenerator = new VeinGenerator(new Seed(seed.SeedValue),new OreConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
+            var veinGenerator = serviceProvider.GetService<VeinGenerator>();
 
 
             int x = 0;

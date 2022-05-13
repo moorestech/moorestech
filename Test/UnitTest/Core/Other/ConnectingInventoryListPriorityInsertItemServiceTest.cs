@@ -8,6 +8,7 @@ using Server;
 using Server.StartServerSystem;
 using Test.Module;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.UnitTest.Core.Other
 {
@@ -19,15 +20,15 @@ namespace Test.UnitTest.Core.Other
         [Test]
         public void Test()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var inventoryList = new List<IBlockInventory>();
             
             //インベントリ1はインベントリのサイズを1にして、インベントリ2に入るか確認する
-            var inventory1 = new DummyBlockInventory(1,1);
-            var inventory2 = new DummyBlockInventory();
-            var inventory3 = new DummyBlockInventory();
+            var inventory1 = new DummyBlockInventory(itemStackFactory,1,1);
+            var inventory2 = new DummyBlockInventory(itemStackFactory);
+            var inventory3 = new DummyBlockInventory(itemStackFactory);
             inventoryList.Add(inventory1);
             inventoryList.Add(inventory2);
             inventoryList.Add(inventory3);

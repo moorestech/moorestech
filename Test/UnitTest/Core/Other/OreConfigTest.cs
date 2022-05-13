@@ -1,8 +1,11 @@
 using Core.ConfigJson;
 using Core.Ore;
 using Core.Ore.Config;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.UnitTest.Core.Other
 {
@@ -15,7 +18,8 @@ namespace Test.UnitTest.Core.Other
         [Test]
         public void OreIdToItemIdTest()
         {
-            IOreConfig oreConfig = new OreConfig(new ConfigPath(TestModuleConfigPath.FolderPath));
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            IOreConfig oreConfig = serviceProvider.GetService<OreConfig>();
             Assert.AreEqual(3, oreConfig.OreIdToItemId(1));
             Assert.AreEqual(4, oreConfig.OreIdToItemId(2));
         }

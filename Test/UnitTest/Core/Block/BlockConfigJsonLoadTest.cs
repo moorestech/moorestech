@@ -15,8 +15,7 @@ namespace Test.UnitTest.Core.Block
         [Test]
         public void JsonLoadTest()
         {
-            var path = new TestModuleConfigPath().GetPath("Unit Test Block Config.json");
-            var data = new BlockConfigJsonLoad().LoadFromJsons(path);
+            var data = new BlockConfigJsonLoad().LoadFromJsons(TestModuleConfig.UnitTestBlockConfigJson);
 
             Assert.AreEqual(data[1].BlockId, 1);
             Assert.AreEqual(data[1].Name, "TestMachine1");

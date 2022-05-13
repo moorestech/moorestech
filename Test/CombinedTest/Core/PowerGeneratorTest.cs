@@ -12,6 +12,7 @@ using NUnit.Framework;
 using Server;
 using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Core
 {
@@ -24,7 +25,7 @@ namespace Test.CombinedTest.Core
         [Test]
         public void UseFuelTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var powerGenerator = blockFactory.Create(PowerGeneratorId, 10) as VanillaPowerGenerator;
             var blockConfig = serviceProvider.GetService<IBlockConfig>();

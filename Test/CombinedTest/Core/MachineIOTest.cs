@@ -15,38 +15,18 @@ using Core.Item;
 using Core.Item.Config;
 using Core.Update;
 using Game.World.Interface.Util;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server.StartServerSystem;
 using Test.CombinedTest.Core.Generate;
 using Test.Module;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Core
 {
     public class MachineIoTest
     {
-        private readonly ItemStackFactory _itemStackFactory = new(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
-        private BlockFactory _blockFactory;
-
-        private VanillaMachine CreateMachine(int id)
-        {
-            if (_blockFactory == null)
-            {
-                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                    new VanillaIBlockTemplates(new MachineRecipeConfig(_itemStackFactory,new ConfigPath(TestModuleConfigPath.FolderPath)), _itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
-            }
-
-            var machine = _blockFactory.Create(id, EntityId.NewEntityId()) as VanillaMachine;
-            return machine;
-        }
-
-        private VanillaMachine CreateMachine(int id, IBlockInventory inventory)
-        {
-            var machine = CreateMachine(id);
-            machine.AddOutputConnector(inventory);
-
-            return machine;
-        }
-
         [TestCase(new int[1] {1}, new int[1] {1}, new int[1] {1}, new int[1] {1})]
         [TestCase(new int[2] {100, 101}, new int[2] {10, 10}, new int[2] {100, 101}, new int[2] {10, 10})]
         [TestCase(new int[3] {10, 11, 15}, new int[3] {10, 5, 8}, new int[3] {10, 11, 15}, new int[3] {10, 5, 8})]
@@ -56,17 +36,21 @@ namespace Test.CombinedTest.Core
         [TestCase(new int[2] {1, 0}, new int[2] {10, 5}, new int[1] {1}, new int[1] {10})]
         public void MachineAddInputTest(int[] id, int[] count, int[] ansid, int[] anscount)
         {
-            var machine = CreateMachine(4);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            
+            var machine = blockFactory.Create(4,1) as VanillaMachine;
 
             for (int i = 0; i < id.Length; i++)
             {
-                machine.InsertItem(_itemStackFactory.Create(id[i], count[i]));
+                machine.InsertItem(itemStackFactory.Create(id[i], count[i]));
             }
 
             var ansItem = new List<IItemStack>();
             for (int i = 0; i < ansid.Length; i++)
             {
-                ansItem.Add(_itemStackFactory.Create(ansid[i], anscount[i]));
+                ansItem.Add(itemStackFactory.Create(ansid[i], anscount[i]));
             }
 
 
@@ -89,6 +73,13 @@ namespace Test.CombinedTest.Core
             int seed = 2119350917;
             int recipeNum = 20;
             var recipes = MachineIoGenerate.MachineIoTestCase(RecipeGenerate.MakeRecipe(seed, recipeNum), seed);
+            
+            
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            
+            
 
 
             var machineList = new List<VanillaMachine>();
@@ -97,12 +88,12 @@ namespace Test.CombinedTest.Core
             //機械の作成とアイテムの挿入
             foreach (var m in recipes)
             {
-                var machine = CreateMachine(m.installtionId);
+                var machine = blockFactory.Create(m.BlockId,1) as VanillaMachine;
 
 
                 foreach (var minput in m.input)
                 {
-                    machine.InsertItem(_itemStackFactory.Create(minput.Id, minput.Count));
+                    machine.InsertItem(itemStackFactory.Create(minput.Id, minput.Count));
                 }
 
                 var electrical = new ElectricSegment();
@@ -152,7 +143,7 @@ namespace Test.CombinedTest.Core
             //コネクターを変える
             for (int i = 0; i < recipes.Length; i++)
             {
-                var dummy = new DummyBlockInventory(recipes[i].output.Count);
+                var dummy = new DummyBlockInventory(itemStackFactory,recipes[i].output.Count);
                 machineList[i].AddOutputConnector(dummy);
                 dummyBlockList.Add(dummy);
             }
@@ -192,6 +183,11 @@ namespace Test.CombinedTest.Core
             int recipeNum = 20;
             var recipes = MachineIoGenerate.MachineIoTestCase(RecipeGenerate.MakeRecipe(seed, recipeNum), seed);
 
+            
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            
 
             var machineList = new List<VanillaMachine>();
             var dummyBlockList = new List<DummyBlockInventory>();
@@ -200,12 +196,12 @@ namespace Test.CombinedTest.Core
             //機械の作成とアイテムの挿入
             foreach (var m in recipes)
             {
-                var connect = new DummyBlockInventory(m.output.Count);
-                var machine = CreateMachine(m.installtionId, connect);
+                var connect = new DummyBlockInventory(itemStackFactory,m.output.Count);
+                var machine = blockFactory.Create(m.BlockId,1) as VanillaMachine;
 
                 foreach (var minput in m.input)
                 {
-                    machine.InsertItem(_itemStackFactory.Create(minput.Id, minput.Count));
+                    machine.InsertItem(itemStackFactory.Create(minput.Id, minput.Count));
                 }
 
                 var electrical = new ElectricSegment();

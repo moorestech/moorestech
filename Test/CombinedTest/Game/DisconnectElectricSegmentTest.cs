@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Server;
 using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Game
 {
@@ -19,7 +20,7 @@ namespace Test.CombinedTest.Game
         [Test]
         public void RemoveElectricPoleToDisconnectSegment()
         {
-            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             /*設置する電柱、機械、発電機の場所
              * M □  □ G □  □ M
              * P □  □ P □  □ P
@@ -87,7 +88,7 @@ namespace Test.CombinedTest.Game
              * P □ □ P □ □ P
              * G □ □ G
              */
-            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<BlockFactory>();

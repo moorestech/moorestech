@@ -12,12 +12,16 @@ using Core.Item.Config;
 using Core.Update;
 using Game.Crafting;
 using Game.Crafting.Config;
+using Game.PlayerInventory.Interface;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
 using PlayerInventory.Event;
+using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 using World.DataStore;
 using World.Event;
 
@@ -77,6 +81,7 @@ namespace Test.UnitTest.Game.SaveLoad
 
             //ロードした時に機械の状態が正しいことを確認
             var (_, _, loadWorldBlockDatastore, _, _,loadJsonFile) = CreateBlockTestModule();
+            
             loadJsonFile.Load(json);
 
             var loadMachine = (VanillaMachine) loadWorldBlockDatastore.GetBlock(0, 0);
@@ -120,19 +125,17 @@ namespace Test.UnitTest.Game.SaveLoad
         private (ItemStackFactory, BlockFactory, WorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,LoadJsonFile)
             CreateBlockTestModule()
         {
-            var config = new ConfigPath(TestModuleConfigPath.FolderPath);
             
-            var itemFactory = new ItemStackFactory(new ItemConfig(config));
-            var blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                new VanillaIBlockTemplates(new MachineRecipeConfig(itemFactory,config), itemFactory,new BlockOpenableInventoryUpdateEvent()));
-            var worldBlockDatastore =
-                new WorldBlockDatastore(new BlockPlaceEvent(), blockFactory, new BlockRemoveEvent());
-            var playerInventoryDataStore = new PlayerInventoryDataStore(new MainInventoryUpdateEvent(),new CraftInventoryUpdateEvent(),
-                itemFactory,new IsCreatableJudgementService(new CraftConfig(itemFactory,config),itemFactory,new ItemConfig(config)),new GrabInventoryUpdateEvent());
-            var assembleSaveJsonText = new AssembleSaveJsonText(playerInventoryDataStore, worldBlockDatastore);
-            var loadJsonText = new LoadJsonFile(new SaveJsonFileName(""), worldBlockDatastore,playerInventoryDataStore);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var worldBlockDatastore = serviceProvider.GetService<WorldBlockDatastore>();
+            var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
+            var playerInventoryDataStore = serviceProvider.GetService<PlayerInventoryDataStore>();
+            var loadJsonFile = serviceProvider.GetService<LoadJsonFile>();
 
-            return (itemFactory, blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText,loadJsonText);
+            return (itemStackFactory, blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText,loadJsonFile);
         }
     }
 }

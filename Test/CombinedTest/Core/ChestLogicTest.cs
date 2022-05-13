@@ -14,6 +14,7 @@ using Server;
 using Server.StartServerSystem;
 using Test.Module;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Core
 {
@@ -25,12 +26,8 @@ namespace Test.CombinedTest.Core
         [Test]
         public void BeltConveyorInsertChestLogicTest()
         {
-            
-            
-            
-            
             var (_, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
 
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
@@ -62,8 +59,7 @@ namespace Test.CombinedTest.Core
         [Test]
         public void BeltConveyorOutputChestLogicTest()
         {
-            var (_, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();

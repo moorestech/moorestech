@@ -6,6 +6,7 @@ using Server;
 using Server.Protocol.PacketResponse.Util;
 using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Game
 {
@@ -18,7 +19,7 @@ namespace Test.CombinedTest.Game
 
             //初期設定----------------------------------------------------------
 
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             //プレイヤーのインベントリの設定

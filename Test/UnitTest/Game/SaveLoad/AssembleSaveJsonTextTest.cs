@@ -7,6 +7,7 @@ using NUnit.Framework;
 using Server;
 using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.UnitTest.Game.SaveLoad
 {
@@ -16,7 +17,7 @@ namespace Test.UnitTest.Game.SaveLoad
         [Test]
         public void NoneTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var json = assembleSaveJsonText.AssembleSaveJson();
             Assert.AreEqual("{\"world\":[],\"playerInventory\":[]}", json);
@@ -26,7 +27,7 @@ namespace Test.UnitTest.Game.SaveLoad
         [Test]
         public void SimpleBlockPlacedTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
 
@@ -35,7 +36,7 @@ namespace Test.UnitTest.Game.SaveLoad
 
             var json = assembleSaveJsonText.AssembleSaveJson();
 
-            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
             
             var worldLoadBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();

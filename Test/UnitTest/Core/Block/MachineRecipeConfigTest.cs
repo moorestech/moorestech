@@ -6,8 +6,11 @@ using Core.Item;
 using Core.Item.Config;
 using Core.Item.Implementation;
 using Core.Item.Util;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.UnitTest.Core.Block
 {
@@ -19,9 +22,9 @@ namespace Test.UnitTest.Core.Block
         [SetUp]
         public void Setup()
         {
-            var config = new ConfigPath(TestModuleConfigPath.FolderPath);
-            _itemStackFactory = new ItemStackFactory(new ItemConfig(config));
-            _machineRecipeConfig = new(_itemStackFactory,config);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            _machineRecipeConfig = serviceProvider.GetService<MachineRecipeConfig>();
         }
 
         [TestCase(0, 1500)]

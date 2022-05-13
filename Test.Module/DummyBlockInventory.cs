@@ -30,9 +30,9 @@ namespace Test.Module
         private int _endInsertCnt;
         private ItemStackFactory _itemStackFactory;
 
-        public DummyBlockInventory(int insertToEndNum = 1,int maxSlot = 100)
+        public DummyBlockInventory(ItemStackFactory itemStackFactory,int insertToEndNum = 1,int maxSlot = 100)
         {
-            _itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
+            _itemStackFactory = itemStackFactory;
             _isItemExists = false;
             this.InsertToEndNum = insertToEndNum;
             _endInsertCnt = 0;

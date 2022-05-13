@@ -9,6 +9,7 @@ using NUnit.Framework;
 using Server;
 using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.UnitTest.Core.Block
 {
@@ -19,7 +20,7 @@ namespace Test.UnitTest.Core.Block
         [Test]
         public void SaveLoadTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 

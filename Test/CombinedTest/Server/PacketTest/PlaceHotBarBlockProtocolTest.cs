@@ -10,6 +10,7 @@ using Server;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -23,7 +24,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void BlockPlaceTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             //パケットでプレイヤーインベントリを生成
@@ -68,7 +69,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void PlaceDirectionTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             

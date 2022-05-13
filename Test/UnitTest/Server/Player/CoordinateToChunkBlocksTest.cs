@@ -15,6 +15,7 @@ using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Player;
 using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 using EntityId = Game.World.Interface.Util.EntityId;
 
 namespace Test.UnitTest.Server.Player
@@ -24,7 +25,7 @@ namespace Test.UnitTest.Server.Player
         [Test]
         public void NothingBlockTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
             var b = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(new Coordinate(0, 0), worldData);
 
@@ -43,7 +44,7 @@ namespace Test.UnitTest.Server.Player
         [Test]
         public void SameBlockResponseTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
             var random = new Random(3944156);
             //ブロックの設置
@@ -81,11 +82,8 @@ namespace Test.UnitTest.Server.Player
         {
             if (_blockFactory == null)
             {
-                var config = new ConfigPath(TestModuleConfigPath.FolderPath);
-                
-                var itemStackFactory = new ItemStackFactory(new ItemConfig(config));
-                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                    new VanillaIBlockTemplates(new MachineRecipeConfig(itemStackFactory,config), itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
+                var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                _blockFactory = serviceProvider.GetService<BlockFactory>();
             }
 
             var machine = _blockFactory.Create(id, EntityId.NewEntityId()) as VanillaMachine;

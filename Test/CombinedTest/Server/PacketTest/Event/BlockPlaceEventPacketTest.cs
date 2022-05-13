@@ -10,6 +10,7 @@ using Server.Event;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
@@ -23,7 +24,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var blockPlace = new BlockPlaceEvent();
 
             var eventProtocol = new EventProtocolProvider();
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(response.Count, 0);
         }
@@ -32,7 +33,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Test]
         public void BlockPlaceEvent()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             
             
