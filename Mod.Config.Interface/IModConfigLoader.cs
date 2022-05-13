@@ -8,7 +8,7 @@ namespace Mod.Config.Interface
 {
     public interface IModConfigLoader
     {
-        
+        LoadConfigContainer LoadModConfig(string modDirectory);
     }
 
     public class LoadConfigContainer
@@ -17,5 +17,13 @@ namespace Mod.Config.Interface
         public readonly List<BlockConfigData> BlockConfigs;
         public readonly List<MachineRecipeConfig> MachineRecipeConfigs;
         public readonly List<CraftConfig> CraftConfigs;
+
+        public LoadConfigContainer(List<ItemConfigData> itemConfigs, List<BlockConfigData> blockConfigs, List<MachineRecipeConfig> machineRecipeConfigs, List<CraftConfig> craftConfigs)
+        {
+            ItemConfigs = itemConfigs;
+            BlockConfigs = blockConfigs;
+            MachineRecipeConfigs = machineRecipeConfigs;
+            CraftConfigs = craftConfigs;
+        }
     }
 }
