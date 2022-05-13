@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using Core.ConfigJson;
 
 namespace Mod.Config
 {
@@ -28,7 +29,7 @@ namespace Mod.Config
                 
                 var zipFileName = Path.GetFileNameWithoutExtension(zipFile);
                 
-                configDict.Add(zipFileName,new ConfigJson(itemConfigJson,blockConfigJson,machineRecipeConfigJson,craftRecipeConfigJson));
+                configDict.Add(zipFileName,new ConfigJson(zipFileName,itemConfigJson,blockConfigJson,machineRecipeConfigJson,craftRecipeConfigJson));
             }
 
             return configDict;
@@ -42,22 +43,6 @@ namespace Mod.Config
             using var itemJsonStream = config.Open();
             using var itemJsonString = new StreamReader(itemJsonStream);
             return itemJsonString.ReadToEnd();
-        }
-    }
-
-    public class ConfigJson
-    {
-        public readonly string ItemConfigJson;
-        public readonly string BlockConfigJson;
-        public readonly string MachineRecipeConfigJson;
-        public readonly string CraftRecipeConfigJson;
-
-        public ConfigJson(string itemJson, string blockConfigJson, string machineRecipeConfigJson, string craftRecipeConfigJson)
-        {
-            ItemConfigJson = itemJson;
-            BlockConfigJson = blockConfigJson;
-            MachineRecipeConfigJson = machineRecipeConfigJson;
-            CraftRecipeConfigJson = craftRecipeConfigJson;
         }
     }
 }
