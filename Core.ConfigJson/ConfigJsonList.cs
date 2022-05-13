@@ -9,6 +9,7 @@ namespace Core.ConfigJson
         public readonly List<string> SortedBlockConfigJsonList = new();
         public readonly List<string> SortedMachineRecipeConfigJsonList = new();
         public readonly List<string> SortedCraftRecipeConfigJsonList = new();
+        public readonly List<string> SortedOreConfigJsonList = new();
 
         public ConfigJsonList(Dictionary<string,ConfigJson> configs)
         {
@@ -21,6 +22,7 @@ namespace Core.ConfigJson
                 SortedBlockConfigJsonList.Add(configs[key].BlockConfigJson);
                 SortedMachineRecipeConfigJsonList.Add(configs[key].MachineRecipeConfigJson);
                 SortedCraftRecipeConfigJsonList.Add(configs[key].CraftRecipeConfigJson);
+                SortedCraftRecipeConfigJsonList.Add(configs[key].OreConfigJson);
             }
         }
     }

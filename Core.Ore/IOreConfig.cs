@@ -9,7 +9,6 @@ namespace Core.Ore
     public interface IOreConfig
     {
         public int OreIdToItemId(int oreId);
-        public List<int> GetIds();
         public List<int> GetSortedIdsForPriority();
         public OreConfigDataElement Get(int oreId);
     }
