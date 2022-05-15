@@ -23,10 +23,10 @@ namespace Core.Block.RecipeConfig
         private List<IMachineRecipeData> Load(ItemStackFactory itemStackFactory,string json)
         {
             //JSONデータの読み込み
-            var data = JsonConvert.DeserializeObject<PurseJsonMachineRecipes>(json);
+            var data = JsonConvert.DeserializeObject<MachineRecipeJsonData[]>(json);
 
             //レシピデータを実際に使用する形式に変換
-            var r = data.Recipes.ToList().Select((r, index) =>
+            var r = data.ToList().Select((r, index) =>
             {
                 var inputItem =
                     r.ItemInputs.ToList().Select(item => itemStackFactory.Create(item.ItemId, item.Count)).ToList();
@@ -46,21 +46,13 @@ namespace Core.Block.RecipeConfig
     }
 
     //JSONからのデータを格納するためのクラス
-    [DataContract]
-    class PurseJsonMachineRecipes
+    [JsonObject]
+    class MachineRecipeJsonData
     {
-        [DataMember(Name = "recipes")] private MachineRecipe[] _recipes;
-
-        public MachineRecipe[] Recipes => _recipes;
-    }
-
-    [DataContract]
-    class MachineRecipe
-    {
-        [DataMember(Name = "BlockID")] private int _blockId;
-        [DataMember(Name = "time")] private int _time;
-        [DataMember(Name = "input")] private MachineRecipeInput[] _itemInputs;
-        [DataMember(Name = "output")] private MachineRecipeOutput[] _itemOutputs;
+        [JsonProperty("BlockID")] private int _blockId;
+        [JsonProperty("time")] private int _time;
+        [JsonProperty("input")] private MachineRecipeInput[] _itemInputs;
+        [JsonProperty("output")] private MachineRecipeOutput[] _itemOutputs;
 
         public MachineRecipeOutput[] ItemOutputs => _itemOutputs;
 
