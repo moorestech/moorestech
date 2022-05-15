@@ -10,7 +10,7 @@ namespace Core.Ore.Config
 {
     public class OreConfig : IOreConfig
     {
-        private readonly List<OreConfigDataElement> _oreConfigData;
+        private readonly List<OreConfigData> _oreConfigData;
 
         public OreConfig(ConfigJsonList configJson)
         {
@@ -38,7 +38,7 @@ namespace Core.Ore.Config
                 Select(x => x.OreId).ToList();
         }
 
-        public OreConfigDataElement Get(int oreId)
+        public OreConfigData Get(int oreId)
         {
             return _oreConfigData[oreId];
         }

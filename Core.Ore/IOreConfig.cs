@@ -10,6 +10,6 @@ namespace Core.Ore
     {
         public int OreIdToItemId(int oreId);
         public List<int> GetSortedIdsForPriority();
-        public OreConfigDataElement Get(int oreId);
+        public OreConfigData Get(int oreId);
     }
 }

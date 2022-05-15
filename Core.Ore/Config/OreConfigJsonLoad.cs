@@ -11,9 +11,9 @@ namespace Core.Ore.Config
 {
     public class OreConfigJsonLoad
     {
-        public List<OreConfigDataElement> Load(List<string> jsons)
+        public List<OreConfigData> Load(List<string> jsons)
         {
-            return jsons.SelectMany(JsonConvert.DeserializeObject<OreConfigDataElement[]>).ToList();
+            return jsons.SelectMany(JsonConvert.DeserializeObject<OreConfigData[]>).ToList();
         }
     }
 }
