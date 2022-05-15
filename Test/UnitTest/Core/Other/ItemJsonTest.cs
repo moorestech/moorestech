@@ -36,18 +36,5 @@ namespace Test.UnitTest.Core.Other
             var itemConfig = serviceProvider.GetService<IItemConfig>();
             Assert.AreEqual(name, itemConfig.GetItemConfig(id).Name);
         }
-
-        [TestCase(0)]
-        [TestCase(1)]
-        [TestCase(2)]
-        [TestCase(3)]
-        [TestCase(4)]
-        [TestCase(5)]
-        public void JsonIdTest(int id)
-        {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemConfig = serviceProvider.GetService<IItemConfig>();
-            Assert.AreEqual(id, itemConfig.GetItemConfig(id).Id);
-        }
     }
 }
