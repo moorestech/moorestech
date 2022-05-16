@@ -17,37 +17,25 @@ namespace Test.UnitTest.Core.Block
         {
             var data = new BlockConfigJsonLoad().LoadFromJsons(TestModuleConfig.UnitTestBlockConfigJson);
 
-            Assert.AreEqual(data[1].BlockId, 1);
-            Assert.AreEqual(data[1].Name, "TestMachine1");
+            Assert.AreEqual(data[0].BlockId, 1);
+            Assert.AreEqual(data[0].Name, "TestMachine1");
+            Assert.AreEqual(data[0].Type, VanillaBlockType.Machine);
+            Assert.AreEqual(((MachineBlockConfigParam) data[0].Param).InputSlot, 2);
+            Assert.AreEqual(((MachineBlockConfigParam) data[0].Param).OutputSlot, 1);
+            Assert.AreEqual(((MachineBlockConfigParam) data[0].Param).RequiredPower, 100);
+
+            Assert.AreEqual(data[1].BlockId, 2);
+            Assert.AreEqual(data[1].Name, "TestMachine2");
             Assert.AreEqual(data[1].Type, VanillaBlockType.Machine);
-            Assert.AreEqual(((MachineBlockConfigParam) data[1].Param).InputSlot, 2);
+            Assert.AreEqual(((MachineBlockConfigParam) data[1].Param).InputSlot, 3);
             Assert.AreEqual(((MachineBlockConfigParam) data[1].Param).OutputSlot, 1);
             Assert.AreEqual(((MachineBlockConfigParam) data[1].Param).RequiredPower, 100);
 
-            Assert.AreEqual(data[2].BlockId, 2);
-            Assert.AreEqual(data[2].Name, "TestMachine2");
+            Assert.AreEqual(data[2].BlockId, 3);
+            Assert.AreEqual(data[2].Name, "TestMachine3");
             Assert.AreEqual(data[2].Type, VanillaBlockType.Machine);
-            Assert.AreEqual(((MachineBlockConfigParam) data[2].Param).InputSlot, 3);
-            Assert.AreEqual(((MachineBlockConfigParam) data[2].Param).OutputSlot, 1);
-            Assert.AreEqual(((MachineBlockConfigParam) data[2].Param).RequiredPower, 100);
-
-            Assert.AreEqual(data[3].BlockId, 3);
-            Assert.AreEqual(data[3].Name, "TestMachine3");
-            Assert.AreEqual(data[3].Type, VanillaBlockType.Machine);
-            Assert.AreEqual(((MachineBlockConfigParam) data[3].Param).InputSlot, 2);
-            Assert.AreEqual(((MachineBlockConfigParam) data[3].Param).OutputSlot, 3);
-
-            Assert.AreEqual(data[10].BlockId, 10);
-            Assert.AreEqual(data[10].Name, "TestMachine10");
-            Assert.AreEqual(data[10].Type, VanillaBlockType.Machine);
-            Assert.AreEqual(((MachineBlockConfigParam) data[10].Param).InputSlot, 5);
-            Assert.AreEqual(((MachineBlockConfigParam) data[10].Param).OutputSlot, 1);
-
-            Assert.AreEqual(data[11].BlockId, 11);
-            Assert.AreEqual(data[11].Name, "TestMachine11");
-            Assert.AreEqual(data[11].Type, VanillaBlockType.Machine);
-            Assert.AreEqual(((MachineBlockConfigParam) data[11].Param).InputSlot, 2);
-            Assert.AreEqual(((MachineBlockConfigParam) data[11].Param).OutputSlot, 6);
+            Assert.AreEqual(((MachineBlockConfigParam) data[2].Param).InputSlot, 2);
+            Assert.AreEqual(((MachineBlockConfigParam) data[2].Param).OutputSlot, 3);
         }
     }
 }
