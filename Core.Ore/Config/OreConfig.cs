@@ -19,6 +19,8 @@ namespace Core.Ore.Config
 
         public int OreIdToItemId(int oreId)
         {
+            //0は空白なためインデックスをずらす
+            oreId -= 1;
             if (oreId < 0)
             {
                 return ItemConst.EmptyItemId;

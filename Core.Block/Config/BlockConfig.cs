@@ -30,7 +30,11 @@ namespace Core.Block.Config
                 return _blockConfigList[id];
             }
 
+            
+            
             //未定義の時はNullBlockConfigを返す
+            //idを元に戻す
+            id++;
             return new BlockConfigData(id,
                 "ID " + id + " is undefined",
                 VanillaBlockType.Block,

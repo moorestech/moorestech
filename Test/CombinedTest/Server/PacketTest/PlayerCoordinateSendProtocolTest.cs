@@ -148,7 +148,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 }
                 else
                 {
-                    b = blockFactory.Create(random.Next(0, 500),EntityId.NewEntityId());
+                    b = blockFactory.Create(random.Next(1, 500),EntityId.NewEntityId());
                 }
                 
                 

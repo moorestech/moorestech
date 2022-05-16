@@ -21,6 +21,7 @@ namespace Core.Block.BlockFactory
         public IBlock Create(int blockId, int entityId)
         {
             var type = _blockConfig.GetBlockConfig(blockId);
+            Console.WriteLine(type.BlockId);
             if (_blockTypesDictionary.ContainsKey(type.Type))
             {
                 return _blockTypesDictionary[type.Type].New(type, entityId);

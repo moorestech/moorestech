@@ -34,22 +34,12 @@ namespace Core.Block.Config.LoadConfig
             var blockDictionary = new List<BlockConfigData>();
 
             //最初に設定されたIDの連番を設定していく
-            //デフォルトはnull blockの次の値
             int id = BlockConst.EmptyBlockId;
 
             foreach (var block in person.Blocks)
             {
-                //IDがなければ加算
-                //IDがあればその値を設定
-                if (block.id == null)
-                {
-                    id++;
-                }
-                else
-                {
-                    id = block.id;
-                }
-
+                id++;
+                
                 string name = block.name;
                 string type = block.type;
                 int itemId = block.itemId;

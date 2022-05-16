@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Core.ConfigJson;
 using Core.Ore;
 using Core.Ore.Config;
@@ -52,6 +53,7 @@ namespace Test.CombinedTest.Server.PacketTest
             }
 
             var oreItemId = oreConfig.OreIdToItemId(oreId);
+            Console.WriteLine(oreItemId);
             
             //プロトコルを使って鉱石を採掘
             packet.GetPacketResponse(MiningOperation(x, y, PlayerId));
