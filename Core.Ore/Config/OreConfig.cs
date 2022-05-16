@@ -40,6 +40,8 @@ namespace Core.Ore.Config
 
         public OreConfigData Get(int oreId)
         {
+            //0は空白なためインデックスをずらす
+            oreId -= 1;
             return _oreConfigData[oreId];
         }
     }
