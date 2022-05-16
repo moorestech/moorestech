@@ -36,7 +36,7 @@ namespace Test.CombinedTest.Core
         [TestCase(new int[2] {1, 0}, new int[2] {10, 5}, new int[1] {1}, new int[1] {10})]
         public void MachineAddInputTest(int[] id, int[] count, int[] ansid, int[] anscount)
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.MachineIoTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             
@@ -75,7 +75,7 @@ namespace Test.CombinedTest.Core
             var recipes = MachineIoGenerate.MachineIoTestCase(RecipeGenerate.MakeRecipe(seed, recipeNum), seed);
             
             
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.MachineIoTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             
@@ -184,7 +184,7 @@ namespace Test.CombinedTest.Core
             var recipes = MachineIoGenerate.MachineIoTestCase(RecipeGenerate.MakeRecipe(seed, recipeNum), seed);
 
             
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.MachineIoTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             
@@ -199,6 +199,7 @@ namespace Test.CombinedTest.Core
                 var connect = new DummyBlockInventory(itemStackFactory,m.output.Count);
                 var machine = blockFactory.Create(m.BlockId,1) as VanillaMachine;
 
+                machine.AddOutputConnector(connect);
                 foreach (var minput in m.input)
                 {
                     machine.InsertItem(itemStackFactory.Create(minput.Id, minput.Count));

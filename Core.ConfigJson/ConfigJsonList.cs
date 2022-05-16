@@ -18,11 +18,12 @@ namespace Core.ConfigJson
 
             foreach (var key in keys)
             {
-                SortedItemConfigJsonList.Add(configs[key].ItemConfigJson);
-                SortedBlockConfigJsonList.Add(configs[key].BlockConfigJson);
-                SortedMachineRecipeConfigJsonList.Add(configs[key].MachineRecipeConfigJson);
-                SortedCraftRecipeConfigJsonList.Add(configs[key].CraftRecipeConfigJson);
-                SortedOreConfigJsonList.Add(configs[key].OreConfigJson);
+                if (configs[key].ItemConfigJson != string.Empty) { SortedItemConfigJsonList.Add(configs[key].ItemConfigJson); }
+                if (configs[key].BlockConfigJson != string.Empty) { SortedBlockConfigJsonList.Add(configs[key].BlockConfigJson); }
+                if (configs[key].MachineRecipeConfigJson != string.Empty) { SortedMachineRecipeConfigJsonList.Add(configs[key].MachineRecipeConfigJson); }
+                if (configs[key].CraftRecipeConfigJson != string.Empty) { SortedCraftRecipeConfigJsonList.Add(configs[key].CraftRecipeConfigJson); }
+                if (configs[key].OreConfigJson != string.Empty) { SortedOreConfigJsonList.Add(configs[key].OreConfigJson); }
+                
             }
         }
     }
