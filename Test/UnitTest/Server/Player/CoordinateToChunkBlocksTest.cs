@@ -1,5 +1,6 @@
 ﻿using System;
 using Core.Block.BlockFactory;
+using Core.Block.Blocks;
 using Core.Block.Blocks.Machine;
 using Core.Block.Event;
 using Core.Block.RecipeConfig;
@@ -50,7 +51,7 @@ namespace Test.UnitTest.Server.Player
             //ブロックの設置
             for (int i = 0; i < 10000; i++)
             {
-                var b = CreateMachine(random.Next(0, 500));
+                var b = CreateMachine(random.Next(1, 500));
                 worldData.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300), BlockDirection.North);
             }
 
@@ -78,7 +79,7 @@ namespace Test.UnitTest.Server.Player
 
         private BlockFactory _blockFactory;
 
-        private VanillaMachine CreateMachine(int id)
+        private IBlock CreateMachine(int id)
         {
             if (_blockFactory == null)
             {
@@ -86,8 +87,7 @@ namespace Test.UnitTest.Server.Player
                 _blockFactory = serviceProvider.GetService<BlockFactory>();
             }
 
-            var machine = _blockFactory.Create(id, EntityId.NewEntityId()) as VanillaMachine;
-            return machine;
+            return _blockFactory.Create(id, EntityId.NewEntityId());
         }
     }
 }
