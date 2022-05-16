@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using NUnit.Framework;
 using Server.StartServerSystem;
+using Server.StartServerSystem.Mod;
 using Test.Module.TestMod;
 
 namespace Test.UnitTest.Mod
@@ -17,15 +18,15 @@ namespace Test.UnitTest.Mod
             
             Assert.AreEqual(loaded.Count, 2);
             
-            Assert.AreEqual("testItemJson1",loaded["testConfigOnlyMod1"].ItemConfigJson);
-            Assert.AreEqual("testBlockJson1",loaded["testConfigOnlyMod1"].BlockConfigJson);
-            Assert.AreEqual("",loaded["testConfigOnlyMod1"].MachineRecipeConfigJson);
-            Assert.AreEqual("",loaded["testConfigOnlyMod1"].CraftRecipeConfigJson);
+            Assert.AreEqual("testItemJson1",loaded["testMod1"].ItemConfigJson);
+            Assert.AreEqual("testBlockJson1",loaded["testMod1"].BlockConfigJson);
+            Assert.AreEqual("",loaded["testMod1"].MachineRecipeConfigJson);
+            Assert.AreEqual("",loaded["testMod1"].CraftRecipeConfigJson);
             
-            Assert.AreEqual("",loaded["testConfigOnlyMod2"].ItemConfigJson);
-            Assert.AreEqual("",loaded["testConfigOnlyMod2"].BlockConfigJson);
-            Assert.AreEqual("testMachineRecipeJson1",loaded["testConfigOnlyMod2"].MachineRecipeConfigJson);
-            Assert.AreEqual("testCraftRecipeJson1",loaded["testConfigOnlyMod2"].CraftRecipeConfigJson);
+            Assert.AreEqual("",loaded["testMod2"].ItemConfigJson);
+            Assert.AreEqual("",loaded["testMod2"].BlockConfigJson);
+            Assert.AreEqual("testMachineRecipeJson1",loaded["testMod2"].MachineRecipeConfigJson);
+            Assert.AreEqual("testCraftRecipeJson1",loaded["testMod2"].CraftRecipeConfigJson);
 
         }
         
