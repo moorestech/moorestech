@@ -88,24 +88,24 @@ namespace Test.UnitTest.Core.Other
         }
 
 
-        [TestCase(2, 299, 0, 0)]
-        [TestCase(2, 299, 1, 0)]
-        [TestCase(2, 150, 150, 0)]
-        [TestCase(2, 300, 1, 1)]
-        [TestCase(2, 1, 300, 1)]
-        [TestCase(2, 300, 300, 300)]
-        public void ItemAddToOverFlowTest(int id, int baseAmo, int addAmo, int overflowAmo)
+        [TestCase(3, 299, 0, 0)]
+        [TestCase(3, 299, 1, 0)]
+        [TestCase(3, 150, 150, 0)]
+        [TestCase(3, 300, 1, 1)]
+        [TestCase(3, 1, 300, 1)]
+        [TestCase(3, 300, 300, 300)]
+        public void ItemAddToOverFlowTest(int id, int baseAmount, int addAmount, int overflowAmount)
         {
-            var baseItem = _itemStackFactory.Create(id, baseAmo);
+            var baseItem = _itemStackFactory.Create(id, baseAmount);
 
 
-            var result = baseItem.AddItem(_itemStackFactory.Create(id, addAmo));
-            Assert.True(_itemStackFactory.Create(id, overflowAmo).Equals(result.RemainderItemStack));
+            var result = baseItem.AddItem(_itemStackFactory.Create(id, addAmount));
+            Assert.True(_itemStackFactory.Create(id, overflowAmount).Equals(result.RemainderItemStack));
         }
 
-        [TestCase(1, 50, false)]
-        [TestCase(1, 51, true)]
-        [TestCase(1, 100, true)]
+        [TestCase(1, 100, false)]
+        [TestCase(1, 1001, true)]
+        [TestCase(1, 200, true)]
         public void ItemAddToOverFlowThrowTest(int id, int baseAmo, bool isthrow)
         {
             try

@@ -17,7 +17,7 @@ namespace Test.UnitTest.Core.Other
         public void NullTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            var recipeData = serviceProvider.GetService<MachineRecipeConfig>().GetNullRecipeData();
+            var recipeData = serviceProvider.GetService<IMachineRecipeConfig>().GetNullRecipeData();
             Assert.AreEqual(0, recipeData.ItemInputs.Count);
             Assert.AreEqual(0, recipeData.ItemOutputs.Count);
             Assert.AreEqual(0, recipeData.BlockId);

@@ -19,7 +19,7 @@ namespace Test.UnitTest.Core.Other
         public void OreIdToItemIdTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            IOreConfig oreConfig = serviceProvider.GetService<OreConfig>();
+            IOreConfig oreConfig = serviceProvider.GetService<IOreConfig>();
             Assert.AreEqual(3, oreConfig.OreIdToItemId(1));
             Assert.AreEqual(4, oreConfig.OreIdToItemId(2));
         }

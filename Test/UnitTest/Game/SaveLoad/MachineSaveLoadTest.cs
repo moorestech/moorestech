@@ -13,6 +13,7 @@ using Core.Update;
 using Game.Crafting;
 using Game.Crafting.Config;
 using Game.PlayerInventory.Interface;
+using Game.Save.Interface;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,7 +38,7 @@ namespace Test.UnitTest.Game.SaveLoad
             //機械の追加
             var (itemStackFactory, blockFactory, worldBlockDatastore, _, assembleSaveJsonText,_) =
                 CreateBlockTestModule();
-            var machine = (VanillaMachine) blockFactory.Create(2, 10);
+            var machine = (VanillaMachine) blockFactory.Create(1, 10);
             worldBlockDatastore.AddBlock(machine, 0, 0, BlockDirection.North);
 
 
@@ -76,7 +77,7 @@ namespace Test.UnitTest.Game.SaveLoad
             var json = assembleSaveJsonText.AssembleSaveJson();
             Console.WriteLine(json);
             //配置したブロックを削除
-            worldBlockDatastore.AddBlock(blockFactory.Create(0, 0), 0, 0, BlockDirection.North);
+            worldBlockDatastore.RemoveBlock( 0, 0);
 
 
             //ロードした時に機械の状態が正しいことを確認
@@ -122,7 +123,7 @@ namespace Test.UnitTest.Game.SaveLoad
             Assert.AreEqual(itemStackFactory.Create(3, 2), outputInventoryField.OutputSlot[2]);
         }
 
-        private (ItemStackFactory, BlockFactory, WorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,LoadJsonFile)
+        private (ItemStackFactory, BlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,LoadJsonFile)
             CreateBlockTestModule()
         {
             
@@ -130,10 +131,10 @@ namespace Test.UnitTest.Game.SaveLoad
             
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
-            var worldBlockDatastore = serviceProvider.GetService<WorldBlockDatastore>();
+            var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var playerInventoryDataStore = serviceProvider.GetService<PlayerInventoryDataStore>();
-            var loadJsonFile = serviceProvider.GetService<LoadJsonFile>();
+            var loadJsonFile = serviceProvider.GetService<ILoadRepository>() as LoadJsonFile;
 
             return (itemStackFactory, blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText,loadJsonFile);
         }

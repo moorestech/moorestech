@@ -11,12 +11,12 @@ namespace Test.UnitTest.Core.Other
 {
     public class ItemJsonTest
     {
-        [TestCase(0, 100)]
-        [TestCase(1, 50)]
-        [TestCase(2, 300)]
-        [TestCase(3, 55)]
-        [TestCase(4, 200)]
-        [TestCase(5, 30)]
+        [TestCase(1, 100)]
+        [TestCase(2, 50)]
+        [TestCase(3, 300)]
+        [TestCase(4, 100)]
+        [TestCase(5, 200)]
+        [TestCase(7, 100)]
         public void JsonStackTest(int id, int stack)
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
@@ -24,12 +24,13 @@ namespace Test.UnitTest.Core.Other
             Assert.AreEqual(stack, itemConfig.GetItemConfig(id).MaxStack);
         }
 
-        [TestCase(0, "Test1")]
-        [TestCase(1, "Test2")]
-        [TestCase(2, "Test3")]
-        [TestCase(3, "Test4")]
-        [TestCase(4, "Test5")]
-        [TestCase(5, "Test6")]
+        [TestCase(1, "Test1")]
+        [TestCase(2, "Test2")]
+        [TestCase(3, "Test3")]
+        [TestCase(4, "Test4")]
+        [TestCase(5, "Test5")]
+        [TestCase(6, "Test6")]
+        [TestCase(7, "Test6")]
         public void JsonNameTest(int id, string name)
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);

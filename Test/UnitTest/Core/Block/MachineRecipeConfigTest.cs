@@ -16,7 +16,7 @@ namespace Test.UnitTest.Core.Block
 {
     public class MachineRecipeConfigTest
     {
-        private MachineRecipeConfig _machineRecipeConfig;
+        private IMachineRecipeConfig _machineRecipeConfig;
         private ItemStackFactory _itemStackFactory;
 
         [SetUp]
@@ -24,7 +24,7 @@ namespace Test.UnitTest.Core.Block
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            _machineRecipeConfig = serviceProvider.GetService<MachineRecipeConfig>();
+            _machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
         }
 
         [TestCase(0, 1500)]
