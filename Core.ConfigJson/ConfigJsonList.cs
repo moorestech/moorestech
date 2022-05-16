@@ -22,7 +22,7 @@ namespace Core.ConfigJson
                 SortedBlockConfigJsonList.Add(configs[key].BlockConfigJson);
                 SortedMachineRecipeConfigJsonList.Add(configs[key].MachineRecipeConfigJson);
                 SortedCraftRecipeConfigJsonList.Add(configs[key].CraftRecipeConfigJson);
-                SortedCraftRecipeConfigJsonList.Add(configs[key].OreConfigJson);
+                SortedOreConfigJsonList.Add(configs[key].OreConfigJson);
             }
         }
     }
