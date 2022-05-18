@@ -18,7 +18,7 @@ namespace Core.Item.Config
 
         public ItemConfig(ConfigJsonList configPath)
         {
-            _itemConfigList = new ItemConfigLoad().LoadFromJsons(configPath.SortedItemConfigJsonList);
+            _itemConfigList = new ItemConfigLoad().LoadFromJsons(configPath.ItemConfigs);
         }
 
         public ItemConfigData GetItemConfig(int id)
