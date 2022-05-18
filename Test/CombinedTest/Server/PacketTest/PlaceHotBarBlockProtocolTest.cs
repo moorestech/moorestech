@@ -39,7 +39,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //ブロックが置かれているかチェック
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
-            Assert.AreEqual(PlacedBlockId, world.GetBlock(2, 4).GetBlockId());
+            Assert.AreEqual(PlacedBlockId, world.GetBlock(2, 4).BlockId);
             //アイテムが減っているかチェック
             Assert.AreEqual(2, inventory.MainOpenableInventory.GetItem(slot).Count);
             
@@ -60,7 +60,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //さらにブロックを置こうとしても置けないテスト
             packet.GetPacketResponse(CreateUseHotBarProtocol(10, 10,0));
-            Assert.AreEqual(BlockConst.EmptyBlockId, world.GetBlock(10,10).GetBlockId());
+            Assert.AreEqual(BlockConst.EmptyBlockId, world.GetBlock(10,10).BlockId);
         }
 
 

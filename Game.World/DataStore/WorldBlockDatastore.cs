@@ -37,13 +37,13 @@ namespace World.DataStore
         public bool AddBlock(IBlock block, int x, int y, BlockDirection blockDirection)
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
-            if (!_blockMasterDictionary.ContainsKey(block.GetEntityId()) &&
+            if (!_blockMasterDictionary.ContainsKey(block.EntityId) &&
                 !_coordinateDictionary.ContainsKey(new Coordinate(x, y)))
             {
                 var c = new Coordinate(x, y);
                 var data = new WorldBlockData(block, x, y, blockDirection);
-                _blockMasterDictionary.Add(block.GetEntityId(), data);
-                _coordinateDictionary.Add(c, block.GetEntityId());
+                _blockMasterDictionary.Add(block.EntityId, data);
+                _coordinateDictionary.Add(c, block.EntityId);
                 _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(c, data.Block, blockDirection));
 
                 return true;
@@ -104,8 +104,8 @@ namespace World.DataStore
                 list.Add(new SaveBlockData(
                     block.Value.X,
                     block.Value.Y,
-                    block.Value.Block.GetBlockId(),
-                    block.Value.Block.GetEntityId(),
+                    block.Value.Block.BlockHash,
+                    block.Value.Block.EntityId,
                     block.Value.Block.GetSaveState(),
                     (int) block.Value.BlockDirection));
             }
@@ -118,14 +118,14 @@ namespace World.DataStore
             foreach (var block in saveBlockDataList)
             {
                 AddBlock(
-                    _blockFactory.Load(block.BlockId, block.EntityId, block.State),
+                    _blockFactory.Load(block.BlockHash, block.EntityId, block.State),
                     block.X,
                     block.Y,
                     (BlockDirection) block.Direction);
             }
         }
         
-        public bool Exists(int x, int y) { return GetBlock(x, y).GetBlockId() != BlockConst.EmptyBlockId; }
+        public bool Exists(int x, int y) { return GetBlock(x, y).BlockId != BlockConst.EmptyBlockId; }
         private int GetEntityId(int x, int y) { return _coordinateDictionary[new Coordinate(x, y)]; }
     }
 }

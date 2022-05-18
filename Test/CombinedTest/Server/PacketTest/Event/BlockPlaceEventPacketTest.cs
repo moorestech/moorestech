@@ -59,7 +59,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
                     //設置したブロックを保持する
                     blocks.Add(new TestBlockData(x, y, blockId,direction));
                     //ブロックの設置
-                    worldBlockDataStore.AddBlock(new VanillaBlock(blockId,random.Next(1, 1000000)), x, y,(BlockDirection)direction);
+                    worldBlockDataStore.AddBlock(new VanillaBlock(blockId,random.Next(1, 1000000),1), x, y,(BlockDirection)direction);
                 }
                 
                 

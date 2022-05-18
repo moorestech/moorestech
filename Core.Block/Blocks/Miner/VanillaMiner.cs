@@ -15,8 +15,11 @@ namespace Core.Block.Blocks.Miner
 {
     public class VanillaMiner : IBlock, IBlockElectric, IBlockInventory, IUpdate,IMiner
     {
-        private readonly int _blockId;
-        private readonly int _entityId;
+
+        public int EntityId { get; }
+        public int BlockId { get; }
+        public ulong BlockHash { get; }
+        
         private readonly int _requestPower;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly List<IBlockInventory> _connectInventory = new();
@@ -29,23 +32,25 @@ namespace Core.Block.Blocks.Miner
         private int _nowPower = 0;
         private int _remainingMillSecond = int.MaxValue;
 
-        public VanillaMiner(int blockId, int entityId, int requestPower, int outputSlot, ItemStackFactory itemStackFactory)
+        public VanillaMiner(int blockId, int entityId, ulong blockHash, int requestPower, int outputSlot, ItemStackFactory itemStackFactory)
         {
-            _blockId = blockId;
-            _entityId = entityId;
+            BlockId = blockId;
+            EntityId = entityId;
             _requestPower = requestPower;
             _itemStackFactory = itemStackFactory;
+            BlockHash = blockHash;
             _outputSlot = CreateEmptyItemStacksList.Create(outputSlot, itemStackFactory);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdate.AddUpdateObject(this);
         }
-        public VanillaMiner(string saveData,int blockId, int entityId, int requestPower, int miningTime , ItemStackFactory itemStackFactory)
+        public VanillaMiner(string saveData,int blockId, int entityId, ulong blockHash, int requestPower, int miningTime , ItemStackFactory itemStackFactory)
         {
-            _blockId = blockId;
-            _entityId = entityId;
+            BlockId = blockId;
+            EntityId = entityId;
             _requestPower = requestPower;
             _remainingMillSecond = miningTime;
             _itemStackFactory = itemStackFactory;
+            BlockHash = blockHash;
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdate.AddUpdateObject(this);
 
@@ -103,7 +108,7 @@ namespace Core.Block.Blocks.Miner
             var saveState = $"{_remainingMillSecond}";
             foreach (var itemStack in _outputSlot)
             {
-                saveState += $",{itemStack.Id},{itemStack.Count}";
+                saveState += $",{itemStack.ItemHash},{itemStack.Count}";
             }
 
             return saveState;
@@ -122,16 +127,6 @@ namespace Core.Block.Blocks.Miner
         public IItemStack InsertItem(IItemStack itemStack)
         {
             return itemStack;
-        }
-
-        public int GetEntityId()
-        {
-            return _entityId;
-        }
-
-        public int GetBlockId()
-        {
-            return _blockId;
         }
 
         public int GetRequestPower()

@@ -12,8 +12,9 @@ namespace Core.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyor : IBlock, IUpdate, IBlockInventory
     {
-        private readonly int _blockId;
-        private readonly int _entityId;
+        public int EntityId { get; }
+        public int BlockId { get; }
+        public ulong BlockHash { get; }
         
         private readonly int _inventoryItemNum;
         private readonly double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
@@ -22,19 +23,20 @@ namespace Core.Block.Blocks.BeltConveyor
         private IBlockInventory _connector;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public VanillaBeltConveyor(int blockId, int entityId, ItemStackFactory itemStackFactory, int inventoryItemNum, int timeOfItemEnterToExit)
+        public VanillaBeltConveyor(int blockId, int entityId, ulong blockHash, ItemStackFactory itemStackFactory, int inventoryItemNum, int timeOfItemEnterToExit)
         {
-            _blockId = blockId;
-            _entityId = entityId;
+            EntityId = entityId;
+            BlockId = blockId;
             _itemStackFactory = itemStackFactory;
             _inventoryItemNum = inventoryItemNum;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
+            BlockHash = blockHash;
             _connector = new NullIBlockInventory(_itemStackFactory);
             GameUpdate.AddUpdateObject(this);
         }
 
-        public VanillaBeltConveyor(int blockId, int entityId, string state, ItemStackFactory itemStackFactory,
-            int inventoryItemNum, int timeOfItemEnterToExit) : this(blockId, entityId, itemStackFactory, inventoryItemNum,timeOfItemEnterToExit)
+        public VanillaBeltConveyor(int blockId, int entityId, ulong blockHash, string state, ItemStackFactory itemStackFactory,
+            int inventoryItemNum, int timeOfItemEnterToExit) : this(blockId, entityId, blockHash, itemStackFactory, inventoryItemNum,timeOfItemEnterToExit)
         {
             //stateから復元
             //データがないときは何もしない
@@ -163,7 +165,5 @@ namespace Core.Block.Blocks.BeltConveyor
             var limitTime = _inventoryItems[slot].RemainingTime;
             _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.Id, _timeOfItemEnterToExit, limitTime);
         }
-        public int GetEntityId() { return _entityId; }
-        public int GetBlockId() { return _blockId; }
     }
 }

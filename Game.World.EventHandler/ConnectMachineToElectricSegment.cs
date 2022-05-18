@@ -73,7 +73,7 @@ namespace Game.World.EventHandler
             var pole = _electricPoleDatastore.GetBlock(poleX, poleY);
             //その電柱のコンフィグを取得
             var configParam =
-                _blockConfig.GetBlockConfig(((IBlock) pole).GetBlockId()).Param as ElectricPoleConfigParam;
+                _blockConfig.GetBlockConfig(((IBlock) pole).BlockId).Param as ElectricPoleConfigParam;
             var range = configParam.machineConnectionRange;
 
             //その電柱から見て機械が範囲内に存在するか確認

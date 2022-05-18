@@ -19,7 +19,7 @@ namespace Core.Block.Config
 
         public BlockConfigData GetBlockConfig(int id)
         {
-            //0は空気ブロックなので1を引いておく
+            //0は空気ブロックなので1を引いておくs
             id -= 1;
             if (id < 0)
             {
@@ -37,9 +37,15 @@ namespace Core.Block.Config
             id++;
             return new BlockConfigData(id,
                 "ID " + id + " is undefined",
+                0,
                 VanillaBlockType.Block,
                 new NullBlockConfigParam(),
                 ItemConst.EmptyItemId);
+        }
+
+        public BlockConfigData GetBlockConfig(ulong blockHash)
+        {
+            throw new NotImplementedException();
         }
 
         public int GetBlockConfigCount() { return _blockConfigList.Count; }

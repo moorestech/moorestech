@@ -35,7 +35,7 @@ namespace PlayerInventory
             //開けるインベントリのブロックが存在していなかったらそのまま終了
             if (!_worldBlockComponent.ExistsComponentBlock(x,y))return;
 
-            var entityId = _worldBlockDatastore.GetBlock(x, y).GetEntityId();
+            var entityId = _worldBlockDatastore.GetBlock(x, y).EntityId;
             if (_openCoordinates.ContainsKey(playerId))
             {
                  _openCoordinates[playerId] = entityId;

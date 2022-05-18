@@ -61,7 +61,7 @@ namespace Game.World.EventHandler
 
             //接続元のブロックデータを取得
             var sourceBlock = _worldBlockDatastore.GetBlock(sourceX, sourceY);
-            var sourceBlockType = _blockConfig.GetBlockConfig(sourceBlock.GetBlockId()).Type;
+            var sourceBlockType = _blockConfig.GetBlockConfig(sourceBlock.BlockId).Type;
             //接続元のブロックタイプがDictionaryになければ処理を終了
             if (!_ioConnectionDataDictionary.ContainsKey(sourceBlockType)) return;
 
@@ -73,7 +73,7 @@ namespace Game.World.EventHandler
 
             //接続先のブロックデータを取得
             var destinationBlock = _worldBlockDatastore.GetBlock(destinationX, destinationY);
-            var destinationBlockType = _blockConfig.GetBlockConfig(destinationBlock.GetBlockId()).Type;
+            var destinationBlockType = _blockConfig.GetBlockConfig(destinationBlock.BlockId).Type;
             //接続先のブロックタイプがDictionaryになければ処理を終了
             if (!_ioConnectionDataDictionary.ContainsKey(destinationBlockType)) return;
 

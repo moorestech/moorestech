@@ -6,6 +6,9 @@ namespace Core.Item
     {
         int Id { get; }
         int Count { get; }
+        
+        ulong ItemHash { get; }
+        
         ItemProcessResult AddItem(IItemStack receiveItemStack);
         IItemStack SubItem(int subCount);
         

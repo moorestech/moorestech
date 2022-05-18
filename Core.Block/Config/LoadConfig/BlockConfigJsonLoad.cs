@@ -44,7 +44,7 @@ namespace Core.Block.Config.LoadConfig
                 string type = block.type;
                 int itemId = block.itemId;
                 IBlockConfigParam blockParam = _generators[type].Generate(block.param);
-                blockDictionary.Add(new BlockConfigData(id, name, type, blockParam,itemId));
+                //TODO ハッシュ値を計算する　blockDictionary.Add(new BlockConfigData(id, name, type, blockParam,itemId));
             }
 
             return blockDictionary;

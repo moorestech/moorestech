@@ -2,6 +2,6 @@ namespace Core.Electric
 {
     public interface IElectricPole
     {
-        int GetEntityId();
+        public int EntityId { get; }
     }
 }

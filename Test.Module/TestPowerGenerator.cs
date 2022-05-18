@@ -1,27 +1,24 @@
-﻿using Core.Electric;
+﻿using System;
+using Core.Electric;
 
 namespace Test.Module
 {
     //デバック用で無限に電力を供給できる
     public class TestPowerGenerator : IPowerGenerator
     {
-        private readonly int _power;
-        private int id;
+        public int EntityId { get; }
 
-        public TestPowerGenerator(int power, int id)
+        private readonly int _power;
+
+        public TestPowerGenerator(int power, int entityId)
         {
-            this._power = power;
-            this.id = id;
+            _power = power;
+            EntityId = entityId;
         }
 
         public int OutputPower()
         {
             return _power;
-        }
-
-        public int GetEntityId()
-        {
-            return id;
         }
     }
 }

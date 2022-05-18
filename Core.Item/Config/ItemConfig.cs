@@ -44,6 +44,8 @@ namespace Core.Item.Config
         public string Name => _name;
         public int MaxStack => _maxStack;
         
+        public ulong ItemHash => throw new NotImplementedException();
+        
         [JsonProperty("name")]
         private string _name;
         [JsonProperty("max_stacks")]

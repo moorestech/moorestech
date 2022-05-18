@@ -19,7 +19,7 @@ namespace Server.Event.EventReceive
         private void ReceivedEvent(BlockPlaceEventProperties blockPlaceEventProperties)
         {
             var c = blockPlaceEventProperties.Coordinate;
-            var id = blockPlaceEventProperties.Block.GetBlockId();
+            var id = blockPlaceEventProperties.Block.BlockId;
             var payload = new List<byte>();
 
             payload.AddRange(ToByteList.Convert(ServerEventConst.EventPacketId));

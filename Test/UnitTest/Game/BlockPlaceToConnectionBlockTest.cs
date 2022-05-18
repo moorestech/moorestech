@@ -79,7 +79,7 @@ namespace Test.UnitTest.Game
                 .GetField("_connector", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(beltConveyor);
 
             //それぞれのentityIdを返却
-            return (vanillaMachine.GetEntityId(), _connector.GetEntityId());
+            return (vanillaMachine.EntityId, _connector.EntityId);
         }
 
         /// <summary>
@@ -127,10 +127,10 @@ namespace Test.UnitTest.Game
 
             //繋がっているコネクターの中身を確認
             var _connectInventoryItem =
-                connectInventory.Select(item => ((VanillaBeltConveyor) item).GetEntityId()).ToList();
+                connectInventory.Select(item => ((VanillaBeltConveyor) item).EntityId).ToList();
             foreach (var beltConveyor in beltConveyors)
             {
-                Assert.True(_connectInventoryItem.Contains(beltConveyor.GetEntityId()));
+                Assert.True(_connectInventoryItem.Contains(beltConveyor.EntityId));
             }
 
             //ベルトコンベアを削除する
@@ -183,7 +183,7 @@ namespace Test.UnitTest.Game
             var connector = (VanillaChest) typeof(VanillaBeltConveyor)
                 .GetField("_connector", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(northBeltConveyor);
             
-            Assert.AreEqual(targetChest.GetEntityId(),connector.GetEntityId());
+            Assert.AreEqual(targetChest.EntityId,connector.EntityId);
         }
         
         

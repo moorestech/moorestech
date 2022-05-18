@@ -15,7 +15,8 @@ namespace Test.UnitTest.Core.Block
 {
     public class MinerSaveLoadTest
     {
-        private int MinerId = 6;
+        private const ulong MinerHash = 6;
+        private const int MinerId = 6;
         
         [Test]
         public void SaveLoadTest()
@@ -41,7 +42,7 @@ namespace Test.UnitTest.Core.Block
             Console.WriteLine(json);
             
             
-            var loadedMiner = blockFactory.Load(MinerId, 1,json);
+            var loadedMiner = blockFactory.Load(MinerHash, 1,json);
             var loadedOutputSlot = 
                 (List<IItemStack>)typeof(VanillaMiner).
                     GetField("_outputSlot", BindingFlags.Instance | BindingFlags.NonPublic).

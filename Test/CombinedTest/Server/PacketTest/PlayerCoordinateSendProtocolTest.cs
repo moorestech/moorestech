@@ -122,7 +122,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 {
                     for (int j = 0; j < r.Blocks.GetLength(1); j++)
                     {
-                        Assert.AreEqual(worldBlock.GetBlock(c.X + i, c.Y + j).GetBlockId()
+                        Assert.AreEqual(worldBlock.GetBlock(c.X + i, c.Y + j).BlockId
                             , r.Blocks[i, j]);
                     }
                 }
@@ -186,7 +186,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 {
                     for (int j = 0; j < r.Blocks.GetLength(1); j++)
                     {
-                        var id = worldBlock.GetBlock(c.X + i, c.Y + j).GetBlockId();
+                        var id = worldBlock.GetBlock(c.X + i, c.Y + j).BlockId;
                         Assert.AreEqual(id, r.Blocks[i, j]);
                         
                         var direction = worldBlock.GetBlockDirection(c.X + i, c.Y + j);

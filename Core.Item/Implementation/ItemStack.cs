@@ -10,6 +10,7 @@ namespace Core.Item.Implementation
     {
         public int Id { get; }
         public int Count { get; }
+        public ulong ItemHash { get; }
         private readonly IItemConfig _itemConfig;
         private readonly ItemStackFactory _itemStackFactory;
 
@@ -17,6 +18,7 @@ namespace Core.Item.Implementation
         {
             _itemConfig = itemConfig;
             _itemStackFactory = itemStackFactory;
+            ItemHash = itemConfig.GetItemConfig(id).ItemHash;
             if (id == ItemConst.EmptyItemId)
             {
                 throw new ArgumentException("Item id cannot be null");

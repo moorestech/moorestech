@@ -36,7 +36,7 @@ namespace Test.UnitTest.Game
 
                 worldData.AddBlock(ins, x, y, BlockDirection.North);
                 var output = worldData.GetBlock(x, y);
-                Assert.AreEqual(entityId, output.GetEntityId());
+                Assert.AreEqual(entityId, output.EntityId);
             }
         }
 

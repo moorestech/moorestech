@@ -31,8 +31,14 @@ namespace Test.Module.TestConfig
             //IDがなかったからインプット、アウトプットスロットが100のブロックを返す
             return new BlockConfigData(id,
                 "Generated Block from AllMachineBlockConfig.cs",
+                1,
                 "Machine",
                 new MachineBlockConfigParam(100, 100, 100),10);
+        }
+
+        public BlockConfigData GetBlockConfig(ulong blockHash)
+        {
+            throw new NotImplementedException();
         }
 
         public int GetBlockConfigCount()

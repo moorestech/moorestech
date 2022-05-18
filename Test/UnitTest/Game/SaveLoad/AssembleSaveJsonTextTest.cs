@@ -31,8 +31,8 @@ namespace Test.UnitTest.Game.SaveLoad
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
 
-            worldBlockDatastore.AddBlock(new VanillaBlock(10, 10), 0, 0, BlockDirection.North);
-            worldBlockDatastore.AddBlock(new VanillaBlock(15, 100), 10, -15, BlockDirection.North);
+            worldBlockDatastore.AddBlock(new VanillaBlock(10, 10,1), 0, 0, BlockDirection.North);
+            worldBlockDatastore.AddBlock(new VanillaBlock(15, 100,2), 10, -15, BlockDirection.North);
 
             var json = assembleSaveJsonText.AssembleSaveJson();
 
@@ -42,12 +42,12 @@ namespace Test.UnitTest.Game.SaveLoad
             var worldLoadBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
 
             var block1 = worldLoadBlockDatastore.GetBlock(0, 0);
-            Assert.AreEqual(10, block1.GetBlockId());
-            Assert.AreEqual(10, block1.GetEntityId());
+            Assert.AreEqual(10, block1.BlockId);
+            Assert.AreEqual(10, block1.EntityId);
 
             var block2 = worldLoadBlockDatastore.GetBlock(10, -15);
-            Assert.AreEqual(15, block2.GetBlockId());
-            Assert.AreEqual(100, block2.GetEntityId());
+            Assert.AreEqual(15, block2.BlockId);
+            Assert.AreEqual(100, block2.EntityId);
         }
     }
 }

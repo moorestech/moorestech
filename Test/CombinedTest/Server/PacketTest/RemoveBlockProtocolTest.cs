@@ -40,12 +40,12 @@ namespace Test.CombinedTest.Server.PacketTest
             var block = blockFactory.Create(MachineBlockId, 0);
             var blockInventory = (IBlockInventory) block;
             blockInventory.InsertItem(itemStackFactory.Create(10, 7));
-            var blockConfigData = blockConfig.GetBlockConfig(block.GetBlockId());
+            var blockConfigData = blockConfig.GetBlockConfig(block.BlockId);
           
             //削除するためのブロックの生成
             worldBlock.AddBlock(block, 0, 0, BlockDirection.North);
             
-            Assert.AreEqual(0,worldBlock.GetBlock(0,0).GetEntityId());
+            Assert.AreEqual(0,worldBlock.GetBlock(0,0).EntityId);
             
             //プレイヤーインベントリに削除したブロックを追加
             

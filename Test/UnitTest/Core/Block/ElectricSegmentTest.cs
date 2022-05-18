@@ -40,14 +40,15 @@ namespace Test.UnitTest.Core.Block
 
     class BlockElectric : IBlockElectric
     {
+        public int EntityId { get; }
         public int nowPower;
         private int requestPower;
-        private int id;
+        
 
-        public BlockElectric(int request, int id)
+        public BlockElectric(int request, int entityId)
         {
             requestPower = request;
-            this.id = id;
+            EntityId = entityId;
         }
 
         public int GetRequestPower()
@@ -58,11 +59,6 @@ namespace Test.UnitTest.Core.Block
         public void SupplyPower(int power)
         {
             nowPower = power;
-        }
-
-        public int GetEntityId()
-        {
-            return id;
         }
     }
 }

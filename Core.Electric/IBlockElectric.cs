@@ -2,8 +2,9 @@
 {
     public interface IBlockElectric
     {
+        //TODO プロパティにする
         int GetRequestPower();
         void SupplyPower(int power);
-        int GetEntityId();
+        public int EntityId { get; }
     }
 }

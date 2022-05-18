@@ -89,8 +89,8 @@ namespace Test.UnitTest.Game.SaveLoad
             Console.WriteLine(machine.GetHashCode());
             Console.WriteLine(loadMachine.GetHashCode());
             //ブロックID、intIDが同じであることを確認
-            Assert.AreEqual(machine.GetBlockId(), loadMachine.GetBlockId());
-            Assert.AreEqual(machine.GetEntityId(), loadMachine.GetEntityId());
+            Assert.AreEqual(machine.BlockId, loadMachine.BlockId);
+            Assert.AreEqual(machine.EntityId, loadMachine.EntityId);
 
 
             //機械のレシピの残り時間のチェック
