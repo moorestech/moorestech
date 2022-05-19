@@ -102,7 +102,6 @@ namespace Core.Block.Blocks.BeltConveyor
         /// アイテムの搬出判定を行う
         /// 判定はUpdateで毎フレーム行われる
         /// </summary>
-        /// <exception cref="NotImplementedException"></exception>
         public void Update()
         {
             //リミットの更新

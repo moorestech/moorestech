@@ -14,7 +14,7 @@ namespace Core.Block.Config
 
         public BlockConfig(ConfigJsonList configJson)
         {
-            _blockConfigList = new BlockConfigJsonLoad().LoadFromJsons(configJson.BlockConfigs);
+            _blockConfigList = new BlockConfigJsonLoad().LoadFromJsons(configJson.BlockConfigs,configJson.SortedModIds);
         }
 
         public BlockConfigData GetBlockConfig(int id)

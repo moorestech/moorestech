@@ -14,12 +14,18 @@ namespace Core.Item.Config
     {
         public List<ItemConfigData> LoadFromJsons(Dictionary<string,string> jsons,List<string> mods)
         {
+            var xxHash = xxHashFactory.Instance.Create(new xxHashConfig()
+            {
+                Seed = xxHashConst.DefaultSeed,
+                HashSizeInBits = xxHashConst.DefaultSize
+            });
+            
             var itemConfigList = new List<ItemConfigData>();
             foreach (var mod in mods)
             {
                 var json = jsons[mod];
                 var itemConfigData = JsonConvert.DeserializeObject<ItemConfigJsonData>(json);
-                itemConfigList.Add(new ItemConfigData(itemConfigData,mod));
+                itemConfigList.Add(new ItemConfigData(itemConfigData,mod,xxHash));
             }
             return itemConfigList;
         }
@@ -31,20 +37,13 @@ namespace Core.Item.Config
         public int MaxStack { get; }
         public readonly ulong ItemHash = 0;
 
-        internal ItemConfigData(ItemConfigJsonData jsonData,string modId)
+        internal ItemConfigData(ItemConfigJsonData jsonData,string modId,IxxHash xxHash)
         {
             Name = jsonData.Name;
             MaxStack = jsonData.MaxStack;
             ItemHash = 1;
             
-            
-            var xxHash = xxHashFactory.Instance.Create(new xxHashConfig()
-            {
-                Seed = xxHashConst.DefaultSeed,
-                HashSizeInBits = xxHashConst.DefaultSize
-            });
-            var hash = xxHash.ComputeHash(modId + "/" + Name);
-            ItemHash = BitConverter.ToUInt64(hash.Hash);
+            ItemHash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + Name).Hash);
         }
 
         public ItemConfigData(string name, int maxStack)

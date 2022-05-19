@@ -16,7 +16,15 @@ namespace Test.Module.TestConfig
             }
         }
         
-        public static List<string> AllMachineBlockConfigJson => new() {File.ReadAllText(Path.Combine(FolderDirectory, "All Machine Block Config.json"))};
-        public static List<string> UnitTestBlockConfigJson => new() {File.ReadAllText(Path.Combine(FolderDirectory, "Unit Test Block Config.json"))};
+        public static Dictionary<string,string> AllMachineBlockConfigJson => new()
+        {
+            {"testMod",File.ReadAllText(Path.Combine(FolderDirectory, "All Machine Block Config.json"))}
+        };
+        public static Dictionary<string,string> UnitTestBlockConfigJson => new()
+        {
+            {"testMod",File.ReadAllText(Path.Combine(FolderDirectory, "Unit Test Block Config.json"))}
+        };
+
+        public static List<string> Mods = new() {"testMod"};
     }
 }

@@ -13,7 +13,7 @@ namespace Test.Module.TestConfig
 
         public AllMachineBlockConfig()
         {
-            _blockConfigList = new BlockConfigJsonLoad().LoadFromJsons(TestModuleConfig.AllMachineBlockConfigJson);
+            _blockConfigList = new BlockConfigJsonLoad().LoadFromJsons(TestModuleConfig.AllMachineBlockConfigJson,TestModuleConfig.Mods);
         }
 
         public BlockConfigData GetBlockConfig(int id)

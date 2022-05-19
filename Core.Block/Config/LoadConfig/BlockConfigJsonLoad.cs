@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Data.HashFunction;
+using System.Data.HashFunction.xxHash;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -21,20 +23,35 @@ namespace Core.Block.Config.LoadConfig
             _generators = new VanillaBlockConfigGenerator().Generate();
         }
 
-        public List<BlockConfigData> LoadFromJsons(List<string> jsons)
+        public List<BlockConfigData> LoadFromJsons(Dictionary<string,string> blockJsons,List<string> mods)
         {
-            return jsons.SelectMany(LoadFormOneJson).ToList();
+            var list = new List<BlockConfigData>();
+            foreach (var mod in mods)
+            {
+                var json = blockJsons[mod];
+                list.AddRange(LoadFormOneJson(json,mod));
+            }
+            return list;
         }
 
-        private List<BlockConfigData> LoadFormOneJson(string jsonText)
+        private List<BlockConfigData> LoadFormOneJson(string jsonText,string modId)
         {
             //JSONを動的にデシリアライズする
             dynamic person = JObject.Parse(jsonText);
 
             var blockDictionary = new List<BlockConfigData>();
 
+            
+            var xxHash = xxHashFactory.Instance.Create(new xxHashConfig()
+            {
+                Seed = xxHashConst.DefaultSeed,
+                HashSizeInBits = xxHashConst.DefaultSize
+            });
+
+            
             //最初に設定されたIDの連番を設定していく
             int id = BlockConst.EmptyBlockId;
+            
 
             foreach (var block in person.Blocks)
             {
@@ -44,7 +61,10 @@ namespace Core.Block.Config.LoadConfig
                 string type = block.type;
                 int itemId = block.itemId;
                 IBlockConfigParam blockParam = _generators[type].Generate(block.param);
-                //TODO ハッシュ値を計算する　blockDictionary.Add(new BlockConfigData(id, name, type, blockParam,itemId));
+
+                ulong hash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + name).Hash);
+                
+                blockDictionary.Add(new BlockConfigData(id, name, hash,type, blockParam,itemId));
             }
 
             return blockDictionary;
