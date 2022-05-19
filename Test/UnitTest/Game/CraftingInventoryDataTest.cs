@@ -71,7 +71,7 @@ namespace Test.UnitTest.Game
             //クラフト実行
             craftingInventory.NormalCraft();
             
-            //todo grabInventoryにアイテムが入っているかチェック
+            //grabInventoryにアイテムが入っているかチェック
             Assert.AreEqual(craftConfig.Result,grabInventory.GetItem(0));
             
             //クラフトスロットからアイテムが消えているかチェック
