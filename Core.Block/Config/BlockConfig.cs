@@ -18,6 +18,11 @@ namespace Core.Block.Config
             _blockConfigList = new BlockConfigJsonLoad().LoadFromJsons(configJson.BlockConfigs,configJson.SortedModIds);            
             foreach (var blockConfig in _blockConfigList)
             {
+                if (_bockHashToConfig.ContainsKey(blockConfig.BlockHash))
+                {
+                    throw new Exception("ブロック名 " + blockConfig.Name + " は重複しています。");
+                }
+                
                 _bockHashToConfig.Add(blockConfig.BlockHash, blockConfig);
             }
         }

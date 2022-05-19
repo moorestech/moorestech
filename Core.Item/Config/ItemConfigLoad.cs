@@ -23,9 +23,19 @@ namespace Core.Item.Config
             var itemConfigList = new List<ItemConfigData>();
             foreach (var mod in mods)
             {
-                var json = jsons[mod];
-                var itemConfigData = JsonConvert.DeserializeObject<ItemConfigJsonData>(json);
-                itemConfigList.Add(new ItemConfigData(itemConfigData,mod,xxHash));
+                if (!jsons.TryGetValue(mod,out var json))
+                {
+                    continue;
+                }
+                
+                var itemConfigData = JsonConvert.DeserializeObject<ItemConfigJsonData[]>(json);
+                if (itemConfigData == null)
+                {
+                    continue;
+                }
+
+                var configList = itemConfigData.ToList().Select(c => new ItemConfigData(c, mod, xxHash));
+                itemConfigList.AddRange(configList);
             }
             return itemConfigList;
         }

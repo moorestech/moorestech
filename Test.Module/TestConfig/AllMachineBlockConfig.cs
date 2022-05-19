@@ -10,15 +10,10 @@ namespace Test.Module.TestConfig
     public class AllMachineBlockConfig : IBlockConfig
     {
         private readonly List<BlockConfigData>  _blockConfigList;
-        private readonly Dictionary<ulong, BlockConfigData> _bockHashToConfig = new();
 
         public AllMachineBlockConfig()
         {
             _blockConfigList = new BlockConfigJsonLoad().LoadFromJsons(TestModuleConfig.AllMachineBlockConfigJson,TestModuleConfig.Mods);
-            foreach (var blockConfig in _blockConfigList)
-            {
-                _bockHashToConfig.Add(blockConfig.BlockHash, blockConfig);
-            }
         }
 
         public BlockConfigData GetBlockConfig(int id)
@@ -43,11 +38,6 @@ namespace Test.Module.TestConfig
 
         public BlockConfigData GetBlockConfig(ulong blockHash)
         {
-            if (_bockHashToConfig.TryGetValue(blockHash, out var blockConfig))
-            {
-                return blockConfig;
-            }
-
             throw new Exception("BlockHash not found:" + blockHash);
         }
 

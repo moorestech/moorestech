@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Miner;
+using Core.Block.Config;
 using Core.Item;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -15,7 +16,6 @@ namespace Test.UnitTest.Core.Block
 {
     public class MinerSaveLoadTest
     {
-        private const ulong MinerHash = 6;
         private const int MinerId = 6;
         
         [Test]
@@ -24,7 +24,8 @@ namespace Test.UnitTest.Core.Block
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-
+            ulong minerHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(MinerId).BlockHash;
+            
             var originalMiner = blockFactory.Create(MinerId, 1);
             int originalRemainingMillSecond = 350;
             
@@ -38,11 +39,13 @@ namespace Test.UnitTest.Core.Block
                 GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic).
                 SetValue(originalMiner,originalRemainingMillSecond);
 
+            
+            
             var json = originalMiner.GetSaveState();
             Console.WriteLine(json);
             
             
-            var loadedMiner = blockFactory.Load(MinerHash, 1,json);
+            var loadedMiner = blockFactory.Load(minerHash, 1,json);
             var loadedOutputSlot = 
                 (List<IItemStack>)typeof(VanillaMiner).
                     GetField("_outputSlot", BindingFlags.Instance | BindingFlags.NonPublic).
