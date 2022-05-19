@@ -1,26 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.HashFunction;
-using System.Data.HashFunction.xxHash;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
-using System.Text;
-using Core.Config.Item;
 using Core.ConfigJson;
-using Newtonsoft.Json;
-using static System.Int32;
 
 namespace Core.Item.Config
 {
     public class ItemConfig : IItemConfig
     {
         private readonly List<ItemConfigData> _itemConfigList;
+        private readonly Dictionary<ulong, ItemConfigData> _bockHashToConfig = new();
         private const int DefaultItemMaxCount = int.MaxValue;
 
         public ItemConfig(ConfigJsonList configPath)
         {
             _itemConfigList = new ItemConfigLoad().LoadFromJsons(configPath.ItemConfigs,configPath.SortedModIds);
+            foreach (var itemConfig in _itemConfigList)
+            {
+                if (_bockHashToConfig.ContainsKey(itemConfig.ItemHash))
+                {
+                    throw new Exception("ブロック名 " + itemConfig.Name + " は重複しています。");
+                }
+                
+                _bockHashToConfig.Add(itemConfig.ItemHash, itemConfig);
+            }
         }
 
         public ItemConfigData GetItemConfig(int id)
@@ -37,6 +38,16 @@ namespace Core.Item.Config
             }
 
             return new ItemConfigData("undefined id " + id, DefaultItemMaxCount);
+        }
+
+        public ItemConfigData GetItemConfig(ulong itemHash)
+        {
+            if (_bockHashToConfig.TryGetValue(itemHash, out var blockConfig))
+            {
+                return blockConfig;
+            }
+
+            throw new Exception("ItemHash not found:" + itemHash);
         }
     }
 }

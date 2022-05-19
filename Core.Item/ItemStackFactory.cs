@@ -30,6 +30,16 @@ namespace Core.Item
 
             return new ItemStack(id, count, _itemConfig, this);
         }
+        public IItemStack Create(ulong blockHash, int count)
+        {
+            if (count < 1)
+            {
+                return CreatEmpty();
+            }
+            var config = _itemConfig.GetItemConfig(blockHash);
+
+            return new ItemStack(, count, _itemConfig, this);
+        }
 
         public IItemStack CreatEmpty()
         {
