@@ -11,10 +11,15 @@ namespace Core.Block.Config
     public class BlockConfig : IBlockConfig
     {
         private readonly List<BlockConfigData> _blockConfigList;
+        private readonly Dictionary<ulong, BlockConfigData> _bockHashToConfig = new();
 
         public BlockConfig(ConfigJsonList configJson)
         {
-            _blockConfigList = new BlockConfigJsonLoad().LoadFromJsons(configJson.BlockConfigs,configJson.SortedModIds);
+            _blockConfigList = new BlockConfigJsonLoad().LoadFromJsons(configJson.BlockConfigs,configJson.SortedModIds);            
+            foreach (var blockConfig in _blockConfigList)
+            {
+                _bockHashToConfig.Add(blockConfig.BlockHash, blockConfig);
+            }
         }
 
         public BlockConfigData GetBlockConfig(int id)
@@ -45,7 +50,12 @@ namespace Core.Block.Config
 
         public BlockConfigData GetBlockConfig(ulong blockHash)
         {
-            throw new NotImplementedException();
+            if (_bockHashToConfig.TryGetValue(blockHash, out var blockConfig))
+            {
+                return blockConfig;
+            }
+
+            throw new Exception("BlockHash not found:" + blockHash);
         }
 
         public int GetBlockConfigCount() { return _blockConfigList.Count; }
