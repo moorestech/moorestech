@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.HashFunction;
+using System.Data.HashFunction.xxHash;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -18,7 +20,7 @@ namespace Core.Item.Config
 
         public ItemConfig(ConfigJsonList configPath)
         {
-            _itemConfigList = new ItemConfigLoad().LoadFromJsons(configPath.ItemConfigs);
+            _itemConfigList = new ItemConfigLoad().LoadFromJsons(configPath.ItemConfigs,configPath.SortedModIds);
         }
 
         public ItemConfigData GetItemConfig(int id)
@@ -34,27 +36,7 @@ namespace Core.Item.Config
                 return _itemConfigList[id];
             }
 
-            return new ItemConfigData("undefined id " + id, id, DefaultItemMaxCount);
-        }
-    }
-
-    [JsonObject("SpaceAssets")]
-    public class ItemConfigData
-    {
-        public string Name => _name;
-        public int MaxStack => _maxStack;
-        
-        public ulong ItemHash => throw new NotImplementedException();
-        
-        [JsonProperty("name")]
-        private string _name;
-        [JsonProperty("max_stacks")]
-        private int _maxStack;
-
-        public ItemConfigData(string name, int id, int maxStack)
-        {
-            _name = name;
-            _maxStack = maxStack;
+            return new ItemConfigData("undefined id " + id, DefaultItemMaxCount);
         }
     }
 }
