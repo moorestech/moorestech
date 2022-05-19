@@ -77,7 +77,7 @@ namespace Core.Block.Blocks.Machine
         
         
         #region IBlockElectric implementation
-        public int GetRequestPower() { return _vanillaMachineRunProcess.GetRequestPower(); }
+        public int RequestPower => _vanillaMachineRunProcess.RequestPower;
         public void SupplyPower(int power) { _vanillaMachineRunProcess.SupplyPower(power); }
 
         #endregion

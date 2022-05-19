@@ -20,7 +20,7 @@ namespace Core.Block.Blocks.Miner
         public int BlockId { get; }
         public ulong BlockHash { get; }
         
-        private readonly int _requestPower;
+        public int RequestPower  { get; }
         private readonly ItemStackFactory _itemStackFactory;
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly List<IItemStack> _outputSlot;
@@ -36,7 +36,7 @@ namespace Core.Block.Blocks.Miner
         {
             BlockId = blockId;
             EntityId = entityId;
-            _requestPower = requestPower;
+            RequestPower = requestPower;
             _itemStackFactory = itemStackFactory;
             BlockHash = blockHash;
             _outputSlot = CreateEmptyItemStacksList.Create(outputSlot, itemStackFactory);
@@ -47,7 +47,7 @@ namespace Core.Block.Blocks.Miner
         {
             BlockId = blockId;
             EntityId = entityId;
-            _requestPower = requestPower;
+            RequestPower = requestPower;
             _remainingMillSecond = miningTime;
             _itemStackFactory = itemStackFactory;
             BlockHash = blockHash;
@@ -68,7 +68,7 @@ namespace Core.Block.Blocks.Miner
 
         public void Update()
         {
-            var subTime = (int) (GameUpdate.UpdateTime * (_nowPower / (double) _requestPower));
+            var subTime = (int) (GameUpdate.UpdateTime * (_nowPower / (double) RequestPower));
             if (subTime <= 0)
             {
                 return;
@@ -127,11 +127,6 @@ namespace Core.Block.Blocks.Miner
         public IItemStack InsertItem(IItemStack itemStack)
         {
             return itemStack;
-        }
-
-        public int GetRequestPower()
-        {
-            return _requestPower;
         }
 
         public void SupplyPower(int power)
