@@ -36,9 +36,8 @@ namespace Core.Item
             {
                 return CreatEmpty();
             }
-            var config = _itemConfig.GetItemConfig(itemHash);
 
-            return new ItemStack(, count, _itemConfig, this);
+            return new ItemStack(_itemConfig.GetItemId(itemHash), count, _itemConfig, this);
         }
 
         public IItemStack CreatEmpty()

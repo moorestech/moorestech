@@ -1,26 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.ConfigJson;
+using Core.Const;
 
 namespace Core.Item.Config
 {
     public class ItemConfig : IItemConfig
     {
         private readonly List<ItemConfigData> _itemConfigList;
-        private readonly Dictionary<ulong, ItemConfigData> _bockHashToConfig = new();
+        private readonly Dictionary<ulong, int> _bockHashToId = new();
         private const int DefaultItemMaxCount = int.MaxValue;
 
         public ItemConfig(ConfigJsonList configPath)
         {
             _itemConfigList = new ItemConfigLoad().LoadFromJsons(configPath.ItemConfigs,configPath.SortedModIds);
-            foreach (var itemConfig in _itemConfigList)
+
+            
+            //実際のIDは1から（空IDの次の値）始まる
+            for (int i = ItemConst.EmptyItemId + 1; i <= _itemConfigList.Count; i++)
             {
-                if (_bockHashToConfig.ContainsKey(itemConfig.ItemHash))
+                if (_bockHashToId.ContainsKey(_itemConfigList[i].ItemHash))
                 {
-                    throw new Exception("ブロック名 " + itemConfig.Name + " は重複しています。");
+                    throw new Exception("ブロック名 " + _itemConfigList[i].Name + " は重複しています。");
                 }
-                
-                _bockHashToConfig.Add(itemConfig.ItemHash, itemConfig);
+                _bockHashToId.Add(_itemConfigList[i].ItemHash, i+1);
             }
         }
 
@@ -40,19 +43,15 @@ namespace Core.Item.Config
             return new ItemConfigData("undefined id " + id, DefaultItemMaxCount);
         }
 
-        public ItemConfigData GetItemConfig(ulong itemHash)
-        {
-            if (_bockHashToConfig.TryGetValue(itemHash, out var blockConfig))
-            {
-                return blockConfig;
-            }
-
-            throw new Exception("ItemHash not found:" + itemHash);
-        }
-
         public int GetItemId(ulong itemHash)
         {
             
+            if (_bockHashToId.TryGetValue(itemHash, out var id))
+            {
+                return id;
+            }
+            Console.WriteLine("itemHash:" + itemHash + " is not found");
+            return ItemConst.EmptyItemId;
         }
     }
 }
