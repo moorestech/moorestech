@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Core.Block.BlockFactory;
@@ -46,9 +47,12 @@ namespace Test.UnitTest.Game.SaveLoad
             fuelItemStacks.SetItem(2,itemStackFactory.Create(3 ,5));
             //セーブのテキストを取得
             var saveText = powerGenerator.GetSaveState();
+            Console.WriteLine(saveText);
 
+
+            var blockHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(PowerGeneratorId).BlockHash;
             //発電機を再作成
-            var loadedPowerGenerator = (VanillaPowerGenerator) blockFactory.Load(PowerGeneratorId, 10, saveText);
+            var loadedPowerGenerator = (VanillaPowerGenerator) blockFactory.Load(blockHash, 10, saveText);
             //発電機を再作成した結果を検証
             var loadedFuelItemId = (int) type.GetField("_fuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadedPowerGenerator);

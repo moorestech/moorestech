@@ -117,6 +117,7 @@ namespace World.DataStore
         {
             foreach (var block in saveBlockDataList)
             {
+                Console.WriteLine("X : " + block.X + " Y : " + block.Y + " BlockHash : " + block.BlockHash);
                 AddBlock(
                     _blockFactory.Load(block.BlockHash, block.EntityId, block.State),
                     block.X,

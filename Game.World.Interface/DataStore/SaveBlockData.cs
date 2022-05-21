@@ -15,11 +15,11 @@ namespace Game.World.Interface.DataStore
             Direction = direction;
         }
 
-        [JsonProperty("X")] public int X { get; }
-        [JsonProperty("Y")] public int Y { get; }
-        [JsonProperty("blockHash")] public ulong BlockHash { get; }
-        [JsonProperty("entityId")] public int EntityId { get; }
-        [JsonProperty("state")] public string State { get; }
-        [JsonProperty("direction")] public int Direction { get; }
+        [JsonProperty("X")] public int X;
+        [JsonProperty("Y")] public int Y;
+        [JsonProperty("blockHash")] public ulong BlockHash;
+        [JsonProperty("entityId")] public int EntityId;
+        [JsonProperty("state")] public string State;
+        [JsonProperty("direction")] public int Direction;
     }
 }

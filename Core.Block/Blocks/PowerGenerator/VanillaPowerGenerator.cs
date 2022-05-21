@@ -55,7 +55,7 @@ namespace Core.Block.Blocks.PowerGenerator
             var slot = 0;
             for (var i = 2; i < split.Length; i += 2)
             {
-                _itemDataStoreService.SetItem(slot,itemStackFactory.Create(int.Parse(split[i]), int.Parse(split[i + 1])));
+                _itemDataStoreService.SetItem(slot,itemStackFactory.Create(ulong.Parse(split[i]), int.Parse(split[i + 1])));
                 slot++;
             }
         }
@@ -69,7 +69,7 @@ namespace Core.Block.Blocks.PowerGenerator
             var saveState = $"{_fuelItemId},{_remainingFuelTime}";
             foreach (var itemStack in _itemDataStoreService.Inventory)
             {
-                saveState += $",{itemStack.Id},{itemStack.Count}";
+                saveState += $",{itemStack.ItemHash},{itemStack.Count}";
             }
 
             return saveState;

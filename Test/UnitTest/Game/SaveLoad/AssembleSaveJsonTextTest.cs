@@ -1,4 +1,5 @@
 using System;
+using Core.Block.BlockFactory;
 using Core.Block.Blocks;
 using Core.Block.Config;
 using Game.Save.Interface;
@@ -32,15 +33,18 @@ namespace Test.UnitTest.Game.SaveLoad
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
 
             var blockHash1 = blockConfig.GetBlockConfig(1).BlockHash;
             var blockHash2 = blockConfig.GetBlockConfig(2).BlockHash;
 
-            worldBlockDatastore.AddBlock(new VanillaBlock(1, 10,blockHash1), 0, 0, BlockDirection.North);
-            worldBlockDatastore.AddBlock(new VanillaBlock(2, 100,blockHash2), 10, -15, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(1,10), 0, 0, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(2,100), 10, -15, BlockDirection.North);
 
             var json = assembleSaveJsonText.AssembleSaveJson();
+            
+            Console.WriteLine(json);
 
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);

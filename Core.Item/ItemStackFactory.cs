@@ -37,7 +37,13 @@ namespace Core.Item
                 return CreatEmpty();
             }
 
-            return new ItemStack(_itemConfig.GetItemId(itemHash), count, _itemConfig, this);
+            var id = _itemConfig.GetItemId(itemHash);
+            if (id == ItemConst.EmptyItemId)
+            {
+                return CreatEmpty();
+            }
+
+            return new ItemStack(id, count, _itemConfig, this);
         }
 
         public IItemStack CreatEmpty()
