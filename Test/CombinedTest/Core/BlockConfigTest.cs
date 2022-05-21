@@ -7,10 +7,10 @@ namespace Test.CombinedTest.Core
 {
     public class BlockConfigTest
     {
-        [TestCase(1, "TestMachine1")]
-        [TestCase(2, "aaa")]
-        [TestCase(3, "bb")]
-        [TestCase(4, "ccccc")]
+        [TestCase(1, "aa")]
+        [TestCase(2, "b")]
+        [TestCase(3, "cc")]
+        [TestCase(4, "ddd")]
         public void ConfigNameTest(int id, string ans)
         {
             string name = new AllMachineBlockConfig().GetBlockConfig(id).Name;
