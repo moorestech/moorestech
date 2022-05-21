@@ -49,5 +49,10 @@ namespace Core.Item.Config
 
             throw new Exception("ItemHash not found:" + itemHash);
         }
+
+        public int GetItemId(ulong itemHash)
+        {
+            
+        }
     }
 }

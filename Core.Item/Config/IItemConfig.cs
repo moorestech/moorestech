@@ -4,5 +4,6 @@ namespace Core.Item.Config
     {
         public ItemConfigData GetItemConfig(int id);
         public ItemConfigData GetItemConfig(ulong itemHash);
+        public int GetItemId(ulong itemHash);
     }
 }
