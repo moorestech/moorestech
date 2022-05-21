@@ -19,7 +19,7 @@ namespace Core.Item.Config
             //実際のIDは1から（空IDの次の値）始まる
             for (int i = ItemConst.EmptyItemId + 1; i <= _itemConfigList.Count; i++)
             {
-                if (_bockHashToId.ContainsKey(_itemConfigList[i].ItemHash))
+                if (_bockHashToId.ContainsKey(_itemConfigList[i-1].ItemHash))
                 {
                     throw new Exception("ブロック名 " + _itemConfigList[i].Name + " は重複しています。");
                 }
