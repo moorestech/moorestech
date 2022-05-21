@@ -60,9 +60,9 @@ namespace Core.Block.Blocks.Miner
             _remainingMillSecond = int.Parse(split[0]);
             for (var i = 1; i < split.Length; i += 2)
             {
-                var itemId = int.Parse(split[i]);
+                var itemHash = ulong.Parse(split[i]);
                 var itemCount = int.Parse(split[i + 1]);
-                _outputSlot.Add(_itemStackFactory.Create(itemId, itemCount));
+                _outputSlot.Add(_itemStackFactory.Create(itemHash, itemCount));
             }
         }
 

@@ -30,7 +30,7 @@ namespace Test.UnitTest.Core.Other
         [TestCase(4, "Test4")]
         [TestCase(5, "Test5")]
         [TestCase(6, "Test6")]
-        [TestCase(7, "Test6")]
+        [TestCase(7, "Test7")]
         public void JsonNameTest(int id, string name)
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);

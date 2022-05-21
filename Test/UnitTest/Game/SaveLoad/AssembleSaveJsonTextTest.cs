@@ -1,4 +1,6 @@
+using System;
 using Core.Block.Blocks;
+using Core.Block.Config;
 using Game.Save.Interface;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;
@@ -30,9 +32,13 @@ namespace Test.UnitTest.Game.SaveLoad
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockConfig = serviceProvider.GetService<IBlockConfig>();
 
-            worldBlockDatastore.AddBlock(new VanillaBlock(10, 10,1), 0, 0, BlockDirection.North);
-            worldBlockDatastore.AddBlock(new VanillaBlock(15, 100,2), 10, -15, BlockDirection.North);
+            var blockHash1 = blockConfig.GetBlockConfig(1).BlockHash;
+            var blockHash2 = blockConfig.GetBlockConfig(2).BlockHash;
+
+            worldBlockDatastore.AddBlock(new VanillaBlock(1, 10,blockHash1), 0, 0, BlockDirection.North);
+            worldBlockDatastore.AddBlock(new VanillaBlock(2, 100,blockHash2), 10, -15, BlockDirection.North);
 
             var json = assembleSaveJsonText.AssembleSaveJson();
 
@@ -42,11 +48,11 @@ namespace Test.UnitTest.Game.SaveLoad
             var worldLoadBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
 
             var block1 = worldLoadBlockDatastore.GetBlock(0, 0);
-            Assert.AreEqual(10, block1.BlockId);
+            Assert.AreEqual(1, block1.BlockId);
             Assert.AreEqual(10, block1.EntityId);
 
             var block2 = worldLoadBlockDatastore.GetBlock(10, -15);
-            Assert.AreEqual(15, block2.BlockId);
+            Assert.AreEqual(2, block2.BlockId);
             Assert.AreEqual(100, block2.EntityId);
         }
     }
