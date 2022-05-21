@@ -11,8 +11,8 @@ namespace Test.UnitTest.Core.Block
         public void Test()
         {
             var block = new NullBlock();
-            Assert.AreEqual(int.MaxValue, block.GetEntityId());
-            Assert.AreEqual(BlockConst.EmptyBlockId, block.GetBlockId());
+            Assert.AreEqual(int.MaxValue, block.EntityId);
+            Assert.AreEqual(BlockConst.EmptyBlockId, block.BlockId);
         }
     }
 }

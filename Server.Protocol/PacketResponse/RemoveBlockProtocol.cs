@@ -71,7 +71,7 @@ namespace Server.Protocol.PacketResponse
             
             //壊したブロックをインベントリーに挿入
             //ブロックIdの取得
-            var blockId = _worldBlockDatastore.GetBlock(x,y).GetBlockId();
+            var blockId = _worldBlockDatastore.GetBlock(x,y).BlockId;
             //ブロックのIDを取得
             var blockItemId = _blockConfig.GetBlockConfig(blockId).ItemId;
             var remainBlockItem = playerMainInventory.InsertItem(_itemStackFactory.Create(blockItemId,1));

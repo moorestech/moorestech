@@ -6,7 +6,10 @@ using Core.Const;
 using Core.Item;
 using Core.Item.Config;
 using Core.Item.Util;
+using Microsoft.Extensions.DependencyInjection;
+using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Core.Generate
 {
@@ -15,7 +18,10 @@ namespace Test.CombinedTest.Core.Generate
         public static MachineIOTest[] MachineIoTestCase(recipe recipe, int seed)
         {
             var testCase = new List<MachineIOTest>();
-            var itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
+            
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            
             recipes[] recipes = recipe.recipes;
             foreach (var r in recipes)
             {
@@ -77,7 +83,7 @@ namespace Test.CombinedTest.Core.Generate
 
         public class MachineIOTest
         {
-            public int installtionId;
+            public int BlockId;
             public List<IItemStack> input;
             public List<IItemStack> output;
             public List<IItemStack> inputRemainder;
@@ -85,9 +91,9 @@ namespace Test.CombinedTest.Core.Generate
             public int CraftCnt;
 
             public MachineIOTest(ItemStackFactory itemStackFactory, inputitem[] input, outputitem[] output,
-                List<IItemStack> inputRemainder, int installtionId, int time, int craftCnt)
+                List<IItemStack> inputRemainder, int blockId, int time, int craftCnt)
             {
-                this.installtionId = installtionId;
+                this.BlockId = blockId;
                 this.input = Convart(input, itemStackFactory);
                 this.output = Convart(output, itemStackFactory);
                 this.inputRemainder = inputRemainder;
@@ -96,9 +102,9 @@ namespace Test.CombinedTest.Core.Generate
             }
 
             public MachineIOTest(ItemStackFactory itemStackFactory, inputitem[] input, List<IItemStack> output,
-                inputitem[] inputRemainder, int installtionId, int time, int craftCnt)
+                inputitem[] inputRemainder, int blockId, int time, int craftCnt)
             {
-                this.installtionId = installtionId;
+                this.BlockId = blockId;
                 this.input = Convart(input, itemStackFactory);
                 this.output = output;
                 this.inputRemainder = Convart(inputRemainder, itemStackFactory);

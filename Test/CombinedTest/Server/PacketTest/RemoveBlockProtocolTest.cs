@@ -11,8 +11,10 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Event.EventReceive;
+using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -26,7 +28,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             int playerSlotIndex = 0;
 
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
@@ -38,12 +40,12 @@ namespace Test.CombinedTest.Server.PacketTest
             var block = blockFactory.Create(MachineBlockId, 0);
             var blockInventory = (IBlockInventory) block;
             blockInventory.InsertItem(itemStackFactory.Create(10, 7));
-            var blockConfigData = blockConfig.GetBlockConfig(block.GetBlockId());
+            var blockConfigData = blockConfig.GetBlockConfig(block.BlockId);
           
             //削除するためのブロックの生成
             worldBlock.AddBlock(block, 0, 0, BlockDirection.North);
             
-            Assert.AreEqual(0,worldBlock.GetBlock(0,0).GetEntityId());
+            Assert.AreEqual(0,worldBlock.GetBlock(0,0).EntityId);
             
             //プレイヤーインベントリに削除したブロックを追加
             
@@ -70,7 +72,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void InventoryFullToRemoveBlockSomeItemRemainTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();
@@ -132,7 +134,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void InventoryFullToCantRemoveBlockTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();

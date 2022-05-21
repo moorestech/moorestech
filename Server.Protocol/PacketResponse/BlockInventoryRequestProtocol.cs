@@ -42,7 +42,7 @@ namespace Server.Protocol.PacketResponse
             var x = byteListEnumerator.MoveNextToGetInt();
             var y = byteListEnumerator.MoveNextToGetInt();
 
-            var blockId = _blockDatastore.GetBlock(x, y).GetBlockId();
+            var blockId = _blockDatastore.GetBlock(x, y).BlockId;
             var blockConfig = _blockConfig.GetBlockConfig(blockId);
             
             //そのブロックがDictionaryに登録されてたらdelegateを実行して返す
@@ -63,7 +63,7 @@ namespace Server.Protocol.PacketResponse
             
             response.AddRange(ToByteList.Convert((short) ProtocolId));
             response.AddRange(ToByteList.Convert((short) block.GetSlotSize()));
-            response.AddRange(ToByteList.Convert(_blockDatastore.GetBlock(x,y).GetBlockId()));
+            response.AddRange(ToByteList.Convert(_blockDatastore.GetBlock(x,y).BlockId));
             
             for (int i = 0; i < block.GetSlotSize(); i++)
             {

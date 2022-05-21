@@ -5,8 +5,11 @@ using Core.Block.Blocks.BeltConveyor;
 using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.UnitTest.Game.SaveLoad
 {
@@ -15,7 +18,10 @@ namespace Test.UnitTest.Game.SaveLoad
         [Test]
         public void SaveLoadTest()
         {
-            var belt = new VanillaBeltConveyor(1, 10, new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath))), 4, 4000);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemsStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            
+            var belt = new VanillaBeltConveyor(1, 10,1, itemsStackFactory, 4, 4000);
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField =
                 typeof(VanillaBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -29,7 +35,7 @@ namespace Test.UnitTest.Game.SaveLoad
             var str = belt.GetSaveState();
             Console.WriteLine(str);
             //セーブデータをロード
-            var newBelt = new VanillaBeltConveyor(1, 10, str, new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath))), 4, 4000);
+            var newBelt = new VanillaBeltConveyor(1, 10,1, str, itemsStackFactory, 4, 4000);
             var newInventoryItems = (List<BeltConveyorInventoryItem>) inventoryItemsField.GetValue(newBelt);
 
             //アイテムが一致するかチェック

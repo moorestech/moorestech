@@ -7,7 +7,9 @@ using Game.Save.Json;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.UnitTest.Game.SaveLoad
 {
@@ -16,7 +18,7 @@ namespace Test.UnitTest.Game.SaveLoad
         [Test]
         public void OnePlayerTest()
         {
-            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInventory = saveServiceProvider.GetService<IPlayerInventoryDataStore>();
             var itemStackFactory = saveServiceProvider.GetService<ItemStackFactory>();
             var assembleJsonText = saveServiceProvider.GetService<AssembleSaveJsonText>();
@@ -58,7 +60,7 @@ namespace Test.UnitTest.Game.SaveLoad
             
             
             //セーブしたデータをロードする
-            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
             var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerEntityId);
 
@@ -90,7 +92,7 @@ namespace Test.UnitTest.Game.SaveLoad
         [Test]
         public void MultiplePlayerSaveTest()
         {
-            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInventory = saveServiceProvider.GetService<IPlayerInventoryDataStore>();
             var itemStackFactory = saveServiceProvider.GetService<ItemStackFactory>();
             int seed = 13143;
@@ -119,7 +121,7 @@ namespace Test.UnitTest.Game.SaveLoad
             
             
             //セーブしたデータをロードする
-            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
             var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>();
             

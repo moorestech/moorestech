@@ -12,8 +12,10 @@ using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.StartServerSystem;
 using Test.Module;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Core
 {
@@ -25,7 +27,7 @@ namespace Test.CombinedTest.Core
         [Test]
         public void MiningTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var oreConfig = serviceProvider.GetService<IOreConfig>();
@@ -35,10 +37,10 @@ namespace Test.CombinedTest.Core
             var miningTime = minerBlockConfigParam.OreSettings[0].MiningTime;
             var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.OreSettings[0].OreId);
 
-            var miner = new VanillaMiner(MinerId, EntityId.NewEntityId(), 100, 10, itemStackFactory);
+            var miner = new VanillaMiner(MinerId, EntityId.NewEntityId(),1, 100, 10, itemStackFactory);
             miner.SetMiningItem(miningItemId, miningTime);
 
-            var dummyInventory = new DummyBlockInventory();
+            var dummyInventory = new DummyBlockInventory(itemStackFactory);
             //接続先ブロックの設定
             ((IBlockInventory) miner).AddOutputConnector(dummyInventory);
             //電力の設定

@@ -8,13 +8,15 @@ namespace Core.ConfigJson
         public readonly string BlockConfigJson;
         public readonly string MachineRecipeConfigJson;
         public readonly string CraftRecipeConfigJson;
+        public readonly string OreConfigJson;
 
-        public ConfigJson(string modName,string itemJson, string blockConfigJson, string machineRecipeConfigJson, string craftRecipeConfigJson)
+        public ConfigJson(string modName,string itemJson, string blockConfigJson, string machineRecipeConfigJson, string craftRecipeConfigJson, string oreConfigJson)
         {
             ItemConfigJson = itemJson;
             BlockConfigJson = blockConfigJson;
             MachineRecipeConfigJson = machineRecipeConfigJson;
             CraftRecipeConfigJson = craftRecipeConfigJson;
+            OreConfigJson = oreConfigJson;
             ModName = modName;
         }
     }

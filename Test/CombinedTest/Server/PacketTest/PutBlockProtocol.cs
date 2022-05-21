@@ -3,8 +3,10 @@ using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -13,7 +15,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void SimpleBlockPlaceTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
 
             packetResponse.GetPacketResponse(BlockPlace(1, 0, 0));
@@ -22,10 +24,10 @@ namespace Test.CombinedTest.Server.PacketTest
             packetResponse.GetPacketResponse(BlockPlace(65, 0, -9));
 
 
-            Assert.AreEqual(worldBlock.GetBlock(0, 0).GetBlockId(), 1);
-            Assert.AreEqual(worldBlock.GetBlock(2, 6).GetBlockId(), 31);
-            Assert.AreEqual(worldBlock.GetBlock(-5, 6).GetBlockId(), 10);
-            Assert.AreEqual(worldBlock.GetBlock(0, -9).GetBlockId(), 65);
+            Assert.AreEqual(worldBlock.GetBlock(0, 0).BlockId, 1);
+            Assert.AreEqual(worldBlock.GetBlock(2, 6).BlockId, 31);
+            Assert.AreEqual(worldBlock.GetBlock(-5, 6).BlockId, 10);
+            Assert.AreEqual(worldBlock.GetBlock(0, -9).BlockId, 65);
         }
 
         List<byte> BlockPlace(int id, int x, int y)

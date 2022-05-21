@@ -5,8 +5,10 @@ using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -23,7 +25,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void CanNotNormalCraftTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
@@ -57,7 +59,7 @@ namespace Test.CombinedTest.Server.PacketTest
         public void AllCraftReminderTest()
         {
             
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             //クラフトインベントリの作成
@@ -97,7 +99,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void AllCanNotCraftTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             //クラフトインベントリの作成
@@ -134,7 +136,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void OneStackCraftReminderTest(){
         
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             //クラフトインベントリの作成
@@ -176,7 +178,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void OneCanNotStackCraftTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             //クラフトインベントリの作成

@@ -16,8 +16,10 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Protocol.PacketResponse.Const;
+using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 using EntityId = Game.World.Interface.Util.EntityId;
 
 namespace Test.CombinedTest.Server.PacketTest
@@ -27,7 +29,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(1)]
         public void SimpleChunkResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             //1回のレスポンスのテスト
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).ToList();
@@ -81,7 +83,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(2)]
         public void PlaceBlockToChunkResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
 
@@ -120,7 +122,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 {
                     for (int j = 0; j < r.Blocks.GetLength(1); j++)
                     {
-                        Assert.AreEqual(worldBlock.GetBlock(c.X + i, c.Y + j).GetBlockId()
+                        Assert.AreEqual(worldBlock.GetBlock(c.X + i, c.Y + j).BlockId
                             , r.Blocks[i, j]);
                     }
                 }
@@ -131,7 +133,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(3)]
         public void RandomPlaceBlockToChunkResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
 
@@ -146,7 +148,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 }
                 else
                 {
-                    b = blockFactory.Create(random.Next(0, 500),EntityId.NewEntityId());
+                    b = blockFactory.Create(random.Next(1, 500),EntityId.NewEntityId());
                 }
                 
                 
@@ -184,7 +186,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 {
                     for (int j = 0; j < r.Blocks.GetLength(1); j++)
                     {
-                        var id = worldBlock.GetBlock(c.X + i, c.Y + j).GetBlockId();
+                        var id = worldBlock.GetBlock(c.X + i, c.Y + j).BlockId;
                         Assert.AreEqual(id, r.Blocks[i, j]);
                         
                         var direction = worldBlock.GetBlockDirection(c.X + i, c.Y + j);
@@ -198,7 +200,7 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test, Order(4)]
         public void TileMapResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
             var worldMapTile = serviceProvider.GetService<WorldMapTile>();
             

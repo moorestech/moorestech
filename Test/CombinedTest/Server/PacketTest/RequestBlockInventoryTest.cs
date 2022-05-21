@@ -7,8 +7,10 @@ using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -16,14 +18,14 @@ namespace Test.CombinedTest.Server.PacketTest
     {
         private const int MachineBlockId = 1;
         private const int InputSlotNum = 2;
-        private const int OutPutSlotNum = 1;
+        private const int OutPutSlotNum = 3;
         
         
         //通常の機械のテスト
         [Test]
         public void MachineInventoryRequest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             
@@ -50,10 +52,6 @@ namespace Test.CombinedTest.Server.PacketTest
             
             Assert.AreEqual(4,response.MoveNextToGetInt());
             Assert.AreEqual(5,response.MoveNextToGetInt()); 
-            
-            Assert.AreEqual(1,response.MoveNextToGetShort()); //UI type id
-            Assert.AreEqual(InputSlotNum,response.MoveNextToGetShort()); //input slot
-            Assert.AreEqual(OutPutSlotNum,response.MoveNextToGetShort()); //output slot
             
         }
 

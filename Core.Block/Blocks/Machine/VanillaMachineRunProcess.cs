@@ -14,7 +14,7 @@ namespace Core.Block.Blocks.Machine
         public double RemainingMillSecond => _remainingMillSecond;
         public int RecipeDataId => _processingRecipeData.RecipeId;
 
-        private readonly int _requestPower;
+        public readonly int RequestPower;
         private int _nowPower = 0;
 
 
@@ -29,7 +29,7 @@ namespace Core.Block.Blocks.Machine
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _processingRecipeData = machineRecipeData;
-            _requestPower = requestPower;
+            RequestPower = requestPower;
 
             GameUpdate.AddUpdateObject(this);
         }
@@ -43,7 +43,7 @@ namespace Core.Block.Blocks.Machine
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
 
             _processingRecipeData = processingRecipeData;
-            _requestPower = requestPower;
+            RequestPower = requestPower;
             _state = state;
             _remainingMillSecond = remainingMillSecond;
 
@@ -80,7 +80,7 @@ namespace Core.Block.Blocks.Machine
 
         private void Processing()
         {
-            _remainingMillSecond -= GameUpdate.UpdateTime * (_nowPower / (double) _requestPower);
+            _remainingMillSecond -= GameUpdate.UpdateTime * (_nowPower / (double) RequestPower);
             if (_remainingMillSecond <= 0)
             {
                 _state = ProcessState.Idle;
@@ -100,11 +100,6 @@ namespace Core.Block.Blocks.Machine
                        _vanillaMachineInputInventory.IsAllowedToStartProcess &&
                        _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
             }
-        }
-
-        public int GetRequestPower()
-        {
-            return _requestPower;
         }
 
         public void SupplyPower(int power)

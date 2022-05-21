@@ -10,8 +10,10 @@ using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -22,7 +24,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             int playerId = 1;
 
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
 
             //からの時のデータ要求
@@ -63,9 +65,8 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //インベントリにアイテムが入っている時のテスト
-            var playerInventoryData =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
-            ItemStackFactory itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             playerInventoryData.MainOpenableInventory.SetItem(0, itemStackFactory.Create(1, 5));
             playerInventoryData.MainOpenableInventory.SetItem(20, itemStackFactory.Create(3, 1));
             playerInventoryData.MainOpenableInventory.SetItem(34, itemStackFactory.Create(10, 7));

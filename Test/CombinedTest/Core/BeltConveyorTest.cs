@@ -10,8 +10,10 @@ using Core.Update;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.StartServerSystem;
 using Test.Module;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Core
 {
@@ -20,31 +22,23 @@ namespace Test.CombinedTest.Core
     /// </summary>
     public class BeltConveyorTest
     {
-        private ItemStackFactory _itemStackFactory;
-
-        [SetUp]
-        public void Setup()
-        {
-            _itemStackFactory = new ItemStackFactory(new ItemConfig(new ConfigPath(TestModuleConfigPath.FolderPath)));
-        }
-
-
         //一定個数以上アイテムが入らないテストした後、正しく次に出力されるかのテスト
         [Test]
         public void FullInsertAndChangeConnectorBeltConveyorTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var config = (BeltConveyorConfigParam) blockConfig.GetBlockConfig(3).Param;
             var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var random = new Random(4123);
             for (int i = 0; i < 5; i++)
             {
                 int id = random.Next(0, 10);
 
-                var item = _itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
+                var item = itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
                 var beltConveyor = (VanillaBeltConveyor) blockFactory.Create(3, Int32.MaxValue);
 
                 var endTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
@@ -56,11 +50,11 @@ namespace Test.CombinedTest.Core
 
                 Assert.AreEqual(item.Count, 1);
 
-                var dummy = new DummyBlockInventory();
+                var dummy = new DummyBlockInventory(itemStackFactory);
                 beltConveyor.AddOutputConnector(dummy);
                 GameUpdate.Update();
 
-                Assert.AreEqual(_itemStackFactory.Create(id, 1).ToString(), dummy.InsertedItems[0].ToString());
+                Assert.AreEqual(itemStackFactory.Create(id, 1).ToString(), dummy.InsertedItems[0].ToString());
             }
         }
 
@@ -68,11 +62,12 @@ namespace Test.CombinedTest.Core
         [Test]
         public void InsertBeltConveyorTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var config = (BeltConveyorConfigParam) blockConfig.GetBlockConfig(3).Param;
             var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
 
             var random = new Random(4123);
@@ -80,8 +75,8 @@ namespace Test.CombinedTest.Core
             {
                 int id = random.Next(1, 11);
                 int count = random.Next(1, 10);
-                var item = _itemStackFactory.Create(id, count);
-                var dummy = new DummyBlockInventory(1);
+                var item = itemStackFactory.Create(id, count);
+                var dummy = new DummyBlockInventory(itemStackFactory,1);
                 var beltConveyor = (VanillaBeltConveyor) blockFactory.Create(3, Int32.MaxValue);
                 beltConveyor.AddOutputConnector(dummy);
 
@@ -97,8 +92,8 @@ namespace Test.CombinedTest.Core
                 Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.2));
                 Assert.True(expectedEndTime.AddSeconds(-0.2) <= DateTime.Now);
 
-                Assert.True(outputItem.Equals(_itemStackFactory.Create(id, count - 1)));
-                var tmp = _itemStackFactory.Create(id, 1);
+                Assert.True(outputItem.Equals(itemStackFactory.Create(id, count - 1)));
+                var tmp = itemStackFactory.Create(id, 1);
                 Console.WriteLine($"{tmp} {dummy.InsertedItems[0]}");
                 Assert.AreEqual(tmp.ToString(), dummy.InsertedItems[0].ToString());
             }
@@ -108,18 +103,19 @@ namespace Test.CombinedTest.Core
         [Test]
         public void FullInsertBeltConveyorTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var config = (BeltConveyorConfigParam) blockConfig.GetBlockConfig(3).Param;
             var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var random = new Random(4123);
             for (int i = 0; i < 5; i++)
             {
                 int id = random.Next(1, 11);
-                var item = _itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
-                var dummy = new DummyBlockInventory(config.BeltConveyorItemNum);
+                var item = itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
+                var dummy = new DummyBlockInventory(itemStackFactory,config.BeltConveyorItemNum);
                 var beltConveyor = (VanillaBeltConveyor) blockFactory.Create(3, Int32.MaxValue);
                 beltConveyor.AddOutputConnector(dummy);
 
@@ -129,8 +125,8 @@ namespace Test.CombinedTest.Core
                     GameUpdate.Update();
                 }
 
-                Assert.True(item.Equals(_itemStackFactory.Create(id, 0)));
-                var tmp = _itemStackFactory.Create(id, config.BeltConveyorItemNum);
+                Assert.True(item.Equals(itemStackFactory.Create(id, 0)));
+                var tmp = itemStackFactory.Create(id, config.BeltConveyorItemNum);
                 Assert.True(dummy.InsertedItems[0].Equals(tmp));
             }
         }
@@ -139,15 +135,16 @@ namespace Test.CombinedTest.Core
         [Test]
         public void Insert2ItemBeltConveyorTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var random = new Random(4123);
             for (int i = 0; i < 5; i++)
             {
                 //必要な変数を作成
-                var item1 = _itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
-                var item2 = _itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
+                var item1 = itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
+                var item2 = itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
 
                 var beltConveyor = (VanillaBeltConveyor) blockFactory.Create(3, Int32.MaxValue);
 

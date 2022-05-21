@@ -13,9 +13,11 @@ using Core.Update;
 namespace Core.Block.Blocks.PowerGenerator
 {
     public class VanillaPowerGenerator : IBlock, IPowerGenerator, IBlockInventory, IUpdate,IOpenableInventory
-    {
-        private readonly int _blockId;
-        private readonly int _entityId;
+    {       
+        public int EntityId { get; }
+        public int BlockId { get; }
+        public ulong BlockHash { get; }
+        
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
@@ -23,23 +25,25 @@ namespace Core.Block.Blocks.PowerGenerator
         private int _fuelItemId = ItemConst.EmptyItemId;
         private double _remainingFuelTime = 0;
 
-        public VanillaPowerGenerator(int blockId, int entityId, int fuelItemSlot, ItemStackFactory itemStackFactory,
+        public VanillaPowerGenerator(int blockId, int entityId, ulong blockHash, int fuelItemSlot, ItemStackFactory itemStackFactory,
             Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate)
         {
-            _blockId = blockId;
-            _entityId = entityId;
+            BlockId = blockId;
+            EntityId = entityId;
             _fuelSettings = fuelSettings;
+            BlockHash = blockHash;
             _blockInventoryUpdate = blockInventoryUpdate as BlockOpenableInventoryUpdateEvent;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,fuelItemSlot);
             GameUpdate.AddUpdateObject(this);
         }
 
-        public VanillaPowerGenerator(int blockId, int entityId, string loadString, int fuelItemSlot,
+        public VanillaPowerGenerator(int blockId, int entityId, ulong blockHash, string loadString, int fuelItemSlot,
             ItemStackFactory itemStackFactory, Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate)
         {
-            _blockId = blockId;
-            _entityId = entityId;
+            BlockId = blockId;
+            EntityId = entityId;
             _fuelSettings = fuelSettings;
+            BlockHash = blockHash;
             _blockInventoryUpdate = blockInventoryUpdate as BlockOpenableInventoryUpdateEvent;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,fuelItemSlot);
             GameUpdate.AddUpdateObject(this);
@@ -51,12 +55,13 @@ namespace Core.Block.Blocks.PowerGenerator
             var slot = 0;
             for (var i = 2; i < split.Length; i += 2)
             {
-                _itemDataStoreService.SetItem(slot,itemStackFactory.Create(int.Parse(split[i]), int.Parse(split[i + 1])));
+                _itemDataStoreService.SetItem(slot,itemStackFactory.Create(ulong.Parse(split[i]), int.Parse(split[i + 1])));
                 slot++;
             }
         }
 
         public ReadOnlyCollection<IItemStack> Items => _itemDataStoreService.Items;
+
         public string GetSaveState()
         {
             //フォーマット
@@ -64,7 +69,7 @@ namespace Core.Block.Blocks.PowerGenerator
             var saveState = $"{_fuelItemId},{_remainingFuelTime}";
             foreach (var itemStack in _itemDataStoreService.Inventory)
             {
-                saveState += $",{itemStack.Id},{itemStack.Count}";
+                saveState += $",{itemStack.ItemHash},{itemStack.Count}";
             }
 
             return saveState;
@@ -124,7 +129,7 @@ namespace Core.Block.Blocks.PowerGenerator
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
-                _entityId, slot, itemStack));
+                EntityId, slot, itemStack));
         }
 
 
@@ -139,10 +144,5 @@ namespace Core.Block.Blocks.PowerGenerator
         public IItemStack ReplaceItem(int slot, IItemStack itemStack) { return _itemDataStoreService.ReplaceItem(slot, itemStack); }
 
         public int GetSlotSize() { return _itemDataStoreService.GetSlotSize(); }
-        
-        
-        public int GetEntityId() { return _entityId; }
-
-        public int GetBlockId() { return _blockId; }
     }
 }

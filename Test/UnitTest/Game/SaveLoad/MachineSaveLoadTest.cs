@@ -12,12 +12,17 @@ using Core.Item.Config;
 using Core.Update;
 using Game.Crafting;
 using Game.Crafting.Config;
+using Game.PlayerInventory.Interface;
+using Game.Save.Interface;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
 using PlayerInventory.Event;
+using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 using World.DataStore;
 using World.Event;
 
@@ -33,7 +38,7 @@ namespace Test.UnitTest.Game.SaveLoad
             //機械の追加
             var (itemStackFactory, blockFactory, worldBlockDatastore, _, assembleSaveJsonText,_) =
                 CreateBlockTestModule();
-            var machine = (VanillaMachine) blockFactory.Create(2, 10);
+            var machine = (VanillaMachine) blockFactory.Create(1, 10);
             worldBlockDatastore.AddBlock(machine, 0, 0, BlockDirection.North);
 
 
@@ -72,19 +77,20 @@ namespace Test.UnitTest.Game.SaveLoad
             var json = assembleSaveJsonText.AssembleSaveJson();
             Console.WriteLine(json);
             //配置したブロックを削除
-            worldBlockDatastore.AddBlock(blockFactory.Create(0, 0), 0, 0, BlockDirection.North);
+            worldBlockDatastore.RemoveBlock( 0, 0);
 
 
             //ロードした時に機械の状態が正しいことを確認
             var (_, _, loadWorldBlockDatastore, _, _,loadJsonFile) = CreateBlockTestModule();
+            
             loadJsonFile.Load(json);
 
             var loadMachine = (VanillaMachine) loadWorldBlockDatastore.GetBlock(0, 0);
             Console.WriteLine(machine.GetHashCode());
             Console.WriteLine(loadMachine.GetHashCode());
             //ブロックID、intIDが同じであることを確認
-            Assert.AreEqual(machine.GetBlockId(), loadMachine.GetBlockId());
-            Assert.AreEqual(machine.GetEntityId(), loadMachine.GetEntityId());
+            Assert.AreEqual(machine.BlockId, loadMachine.BlockId);
+            Assert.AreEqual(machine.EntityId, loadMachine.EntityId);
 
 
             //機械のレシピの残り時間のチェック
@@ -117,22 +123,20 @@ namespace Test.UnitTest.Game.SaveLoad
             Assert.AreEqual(itemStackFactory.Create(3, 2), outputInventoryField.OutputSlot[2]);
         }
 
-        private (ItemStackFactory, BlockFactory, WorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,LoadJsonFile)
+        private (ItemStackFactory, BlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,LoadJsonFile)
             CreateBlockTestModule()
         {
-            var config = new ConfigPath(TestModuleConfigPath.FolderPath);
             
-            var itemFactory = new ItemStackFactory(new ItemConfig(config));
-            var blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                new VanillaIBlockTemplates(new MachineRecipeConfig(itemFactory,config), itemFactory,new BlockOpenableInventoryUpdateEvent()));
-            var worldBlockDatastore =
-                new WorldBlockDatastore(new BlockPlaceEvent(), blockFactory, new BlockRemoveEvent());
-            var playerInventoryDataStore = new PlayerInventoryDataStore(new MainInventoryUpdateEvent(),new CraftInventoryUpdateEvent(),
-                itemFactory,new IsCreatableJudgementService(new CraftConfig(itemFactory,config),itemFactory,new ItemConfig(config)),new GrabInventoryUpdateEvent());
-            var assembleSaveJsonText = new AssembleSaveJsonText(playerInventoryDataStore, worldBlockDatastore);
-            var loadJsonText = new LoadJsonFile(new SaveJsonFileName(""), worldBlockDatastore,playerInventoryDataStore);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+            var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
+            var playerInventoryDataStore = serviceProvider.GetService<PlayerInventoryDataStore>();
+            var loadJsonFile = serviceProvider.GetService<ILoadRepository>() as LoadJsonFile;
 
-            return (itemFactory, blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText,loadJsonText);
+            return (itemStackFactory, blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText,loadJsonFile);
         }
     }
 }

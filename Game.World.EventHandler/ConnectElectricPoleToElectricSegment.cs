@@ -43,7 +43,7 @@ namespace Game.World.EventHandler
             var y = blockPlaceEvent.Coordinate.Y;
             if (!_electricPoleDatastore.ExistsComponentBlock(x, y)) return;
             
-            var electricPoleConfigParam = _blockConfig.GetBlockConfig(blockPlaceEvent.Block.GetBlockId()).Param as ElectricPoleConfigParam;
+            var electricPoleConfigParam = _blockConfig.GetBlockConfig(blockPlaceEvent.Block.BlockId).Param as ElectricPoleConfigParam;
 
             //電柱と電気セグメントを接続する
             var electricSegment = GetAndConnectElectricSegment(x,y,electricPoleConfigParam,_electricPoleDatastore.GetBlock(x, y));

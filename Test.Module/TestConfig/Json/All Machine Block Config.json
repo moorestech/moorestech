@@ -1,7 +1,7 @@
 {
   "Blocks": [
     {
-      "name": "TestMachine1",
+      "name": "aa",
       "type": "Machine",
       "itemId": 1,
       "param": {
@@ -11,7 +11,7 @@
       }
     },
     {
-      "name": "aaa",
+      "name": "b",
       "type": "Machine",
       "itemId": 2,
       "param": {
@@ -21,7 +21,7 @@
       }
     },
     {
-      "name": "bb",
+      "name": "cc",
       "type": "Machine",
       "itemId": 3,
       "param": {
@@ -31,7 +31,7 @@
       }
     },
     {
-      "name": "ccccc",
+      "name": "ddd",
       "type": "Machine",
       "itemId": 4,
       "param": {
@@ -41,7 +41,7 @@
       }
     },
     {
-      "name": "aaa",
+      "name": "eee",
       "type": "Machine",
       "itemId": 5,
       "param": {
@@ -51,7 +51,7 @@
       }
     },
     {
-      "name": "bb",
+      "name": "ff",
       "type": "Machine",
       "itemId": 6,
       "param": {
@@ -61,7 +61,7 @@
       }
     },
     {
-      "name": "ccccc",
+      "name": "gg",
       "type": "Machine",
       "itemId": 7,
       "param": {

@@ -43,7 +43,6 @@ namespace Game.WorldMap
         {
             //ノイズの設定
             var noise = new FastNoiseLite(seed);
-            noise = new FastNoiseLite(seed);
             noise.SetFrequency(veinFrequency * DefaultVeinFrequency);
             noise.SetSeed(seed + oreId);
             

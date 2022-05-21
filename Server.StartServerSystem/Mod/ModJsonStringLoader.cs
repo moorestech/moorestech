@@ -1,17 +1,19 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using Core.ConfigJson;
+using Newtonsoft.Json;
 
-namespace Mod.Config
+namespace Server.StartServerSystem.Mod
 {
     public class ModJsonStringLoader
     {
+        private const string ModMetaFileName = "mod_meta.json";
         private const string ItemConfigPath = "config/item.json";
         private const string BlockConfigPath = "config/block.json";
         private const string MachineRecipeConfigPath = "config/machine_recipe.json";
         private const string CraftRecipeConfigPath = "config/craft_recipe.json";
+        private const string OreConfigPath = "config/ore.json";
         
         
         public static Dictionary<string,ConfigJson> GetConfigString(string[] zipFileList)
@@ -22,14 +24,15 @@ namespace Mod.Config
             {
                 using var zip = ZipFile.Open(zipFile, ZipArchiveMode.Read);
 
+                var modMeta = JsonConvert.DeserializeObject<ModMetaJson>(LoadConfigFromZip(zip,ModMetaFileName));
+
                 var itemConfigJson = LoadConfigFromZip(zip,ItemConfigPath);
                 var blockConfigJson = LoadConfigFromZip(zip,BlockConfigPath);
                 var machineRecipeConfigJson = LoadConfigFromZip(zip,MachineRecipeConfigPath);
                 var craftRecipeConfigJson = LoadConfigFromZip(zip,CraftRecipeConfigPath);
+                var oreConfigJson = LoadConfigFromZip(zip,OreConfigPath);
                 
-                var zipFileName = Path.GetFileNameWithoutExtension(zipFile);
-                
-                configDict.Add(zipFileName,new ConfigJson(zipFileName,itemConfigJson,blockConfigJson,machineRecipeConfigJson,craftRecipeConfigJson));
+                configDict.Add(modMeta.ModId,new ConfigJson(modMeta.ModId,itemConfigJson,blockConfigJson,machineRecipeConfigJson,craftRecipeConfigJson,oreConfigJson));
             }
 
             return configDict;

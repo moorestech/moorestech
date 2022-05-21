@@ -7,8 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Event;
+using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 using World.Event;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
@@ -22,7 +24,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var blockPlace = new BlockPlaceEvent();
 
             var eventProtocol = new EventProtocolProvider();
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(response.Count, 0);
         }
@@ -31,7 +33,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Test]
         public void BlockPlaceEvent()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             
             
@@ -57,7 +59,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
                     //設置したブロックを保持する
                     blocks.Add(new TestBlockData(x, y, blockId,direction));
                     //ブロックの設置
-                    worldBlockDataStore.AddBlock(new VanillaBlock(blockId,random.Next(1, 1000000)), x, y,(BlockDirection)direction);
+                    worldBlockDataStore.AddBlock(new VanillaBlock(blockId,random.Next(1, 1000000),1), x, y,(BlockDirection)direction);
                 }
                 
                 

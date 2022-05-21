@@ -1,5 +1,6 @@
 ﻿using System;
 using Core.Block.BlockFactory;
+using Core.Block.Blocks;
 using Core.Block.Blocks.Machine;
 using Core.Block.Event;
 using Core.Block.RecipeConfig;
@@ -13,7 +14,9 @@ using NUnit.Framework;
 using Server;
 using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Player;
+using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 using EntityId = Game.World.Interface.Util.EntityId;
 
 namespace Test.UnitTest.Server.Player
@@ -23,7 +26,7 @@ namespace Test.UnitTest.Server.Player
         [Test]
         public void NothingBlockTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
             var b = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(new Coordinate(0, 0), worldData);
 
@@ -42,13 +45,13 @@ namespace Test.UnitTest.Server.Player
         [Test]
         public void SameBlockResponseTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModuleConfigPath.FolderPath);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
             var random = new Random(3944156);
             //ブロックの設置
             for (int i = 0; i < 10000; i++)
             {
-                var b = CreateMachine(random.Next(0, 500));
+                var b = CreateMachine(random.Next(1, 500));
                 worldData.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300), BlockDirection.North);
             }
 
@@ -66,7 +69,7 @@ namespace Test.UnitTest.Server.Player
                     for (int j = 0; j < b.GetLength(1); j++)
                     {
                         Assert.AreEqual(
-                            worldData.GetBlock(c.X + i, c.Y + j).GetBlockId(),
+                            worldData.GetBlock(c.X + i, c.Y + j).BlockId,
                             b[i, j]);
                     }
                 }
@@ -76,19 +79,15 @@ namespace Test.UnitTest.Server.Player
 
         private BlockFactory _blockFactory;
 
-        private VanillaMachine CreateMachine(int id)
+        private IBlock CreateMachine(int id)
         {
             if (_blockFactory == null)
             {
-                var config = new ConfigPath(TestModuleConfigPath.FolderPath);
-                
-                var itemStackFactory = new ItemStackFactory(new ItemConfig(config));
-                _blockFactory = new BlockFactory(new AllMachineBlockConfig(),
-                    new VanillaIBlockTemplates(new MachineRecipeConfig(itemStackFactory,config), itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
+                var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                _blockFactory = serviceProvider.GetService<BlockFactory>();
             }
 
-            var machine = _blockFactory.Create(id, EntityId.NewEntityId()) as VanillaMachine;
-            return machine;
+            return _blockFactory.Create(id, EntityId.NewEntityId());
         }
     }
 }

@@ -20,24 +20,24 @@ namespace Core.Block.BlockFactory
 
         public IBlock Create(int blockId, int entityId)
         {
-            var type = _blockConfig.GetBlockConfig(blockId);
-            if (_blockTypesDictionary.ContainsKey(type.Type))
+            var config = _blockConfig.GetBlockConfig(blockId);
+            if (_blockTypesDictionary.ContainsKey(config.Type))
             {
-                return _blockTypesDictionary[type.Type].New(type, entityId);
+                return _blockTypesDictionary[config.Type].New(config, entityId,config.BlockHash);
             }
 
-            throw new Exception("Block type not found :" + type.Type);
+            throw new Exception("Block type not found :" + config.Type);
         }
 
-        public IBlock Load(int blockId, int entityId, string state)
+        public IBlock Load(ulong blockHash, int entityId, string state)
         {
-            var type = _blockConfig.GetBlockConfig(blockId);
-            if (_blockTypesDictionary.ContainsKey(type.Type))
+            var config = _blockConfig.GetBlockConfig(blockHash);
+            if (_blockTypesDictionary.ContainsKey(config.Type))
             {
-                return _blockTypesDictionary[type.Type].Load(type, entityId, state);
+                return _blockTypesDictionary[config.Type].Load(config, entityId,config.BlockHash, state);
             }
 
-            throw new Exception("Block type not found :" + type.Type);
+            throw new Exception("Block type not found :" + config.Type);
         }
 
         public void RegisterTemplateIBlock(string key, IBlockTemplate block)
