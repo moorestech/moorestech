@@ -4,7 +4,7 @@ using System.IO.Compression;
 using Core.ConfigJson;
 using Newtonsoft.Json;
 
-namespace Server.StartServerSystem.Mod
+namespace Mod.Config
 {
     public class ModJsonStringLoader
     {
@@ -16,8 +16,9 @@ namespace Server.StartServerSystem.Mod
         private const string OreConfigPath = "config/ore.json";
         
         
-        public static Dictionary<string,ConfigJson> GetConfigString(string[] zipFileList)
+        public static Dictionary<string,ConfigJson> GetConfigString(string modDirectory)
         {
+            var zipFileList = Directory.GetFiles(modDirectory, "*.zip");
             var configDict = new Dictionary<string, ConfigJson>();
             //zipファイルの中身のjsonファイルを読み込む
             foreach (var zipFile in zipFileList)

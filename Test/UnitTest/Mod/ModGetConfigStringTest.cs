@@ -1,8 +1,8 @@
 using System;
 using System.IO;
+using Mod.Config;
 using NUnit.Framework;
 using Server.StartServerSystem;
-using Server.StartServerSystem.Mod;
 using Test.Module.TestMod;
 
 namespace Test.UnitTest.Mod
@@ -12,9 +12,7 @@ namespace Test.UnitTest.Mod
         [Test]
         public void LoadConfigTest()
         {
-            var zipFileList = Directory.GetFiles(TestModDirectory.ConfigOnlyDirectory, "*.zip");
-            Assert.AreEqual(zipFileList.Length, 2);
-            var loaded = ModJsonStringLoader.GetConfigString(zipFileList);
+            var loaded = ModJsonStringLoader.GetConfigString(TestModDirectory.ConfigOnlyDirectory);
             
             Assert.AreEqual(loaded.Count, 2);
             
