@@ -1,4 +1,3 @@
-using System.IO;
 using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Miner;
@@ -29,7 +28,6 @@ using Game.WorldMap;
 using Game.WorldMap.EventListener;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
-using Newtonsoft.Json;
 using PlayerInventory;
 using PlayerInventory.Event;
 using Server.Event;
