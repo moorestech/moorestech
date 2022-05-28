@@ -44,7 +44,7 @@ namespace Server.Protocol
             var id = new ByteListEnumerator(payload).MoveNextToGetShort();
             if (id != 4 && id != 2)
             {
-                Console.WriteLine("受信　" + _packetResponseList[id].GetType());
+                Console.WriteLine("受信　" + _packetResponseList[id].GetType().Name);
             }
             return _packetResponseList[id].GetResponse(payload);
         }

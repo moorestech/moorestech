@@ -4,25 +4,16 @@ namespace Core.Block.Blocks
 {
     public class VanillaBlock : IBlock
     {
-        private readonly int _blockId;
-        private readonly int _entityId;
+        public int EntityId { get; }
+        public int BlockId { get; }
+        public ulong BlockHash { get; }
 
-        public VanillaBlock(int blockId, int entityId)
+        public VanillaBlock(int blockId, int entityId, ulong blockHash)
         {
-            _entityId = entityId;
-            _blockId = blockId;
+            BlockId = blockId;
+            EntityId = entityId;
+            BlockHash = blockHash;
         }
-
-        public int GetEntityId()
-        {
-            return _entityId;
-        }
-
-        public int GetBlockId()
-        {
-            return _blockId;
-        }
-
         public string GetSaveState()
         {
             return String.Empty;

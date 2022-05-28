@@ -10,6 +10,5 @@
             X = x;
             Y = y;
         }
-        //TODO equalsとhashcodeの実装
     }
 }

@@ -5,19 +5,10 @@ namespace Core.Block.Blocks
 {
     public class NullBlock : IBlock
     {
-        public NullBlock()
-        {
-        }
+        public int EntityId => BlockConst.NullBlockEntityId;
+        public int BlockId =>BlockConst.EmptyBlockId;
+        public ulong BlockHash => 0;
 
-        public int GetEntityId()
-        {
-            return BlockConst.NullBlockEntityId;
-        }
-
-        public int GetBlockId()
-        {
-            return BlockConst.EmptyBlockId;
-        }
 
         public string GetSaveState()
         {

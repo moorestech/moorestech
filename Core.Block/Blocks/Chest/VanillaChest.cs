@@ -13,33 +13,36 @@ namespace Core.Block.Blocks.Chest
     
     public class VanillaChest: IBlock, IBlockInventory, IOpenableInventory,IUpdate
     {
-        private readonly int _entityId;
-        private readonly int _blockId;
+
+        public int EntityId { get; }
+        public int BlockId { get; }
+        public ulong BlockHash { get; }
         
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
 
-        public VanillaChest(int blockId,int entityId,int slotNum, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate)
+        public VanillaChest(int blockId,int entityId, ulong blockHash,int slotNum, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate)
         {
+            BlockId = blockId;
+            EntityId = entityId;
             _blockInventoryUpdate = blockInventoryUpdate;
-            _entityId = entityId;
-            _blockId = blockId;
+            BlockHash = blockHash;
             
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,slotNum);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdate.AddUpdateObject(this);
         }
 
-        public VanillaChest(string saveData,int blockId,int entityId,int slotNum, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate) : this( blockId,entityId,slotNum,  itemStackFactory,blockInventoryUpdate)
+        public VanillaChest(string saveData,int blockId,int entityId, ulong blockHash,int slotNum, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate) : this( blockId,entityId,blockHash,slotNum,  itemStackFactory,blockInventoryUpdate)
         {
             var split = saveData.Split(',');
             for (var i = 0; i < split.Length; i += 2)
             {
-                var itemId = int.Parse(split[i]);
+                var itemHash = ulong.Parse(split[i]);
                 var itemCount = int.Parse(split[i + 1]);
-                var item = itemStackFactory.Create(itemId, itemCount);
+                var item = itemStackFactory.Create(itemHash, itemCount);
                 _itemDataStoreService.SetItem(i/2, item);
             }
         }
@@ -47,7 +50,7 @@ namespace Core.Block.Blocks.Chest
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
-                _entityId, slot, itemStack));
+                EntityId, slot, itemStack));
         }
 
         public void AddOutputConnector(IBlockInventory blockInventory)
@@ -74,14 +77,14 @@ namespace Core.Block.Blocks.Chest
                     _connectInventoryService.InsertItem(_itemDataStoreService.Inventory[i]));
             }
         }
-        
+
         public string GetSaveState()
         {
             //itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var saveState = "";
             foreach (var itemStack in _itemDataStoreService.Inventory)
             {
-                saveState += $"{itemStack.Id},{itemStack.Count},";
+                saveState += $"{itemStack.ItemHash},{itemStack.Count},";
             }
             return saveState.TrimEnd(',');
         }
@@ -103,8 +106,5 @@ namespace Core.Block.Blocks.Chest
         public int GetSlotSize() { return _itemDataStoreService.GetSlotSize(); }
 
         public IItemStack GetItem(int slot) { return _itemDataStoreService.GetItem(slot); }
-        public int GetEntityId() { return _entityId; }
-
-        public int GetBlockId() { return _blockId; }
     }
 }

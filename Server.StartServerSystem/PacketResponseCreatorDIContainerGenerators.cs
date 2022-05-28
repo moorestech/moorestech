@@ -1,3 +1,4 @@
+using System.IO;
 using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Miner;
@@ -27,25 +28,28 @@ using Game.World.Interface.Service;
 using Game.WorldMap;
 using Game.WorldMap.EventListener;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using PlayerInventory;
 using PlayerInventory.Event;
 using Server.Event;
 using Server.Event.EventReceive;
 using Server.Protocol;
+using Server.StartServerSystem.Mod;
 using World.DataStore;
 using World.Event;
 using World.Service;
 
-namespace Server
+namespace Server.StartServerSystem
 {
     public class PacketResponseCreatorDiContainerGenerators
     {
-        public (PacketResponseCreator, ServiceProvider) Create(string serverConfig)
+        public (PacketResponseCreator, ServiceProvider) Create(string modConfig)
         {
             var services = new ServiceCollection();
             
             //コンフィグ、ファクトリーのインスタンスを登録
-            services.AddSingleton(new ConfigPath(serverConfig));
+            var zipFileList = Directory.GetFiles(modConfig, "*.zip");
+            services.AddSingleton(new ConfigJsonList(ModJsonStringLoader.GetConfigString(zipFileList)));
             services.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
             services.AddSingleton<IItemConfig, ItemConfig>();
             services.AddSingleton<ICraftingConfig, CraftConfig>();

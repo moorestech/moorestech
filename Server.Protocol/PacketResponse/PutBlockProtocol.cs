@@ -14,15 +14,13 @@ namespace Server.Protocol.PacketResponse
     {
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly BlockFactory blockFactory;
-        private readonly IMachineRecipeConfig _recipeConfig;
-        private readonly ItemStackFactory _itemStackFactory;
 
         public PutBlockProtocol(ServiceProvider serviceProvider)
         {
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             blockFactory = serviceProvider.GetService<BlockFactory>();
-            _recipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
-            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            serviceProvider.GetService<IMachineRecipeConfig>();
+            serviceProvider.GetService<ItemStackFactory>();
         }
 
         public List<List<byte>> GetResponse(List<byte> payload)

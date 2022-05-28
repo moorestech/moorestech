@@ -49,6 +49,8 @@ namespace Game.PlayerInventory.Interface
                 CraftItemCount.Add(playerInventoryData.CraftingOpenableInventory.GetItem(i).Count);
             }
             
+            GrabItemId = playerInventoryData.GrabInventory.GetItem(0).Id;
+            GrabItemCount = playerInventoryData.GrabInventory.GetItem(0).Count;
             
             
             PlayerId = playerId;

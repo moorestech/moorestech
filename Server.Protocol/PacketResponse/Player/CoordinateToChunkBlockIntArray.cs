@@ -25,7 +25,7 @@ namespace Server.Protocol.PacketResponse.Player
                 {
                     blocks[i, j] = worldBlockDatastore.GetBlock(
                         x + i,
-                        y + j).GetBlockId();
+                        y + j).BlockId;
                 }
             }
 

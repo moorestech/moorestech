@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Const;
 
 namespace Core.Block.Config.Service
 {
@@ -13,17 +14,16 @@ namespace Core.Block.Config.Service
         /// </summary>
         public ItemIdToBlockId(IBlockConfig blockConfig)
         {
-            foreach (var id in blockConfig.GetBlockIds())
+            for (int i = 1; i < blockConfig.GetBlockConfigCount(); i++)
             {
-                var itemId = blockConfig.GetBlockConfig(id).ItemId;
+                var itemId = blockConfig.GetBlockConfig(i).ItemId;
+                if (itemId == ItemConst.EmptyItemId) { continue; }
                 
                 if (_idTable.ContainsKey(itemId)) 
                     throw new Exception("アイテムIDからブロックIDへの対応付けに失敗。１つのアイテムIDが2つ以上のブロックが指定したアイテムIDと重複しています");
-                
-                
-                _idTable.Add(itemId, id);
+
+                _idTable.Add(itemId, i);
             }
-            
         }
         
         public bool CanConvert(int itemId)

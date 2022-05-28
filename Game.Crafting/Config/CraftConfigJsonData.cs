@@ -1,33 +1,25 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace Game.Crafting.Config
 {
-    [DataContract]
-    public class CraftConfigJsonData
-    {
-        
-        [DataMember(Name = "recipes")] private CraftConfigDataElement[] _craftConfigElements;
-
-        public CraftConfigDataElement[] CraftConfigElements => _craftConfigElements;
-    }
-
-    [DataContract]
+    [JsonObject]
     public class CraftConfigDataElement
     {
-        [DataMember(Name = "items")] private List<CraftItem> _items;
-        [DataMember(Name = "result")] private CraftItem _result;
+        [JsonProperty("items")] private List<CraftItem> _items;
+        [JsonProperty("result")] private CraftItem _result;
 
         public List<CraftItem> Items => _items;
 
         public CraftItem Result => _result;
     }
 
-    [DataContract]
+    [JsonObject]
     public class CraftItem
     {
-        [DataMember(Name = "id")] private int _id;
-        [DataMember(Name = "count")] private int _count;
+        [JsonProperty("id")] private int _id;
+        [JsonProperty("count")] private int _count;
 
         public int Id => _id;
 

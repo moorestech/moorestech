@@ -36,9 +36,9 @@ namespace Game.World.EventHandler.Service
         public void Disconnect(IElectricPole removedElectricPole)
         {
             //必要なデータを取得
-            var (x, y) = _worldBlockDatastore.GetBlockPosition(removedElectricPole.GetEntityId());
+            var (x, y) = _worldBlockDatastore.GetBlockPosition(removedElectricPole.EntityId);
             var poleConfig =
-                _blockConfig.GetBlockConfig(((IBlock)removedElectricPole).GetBlockId()).Param as ElectricPoleConfigParam;
+                _blockConfig.GetBlockConfig(((IBlock)removedElectricPole).BlockId).Param as ElectricPoleConfigParam;
             var removedSegment = _worldElectricSegmentDatastore.GetElectricSegment(removedElectricPole);
             var electricPoles = new FindElectricPoleFromPeripheralService().Find(
                 x, y, poleConfig, _electricPoleDatastore);
@@ -63,9 +63,9 @@ namespace Game.World.EventHandler.Service
 
 
             //繋がっていた1つの電柱の周辺の機械と発電機を探索
-            var (connectedX, connectedY) = _worldBlockDatastore.GetBlockPosition(electricPoles[0].GetEntityId());
+            var (connectedX, connectedY) = _worldBlockDatastore.GetBlockPosition(electricPoles[0].EntityId);
             var connectedPoleConfig =
-                _blockConfig.GetBlockConfig(((IBlock) electricPoles[0]).GetBlockId()).Param as ElectricPoleConfigParam;
+                _blockConfig.GetBlockConfig(((IBlock) electricPoles[0]).BlockId).Param as ElectricPoleConfigParam;
             var (connectedBlocks, connectedGenerators) =
                 new FindMachineAndGeneratorFromPeripheralService().Find(connectedX, connectedY,
                     connectedPoleConfig, _electricDatastore, _powerGeneratorDatastore);

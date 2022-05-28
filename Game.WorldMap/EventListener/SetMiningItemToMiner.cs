@@ -41,7 +41,7 @@ namespace Game.WorldMap.EventListener
             
             var oreConfig = _oreConfig.Get(oreId);
             var miner = _minerDatastore.GetBlock(x, y);
-            var minerConfig = _blockConfig.GetBlockConfig(((IBlock) miner).GetBlockId()).Param as MinerBlockConfigParam;
+            var minerConfig = _blockConfig.GetBlockConfig(((IBlock) miner).BlockId).Param as MinerBlockConfigParam;
             //鉱石IDから鉱石採掘時間を取得
             foreach (var oreSetting in minerConfig.OreSettings)
             {

@@ -18,17 +18,17 @@ namespace Core.Block.BlockFactory.BlockTemplate
             _blockInventoryUpdateEven = blockInventoryUpdateEven;
         }
 
-        public IBlock New(BlockConfigData param, int entityId)
+        public IBlock New(BlockConfigData param, int entityId, ulong blockHash)
         {
             var generatorParam = param.Param as PowerGeneratorConfigParam;
-            return new VanillaPowerGenerator(param.BlockId, entityId, generatorParam.FuelSlot, _itemStackFactory,
+            return new VanillaPowerGenerator(param.BlockId, entityId,blockHash, generatorParam.FuelSlot, _itemStackFactory,
                 generatorParam.FuelSettings,_blockInventoryUpdateEven);
         }
 
-        public IBlock Load(BlockConfigData param, int entityId, string state)
+        public IBlock Load(BlockConfigData param, int entityId, ulong blockHash, string state)
         {
             var generatorParam = param.Param as PowerGeneratorConfigParam;
-            return new VanillaPowerGenerator(param.BlockId, entityId, state, generatorParam.FuelSlot, _itemStackFactory,
+            return new VanillaPowerGenerator(param.BlockId, entityId,blockHash, state, generatorParam.FuelSlot, _itemStackFactory,
                 generatorParam.FuelSettings,_blockInventoryUpdateEven);
         }
     }
