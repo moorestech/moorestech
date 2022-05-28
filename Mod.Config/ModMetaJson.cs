@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Server.StartServerSystem.Mod
+namespace Mod.Config
 {
     [JsonObject("ModMeta")]
     public class ModMetaJson
