@@ -9,6 +9,8 @@ namespace Core.Item.Config
     {
         private readonly List<ItemConfigData> _itemConfigList;
         private readonly Dictionary<ulong, int> _bockHashToId = new();
+        private readonly Dictionary<string,List<int>> _modIdToItemIds = new();
+
         private const int DefaultItemMaxCount = int.MaxValue;
 
         public ItemConfig(ConfigJsonList configPath)
@@ -17,14 +19,23 @@ namespace Core.Item.Config
 
             
             //実際のIDは1から（空IDの次の値）始まる
-            for (int i = ItemConst.EmptyItemId + 1; i <= _itemConfigList.Count; i++)
+            for (int itemId = ItemConst.EmptyItemId + 1; itemId <= _itemConfigList.Count; itemId++)
             {
-                var arrayIndex = i - 1;
+                var arrayIndex = itemId - 1;
                 if (_bockHashToId.ContainsKey(_itemConfigList[arrayIndex].ItemHash))
                 {
                     throw new Exception("アイテム名 " + _itemConfigList[arrayIndex].Name + " は重複しています。");
                 }
-                _bockHashToId.Add(_itemConfigList[arrayIndex].ItemHash, i);
+                _bockHashToId.Add(_itemConfigList[arrayIndex].ItemHash, itemId);
+
+                if (_modIdToItemIds.TryGetValue(_itemConfigList[arrayIndex].ModId, out var itemIds))
+                {
+                    itemIds.Add(itemId);
+                }
+                else
+                {
+                    _modIdToItemIds.Add(_itemConfigList[arrayIndex].ModId, new List<int> {itemId});
+                }
             }
         }
 
@@ -41,7 +52,7 @@ namespace Core.Item.Config
                 return _itemConfigList[id];
             }
 
-            return new ItemConfigData("undefined id " + id, DefaultItemMaxCount);
+            return new ItemConfigData("undefined id " + id, DefaultItemMaxCount,"mod is not found");
         }
 
         public int GetItemId(ulong itemHash)
@@ -53,6 +64,11 @@ namespace Core.Item.Config
             }
             Console.WriteLine("itemHash:" + itemHash + " is not found");
             return ItemConst.EmptyItemId;
+        }
+
+        public List<int> GetItemIds(string modId)
+        {
+            return _modIdToItemIds.TryGetValue(modId, out var itemIds) ? itemIds : new List<int>();
         }
     }
 }

@@ -43,12 +43,14 @@ namespace Core.Item.Config
     
     public class ItemConfigData
     {
+        public readonly string ModId;
         public string Name { get; }
         public int MaxStack { get; }
         public readonly ulong ItemHash = 0;
 
         internal ItemConfigData(ItemConfigJsonData jsonData,string modId,IxxHash xxHash)
         {
+            ModId = modId;
             Name = jsonData.Name;
             MaxStack = jsonData.MaxStack;
             ItemHash = 1;
@@ -56,10 +58,11 @@ namespace Core.Item.Config
             ItemHash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + Name).Hash);
         }
 
-        public ItemConfigData(string name, int maxStack)
+        public ItemConfigData(string name, int maxStack, string modId)
         {
             Name = name;
             MaxStack = maxStack;
+            ModId = modId;
         }
     }
 
