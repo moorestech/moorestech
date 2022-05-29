@@ -10,14 +10,12 @@ namespace MainGame.Mod
         {
             var zipArchiveEntry = zipArchive.GetEntry(path);
             if (zipArchiveEntry == null) return null;
+
+            using var ms = new MemoryStream();
+            zipArchiveEntry.Open().CopyTo(ms);
             
-            using var textureBinary = new BinaryReader(zipArchiveEntry.Open());
-            
-            
-            var bytes = textureBinary.ReadBytes((int)textureBinary.BaseStream.Length);
-            
-            Texture2D texture = new Texture2D(1, 1);
-            texture.LoadImage(bytes);
+            var texture = new Texture2D(1, 1);
+            texture.LoadImage(ms.ToArray());
             
             return texture;
         }
