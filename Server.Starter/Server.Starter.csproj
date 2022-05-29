@@ -26,24 +26,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="ReleaseConfig\block.json" />
-      <Content Include="Config\block.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-      <None Remove="ReleaseConfig\craftRecipe.json" />
-      <Content Include="Config\craftRecipe.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-      <None Remove="ReleaseConfig\item.json" />
-      <Content Include="Config\item.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-      <None Remove="ReleaseConfig\machineRecipe.json" />
-      <Content Include="Config\machineRecipe.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-      <None Remove="ReleaseConfig\ore.json" />
-      <Content Include="Config\ore.json">
+      <None Remove="mods\moorestechBaseMod.zip" />
+      <Content Include="mods\moorestechBaseMod.zip">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
