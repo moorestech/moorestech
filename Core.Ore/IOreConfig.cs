@@ -11,5 +11,6 @@ namespace Core.Ore
         public int OreIdToItemId(int oreId);
         public List<int> GetSortedIdsForPriority();
         public OreConfigData Get(int oreId);
+        public List<int> GetOreIds(string modId);
     }
 }

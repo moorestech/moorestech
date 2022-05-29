@@ -4,8 +4,8 @@ using Newtonsoft.Json;
 namespace Core.Ore.Config
 {
 
-    [JsonObject("OreConfigData")]
-    public class OreConfigData
+    [JsonObject("OreConfigJsonData")]
+    public class OreConfigJsonData
     {
         [JsonProperty("oreId")] private int _oreId;
         [JsonProperty("name")] private string _name;
