@@ -64,7 +64,7 @@ namespace Core.Block.Config.LoadConfig
 
                 ulong hash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + name).Hash);
                 
-                blockDictionary.Add(new BlockConfigData(id, name, hash,type, blockParam,itemId));
+                blockDictionary.Add(new BlockConfigData(modId,id, name, hash,type, blockParam,itemId));
             }
 
             return blockDictionary;

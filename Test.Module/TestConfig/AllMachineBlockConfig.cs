@@ -29,7 +29,7 @@ namespace Test.Module.TestConfig
             }
 
             //IDがなかったからインプット、アウトプットスロットが100のブロックを返す
-            return new BlockConfigData(id,
+            return new BlockConfigData("mod is not found",id,
                 "Generated Block from AllMachineBlockConfig.cs",
                 1,
                 "Machine",
@@ -45,5 +45,7 @@ namespace Test.Module.TestConfig
         {
             return _blockConfigList.Count;
         }
+
+        public List<int> GetBlockIds(string modId) { return new List<int>(); }
     }
 }

@@ -1,7 +1,10 @@
 ﻿using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server.StartServerSystem;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Core
 {
@@ -36,6 +39,18 @@ namespace Test.CombinedTest.Core
         {
             int slots = ((MachineBlockConfigParam) new AllMachineBlockConfig().GetBlockConfig(id).Param).OutputSlot;
             Assert.AreEqual(ans, slots);
+        }
+        
+        
+
+        [Test]
+        public void ModIdToItemListTest()
+        {
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemConfig = serviceProvider.GetService<IBlockConfig>();
+            
+            
+            Assert.AreEqual(7, itemConfig.GetBlockIds("testMod2").Count);
         }
     }
 }
