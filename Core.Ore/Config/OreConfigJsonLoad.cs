@@ -16,7 +16,12 @@ namespace Core.Ore.Config
             var configList = new List<OreConfigData>();
             foreach (var modIds in sortedModIds)
             {
-                var itemConfigData = JsonConvert.DeserializeObject<OreConfigJsonData[]>(oreConfig[modIds]);
+                if (!oreConfig.TryGetValue(modIds, out var config))
+                {
+                    continue;
+                }
+                
+                var itemConfigData = JsonConvert.DeserializeObject<OreConfigJsonData[]>(config);
                 configList.AddRange(itemConfigData.Select(c => new OreConfigData(modIds, c)));
             }
 
