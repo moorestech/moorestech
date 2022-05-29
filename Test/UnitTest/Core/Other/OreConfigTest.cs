@@ -23,5 +23,13 @@ namespace Test.UnitTest.Core.Other
             Assert.AreEqual(3, oreConfig.OreIdToItemId(1));
             Assert.AreEqual(4, oreConfig.OreIdToItemId(2));
         }
+        [Test]
+        public void ModItToOreIdsTest()
+        {
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            IOreConfig oreConfig = serviceProvider.GetService<IOreConfig>();
+            
+            Assert.AreEqual(2, oreConfig.GetOreIds("testMod2").Count);
+        }
     }
 }
