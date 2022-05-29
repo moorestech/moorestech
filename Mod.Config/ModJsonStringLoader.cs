@@ -18,10 +18,9 @@ namespace Mod.Config
         
         public static Dictionary<string,ConfigJson> GetConfigString(string modDirectory)
         {
-            var zipFileList = Directory.GetFiles(modDirectory, "*.zip");
             var configDict = new Dictionary<string, ConfigJson>();
             //zipファイルの中身のjsonファイルを読み込む
-            foreach (var zipFile in zipFileList)
+            foreach (var zipFile in ModFileList.Get(modDirectory))
             {
                 using var zip = ZipFile.Open(zipFile, ZipArchiveMode.Read);
 
