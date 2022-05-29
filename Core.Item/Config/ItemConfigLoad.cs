@@ -27,15 +27,24 @@ namespace Core.Item.Config
                 {
                     continue;
                 }
-                
-                var itemConfigData = JsonConvert.DeserializeObject<ItemConfigJsonData[]>(json);
-                if (itemConfigData == null)
+
+                try
                 {
+                    var itemConfigData = JsonConvert.DeserializeObject<ItemConfigJsonData[]>(json);
+                    if (itemConfigData == null)
+                    {
+                        continue;
+                    }
+                    
+                    
+                    var configList = itemConfigData.ToList().Select(c => new ItemConfigData(c, mod, xxHash));
+                    itemConfigList.AddRange(configList);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message + "\n" + e.StackTrace + "\n アイテムコンフィグのロードに失敗しました mod id:" + mod);
                     continue;
                 }
-
-                var configList = itemConfigData.ToList().Select(c => new ItemConfigData(c, mod, xxHash));
-                itemConfigList.AddRange(configList);
             }
             return itemConfigList;
         }
