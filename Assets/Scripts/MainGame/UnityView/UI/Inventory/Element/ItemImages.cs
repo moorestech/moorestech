@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace MainGame.UnityView.UI.Inventory.Element
 {
@@ -9,6 +10,13 @@ namespace MainGame.UnityView.UI.Inventory.Element
     {
         [SerializeField] private List<ItemViewData> itemImageList;
         [SerializeField] private ItemViewData nothingIndexItemImage;
+
+        [Inject]
+        public void Construct()
+        {
+            
+        }
+        
 
         public ItemViewData GetItemView(int index)
         {

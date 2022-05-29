@@ -9,7 +9,7 @@ namespace MainGame.Mod
 {
     public static class ItemTextureLoader
     {
-        private const string TextureDirectory = "Assets/Resources/Textures/";
+        private const string TextureDirectory = "assets/item/";
         public static List<Texture2D> GetItemTexture(string modDirectory,SinglePlayInterface singlePlayInterface)
         {
             var textureList = new List<Texture2D>();
@@ -33,7 +33,7 @@ namespace MainGame.Mod
             var textureList = new List<Texture2D>();
             foreach (var config in itemConfigs)
             {
-                var texture = GetZipTexture.Get(mod.ZipArchive, TextureDirectory + config.Name);
+                var texture = GetZipTexture.Get(mod.ZipArchive, TextureDirectory + config.Name + ".png");
                 if (texture == null)
                 {
                     Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + config.Name);
