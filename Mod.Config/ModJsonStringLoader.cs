@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using Core.ConfigJson;
+using Mod.Loader;
 using Newtonsoft.Json;
 
 namespace Mod.Config
 {
     public class ModJsonStringLoader
     {
-        private const string ModMetaFileName = "mod_meta.json";
         private const string ItemConfigPath = "config/item.json";
         private const string BlockConfigPath = "config/block.json";
         private const string MachineRecipeConfigPath = "config/machine_recipe.json";
@@ -18,21 +18,22 @@ namespace Mod.Config
         
         public static Dictionary<string,ConfigJson> GetConfigString(string modDirectory)
         {
+            
+            using var modResource = new ModsResource(modDirectory);
+            
             var configDict = new Dictionary<string, ConfigJson>();
             //zipファイルの中身のjsonファイルを読み込む
-            foreach (var zipFile in ModFileList.Get(modDirectory))
+            foreach (var mod in modResource.Mods)
             {
-                using var zip = ZipFile.Open(zipFile, ZipArchiveMode.Read);
-
-                var modMeta = JsonConvert.DeserializeObject<ModMetaJson>(LoadConfigFromZip(zip,ModMetaFileName));
-
+                var zip = mod.Value.ZipArchive;
+                
                 var itemConfigJson = LoadConfigFromZip(zip,ItemConfigPath);
                 var blockConfigJson = LoadConfigFromZip(zip,BlockConfigPath);
                 var machineRecipeConfigJson = LoadConfigFromZip(zip,MachineRecipeConfigPath);
                 var craftRecipeConfigJson = LoadConfigFromZip(zip,CraftRecipeConfigPath);
                 var oreConfigJson = LoadConfigFromZip(zip,OreConfigPath);
                 
-                configDict.Add(modMeta.ModId,new ConfigJson(modMeta.ModId,itemConfigJson,blockConfigJson,machineRecipeConfigJson,craftRecipeConfigJson,oreConfigJson));
+                configDict.Add(mod.Value.ModMetaJson.ModId,new ConfigJson(mod.Value.ModMetaJson.ModId,itemConfigJson,blockConfigJson,machineRecipeConfigJson,craftRecipeConfigJson,oreConfigJson));
             }
 
             return configDict;

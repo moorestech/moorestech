@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 
-namespace Mod.Config
+namespace Mod.Loader
 {
     public class ModFileList
     {
