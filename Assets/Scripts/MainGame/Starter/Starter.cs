@@ -104,7 +104,7 @@ namespace MainGame.Starter
         {
             var builder = new ContainerBuilder();
             //シングルプレイ用のインスタンス
-            builder.RegisterInstance(new SinglePlayInterface(ServerConst.ServerConfigDirectory));
+            builder.RegisterInstance(new SinglePlayInterface(ServerConst.ServerModsDirectory));
             
             //サーバーに接続するためのインスタンス
             builder.RegisterInstance(new ServerProcessSetting(isLocal,localServerProcess));

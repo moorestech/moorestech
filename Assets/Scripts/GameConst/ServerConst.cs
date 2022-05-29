@@ -21,7 +21,6 @@ namespace GameConst
         public static readonly string ServerDirectory = GetFullPath("./" + StandAloneServerDirectory);
 #endif
         public static readonly string ServerExePath = Combine(ServerDirectory,"moorestech_server.exe");
-        public static readonly string ServerConfigDirectory = Combine(ServerDirectory,"Config");
         public static readonly string ServerModsDirectory = Combine(ServerDirectory,"mods");
     }
 }

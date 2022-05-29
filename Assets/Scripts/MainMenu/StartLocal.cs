@@ -25,7 +25,7 @@ namespace MainMenu
             _serverProcess = new Process();
             _serverProcess.StartInfo.FileName = ServerConst.ServerExePath;
 #if UNITY_EDITOR_WIN
-            _serverProcess.StartInfo.Arguments = ServerConst.ServerConfigDirectory;
+            _serverProcess.StartInfo.Arguments = ServerConst.ServerModsDirectory;
 #elif UNITY_STANDALONE_WIN
             _serverProcess.StartInfo.Arguments ="startupFromClient";
 #endif

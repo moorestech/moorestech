@@ -14,7 +14,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
         [Inject]
         public void Construct()
         {
-            
+            Debug.Log("ItemImages Construct");
         }
         
 

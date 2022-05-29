@@ -24,7 +24,7 @@ namespace Test
         
         private void Start()
         {
-            var single = new SinglePlayInterface(ServerConst.ServerConfigDirectory);
+            var single = new SinglePlayInterface(ServerConst.ServerModsDirectory);
             var inventoryModel = new PlayerInventoryViewModel(single);
             var inventoryController = new PlayerInventoryViewModelController(single,inventoryModel,playerInventorySlots);
 
