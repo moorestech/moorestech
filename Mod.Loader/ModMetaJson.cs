@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Mod.Config
+namespace Mod.Loader
 {
     [JsonObject("ModMeta")]
     public class ModMetaJson

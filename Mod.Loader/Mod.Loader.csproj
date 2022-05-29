@@ -2,12 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
+        <RootNamespace>Mod.Loader</RootNamespace>
     </PropertyGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Core.ConfigJson\Core.ConfigJson.csproj" />
-      <ProjectReference Include="..\Mod.Loader\Mod.Loader.csproj" />
-    </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
