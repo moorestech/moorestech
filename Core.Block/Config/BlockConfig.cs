@@ -12,6 +12,7 @@ namespace Core.Block.Config
     {
         private readonly List<BlockConfigData> _blockConfigList;
         private readonly Dictionary<ulong, BlockConfigData> _bockHashToConfig = new();
+        private readonly Dictionary<string,List<int>> _modIdToBlockIds = new();
 
         public BlockConfig(ConfigJsonList configJson)
         {
@@ -24,6 +25,16 @@ namespace Core.Block.Config
                 }
                 
                 _bockHashToConfig.Add(blockConfig.BlockHash, blockConfig);
+                
+                var blockId = blockConfig.BlockId;
+                if (_modIdToBlockIds.TryGetValue(blockConfig.ModId, out var blockIds))
+                {
+                    blockIds.Add(blockId);
+                }
+                else
+                {
+                    _modIdToBlockIds.Add(blockConfig.ModId, new List<int> {blockId});
+                }
             }
         }
 
@@ -45,7 +56,7 @@ namespace Core.Block.Config
             //未定義の時はNullBlockConfigを返す
             //idを元に戻す
             id++;
-            return new BlockConfigData(id,
+            return new BlockConfigData("mod is not found",id,
                 "ID " + id + " is undefined",
                 0,
                 VanillaBlockType.Block,
@@ -64,5 +75,9 @@ namespace Core.Block.Config
         }
 
         public int GetBlockConfigCount() { return _blockConfigList.Count; }
+        public List<int> GetBlockIds(string modId)
+        {
+            return _modIdToBlockIds.TryGetValue(modId, out var blockIds) ? blockIds : new List<int>();
+        }
     }
 }

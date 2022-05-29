@@ -4,6 +4,8 @@ namespace Core.Block.Config.LoadConfig
 {
     public class BlockConfigData
     {
+        public readonly string ModId;
+        
         public readonly int BlockId;
         public readonly string Name;
         public readonly string Type;
@@ -11,13 +13,14 @@ namespace Core.Block.Config.LoadConfig
         public readonly int ItemId;
         public readonly ulong BlockHash;
 
-        public BlockConfigData(int blockId, string name, ulong blockHash, string type, IBlockConfigParam param, int itemId)
+        public BlockConfigData(string modId,int blockId, string name, ulong blockHash, string type, IBlockConfigParam param, int itemId)
         {
             BlockId = blockId;
             Name = name;
             Type = type;
             Param = param;
             ItemId = itemId;
+            ModId = modId;
             BlockHash = blockHash;
         }
     }

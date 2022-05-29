@@ -8,5 +8,6 @@ namespace Core.Block.Config
         public BlockConfigData GetBlockConfig(int id);
         public BlockConfigData GetBlockConfig(ulong blockHash);
         public int GetBlockConfigCount();
+        public List<int> GetBlockIds(string modId);
     }
 }
