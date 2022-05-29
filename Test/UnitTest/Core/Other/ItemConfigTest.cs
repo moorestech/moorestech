@@ -9,7 +9,7 @@ using Test.Module.TestMod;
 
 namespace Test.UnitTest.Core.Other
 {
-    public class ItemJsonTest
+    public class ItemConfigTest
     {
         [TestCase(1, 100)]
         [TestCase(2, 50)]
@@ -36,6 +36,16 @@ namespace Test.UnitTest.Core.Other
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemConfig = serviceProvider.GetService<IItemConfig>();
             Assert.AreEqual(name, itemConfig.GetItemConfig(id).Name);
+        }
+
+        [Test]
+        public void ModIdToItemListTest()
+        {
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemConfig = serviceProvider.GetService<IItemConfig>();
+            
+            
+            Assert.AreEqual(7, itemConfig.GetItemIds("testMod2").Count);
         }
     }
 }
