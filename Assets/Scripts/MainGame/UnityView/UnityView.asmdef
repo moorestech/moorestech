@@ -8,7 +8,8 @@
         "Unity.TextMeshPro",
         "Constant",
         "GameConst",
-        "Server"
+        "Server",
+        "Mod"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

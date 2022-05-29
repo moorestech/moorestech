@@ -1,34 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
+using GameConst;
+using MainGame.Mod;
+using SinglePlay;
 using UnityEngine;
 using VContainer;
 
 namespace MainGame.UnityView.UI.Inventory.Element
 {
-    [CreateAssetMenu(fileName = "ItemImages", menuName = "ItemImages", order = 0)]
-    public class ItemImages : ScriptableObject
+    public class ItemImages
     {
-        [SerializeField] private List<ItemViewData> itemImageList;
-        [SerializeField] private ItemViewData nothingIndexItemImage;
+        private List<ItemViewData> _itemImageList;
+        private ItemViewData _nothingIndexItemImage;
 
-        [Inject]
-        public void Construct()
+        public ItemImages(string modDirectory,SinglePlayInterface singlePlayInterface)
         {
-            Debug.Log("ItemImages Construct");
+            var textures = ItemTextureLoader.GetItemTexture(ServerConst.ServerModsDirectory,new SinglePlayInterface(ServerConst.ServerModsDirectory));
+            
         }
-        
+
 
         public ItemViewData GetItemView(int index)
         {
-            if (itemImageList.Count <= index)
+            if (_itemImageList.Count <= index)
             {
-                return nothingIndexItemImage;
+                return _nothingIndexItemImage;
             }
 
-            return itemImageList[index];
+            return _itemImageList[index];
         }
 
-        public int GetItemNum() { return itemImageList.Count; }
+        public int GetItemNum() { return _itemImageList.Count; }
     }
 
     [Serializable]
