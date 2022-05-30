@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using GameConst;
+using MainGame.Basic;
 using MainGame.Mod;
 using SinglePlay;
 using UnityEngine;
@@ -10,13 +11,20 @@ namespace MainGame.UnityView.UI.Inventory.Element
 {
     public class ItemImages
     {
-        private List<ItemViewData> _itemImageList;
-        private ItemViewData _nothingIndexItemImage;
+        private readonly List<ItemViewData> _itemImageList = new ();
+        private readonly ItemViewData _emptyItemImage = new(null,"Empty");
+        private readonly ItemViewData _nothingIndexItemImage;
 
-        public ItemImages(string modDirectory,SinglePlayInterface singlePlayInterface)
+        public ItemImages(SinglePlayInterface singlePlayInterface)
         {
-            var textures = ItemTextureLoader.GetItemTexture(ServerConst.ServerModsDirectory,new SinglePlayInterface(ServerConst.ServerModsDirectory));
+            _nothingIndexItemImage = new ItemViewData(null,"Item not found");
+            _itemImageList.Add(_emptyItemImage);
             
+            var textures = ItemTextureLoader.GetItemTexture(ServerConst.ServerModsDirectory,singlePlayInterface);
+            foreach (var texture in textures)
+            {
+                _itemImageList.Add(new ItemViewData(texture.texture2D.ToSprite(),texture.name));
+            }
         }
 
 
@@ -33,10 +41,15 @@ namespace MainGame.UnityView.UI.Inventory.Element
         public int GetItemNum() { return _itemImageList.Count; }
     }
 
-    [Serializable]
     public class ItemViewData
     {
-        public Sprite itemImage;
-        public string itemName;
+        public readonly Sprite itemImage;
+        public readonly string itemName;
+
+        public ItemViewData(Sprite itemImage, string itemName)
+        {
+            this.itemImage = itemImage;
+            this.itemName = itemName;
+        }
     }
 }
