@@ -58,7 +58,6 @@ namespace MainGame.Starter
         
         [Header("ScriptableObjects")]
         [SerializeField] private BlockObjects blockObjects;
-        [SerializeField] private ItemImages itemImages;
         [SerializeField] private WorldMapTileObjects worldMapTileObjects;
         
         [Header("InHierarchy")]
@@ -168,10 +167,12 @@ namespace MainGame.Starter
             builder.Register<BlockPlaceState>(Lifetime.Singleton);
             builder.Register<RecipeViewState>(Lifetime.Singleton);
 
+            //modからロードしてきたデータ
+            builder.Register<ItemImages>(Lifetime.Singleton);
+            
 
             //ScriptableObjectの登録
             builder.RegisterInstance(blockObjects);
-            builder.RegisterInstance(itemImages);
             builder.RegisterInstance(worldMapTileObjects);
 
             //Hierarchy上にあるcomponent
