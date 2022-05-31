@@ -52,7 +52,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             if (slot < mainInventorySlots.Count)
             {
                 mainInventorySlots[slot].SetItem(itemView,count);
-            }else
+            }else if(slot - mainInventorySlots.Count < _subInventorySlots.Count)
             {
                 _subInventorySlots[slot - mainInventorySlots.Count].SetItem(itemView,count);
             }
