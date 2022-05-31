@@ -1,5 +1,6 @@
 ﻿using MainGame.UnityView.Block;
 using MainGame.UnityView.Control.MouseKeyboard;
+using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 
 namespace MainGame.UnityView.UI.UIState
@@ -52,7 +53,7 @@ namespace MainGame.UnityView.UI.UIState
             return UIStateEnum.GameScreen;
         }
 
-        public void OnEnter(UIStateEnum lastStateEnum) { }
+        public void OnEnter(UIStateEnum lastStateEnum) { ItemNameBar.Instance.HideItemName(); }
         public void OnExit() { }
 
         private bool IsClickOpenableBlock()

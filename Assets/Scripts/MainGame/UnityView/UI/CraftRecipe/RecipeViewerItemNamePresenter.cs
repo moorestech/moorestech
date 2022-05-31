@@ -9,9 +9,6 @@ namespace MainGame.UnityView.UI.CraftRecipe
 {
     public class RecipeViewerItemNamePresenter : MonoBehaviour
     {
-        [SerializeField] private TMP_Text itemNameText;
-        [SerializeField] private GameObject itemNameTextGameObject;
-
         [SerializeField] private ItemRecipeView itemRecipeView;
         [SerializeField] private CraftRecipeItemListViewer craftRecipeItemListViewer;
 
@@ -30,8 +27,8 @@ namespace MainGame.UnityView.UI.CraftRecipe
             itemRecipeView.OnCursorEnter += OnCursorEnter;
             craftRecipeItemListViewer.OnCursorEnter += OnItemListCursorEnter;
             
-            itemRecipeView.OnCursorExit += _ => itemNameTextGameObject.gameObject.SetActive(false);
-            craftRecipeItemListViewer.OnCursorExit += _ => itemNameTextGameObject.gameObject.SetActive(false);
+            itemRecipeView.OnCursorExit += _ => ItemNameBar.Instance.HideItemName();
+            craftRecipeItemListViewer.OnCursorExit += _ => ItemNameBar.Instance.HideItemName();
         }
 
         private void OnItemListCursorEnter(int id)
@@ -40,8 +37,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
             {
                 return;
             }
-            itemNameTextGameObject.gameObject.SetActive(true);
-            itemNameText.text = _itemImages.GetItemView(id).itemName;
+            ItemNameBar.Instance.ShowItemName(_itemImages.GetItemView(id).itemName);
         }
 
         private void OnCursorEnter(ItemStack item)
@@ -50,8 +46,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
             {
                 return;
             }
-            itemNameTextGameObject.gameObject.SetActive(true);
-            itemNameText.text = _itemImages.GetItemView(item.ID).itemName;
+            ItemNameBar.Instance.ShowItemName(_itemImages.GetItemView(item.ID).itemName);
         }
     }
 }

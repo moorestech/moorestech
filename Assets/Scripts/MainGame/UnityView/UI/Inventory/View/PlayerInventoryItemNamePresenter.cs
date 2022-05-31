@@ -1,3 +1,4 @@
+using System;
 using Core.Const;
 using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.Element;
@@ -9,8 +10,6 @@ namespace MainGame.UnityView.UI.Inventory.View
 {
     public class PlayerInventoryItemNamePresenter : MonoBehaviour
     {
-        [SerializeField] private TMP_Text itemNameText;
-        [SerializeField] private GameObject itemNameTextGameObject;
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
         private ItemImages _itemImages;
         
@@ -26,18 +25,18 @@ namespace MainGame.UnityView.UI.Inventory.View
             _itemImages = itemImages;
             playerInventorySlots.OnCursorEnter += OnCursorEnter;
             playerInventorySlots.OnCursorMove += OnCursorEnter;
-            playerInventorySlots.OnCursorExit += _ => itemNameTextGameObject.SetActive(false);
+            playerInventorySlots.OnCursorExit += _ => ItemNameBar.Instance.HideItemName(false);
             
             //アイテムが置かれたことを検知してアイテム名を表示する
             _playerInventoryViewModelController.OnItemSlotAdded += (slot,count) =>
             {
                 if (_playerInventoryViewModelController.IsGrabbed)return;
-                itemNameTextGameObject.SetActive(true);
+                ItemNameBar.Instance.ShowItemName();
             };
             //持っているアイテムが更新された時はテキストも更新しておく
             _playerInventoryViewModelController.OnGrabbedItemUpdate += (item) =>
             {
-                itemNameText.text = _itemImages.GetItemView(item.ID).itemName;
+                ItemNameBar.Instance.ShowItemName(_itemImages.GetItemView(item.ID).itemName);
             };
         }
 
@@ -49,12 +48,10 @@ namespace MainGame.UnityView.UI.Inventory.View
             
             if (item.Count == ItemConst.EmptyItemId)
             {
-                itemNameText.text = "";
-                itemNameTextGameObject.SetActive(false);
+                ItemNameBar.Instance.HideItemName();
                 return;
             }
-            itemNameText.text = _itemImages.GetItemView(item.Id).itemName;
-            itemNameTextGameObject.SetActive(true);
+            ItemNameBar.Instance.ShowItemName(_itemImages.GetItemView(item.Id).itemName);
         }
     }
     
