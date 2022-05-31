@@ -8,9 +8,15 @@ namespace MainGame.UnityView.WorldMapTile
     {
         [SerializeField] private MapTileObject MapTile;
         public MapTileObject MapTileObject => MapTile;
-        [SerializeField] private Material BaseMaterial;
-        public Material BaseMaterialObject => BaseMaterial;
-        [SerializeField] private Material NoneTileMaterial;
-        public Material NoneTileMaterialObject => NoneTileMaterial;
+        
+        [SerializeField] private Material baseMaterial;
+        public Material BaseMaterial => baseMaterial;
+        
+        [SerializeField] private Material noneTileMaterial;
+        public Material NoneTileMaterial => noneTileMaterial;
+        
+        
+        [SerializeField] private Material emptyTileMaterial;
+        public Material EmptyTileMaterial => emptyTileMaterial;
     }
 }

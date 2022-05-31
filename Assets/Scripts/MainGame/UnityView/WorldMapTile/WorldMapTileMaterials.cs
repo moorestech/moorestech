@@ -13,14 +13,20 @@ namespace MainGame.UnityView.WorldMapTile
         public WorldMapTileMaterials(WorldMapTileObject worldMapTileObject,ModDirectory modDirectory,SinglePlayInterface singlePlayInterface)
         {
             _worldMapTileObject = worldMapTileObject;
-            _materials = WorldMapTileTextureLoader.GetMapTileMaterial(modDirectory.Directory,singlePlayInterface,_worldMapTileObject.BaseMaterialObject);
+            _materials = WorldMapTileTextureLoader.GetMapTileMaterial(modDirectory.Directory,singlePlayInterface,_worldMapTileObject.BaseMaterial);
         }
 
         public Material GetMaterial(int index)
         {
+            if (index == 0)
+            {
+                return _worldMapTileObject.EmptyTileMaterial;
+            }
+            
+            index--;
             if (_materials.Count <= index)
             {
-                return _worldMapTileObject.NoneTileMaterialObject;
+                return _worldMapTileObject.NoneTileMaterial;
             }
             return _materials[index];
         }

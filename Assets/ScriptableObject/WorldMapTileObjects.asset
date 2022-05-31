@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: WorldMapTileObjects
   m_EditorClassIdentifier: 
   MapTile: {fileID: -1218328166402749699, guid: 67ac49a1510b7e949bd6d2cc2743c439, type: 3}
-  BaseMaterial: {fileID: 2100000, guid: 22b24810f2bad0f4eb561cba9fe903f1, type: 2}
-  NoneTileMaterial: {fileID: 2100000, guid: 22b24810f2bad0f4eb561cba9fe903f1, type: 2}
+  baseMaterial: {fileID: 2100000, guid: 966ff3cd96b4447cbb59e8d746b1fb42, type: 2}
+  noneTileMaterial: {fileID: 2100000, guid: 092df3a01b89141f2ab6d5144e1ee00e, type: 2}
+  emptyTileMaterial: {fileID: 2100000, guid: 966ff3cd96b4447cbb59e8d746b1fb42, type: 2}
