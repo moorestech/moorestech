@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
+using MainGame.Mod;
 using MainGame.Model.Network;
 using MainGame.Model.Network.Send;
 using MainGame.Network;
@@ -104,6 +105,7 @@ namespace MainGame.Starter
             var builder = new ContainerBuilder();
             //シングルプレイ用のインスタンス
             builder.RegisterInstance(new SinglePlayInterface(ServerConst.ServerModsDirectory));
+            builder.RegisterInstance(new ModDirectory(ServerConst.ServerModsDirectory));    
             
             //サーバーに接続するためのインスタンス
             builder.RegisterInstance(new ServerProcessSetting(isLocal,localServerProcess));
