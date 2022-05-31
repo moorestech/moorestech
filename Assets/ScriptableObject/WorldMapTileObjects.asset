@@ -12,11 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0b59ba0c4314598ab998261375a5271, type: 3}
   m_Name: WorldMapTileObjects
   m_EditorClassIdentifier: 
-  TileObjectList:
-  - {fileID: 798548887505201479, guid: a1ecb2012c3dd0043b2e6de403a7c74b, type: 3}
-  - {fileID: -1218328166402749699, guid: 85fcea7aa9e1994498dfe96bc6d6b911, type: 3}
-  - {fileID: -1218328166402749699, guid: 3b76f7f1f3a4c454095d8c2e0f2c8dc7, type: 3}
-  - {fileID: -1218328166402749699, guid: 079a158752d09b3438aedc8f69783daf, type: 3}
-  - {fileID: -1218328166402749699, guid: 1a905d99d02b6ea42b17caf121157317, type: 3}
-  - {fileID: -1218328166402749699, guid: 79c495c7b5a3ddc47a1c8a545f8d167d, type: 3}
-  NothingIndexBlockObject: {fileID: -1218328166402749699, guid: 67ac49a1510b7e949bd6d2cc2743c439, type: 3}
+  MapTile: {fileID: -1218328166402749699, guid: 67ac49a1510b7e949bd6d2cc2743c439, type: 3}
+  BaseMaterial: {fileID: 2100000, guid: 22b24810f2bad0f4eb561cba9fe903f1, type: 2}
+  NoneTileMaterial: {fileID: 2100000, guid: 22b24810f2bad0f4eb561cba9fe903f1, type: 2}
