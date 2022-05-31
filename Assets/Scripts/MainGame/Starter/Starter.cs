@@ -171,6 +171,7 @@ namespace MainGame.Starter
 
             //modからロードしてきたデータ
             builder.Register<ItemImages>(Lifetime.Singleton);
+            builder.Register<WorldMapTileMaterials>(Lifetime.Singleton);
             
 
             //ScriptableObjectの登録
