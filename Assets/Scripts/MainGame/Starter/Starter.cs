@@ -58,7 +58,7 @@ namespace MainGame.Starter
         
         [Header("ScriptableObjects")]
         [SerializeField] private BlockObjects blockObjects;
-        [SerializeField] private WorldMapTileObjects worldMapTileObjects;
+        [SerializeField] private WorldMapTileObject worldMapTileObject;
         
         [Header("InHierarchy")]
         [SerializeField] Camera mainCamera;
@@ -173,7 +173,7 @@ namespace MainGame.Starter
 
             //ScriptableObjectの登録
             builder.RegisterInstance(blockObjects);
-            builder.RegisterInstance(worldMapTileObjects);
+            builder.RegisterInstance(worldMapTileObject);
 
             //Hierarchy上にあるcomponent
             builder.RegisterComponent(chunkBlockGameObjectDataStore);

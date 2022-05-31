@@ -1,0 +1,51 @@
+using System.Collections.Generic;
+using System.Linq;
+using Core.Item.Config;
+using Core.Ore.Config;
+using Mod.Loader;
+using SinglePlay;
+using UnityEngine;
+
+namespace MainGame.Mod
+{
+    public static class WorldMapTileTextureLoader
+    {
+        private const string TextureDirectory = "assets/maptile/";
+        public static List<Material> GetMapTileMaterial(string modDirectory,SinglePlayInterface singlePlayInterface,Material baseMaterial)
+        {
+            var materials = new List<Material>();
+            
+            using var mods = new ModsResource(modDirectory);
+
+            foreach (var mod in mods.Mods)
+            {
+                var oreIDs = singlePlayInterface.OreConfig.GetOreIds(mod.Value.ModMetaJson.ModId);
+                var oreConfigs = oreIDs.Select(singlePlayInterface.OreConfig.Get).ToList();
+
+                materials.AddRange(GetTextures(oreConfigs,mod.Value,baseMaterial));
+            }
+
+            return materials;
+        }
+
+
+        private static List<Material> GetTextures(List<OreConfigData> oreConfigs,global::Mod.Loader.Mod mod,Material baseMaterial)
+        {
+            var textureList = new List<Material>();
+            foreach (var config in oreConfigs)
+            {
+                var texture = GetZipTexture.Get(mod.ZipArchive, TextureDirectory + config.Name + ".png");
+                if (texture == null)
+                {
+                    Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " OreName:" + config.Name);
+                    continue;
+                }
+                var newMaterial = new Material(baseMaterial.shader);
+                newMaterial.mainTexture = texture;
+                textureList.Add(newMaterial);
+            }
+
+            return textureList;
+        }
+    }
+}

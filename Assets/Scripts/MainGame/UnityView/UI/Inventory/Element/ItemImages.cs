@@ -15,12 +15,12 @@ namespace MainGame.UnityView.UI.Inventory.Element
         private readonly ItemViewData _emptyItemImage = new(null,"Empty");
         private readonly ItemViewData _nothingIndexItemImage;
 
-        public ItemImages(SinglePlayInterface singlePlayInterface)
+        public ItemImages(ModDirectory modDirectory,SinglePlayInterface singlePlayInterface)
         {
             _nothingIndexItemImage = new ItemViewData(null,"Item not found");
             _itemImageList.Add(_emptyItemImage);
             
-            var textures = ItemTextureLoader.GetItemTexture(ServerConst.ServerModsDirectory,singlePlayInterface);
+            var textures = ItemTextureLoader.GetItemTexture(modDirectory.Directory,singlePlayInterface);
             foreach (var texture in textures)
             {
                 _itemImageList.Add(new ItemViewData(texture.texture2D.ToSprite(),texture.name));
