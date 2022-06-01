@@ -1,45 +1,25 @@
 using System;
-using System.Threading.Tasks;
-using UniGLTF;
+using UnityEngine;
+using VRM;
+using VRMShaders;
 
 namespace MainGame.Mod
 {
-    public class LoadGlb
+    public class LoadGlb : MonoBehaviour
     {
-        async Task<RuntimeGltfInstance> LoadAsync(string path)
+        private const string path = "./testcube.glb";
+
+        private void Start()
         {
-            GltfData data = new AutoGltfFileParser(path).Parse();
+            Load();
+        }
 
-            // doMigrate: true で旧バージョンの vrm をロードできます。
-            if (Vrm10Data.TryParseOrMigrate(data, doMigrate: true, out Vrm10Data vrm))
-            {
-                // vrm
-                using (var loader = new Vrm10Importer(vrm,
-                           materialGenerator: GetVrmMaterialDescriptorGenerator(m_useUrpMaterial.isOn)))
-                {
-                    // migrate しても thumbnail は同じ
-                    var thumbnail = await loader.LoadVrmThumbnailAsync();
+        async void Load()
+        {
+            Debug.Log(path);
+            var instance = await VrmUtility.LoadAsync(path, new RuntimeOnlyAwaitCaller());
 
-                    if (vrm.OriginalMetaBeforeMigration != null)
-                    {
-                        // migrated from vrm-0.x. use OriginalMetaBeforeMigration
-                        UpdateMeta(vrm.OriginalMetaBeforeMigration, thumbnail);
-                    }
-                    else
-                    {
-                        // load vrm-1.0. use newMeta
-                        UpdateMeta(vrm.VrmExtension.Meta, thumbnail);
-                    }
-
-                    // モデルをロード
-                    RuntimeGltfInstance instance = await loader.LoadAsync();
-                    return instance;
-                }
-            }
-            else
-            {
-                throw new Exception("not vrm");
-            }
+            instance.ShowMeshes();
         }
     }
 }
