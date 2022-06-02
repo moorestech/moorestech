@@ -1,22 +1,14 @@
 ﻿using System.IO;
-using System.IO.Compression;
 using UnityEngine;
 
 namespace MainGame.ModLoader
 {
     public static class GetZipTexture
     {
-        public static Texture2D Get(ZipArchive zipArchive, string path)
+        public static Texture2D Get(string extractedModDirectory,string path)
         {
-            var zipArchiveEntry = zipArchive.GetEntry(path);
-            if (zipArchiveEntry == null) return null;
-
-            using var ms = new MemoryStream();
-            zipArchiveEntry.Open().CopyTo(ms);
-            
             var texture = new Texture2D(1, 1);
-            texture.LoadImage(ms.ToArray());
-            
+            texture.LoadImage(File.ReadAllBytes(Path.Combine(extractedModDirectory, path)));
             return texture;
         }
     }

@@ -33,7 +33,7 @@ namespace MainGame.ModLoader
             var textureList = new List<Material>();
             foreach (var config in oreConfigs)
             {
-                var texture = GetZipTexture.Get(mod.ZipArchive, TextureDirectory + config.Name + ".png");
+                var texture = GetZipTexture.Get(mod.ExtractedPath, TextureDirectory + config.Name + ".png");
                 if (texture == null)
                 {
                     Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " OreName:" + config.Name);

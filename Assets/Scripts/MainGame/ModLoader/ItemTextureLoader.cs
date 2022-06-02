@@ -28,12 +28,12 @@ namespace MainGame.ModLoader
         }
 
 
-        private static List<(Texture2D texture2D,string name)> GetTextures(List<ItemConfigData> itemConfigs,global::Mod.Loader.Mod mod)
+        private static List<(Texture2D texture2D,string name)> GetTextures(List<ItemConfigData> itemConfigs,Mod.Loader.Mod mod)
         {
             var textureList = new List<(Texture2D,string)>();
             foreach (var config in itemConfigs)
             {
-                var texture = GetZipTexture.Get(mod.ZipArchive, TextureDirectory + config.Name + ".png");
+                var texture = GetZipTexture.Get(mod.ExtractedPath, TextureDirectory + config.Name + ".png");
                 if (texture == null)
                 {
                     Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + config.Name);
