@@ -1,5 +1,7 @@
 using System;
+using System.Reflection;
 using Core.Block.BlockFactory;
+using Game.Paths;
 using Game.Save.Interface;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;
@@ -23,8 +25,13 @@ namespace Test.CombinedTest.Game
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<BlockFactory>();
-            //テスト用にファイル名を変更
-            saveServiceProvider.GetService<SaveJsonFileName>().ChangeFileName("SaveJsonAndLoadTest.json");
+            
+            
+            //リフレクションでテスト用のファイル名を変更
+            ChangeFilePath(saveServiceProvider.GetService<SaveJsonFileName>(),"SaveJsonAndLoadTest.json");
+            Console.WriteLine(saveServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
+
+
 
             worldBlockDatastore.AddBlock(blockFactory.Create(1, 10), 0, 0, BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(2, 5), 0, 1, BlockDirection.East);
@@ -34,8 +41,11 @@ namespace Test.CombinedTest.Game
 
 
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            
             //テスト用にファイル名を変更
-            loadServiceProvider.GetService<SaveJsonFileName>().ChangeFileName("SaveJsonAndLoadTest.json");
+            //リフレクションでテスト用のファイル名を変更
+            ChangeFilePath(loadServiceProvider.GetService<SaveJsonFileName>(),"SaveJsonAndLoadTest.json");
             Console.WriteLine(loadServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
 
             loadServiceProvider.GetService<ILoadRepository>().Load();
@@ -56,5 +66,13 @@ namespace Test.CombinedTest.Game
             Assert.AreEqual(1000, block.EntityId);
             Assert.AreEqual(BlockDirection.West, loadWorldBlockDatastore.GetBlockDirection(30, -10));
         }
+
+        private void ChangeFilePath(SaveJsonFileName saveJsonFileName, string fileName)
+        {
+            typeof(SaveJsonFileName)
+                .GetField("_filePath", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(saveJsonFileName,SystemPath.GetSaveFilePath(fileName) );
+        }
+        
     }
 }

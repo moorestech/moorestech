@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Game.Paths;
 
 namespace Game.Save.Json
 {
@@ -9,30 +10,14 @@ namespace Game.Save.Json
     public class SaveJsonFileName
     {
         public string FullSaveFilePath => _filePath;
-        public string SaveFileDirectoryPath => Path.GetDirectoryName(_filePath);
-        private string _filePath;
+        public string SaveFileDirectory => Path.GetDirectoryName(_filePath);
+        
+        
+        private readonly string _filePath;
 
         public SaveJsonFileName(string fileName)
         {
-            ChangeFileName(fileName);
-        }
-
-        public void ChangeFileName(string fileName)
-        {
-            switch (Environment.OSVersion.Platform)
-            {
-                case PlatformID.Win32NT:
-                case PlatformID.Win32S:
-                case PlatformID.Win32Windows:
-                case PlatformID.WinCE:
-                    _filePath = Path.Combine("C:", "Users", Environment.UserName, "AppData", "Roaming", ".moorestech",
-                        "saves", fileName);
-                    break;
-                case PlatformID.Unix:
-                    _filePath = Path.Combine("/Users", Environment.UserName, "Library", "Application Support",
-                        "moorestech", "saves", fileName);
-                    break;
-            }
+            _filePath = SystemPath.GetSaveFilePath(fileName);
         }
     }
 }

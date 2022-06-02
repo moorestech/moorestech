@@ -26,7 +26,10 @@ namespace Mod.Loader
                     continue;
                 }
                 
-                Mods.Add(modMeta.ModId, new Mod(zip,modMeta));
+                //extract zip
+                
+                
+                Mods.Add(modMeta.ModId, new Mod(zip,modMeta,""));
             }
         }
 
@@ -53,12 +56,15 @@ namespace Mod.Loader
     public class Mod
     {
         public readonly ZipArchive ZipArchive;
+        public readonly string ExtractedPath; 
+            
         public readonly ModMetaJson ModMetaJson;
 
-        public Mod(ZipArchive zipArchive, ModMetaJson modMetaJson)
+        public Mod(ZipArchive zipArchive, ModMetaJson modMetaJson, string extractedPath)
         {
             ZipArchive = zipArchive;
             ModMetaJson = modMetaJson;
+            this.ExtractedPath = extractedPath;
         }
     }
 }

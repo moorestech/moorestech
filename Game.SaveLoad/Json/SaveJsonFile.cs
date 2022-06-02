@@ -19,9 +19,9 @@ namespace Game.Save.Json
 
         public void Save()
         {
-            if (!Directory.Exists(_fileName.SaveFileDirectoryPath))
+            if (!Directory.Exists(_fileName.SaveFileDirectory))
             {
-                Directory.CreateDirectory(_fileName.SaveFileDirectoryPath);
+                Directory.CreateDirectory(_fileName.SaveFileDirectory);
             }
 
             File.WriteAllText(_fileName.FullSaveFilePath, _assembleSaveJsonText.AssembleSaveJson());
