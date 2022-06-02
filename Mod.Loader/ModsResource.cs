@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using Game.Paths;
 using Newtonsoft.Json;
 
 namespace Mod.Loader
@@ -26,7 +28,11 @@ namespace Mod.Loader
                     continue;
                 }
                 
-                Mods.Add(modMeta.ModId, new Mod(zip,modMeta));
+                //extract zip
+                var extractedDir = ExtractModZip(zipFile, modMeta);
+                
+                
+                Mods.Add(modMeta.ModId, new Mod(zip,modMeta,extractedDir));
             }
         }
 
@@ -39,6 +45,28 @@ namespace Mod.Loader
             using var itemJsonString = new StreamReader(itemJsonStream);
             return itemJsonString.ReadToEnd();
         }
+
+        private string ExtractModZip(string zipPath,ModMetaJson modMetaJson)
+        {
+            var fixModId = modMetaJson.ModId.ReplaceFileNotAvailableCharacter("-");
+            var fixModVersion = modMetaJson.ModVersion.ReplaceFileNotAvailableCharacter("-");
+            var sha1Hash = CalcFileHash.GetSha1Hash(zipPath);
+            
+            var folderName = $"{fixModId}_ver_{fixModVersion}_sha1_{sha1Hash}";
+
+            var path = SystemPath.GetExtractedModDirectory(folderName);
+            //ディレクトリの中身をチェック
+            if (Directory.EnumerateFileSystemEntries(path).Any())
+            {
+                //すでに解凍済み
+                return path;
+            }
+            //解凍を実行
+            ZipFile.ExtractToDirectory(zipPath,path);
+            return path;
+        }
+        
+        
 
         public void Dispose()
         {
@@ -53,12 +81,15 @@ namespace Mod.Loader
     public class Mod
     {
         public readonly ZipArchive ZipArchive;
+        public readonly string ExtractedPath; 
+            
         public readonly ModMetaJson ModMetaJson;
 
-        public Mod(ZipArchive zipArchive, ModMetaJson modMetaJson)
+        public Mod(ZipArchive zipArchive, ModMetaJson modMetaJson, string extractedPath)
         {
             ZipArchive = zipArchive;
             ModMetaJson = modMetaJson;
+            this.ExtractedPath = extractedPath;
         }
     }
 }

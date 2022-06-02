@@ -18,9 +18,9 @@ namespace Server.StartServerSystem
             try
             {
 #if DEBUG
-                var configPath = DebugFolderPath;
+                var configPath = DebugModsDirectory;
 #else
-                var configPath = ReleasesFolderPath;
+                var configPath = ReleasesModsDirectory;
                 if (args.Length == 0)
                 {
                     Console.WriteLine("コマンドライン引数にコンフィグのパスが指定されていませんでした。デフォルトコンフィグパスを使用します。");
@@ -63,21 +63,21 @@ namespace Server.StartServerSystem
         }
 
         
-        private static string DebugFolderPath
+        private static string DebugModsDirectory
         {
             get
             {
                 DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
                 DirectoryInfo diParent = di.Parent.Parent.Parent.Parent;
-                return Path.Combine(diParent.FullName, "Server.Starter", "Config");
+                return Path.Combine(diParent.FullName, "Server.Starter", "mods");
             }
         }
-        private static string ReleasesFolderPath
+        private static string ReleasesModsDirectory
         {
             get
             {
                 DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
-                return Path.Combine(di.FullName, "Config");
+                return Path.Combine(di.FullName, "mods");
             }
         }
         
