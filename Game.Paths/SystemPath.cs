@@ -9,31 +9,40 @@ namespace Game.Paths
         {
             get
             {
-                var path = "";
                 switch (Environment.OSVersion.Platform)
                 {
                     case PlatformID.Win32NT:
                     case PlatformID.Win32S:
                     case PlatformID.Win32Windows:
                     case PlatformID.WinCE:
-                        path = Path.Combine("C:", "Users", Environment.UserName, "AppData", "Roaming", ".moorestech");
-                        break;
+                        return DirectoryCreator("C:", "Users", Environment.UserName, "AppData", "Roaming", ".moorestech");
                     case PlatformID.Unix:
-                        path = Path.Combine("/Users", Environment.UserName, "Library", "Application Support", "moorestech");
-                        break;
+                    case PlatformID.MacOSX:
+                        return DirectoryCreator("/Users", Environment.UserName, "Library", "Application Support", "moorestech");
+                    case PlatformID.Xbox:
+                    case PlatformID.Other:
                     default:
                         throw new Exception("Unsupported OS");
-                        break;
                 }
-                return path;
             }
         }
 
-
-
-        public static string GetSaveFilePath(string fileName)
+        public static string TmpFileDirectory => DirectoryCreator(GameFileRootDirectory, "tmp");                                                                                                                                                             
+        public static string ExtractedModDirectory => DirectoryCreator(TmpFileDirectory, "extracted_mods");
+        public static string SaveFileDirectory => DirectoryCreator(GameFileRootDirectory, "saves");
+        
+        
+        public static string GetSaveFilePath(string fileName) => Path.Combine(SaveFileDirectory, fileName);
+        
+        
+        private static string DirectoryCreator(params string[] paths)
         {
-            return Path.Combine(GameFileRootDirectory,"saves", fileName);
+            var directory = Path.Combine(paths);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            return directory;
         }
     }
 }

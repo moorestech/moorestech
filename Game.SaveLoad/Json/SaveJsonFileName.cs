@@ -9,15 +9,11 @@ namespace Game.Save.Json
     /// </summary>
     public class SaveJsonFileName
     {
-        public string FullSaveFilePath => _filePath;
-        public string SaveFileDirectory => Path.GetDirectoryName(_filePath);
-        
-        
-        private readonly string _filePath;
+        public string FullSaveFilePath { get; }
 
         public SaveJsonFileName(string fileName)
         {
-            _filePath = SystemPath.GetSaveFilePath(fileName);
+            FullSaveFilePath = SystemPath.GetSaveFilePath(fileName);
         }
     }
 }
