@@ -31,7 +31,7 @@ namespace Game.Paths
         public static string ExtractedModDirectory => DirectoryCreator(TmpFileDirectory, "extracted_mods");
         public static string SaveFileDirectory => DirectoryCreator(GameFileRootDirectory, "saves");
         
-        
+        public static string GetExtractedModDirectory(string folderName) => DirectoryCreator(ExtractedModDirectory, folderName);
         public static string GetSaveFilePath(string fileName) => Path.Combine(SaveFileDirectory, fileName);
         
         
