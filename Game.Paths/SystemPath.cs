@@ -20,7 +20,6 @@ namespace Game.Paths
                     case PlatformID.MacOSX:
                         return DirectoryCreator("/Users", Environment.UserName, "Library", "Application Support", "moorestech");
                     case PlatformID.Xbox:
-                    case PlatformID.Other:
                     default:
                         throw new Exception("Unsupported OS");
                 }
