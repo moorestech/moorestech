@@ -5,7 +5,7 @@ using Mod.Loader;
 using SinglePlay;
 using UnityEngine;
 
-namespace MainGame.Mod
+namespace MainGame.ModLoader
 {
     public static class ItemTextureLoader
     {

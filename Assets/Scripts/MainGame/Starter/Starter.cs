@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
-using MainGame.Mod;
 using MainGame.Model.Network;
 using MainGame.Model.Network.Send;
+using MainGame.ModLoader;
 using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Send;

@@ -2,7 +2,7 @@
 using System.IO.Compression;
 using UnityEngine;
 
-namespace MainGame.Mod
+namespace MainGame.ModLoader
 {
     public static class GetZipTexture
     {

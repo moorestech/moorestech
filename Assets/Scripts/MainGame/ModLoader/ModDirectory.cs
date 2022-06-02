@@ -1,4 +1,4 @@
-namespace MainGame.Mod
+namespace MainGame.ModLoader
 {
     public class ModDirectory
     {

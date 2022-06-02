@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Item.Config;
 using Core.Ore.Config;
 using Mod.Loader;
 using SinglePlay;
 using UnityEngine;
 
-namespace MainGame.Mod
+namespace MainGame.ModLoader
 {
     public static class WorldMapTileTextureLoader
     {

@@ -1,9 +1,8 @@
-using System;
 using UnityEngine;
 using VRM;
 using VRMShaders;
 
-namespace MainGame.Mod
+namespace MainGame.ModLoader
 {
     public class LoadGlb : MonoBehaviour
     {

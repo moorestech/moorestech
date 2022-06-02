@@ -9,7 +9,7 @@
         "Constant",
         "GameConst",
         "Server",
-        "Mod"
+        "ModLoader"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
