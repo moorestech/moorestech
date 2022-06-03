@@ -28,31 +28,23 @@ namespace Server.Protocol.PacketResponse
         }
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            var byteListEnumerator = new ByteListEnumerator(payload);
-            byteListEnumerator.MoveNextToGetShort();//packet id
-            var toGrab = byteListEnumerator.MoveNextToGetByte() == 0;
-            var inventoryId = byteListEnumerator.MoveNextToGetByte();
-            var playerId = byteListEnumerator.MoveNextToGetInt();
-            var slot = byteListEnumerator.MoveNextToGetInt();
-            var moveItemCount = byteListEnumerator.MoveNextToGetInt();
-            var x = byteListEnumerator.MoveNextToGetInt();
-            var y = byteListEnumerator.MoveNextToGetInt();
-
-            var inventory = GetInventory(inventoryId, playerId, x, y);
+            var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload.ToArray());
+            
+            var inventory = GetInventory(data.InventoryId, data.PlayerId, x:data.X, data.Y);
             if (inventory == null)return new List<List<byte>>();
             
-            var grabInventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
+            var grabInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).GrabInventory;
 
             
-            if (toGrab)
+            if (data.ToGrab)
             {
                 new InventoryItemMoveService().Move(
-                    _itemStackFactory,inventory,slot,grabInventory,0,moveItemCount);
+                    _itemStackFactory,inventory,data.Slot,grabInventory,0,data.Count);
             }
             else
             {
                 new InventoryItemMoveService().Move(
-                    _itemStackFactory,grabInventory,0,inventory,slot,moveItemCount);
+                    _itemStackFactory,grabInventory,0,inventory,data.Slot,data.Count);
             }
             
 
@@ -88,10 +80,14 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class InventoryItemMoveProtocolMessagePack : ProtocolMessagePackBase
     {
+        public bool ToGrab { get; set; }
+        public int InventoryId { get; set; }
         public int PlayerId { get; set; }
+        public int Slot { get; set; }
+        public int Count { get; set; }
+        
         public int X { get; set; }
         public int Y { get; set; }
-        public bool IsOpen { get; set; }
     }
     enum InventoryType
     {

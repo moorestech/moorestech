@@ -23,14 +23,4 @@ namespace Server.Protocol.PacketResponse
             return new List<List<byte>>();
         }
     }
-    
-    
-    [MessagePackObject(keyAsPropertyName :true)]
-    public class SaveProtocolMessagePack : ProtocolMessagePackBase
-    {
-        public int PlayerId { get; set; }
-        public int X { get; set; }
-        public int Y { get; set; }
-        public bool IsOpen { get; set; }
-    }
 }

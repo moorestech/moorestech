@@ -9,6 +9,7 @@ namespace Server.Protocol.PacketResponse.Player
 {
     public static class ChunkBlockToPayload
     {
+        //todo message packに置き換え
         public static List<byte> Convert(Coordinate chunkCoordinate,IWorldBlockDatastore worldBlockDatastore, WorldMapTile worldMapTile)
         {
             

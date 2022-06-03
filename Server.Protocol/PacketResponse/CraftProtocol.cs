@@ -21,7 +21,6 @@ namespace Server.Protocol.PacketResponse
         
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            
             var data = MessagePackSerializer.Deserialize<CraftProtocolMessagePack>(payload.ToArray());
             
             var craftingInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).CraftingOpenableInventory;

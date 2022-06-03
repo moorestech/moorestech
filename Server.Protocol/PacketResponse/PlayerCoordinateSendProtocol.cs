@@ -29,17 +29,13 @@ namespace Server.Protocol.PacketResponse
         
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            //プレイヤー座標の解析
-            var b = new ByteListEnumerator(payload);
-            b.MoveNextToGetShort();
-            var x = b.MoveNextToGetFloat();
-            var y = b.MoveNextToGetFloat();
-            var playerId = b.MoveNextToGetInt();
+            var data = MessagePackSerializer.Deserialize<PlayerCoordinateSendProtocolMessagePack>(payload.ToArray());
+            
             //新しいプレイヤーの情報ならDictionaryに追加する
-            if (!_responses.ContainsKey(playerId))
+            if (!_responses.ContainsKey(data.PlayerId))
             {
-                _responses.Add(playerId, new PlayerCoordinateToResponse());
-                Console.WriteLine("プレイヤーが接続:" + playerId);
+                _responses.Add(data.PlayerId, new PlayerCoordinateToResponse());
+                Console.WriteLine("プレイヤーが接続:" + data.PlayerId);
             }
 
             
@@ -51,7 +47,7 @@ namespace Server.Protocol.PacketResponse
 
             var responseChunk = new List<List<byte>>();
             
-            var responseChunkCoordinates = _responses[playerId].GetResponseChunkCoordinates(new Coordinate((int) x, (int) y));
+            var responseChunkCoordinates = _responses[data.PlayerId].GetResponseChunkCoordinates(new Coordinate(data.X, data.Y));
             foreach (var chunkCoordinate in responseChunkCoordinates)
             {
                 //チャンクのブロックデータを取得してバイト配列に変換する
@@ -69,6 +65,5 @@ namespace Server.Protocol.PacketResponse
         public int PlayerId { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
-        public bool IsOpen { get; set; }
     }
 }

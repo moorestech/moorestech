@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -20,51 +21,65 @@ namespace Server.Protocol.PacketResponse
 
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            var byteListEnumerator = new ByteListEnumerator(payload);
-            byteListEnumerator.MoveNextToGetShort();
-            var playerId = byteListEnumerator.MoveNextToGetInt();
-            var playerInventory = _playerInventoryDataStore.GetInventoryData(playerId);
-
-            var response = new List<byte>();
-            response.AddRange(ToByteList.Convert((short) 4));
-            response.AddRange(ToByteList.Convert(playerId));
-            response.AddRange(ToByteList.Convert((short) 0));
+            var data = MessagePackSerializer.Deserialize<RequestPlayerInventoryProtocolMessagePack>(payload.ToArray());
+            
+            var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
+            
+            
 
             //メインインベントリのアイテムを設定
+            var mainIds = new List<int>();
+            var mainCounts = new List<int>();
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
-                response.AddRange(ToByteList.Convert(playerInventory.MainOpenableInventory.GetItem(i).Id));
-                response.AddRange(ToByteList.Convert(playerInventory.MainOpenableInventory.GetItem(i).Count));
+                mainIds.Add(playerInventory.MainOpenableInventory.GetItem(i).Id);
+                mainCounts.Add(playerInventory.MainOpenableInventory.GetItem(i).Count);
             }
             
             
             //グラブインベントリのアイテムを設定
-            response.AddRange(ToByteList.Convert(playerInventory.GrabInventory.GetItem(0).Id));
-            response.AddRange(ToByteList.Convert(playerInventory.GrabInventory.GetItem(0).Count));
+            var grabId = playerInventory.GrabInventory.GetItem(0).Id;
+            var grabCount = playerInventory.GrabInventory.GetItem(0).Count;
 
-
+            
             //クラフトインベントリのアイテムを設定
+            var craftIds = new List<int>();
+            var craftCounts = new List<int>();
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
-                response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetItem(i).Id));
-                response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetItem(i).Count));
+                craftIds.Add(playerInventory.CraftingOpenableInventory.GetItem(i).Id);
+                craftCounts.Add(playerInventory.CraftingOpenableInventory.GetItem(i).Count);
             }
             
             //クラフト結果のアイテムを設定
-            response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetCreatableItem().Id));
-            response.AddRange(ToByteList.Convert(playerInventory.CraftingOpenableInventory.GetCreatableItem().Count));
-            //クラフト可能かを設定
-            if (playerInventory.CraftingOpenableInventory.IsCreatable())
-            {
-                response.Add(1);
-            }
-            else
-            {
-                response.Add(0);
-            }
+            var craftResultId = playerInventory.CraftingOpenableInventory.GetItem(0).Id;
+            var craftResultCount = playerInventory.CraftingOpenableInventory.GetItem(0).Count;
+            
+            var isCreatable = playerInventory.CraftingOpenableInventory.IsCreatable();
 
-            return new List<List<byte>>() {response};
+            var response = MessagePackSerializer.Serialize(new PlayerInventoryResponseProtocolMessagePack()
+            {
+                Tag = Tag,
+                MainIds = mainIds.ToArray(),
+                MainCounts = mainCounts.ToArray(),
+                GrabId = grabId,
+                GrabCount = grabCount,
+                CraftIds = craftIds.ToArray(),
+                CraftCounts = craftCounts.ToArray(),
+                CraftResultId = craftResultId,
+                CraftResultCount = craftResultCount,
+                IsCreatable = isCreatable
+            });
+
+            return new List<List<byte>>() {response.ToList()};
         }
+    }
+    
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class RequestPlayerInventoryProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public int PlayerId { get; set; }
     }
     
     
@@ -72,8 +87,14 @@ namespace Server.Protocol.PacketResponse
     public class PlayerInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
     {
         public int PlayerId { get; set; }
-        public int X { get; set; }
-        public int Y { get; set; }
-        public bool IsOpen { get; set; }
+        public int[] MainIds { get; set; }
+        public int[] MainCounts { get; set; }
+        public int GrabId { get; set; }
+        public int GrabCount { get; set; }
+        public int[] CraftIds { get; set; }
+        public int[] CraftCounts { get; set; }
+        public int CraftResultId { get; set; }
+        public int CraftResultCount { get; set; }
+        public bool IsCreatable { get; set; }
     }
 }
