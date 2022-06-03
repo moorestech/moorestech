@@ -12,9 +12,11 @@ using Core.Item.Config;
 using Core.Ore;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Const;
 using Server.StartServerSystem;
 using Server.Util;
@@ -242,12 +244,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
         List<byte> PlayerCoordinatePayload(int playerId, float x, float y)
         {
-            var p = new List<byte>();
-            p.AddRange(ToByteList.Convert((short) 2));
-            p.AddRange(ToByteList.Convert(x));
-            p.AddRange(ToByteList.Convert(y));
-            p.AddRange(ToByteList.Convert(playerId));
-            return p;
+            return MessagePackSerializer.Serialize(new PlayerCoordinateSendProtocolMessagePack(playerId,x,y)).ToList();
         }
 
         ChunkData PayloadToBlock(List<byte> payload)

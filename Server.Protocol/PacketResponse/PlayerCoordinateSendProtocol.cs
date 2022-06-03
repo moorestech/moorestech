@@ -47,7 +47,7 @@ namespace Server.Protocol.PacketResponse
 
             var responseChunk = new List<List<byte>>();
             
-            var responseChunkCoordinates = _responses[data.PlayerId].GetResponseChunkCoordinates(new Coordinate(data.X, data.Y));
+            var responseChunkCoordinates = _responses[data.PlayerId].GetResponseChunkCoordinates(new Coordinate((int)data.X,(int) data.Y));
             foreach (var chunkCoordinate in responseChunkCoordinates)
             {
                 //チャンクのブロックデータを取得してバイト配列に変換する
@@ -62,8 +62,20 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class PlayerCoordinateSendProtocolMessagePack : ProtocolMessagePackBase
     {
+        public PlayerCoordinateSendProtocolMessagePack(int playerId, float x, float y)
+        {
+            Tag = PlayerCoordinateSendProtocol.Tag;
+            PlayerId = playerId;
+            X = x;
+            Y = y;
+        }
+
+        public PlayerCoordinateSendProtocolMessagePack()
+        {
+        }
+
         public int PlayerId { get; set; }
-        public int X { get; set; }
-        public int Y { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
     }
 }
