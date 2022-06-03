@@ -70,6 +70,22 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class SendPlaceHotBarBlockProtocolMessagePack : ProtocolMessagePackBase
     {
+        public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int direction, int slot, int x, int y)
+        {
+            Tag = SendPlaceHotBarBlockProtocol.Tag;
+            PlayerId = playerId;
+            Direction = direction;
+            Slot = slot;
+            X = x;
+            Y = y;
+        }
+
+        /// <summary>
+        /// デシリアライズ用のコンストラクタです
+        /// 基本的に使用しないでください
+        /// </summary>
+        public SendPlaceHotBarBlockProtocolMessagePack() { }
+
         public int PlayerId { get; set; }
         public int Direction { get; set; }
         public int Slot { get; set; }

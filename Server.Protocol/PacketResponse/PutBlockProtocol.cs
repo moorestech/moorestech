@@ -39,11 +39,26 @@ namespace Server.Protocol.PacketResponse
     }
     
     [MessagePackObject(keyAsPropertyName :true)]
-    [Serializable]
     public class PutBlockProtocolMessagePack : ProtocolMessagePackBase
     {
+        public PutBlockProtocolMessagePack(int id, int x, int y)
+        {
+            Tag = PutBlockProtocol.Tag;
+            Id = id;
+            X = x;
+            Y = y;
+        }
+        
+        /// <summary>
+        /// デシリアライズ用のコンストラクタです
+        /// 基本的に使用しないでください
+        /// </summary>
+        public PutBlockProtocolMessagePack(){}
+
         public int Id { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
+        
+        
     }
 }

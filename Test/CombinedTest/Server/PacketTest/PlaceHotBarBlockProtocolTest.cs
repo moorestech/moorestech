@@ -1,12 +1,15 @@
 using System.Collections.Generic;
+using System.Linq;
 using Core.Const;
 using Core.Item;
 using Core.Item.Util;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
@@ -96,14 +99,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
         private List<byte> CreateUseHotBarProtocol(int x,int y,byte blockDirection)
         {
-            var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 8));
-            payload.AddRange(ToByteList.Convert((short) HotBarSlot));
-            payload.AddRange(ToByteList.Convert(x));
-            payload.AddRange(ToByteList.Convert(y));
-            payload.AddRange(ToByteList.Convert(PlayerId));
-            payload.Add(blockDirection);
-            return payload;
+            return MessagePackSerializer.Serialize(new SendPlaceHotBarBlockProtocolMessagePack(PlayerId,blockDirection,HotBarSlot,x,y)).ToList();
         }
 
 

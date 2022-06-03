@@ -1,12 +1,15 @@
 using System.Collections.Generic;
+using System.Linq;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Chest;
 using Core.Item;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
@@ -117,19 +120,8 @@ namespace Test.CombinedTest.Server.PacketTest
         //sourceInventoryIdは 0 メイン　1 クラフト 2 ブロック 
         private List<byte> GetPacket(bool toGrab,byte sourceInventoryId,int inventorySlot,int itemCount,int x = 0,int y = 0)
         {
-            var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 5));
-            payload.Add(toGrab ? (byte) 0 : (byte) 1);
-            payload.Add(sourceInventoryId);
-            payload.AddRange(ToByteList.Convert(PlayerId));
-            payload.AddRange(ToByteList.Convert(inventorySlot));
-            payload.AddRange(ToByteList.Convert(itemCount));
-            payload.AddRange(ToByteList.Convert(x));
-            payload.AddRange(ToByteList.Convert(y));
-
-            return payload;
+            return MessagePackSerializer.Serialize(
+                new InventoryItemMoveProtocolMessagePack(PlayerId,toGrab,sourceInventoryId,inventorySlot,itemCount,x,y)).ToList();
         }
-        
-        
     }
 }

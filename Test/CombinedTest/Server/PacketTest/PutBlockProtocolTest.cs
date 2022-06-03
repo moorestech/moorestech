@@ -35,13 +35,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
         List<byte> BlockPlace(int id, int x, int y)
         {
-            return MessagePackSerializer.Serialize(new PutBlockProtocolMessagePack()
-            {
-                Tag = PutBlockProtocol.Tag,
-                Id = id,
-                X = x,
-                Y = y
-            }).ToList();
+            return MessagePackSerializer.Serialize(new PutBlockProtocolMessagePack(id, x, y)).ToList();
         }
     }
 }

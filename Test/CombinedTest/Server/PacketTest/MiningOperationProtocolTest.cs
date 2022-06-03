@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.ConfigJson;
 using Core.Ore;
 using Core.Ore.Config;
 using Game.PlayerInventory.Interface;
 using Game.WorldMap;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
@@ -71,13 +74,7 @@ namespace Test.CombinedTest.Server.PacketTest
         } //パケット
         List<byte> MiningOperation(int x, int y,int playerId)
         {
-            var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 15));
-            payload.AddRange(ToByteList.Convert(x));
-            payload.AddRange(ToByteList.Convert(y));
-            payload.AddRange(ToByteList.Convert(playerId));
-
-            return payload;
+            return MessagePackSerializer.Serialize(new MiningOperationProtocolMessagePack(playerId,x,y)).ToList();
         }
         
     }

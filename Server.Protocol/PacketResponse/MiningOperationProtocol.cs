@@ -57,6 +57,22 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class MiningOperationProtocolMessagePack : ProtocolMessagePackBase
     {
+        /// <summary>
+        /// デシリアライズ用のコンストラクタです
+        /// 基本的に使用しないでください
+        /// </summary>
+        public MiningOperationProtocolMessagePack()
+        {
+        }
+
+        public MiningOperationProtocolMessagePack(int playerId, int x, int y)
+        {
+            Tag = MiningOperationProtocol.Tag;
+            PlayerId = playerId;
+            X = x;
+            Y = y;
+        }
+
         public int PlayerId { get; set; }
         public int X { get; set; }
         public int Y { get; set; }

@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Item;
 using Core.Item.Config;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
@@ -16,7 +19,6 @@ namespace Test.CombinedTest.Server.PacketTest
 {
     public class CraftProtocolTest
     {
-        private const short PacketId = 14;
         private const int PlayerId = 1;
         private const int TestCraftItemId = 6;
         
@@ -39,11 +41,8 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //プロトコルでクラフト実行
-            var payLoad = new List<byte>();
-            payLoad.AddRange(ToByteList.Convert(PacketId));
-            payLoad.AddRange(ToByteList.Convert(PlayerId));
-            payLoad.Add(0);
-            packet.GetPacketResponse(payLoad);
+            packet.GetPacketResponse(
+                MessagePackSerializer.Serialize(new CraftProtocolMessagePack(PlayerId,0)).ToList());
             
             
             //クラフト結果がResultSlotにアイテムが入っているかチェック
@@ -67,11 +66,8 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //プロトコルでクラフト実行
-            var payLoad = new List<byte>();
-            payLoad.AddRange(ToByteList.Convert(PacketId));
-            payLoad.AddRange(ToByteList.Convert(PlayerId));
-            payLoad.Add(1);
-            packet.GetPacketResponse(payLoad);
+            packet.GetPacketResponse(
+                MessagePackSerializer.Serialize(new CraftProtocolMessagePack(PlayerId,1)).ToList());
             
             
             //クラフト結果がメインインベントリにアイテムが入っているかチェック
@@ -96,11 +92,8 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //プロトコルでクラフト実行
-            var payLoad = new List<byte>();
-            payLoad.AddRange(ToByteList.Convert(PacketId));
-            payLoad.AddRange(ToByteList.Convert(PlayerId));
-            payLoad.Add(2);
-            packet.GetPacketResponse(payLoad);
+            packet.GetPacketResponse(
+                MessagePackSerializer.Serialize(new CraftProtocolMessagePack(PlayerId,2)).ToList());
             
             
             //クラフト結果がメインインベントリにアイテムが入っているかチェック

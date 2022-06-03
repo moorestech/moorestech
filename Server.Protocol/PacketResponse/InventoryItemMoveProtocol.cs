@@ -80,6 +80,26 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class InventoryItemMoveProtocolMessagePack : ProtocolMessagePackBase
     {
+        /// <summary>
+        /// デシリアライズ用のコンストラクタです
+        /// 基本的に使用しないでください
+        /// </summary>
+        public InventoryItemMoveProtocolMessagePack()
+        {
+        }
+
+        public InventoryItemMoveProtocolMessagePack(int playerId, bool toGrab, int inventoryId, int slot, int count, int x, int y)
+        {
+            Tag = InventoryItemMoveProtocol.Tag;
+            PlayerId = playerId;
+            ToGrab = toGrab;
+            InventoryId = inventoryId;
+            Slot = slot;
+            Count = count;
+            X = x;
+            Y = y;
+        }
+
         public bool ToGrab { get; set; }
         public int InventoryId { get; set; }
         public int PlayerId { get; set; }

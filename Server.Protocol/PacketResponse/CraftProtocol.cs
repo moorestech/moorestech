@@ -48,6 +48,19 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class CraftProtocolMessagePack : ProtocolMessagePackBase
     {
+        public CraftProtocolMessagePack(int playerId, int craftType)
+        {
+            PlayerId = playerId;
+            CraftType = craftType;
+            Tag = CraftProtocol.Tag;
+        }
+
+        /// <summary>
+        /// デシリアライズ用のコンストラクタです
+        /// 基本的に使用しないでください
+        /// </summary>
+        public CraftProtocolMessagePack() { }
+
         public int PlayerId { get; set; }
         public int CraftType { get; set; }
     }
