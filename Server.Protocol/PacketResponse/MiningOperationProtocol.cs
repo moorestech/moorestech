@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Core.Item;
 using Core.Item.Config;
 using Core.Ore;
@@ -57,10 +58,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class MiningOperationProtocolMessagePack : ProtocolMessagePackBase
     {
-        /// <summary>
-        /// デシリアライズ用のコンストラクタです
-        /// 基本的に使用しないでください
-        /// </summary>
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public MiningOperationProtocolMessagePack()
         {
         }

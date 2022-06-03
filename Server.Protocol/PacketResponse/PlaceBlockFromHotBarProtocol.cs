@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Block.BlockFactory;
 using Core.Block.Config.Service;
@@ -80,10 +81,7 @@ namespace Server.Protocol.PacketResponse
             Y = y;
         }
 
-        /// <summary>
-        /// デシリアライズ用のコンストラクタです
-        /// 基本的に使用しないでください
-        /// </summary>
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public SendPlaceHotBarBlockProtocolMessagePack() { }
 
         public int PlayerId { get; set; }

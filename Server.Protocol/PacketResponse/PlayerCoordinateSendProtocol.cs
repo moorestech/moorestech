@@ -70,9 +70,8 @@ namespace Server.Protocol.PacketResponse
             Y = y;
         }
 
-        public PlayerCoordinateSendProtocolMessagePack()
-        {
-        }
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public PlayerCoordinateSendProtocolMessagePack() { }
 
         public int PlayerId { get; set; }
         public float X { get; set; }

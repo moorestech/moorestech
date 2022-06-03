@@ -80,10 +80,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class InventoryItemMoveProtocolMessagePack : ProtocolMessagePackBase
     {
-        /// <summary>
-        /// デシリアライズ用のコンストラクタです
-        /// 基本的に使用しないでください
-        /// </summary>
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public InventoryItemMoveProtocolMessagePack()
         {
         }

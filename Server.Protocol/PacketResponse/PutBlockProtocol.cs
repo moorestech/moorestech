@@ -49,10 +49,7 @@ namespace Server.Protocol.PacketResponse
             Y = y;
         }
         
-        /// <summary>
-        /// デシリアライズ用のコンストラクタです
-        /// 基本的に使用しないでください
-        /// </summary>
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public PutBlockProtocolMessagePack(){}
 
         public int Id { get; set; }

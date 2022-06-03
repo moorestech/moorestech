@@ -55,10 +55,7 @@ namespace Server.Protocol.PacketResponse
             Tag = CraftProtocol.Tag;
         }
 
-        /// <summary>
-        /// デシリアライズ用のコンストラクタです
-        /// 基本的に使用しないでください
-        /// </summary>
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public CraftProtocolMessagePack() { }
 
         public int PlayerId { get; set; }
