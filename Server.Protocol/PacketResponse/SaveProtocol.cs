@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Game.Save.Interface;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Server.Protocol.PacketResponse
@@ -21,5 +22,15 @@ namespace Server.Protocol.PacketResponse
             Console.WriteLine("セーブ完了");
             return new List<List<byte>>();
         }
+    }
+    
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class SaveProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public int PlayerId { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public bool IsOpen { get; set; }
     }
 }

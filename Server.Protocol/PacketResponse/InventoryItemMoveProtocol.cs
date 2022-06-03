@@ -5,6 +5,7 @@ using Core.Inventory;
 using Core.Item;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util;
 using Server.Util;
@@ -54,39 +55,6 @@ namespace Server.Protocol.PacketResponse
                     _itemStackFactory,grabInventory,0,inventory,slot,moveItemCount);
             }
             
-            
-            
-/*
-            var inventoryStr = new StringBuilder();
-            inventoryStr.AppendLine("Main");
-            for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
-            {
-                var item = _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory.GetItem(i);
-                inventoryStr.Append(item.Id + " " + item.Count　+ "  ");
-                if ((i + 1) % PlayerInventoryConst.MainInventoryColumns == 0)
-                {
-                    inventoryStr.AppendLine();
-                }
-            }
-            inventoryStr.AppendLine();
-            inventoryStr.AppendLine("Craft");
-            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
-            {
-                var item = _playerInventoryDataStore.GetInventoryData(playerId).CraftingOpenableInventory.GetItem(i);
-                inventoryStr.Append(item.Id + " " + item.Count　+ "  ");
-                
-                if ((i + 1) % PlayerInventoryConst.CraftingInventoryColumns == 0)
-                {
-                    inventoryStr.AppendLine();
-                }
-            }
-            inventoryStr.AppendLine();
-            inventoryStr.AppendLine("Grab");
-            var grabItem = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory.GetItem(0);
-            inventoryStr.Append(grabItem.Id + " " + grabItem.Count　+ "  ");
-            
-            Console.WriteLine(inventoryStr);
-            Console.WriteLine("Slot: " + slot + " MoveItemCount: " + moveItemCount + "toGrab: " + toGrab);*/
 
             return new List<List<byte>>();
         }
@@ -116,6 +84,15 @@ namespace Server.Protocol.PacketResponse
         
     }
 
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class InventoryItemMoveProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public int PlayerId { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public bool IsOpen { get; set; }
+    }
     enum InventoryType
     {
         MainInventory,

@@ -36,15 +36,15 @@ namespace Server.Protocol.PacketResponse
             return new List<List<byte>>();
         }
         
+    }
+    
         
-        [MessagePackObject(keyAsPropertyName :true)]
-        [Serializable]
-        public class BlockInventoryOpenCloseProtocolMessagePack : ProtocolMessagePackBase
-        {
-            public int PlayerId { get; set; }
-            public int X { get; set; }
-            public int Y { get; set; }
-            public bool IsOpen { get; set; }
-        }
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class BlockInventoryOpenCloseProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public int PlayerId { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public bool IsOpen { get; set; }
     }
 }

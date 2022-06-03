@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Player;
 using Server.Util;
@@ -59,5 +60,15 @@ namespace Server.Protocol.PacketResponse
 
             return responseChunk;
         }
+    }
+    
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class PlayerCoordinateSendProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public int PlayerId { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public bool IsOpen { get; set; }
     }
 }

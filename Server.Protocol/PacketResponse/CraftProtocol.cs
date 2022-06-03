@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Item;
 using Game.PlayerInventory.Interface;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util;
 
@@ -45,5 +46,14 @@ namespace Server.Protocol.PacketResponse
 
             return new List<List<byte>>();
         }
+    }
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class CraftProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public int PlayerId { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public bool IsOpen { get; set; }
     }
 }

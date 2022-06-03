@@ -5,6 +5,7 @@ using Core.Ore;
 using Core.Ore.Config;
 using Game.PlayerInventory.Interface;
 using Game.WorldMap;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util;
 
@@ -12,7 +13,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class MiningOperationProtocol : IPacketResponse
     {
-        public const string Tag = "va:dummy";
+        public const string Tag = "va:miningOre";
         
         private readonly VeinGenerator _veinGenerator;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
@@ -54,9 +55,15 @@ namespace Server.Protocol.PacketResponse
             
             return new List<List<byte>>();
         }
-        
-
-
-
+    }
+    
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class MiningOperationProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public int PlayerId { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public bool IsOpen { get; set; }
     }
 }

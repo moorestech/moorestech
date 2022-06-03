@@ -4,6 +4,7 @@ using Core.Block.Config.Service;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util;
 
@@ -69,5 +70,15 @@ namespace Server.Protocol.PacketResponse
             
             return new List<List<byte>>();
         }
+    }
+    
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class SendPlaceHotBarBlockProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public int PlayerId { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public bool IsOpen { get; set; }
     }
 }

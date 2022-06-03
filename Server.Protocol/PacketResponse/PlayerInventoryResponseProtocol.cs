@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 using Game.PlayerInventory.Interface;
+using MessagePack;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
 {
     public class PlayerInventoryResponseProtocol : IPacketResponse
     {
-        public const string Tag = "va:dummy";
+        public const string Tag = "va:playerInvRequest";
         
         private IPlayerInventoryDataStore _playerInventoryDataStore;
 
@@ -64,5 +65,15 @@ namespace Server.Protocol.PacketResponse
 
             return new List<List<byte>>() {response};
         }
+    }
+    
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class PlayerInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public int PlayerId { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public bool IsOpen { get; set; }
     }
 }
