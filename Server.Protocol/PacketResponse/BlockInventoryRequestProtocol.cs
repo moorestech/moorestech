@@ -18,43 +18,59 @@ namespace Server.Protocol.PacketResponse
     public class BlockInventoryRequestProtocol : IPacketResponse
     {
         public const string Tag = "va:blockInvReq";
-        
-        private const int ProtocolId = 6;
-        private IWorldBlockDatastore _blockDatastore;
-        private IBlockConfig _blockConfig;
+
+        private IWorldBlockComponentDatastore<IOpenableInventory> _blockComponentDatastore;
 
         //データのレスポンスを実行するdelegateを設定する
         private delegate byte[] InventoryResponse(int x, int y,IBlockConfigParam config);
 
         public BlockInventoryRequestProtocol(ServiceProvider serviceProvider)
         {
-            _blockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
-            _blockConfig = serviceProvider.GetService<IBlockConfig>();
+            serviceProvider.GetService<IWorldBlockDatastore>();
+            _blockComponentDatastore = serviceProvider.GetService<IWorldBlockComponentDatastore<IOpenableInventory>>();
+            serviceProvider.GetService<IBlockConfig>();
         }
 
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            var byteListEnumerator = new ByteListEnumerator(payload);
-            byteListEnumerator.MoveNextToGetShort();
-            var x = byteListEnumerator.MoveNextToGetInt();
-            var y = byteListEnumerator.MoveNextToGetInt();
+            var data = MessagePackSerializer.Deserialize<RequestBlockInventoryRequestProtocolMessagePack>(payload.ToArray());
 
-            var blockId = _blockDatastore.GetBlock(x, y).BlockId;
-            var blockConfig = _blockConfig.GetBlockConfig(blockId);
-            
+            if (!_blockComponentDatastore.ExistsComponentBlock(data.X, data.Y)) return new List<List<byte>>();
 
-            return new List<List<byte>>();
+
+            var itemIds = new List<int>();
+            var itemCounts = new List<int>();
+
+            foreach (var item in _blockComponentDatastore.GetBlock(data.X,data.Y).Items)
+            {
+                itemIds.Add(item.Id);
+                itemCounts.Add(item.Count);
+            }
+
+            var response = MessagePackSerializer.Serialize(new BlockInventoryResponseProtocolMessagePack()
+            {
+                Tag = Tag,
+                ItemIds = itemIds.ToArray(),
+                ItemCounts = itemCounts.ToArray(),
+            }).ToList();
+
+            return new List<List<byte>>(){response};
         }
     }
     
     
         
     [MessagePackObject(keyAsPropertyName :true)]
-    public class BlockInventoryRequestProtocolMessagePack : ProtocolMessagePackBase
+    public class RequestBlockInventoryRequestProtocolMessagePack : ProtocolMessagePackBase
     {
-        public int PlayerId { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
-        public bool IsOpen { get; set; }
+    }
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class BlockInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public int BlockId { get; set; }
+        public int[] ItemIds { get; set; }
+        public int[] ItemCounts { get; set; }
     }
 }

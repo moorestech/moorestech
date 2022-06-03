@@ -12,7 +12,6 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:blockInvOpen";
         private readonly IBlockInventoryOpenStateDataStore _inventoryOpenState;
-        private const byte IsOpenFlag = 1;
 
         public BlockInventoryOpenCloseProtocol(ServiceProvider serviceProvider)
         {
