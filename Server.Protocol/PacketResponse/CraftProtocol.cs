@@ -21,16 +21,14 @@ namespace Server.Protocol.PacketResponse
         
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            var byteListEnumerator = new ByteListEnumerator(payload);
-            byteListEnumerator.MoveNextToGetShort(); // Packet ID
-            var playerId = byteListEnumerator.MoveNextToGetInt();
-            var craftType = byteListEnumerator.MoveNextToGetByte();
-
-            var craftingInventory = _playerInventoryDataStore.GetInventoryData(playerId).CraftingOpenableInventory;
+            
+            var data = MessagePackSerializer.Deserialize<CraftProtocolMessagePack>(payload.ToArray());
+            
+            var craftingInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).CraftingOpenableInventory;
             
             
             //クラフトの実行
-            switch (craftType)
+            switch (data.CraftType)
             {
                 case 0:
                     craftingInventory.NormalCraft();
@@ -52,8 +50,6 @@ namespace Server.Protocol.PacketResponse
     public class CraftProtocolMessagePack : ProtocolMessagePackBase
     {
         public int PlayerId { get; set; }
-        public int X { get; set; }
-        public int Y { get; set; }
-        public bool IsOpen { get; set; }
+        public int CraftType { get; set; }
     }
 }
