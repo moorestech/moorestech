@@ -6,6 +6,8 @@ namespace Server.Protocol.PacketResponse
 {
     public class EventProtocol : IPacketResponse
     {
+        public const string Tag = "va:event";
+        
         private readonly EventProtocolProvider _eventProtocolProvider;
 
         public EventProtocol(EventProtocolProvider eventProtocolProvider)

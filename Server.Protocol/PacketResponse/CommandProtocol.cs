@@ -8,6 +8,8 @@ namespace Server.Protocol.PacketResponse
 {
     public class SendCommandProtocol : IPacketResponse
     {
+        public const string Tag = "va:sendCommand";
+        
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ItemStackFactory _itemStackFactory;
         public SendCommandProtocol(ServiceProvider serviceProvider)

@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using Game.World.Interface.DataStore;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
@@ -10,7 +13,7 @@ using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
-    public class PutBlockProtocol
+    public class PutBlockProtocolTest
     {
         [Test]
         public void SimpleBlockPlaceTest()
@@ -32,16 +35,13 @@ namespace Test.CombinedTest.Server.PacketTest
 
         List<byte> BlockPlace(int id, int x, int y)
         {
-            var bytes = new List<byte>();
-            bytes.AddRange(ToByteList.Convert((short) 1));
-            bytes.AddRange(ToByteList.Convert(id));
-            bytes.AddRange(ToByteList.Convert((short) 0));
-            bytes.AddRange(ToByteList.Convert(x));
-            bytes.AddRange(ToByteList.Convert(y));
-            bytes.AddRange(ToByteList.Convert(0));
-            bytes.AddRange(ToByteList.Convert(0));
-
-            return bytes;
+            return MessagePackSerializer.Serialize(new PutBlockProtocolMessagePack()
+            {
+                Tag = PutBlockProtocol.Tag,
+                Id = id,
+                X = x,
+                Y = y
+            }).ToList();
         }
     }
 }

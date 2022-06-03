@@ -8,6 +8,8 @@ namespace Server.Protocol.PacketResponse
 {
     public class PlayerInventoryResponseProtocol : IPacketResponse
     {
+        public const string Tag = "va:dummy";
+        
         private IPlayerInventoryDataStore _playerInventoryDataStore;
 
         public PlayerInventoryResponseProtocol(IPlayerInventoryDataStore playerInventoryDataStore)

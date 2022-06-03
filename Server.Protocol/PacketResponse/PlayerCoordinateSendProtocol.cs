@@ -14,6 +14,8 @@ namespace Server.Protocol.PacketResponse
     /// </summary>
     public class PlayerCoordinateSendProtocol : IPacketResponse
     {
+        public const string Tag = "va:playerCoordinate";
+        
         private readonly Dictionary<int, PlayerCoordinateToResponse> _responses = new();
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly WorldMapTile _worldMapTile;
@@ -23,7 +25,7 @@ namespace Server.Protocol.PacketResponse
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _worldMapTile = serviceProvider.GetService<WorldMapTile>();
         }
-
+        
         public List<List<byte>> GetResponse(List<byte> payload)
         {
             //プレイヤー座標の解析

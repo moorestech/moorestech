@@ -12,6 +12,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class RemoveBlockProtocol : IPacketResponse
     {
+        public const string Tag = "va:removeBlock";
         
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly ItemStackFactory _itemStackFactory;

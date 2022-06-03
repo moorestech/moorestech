@@ -16,6 +16,8 @@ namespace Server.Protocol.PacketResponse
 {
     public class BlockInventoryRequestProtocol : IPacketResponse
     {
+        public const string Tag = "va:blockInvReq";
+        
         private const int ProtocolId = 6;
         private IWorldBlockDatastore _blockDatastore;
         private IBlockConfig _blockConfig;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util;
 
@@ -9,6 +10,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class BlockInventoryOpenCloseProtocol : IPacketResponse
     {
+        public const string Tag = "va:blockInvOpen";
         private readonly IBlockInventoryOpenStateDataStore _inventoryOpenState;
         private const byte IsOpenFlag = 1;
 
@@ -19,26 +21,30 @@ namespace Server.Protocol.PacketResponse
 
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            var byteListEnumerator = new ByteListEnumerator(payload);
-            byteListEnumerator.MoveNextToGetShort(); //packet id
-            var x = byteListEnumerator.MoveNextToGetInt();
-            var y = byteListEnumerator.MoveNextToGetInt();
-            var playerId = byteListEnumerator.MoveNextToGetInt();
-            var isOpen = byteListEnumerator.MoveNextToGetByte() == IsOpenFlag;
-
+            var data = MessagePackSerializer.Deserialize<BlockInventoryOpenCloseProtocolMessagePack>(payload.ToArray());
+            
             //開く、閉じるのセット
-            if (isOpen)
+            if (data.IsOpen)
             {
-                _inventoryOpenState.Open(playerId,x,y);
+                _inventoryOpenState.Open(data.PlayerId,data.X,data.Y);
             }
             else
             {
-                _inventoryOpenState.Close(playerId);
+                _inventoryOpenState.Close(data.PlayerId);
             }
-
-
-
+            
             return new List<List<byte>>();
+        }
+        
+        
+        [MessagePackObject(keyAsPropertyName :true)]
+        [Serializable]
+        public class BlockInventoryOpenCloseProtocolMessagePack : ProtocolMessagePackBase
+        {
+            public int PlayerId { get; set; }
+            public int X { get; set; }
+            public int Y { get; set; }
+            public bool IsOpen { get; set; }
         }
     }
 }

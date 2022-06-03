@@ -9,6 +9,8 @@ namespace Server.Protocol.PacketResponse
 {
     public class CraftProtocol : IPacketResponse
     {
+        public const string Tag = "va:craft";
+        
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
         public CraftProtocol(ServiceProvider serviceProvider)

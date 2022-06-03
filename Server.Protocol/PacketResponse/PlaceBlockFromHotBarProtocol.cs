@@ -11,6 +11,8 @@ namespace Server.Protocol.PacketResponse
 {
     public class SendPlaceHotBarBlockProtocol : IPacketResponse
     {
+        public const string Tag = "va:palceHotbarBlock";
+        
         private ItemIdToBlockId _itemIdToBlockId;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private IWorldBlockDatastore _worldBlockDatastore;

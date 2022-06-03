@@ -12,6 +12,8 @@ namespace Server.Protocol.PacketResponse
 {
     public class MiningOperationProtocol : IPacketResponse
     {
+        public const string Tag = "va:dummy";
+        
         private readonly VeinGenerator _veinGenerator;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ItemStackFactory _itemStackFactory;

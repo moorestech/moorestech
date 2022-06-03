@@ -13,6 +13,8 @@ namespace Server.Protocol.PacketResponse
 {
     public class InventoryItemMoveProtocol : IPacketResponse
     {
+        public const string Tag = "va:invItemMove";
+        
         private readonly IWorldBlockComponentDatastore<IOpenableInventory> _openableBlockDatastore;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ItemStackFactory _itemStackFactory;
