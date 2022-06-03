@@ -28,48 +28,40 @@ namespace Server.Protocol.PacketResponse
             
 
             //メインインベントリのアイテムを設定
-            var mainIds = new List<int>();
-            var mainCounts = new List<int>();
+            var mainItems = new List<ItemMessagePack>();
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
-                mainIds.Add(playerInventory.MainOpenableInventory.GetItem(i).Id);
-                mainCounts.Add(playerInventory.MainOpenableInventory.GetItem(i).Count);
+                var id = playerInventory.MainOpenableInventory.GetItem(i).Id;
+                var count = playerInventory.MainOpenableInventory.GetItem(i).Count;
+                mainItems.Add(new ItemMessagePack(id,count));
             }
             
             
             //グラブインベントリのアイテムを設定
-            var grabId = playerInventory.GrabInventory.GetItem(0).Id;
-            var grabCount = playerInventory.GrabInventory.GetItem(0).Count;
+            var grabItem = new ItemMessagePack(
+                playerInventory.GrabInventory.GetItem(0).Id, 
+                playerInventory.GrabInventory.GetItem(0).Count);
 
             
             //クラフトインベントリのアイテムを設定
-            var craftIds = new List<int>();
-            var craftCounts = new List<int>();
+            var craftItems = new List<ItemMessagePack>();
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
-                craftIds.Add(playerInventory.CraftingOpenableInventory.GetItem(i).Id);
-                craftCounts.Add(playerInventory.CraftingOpenableInventory.GetItem(i).Count);
+                var id = playerInventory.CraftingOpenableInventory.GetItem(i).Id;
+                var count = playerInventory.CraftingOpenableInventory.GetItem(i).Count;
+                craftItems.Add(new ItemMessagePack(id,count));
             }
             
             //クラフト結果のアイテムを設定
-            var craftResultId = playerInventory.CraftingOpenableInventory.GetItem(0).Id;
-            var craftResultCount = playerInventory.CraftingOpenableInventory.GetItem(0).Count;
+            var craftItem = new ItemMessagePack(
+                playerInventory.CraftingOpenableInventory.GetCreatableItem().Id, 
+                playerInventory.CraftingOpenableInventory.GetCreatableItem().Count);
             
             var isCreatable = playerInventory.CraftingOpenableInventory.IsCreatable();
 
-            var response = MessagePackSerializer.Serialize(new PlayerInventoryResponseProtocolMessagePack()
-            {
-                Tag = Tag,
-                MainIds = mainIds.ToArray(),
-                MainCounts = mainCounts.ToArray(),
-                GrabId = grabId,
-                GrabCount = grabCount,
-                CraftIds = craftIds.ToArray(),
-                CraftCounts = craftCounts.ToArray(),
-                CraftResultId = craftResultId,
-                CraftResultCount = craftResultCount,
-                IsCreatable = isCreatable
-            });
+            var response = MessagePackSerializer.Serialize(new PlayerInventoryResponseProtocolMessagePack(
+                data.PlayerId,mainItems.ToArray(),grabItem,craftItems.ToArray(),craftItem,isCreatable));
+            
 
             return new List<List<byte>>() {response.ToList()};
         }
@@ -79,6 +71,15 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class RequestPlayerInventoryProtocolMessagePack : ProtocolMessagePackBase
     {
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public RequestPlayerInventoryProtocolMessagePack() { }
+
+        public RequestPlayerInventoryProtocolMessagePack(int playerId)
+        {
+            Tag = PlayerInventoryResponseProtocol.Tag;
+            PlayerId = playerId;
+        }
+
         public int PlayerId { get; set; }
     }
     
@@ -86,15 +87,46 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class PlayerInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
     {
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public PlayerInventoryResponseProtocolMessagePack() { }
+
+
+        public PlayerInventoryResponseProtocolMessagePack(int playerId, ItemMessagePack[] main, ItemMessagePack grab, ItemMessagePack[] craft, ItemMessagePack craftResult, bool isCreatable)
+        {
+            PlayerId = playerId;
+            Main = main;
+            Grab = grab;
+            Craft = craft;
+            CraftResult = craftResult;
+            IsCreatable = isCreatable;
+        }
+
         public int PlayerId { get; set; }
-        public int[] MainIds { get; set; }
-        public int[] MainCounts { get; set; }
-        public int GrabId { get; set; }
-        public int GrabCount { get; set; }
-        public int[] CraftIds { get; set; }
-        public int[] CraftCounts { get; set; }
-        public int CraftResultId { get; set; }
-        public int CraftResultCount { get; set; }
+        
+        public ItemMessagePack[] Main { get; set; }
+        public ItemMessagePack Grab { get; set; }
+        
+        public ItemMessagePack[] Craft { get; set; }
+        public ItemMessagePack CraftResult { get; set; }
         public bool IsCreatable { get; set; }
+    }
+
+    [MessagePackObject(false)]
+    public class ItemMessagePack
+    {
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public ItemMessagePack() { }
+
+        public ItemMessagePack(int id, int count)
+        {
+            Id = id;
+            Count = count;
+        }
+
+        [Key(0)]
+        public int Id { get; set; }
+        [Key(1)]
+        public int Count { get; set; }
+        
     }
 }

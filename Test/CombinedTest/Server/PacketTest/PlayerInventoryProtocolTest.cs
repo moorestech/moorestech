@@ -7,9 +7,11 @@ using Core.Item;
 using Core.Item.Config;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
@@ -28,39 +30,33 @@ namespace Test.CombinedTest.Server.PacketTest
 
 
             //からの時のデータ要求
-            var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 3));
-            payload.AddRange(ToByteList.Convert(playerId));
-
-            var response = new ByteListEnumerator(packet.GetPacketResponse(payload)[0].ToList());
-
+            var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack(playerId)).ToList();
             //データの検証
-            Assert.AreEqual(4, response.MoveNextToGetShort());
-            Assert.AreEqual(playerId, response.MoveNextToGetInt());
-            Assert.AreEqual(0, response.MoveNextToGetShort());
-            
+            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0].ToArray());
+            Assert.AreEqual(playerId, data.PlayerId);
+
             //プレイヤーインベントリの検証
             for (int i = 0; i < PlayerInventoryConst.MainInventoryColumns; i++)
             {
-                Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
-                Assert.AreEqual(0, response.MoveNextToGetInt());
+                Assert.AreEqual(ItemConst.EmptyItemId, data.Main[i].Id);
+                Assert.AreEqual(0, data.Main[i].Count);
             }
             
             //グラブインベントリの検証
-            Assert.AreEqual(0, response.MoveNextToGetInt());
-            Assert.AreEqual(0, response.MoveNextToGetInt());
+            Assert.AreEqual(0, data.Grab.Id);
+            Assert.AreEqual(0, data.Grab.Count);
             
             //クラフトインベントリの検証
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
-                Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
-                Assert.AreEqual(0, response.MoveNextToGetInt());
+                Assert.AreEqual(ItemConst.EmptyItemId, data.Craft[i].Id);
+                Assert.AreEqual(0, data.Craft[i].Count);
             }
             //クラフト結果アイテムの検証
-            Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
-            Assert.AreEqual(0, response.MoveNextToGetInt());
+            Assert.AreEqual(ItemConst.EmptyItemId, data.CraftResult.Id);
+            Assert.AreEqual(0, data.CraftResult.Count);
             //クラフト不可能である事の検証
-            Assert.AreEqual(0, response.MoveNextToGetByte());
+            Assert.AreEqual(false, data.IsCreatable);
             
             
             
@@ -82,8 +78,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 Console.WriteLine(craftConfig.Items[i].Id);
                 Console.WriteLine(craftConfig.Items[i].Count);
                 playerInventoryData.CraftingOpenableInventory.SetItem(i,id,count * 2);
-            }
-            packet.GetPacketResponse(payload);
+            };
             
             //クラフトを実行する　ここでアイテムが消費される
             playerInventoryData.CraftingOpenableInventory.NormalCraft();
@@ -91,55 +86,52 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //2回目のデータ要求
-            response = new ByteListEnumerator(packet.GetPacketResponse(payload)[0].ToList());
-            Assert.AreEqual(4, response.MoveNextToGetShort());
-            Assert.AreEqual(playerId, response.MoveNextToGetInt());
-            Assert.AreEqual(0, response.MoveNextToGetShort());
+            data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0].ToArray());
+            Assert.AreEqual(playerId, data.PlayerId);
 
             //データの検証
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
                 if (i == 0)
                 {
-                    Assert.AreEqual(1, response.MoveNextToGetInt());
-                    Assert.AreEqual(5, response.MoveNextToGetInt());
+                    Assert.AreEqual(1, data.Main[i].Id);
+                    Assert.AreEqual(5, data.Main[i].Count);
                 }
                 else if (i == 20)
                 {
-                    Assert.AreEqual(3, response.MoveNextToGetInt());
-                    Assert.AreEqual(1, response.MoveNextToGetInt());
+                    Assert.AreEqual(3, data.Main[i].Id);
+                    Assert.AreEqual(1, data.Main[i].Count);
                 }
                 else if (i == 34)
                 {
-                    Assert.AreEqual(10, response.MoveNextToGetInt());
-                    Assert.AreEqual(7, response.MoveNextToGetInt());
+                    Assert.AreEqual(10, data.Main[i].Id);
+                    Assert.AreEqual(7, data.Main[i].Count);
                 }
                 else
                 {
-                    Assert.AreEqual(ItemConst.EmptyItemId, response.MoveNextToGetInt());
-                    Assert.AreEqual(0, response.MoveNextToGetInt());
+                    Assert.AreEqual(ItemConst.EmptyItemId, data.Main[i].Id);
+                    Assert.AreEqual(0, data.Main[i].Count);
                 }
             }
             
             //グラブインベントリの検証
             //クラフトしたのでグラブインベントリに入っている
-            Assert.AreEqual(craftConfig.Result.Id, response.MoveNextToGetInt());
-            Assert.AreEqual(craftConfig.Result.Count, response.MoveNextToGetInt());
+            Assert.AreEqual(craftConfig.Result.Id, data.Grab.Id);
+            Assert.AreEqual(craftConfig.Result.Count, data.Grab.Count);
             
             
             //クラフトスロットの検証
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
-                Assert.AreEqual(craftConfig.Items[i].Id, response.MoveNextToGetInt());
-                Assert.AreEqual(craftConfig.Items[i].Count, response.MoveNextToGetInt());
+                Assert.AreEqual(craftConfig.Items[i].Id, data.Craft[i].Id);
+                Assert.AreEqual(craftConfig.Items[i].Count, data.Craft[i].Count);
             }
+            //まだクラフトスロットにアイテムがあるため、クラフト可能である事の検証
+            Assert.AreEqual(true, data.IsCreatable);
 
             //クラフト結果アイテムの検証
-            Assert.AreEqual(craftConfig.Result.Id, response.MoveNextToGetInt());
-            Assert.AreEqual(craftConfig.Result.Count, response.MoveNextToGetInt());
-            //まだクラフトスロットにアイテムがあるため、クラフト可能である事の検証
-            response.MoveNextToGetByte();
-            Assert.AreEqual(1, 1);
+            Assert.AreEqual(craftConfig.Result.Id, data.CraftResult.Id);
+            Assert.AreEqual(craftConfig.Result.Count, data.CraftResult.Count);
         }
     }
 }
