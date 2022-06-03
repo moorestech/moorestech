@@ -43,6 +43,16 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class SendCommandProtocolMessagePack : ProtocolMessagePackBase
     {
+        
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public SendCommandProtocolMessagePack() { }
+
+        public SendCommandProtocolMessagePack(string command)
+        {
+            Tag = SendCommandProtocol.Tag;
+            Command = command;
+        }
+
         public string Command { get; set; }
     }
 }

@@ -20,6 +20,7 @@ namespace Server.Protocol.PacketResponse
         public const string Tag = "va:blockInvReq";
 
         private IWorldBlockComponentDatastore<IOpenableInventory> _blockComponentDatastore;
+        private IWorldBlockDatastore _blockDatastore;
 
         //データのレスポンスを実行するdelegateを設定する
         private delegate byte[] InventoryResponse(int x, int y,IBlockConfigParam config);
@@ -28,6 +29,7 @@ namespace Server.Protocol.PacketResponse
         {
             serviceProvider.GetService<IWorldBlockDatastore>();
             _blockComponentDatastore = serviceProvider.GetService<IWorldBlockComponentDatastore<IOpenableInventory>>();
+            _blockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             serviceProvider.GetService<IBlockConfig>();
         }
 
@@ -47,12 +49,9 @@ namespace Server.Protocol.PacketResponse
                 itemCounts.Add(item.Count);
             }
 
-            var response = MessagePackSerializer.Serialize(new BlockInventoryResponseProtocolMessagePack()
-            {
-                Tag = Tag,
-                ItemIds = itemIds.ToArray(),
-                ItemCounts = itemCounts.ToArray(),
-            }).ToList();
+            var blockId = _blockDatastore.GetBlock(data.X, data.Y).BlockId;
+
+            var response = MessagePackSerializer.Serialize(new BlockInventoryResponseProtocolMessagePack(blockId,itemIds.ToArray(),itemCounts.ToArray())).ToList();
 
             return new List<List<byte>>(){response};
         }
@@ -63,12 +62,34 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class RequestBlockInventoryRequestProtocolMessagePack : ProtocolMessagePackBase
     {
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public RequestBlockInventoryRequestProtocolMessagePack() { }
+
+        public RequestBlockInventoryRequestProtocolMessagePack(int x, int y)
+        {
+            Tag = BlockInventoryRequestProtocol.Tag;
+            X = x;
+            Y = y;
+        }
+
         public int X { get; set; }
         public int Y { get; set; }
     }
     [MessagePackObject(keyAsPropertyName :true)]
     public class BlockInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
     {
+        public BlockInventoryResponseProtocolMessagePack(int blockId, int[] itemIds, int[] itemCounts)
+        {
+            Tag = BlockInventoryRequestProtocol.Tag;
+            BlockId = blockId;
+            ItemIds = itemIds;
+            ItemCounts = itemCounts;
+        }
+
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public BlockInventoryResponseProtocolMessagePack() { }
+
+
         public int BlockId { get; set; }
         public int[] ItemIds { get; set; }
         public int[] ItemCounts { get; set; }

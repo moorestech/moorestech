@@ -1,12 +1,15 @@
 ﻿using System.Collections.Generic;
+using System.IO.Compression;
 using System.Linq;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Machine;
 using Core.Item;
 using Game.World.Interface.DataStore;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
@@ -36,33 +39,27 @@ namespace Test.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine,5,10,BlockDirection.North);
 
             //レスポンスの取得
-            var response = new ByteListEnumerator(packet.GetPacketResponse(RequestBlock(5,10))[0].ToList());
+            var data = MessagePackSerializer.Deserialize<BlockInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(5,10))[0].ToArray());
+
+            Assert.AreEqual(InputSlotNum + OutPutSlotNum,data.ItemIds.Length); // slot num
             
-            Assert.AreEqual(6,response.MoveNextToGetShort()); //packet id
-            Assert.AreEqual(InputSlotNum + OutPutSlotNum,response.MoveNextToGetShort()); // slot num
             
+            Assert.AreEqual(MachineBlockId,data.BlockId); // block id
             
-            Assert.AreEqual(MachineBlockId,response.MoveNextToGetInt()); // block id
+            Assert.AreEqual(1,data.ItemIds[0]); // item id
+            Assert.AreEqual(2,data.ItemCounts[0]); // item count
             
-            Assert.AreEqual(1,response.MoveNextToGetInt()); // item id
-            Assert.AreEqual(2,response.MoveNextToGetInt()); // item count
+            Assert.AreEqual(0,data.ItemIds[1]);
+            Assert.AreEqual(0,data.ItemCounts[1]); 
             
-            Assert.AreEqual(0,response.MoveNextToGetInt());
-            Assert.AreEqual(0,response.MoveNextToGetInt()); 
-            
-            Assert.AreEqual(4,response.MoveNextToGetInt());
-            Assert.AreEqual(5,response.MoveNextToGetInt()); 
+            Assert.AreEqual(4,data.ItemIds[2]);
+            Assert.AreEqual(5,data.ItemCounts[2]); 
             
         }
 
         private List<byte> RequestBlock(int x, int y)
         {
-            var bytes = new List<byte>();
-            bytes.AddRange(ToByteList.Convert((short) 9));
-            bytes.AddRange(ToByteList.Convert(x));
-            bytes.AddRange(ToByteList.Convert(y));
-
-            return bytes;
+            return MessagePackSerializer.Serialize(new RequestBlockInventoryRequestProtocolMessagePack(x,y)).ToList();
         }
     }
 }

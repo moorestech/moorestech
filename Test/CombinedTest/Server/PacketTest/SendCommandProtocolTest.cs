@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using Game.PlayerInventory.Interface;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
@@ -49,12 +52,8 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var giveCommand = $"give {playerId} {itemId} {count}"; //give <playerId> <itemId> <count>
             
-            var commandPacket = new List<byte>();
-            commandPacket.AddRange(ToByteList.Convert((short)11)); //packet id
-            commandPacket.AddRange(ToByteList.Convert((short)giveCommand.Length));//command text length
-            commandPacket.AddRange(ToByteList.Convert(giveCommand)); //command text
 
-            return commandPacket;
+            return MessagePackSerializer.Serialize(new SendCommandProtocolMessagePack(giveCommand)).ToList();
         }
        
         

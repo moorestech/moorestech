@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Core.Block.BlockInventory;
 using Core.Block.Config;
 using Core.Item;
@@ -89,6 +90,18 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class RemoveBlockProtocolMessagePack : ProtocolMessagePackBase
     {
+        public RemoveBlockProtocolMessagePack(int playerId, int x, int y)
+        {
+            Tag = RemoveBlockProtocol.Tag;
+            PlayerId = playerId;
+            X = x;
+            Y = y;
+        }
+
+        
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public RemoveBlockProtocolMessagePack() { }
+
         public int PlayerId { get; set; }
         public int X { get; set; }
         public int Y { get; set; }

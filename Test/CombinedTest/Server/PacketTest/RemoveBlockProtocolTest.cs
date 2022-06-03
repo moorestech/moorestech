@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 using Core.Block.Config;
@@ -7,10 +8,12 @@ using Core.Item;
 using Core.Item.Config;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Event.EventReceive;
+using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
@@ -167,13 +170,7 @@ namespace Test.CombinedTest.Server.PacketTest
         
         List<byte> RemoveBlock(int x, int y,int playerId)
         {
-            var bytes = new List<byte>();
-            bytes.AddRange(ToByteList.Convert((short) 10));
-            bytes.AddRange(ToByteList.Convert(x));
-            bytes.AddRange(ToByteList.Convert(y));
-            bytes.AddRange(ToByteList.Convert(playerId));
-
-            return bytes;
+            return MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(playerId,x,y)).ToList();
         }
         
     }
