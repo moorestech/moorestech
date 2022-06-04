@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.World.Interface;
@@ -24,7 +25,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         public void RemoveBlockEvent()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-
+            throw new NotImplementedException();
             //イベントキューにIDを登録する
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(0, response.Count);
