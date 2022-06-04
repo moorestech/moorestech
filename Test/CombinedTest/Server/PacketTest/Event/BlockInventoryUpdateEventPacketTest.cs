@@ -5,9 +5,12 @@ using Core.Block.BlockFactory;
 using Core.Inventory;
 using Core.Item;
 using Game.World.Interface.DataStore;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Event.EventReceive;
+using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
@@ -41,7 +44,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             
             //インベントリを開く
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(5,7,1));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(5,7,true));
             //ブロックにアイテムを入れる
             blockInventory.SetItem(1,itemStackFactory.Create(4,8));
             
@@ -52,18 +55,20 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             //イベントパケットをチェック
             Assert.AreEqual(1,eventPacket.Count);
-            var packetEnumerator = new ByteListEnumerator(eventPacket[0].ToList());
-            Assert.AreEqual(3,packetEnumerator.MoveNextToGetShort());
-            Assert.AreEqual(2,packetEnumerator.MoveNextToGetShort());
-            Assert.AreEqual(1,packetEnumerator.MoveNextToGetInt()); // slot id
-            Assert.AreEqual(4,packetEnumerator.MoveNextToGetInt()); // item id
-            Assert.AreEqual(8,packetEnumerator.MoveNextToGetInt()); // item count
-            Assert.AreEqual(5,packetEnumerator.MoveNextToGetInt()); // x
-            Assert.AreEqual(7,packetEnumerator.MoveNextToGetInt()); // y
+            
+            var data =
+                MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(
+                    eventPacket[0].ToArray());
+            
+            Assert.AreEqual(1,data.Slot); // slot id
+            Assert.AreEqual(4,data.Item.Id); // item id
+            Assert.AreEqual(8,data.Item.Count); // item count
+            Assert.AreEqual(5,data.X); // x
+            Assert.AreEqual(7,data.Y); // y
             
             
             //ブロックのインベントリを閉じる
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(5,7,0));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(5,7,false));
             
             //ブロックにアイテムを入れる
             blockInventory.SetItem(2,itemStackFactory.Create(4,8));
@@ -98,9 +103,9 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             
             //一つ目のブロックインベントリを開く
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(5,7,0));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(5,7,true));
             //二つ目のブロックインベントリを開く
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(10,20,0));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(10,20,true));
             
             
             //一つ目のブロックインベントリにアイテムを入れる
@@ -116,16 +121,9 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         }
         
         
-        /// <param name="openOrClose">1なら開く 0なら閉じる</param>
-        private List<byte> OpenCloseBlockInventoryPacket(int x,int y,byte openOrClose)
+        private List<byte> OpenCloseBlockInventoryPacket(int x,int y,bool isOpen)
         {
-            var packet = new List<byte>();
-            packet.AddRange(ToByteList.Convert(PacketId));
-            packet.AddRange(ToByteList.Convert(x));
-            packet.AddRange(ToByteList.Convert(y));
-            packet.AddRange(ToByteList.Convert(PlayerId));
-            packet.Add(openOrClose);
-            return packet;
+            return MessagePackSerializer.Serialize(new BlockInventoryOpenCloseProtocolMessagePack(PlayerId,x,y,isOpen)).ToList();
         }
         
         private List<byte> GetEventPacket()
@@ -133,7 +131,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var payload = new List<byte>();
             payload.AddRange(ToByteList.Convert((short) 4));
             payload.AddRange(ToByteList.Convert(PlayerId));
-            return payload;
+            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(PlayerId)).ToList();;
         }
         
     }

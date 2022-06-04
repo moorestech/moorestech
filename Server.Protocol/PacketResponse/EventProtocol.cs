@@ -29,6 +29,16 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class EventProtocolMessagePack : ProtocolMessagePackBase
     {
+        public EventProtocolMessagePack()
+        {
+        }
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public EventProtocolMessagePack(int playerId)
+        {
+            Tag = EventProtocol.Tag;
+            PlayerId = playerId;
+        }
+
         public int PlayerId { get; set; }
     }
 }

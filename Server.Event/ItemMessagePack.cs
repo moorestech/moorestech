@@ -1,7 +1,7 @@
 using System;
 using MessagePack;
 
-namespace Server.Protocol.PacketResponse
+namespace Server.Event
 {
 
     [MessagePackObject(false)]

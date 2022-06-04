@@ -41,6 +41,18 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class BlockInventoryOpenCloseProtocolMessagePack : ProtocolMessagePackBase
     {
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public BlockInventoryOpenCloseProtocolMessagePack() { }
+
+        public BlockInventoryOpenCloseProtocolMessagePack(int playerId, int x, int y, bool isOpen)
+        {
+            Tag = BlockInventoryOpenCloseProtocol.Tag;
+            PlayerId = playerId;
+            X = x;
+            Y = y;
+            IsOpen = isOpen;
+        }
+
         public int PlayerId { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
