@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Block.Blocks;
 using Game.World.Interface.DataStore;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Event;
+using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
@@ -109,11 +111,8 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         }
 
         List<byte> EventRequestData(int plyaerID)
-        {
-            var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 4));
-            payload.AddRange(ToByteList.Convert(plyaerID));
-            return payload;
+        {   
+            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID)).ToList();;
         }
 
         class TestBlockData

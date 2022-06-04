@@ -4,9 +4,11 @@ using Core.Const;
 using Core.Item.Util;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
@@ -99,10 +101,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         
         List<byte> EventRequest()
         {
-            var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 4));
-            payload.AddRange(ToByteList.Convert(PlayerId));
-            return payload;
+            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(PlayerId)).ToList();
         }
     }
 }

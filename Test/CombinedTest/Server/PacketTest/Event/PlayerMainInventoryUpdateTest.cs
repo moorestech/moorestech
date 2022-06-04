@@ -3,11 +3,13 @@ using System.Linq;
 using Core.Item;
 using Core.Item.Util;
 using Game.PlayerInventory.Interface;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
 using Server;
 using Server.Event;
+using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
 using Test.Module.TestConfig;
@@ -135,10 +137,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
 
         List<byte> EventRequestData(int plyaerID)
         {
-            var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 4));
-            payload.AddRange(ToByteList.Convert(plyaerID));
-            return payload;
+            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID)).ToList();;
         }
         private List<byte> PlayerInventoryItemMove(bool toGrab,int inventorySlot,int itemCount)
         {

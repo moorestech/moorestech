@@ -128,9 +128,6 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         
         private List<byte> GetEventPacket()
         {
-            var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert((short) 4));
-            payload.AddRange(ToByteList.Convert(PlayerId));
             return MessagePackSerializer.Serialize(new EventProtocolMessagePack(PlayerId)).ToList();;
         }
         
