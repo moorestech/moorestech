@@ -1,4 +1,5 @@
 using System;
+using Core.Item;
 using MessagePack;
 
 namespace Server.Event
@@ -14,6 +15,12 @@ namespace Server.Event
         {
             Id = id;
             Count = count;
+        }
+
+        public ItemMessagePack(IItemStack itemStack)
+        {
+            Id = itemStack.Id;
+            Count = itemStack.Count;
         }
 
         [Key(0)]
