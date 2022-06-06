@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
 using Server.Event;
+using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
@@ -68,6 +69,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
                 
                 //イベントパケットをリクエストする
                 response = packetResponse.GetPacketResponse(EventRequestData(0));
+                
                 Assert.AreEqual(cnt, response.Count);
                 
                 
@@ -98,16 +100,11 @@ namespace Test.CombinedTest.Server.PacketTest.Event
 
         TestBlockData AnalysisResponsePacket(List<byte> payload)
         {
-            var b = new ByteListEnumerator(payload.ToList());
-            b.MoveNextToGetShort();
-            var eventId = b.MoveNextToGetShort();
-            Assert.AreEqual(0, eventId);
-            var x = b.MoveNextToGetInt();
-            var y = b.MoveNextToGetInt();
-            var id = b.MoveNextToGetInt();
-            var direction = b.MoveNextToGetByte();
+            var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload.ToArray());
+         
+            Assert.AreEqual(PlaceBlockToSetEventPacket.EventTag, data.EventTag);
             
-            return new TestBlockData(x, y, id,direction);
+            return new TestBlockData(data.X, data.Y, data.BlockId,data.Direction);
         }
 
         List<byte> EventRequestData(int plyaerID)

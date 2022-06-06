@@ -24,7 +24,7 @@ namespace Server.Event.EventReceive
             var blockId = blockPlaceEventProperties.Block.BlockId;
             
             var payload = MessagePackSerializer.Serialize(new PlaceBlockEventMessagePack(
-                c.X,c.Y,blockId
+                c.X,c.Y,blockId,(int)blockPlaceEventProperties.BlockDirection
             )).ToList();;
             
             _eventProtocolProvider.AddBroadcastEvent(payload);
@@ -38,16 +38,18 @@ namespace Server.Event.EventReceive
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public PlaceBlockEventMessagePack() { }
 
-        public PlaceBlockEventMessagePack(int x, int y, int blockId)
+        public PlaceBlockEventMessagePack(int x, int y, int blockId,int direction)
         {
             EventTag = PlaceBlockToSetEventPacket.EventTag;
             X = x;
             Y = y;
             BlockId = blockId;
+            Direction = direction;
         }
 
         public int X { get; set; }
         public int Y { get; set; }
         public int BlockId { get; set; }
+        public int Direction { get; set; }
     }
 }
