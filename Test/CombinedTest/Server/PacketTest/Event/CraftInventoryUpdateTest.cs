@@ -35,8 +35,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
             }
-            
-            throw new NotImplementedException();            
+                   
             //イベントを取得
             var response = packetResponse.GetPacketResponse(EventRequest());
             

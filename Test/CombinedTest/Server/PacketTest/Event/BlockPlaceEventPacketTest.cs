@@ -28,7 +28,6 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var eventProtocol = new EventProtocolProvider();
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
-            throw new NotImplementedException();
             Assert.AreEqual(response.Count, 0);
         }
 
