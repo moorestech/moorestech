@@ -77,8 +77,6 @@ namespace Server.Event.EventReceive
         public int Y { get; set; }
         public int Slot { get; set; }
         public ItemMessagePack Item { get; set; }
-        
-        
     }
     
 }
