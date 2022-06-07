@@ -1,17 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Server;
+using Server.Event.EventReceive;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
-using Server.Util;
-using Test.Module.TestConfig;
 using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest.Event
@@ -67,31 +63,21 @@ namespace Test.CombinedTest.Server.PacketTest.Event
 
         void BlockPlace(int x, int y, int id, PacketResponseCreator packetResponseCreator)
         {
-            var bytes = new List<byte>();
-            bytes.AddRange(ToByteList.Convert((short) 1));
-            bytes.AddRange(ToByteList.Convert(id));
-            bytes.AddRange(ToByteList.Convert((short) 0));
-            bytes.AddRange(ToByteList.Convert(x));
-            bytes.AddRange(ToByteList.Convert(y));
-            bytes.AddRange(ToByteList.Convert(0));
-            bytes.AddRange(ToByteList.Convert(0));
-            packetResponseCreator.GetPacketResponse(bytes);
+            packetResponseCreator.GetPacketResponse(
+                MessagePackSerializer.Serialize(new PutBlockProtocolMessagePack(id, x, y)).ToList());
         }
 
         List<byte> EventRequestData(int plyaerID)
         {
-            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID)).ToList();;
+            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID)).ToList();
         }
 
         (int, int) AnalysisResponsePacket(List<byte> payload)
         {
-            var b = new ByteListEnumerator(payload.ToList());
-            b.MoveNextToGetShort();
-            var eventId = b.MoveNextToGetShort();
-            Assert.AreEqual(3, eventId);
-            var x = b.MoveNextToGetInt();
-            var y = b.MoveNextToGetInt();
-            return (x, y);
+
+            var data = MessagePackSerializer.Deserialize<RemoveBlockEventMessagePack>(payload.ToArray());
+            
+            return (data.X, data.Y);
         }
     }
 }
