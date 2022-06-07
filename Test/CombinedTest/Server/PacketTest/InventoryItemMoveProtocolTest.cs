@@ -65,7 +65,7 @@ namespace Test.CombinedTest.Server.PacketTest
             craftInventory.SetItem(0,1,10);
 
             //インベントリを持っているアイテムに移す
-            packet.GetPacketResponse(GetPacket(true, 1, 0, 7));
+            packet.GetPacketResponse(GetPacket(true,InventoryType.CraftInventory, 0, 7));
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,3), craftInventory.GetItem(0));
@@ -74,7 +74,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //持っているアイテムをインベントリに移す
-            packet.GetPacketResponse(GetPacket(false, 1, 0, 5));
+            packet.GetPacketResponse(GetPacket(false, InventoryType.CraftInventory, 0, 5));
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,8), craftInventory.GetItem(0));
@@ -100,7 +100,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //インベントリを持っているアイテムに移す
-            packet.GetPacketResponse(GetPacket(true, 2, 1, 7,5,10));
+            packet.GetPacketResponse(GetPacket(true, InventoryType.BlockInventory, 1, 7,5,10));
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,3), chest.GetItem(1));
@@ -109,7 +109,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //持っているアイテムをインベントリに移す
-            packet.GetPacketResponse(GetPacket(false, 2, 1, 5,5,10));
+            packet.GetPacketResponse(GetPacket(false, InventoryType.BlockInventory, 1, 5,5,10));
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,8), chest.GetItem(1));
@@ -118,10 +118,10 @@ namespace Test.CombinedTest.Server.PacketTest
         
 
         //sourceInventoryIdは 0 メイン　1 クラフト 2 ブロック 
-        private List<byte> GetPacket(bool toGrab,byte sourceInventoryId,int inventorySlot,int itemCount,int x = 0,int y = 0)
+        private List<byte> GetPacket(bool toGrab,InventoryType inventoryType,int inventorySlot,int itemCount,int x = 0,int y = 0)
         {
             return MessagePackSerializer.Serialize(
-                new InventoryItemMoveProtocolMessagePack(PlayerId,toGrab,sourceInventoryId,inventorySlot,itemCount,x,y)).ToList();
+                new InventoryItemMoveProtocolMessagePack(PlayerId,toGrab,inventoryType,inventorySlot,itemCount,x,y)).ToList();
         }
     }
 }

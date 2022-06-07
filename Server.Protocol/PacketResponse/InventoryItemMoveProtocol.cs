@@ -85,12 +85,12 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public InventoryItemMoveProtocolMessagePack(int playerId, bool toGrab, int inventoryId, int slot, int count, int x, int y)
+        public InventoryItemMoveProtocolMessagePack(int playerId, bool toGrab, InventoryType inventoryType, int slot, int count, int x, int y)
         {
             Tag = InventoryItemMoveProtocol.Tag;
             PlayerId = playerId;
             ToGrab = toGrab;
-            InventoryId = inventoryId;
+            InventoryId = (int)inventoryType;
             Slot = slot;
             Count = count;
             X = x;
@@ -106,7 +106,8 @@ namespace Server.Protocol.PacketResponse
         public int X { get; set; }
         public int Y { get; set; }
     }
-    enum InventoryType
+
+    public enum InventoryType
     {
         MainInventory,
         CraftInventory,
