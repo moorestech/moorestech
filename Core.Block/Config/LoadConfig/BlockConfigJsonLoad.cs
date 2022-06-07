@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Data.HashFunction;
+using System.Data.HashFunction.xxHash;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using Core.Block.Config.LoadConfig.ConfigParamGenerator;
 using Core.Block.Config.LoadConfig.Param;
@@ -20,49 +23,48 @@ namespace Core.Block.Config.LoadConfig
             _generators = new VanillaBlockConfigGenerator().Generate();
         }
 
-        public Dictionary<int, BlockConfigData> LoadJsonFromPath(string jsonPath)
+        public List<BlockConfigData> LoadFromJsons(Dictionary<string,string> blockJsons,List<string> mods)
         {
-            try
+            var list = new List<BlockConfigData>();
+            foreach (var mod in mods)
             {
-                //JSONファイルを読み込む
-                var json = File.ReadAllText(jsonPath);
-                return LoadJsonFromText(json);
+                var json = blockJsons[mod];
+                list.AddRange(LoadFormOneJson(json,mod));
             }
-            catch (SerializationException e)
-            {
-                throw new Exception($"{e} \n\n {jsonPath} のロードでエラーが発生しました。\n JSONの構造が正しいか確認してください。");
-            }
+            return list;
         }
 
-        public Dictionary<int, BlockConfigData> LoadJsonFromText(string jsonText)
+        private List<BlockConfigData> LoadFormOneJson(string jsonText,string modId)
         {
             //JSONを動的にデシリアライズする
             dynamic person = JObject.Parse(jsonText);
 
-            var blockDictionary = new Dictionary<int, BlockConfigData>();
+            var blockDictionary = new List<BlockConfigData>();
 
+            
+            var xxHash = xxHashFactory.Instance.Create(new xxHashConfig()
+            {
+                Seed = xxHashConst.DefaultSeed,
+                HashSizeInBits = xxHashConst.DefaultSize
+            });
+
+            
             //最初に設定されたIDの連番を設定していく
-            //デフォルトはnull blockの次の値
             int id = BlockConst.EmptyBlockId;
+            
 
             foreach (var block in person.Blocks)
             {
-                //IDがなければ加算
-                //IDがあればその値を設定
-                if (block.id == null)
-                {
-                    id++;
-                }
-                else
-                {
-                    id = block.id;
-                }
-
+                id++;
+                
                 string name = block.name;
                 string type = block.type;
                 int itemId = block.itemId;
                 IBlockConfigParam blockParam = _generators[type].Generate(block.param);
-                blockDictionary.Add(id, new BlockConfigData(id, name, type, blockParam,itemId));
+
+                ulong hash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + name).Hash);
+                
+                blockDictionary.Add(new BlockConfigData(modId,id, name, hash,type, blockParam,itemId));
             }
 
             return blockDictionary;

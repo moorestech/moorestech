@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using MessagePack;
 using Server.Event;
 using Server.Util;
 
@@ -6,6 +8,8 @@ namespace Server.Protocol.PacketResponse
 {
     public class EventProtocol : IPacketResponse
     {
+        public const string Tag = "va:event";
+        
         private readonly EventProtocolProvider _eventProtocolProvider;
 
         public EventProtocol(EventProtocolProvider eventProtocolProvider)
@@ -15,11 +19,26 @@ namespace Server.Protocol.PacketResponse
 
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            //パケットのパース、接続元、接続先のインスタンス取得
-            var byteListEnumerator = new ByteListEnumerator(payload);
-            byteListEnumerator.MoveNextToGetShort();
-            var userId = byteListEnumerator.MoveNextToGetInt();
-            return _eventProtocolProvider.GetEventBytesList(userId);
+            var data = MessagePackSerializer.Deserialize<EventProtocolMessagePack>(payload.ToArray());
+            
+            //イベントプロトコルプロバイダからデータを取得して返す
+            return _eventProtocolProvider.GetEventBytesList(data.PlayerId);
         }
+    }
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class EventProtocolMessagePack : ProtocolMessagePackBase
+    {
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public EventProtocolMessagePack()
+        {
+        }
+        public EventProtocolMessagePack(int playerId)
+        {
+            Tag = EventProtocol.Tag;
+            PlayerId = playerId;
+        }
+
+        public int PlayerId { get; set; }
     }
 }

@@ -10,6 +10,7 @@ namespace Core.Item.Implementation
     {
         public int Id { get; }
         public int Count { get; }
+        public ulong ItemHash { get; }
         private readonly IItemConfig _itemConfig;
         private readonly ItemStackFactory _itemStackFactory;
 
@@ -17,6 +18,7 @@ namespace Core.Item.Implementation
         {
             _itemConfig = itemConfig;
             _itemStackFactory = itemStackFactory;
+            ItemHash = itemConfig.GetItemConfig(id).ItemHash;
             if (id == ItemConst.EmptyItemId)
             {
                 throw new ArgumentException("Item id cannot be null");
@@ -29,7 +31,7 @@ namespace Core.Item.Implementation
 
             if (itemConfig.GetItemConfig(id).MaxStack < count)
             {
-                throw new ArgumentOutOfRangeException("アイテムスタック数の最大値を超えています ID:" + id + " Count:" + count);
+                throw new ArgumentOutOfRangeException("アイテムスタック数の最大値を超えています ID:" + id + " Count:" + count + " MaxStack:" + itemConfig.GetItemConfig(id).MaxStack);
             }
 
             Id = id;
@@ -88,10 +90,7 @@ namespace Core.Item.Implementation
             return Id == item.Id || item.Id == ItemConst.EmptyItemId;
         }
 
-        public IItemStack Clone()
-        {
-            return _itemStackFactory.Create(Id, Count);
-        }
+
 
         public override bool Equals(object? obj)
         {

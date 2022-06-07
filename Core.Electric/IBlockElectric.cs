@@ -2,8 +2,8 @@
 {
     public interface IBlockElectric
     {
-        int GetRequestPower();
         void SupplyPower(int power);
-        int GetEntityId();
+        public int EntityId { get; }
+        public int RequestPower { get; }
     }
 }

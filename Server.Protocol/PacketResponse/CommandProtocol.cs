@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Core.Item;
 using Game.PlayerInventory.Interface;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util;
 
@@ -8,6 +10,8 @@ namespace Server.Protocol.PacketResponse
 {
     public class SendCommandProtocol : IPacketResponse
     {
+        public const string Tag = "va:sendCommand";
+        
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ItemStackFactory _itemStackFactory;
         public SendCommandProtocol(ServiceProvider serviceProvider)
@@ -18,10 +22,10 @@ namespace Server.Protocol.PacketResponse
 
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            var byteListEnumerator = new ByteListEnumerator(payload);
-            byteListEnumerator.MoveNextToGetShort();//packet id
-            var length = byteListEnumerator.MoveNextToGetShort();//command length
-            var command = byteListEnumerator.MoveNextToGetString(length).Split(' ');//command text
+            var data = MessagePackSerializer.Deserialize<SendCommandProtocolMessagePack>(payload.ToArray());
+            
+            
+            var command = data.Command.Split(' ');//command text
             
             //他のコマンドを実装する場合、この実装方法をやめる
             if (command[0] == "give")
@@ -31,8 +35,24 @@ namespace Server.Protocol.PacketResponse
                 inventory.MainOpenableInventory.InsertItem(item);
             }
             
-            
             return new List<List<byte>>();
         }
+    }
+    
+        
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class SendCommandProtocolMessagePack : ProtocolMessagePackBase
+    {
+        
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public SendCommandProtocolMessagePack() { }
+
+        public SendCommandProtocolMessagePack(string command)
+        {
+            Tag = SendCommandProtocol.Tag;
+            Command = command;
+        }
+
+        public string Command { get; set; }
     }
 }

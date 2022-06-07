@@ -6,6 +6,9 @@ namespace Core.Item
     {
         int Id { get; }
         int Count { get; }
+        
+        ulong ItemHash { get; }
+        
         ItemProcessResult AddItem(IItemStack receiveItemStack);
         IItemStack SubItem(int subCount);
         
@@ -23,6 +26,5 @@ namespace Core.Item
         /// </summary>
         /// <returns>あまりが出ても追加できるときはtrue</returns>
         bool IsAllowedToAddWithRemain(IItemStack item);
-        IItemStack Clone();
     }
 }

@@ -1,40 +1,68 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.ConfigJson;
 using Core.Const;
+using Core.Item.Config;
 using Core.Item.Util;
 
 namespace Core.Ore.Config
 {
     public class OreConfig : IOreConfig
     {
-        private readonly Dictionary<int, OreConfigDataElement> _oreConfigData;
+        private readonly List<OreConfigData> _oreConfigData;
+        private readonly Dictionary<string,List<int>> _modIdToOreIds = new();
 
-        public OreConfig(ConfigPath configPath)
+        public OreConfig(ConfigJsonList configJson)
         {
-            _oreConfigData = new OreConfigJsonLoad().Load(configPath.OreConfigPath);
+            _oreConfigData = new OreConfigJsonLoad().Load(configJson.SortedModIds, configJson.OreConfigs);
+            foreach (var oreConfig in _oreConfigData)
+            {                
+                var oreId = oreConfig.OreId;
+                if (_modIdToOreIds.TryGetValue(oreConfig.ModId, out var blockIds))
+                {
+                    blockIds.Add(oreId);
+                }
+                else
+                {
+                    _modIdToOreIds.Add(oreConfig.ModId, new List<int> {oreId});
+                }
+            }
         }
 
         public int OreIdToItemId(int oreId)
         {
-            return _oreConfigData.ContainsKey(oreId) ? _oreConfigData[oreId].MiningItemId : ItemConst.EmptyItemId;
-        }
+            //0は空白なためインデックスをずらす
+            oreId -= 1;
+            if (oreId < 0)
+            {
+                return ItemConst.EmptyItemId;
+            }
+            if (oreId < _oreConfigData.Count)
+            {
+                return _oreConfigData[oreId].MiningItemId;
+            }
 
-        public List<int> GetIds()
-        {
-            return _oreConfigData.Keys.ToList();
+            return ItemConst.EmptyItemId;
         }
 
         public List<int> GetSortedIdsForPriority()
         {
-            var values = _oreConfigData.Values.ToList();
-            values.Sort((a, b) => a.Priority.CompareTo(b.Priority));
-            return values.Select(x => x.OreId).ToList();
+            return _oreConfigData.
+                OrderBy(x => x.Priority).
+                Select(x => x.OreId).ToList();
         }
 
-        public OreConfigDataElement Get(int oreId)
+        public OreConfigData Get(int oreId)
         {
+            //0は空白なためインデックスをずらす
+            oreId -= 1;
             return _oreConfigData[oreId];
+        }
+
+        public List<int> GetOreIds(string modId)
+        {
+            return _modIdToOreIds.TryGetValue(modId, out var oreIds) ? oreIds : new List<int>();
         }
     }
 }

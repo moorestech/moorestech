@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Player;
 using Server.Util;
@@ -14,6 +15,8 @@ namespace Server.Protocol.PacketResponse
     /// </summary>
     public class PlayerCoordinateSendProtocol : IPacketResponse
     {
+        public const string Tag = "va:playerCoordinate";
+        
         private readonly Dictionary<int, PlayerCoordinateToResponse> _responses = new();
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly WorldMapTile _worldMapTile;
@@ -23,20 +26,16 @@ namespace Server.Protocol.PacketResponse
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _worldMapTile = serviceProvider.GetService<WorldMapTile>();
         }
-
+        
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            //プレイヤー座標の解析
-            var b = new ByteListEnumerator(payload);
-            b.MoveNextToGetShort();
-            var x = b.MoveNextToGetFloat();
-            var y = b.MoveNextToGetFloat();
-            var playerId = b.MoveNextToGetInt();
+            var data = MessagePackSerializer.Deserialize<PlayerCoordinateSendProtocolMessagePack>(payload.ToArray());
+            
             //新しいプレイヤーの情報ならDictionaryに追加する
-            if (!_responses.ContainsKey(playerId))
+            if (!_responses.ContainsKey(data.PlayerId))
             {
-                _responses.Add(playerId, new PlayerCoordinateToResponse());
-                Console.WriteLine("プレイヤーが接続:" + playerId);
+                _responses.Add(data.PlayerId, new PlayerCoordinateToResponse());
+                Console.WriteLine("プレイヤーが接続:" + data.PlayerId);
             }
 
             
@@ -48,7 +47,7 @@ namespace Server.Protocol.PacketResponse
 
             var responseChunk = new List<List<byte>>();
             
-            var responseChunkCoordinates = _responses[playerId].GetResponseChunkCoordinates(new Coordinate((int) x, (int) y));
+            var responseChunkCoordinates = _responses[data.PlayerId].GetResponseChunkCoordinates(new Coordinate((int)data.X,(int) data.Y));
             foreach (var chunkCoordinate in responseChunkCoordinates)
             {
                 //チャンクのブロックデータを取得してバイト配列に変換する
@@ -57,5 +56,25 @@ namespace Server.Protocol.PacketResponse
 
             return responseChunk;
         }
+    }
+    
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class PlayerCoordinateSendProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public PlayerCoordinateSendProtocolMessagePack(int playerId, float x, float y)
+        {
+            Tag = PlayerCoordinateSendProtocol.Tag;
+            PlayerId = playerId;
+            X = x;
+            Y = y;
+        }
+
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public PlayerCoordinateSendProtocolMessagePack() { }
+
+        public int PlayerId { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
     }
 }

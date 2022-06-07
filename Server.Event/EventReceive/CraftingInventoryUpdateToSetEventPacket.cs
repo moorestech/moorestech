@@ -1,13 +1,17 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using Core.Item;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
+using MessagePack;
 using Server.Util;
 
 namespace Server.Event.EventReceive
 {
     public class CraftingInventoryUpdateToSetEventPacket
     {
-        private const short EventId = 4;
+        public const string EventTag = "va:event:craftInvUpdate";
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
@@ -24,30 +28,40 @@ namespace Server.Event.EventReceive
         {
             var craftInventory = _playerInventoryDataStore.GetInventoryData(properties.PlayerId);
             
-            var payload = new List<byte>();
-
-            payload.AddRange(ToByteList.Convert(ServerEventConst.EventPacketId));
-            payload.AddRange(ToByteList.Convert(EventId));
-            payload.AddRange(ToByteList.Convert(properties.InventorySlot));
-            payload.AddRange(ToByteList.Convert(properties.ItemId));
-            payload.AddRange(ToByteList.Convert(properties.Count));
-            
             var creatableItem = craftInventory.CraftingOpenableInventory.GetCreatableItem();
-            payload.AddRange(ToByteList.Convert(creatableItem.Id));
-            payload.AddRange(ToByteList.Convert(creatableItem.Count));
-            
             var isCreatable = craftInventory.CraftingOpenableInventory.IsCreatable();
-            if (isCreatable)
-            {
-                payload.Add(1);
-            }else
-            {
-                payload.Add(0);
-            }
-            
 
+
+            var payload = MessagePackSerializer.Serialize(new CraftingInventoryUpdateEventMessagePack(
+                properties.InventorySlot,properties.ItemStack,isCreatable,creatableItem
+            )).ToList();
+            
             _eventProtocolProvider.AddEvent(properties.PlayerId, payload);
         }
+    }
+    
+        
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class CraftingInventoryUpdateEventMessagePack : EventProtocolMessagePackBase
+    {
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public CraftingInventoryUpdateEventMessagePack() { }
+
+        public CraftingInventoryUpdateEventMessagePack(int slot,IItemStack itemStack,bool isCreatable,IItemStack creatableItem)
+        {
+            Slot = slot;
+            Item = new ItemMessagePack(itemStack);
+            IsCraftable = isCreatable;
+            CreatableItem = new ItemMessagePack(creatableItem);
+        }
+
+        public ItemMessagePack CreatableItem { get; set; }
+
+        public bool IsCraftable { get; set; }
+
+        public ItemMessagePack Item { get; set; }
+
+        public int Slot { get; set; }
     }
     
     

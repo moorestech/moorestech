@@ -2,8 +2,9 @@
 {
     public interface IBlock
     {
-        public int GetEntityId();
-        public int GetBlockId();
+        public int EntityId { get;}
+        public int BlockId { get;}
+        public ulong BlockHash { get;}
         public string GetSaveState();
     }
 }

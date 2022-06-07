@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Core.Inventory;
 using Core.Item;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util;
 using Server.Util;
@@ -12,6 +14,8 @@ namespace Server.Protocol.PacketResponse
 {
     public class InventoryItemMoveProtocol : IPacketResponse
     {
+        public const string Tag = "va:invItemMove";
+        
         private readonly IWorldBlockComponentDatastore<IOpenableInventory> _openableBlockDatastore;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ItemStackFactory _itemStackFactory;
@@ -24,32 +28,25 @@ namespace Server.Protocol.PacketResponse
         }
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            var byteListEnumerator = new ByteListEnumerator(payload);
-            byteListEnumerator.MoveNextToGetShort();//packet id
-            var toGrab = byteListEnumerator.MoveNextToGetByte() == 0;
-            var inventoryId = byteListEnumerator.MoveNextToGetByte();
-            var playerId = byteListEnumerator.MoveNextToGetInt();
-            var slot = byteListEnumerator.MoveNextToGetInt();
-            var moveItemCount = byteListEnumerator.MoveNextToGetInt();
-            var x = byteListEnumerator.MoveNextToGetInt();
-            var y = byteListEnumerator.MoveNextToGetInt();
-
-            var inventory = GetInventory(inventoryId, playerId, x, y);
+            var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload.ToArray());
+            
+            var inventory = GetInventory(data.InventoryId, data.PlayerId, x:data.X, data.Y);
             if (inventory == null)return new List<List<byte>>();
             
-            var grabInventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
+            var grabInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).GrabInventory;
 
             
-            if (toGrab)
+            if (data.ToGrab)
             {
                 new InventoryItemMoveService().Move(
-                    _itemStackFactory,inventory,slot,grabInventory,0,moveItemCount);
+                    _itemStackFactory,inventory,data.Slot,grabInventory,0,data.Count);
             }
             else
             {
                 new InventoryItemMoveService().Move(
-                    _itemStackFactory,grabInventory,0,inventory,slot,moveItemCount);
+                    _itemStackFactory,grabInventory,0,inventory,data.Slot,data.Count);
             }
+            
 
             return new List<List<byte>>();
         }
@@ -73,14 +70,44 @@ namespace Server.Protocol.PacketResponse
                     }
                     break;
             }
-
             return inventory;
         }
         
         
     }
 
-    enum InventoryType
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class InventoryItemMoveProtocolMessagePack : ProtocolMessagePackBase
+    {
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public InventoryItemMoveProtocolMessagePack()
+        {
+        }
+
+        public InventoryItemMoveProtocolMessagePack(int playerId, bool toGrab, InventoryType inventoryType, int slot, int count, int x, int y)
+        {
+            Tag = InventoryItemMoveProtocol.Tag;
+            PlayerId = playerId;
+            ToGrab = toGrab;
+            InventoryId = (int)inventoryType;
+            Slot = slot;
+            Count = count;
+            X = x;
+            Y = y;
+        }
+
+        public bool ToGrab { get; set; }
+        public int InventoryId { get; set; }
+        public int PlayerId { get; set; }
+        public int Slot { get; set; }
+        public int Count { get; set; }
+        
+        public int X { get; set; }
+        public int Y { get; set; }
+    }
+
+    public enum InventoryType
     {
         MainInventory,
         CraftInventory,

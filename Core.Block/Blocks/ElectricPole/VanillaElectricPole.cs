@@ -5,25 +5,16 @@ namespace Core.Block.Blocks.ElectricPole
 {
     public class VanillaElectricPole : IElectricPole, IBlock
     {
-        private readonly int _entityId;
-        private readonly int _blockId;
+        public int EntityId { get; }
+        public int BlockId { get; }
+        public ulong BlockHash { get; }
 
-        public VanillaElectricPole(int blockId, int entityId)
+        public VanillaElectricPole(int blockId, int entityId, ulong blockHash)
         {
-            _entityId = entityId;
-            _blockId = blockId;
+            BlockId = blockId;
+            EntityId = entityId;
+            BlockHash = blockHash;
         }
-
-        public int GetEntityId()
-        {
-            return _entityId;
-        }
-
-        public int GetBlockId()
-        {
-            return _blockId;
-        }
-
         public string GetSaveState()
         {
             return String.Empty;

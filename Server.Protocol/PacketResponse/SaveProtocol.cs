@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using Game.Save.Interface;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Server.Protocol.PacketResponse
 {
     public class SaveProtocol : IPacketResponse
     {
+        public const string Tag = "va:save";
+        
         private readonly ISaveRepository _saveRepository;
         public SaveProtocol(ServiceProvider serviceProvider)
         {

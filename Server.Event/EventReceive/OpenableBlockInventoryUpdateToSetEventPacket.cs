@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Block.Event;
+using Core.Item;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
+using MessagePack;
 using Server.Util;
 
 namespace Server.Event.EventReceive
 {
     public class OpenableBlockInventoryUpdateToSetEventPacket
     {
-        private const short EventId = 2;
+        public const string EventTag = "va:event:blockInvUpdate";
         
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IBlockInventoryOpenStateDataStore _inventoryOpenStateDataStore;
@@ -46,18 +49,34 @@ namespace Server.Event.EventReceive
         {
             var (x, y) = _worldBlockDatastore.GetBlockPosition(properties.EntityId);
             
-            var payload = new List<byte>();
-
-            payload.AddRange(ToByteList.Convert(ServerEventConst.EventPacketId));
-            payload.AddRange(ToByteList.Convert(EventId));
-            payload.AddRange(ToByteList.Convert(properties.Slot));
-            payload.AddRange(ToByteList.Convert(properties.ItemStack.Id));
-            payload.AddRange(ToByteList.Convert(properties.ItemStack.Count));
-            payload.AddRange(ToByteList.Convert(x));
-            payload.AddRange(ToByteList.Convert(y));
+            return MessagePackSerializer.Serialize(new OpenableBlockInventoryUpdateEventMessagePack(
+                x,y,properties.Slot,properties.ItemStack
+                )).ToList();
             
-            return payload;
+        }
+    }
+    
+    
+        
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class  OpenableBlockInventoryUpdateEventMessagePack : EventProtocolMessagePackBase
+    {
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public OpenableBlockInventoryUpdateEventMessagePack() { }
+
+        public OpenableBlockInventoryUpdateEventMessagePack(int x, int y, int slot, IItemStack item)
+        {
+            EventTag = OpenableBlockInventoryUpdateToSetEventPacket.EventTag;
+            X = x;
+            Y = y;
+            Slot = slot;
+            Item = new ItemMessagePack(item.Id,item.Count);
         }
 
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Slot { get; set; }
+        public ItemMessagePack Item { get; set; }
     }
+    
 }

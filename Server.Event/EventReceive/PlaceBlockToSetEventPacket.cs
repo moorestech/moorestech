@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Game.World.Interface.Event;
+using MessagePack;
 using Server.Util;
 
 namespace Server.Event.EventReceive
 {
     public class PlaceBlockToSetEventPacket
     {
-        private const short EventId = 0;
+        public const string EventTag = "va:event:blockPlace";
         private readonly EventProtocolProvider _eventProtocolProvider;
 
         public PlaceBlockToSetEventPacket(IBlockPlaceEvent blockPlaceEvent, EventProtocolProvider eventProtocolProvider)
@@ -19,17 +21,35 @@ namespace Server.Event.EventReceive
         private void ReceivedEvent(BlockPlaceEventProperties blockPlaceEventProperties)
         {
             var c = blockPlaceEventProperties.Coordinate;
-            var id = blockPlaceEventProperties.Block.GetBlockId();
-            var payload = new List<byte>();
-
-            payload.AddRange(ToByteList.Convert(ServerEventConst.EventPacketId));
-            payload.AddRange(ToByteList.Convert(EventId));
-            payload.AddRange(ToByteList.Convert(c.X));
-            payload.AddRange(ToByteList.Convert(c.Y));
-            payload.AddRange(ToByteList.Convert(id));
-            payload.Add((byte)blockPlaceEventProperties.BlockDirection);
+            var blockId = blockPlaceEventProperties.Block.BlockId;
+            
+            var payload = MessagePackSerializer.Serialize(new PlaceBlockEventMessagePack(
+                c.X,c.Y,blockId,(int)blockPlaceEventProperties.BlockDirection
+            )).ToList();;
             
             _eventProtocolProvider.AddBroadcastEvent(payload);
         }
+    }
+    
+        
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class PlaceBlockEventMessagePack : EventProtocolMessagePackBase
+    {
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public PlaceBlockEventMessagePack() { }
+
+        public PlaceBlockEventMessagePack(int x, int y, int blockId,int direction)
+        {
+            EventTag = PlaceBlockToSetEventPacket.EventTag;
+            X = x;
+            Y = y;
+            BlockId = blockId;
+            Direction = direction;
+        }
+
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int BlockId { get; set; }
+        public int Direction { get; set; }
     }
 }

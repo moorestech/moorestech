@@ -15,7 +15,7 @@ namespace World.DataStore
         {
             foreach (var segment in _segmentDictionary)
             {
-                if (!segment.ExistElectricPole(pole.GetEntityId())) continue;
+                if (!segment.ExistElectricPole(pole.EntityId)) continue;
                 return segment;
             }
 

@@ -10,15 +10,16 @@ namespace Game.World.EventHandler.Service
 
         public MaxElectricPoleMachineConnectionRange(IBlockConfig blockConfig)
         {
-            foreach (var id in blockConfig.GetBlockIds())
+            for (int i = 1; i < blockConfig.GetBlockConfigCount(); i++)
             {
-                if (blockConfig.GetBlockConfig(id).Type != VanillaBlockType.ElectricPole) continue;
+                if (blockConfig.GetBlockConfig(i).Type != VanillaBlockType.ElectricPole) continue;
 
-                var param = blockConfig.GetBlockConfig(id).Param as ElectricPoleConfigParam;
+                var param = blockConfig.GetBlockConfig(i).Param as ElectricPoleConfigParam;
                 if (_maxElectricPoleMachineConnectionRange < param.machineConnectionRange)
                 {
                     _maxElectricPoleMachineConnectionRange = param.machineConnectionRange;
                 }
+                
             }
         }
 

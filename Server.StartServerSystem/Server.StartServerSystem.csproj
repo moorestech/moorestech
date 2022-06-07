@@ -11,7 +11,12 @@
       <ProjectReference Include="..\Game.SaveLoad\Game.SaveLoad.csproj" />
       <ProjectReference Include="..\Game.World.EventHandler\Game.World.EventHandler.csproj" />
       <ProjectReference Include="..\Game.World\Game.World.csproj" />
+      <ProjectReference Include="..\Mod.Config\Mod.Config.csproj" />
       <ProjectReference Include="..\Server.Protocol\Server.Protocol.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     </ItemGroup>
 
 </Project>

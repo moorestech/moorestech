@@ -8,7 +8,7 @@ namespace Server.Protocol.PacketResponse.Util
         public void Move(ItemStackFactory itemStackFactory, IOpenableInventory sourceOpenableInventory, int sourceSlot,
             IOpenableInventory destinationOpenableInventory, int destinationSlot, int itemCount)
         {
-            //移動元と移動先のIDが同じ場合は移動しない
+            //移動元と移動先のスロットが同じ場合は移動しない
             if (sourceOpenableInventory.GetHashCode() == destinationOpenableInventory.GetHashCode() && sourceSlot == destinationSlot)
             {
                 return;

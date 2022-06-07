@@ -5,6 +5,7 @@ using Core.Block.RecipeConfig;
 using Core.Item;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util;
 
@@ -14,33 +15,47 @@ namespace Server.Protocol.PacketResponse
     {
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly BlockFactory blockFactory;
-        private readonly IMachineRecipeConfig _recipeConfig;
-        private readonly ItemStackFactory _itemStackFactory;
+        public const string Tag = "va:putBlock";
 
         public PutBlockProtocol(ServiceProvider serviceProvider)
         {
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             blockFactory = serviceProvider.GetService<BlockFactory>();
-            _recipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
-            _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            serviceProvider.GetService<IMachineRecipeConfig>();
+            serviceProvider.GetService<ItemStackFactory>();
         }
-
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            //パケットのパース、接続元、接続先のインスタンス取得
-            var byteListEnumerator = new ByteListEnumerator(payload);
-            byteListEnumerator.MoveNextToGetShort();
-            int blockId = byteListEnumerator.MoveNextToGetInt();
-            byteListEnumerator.MoveNextToGetShort();
-            int x = byteListEnumerator.MoveNextToGetInt();
-            int y = byteListEnumerator.MoveNextToGetInt();
-            Console.WriteLine("Place Block blockID:" + blockId + " x:" + x + " y:" + y);
+            var data = MessagePackSerializer.Deserialize<PutBlockProtocolMessagePack>(payload.ToArray());
+            
+            Console.WriteLine("Place Block blockID:" + data.Id + " x:" + data.X + " y:" + data.Y);
+            
+            
+            var block = blockFactory.Create(data.Id, EntityId.NewEntityId());
 
-            var block = blockFactory.Create(blockId, EntityId.NewEntityId());
-
-            _worldBlockDatastore.AddBlock(block, x, y, BlockDirection.North);
-            //返すものはない
+            _worldBlockDatastore.AddBlock(block, data.X, data.Y, BlockDirection.North);
             return new List<List<byte>>();
         }
+    }
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class PutBlockProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public PutBlockProtocolMessagePack(int id, int x, int y)
+        {
+            Tag = PutBlockProtocol.Tag;
+            Id = id;
+            X = x;
+            Y = y;
+        }
+        
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public PutBlockProtocolMessagePack(){}
+
+        public int Id { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        
+        
     }
 }

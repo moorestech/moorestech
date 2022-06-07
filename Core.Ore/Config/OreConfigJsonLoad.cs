@@ -4,28 +4,51 @@ using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using Core.ConfigJson;
+using Core.Item.Config;
+using Newtonsoft.Json;
 
 namespace Core.Ore.Config
 {
     public class OreConfigJsonLoad
     {
-        public Dictionary<int, OreConfigDataElement> Load(string path)
+        public List<OreConfigData> Load(List<string> sortedModIds,Dictionary<string,string> oreConfig)
         {
-            //JSONをロードする
-            var json = File.ReadAllText(path);
-            var ms = new MemoryStream(Encoding.UTF8.GetBytes((json)));
-            ms.Seek(0, SeekOrigin.Begin);
-            var serializer = new DataContractJsonSerializer(typeof(OreConfigData));
-            var data = serializer.ReadObject(ms) as OreConfigData;
-
-            //Dictionaryに変換する
-            var dic = new Dictionary<int, OreConfigDataElement>();
-            foreach (var item in data.OreElements)
+            var configList = new List<OreConfigData>();
+            foreach (var modIds in sortedModIds)
             {
-                dic.Add(item.OreId, item);
+                if (!oreConfig.TryGetValue(modIds, out var config))
+                {
+                    continue;
+                }
+                
+                var itemConfigData = JsonConvert.DeserializeObject<OreConfigJsonData[]>(config);
+                configList.AddRange(itemConfigData.Select(c => new OreConfigData(modIds, c)));
             }
 
-            return dic;
+            return configList;
+        }
+    }
+
+    public class OreConfigData
+    {
+        public readonly string ModId;
+        
+        public readonly int OreId;
+        public readonly string Name;
+        public readonly int MiningItemId;
+        public readonly float VeinSize;
+        public readonly float VeinFrequency;
+        public readonly int Priority;
+
+        public OreConfigData(string modId,OreConfigJsonData oreConfigJsonData)
+        {
+            ModId = modId;
+            OreId = oreConfigJsonData.OreId;
+            Name = oreConfigJsonData.Name;
+            MiningItemId = oreConfigJsonData.MiningItem;
+            VeinSize = oreConfigJsonData.VeinSize;
+            VeinFrequency = oreConfigJsonData.VeinFrequency;
+            Priority = oreConfigJsonData.Priority;
         }
     }
 }
