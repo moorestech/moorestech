@@ -2,7 +2,7 @@
 
 namespace MainGame.Network.Receive
 {
-    public class DummyProtocol : IAnalysisPacket
+    public class ReciveDummyProtocol : IAnalysisPacket
     {
         public void Analysis(List<byte> data) { }
     }
