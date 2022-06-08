@@ -29,9 +29,6 @@ namespace MainGame.Network
 
         public void Analysis(List<byte> packet)
         {
-            
-            //get packet id
-            
             var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(packet.ToArray()).Tag;
 
 
