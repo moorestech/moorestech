@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using MainGame.Network.Settings;
 using MainGame.Network.Util;
+using MessagePack;
+using Server.Protocol.PacketResponse;
 
 namespace MainGame.Network.Send
 {
@@ -20,12 +23,7 @@ namespace MainGame.Network.Send
         
         public void Send()
         {
-            var packet = new List<byte>();
-            
-            packet.AddRange(ToByteList.Convert(ProtocolId));
-            packet.AddRange(ToByteList.Convert(playerId));
-            
-            _socket.Send(packet);
+            _socket.Send(MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack(playerId)).ToList());
         }
     }
 }

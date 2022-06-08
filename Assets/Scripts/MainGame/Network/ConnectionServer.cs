@@ -2,7 +2,6 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using MainGame.Model.Network;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Util;
 using UnityEngine;

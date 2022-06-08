@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using MainGame.Network.Util;
+using MessagePack;
+using Server.Protocol.PacketResponse;
 
 namespace MainGame.Network.Send
 {
@@ -15,14 +18,8 @@ namespace MainGame.Network.Send
         
         public void SendCommand(string command)
         {
-            var packet = new List<byte>();
-            
-            //実際に送るデータの作成
-            packet.AddRange(ToByteList.Convert(ProtocolId));
-            packet.AddRange(ToByteList.Convert((short)command.Length));
-            packet.AddRange(ToByteList.Convert(command));
-            
-            _socket.Send(packet);
+            _socket.Send(MessagePackSerializer.Serialize(new SendCommandProtocolMessagePack(
+                command)).ToList());
         }
     }
 }

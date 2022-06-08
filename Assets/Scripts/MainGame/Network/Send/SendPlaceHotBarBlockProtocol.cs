@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using MainGame.Basic;
 using MainGame.Network.Settings;
 using MainGame.Network.Util;
+using MessagePack;
+using Server.Protocol.PacketResponse;
 
 namespace MainGame.Network.Send
 {
@@ -20,16 +23,8 @@ namespace MainGame.Network.Send
 
         public void Send(int x, int y, short hotBarSlot,BlockDirection blockDirection)
         {
-            var packet = new List<byte>();
-            
-            packet.AddRange(ToByteList.Convert(ProtocolId));
-            packet.AddRange(ToByteList.Convert(hotBarSlot));
-            packet.AddRange(ToByteList.Convert(x));
-            packet.AddRange(ToByteList.Convert(y));
-            packet.AddRange(ToByteList.Convert(_playerId));
-            packet.Add(GetBlockDirectionId(blockDirection));
-
-            _socket.Send(packet);
+            _socket.Send(MessagePackSerializer.Serialize(new SendPlaceHotBarBlockProtocolMessagePack(
+                _playerId,(int)blockDirection,hotBarSlot,x,y)).ToList());
         }
 
         private byte GetBlockDirectionId(BlockDirection blockDirection)

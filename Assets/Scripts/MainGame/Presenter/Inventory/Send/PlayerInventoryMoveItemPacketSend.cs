@@ -3,6 +3,7 @@ using MainGame.Network.Send;
 using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.UIState;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 using VContainer.Unity;
 

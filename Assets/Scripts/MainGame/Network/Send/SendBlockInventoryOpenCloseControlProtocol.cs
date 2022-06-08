@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
-using MainGame.Network;
+using System.Linq;
 using MainGame.Network.Settings;
 using MainGame.Network.Util;
+using MessagePack;
+using Server.Protocol.PacketResponse;
 
-namespace MainGame.Model.Network.Send
+namespace MainGame.Network.Send
 {
     public class SendBlockInventoryOpenCloseControlProtocol
     {
@@ -20,16 +22,8 @@ namespace MainGame.Model.Network.Send
 
         public void Send(int x, int y,bool isOpen)
         {
-            
-            var packet = new List<byte>();
-            
-            packet.AddRange(ToByteList.Convert(ProtocolId));
-            packet.AddRange(ToByteList.Convert(x));
-            packet.AddRange(ToByteList.Convert(y));
-            packet.AddRange(ToByteList.Convert(_playerId));
-            packet.Add(isOpen ? (byte)1 : (byte)0);
-
-            _socket.Send(packet);
+            _socket.Send(MessagePackSerializer.Serialize(new BlockInventoryOpenCloseProtocolMessagePack(
+                _playerId,x,y,isOpen)).ToList());
         }
     }
 }

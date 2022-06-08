@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MainGame.Network.Settings;
 using MainGame.Network.Util;
+using MessagePack;
+using Server.Protocol.PacketResponse;
 using UnityEditor;
 using UnityEngine;
 using VContainer.Unity;
@@ -32,14 +35,9 @@ namespace MainGame.Network.Send
             
         }
 
-        public void Send(int playerId)
+        private void Send(int playerId)
         {
-            var packet = new List<byte>();
-            
-            packet.AddRange(ToByteList.Convert(ProtocolId));
-            packet.AddRange(ToByteList.Convert(playerId));
-            
-            _socket.Send(packet);
+            _socket.Send(MessagePackSerializer.Serialize(new EventProtocolMessagePack(playerId)).ToList());
         }
 
     }

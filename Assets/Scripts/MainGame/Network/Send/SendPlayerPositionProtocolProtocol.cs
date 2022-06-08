@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 using MainGame.Network.Settings;
 using MainGame.Network.Util;
+using MessagePack;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace MainGame.Network.Send
@@ -19,14 +22,8 @@ namespace MainGame.Network.Send
         }
         public void Send(Vector2 pos)
         {
-            var packet = new List<byte>();
-            
-            packet.AddRange(ToByteList.Convert(ProtocolId));
-            packet.AddRange(ToByteList.Convert(pos.x));
-            packet.AddRange(ToByteList.Convert(pos.y));
-            packet.AddRange(ToByteList.Convert(_playerId));
-            
-            _socket.Send(packet);
+            _socket.Send(MessagePackSerializer.Serialize(new PlayerCoordinateSendProtocolMessagePack(
+                _playerId,pos.x,pos.y)).ToList());
         }
     }
 }

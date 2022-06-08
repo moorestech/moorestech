@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 using MainGame.Network.Settings;
 using MainGame.Network.Util;
+using MessagePack;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace MainGame.Network.Send
@@ -18,24 +21,8 @@ namespace MainGame.Network.Send
         }
         public void Send(bool toGrab, InventoryType inventoryType, int inventorySlot, int itemCount, int x = 0, int y = 0)
         {
-            var payload = new List<byte>();
-            payload.AddRange(ToByteList.Convert(ProtocolId));
-            payload.Add(toGrab ? (byte) 0 : (byte) 1);
-            payload.Add((byte)inventoryType);
-            payload.AddRange(ToByteList.Convert(_playerId));
-            payload.AddRange(ToByteList.Convert(inventorySlot));
-            payload.AddRange(ToByteList.Convert(itemCount));
-            payload.AddRange(ToByteList.Convert(x));
-            payload.AddRange(ToByteList.Convert(y));
-            
-            _socket.Send(payload);
+            _socket.Send(MessagePackSerializer.Serialize(new InventoryItemMoveProtocolMessagePack(
+                _playerId,toGrab,inventoryType,inventorySlot,itemCount,x,y)).ToList());
         }
-    }
-
-    public enum InventoryType
-    {
-        MainInventory,
-        CraftInventory,
-        BlockInventory
     }
 }

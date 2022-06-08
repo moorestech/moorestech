@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 using MainGame.Network.Settings;
 using MainGame.Network.Util;
+using MessagePack;
+using Server.Protocol.PacketResponse;
 
 namespace MainGame.Network.Send
 {
@@ -18,30 +21,21 @@ namespace MainGame.Network.Send
         
         public void SendOneCraft()
         {
-            var packet = new List<byte>();
-            packet.AddRange(ToByteList.Convert(ProtocolId));
-            packet.AddRange(ToByteList.Convert(_playerId));
-            packet.Add(0);
-            
-            _socket.Send(packet);
+            //craft type id is 0
+            _socket.Send(MessagePackSerializer.Serialize(new CraftProtocolMessagePack(
+                _playerId,0)).ToList());
         }
         public void SendAllCraft()
         {
-            var packet = new List<byte>();
-            packet.AddRange(ToByteList.Convert(ProtocolId));
-            packet.AddRange(ToByteList.Convert(_playerId));
-            packet.Add(1);
-            
-            _socket.Send(packet);
+            //craft type id is 1
+            _socket.Send(MessagePackSerializer.Serialize(new CraftProtocolMessagePack(
+                _playerId,1)).ToList());
         }
         public void SendOneStackCraft()
         {
-            var packet = new List<byte>();
-            packet.AddRange(ToByteList.Convert(ProtocolId));
-            packet.AddRange(ToByteList.Convert(_playerId));
-            packet.Add(2);
-            
-            _socket.Send(packet);
+            //craft type id is 2
+            _socket.Send(MessagePackSerializer.Serialize(new CraftProtocolMessagePack(
+                _playerId,2)).ToList());
         }
     }
 }
