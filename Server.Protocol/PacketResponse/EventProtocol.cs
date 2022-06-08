@@ -30,9 +30,7 @@ namespace Server.Protocol.PacketResponse
     public class EventProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public EventProtocolMessagePack()
-        {
-        }
+        public EventProtocolMessagePack() { }
         public EventProtocolMessagePack(int playerId)
         {
             Tag = EventProtocol.Tag;
