@@ -32,18 +32,18 @@ namespace Server.Protocol.PacketResponse.Player
             return blocks;
         }
 
-        public static BlockDirection[,] GetBlockDirectionInChunk(Coordinate coordinate,
+        public static int[,] GetBlockDirectionInChunk(Coordinate coordinate,
             IWorldBlockDatastore worldBlockDatastore)
         {
             var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coordinate.X, coordinate.Y);
             
-            var blockDirections = new BlockDirection[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
+            var blockDirections = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
 
             for (int i = 0; i < blockDirections.GetLength(0); i++)
             {
                 for (int j = 0; j < blockDirections.GetLength(1); j++)
                 {
-                    blockDirections[i, j] = worldBlockDatastore.GetBlockDirection(
+                    blockDirections[i, j] = (int)worldBlockDatastore.GetBlockDirection(
                         x + i,
                         y + j);
                 }
