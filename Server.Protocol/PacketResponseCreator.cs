@@ -5,6 +5,7 @@ using Game.WorldMap;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
+using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Util;
 
@@ -21,7 +22,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(PutBlockProtocol.Tag,new PutBlockProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerCoordinateSendProtocol.Tag,new PlayerCoordinateSendProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.Tag,new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
-            _packetResponseDictionary.Add(EventProtocol.Tag,new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
+            _packetResponseDictionary.Add(EventProtocolMessagePackBase.EventProtocolTag,new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseDictionary.Add(InventoryItemMoveProtocol.Tag,new InventoryItemMoveProtocol(serviceProvider));
             _packetResponseDictionary.Add(SendPlaceHotBarBlockProtocol.Tag,new SendPlaceHotBarBlockProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockInventoryRequestProtocol.Tag,new BlockInventoryRequestProtocol(serviceProvider));
@@ -39,8 +40,15 @@ namespace Server.Protocol
         {
             
             var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray()).Tag;
+            
+            Console.WriteLine("Request Tag:" + tag);
 
-            return _packetResponseDictionary[tag].GetResponse(payload);
+            var response = _packetResponseDictionary[tag].GetResponse(payload);
+            var responseTag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(response[0].ToArray()).Tag;
+
+            Console.WriteLine("Response Tag is " + responseTag);
+            
+            return response;
         }
     }
 }
