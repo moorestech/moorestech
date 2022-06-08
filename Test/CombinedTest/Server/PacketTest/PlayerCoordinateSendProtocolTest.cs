@@ -19,7 +19,6 @@ using Server;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Const;
 using Server.StartServerSystem;
-using Server.Util;
 using Test.Module.TestConfig;
 using Test.Module.TestMod;
 using EntityId = Game.World.Interface.Util.EntityId;
@@ -253,64 +252,6 @@ namespace Test.CombinedTest.Server.PacketTest
             
 
             return new ChunkData(new Coordinate(data.ChunkX, data.ChunkY),data.BlockIds,data.MapTileIds,data.BlockDirect);
-        }
-
-        private int GetId(BitListEnumerator bit)
-        {
-            //空気ブロックか否か
-            if (bit.MoveNextToBit())
-            {
-                //ブロックIDの取得
-                //intか否か
-                if (bit.MoveNextToBit())
-                {
-                    bit.MoveNextToBit();
-                    return bit.MoveNextToInt();
-                }
-                else
-                {
-                    //shortかbyteか
-                    if (bit.MoveNextToBit())
-                    {
-                        return bit.MoveNextToShort();
-                    }
-                    else
-                    {
-                        return bit.MoveNextToByte();
-                    }
-                }
-            }
-            else
-            {
-                //空気ブロック
-                return BlockConst.EmptyBlockId;
-            }
-        }
-
-        private BlockDirection GetBlockDirection(BitListEnumerator bit)
-        {
-            var bit1 = bit.MoveNextToBit();
-            var bit2 = bit.MoveNextToBit();
-            
-            if (!bit1 && !bit2)
-            {
-                return BlockDirection.North;
-            }
-            
-            if (!bit1 && bit2)
-            {
-                return BlockDirection.East;
-            }
-            
-            if (bit1 && !bit2)
-            {
-                return BlockDirection.South;
-            }
-            else
-            {
-                return BlockDirection.West;
-            }
-            
         }
 
         private class ChunkData
