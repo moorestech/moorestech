@@ -94,6 +94,7 @@ namespace Server.Protocol.PacketResponse
 
         public PlayerInventoryResponseProtocolMessagePack(int playerId, ItemMessagePack[] main, ItemMessagePack grab, ItemMessagePack[] craft, ItemMessagePack craftResult, bool isCreatable)
         {
+            Tag = PlayerInventoryResponseProtocol.Tag;
             PlayerId = playerId;
             Main = main;
             Grab = grab;

@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using MessagePack;
 using Server.Event;
+using Server.Event.EventReceive;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
 {
     public class EventProtocol : IPacketResponse
     {
-        public const string Tag = "va:event";
-        
         private readonly EventProtocolProvider _eventProtocolProvider;
 
         public EventProtocol(EventProtocolProvider eventProtocolProvider)
@@ -33,7 +32,7 @@ namespace Server.Protocol.PacketResponse
         public EventProtocolMessagePack() { }
         public EventProtocolMessagePack(int playerId)
         {
-            Tag = EventProtocol.Tag;
+            Tag = EventProtocolMessagePackBase.EventProtocolTag;
             PlayerId = playerId;
         }
 
