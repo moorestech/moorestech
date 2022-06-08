@@ -23,4 +23,14 @@ namespace Server.Protocol.PacketResponse
             return new List<List<byte>>();
         }
     }
+    
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class SaveProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public SaveProtocolMessagePack()
+        {
+            Tag = SaveProtocol.Tag;
+        }
+    }
 }
