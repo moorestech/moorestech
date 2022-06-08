@@ -40,15 +40,8 @@ namespace Server.Protocol
         {
             
             var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray()).Tag;
-            
-            Console.WriteLine("Request Tag:" + tag);
 
-            var response = _packetResponseDictionary[tag].GetResponse(payload);
-            var responseTag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(response[0].ToArray()).Tag;
-
-            Console.WriteLine("Response Tag is " + responseTag);
-            
-            return response;
+            return _packetResponseDictionary[tag].GetResponse(payload);
         }
     }
 }
