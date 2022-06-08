@@ -249,35 +249,10 @@ namespace Test.CombinedTest.Server.PacketTest
 
         ChunkData PayloadToBlock(List<byte> payload)
         {
-            var bit = new BitListEnumerator(payload);
-            bit.MoveNextToShort();
-            var x = bit.MoveNextToInt();
-            var y = bit.MoveNextToInt();
-            
-            
-            var blocks = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
-            var blockDirections = new BlockDirection[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
-            for (int i = 0; i < ChunkResponseConst.ChunkSize; i++)
-            {
-                for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
-                {
-                    blocks[i, j] = GetId(bit);
-                    blockDirections[i, j] = GetBlockDirection(bit);
-                }
-            }
-            
-            
-            var mapTiles = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
-            for (int i = 0; i < ChunkResponseConst.ChunkSize; i++)
-            {
-                for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
-                {
-                    mapTiles[i, j] = GetId(bit);
-                }
-            }
+            var data = MessagePackSerializer.Deserialize<ChunkDataResponseMessagePack>(payload.ToArray());
             
 
-            return new ChunkData(new Coordinate(x, y),blocks,mapTiles,blockDirections);
+            return new ChunkData(new Coordinate(data.ChunkX, data.ChunkY),data.BlockIds,data.MapTileIds,data.BlockDirect);
         }
 
         private int GetId(BitListEnumerator bit)
@@ -345,12 +320,20 @@ namespace Test.CombinedTest.Server.PacketTest
             public readonly int[,] MapTiles;
             public readonly Coordinate Coordinate;
 
-            public ChunkData(Coordinate coordinate, int[,] blocks,int[,] mapTiles, BlockDirection[,] blockDirections)
+            public ChunkData(Coordinate coordinate, int[,] blocks,int[,] mapTiles, int[,] blockDirections)
             {
                 Blocks = blocks;
                 Coordinate = coordinate;
                 MapTiles = mapTiles;
-                BlockDirections = blockDirections;
+                BlockDirections = new BlockDirection[ChunkResponseConst.ChunkSize,ChunkResponseConst.ChunkSize];
+
+                for (int i = 0; i < ChunkResponseConst.ChunkSize; i++)
+                {
+                    for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
+                    {
+                        BlockDirections[i,j] = (BlockDirection)blockDirections[i,j];
+                    }
+                }
             }
         }
     }
