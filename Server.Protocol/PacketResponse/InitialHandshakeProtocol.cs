@@ -17,14 +17,14 @@ namespace Server.Protocol.PacketResponse
     
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class InitialHandshakeRequestMessagePack : ProtocolMessagePackBase
+    public class RequestInitialHandshakeMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public InitialHandshakeRequestMessagePack()
+        public RequestInitialHandshakeMessagePack()
         {
         }
 
-        public InitialHandshakeRequestMessagePack(int playerId, string playerName)
+        public RequestInitialHandshakeMessagePack(int playerId, string playerName)
         {
             PlayerId = playerId;
             PlayerName = playerName;
@@ -32,5 +32,23 @@ namespace Server.Protocol.PacketResponse
 
         public int PlayerId { get; set; }
         public string PlayerName { get; set; }
+    }
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class ResponseInitialHandshakeMessagePack : ProtocolMessagePackBase
+    {
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public ResponseInitialHandshakeMessagePack()
+        {
+        }
+
+        public ResponseInitialHandshakeMessagePack()
+        {
+            PlayerId = playerId;
+            PlayerName = playerName;
+        }
+
+        
+        public float PposX { get; set; }
     }
 }
