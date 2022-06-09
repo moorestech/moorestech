@@ -2,6 +2,8 @@
 using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
+using MessagePack;
+using Server.Event.EventReceive;
 using UnityEngine;
 
 namespace MainGame.Network.Receive.EventPacket
@@ -17,14 +19,13 @@ namespace MainGame.Network.Receive.EventPacket
 
         public void Analysis(List<byte> packet)
         {
-            var bytes = new ByteArrayEnumerator(packet);
-            bytes.MoveNextToGetShort();
-            bytes.MoveNextToGetShort();
-            var x = bytes.MoveNextToGetInt();
-            var y = bytes.MoveNextToGetInt();
+            
+            var data = MessagePackSerializer
+                .Deserialize<RemoveBlockEventMessagePack>(packet.ToArray());
+            
             
             _networkReceivedChunkDataEvents.InvokeBlockUpdateEvent(
-                new BlockUpdateEventProperties(new Vector2Int(x,y),BlockConstant.NullBlockId,BlockDirection.North));
+                new BlockUpdateEventProperties(new Vector2Int(data.X,data.Y),BlockConstant.NullBlockId,BlockDirection.North));
         }
     }
 }

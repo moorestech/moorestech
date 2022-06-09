@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
+using MessagePack;
+using Server.Event.EventReceive;
 using UnityEngine;
 
 namespace MainGame.Network.Receive.EventPacket
@@ -16,16 +18,12 @@ namespace MainGame.Network.Receive.EventPacket
 
         public void Analysis(List<byte> packet)
         {
-            var bytes = new ByteArrayEnumerator(packet);
-            bytes.MoveNextToGetShort();
-            bytes.MoveNextToGetShort();
-            var slot = bytes.MoveNextToGetInt();
-            var itemId = bytes.MoveNextToGetInt();
-            var itemCount = bytes.MoveNextToGetInt();
-            var x = bytes.MoveNextToGetInt();
-            var y = bytes.MoveNextToGetInt();
+
+            var data = MessagePackSerializer
+                .Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(packet.ToArray());
             
-            _blockInventoryUpdateEvent.InvokeBlockInventorySlotUpdate(new Vector2Int(x,y), slot, itemId, itemCount);
+            _blockInventoryUpdateEvent.InvokeBlockInventorySlotUpdate(
+                new Vector2Int(data.X,data.Y), data.Slot, data.Item.Id, data.Item.Count);
         }
     }
 }
