@@ -25,8 +25,8 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<RequestPlayerInventoryProtocolMessagePack>(payload.ToArray());
             
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
-            
-            
+
+            //ExportInventoryLog(playerInventory);
 
             //メインインベントリのアイテムを設定
             var mainItems = new List<ItemMessagePack>();
@@ -65,6 +65,54 @@ namespace Server.Protocol.PacketResponse
             
 
             return new List<List<byte>>() {response.ToList()};
+        }
+
+
+        private void ExportInventoryLog(PlayerInventoryData playerInventory)
+        {
+            var inventoryStr = new StringBuilder();
+            inventoryStr.AppendLine("Main Inventory");
+            
+
+            //メインインベントリのアイテムを設定
+            for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+            {
+                var id = playerInventory.MainOpenableInventory.GetItem(i).Id;
+                var count = playerInventory.MainOpenableInventory.GetItem(i).Count;
+
+                inventoryStr.Append(id + " " + count + "  ");
+                if ((i + 1) % PlayerInventoryConst.MainInventoryColumns == 0)
+                {
+                    inventoryStr.AppendLine();
+                }
+            }
+            
+            
+            inventoryStr.AppendLine();
+            inventoryStr.AppendLine("Grab Inventory");
+            inventoryStr.AppendLine(playerInventory.GrabInventory.GetItem(0).Id + " " + playerInventory.GrabInventory.GetItem(0).Count + "  ");
+            
+            inventoryStr.AppendLine();
+            inventoryStr.AppendLine("Craft Inventory");
+
+            
+            //クラフトインベントリのアイテムを設定
+            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
+            {
+                var id = playerInventory.CraftingOpenableInventory.GetItem(i).Id;
+                var count = playerInventory.CraftingOpenableInventory.GetItem(i).Count;
+
+                inventoryStr.Append(id + " " + count + "  ");
+                if ((i + 1) % PlayerInventoryConst.CraftingInventoryColumns == 0)
+                {
+                    inventoryStr.AppendLine();
+                }
+            }
+            
+            
+            inventoryStr.AppendLine("Craft Result Item");
+            inventoryStr.AppendLine(playerInventory.CraftingOpenableInventory.GetCreatableItem().Id + " " + playerInventory.CraftingOpenableInventory.GetCreatableItem().Count + "  ");
+            
         }
     }
     
