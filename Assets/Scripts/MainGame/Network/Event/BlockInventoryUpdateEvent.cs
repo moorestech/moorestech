@@ -21,9 +21,9 @@ namespace MainGame.Network.Event
         public event Action<BlockInventorySlotUpdateProperties> OnBlockInventorySlotUpdate;
         public event Action<SettingBlockInventoryProperties> OnSettingBlockInventory;
 
-        internal void InvokeSettingBlock(List<ItemStack> items, string uiType,int blockId, params short[] uiParams)
+        internal void InvokeSettingBlock(List<ItemStack> items,int blockId)
         {
-            _mainThread.Post(_ => OnSettingBlockInventory?.Invoke(new SettingBlockInventoryProperties(items, uiType, uiParams, blockId)), null);
+            _mainThread.Post(_ => OnSettingBlockInventory?.Invoke(new SettingBlockInventoryProperties(items, blockId)), null);
         }
 
         internal void InvokeBlockInventorySlotUpdate(Vector2Int pos, int slot, int id, int count)
@@ -52,15 +52,11 @@ namespace MainGame.Network.Event
     public class SettingBlockInventoryProperties
     {
         public readonly  List<ItemStack> ItemStacks;
-        public readonly string uiType;
-        public readonly short[] uiParams;
         public readonly int BlockId;
 
-        public SettingBlockInventoryProperties(List<ItemStack> itemStacks, string uiType, short[] uiParams, int blockId)
+        public SettingBlockInventoryProperties(List<ItemStack> itemStacks, int blockId)
         {
             ItemStacks = itemStacks;
-            this.uiType = uiType;
-            this.uiParams = uiParams;
             this.BlockId = blockId;
         }
     }

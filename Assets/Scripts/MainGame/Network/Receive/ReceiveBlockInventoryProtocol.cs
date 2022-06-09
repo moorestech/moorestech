@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
+using MessagePack;
+using Server.Protocol.PacketResponse;
 
 namespace MainGame.Network.Receive
 {
@@ -14,27 +16,20 @@ namespace MainGame.Network.Receive
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
         }
 
-        public void Analysis(List<byte> data)
+        public void Analysis(List<byte> packet)
         {
-            var bytes = new ByteArrayEnumerator(data);
-            bytes.MoveNextToGetShort(); //packet id
-            var itemNum = bytes.MoveNextToGetShort();
+            var data = MessagePackSerializer.Deserialize<BlockInventoryResponseProtocolMessagePack>(packet.ToArray()); 
             
-            var blockId = bytes.MoveNextToGetInt();
 
             var items = new List<ItemStack>();
-            for (int i = 0; i < itemNum; i++)
+            for (int i = 0; i < data.ItemCounts.Length; i++)
             {
-                var id = bytes.MoveNextToGetInt();
-                var count = bytes.MoveNextToGetInt();
+                var id = data.ItemIds[i];
+                var count = data.ItemCounts[i];
                 items.Add(new ItemStack(id, count));
             }
             
-            bytes.MoveNextToGetShort();//UI type id 削除予定
-            var inputNum = bytes.MoveNextToGetShort();
-            var outputNum = bytes.MoveNextToGetShort();
-            
-            _blockInventoryUpdateEvent.InvokeSettingBlock(items,"",blockId,inputNum,outputNum);
+            _blockInventoryUpdateEvent.InvokeSettingBlock(items,data.BlockId);
         }
     }
 }

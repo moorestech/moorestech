@@ -2,6 +2,8 @@
 using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
+using MessagePack;
+using Server.Protocol.PacketResponse;
 
 namespace MainGame.Network.Receive
 {
@@ -22,15 +24,11 @@ namespace MainGame.Network.Receive
         }
 
 
-        public void Analysis(List<byte> data)
+        public void Analysis(List<byte> packet)
         {
-            var bytes = new ByteArrayEnumerator(data);
-            //packet id
-            bytes.MoveNextToGetShort();
-            //player id
-            var playerId = bytes.MoveNextToGetInt();
-            //padding
-            bytes.MoveNextToGetShort();
+
+            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.ToArray());
+            
             
             
             
@@ -38,20 +36,19 @@ namespace MainGame.Network.Receive
             var mainItems = new List<ItemStack>();
             for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
             {
-                var id = bytes.MoveNextToGetInt();
-                var count = bytes.MoveNextToGetInt();
-                mainItems.Add(new ItemStack(id, count));
+                var item = data.Main[i];
+                mainItems.Add(new ItemStack(item.Id, item.Count));
             }
             _mainInventoryUpdateEvent.InvokeMainInventoryUpdate(
                 new MainInventoryUpdateProperties(
-                    playerId,
+                    data.PlayerId,
                     mainItems));
             
             
             
             
             //grab inventory items
-            var grabItem = new ItemStack(bytes.MoveNextToGetInt(), bytes.MoveNextToGetInt());
+            var grabItem = new ItemStack(data.Grab.Id, data.Grab.Count);
             _grabInventoryUpdateEvent.GrabInventoryUpdateEventInvoke(new GrabInventoryUpdateEventProperties(grabItem));
             
             
@@ -61,25 +58,13 @@ namespace MainGame.Network.Receive
             var craftItems = new List<ItemStack>();
             for (int i = 0; i < PlayerInventoryConstant.CraftingSlotSize; i++)
             {
-                var id = bytes.MoveNextToGetInt();
-                var count = bytes.MoveNextToGetInt();
-                craftItems.Add(new ItemStack(id, count));
+                var item = data.Craft[i];
+                craftItems.Add(new ItemStack(item.Id, item.Count));
             }
-            var resultId = bytes.MoveNextToGetInt();
-            var resultCount = bytes.MoveNextToGetInt();
-            var resultItem = new ItemStack(resultId, resultCount);
-            var canCraft = bytes.MoveNextToGetByte() == 1;
+            var resultItem = new ItemStack(data.CraftResult.Id,data.CraftResult.Count);
             _craftingInventoryUpdateEvent.InvokeCraftingInventoryUpdate(
-                new CraftingInventoryUpdateProperties(playerId,canCraft,craftItems,resultItem));
+                new CraftingInventoryUpdateProperties(data.PlayerId,data.IsCreatable,craftItems,resultItem));
             
         }
-    }
-
-
-    public class User
-    {
-        public string UserName;
-        public int Age;
-        public string ItemId;
     }
 }
