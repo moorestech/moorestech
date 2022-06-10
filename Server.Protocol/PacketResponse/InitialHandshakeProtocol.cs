@@ -42,13 +42,14 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public ResponseInitialHandshakeMessagePack()
+
+        public ResponseInitialHandshakeMessagePack(float playerPosX, float playerPosY)
         {
-            PlayerId = playerId;
-            PlayerName = playerName;
+            PlayerPosX = playerPosX;
+            PlayerPosY = playerPosY;
         }
 
-        
-        public float PposX { get; set; }
+        public float PlayerPosX { get; set; }
+        public float PlayerPosY { get; set; }
     }
 }
