@@ -2,7 +2,7 @@ using System;
 using Core.Item;
 using MessagePack;
 
-namespace Server.Event
+namespace Server.Util.MessagePack
 {
 
     [MessagePackObject(false)]

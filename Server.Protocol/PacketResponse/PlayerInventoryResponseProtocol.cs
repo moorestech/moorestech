@@ -6,6 +6,7 @@ using Game.PlayerInventory.Interface;
 using MessagePack;
 using Server.Event;
 using Server.Util;
+using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {
