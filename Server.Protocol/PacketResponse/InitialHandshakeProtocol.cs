@@ -10,7 +10,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class InitialHandshakeProtocol : IPacketResponse
     {
-        public const string Tag = "va:invItemMove";
+        public const string Tag = "va:initialHandshake";
 
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IEntityFactory _entityFactory;
