@@ -6,6 +6,7 @@ namespace Game.Entity.Interface
     {
         public void Add(IEntity entity);
         public bool Exists(long instanceId);
+        public IEntity Get(long instanceId);
         
         public void SetPosition(long instanceId,ServerVector3 position);
 

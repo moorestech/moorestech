@@ -33,14 +33,25 @@ namespace Test.CombinedTest.Game
 
 
 
+            //ブロックの追加
             worldBlockDatastore.AddBlock(blockFactory.Create(1, 10), 0, 0, BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(2, 5), 0, 1, BlockDirection.East);
             worldBlockDatastore.AddBlock(blockFactory.Create(3, 1000), 30, -10, BlockDirection.West);
 
             saveServiceProvider.GetService<ISaveRepository>().Save();
 
+            
+            
+            
+            
+            
 
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            
+            
+            
+            
             
             
             //テスト用にファイル名を変更
@@ -51,6 +62,9 @@ namespace Test.CombinedTest.Game
             loadServiceProvider.GetService<ILoadRepository>().Load();
             var loadWorldBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
 
+            
+            
+            //追加したブロックのチェック
             var block = loadWorldBlockDatastore.GetBlock(0, 0);
             Assert.AreEqual(1, block.BlockId);
             Assert.AreEqual(10, block.EntityId);

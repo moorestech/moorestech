@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Game.Entity.Interface;
 using Game.PlayerInventory.Interface;
 using Game.Save.Interface;
 using Game.World.Interface.DataStore;
@@ -11,15 +12,17 @@ namespace Game.Save.Json
     {
         SaveJsonFileName _saveJsonFileName;
 
-        private IWorldBlockDatastore _worldBlockDatastore;
-        private IPlayerInventoryDataStore _inventoryDataStore;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly IPlayerInventoryDataStore _inventoryDataStore;
+        private readonly IEntitiesDatastore _entitiesDatastore;
 
         public LoadJsonFile(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore,
-            IPlayerInventoryDataStore inventoryDataStore)
+            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore)
         {
             _saveJsonFileName = saveJsonFileName;
             _worldBlockDatastore = worldBlockDatastore;
             _inventoryDataStore = inventoryDataStore;
+            _entitiesDatastore = entitiesDatastore;
         }
 
         public void Load()
@@ -36,13 +39,19 @@ namespace Game.Save.Json
                     throw new Exception("セーブファイルのロードに失敗しました。セーブファイルを確認してください。", e);
                 }
             }
+            else
+            {
+                Console.WriteLine("セーブデータがありませんでした");
+            }
         }
 
         public void Load(string jsonText)
         {
             var load = JsonConvert.DeserializeObject<SaveData>(jsonText);
+            
             _worldBlockDatastore.LoadBlockDataList(load.World);
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);
+            _entitiesDatastore.LoadBlockDataList(load.Entities);
         }
     }
 }

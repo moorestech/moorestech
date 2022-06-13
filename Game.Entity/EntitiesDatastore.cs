@@ -27,6 +27,11 @@ namespace Game.Entity
             return _entities.ContainsKey(instanceId);
         }
 
+        public IEntity Get(long instanceId)
+        {
+            return _entities[instanceId];
+        }
+
         public void SetPosition(long instanceId, ServerVector3 position)
         {
             if (_entities.TryGetValue(instanceId, out var entity))

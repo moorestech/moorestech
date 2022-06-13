@@ -53,8 +53,15 @@ namespace Test.UnitTest.Game.SaveLoad
             
             
             
+            
+            
+            
             //セーブする
             var json = assembleJsonText.AssembleSaveJson();
+            
+            
+            
+            
             
             
             
