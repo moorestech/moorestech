@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Game.Entity.Interface
 {
     public interface IEntitiesDatastore
@@ -8,5 +10,9 @@ namespace Game.Entity.Interface
         public void SetPosition(long instanceId,ServerVector3 position);
 
         public ServerVector3 GetPosition(long instanceId);
+        
+        
+        public List<SaveEntityData> GetSaveBlockDataList();
+        public void LoadBlockDataList(List<SaveEntityData> saveBlockDataList);
     }
 }

@@ -6,8 +6,17 @@ namespace Game.Entity
 {
     public class EntitiesDatastore : IEntitiesDatastore
     {
+
+        private readonly IEntityFactory _entityFactory;
+        
         //todo セーブとロードを実装する
         private readonly Dictionary<long,IEntity> _entities = new();
+
+        public EntitiesDatastore(IEntityFactory entityFactory)
+        {
+            _entityFactory = entityFactory;
+        }
+
         public void Add(IEntity entity)
         {
             _entities.Add(entity.InstanceId, entity);
@@ -35,6 +44,30 @@ namespace Game.Entity
                 return entity.Position;
             }
             throw new Exception("Entity not found " + instanceId);
+        }
+
+        public List<SaveEntityData> GetSaveBlockDataList()
+        {
+            var saveData = new List<SaveEntityData>();
+            foreach (var entity in _entities)
+            {
+                var e = entity.Value;
+                saveData.Add(new SaveEntityData(e.EntityType,e.InstanceId,e.Position));
+            }
+
+            return saveData;
+        }
+
+        public void LoadBlockDataList(List<SaveEntityData> saveBlockDataList)
+        {
+            foreach (var save in saveBlockDataList)
+            {
+                var entity = _entityFactory.CreateEntity(save.Type,save.InstanceId);
+                _entities.Add(entity.InstanceId,entity);
+
+                var pos = new ServerVector3(save.X,save.Y,save.Z);
+                SetPosition(save.InstanceId,pos);
+            }
         }
     }
 }

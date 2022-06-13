@@ -10,7 +10,7 @@ namespace Game.Entity
         {
             if (entityType == EntityType.VanillaPlayer)
             {
-                return new PlayerEntity(instanceId, 0, entityType, default);
+                return new PlayerEntity(instanceId, entityType, default);
             }
 
             throw new KeyNotFoundException("Entity type not found : " + entityType);

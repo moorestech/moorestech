@@ -4,16 +4,14 @@ namespace Game.Entity.EntityInstance
 {
     public class PlayerEntity : IEntity
     {
-        public PlayerEntity(long instanceId, int entityId, string entityType, ServerVector3 position)
+        public PlayerEntity(long instanceId, string entityType, ServerVector3 position)
         {
             InstanceId = instanceId;
-            EntityId = entityId;
             EntityType = entityType;
             Position = position;
         }
 
         public long InstanceId { get; }
-        public int EntityId { get; }
         public string EntityType { get; }
         public ServerVector3 Position { get; private set; }
 
