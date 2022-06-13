@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MainGame.ModLoader.Texture
 {
-    public static class GetZipTexture
+    public static class GetExtractedZipTexture
     {
         public static Texture2D Get(string extractedModDirectory,string path)
         {

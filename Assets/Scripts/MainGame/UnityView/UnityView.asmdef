@@ -9,7 +9,8 @@
         "Constant",
         "GameConst",
         "Server",
-        "ModLoader"
+        "ModLoader",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

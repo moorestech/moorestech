@@ -1,36 +1,47 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using MainGame.ModLoader;
+using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Chunk;
+using SinglePlay;
 using UnityEngine;
 
 namespace MainGame.UnityView.Block
 {
-    [CreateAssetMenu(fileName = "BlockObjects", menuName = "BlockObjects", order = 0)]
-    public class BlockObjects : ScriptableObject
+    public class BlockObjects
     {
-        [SerializeField] private List<Block> BlockObjectList;
-        [SerializeField] private BlockGameObject NothingIndexBlockObject;
+        private List<Block> _blockObjectList;
+        private BlockGameObject _nothingIndexBlockObject;
+
+        public BlockObjects(ModDirectory modDirectory,BlockGameObject nothingIndexBlockObject,SinglePlayInterface singlePlayInterface)
+        {
+            UniTask.Create(() =>
+            {
+                var a = await BlockGlbLoader.GetBlockLoader(modDirectory.Directory, singlePlayInterface);
+            }).Forget();
+            _nothingIndexBlockObject = nothingIndexBlockObject;
+        }
 
         public BlockGameObject GetBlock(int index)
         {
-            if (BlockObjectList.Count <= index)
+            if (_blockObjectList.Count <= index)
             {
-                return NothingIndexBlockObject;
+                return _nothingIndexBlockObject;
             }
 
-            return BlockObjectList[index].BlockObject;
+            return _blockObjectList[index].BlockObject;
         }
         public string GetName(int index)
         {
-            if (BlockObjectList.Count <= index)
+            if (_blockObjectList.Count <= index)
             {
                 return "Null";
             }
 
-            return BlockObjectList[index].name;
+            return _blockObjectList[index].name;
         }
     }
-    [System.Serializable]
-    public class Block{
+    class Block{
         public BlockGameObject BlockObject;
         public string name;
     }

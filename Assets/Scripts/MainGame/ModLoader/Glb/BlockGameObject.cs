@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MainGame.UnityView.Block
+namespace MainGame.ModLoader.Glb
 {
     public class BlockGameObject : MonoBehaviour
     {
