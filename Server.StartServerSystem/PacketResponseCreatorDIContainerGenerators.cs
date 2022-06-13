@@ -15,6 +15,8 @@ using Core.Ore.Config;
 using Game.Crafting;
 using Game.Crafting.Config;
 using Game.Crafting.Interface;
+using Game.Entity;
+using Game.Entity.Interface;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.Save.Interface;
@@ -76,6 +78,9 @@ namespace Server.StartServerSystem
             services.AddSingleton<WorldMapTile, WorldMapTile>();
             services.AddSingleton(new Seed(1337));
             services.AddSingleton<IElectricSegmentMergeService, ElectricSegmentMergeService>();
+            services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
+            services.AddSingleton<IEntityFactory, EntityFactory>();
+            
 
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<ISaveRepository, SaveJsonFile>();
