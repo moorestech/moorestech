@@ -5,7 +5,7 @@ using Mod.Loader;
 using SinglePlay;
 using UnityEngine;
 
-namespace MainGame.ModLoader
+namespace MainGame.ModLoader.Texture
 {
     public static class WorldMapTileTextureLoader
     {

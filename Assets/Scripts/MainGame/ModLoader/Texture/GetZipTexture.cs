@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using UnityEngine;
 
-namespace MainGame.ModLoader
+namespace MainGame.ModLoader.Texture
 {
     public static class GetZipTexture
     {

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.ModLoader;
+using MainGame.ModLoader.Texture;
 using SinglePlay;
 using UnityEngine;
 

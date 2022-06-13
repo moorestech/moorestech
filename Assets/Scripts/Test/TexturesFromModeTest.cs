@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GameConst;
 using MainGame.ModLoader;
+using MainGame.ModLoader.Texture;
 using SinglePlay;
 using UnityEngine;
 
