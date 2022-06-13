@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Entity.Interface;
 using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
@@ -13,7 +14,13 @@ namespace Server.Protocol.PacketResponse
 
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IEntityFactory _entityFactory;
-        
+
+        public InitialHandshakeProtocol(ServiceProvider serviceProvider)
+        {
+            _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
+            _entityFactory = serviceProvider.GetService<IEntityFactory>();
+        }
+
         public List<List<byte>> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload.ToArray());
@@ -55,6 +62,7 @@ namespace Server.Protocol.PacketResponse
 
         public RequestInitialHandshakeMessagePack(int playerId, string playerName)
         {
+            Tag = InitialHandshakeProtocol.Tag;
             PlayerId = playerId;
             PlayerName = playerName;
         }
@@ -73,6 +81,7 @@ namespace Server.Protocol.PacketResponse
 
         public ResponseInitialHandshakeMessagePack(Vector2MessagePack playerPos)
         {
+            Tag = InitialHandshakeProtocol.Tag;
             PlayerPos = playerPos;
         }
 
