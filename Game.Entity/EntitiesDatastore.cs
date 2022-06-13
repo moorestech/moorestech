@@ -23,8 +23,9 @@ namespace Game.Entity
             if (_entities.TryGetValue(instanceId, out var entity))
             {
                 entity.SetPosition(position);
+                return;
             }
-            throw new Exception("Entity not found");
+            throw new Exception("Entity not found " + instanceId);
         }
 
         public ServerVector3 GetPosition(long instanceId)
@@ -33,7 +34,7 @@ namespace Game.Entity
             {
                 return entity.Position;
             }
-            throw new Exception("Entity not found");
+            throw new Exception("Entity not found " + instanceId);
         }
     }
 }
