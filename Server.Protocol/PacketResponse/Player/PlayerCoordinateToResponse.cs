@@ -6,25 +6,14 @@ using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Util;
 
 namespace Server.Protocol.PacketResponse.Player
-{
-    public class PlayerCoordinateToResponse
+{    public class PlayerCoordinateToResponse
     {
-        private readonly int _playerId;
-        private readonly IEntitiesDatastore _entitiesDatastore;
-        
-        
         private const int RequestPlayerIntervalMilliSeconds = 500;
         
         private Coordinate _lastCoordinate = new Coordinate {X = Int32.MaxValue, Y = Int32.MaxValue};
         private DateTime _lastGetTime = DateTime.MinValue;
 
-        public PlayerCoordinateToResponse(int playerId, IEntitiesDatastore entitiesDatastore)
-        {
-            _playerId = playerId;
-            _entitiesDatastore = entitiesDatastore;
-        }
-
-        public List<Coordinate> GetResponseChunkCoordinates()
+        public List<Coordinate> GetResponseChunkCoordinates(Coordinate coordinate)
         {
             //例えばユーザーが一度ログアウトして、再度ログインすると、クライアント側ではブロックの情報は消えているが、
             //サーバー側では前回との差分しか返さないようになってしまう
@@ -33,20 +22,12 @@ namespace Server.Protocol.PacketResponse.Player
             {
                 _lastCoordinate = new Coordinate {X = Int32.MaxValue, Y = Int32.MaxValue};
             }
+            
             _lastGetTime = DateTime.Now;
             
-            
-
-            //今の座標を取得
-            var position = _entitiesDatastore.GetPosition(_playerId);
-            //三次元の座標系はY up, X right, Z frontなので、Y軸にZを入れる
-            var nowCoordinate = new Coordinate {X = (int)position.X, Y = (int)position.Z};
-
-            
-            
-            var now = GetCoordinates(nowCoordinate);
+            var now = GetCoordinates(coordinate);
             var last = GetCoordinates(_lastCoordinate);
-            _lastCoordinate = nowCoordinate;
+            _lastCoordinate = coordinate;
             for (int i = now.Count - 1; i >= 0; i--)
             {
                 //もし前回の取得チャンクに今回の取得チャンクとの被りがあったら削除する

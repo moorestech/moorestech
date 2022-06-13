@@ -38,19 +38,20 @@ namespace Server.Protocol.PacketResponse
             //新しいプレイヤーの情報ならDictionaryに追加する
             if (!_responses.ContainsKey(data.PlayerId))
             {
-                _responses.Add(data.PlayerId, new PlayerCoordinateToResponse(data.PlayerId,_entitiesDatastore));
+                _responses.Add(data.PlayerId, new PlayerCoordinateToResponse());
             }
             //プレイヤーの座標を更新する
             var newPosition = new ServerVector3(data.X,0,data.Y);
             _entitiesDatastore.SetPosition(data.PlayerId,newPosition);
 
+            
 
 
 
             //プレイヤーの座標から返すチャンクのブロックデータを取得をする
             var responseChunk = new List<List<byte>>();
             
-            var responseChunkCoordinates = _responses[data.PlayerId].GetResponseChunkCoordinates();
+            var responseChunkCoordinates = _responses[data.PlayerId].GetResponseChunkCoordinates(new Coordinate((int)data.X,(int) data.Y));
             foreach (var chunkCoordinate in responseChunkCoordinates)
             {
                 //チャンクのブロックデータを取得してバイト配列に変換する
