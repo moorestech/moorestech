@@ -32,6 +32,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             //1回のレスポンスのテスト
+            packetResponse.GetPacketResponse(GetHandshakePacket(10));
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
@@ -73,6 +74,7 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(response.Count, 9);
 
             //他の名前は普通に取得できるテスト
+            packetResponse.GetPacketResponse(GetHandshakePacket(15));
             response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(15, 0, 0))
                 .Select(PayloadToBlock).ToList();
 
@@ -93,8 +95,9 @@ namespace Test.CombinedTest.Server.PacketTest
             var b = blockFactory.Create(5,1);
             worldBlock.AddBlock(b, 0, 0, BlockDirection.North);
 
-            
-            
+
+
+            packetResponse.GetPacketResponse(GetHandshakePacket(20));
             
             var bytes = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0));
             var response = bytes.Select(PayloadToBlock).ToList();
@@ -158,7 +161,8 @@ namespace Test.CombinedTest.Server.PacketTest
             }
             
             
-            
+            packetResponse.GetPacketResponse(GetHandshakePacket(25));
+
 
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(25, 0, 0))
                 .Select(PayloadToBlock).ToList();
@@ -219,6 +223,7 @@ namespace Test.CombinedTest.Server.PacketTest
             }
             
             //鉱石がある座標のチャンクを取得
+            packetResponse.GetPacketResponse(GetHandshakePacket(25));
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(25, veinCoordinate.X, veinCoordinate.Y))
                 .Select(PayloadToBlock).ToList();
             
@@ -244,6 +249,13 @@ namespace Test.CombinedTest.Server.PacketTest
         List<byte> PlayerCoordinatePayload(int playerId, float x, float y)
         {
             return MessagePackSerializer.Serialize(new PlayerCoordinateSendProtocolMessagePack(playerId,x,y)).ToList();
+        }
+
+
+        private List<byte> GetHandshakePacket(int playerId)
+        {
+            return MessagePackSerializer.Serialize(
+                new RequestInitialHandshakeMessagePack(playerId,"test player name")).ToList();
         }
 
         ChunkData PayloadToBlock(List<byte> payload)

@@ -23,7 +23,8 @@ namespace Test.UnitTest.Game.SaveLoad
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var json = assembleSaveJsonText.AssembleSaveJson();
-            Assert.AreEqual("{\"world\":[],\"playerInventory\":[]}", json);
+            Console.WriteLine();
+            Assert.AreEqual("{\"world\":[],\"playerInventory\":[],\"entities\":[]}", json);
         }
 
         //ブロックを追加した時のテスト
