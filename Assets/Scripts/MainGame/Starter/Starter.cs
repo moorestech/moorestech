@@ -2,6 +2,7 @@ using System.Diagnostics;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.ModLoader;
+using MainGame.ModLoader.Glb;
 using MainGame.Network;
 using MainGame.Network.Event;
 using MainGame.Network.Send;
@@ -55,12 +56,12 @@ namespace MainGame.Starter
 
         private IObjectResolver _resolver;
         
-        [Header("ScriptableObjects")]
-        [SerializeField] private BlockObjects blockObjects;
         [SerializeField] private WorldMapTileObject worldMapTileObject;
         
         [Header("InHierarchy")]
         [SerializeField] Camera mainCamera;
+
+        [SerializeField] private BlockGameObject nothingIndexBlockObject; 
 
         [SerializeField] private GroundPlane groundPlane;
 
@@ -170,10 +171,11 @@ namespace MainGame.Starter
             //modからロードしてきたデータ
             builder.Register<ItemImages>(Lifetime.Singleton);
             builder.Register<WorldMapTileMaterials>(Lifetime.Singleton);
+            builder.Register<BlockObjects>(Lifetime.Singleton);
+            
             
 
             //ScriptableObjectの登録
-            builder.RegisterInstance(blockObjects);
             builder.RegisterInstance(worldMapTileObject);
 
             //Hierarchy上にあるcomponent

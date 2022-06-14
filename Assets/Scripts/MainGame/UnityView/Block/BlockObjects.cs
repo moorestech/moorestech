@@ -10,16 +10,18 @@ namespace MainGame.UnityView.Block
 {
     public class BlockObjects
     {
-        private List<Block> _blockObjectList;
-        private BlockGameObject _nothingIndexBlockObject;
+        private List<BlockData> _blockObjectList;
+        private readonly BlockGameObject _nothingIndexBlockObject;
 
         public BlockObjects(ModDirectory modDirectory,BlockGameObject nothingIndexBlockObject,SinglePlayInterface singlePlayInterface)
         {
-            UniTask.Create(() =>
-            {
-                var a = await BlockGlbLoader.GetBlockLoader(modDirectory.Directory, singlePlayInterface);
-            }).Forget();
+            Init(modDirectory,singlePlayInterface).Forget();
             _nothingIndexBlockObject = nothingIndexBlockObject;
+        }
+        
+        private async UniTask Init(ModDirectory modDirectory,SinglePlayInterface singlePlayInterface)
+        {
+            _blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory.Directory, singlePlayInterface);
         }
 
         public BlockGameObject GetBlock(int index)
@@ -38,12 +40,8 @@ namespace MainGame.UnityView.Block
                 return "Null";
             }
 
-            return _blockObjectList[index].name;
+            return _blockObjectList[index].Name;
         }
-    }
-    class Block{
-        public BlockGameObject BlockObject;
-        public string name;
     }
     
 }
