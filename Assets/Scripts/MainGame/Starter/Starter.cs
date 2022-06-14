@@ -179,6 +179,7 @@ namespace MainGame.Starter
             builder.RegisterInstance(worldMapTileObject);
 
             //Hierarchy上にあるcomponent
+            builder.RegisterComponent(nothingIndexBlockObject);
             builder.RegisterComponent(chunkBlockGameObjectDataStore);
             builder.RegisterComponent(worldMapTileGameObjectDataStore);
             
