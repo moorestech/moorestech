@@ -5,6 +5,7 @@ using Core.Item;
 using Game.PlayerInventory.Interface.Event;
 using MessagePack;
 using Server.Util;
+using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
 {

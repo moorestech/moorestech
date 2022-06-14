@@ -19,6 +19,7 @@ namespace Server.Protocol
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
             _packetResponseDictionary.Add(DummyProtocol.Tag,new DummyProtocol());
+            _packetResponseDictionary.Add(InitialHandshakeProtocol.Tag,new InitialHandshakeProtocol(serviceProvider));
             _packetResponseDictionary.Add(PutBlockProtocol.Tag,new PutBlockProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerCoordinateSendProtocol.Tag,new PlayerCoordinateSendProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.Tag,new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
@@ -40,15 +41,8 @@ namespace Server.Protocol
         {
             
             var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray()).Tag;
-            
-            Console.WriteLine("Request Tag:" + tag);
 
-            var response = _packetResponseDictionary[tag].GetResponse(payload);
-            var responseTag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(response[0].ToArray()).Tag;
-
-            Console.WriteLine("Response Tag is " + responseTag);
-            
-            return response;
+            return _packetResponseDictionary[tag].GetResponse(payload);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
 using MessagePack;
@@ -21,11 +22,13 @@ namespace Server.Protocol.PacketResponse
         private readonly Dictionary<int, PlayerCoordinateToResponse> _responses = new();
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly WorldMapTile _worldMapTile;
+        private readonly IEntitiesDatastore _entitiesDatastore;
 
         public PlayerCoordinateSendProtocol(ServiceProvider serviceProvider)
         {
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _worldMapTile = serviceProvider.GetService<WorldMapTile>();
+            _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
         }
         
         public List<List<byte>> GetResponse(List<byte> payload)
@@ -36,16 +39,16 @@ namespace Server.Protocol.PacketResponse
             if (!_responses.ContainsKey(data.PlayerId))
             {
                 _responses.Add(data.PlayerId, new PlayerCoordinateToResponse());
-                Console.WriteLine("プレイヤーが接続:" + data.PlayerId);
             }
+            //プレイヤーの座標を更新する
+            var newPosition = new ServerVector3(data.X,0,data.Y);
+            _entitiesDatastore.SetPosition(data.PlayerId,newPosition);
 
             
-            
-            
-            
+
+
+
             //プレイヤーの座標から返すチャンクのブロックデータを取得をする
-            //byte配列に変換して返す
-
             var responseChunk = new List<List<byte>>();
             
             var responseChunkCoordinates = _responses[data.PlayerId].GetResponseChunkCoordinates(new Coordinate((int)data.X,(int) data.Y));

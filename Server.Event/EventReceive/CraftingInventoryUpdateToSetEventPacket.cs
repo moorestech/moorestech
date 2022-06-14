@@ -6,6 +6,7 @@ using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using MessagePack;
 using Server.Util;
+using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
 {
@@ -49,6 +50,7 @@ namespace Server.Event.EventReceive
 
         public CraftingInventoryUpdateEventMessagePack(int slot,IItemStack itemStack,bool isCreatable,IItemStack creatableItem)
         {
+            EventTag = CraftingInventoryUpdateToSetEventPacket.EventTag;
             Slot = slot;
             Item = new ItemMessagePack(itemStack);
             IsCraftable = isCreatable;

@@ -8,6 +8,7 @@ using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 using MessagePack;
 using Server.Util;
+using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
 {

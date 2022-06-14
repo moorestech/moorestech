@@ -4,10 +4,12 @@ using System.Data.HashFunction;
 using System.Data.HashFunction.xxHash;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.Serialization;
 using Core.Block.Config.LoadConfig.ConfigParamGenerator;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Const;
+using Core.Util;
 using Newtonsoft.Json.Linq;
 
 namespace Core.Block.Config.LoadConfig
@@ -64,10 +66,49 @@ namespace Core.Block.Config.LoadConfig
 
                 ulong hash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + name).Hash);
                 
-                blockDictionary.Add(new BlockConfigData(modId,id, name, hash,type, blockParam,itemId));
+                var modelTransform = GetModelTransform(block);
+
+                blockDictionary.Add(new BlockConfigData(modId,id, name, hash,type, blockParam,itemId,modelTransform));
             }
 
             return blockDictionary;
         }
+
+
+        private ModelTransform GetModelTransform(dynamic blockDynamic)
+        {
+            var modelTransformJson = blockDynamic.modelTransform;
+
+            var modelTransform = new ModelTransform();
+            if (modelTransformJson != null)
+            {
+                var posVector3 = new CoreVector3();
+                var rotVector3 = new CoreVector3();
+                var scaleVector3 = new CoreVector3();
+                if (modelTransformJson.pos != null)
+                {
+                    var pos = modelTransformJson.pos;
+                    posVector3 = new CoreVector3(pos[0], pos[1], pos[2]);
+                }
+                
+                
+                if (modelTransformJson.rot != null)
+                {
+                    var rot = modelTransformJson.rot;
+                    rotVector3 = new CoreVector3(rot[0], rot[1], rot[2]);
+                }
+                if (modelTransformJson.scale != null)
+                {
+                    var scale = modelTransformJson.scale;
+                    scaleVector3 = new CoreVector3(scale[0], scale[1], scale[2]);
+                }
+                
+                modelTransform = new ModelTransform(posVector3, rotVector3, scaleVector3);
+            }
+
+
+            return modelTransform;
+        }
+        
     }
 }

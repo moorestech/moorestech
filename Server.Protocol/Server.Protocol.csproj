@@ -10,6 +10,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Game.Entity.Interface\Game.Entity.Interface.csproj" />
         <ProjectReference Include="..\Game.PlayerInventory.Interface\Game.PlayerInventory.Interface.csproj" />
         <ProjectReference Include="..\Game.SaveLoad.Interface\Game.SaveLoad.Interface.csproj" />
         <ProjectReference Include="..\Game.World.Interface\Game.World.Interface.csproj" />
