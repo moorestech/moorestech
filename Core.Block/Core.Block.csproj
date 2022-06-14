@@ -10,6 +10,7 @@
         <ProjectReference Include="..\Core.Item\Core.Item.csproj" />
         <ProjectReference Include="..\Core.Update\Core.Update.csproj" />
         <ProjectReference Include="..\Core.Ore\Core.Ore.csproj" />
+        <ProjectReference Include="..\Core.Util\Core.Util.csproj" />
     </ItemGroup>
 
     <ItemGroup>

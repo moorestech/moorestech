@@ -61,7 +61,7 @@ namespace Core.Block.Config
                 0,
                 VanillaBlockType.Block,
                 new NullBlockConfigParam(),
-                ItemConst.EmptyItemId);
+                ItemConst.EmptyItemId,new ModelTransform());
         }
 
         public BlockConfigData GetBlockConfig(ulong blockHash)

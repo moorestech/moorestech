@@ -33,7 +33,7 @@ namespace Test.Module.TestConfig
                 "Generated Block from AllMachineBlockConfig.cs",
                 1,
                 "Machine",
-                new MachineBlockConfigParam(100, 100, 100),10);
+                new MachineBlockConfigParam(100, 100, 100),10,new ModelTransform());
         }
 
         public BlockConfigData GetBlockConfig(ulong blockHash)
