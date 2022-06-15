@@ -2,6 +2,7 @@
 using MainGame.Basic;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Texture;
+using MainGame.UnityView.Util;
 using SinglePlay;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
         private readonly ItemViewData _emptyItemImage = new(null,"Empty");
         private readonly ItemViewData _nothingIndexItemImage;
 
-        public ItemImages(ModDirectory modDirectory,SinglePlayInterface singlePlayInterface)
+        public ItemImages(ModDirectory modDirectory,SinglePlayInterface singlePlayInterface,IInitialViewLoadingDetector initialViewLoadingDetector)
         {
             _nothingIndexItemImage = new ItemViewData(null,"Item not found");
             _itemImageList.Add(_emptyItemImage);
@@ -23,6 +24,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
             {
                 _itemImageList.Add(new ItemViewData(texture.texture2D.ToSprite(),texture.name));
             }
+            initialViewLoadingDetector.FinishItemTextureLoading();
         }
 
 
