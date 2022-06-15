@@ -18,7 +18,7 @@ namespace MainGame.Network.Send
         
         public SocketObject(SocketInstanceCreate socketInstanceCreate)
         {
-            _socket = socketInstanceCreate.GetSocket();
+            _socket = socketInstanceCreate.SocketInstance;
             Task.Run(() =>
             {
                 while (!_socket.Connected) { }

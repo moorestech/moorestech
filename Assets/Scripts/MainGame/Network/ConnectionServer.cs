@@ -37,7 +37,7 @@ namespace MainGame.Network
             //接続を試行する
             try
             {
-                _socketInstanceCreate.GetSocket().Connect(_socketInstanceCreate.GetRemoteEndPoint());
+                _socketInstanceCreate.SocketInstance.Connect(_socketInstanceCreate.GetRemoteEndPoint());
             }
             catch (SocketException e)
             {
@@ -52,7 +52,7 @@ namespace MainGame.Network
             while (true)
             {
                 //Receiveで受信
-                var length = _socketInstanceCreate.GetSocket().Receive(buffer);
+                var length = _socketInstanceCreate.SocketInstance.Receive(buffer);
                 if (length == 0)
                 {
                     Debug.LogError("サーバーから切断されました");
@@ -71,9 +71,9 @@ namespace MainGame.Network
                 catch (Exception e)
                 {
                     Debug.LogError("エラーによりサーバーから切断されました");
-                    if (_socketInstanceCreate.GetSocket().Connected)
+                    if (_socketInstanceCreate.SocketInstance.Connected)
                     {
-                        _socketInstanceCreate.GetSocket().Close();
+                        _socketInstanceCreate.SocketInstance.Close();
                     }
 
                     var packetsStr = new StringBuilder();
