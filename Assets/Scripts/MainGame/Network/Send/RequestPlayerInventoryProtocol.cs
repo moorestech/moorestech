@@ -9,7 +9,6 @@ namespace MainGame.Network.Send
 {
     public class RequestPlayerInventoryProtocol
     {
-        private const short ProtocolId = 3;
         private readonly ISocketSender _socketSender;
         private readonly int playerId;
 

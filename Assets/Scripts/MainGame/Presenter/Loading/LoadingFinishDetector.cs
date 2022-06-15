@@ -2,7 +2,7 @@ using MainGame.UnityView.Util;
 
 namespace MainGame.Presenter.Loading
 {
-    public class ViewLoadingFinishDetector : IInitialViewLoadingDetector
+    public class LoadingFinishDetector : IInitialViewLoadingDetector
     {
         public void FinishItemTextureLoading()
         {

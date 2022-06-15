@@ -11,7 +11,6 @@ namespace MainGame.Network.Send
     public class InventoryMoveItemProtocol
     {
         private readonly ISocketSender _socketSender;
-        private const short ProtocolId = 5;
         private readonly int _playerId;
 
         public InventoryMoveItemProtocol(PlayerConnectionSetting playerConnectionSetting,ISocketSender socketSender)

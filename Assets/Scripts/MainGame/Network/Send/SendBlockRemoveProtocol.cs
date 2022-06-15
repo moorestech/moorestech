@@ -10,7 +10,6 @@ namespace MainGame.Network.Send
     public class SendBlockRemoveProtocol
     {
         private readonly ISocketSender _socketSender;
-        private const short ProtocolId = 10;
         private readonly int _playerId;
 
         

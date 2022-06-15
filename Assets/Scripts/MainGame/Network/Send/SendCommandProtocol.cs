@@ -8,7 +8,6 @@ namespace MainGame.Network.Send
 {
     public class SendCommandProtocol
     {
-        private const short ProtocolId = 11;
         private ISocketSender _socketSender;
 
         public SendCommandProtocol(ISocketSender socketSender)

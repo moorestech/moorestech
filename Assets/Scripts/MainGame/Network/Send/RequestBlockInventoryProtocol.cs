@@ -8,7 +8,6 @@ namespace MainGame.Network.Send
 {
     public class RequestBlockInventoryProtocol
     {
-        private const short ProtocolId = 9;
         private readonly ISocketSender _socketSender;
 
         public RequestBlockInventoryProtocol(ISocketSender socketSender)

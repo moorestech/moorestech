@@ -19,6 +19,7 @@ namespace MainGame.Network.Send
 
         public void Send()
         {
+            //todo ここメッセージパック対応
             var packet = new List<byte>();
             
             packet.AddRange(ToByteList.Convert(ProtocolId));

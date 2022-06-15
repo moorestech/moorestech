@@ -14,7 +14,6 @@ namespace MainGame.Network.Send
     public class RequestEventProtocol : ITickable
     {
         private const int RequestEventIntervalMilliSeconds = 100;
-        private const short ProtocolId = 4;
 
         private readonly int _playerId;
         private readonly ISocketSender _socketSender;

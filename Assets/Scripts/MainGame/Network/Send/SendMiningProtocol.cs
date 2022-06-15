@@ -11,7 +11,6 @@ namespace MainGame.Network.Send
     public class SendMiningProtocol
     {
         private readonly ISocketSender _socketSender;
-        private const short ProtocolId = 15;
         private readonly int _playerId;
         
         public SendMiningProtocol(PlayerConnectionSetting playerConnectionSetting,ISocketSender socketSender)

@@ -10,7 +10,6 @@ namespace MainGame.Network.Send
     public class SendBlockInventoryOpenCloseControlProtocol
     {
         private readonly ISocketSender _socketSender;
-        private const short ProtocolId = 16;
         private readonly int _playerId;
 
         

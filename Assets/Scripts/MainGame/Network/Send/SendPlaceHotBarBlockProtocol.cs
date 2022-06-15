@@ -10,8 +10,6 @@ namespace MainGame.Network.Send
 {
     public class SendPlaceHotBarBlockProtocol
     {
-        private const short ProtocolId = 8;
-        
         private readonly ISocketSender _socketSender;
         private readonly int _playerId;
 

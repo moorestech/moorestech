@@ -9,7 +9,6 @@ namespace MainGame.Network.Send
 {
     public class SendCraftProtocol
     {
-        private const short ProtocolId = 14;
         private readonly ISocketSender _socketSender;
         private readonly int _playerId;
 

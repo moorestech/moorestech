@@ -10,8 +10,6 @@ namespace MainGame.Network.Send
 {
     public class SendPlayerPositionProtocolProtocol
     {
-        private const short ProtocolId = 2;
-
         private readonly int _playerId;
         private readonly ISocketSender _socketSender;
 
