@@ -12,18 +12,18 @@ namespace MainGame.Network.Send
     {
         private const short ProtocolId = 8;
         
-        private readonly ISocket _socket;
+        private readonly ISocketSender _socketSender;
         private readonly int _playerId;
 
-        public SendPlaceHotBarBlockProtocol(ISocket socket,PlayerConnectionSetting playerConnectionSetting)
+        public SendPlaceHotBarBlockProtocol(ISocketSender socketSender,PlayerConnectionSetting playerConnectionSetting)
         {
-            _socket = socket;
+            _socketSender = socketSender;
             _playerId = playerConnectionSetting.PlayerId;
         }
 
         public void Send(int x, int y, short hotBarSlot,BlockDirection blockDirection)
         {
-            _socket.Send(MessagePackSerializer.Serialize(new SendPlaceHotBarBlockProtocolMessagePack(
+            _socketSender.Send(MessagePackSerializer.Serialize(new SendPlaceHotBarBlockProtocolMessagePack(
                 _playerId,(int)blockDirection,hotBarSlot,x,y)).ToList());
         }
 

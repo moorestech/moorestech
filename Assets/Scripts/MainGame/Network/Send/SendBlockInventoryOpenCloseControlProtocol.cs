@@ -9,20 +9,20 @@ namespace MainGame.Network.Send
 {
     public class SendBlockInventoryOpenCloseControlProtocol
     {
-        private readonly ISocket _socket;
+        private readonly ISocketSender _socketSender;
         private const short ProtocolId = 16;
         private readonly int _playerId;
 
         
-        public SendBlockInventoryOpenCloseControlProtocol(PlayerConnectionSetting playerConnectionSetting,ISocket socket)
+        public SendBlockInventoryOpenCloseControlProtocol(PlayerConnectionSetting playerConnectionSetting,ISocketSender socketSender)
         {
-            _socket = socket;
+            _socketSender = socketSender;
             _playerId = playerConnectionSetting.PlayerId;
         }
 
         public void Send(int x, int y,bool isOpen)
         {
-            _socket.Send(MessagePackSerializer.Serialize(new BlockInventoryOpenCloseProtocolMessagePack(
+            _socketSender.Send(MessagePackSerializer.Serialize(new BlockInventoryOpenCloseProtocolMessagePack(
                 _playerId,x,y,isOpen)).ToList());
         }
     }

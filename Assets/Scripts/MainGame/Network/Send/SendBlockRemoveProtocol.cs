@@ -9,21 +9,21 @@ namespace MainGame.Network.Send
 {
     public class SendBlockRemoveProtocol
     {
-        private readonly ISocket _socket;
+        private readonly ISocketSender _socketSender;
         private const short ProtocolId = 10;
         private readonly int _playerId;
 
         
-        public SendBlockRemoveProtocol(PlayerConnectionSetting playerConnectionSetting,ISocket socket)
+        public SendBlockRemoveProtocol(PlayerConnectionSetting playerConnectionSetting,ISocketSender socketSender)
         {
-            _socket = socket;
+            _socketSender = socketSender;
             _playerId = playerConnectionSetting.PlayerId;
         }
 
         public void Send(int x, int y)
         {
 
-            _socket.Send(MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(
+            _socketSender.Send(MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(
                 _playerId,x,y)).ToList());
         }
     }

@@ -15,15 +15,15 @@ namespace MainGame.Control.UI.PauseMenu
     public class BackToMainMenu : MonoBehaviour
     {
         [SerializeField] private Button backToMainMenuButton;
-        private ISocket _socket;
+        private ISocketSender _socketSender;
         private ServerProcessSetting _serverProcessSetting;
         private SendSaveProtocol _sendSaveProtocol;
 
         [Inject]
-        public void Construct(ISocket socket,ServerProcessSetting serverProcessSetting,SendSaveProtocol sendSaveProtocol)
+        public void Construct(ISocketSender socketSender,ServerProcessSetting serverProcessSetting,SendSaveProtocol sendSaveProtocol)
         {
             _sendSaveProtocol = sendSaveProtocol;
-            _socket = socket;
+            _socketSender = socketSender;
             _serverProcessSetting = serverProcessSetting;
         }
         
@@ -49,7 +49,7 @@ namespace MainGame.Control.UI.PauseMenu
             {
                 _serverProcessSetting.localServerProcess.Kill();
             }
-            _socket.Close();
+            _socketSender.Close();
         }
     }
 }

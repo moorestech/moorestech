@@ -9,16 +9,16 @@ namespace MainGame.Network.Send
     public class SendCommandProtocol
     {
         private const short ProtocolId = 11;
-        private ISocket _socket;
+        private ISocketSender _socketSender;
 
-        public SendCommandProtocol(ISocket socket)
+        public SendCommandProtocol(ISocketSender socketSender)
         {
-            _socket = socket;
+            _socketSender = socketSender;
         }
         
         public void SendCommand(string command)
         {
-            _socket.Send(MessagePackSerializer.Serialize(new SendCommandProtocolMessagePack(
+            _socketSender.Send(MessagePackSerializer.Serialize(new SendCommandProtocolMessagePack(
                 command)).ToList());
         }
     }

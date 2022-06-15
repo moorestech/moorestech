@@ -13,16 +13,16 @@ namespace MainGame.Network.Send
         private const short ProtocolId = 2;
 
         private readonly int _playerId;
-        private readonly ISocket _socket;
+        private readonly ISocketSender _socketSender;
 
-        public SendPlayerPositionProtocolProtocol(ISocket socket,PlayerConnectionSetting playerConnectionSetting)
+        public SendPlayerPositionProtocolProtocol(ISocketSender socketSender,PlayerConnectionSetting playerConnectionSetting)
         {
-            _socket = socket;
+            _socketSender = socketSender;
             _playerId = playerConnectionSetting.PlayerId;
         }
         public void Send(Vector2 pos)
         {
-            _socket.Send(MessagePackSerializer.Serialize(new PlayerCoordinateSendProtocolMessagePack(
+            _socketSender.Send(MessagePackSerializer.Serialize(new PlayerCoordinateSendProtocolMessagePack(
                 _playerId,pos.x,pos.y)).ToList());
         }
     }

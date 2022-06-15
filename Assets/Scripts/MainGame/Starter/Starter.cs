@@ -113,7 +113,7 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<ConnectionServer>();
             builder.Register<SocketInstanceCreate, SocketInstanceCreate>(Lifetime.Singleton);
             builder.Register<AllReceivePacketAnalysisService, AllReceivePacketAnalysisService>(Lifetime.Singleton);
-            builder.Register<ISocket, SocketObject>(Lifetime.Singleton);
+            builder.Register<ISocketSender, SocketSender>(Lifetime.Singleton);
 
             //パケット受け取りイベント
             builder.Register<NetworkReceivedChunkDataEvent>(Lifetime.Singleton);

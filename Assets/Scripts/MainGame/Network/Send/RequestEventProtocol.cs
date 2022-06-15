@@ -17,11 +17,11 @@ namespace MainGame.Network.Send
         private const short ProtocolId = 4;
 
         private readonly int _playerId;
-        private readonly ISocket _socket;
+        private readonly ISocketSender _socketSender;
 
-        public RequestEventProtocol(ISocket socket,PlayerConnectionSetting playerSettings)
+        public RequestEventProtocol(ISocketSender socketSender,PlayerConnectionSetting playerSettings)
         {
-            _socket = socket;
+            _socketSender = socketSender;
             _playerId = playerSettings.PlayerId;
         }
         
@@ -37,7 +37,7 @@ namespace MainGame.Network.Send
 
         private void Send(int playerId)
         {
-            _socket.Send(MessagePackSerializer.Serialize(new EventProtocolMessagePack(playerId)).ToList());
+            _socketSender.Send(MessagePackSerializer.Serialize(new EventProtocolMessagePack(playerId)).ToList());
         }
 
     }

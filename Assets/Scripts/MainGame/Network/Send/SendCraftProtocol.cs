@@ -10,31 +10,31 @@ namespace MainGame.Network.Send
     public class SendCraftProtocol
     {
         private const short ProtocolId = 14;
-        private readonly ISocket _socket;
+        private readonly ISocketSender _socketSender;
         private readonly int _playerId;
 
-        public SendCraftProtocol(ISocket socket,PlayerConnectionSetting playerConnection)
+        public SendCraftProtocol(ISocketSender socketSender,PlayerConnectionSetting playerConnection)
         {
             _playerId = playerConnection.PlayerId;
-            _socket = socket;
+            _socketSender = socketSender;
         }
         
         public void SendOneCraft()
         {
             //craft type id is 0
-            _socket.Send(MessagePackSerializer.Serialize(new CraftProtocolMessagePack(
+            _socketSender.Send(MessagePackSerializer.Serialize(new CraftProtocolMessagePack(
                 _playerId,0)).ToList());
         }
         public void SendAllCraft()
         {
             //craft type id is 1
-            _socket.Send(MessagePackSerializer.Serialize(new CraftProtocolMessagePack(
+            _socketSender.Send(MessagePackSerializer.Serialize(new CraftProtocolMessagePack(
                 _playerId,1)).ToList());
         }
         public void SendOneStackCraft()
         {
             //craft type id is 2
-            _socket.Send(MessagePackSerializer.Serialize(new CraftProtocolMessagePack(
+            _socketSender.Send(MessagePackSerializer.Serialize(new CraftProtocolMessagePack(
                 _playerId,2)).ToList());
         }
     }

@@ -9,16 +9,16 @@ namespace MainGame.Network.Send
     public class RequestBlockInventoryProtocol
     {
         private const short ProtocolId = 9;
-        private readonly ISocket _socket;
+        private readonly ISocketSender _socketSender;
 
-        public RequestBlockInventoryProtocol(ISocket socket)
+        public RequestBlockInventoryProtocol(ISocketSender socketSender)
         {
-            _socket = socket;
+            _socketSender = socketSender;
         }
 
         public void Send(int x, int y)
         {
-            _socket.Send(MessagePackSerializer.Serialize(new RequestBlockInventoryRequestProtocolMessagePack(
+            _socketSender.Send(MessagePackSerializer.Serialize(new RequestBlockInventoryRequestProtocolMessagePack(
                 x,y)).ToList());
         }
     }

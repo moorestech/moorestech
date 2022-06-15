@@ -11,12 +11,12 @@ namespace MainGame.Network.Send
     /// <summary>
     /// ソケットをDIコンテナで直接作ることはできないのでサーバー接続クラスで作ってセットしてもらう
     /// </summary>
-    public class SocketObject : ISocket
+    public class SocketSender : ISocketSender
     {
         private readonly Socket _socket;
         public event Action OnConnected;
         
-        public SocketObject(SocketInstanceCreate socketInstanceCreate)
+        public SocketSender(SocketInstanceCreate socketInstanceCreate)
         {
             _socket = socketInstanceCreate.SocketInstance;
             Task.Run(() =>

@@ -10,11 +10,11 @@ namespace MainGame.Network.Send
     {
         
         private const short ProtocolId = 17;
-        private readonly ISocket _socket;
+        private readonly ISocketSender _socketSender;
 
-        public SendSaveProtocol(ISocket socket)
+        public SendSaveProtocol(ISocketSender socketSender)
         {
-            _socket = socket;
+            _socketSender = socketSender;
         }
 
         public void Send()
@@ -23,7 +23,7 @@ namespace MainGame.Network.Send
             
             packet.AddRange(ToByteList.Convert(ProtocolId));
             
-            _socket.Send(MessagePackSerializer.Serialize(new SaveProtocolMessagePack()).ToList());
+            _socketSender.Send(MessagePackSerializer.Serialize(new SaveProtocolMessagePack()).ToList());
         }
     }
 }
