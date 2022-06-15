@@ -4,6 +4,6 @@ namespace MainGame.Network.Receive
 {
     public interface IAnalysisPacket
     {
-        public void Analysis(List<byte> data);
+        public void Analysis(List<byte> packet);
     }
 }

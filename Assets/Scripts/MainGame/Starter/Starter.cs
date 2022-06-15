@@ -5,6 +5,7 @@ using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
 using MainGame.Network;
 using MainGame.Network.Event;
+using MainGame.Network.Receive;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Settings;
@@ -121,6 +122,7 @@ namespace MainGame.Starter
             builder.Register<CraftingInventoryUpdateEvent>(Lifetime.Singleton);
             builder.Register<BlockInventoryUpdateEvent>(Lifetime.Singleton);
             builder.Register<GrabInventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<ReceiveInitialHandshakeProtocol>(Lifetime.Singleton); //初期接続時に受け取るプロトコル
             
             //パケット送信インスタンス
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
