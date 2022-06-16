@@ -27,6 +27,7 @@ using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.UI.UIState.UIObject;
+using MainGame.UnityView.Util;
 using MainGame.UnityView.WorldMapTile;
 using SinglePlay;
 using UnityEngine;
@@ -200,7 +201,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(itemRecipeView);
             
             builder.RegisterComponent(uIStateControl);
-            builder.RegisterComponent(loadingFinishDetector);
+            builder.RegisterComponent<IInitialViewLoadingDetector>(loadingFinishDetector);
             builder.RegisterComponent(playerInventoryObject);
             builder.RegisterComponent(blockInventoryObject);
             builder.RegisterComponent(pauseMenuObject);
