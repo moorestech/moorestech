@@ -15,6 +15,8 @@ namespace MainGame.Network.Receive
             
             var position = new Vector2(data.PlayerPos.X,data.PlayerPos.Y);
             
+            
+            //TODO メインスレッドで実行する
             OnFinishHandshake?.Invoke(position);
         }
     }

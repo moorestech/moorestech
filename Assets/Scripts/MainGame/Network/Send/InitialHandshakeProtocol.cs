@@ -4,10 +4,11 @@ using MainGame.Network.Settings;
 using MessagePack;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
+using VContainer.Unity;
 
 namespace MainGame.Network.Send
 {
-    public class InitialHandshakeProtocol
+    public class InitialHandshakeProtocol : IInitializable
     {
         private readonly ISocketSender _socketSender;
         private readonly int _playerId;
@@ -22,8 +23,11 @@ namespace MainGame.Network.Send
 
         private void OnConnected()
         {
+            Debug.Log("StartHandShake");
             _socketSender.Send(MessagePackSerializer.Serialize(new RequestInitialHandshakeMessagePack(
                 _playerId,"Player " + _playerId)).ToList());
         }
+
+        public void Initialize() { }
     }
 }
