@@ -14,6 +14,7 @@ using MainGame.Presenter.Command;
 using MainGame.Presenter.Inventory;
 using MainGame.Presenter.Inventory.Receive;
 using MainGame.Presenter.Inventory.Send;
+using MainGame.Presenter.Loading;
 using MainGame.Presenter.Player;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
@@ -81,6 +82,7 @@ namespace MainGame.Starter
         [SerializeField] private GrabbedItemImagePresenter grabbedItemImagePresenter;
 
         [SerializeField] private UIStateControl uIStateControl;
+        [SerializeField] private LoadingFinishDetector loadingFinishDetector;
         [SerializeField] private BlockInventoryObject blockInventoryObject;
         [SerializeField] private PlayerInventoryObject playerInventoryObject;
         [SerializeField] private PauseMenuObject pauseMenuObject;
@@ -198,6 +200,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(itemRecipeView);
             
             builder.RegisterComponent(uIStateControl);
+            builder.RegisterComponent(loadingFinishDetector);
             builder.RegisterComponent(playerInventoryObject);
             builder.RegisterComponent(blockInventoryObject);
             builder.RegisterComponent(pauseMenuObject);

@@ -743,6 +743,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   virtualCamera: {fileID: 837336584}
+--- !u!114 &981512584 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7373945955473739945, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb2469ed7f0241b5b5b984ccd93b513f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &1037224095 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1438684973846715379, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
@@ -884,6 +895,7 @@ MonoBehaviour:
   itemRecipeView: {fileID: 2090249934}
   grabbedItemImagePresenter: {fileID: 135985977}
   uIStateControl: {fileID: 1520253678}
+  loadingFinishDetector: {fileID: 981512584}
   blockInventoryObject: {fileID: 135985974}
   playerInventoryObject: {fileID: 135985973}
   pauseMenuObject: {fileID: 816961701}

@@ -8,14 +8,14 @@ namespace MainGame.Network.Receive
 {
     public class ReceiveInitialHandshakeProtocol: IAnalysisPacket
     { 
-        public event Action<Vector2> OnReceiveInitialHandshake;
+        public event Action<Vector2> OnFinishHandshake;
         public void Analysis(List<byte> packet)
         {
             var data = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(packet.ToArray());
             
             var position = new Vector2(data.PlayerPos.X,data.PlayerPos.Y);
             
-            OnReceiveInitialHandshake?.Invoke(position);
+            OnFinishHandshake?.Invoke(position);
         }
     }
 }

@@ -9,5 +9,12 @@ namespace MainGame.UnityView.Game
             var position = transform.position;
             return new Vector2(position.x, position.z);
         }
+
+        public void SetPlayerPosition(Vector2 vector2)
+        {
+            //サーバー側は2次元なのでx,yだ、unityはy upなのでzにyを入れる
+            var pos = new Vector3(vector2.x, transform.position.y, vector2.y);
+            transform.position = pos;
+        }
     }
 }
