@@ -22,7 +22,13 @@ namespace MainGame.UnityView.UI.Inventory.Element
             LoadTexture(modDirectory,singlePlayInterface,initialViewLoadingDetector).Forget();
         }
 
+#pragma warning disable CS1998
+        /// <summary>
+        /// テクスチャのロードは非同期で行いたいのでUniTaskをつける
+        /// TODO pragma warning disable CS1998　を消す
+        /// </summary>
         private async UniTask LoadTexture(ModDirectory modDirectory,SinglePlayInterface singlePlayInterface,IInitialViewLoadingDetector initialViewLoadingDetector)
+#pragma warning restore CS1998
         {
             var textures = ItemTextureLoader.GetItemTexture(modDirectory.Directory,singlePlayInterface);
             foreach (var texture in textures)

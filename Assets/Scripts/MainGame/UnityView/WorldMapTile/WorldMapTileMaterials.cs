@@ -20,7 +20,9 @@ namespace MainGame.UnityView.WorldMapTile
             LoadMaterial(modDirectory,singlePlayInterface,initialViewLoadingDetector).Forget();
         }
 
+#pragma warning disable CS1998
         private async UniTask LoadMaterial(ModDirectory modDirectory,
+#pragma warning restore CS1998
             SinglePlayInterface singlePlayInterface,IInitialViewLoadingDetector initialViewLoadingDetector)
         {
             _materials = WorldMapTileTextureLoader.GetMapTileMaterial(modDirectory.Directory,singlePlayInterface,_worldMapTileObject.BaseMaterial);
