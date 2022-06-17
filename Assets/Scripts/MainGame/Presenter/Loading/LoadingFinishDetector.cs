@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MainGame.Network.Receive;
 using MainGame.UnityView.Game;
 using MainGame.UnityView.Util;
@@ -51,9 +52,14 @@ namespace MainGame.Presenter.Loading
             if (Enum.GetNames(typeof(LoadingElement)).Length == _loadingElements.Count)
             {
                 //ロード完了　ここの処理が増えたらイベント化を検討する
-                loadingUI.SetActive(false);
+                FinishLoading().Forget();
             }
+        }
 
+        private async UniTask FinishLoading()
+        {
+            await UniTask.Delay(1000);
+            loadingUI.SetActive(false);
         }
     }
 
