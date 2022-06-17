@@ -23,7 +23,6 @@ namespace MainGame.Network.Send
 
         private void OnConnected()
         {
-            Debug.Log("StartHandShake");
             _socketSender.Send(MessagePackSerializer.Serialize(new RequestInitialHandshakeMessagePack(
                 _playerId,"Player " + _playerId)).ToList());
         }
