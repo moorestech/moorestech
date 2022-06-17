@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Texture;
@@ -18,13 +19,19 @@ namespace MainGame.UnityView.UI.Inventory.Element
         {
             _nothingIndexItemImage = new ItemViewData(null,"Item not found");
             _itemImageList.Add(_emptyItemImage);
+            LoadTexture(modDirectory,singlePlayInterface,initialViewLoadingDetector).Forget();
+        }
+
+        private async UniTask LoadTexture(ModDirectory modDirectory,SinglePlayInterface singlePlayInterface,IInitialViewLoadingDetector initialViewLoadingDetector)
+        {
             
-            var textures = ItemTextureLoader.GetItemTexture(modDirectory.Directory,singlePlayInterface);
+            var textures = await ItemTextureLoader.GetItemTexture(modDirectory.Directory,singlePlayInterface);
             foreach (var texture in textures)
             {
                 _itemImageList.Add(new ItemViewData(texture.texture2D.ToSprite(),texture.name));
             }
             initialViewLoadingDetector.FinishItemTextureLoading();
+            
         }
 
 

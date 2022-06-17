@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using GameConst;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Texture;
@@ -13,10 +14,11 @@ namespace Test
     {
         [SerializeField] private List<Texture2D> textures;
 
-        private void Start()
+        private async void Start()
         {
-            textures = ItemTextureLoader.GetItemTexture(ServerConst.ServerModsDirectory,new SinglePlayInterface(ServerConst.ServerModsDirectory))
-                .Select(i => i.texture2D).ToList();
+            var loadTextureList = await ItemTextureLoader.GetItemTexture(ServerConst.ServerModsDirectory,
+                new SinglePlayInterface(ServerConst.ServerModsDirectory));
+            textures = loadTextureList.Select(i => i.texture2D).ToList();
         }
     }
 }

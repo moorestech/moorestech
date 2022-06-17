@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Texture;
 using MainGame.UnityView.Util;
@@ -10,15 +11,22 @@ namespace MainGame.UnityView.WorldMapTile
     public class WorldMapTileMaterials
     {
         private readonly WorldMapTileObject _worldMapTileObject;
-        private readonly List<Material> _materials;
+        private List<Material> _materials;
 
         public WorldMapTileMaterials(WorldMapTileObject worldMapTileObject,ModDirectory modDirectory,
             SinglePlayInterface singlePlayInterface,IInitialViewLoadingDetector initialViewLoadingDetector)
         {
             _worldMapTileObject = worldMapTileObject;
-            _materials = WorldMapTileTextureLoader.GetMapTileMaterial(modDirectory.Directory,singlePlayInterface,_worldMapTileObject.BaseMaterial);
+            LoadMaterial(modDirectory,singlePlayInterface,initialViewLoadingDetector).Forget();
+        }
+
+        private async UniTask LoadMaterial(ModDirectory modDirectory,
+            SinglePlayInterface singlePlayInterface,IInitialViewLoadingDetector initialViewLoadingDetector)
+        {
+            _materials = await WorldMapTileTextureLoader.GetMapTileMaterial(modDirectory.Directory,singlePlayInterface,_worldMapTileObject.BaseMaterial);
             initialViewLoadingDetector.FinishMapTileTextureLoading();
         }
+        
 
         public Material GetMaterial(int index)
         {
