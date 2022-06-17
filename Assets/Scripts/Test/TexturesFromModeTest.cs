@@ -21,12 +21,20 @@ namespace Test
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             
-            var loadTextureList = await ItemTextureLoader.GetItemTexture(ServerConst.ServerModsDirectory,
-                new SinglePlayInterface(ServerConst.ServerModsDirectory));
+            var singlePlay = new SinglePlayInterface(ServerConst.ServerModsDirectory);
+            Debug.Log("シングルプレイインターフェース作成 " + stopwatch.Elapsed);
+
+            var loadTextureList = ItemTextureLoader.GetItemTexture(ServerConst.ServerModsDirectory, singlePlay);
+            
+            Debug.Log("テクスチャロード時間 " + stopwatch.Elapsed);
+
+
             textures = loadTextureList.Select(i => i.texture2D).ToList();
             
+            
             stopwatch.Stop();
-            Debug.Log("テクスチャロード時間 " + stopwatch.Elapsed);
+            Debug.Log("最終テクスチャロード時間 " + stopwatch.Elapsed);
         }
+
     }
 }

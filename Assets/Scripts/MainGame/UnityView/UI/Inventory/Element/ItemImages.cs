@@ -24,8 +24,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
 
         private async UniTask LoadTexture(ModDirectory modDirectory,SinglePlayInterface singlePlayInterface,IInitialViewLoadingDetector initialViewLoadingDetector)
         {
-            
-            var textures = await ItemTextureLoader.GetItemTexture(modDirectory.Directory,singlePlayInterface);
+            var textures = ItemTextureLoader.GetItemTexture(modDirectory.Directory,singlePlayInterface);
             foreach (var texture in textures)
             {
                 _itemImageList.Add(new ItemViewData(texture.texture2D.ToSprite(),texture.name));

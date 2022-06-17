@@ -23,7 +23,7 @@ namespace MainGame.UnityView.WorldMapTile
         private async UniTask LoadMaterial(ModDirectory modDirectory,
             SinglePlayInterface singlePlayInterface,IInitialViewLoadingDetector initialViewLoadingDetector)
         {
-            _materials = await WorldMapTileTextureLoader.GetMapTileMaterial(modDirectory.Directory,singlePlayInterface,_worldMapTileObject.BaseMaterial);
+            _materials = WorldMapTileTextureLoader.GetMapTileMaterial(modDirectory.Directory,singlePlayInterface,_worldMapTileObject.BaseMaterial);
             initialViewLoadingDetector.FinishMapTileTextureLoading();
         }
         
