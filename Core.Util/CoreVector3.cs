@@ -6,7 +6,7 @@ namespace Core.Util
         public float Y;
         public float Z;
 
-        public CoreVector3(float x, float y, float z)
+        public CoreVector3(float x = 0, float y = 0, float z = 0)
         {
             X = x;
             Y = y;
