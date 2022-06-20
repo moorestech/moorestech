@@ -16,7 +16,7 @@ namespace Test
     {
         [SerializeField] private List<Texture2D> textures;
 
-        private async void Start()
+        private void Start()
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();

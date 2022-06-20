@@ -1,8 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Texture;
-using MainGame.UnityView.Util;
 using SinglePlay;
 using UnityEngine;
 
@@ -10,23 +10,25 @@ namespace MainGame.UnityView.WorldMapTile
 {
     public class WorldMapTileMaterials
     {
+        public event Action OnLoadFinished;
+        
         private readonly WorldMapTileObject _worldMapTileObject;
         private List<Material> _materials;
 
         public WorldMapTileMaterials(WorldMapTileObject worldMapTileObject,ModDirectory modDirectory,
-            SinglePlayInterface singlePlayInterface,IInitialViewLoadingDetector initialViewLoadingDetector)
+            SinglePlayInterface singlePlayInterface)
         {
             _worldMapTileObject = worldMapTileObject;
-            LoadMaterial(modDirectory,singlePlayInterface,initialViewLoadingDetector).Forget();
+            LoadMaterial(modDirectory,singlePlayInterface).Forget();
         }
 
-#pragma warning disable CS1998
-        private async UniTask LoadMaterial(ModDirectory modDirectory,
-#pragma warning restore CS1998
-            SinglePlayInterface singlePlayInterface,IInitialViewLoadingDetector initialViewLoadingDetector)
+        private async UniTask LoadMaterial(ModDirectory modDirectory, SinglePlayInterface singlePlayInterface)
         {
+            //await BlockGlbLoader.GetBlockLoaderは同期処理になっているため、ここで1フレーム待って他のイベントが追加されるのを待つ
+            await UniTask.WaitForFixedUpdate();
+            
             _materials = WorldMapTileTextureLoader.GetMapTileMaterial(modDirectory.Directory,singlePlayInterface,_worldMapTileObject.BaseMaterial);
-            initialViewLoadingDetector.FinishMapTileTextureLoading();
+            OnLoadFinished?.Invoke();
         }
         
 

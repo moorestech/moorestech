@@ -17,21 +17,15 @@ namespace MainGame.Network.Receive
             
             var position = new Vector2(data.PlayerPos.X,data.PlayerPos.Y);
 
-            
-            Debug.Log("ハンドシェイク1　ThreadId " + Thread.CurrentThread.ManagedThreadId);
             InvokeOnFinishHandshakeAsync(position).Forget();
-            Debug.Log("ハンドシェイク2　ThreadId " + Thread.CurrentThread.ManagedThreadId);
             
         }
         
       
         private async UniTask InvokeOnFinishHandshakeAsync(Vector2 position)
         {
-            Debug.Log("ハンドシェイク3　ThreadId " + Thread.CurrentThread.ManagedThreadId);
             await UniTask.SwitchToMainThread();
             OnFinishHandshake?.Invoke(position);
-            
-            Debug.Log("ハンドシェイク4　ThreadId " + Thread.CurrentThread.ManagedThreadId);
         }
     }
 }

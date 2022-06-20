@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Cysharp.Threading.Tasks;
 using MainGame.Network.Receive;
+using MainGame.UnityView.Block;
 using MainGame.UnityView.Game;
-using MainGame.UnityView.Util;
+using MainGame.UnityView.UI.Inventory.Element;
+using MainGame.UnityView.WorldMapTile;
 using TMPro;
 using UnityEngine;
 using VContainer;
@@ -12,7 +14,7 @@ using Debug = UnityEngine.Debug;
 
 namespace MainGame.Presenter.Loading
 {
-    public class LoadingFinishDetector : MonoBehaviour,IInitialViewLoadingDetector
+    public class LoadingFinishDetector : MonoBehaviour
     {
         [SerializeField] private GameObject loadingUI;
         [SerializeField] private TMP_Text loadingLog;
@@ -21,11 +23,15 @@ namespace MainGame.Presenter.Loading
         private readonly Stopwatch _loadingStopwatch = new();
         
         [Inject]
-        public void Construct(ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol,IPlayerPosition playerPosition)
+        public void Construct(ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol,IPlayerPosition playerPosition,BlockObjects blockObjects,ItemImages itemImages,WorldMapTileMaterials worldMapTileMaterials)
         {
             _loadingStopwatch.Start();
             _playerPosition = playerPosition;
+            
             receiveInitialHandshakeProtocol.OnFinishHandshake += OnFinishHandshake;
+            blockObjects.OnLoadFinished += FinishBlockModelLoading;
+            itemImages.OnLoadFinished += FinishItemTextureLoading;
+            worldMapTileMaterials.OnLoadFinished += FinishMapTileTextureLoading;
         }
 
         private void OnFinishHandshake(Vector2 playerStartPosition)
@@ -35,19 +41,19 @@ namespace MainGame.Presenter.Loading
             CheckFinishLoading(LoadingElement.Handshake);
         }
 
-        public void FinishItemTextureLoading()
+        private void FinishItemTextureLoading()
         {
             loadingLog.text += $"\nアイテムテクスチャロード完了  {_loadingStopwatch.Elapsed}";
             CheckFinishLoading(LoadingElement.ItemTexture);
         }
 
-        public void FinishMapTileTextureLoading() 
+        private void FinishMapTileTextureLoading() 
         { 
             loadingLog.text += $"\nタイルテクスチャロード完了  {_loadingStopwatch.Elapsed}";
             CheckFinishLoading(LoadingElement.MapTileTexture); 
         }
 
-        public void FinishBlockModelLoading()
+        private void FinishBlockModelLoading()
         {
             loadingLog.text += $"\nブロッックモデルロード完了  {_loadingStopwatch.Elapsed}";
             CheckFinishLoading(LoadingElement.BlockModel);
@@ -56,7 +62,7 @@ namespace MainGame.Presenter.Loading
         
         
 
-        private List<LoadingElement> _loadingElements = new();
+        private readonly List<LoadingElement> _loadingElements = new();
         private void CheckFinishLoading(LoadingElement loadingElement)
         {
             var index = _loadingElements.IndexOf(loadingElement);
