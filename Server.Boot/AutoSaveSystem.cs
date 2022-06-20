@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Game.Save.Interface;
 
-namespace Server.StartServerSystem
+namespace Server.Boot
 {
     public class AutoSaveSystem
     {

@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Core.Update;
 using Game.Save.Interface;
 using Microsoft.Extensions.DependencyInjection;
-using Server.StartServerSystem.PacketHandle;
+using Server.Boot.PacketHandle;
 
-namespace Server.StartServerSystem
+namespace Server.Boot
 {
     public static class StartServer
     {

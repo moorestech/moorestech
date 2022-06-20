@@ -17,6 +17,7 @@ using Core.Update;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server.Boot;
 using Server.StartServerSystem;
 using Test.CombinedTest.Core.Generate;
 using Test.Module;

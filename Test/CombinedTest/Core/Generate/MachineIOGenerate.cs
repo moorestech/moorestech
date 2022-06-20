@@ -7,6 +7,7 @@ using Core.Item;
 using Core.Item.Config;
 using Core.Item.Util;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Boot;
 using Server.StartServerSystem;
 using Test.Module.TestConfig;
 using Test.Module.TestMod;

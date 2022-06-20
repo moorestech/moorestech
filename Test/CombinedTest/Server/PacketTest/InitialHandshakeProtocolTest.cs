@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MessagePack;
 using NUnit.Framework;
+using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Test.Module.TestMod;

@@ -20,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
 using PlayerInventory.Event;
+using Server.Boot;
 using Server.StartServerSystem;
 using Test.Module.TestConfig;
 using Test.Module.TestMod;

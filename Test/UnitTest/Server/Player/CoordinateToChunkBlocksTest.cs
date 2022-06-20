@@ -12,6 +12,7 @@ using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Boot;
 using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Player;
 using Server.StartServerSystem;

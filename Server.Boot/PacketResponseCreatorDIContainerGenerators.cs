@@ -39,7 +39,7 @@ using World.DataStore;
 using World.Event;
 using World.Service;
 
-namespace Server.StartServerSystem
+namespace Server.Boot
 {
     public class PacketResponseCreatorDiContainerGenerators
     {

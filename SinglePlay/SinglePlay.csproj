@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Server.StartServerSystem\Server.StartServerSystem.csproj" />
+      <ProjectReference Include="..\Server.Boot\Server.Boot.csproj" />
     </ItemGroup>
 
 </Project>

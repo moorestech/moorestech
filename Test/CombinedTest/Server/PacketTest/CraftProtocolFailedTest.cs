@@ -7,6 +7,7 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
+using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Server.StartServerSystem;
 using Server.Util;
