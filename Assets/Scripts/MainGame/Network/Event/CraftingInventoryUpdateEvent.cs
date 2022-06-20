@@ -1,31 +1,35 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 
 namespace MainGame.Network.Event
 {
     public class CraftingInventoryUpdateEvent
     {
-        
-        private SynchronizationContext _mainThread;
-        
-        public CraftingInventoryUpdateEvent()
-        {
-            //Unityではメインスレッドでしか実行できないのでメインスレッドを保存しておく
-            _mainThread = SynchronizationContext.Current;
-        }
         public event Action<CraftingInventoryUpdateProperties> OnCraftingInventoryUpdate;
         public event Action<CraftingInventorySlotUpdateProperties> OnCraftingInventorySlotUpdate;
 
         internal void InvokeCraftingInventorySlotUpdate(CraftingInventorySlotUpdateProperties properties)
         {
-            _mainThread.Post(_ => OnCraftingInventorySlotUpdate?.Invoke(properties), null);
+            InvokeCraftingInventorySlotUpdateAsync(properties).Forget();
         }
+        private async UniTask InvokeCraftingInventorySlotUpdateAsync(CraftingInventorySlotUpdateProperties properties)
+        {
+            await UniTask.SwitchToMainThread();
+            OnCraftingInventorySlotUpdate?.Invoke(properties);
+        }
+        
+        
 
         internal void InvokeCraftingInventoryUpdate(CraftingInventoryUpdateProperties properties)
         {
-            _mainThread.Post(_ => OnCraftingInventoryUpdate?.Invoke(properties), null);
+            InvokeCraftingInventoryUpdateAsync(properties).Forget();
+        }
+        private async UniTask InvokeCraftingInventoryUpdateAsync(CraftingInventoryUpdateProperties properties)
+        {
+            await UniTask.SwitchToMainThread();
+            OnCraftingInventoryUpdate?.Invoke(properties);
         }
     }
     

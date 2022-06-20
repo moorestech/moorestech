@@ -1,32 +1,38 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 
 namespace MainGame.Network.Event
 {
     public class MainInventoryUpdateEvent
     {
-        private SynchronizationContext _mainThread;
-        
-        public MainInventoryUpdateEvent()
-        {
-            _mainThread = SynchronizationContext.Current;
-        }
-        
-        
         public event Action<MainInventoryUpdateProperties> OnMainInventoryUpdateEvent;
         public event Action<MainInventorySlotUpdateProperties> OnMainInventorySlotUpdateEvent;
 
 
         internal void InvokeMainInventoryUpdate(MainInventoryUpdateProperties properties)
         {
-            _mainThread.Post(_ => OnMainInventoryUpdateEvent?.Invoke(properties), null);
+            InvokeMainInventoryUpdateAsync(properties).Forget();
         }
+        private async UniTask InvokeMainInventoryUpdateAsync(MainInventoryUpdateProperties properties)
+        {
+            await UniTask.SwitchToMainThread();
+            OnMainInventoryUpdateEvent?.Invoke(properties);
+        }
+        
+        
+        
 
         internal void InvokeMainInventorySlotUpdate(MainInventorySlotUpdateProperties properties)
         {
-            _mainThread.Post(_ => OnMainInventorySlotUpdateEvent?.Invoke(properties), null);
+            InvokeMainInventorySlotUpdateAsync(properties).Forget();
+        }
+        private async UniTask InvokeMainInventorySlotUpdateAsync(MainInventorySlotUpdateProperties properties)
+        {
+            await UniTask.SwitchToMainThread();
+            OnMainInventorySlotUpdateEvent?.Invoke(properties);
         }
     }
     

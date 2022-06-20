@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using UnityEngine;
 
@@ -7,24 +8,28 @@ namespace MainGame.Network.Event
 {
     public class NetworkReceivedChunkDataEvent
     {
-        private SynchronizationContext _mainThread;
-        
-        public NetworkReceivedChunkDataEvent()
-        {
-            //Unityではメインスレッドでしか実行できないのでメインスレッドを保存しておく
-            _mainThread = SynchronizationContext.Current;
-        }
-        
         public event Action<ChunkUpdateEventProperties> OnChunkUpdateEvent;
         public event Action<BlockUpdateEventProperties> OnBlockUpdateEvent;
 
-        public void InvokeChunkUpdateEvent(ChunkUpdateEventProperties properties)
+        internal void InvokeChunkUpdateEvent(ChunkUpdateEventProperties properties)
         {
-            _mainThread.Post(_ => OnChunkUpdateEvent?.Invoke(properties), null);
+            InvokeChunkUpdateEventAsync(properties).Forget();
         }
-        public void InvokeBlockUpdateEvent(BlockUpdateEventProperties properties)
+        private async UniTask InvokeChunkUpdateEventAsync(ChunkUpdateEventProperties properties)
         {
-            _mainThread.Post(_ => OnBlockUpdateEvent?.Invoke(properties), null);
+            await UniTask.SwitchToMainThread();
+            OnChunkUpdateEvent?.Invoke(properties);
+        }
+        
+        
+        internal void InvokeBlockUpdateEvent(BlockUpdateEventProperties properties)
+        {
+            InvokeBlockUpdateEventAsync(properties).Forget();
+        }
+        private async UniTask InvokeBlockUpdateEventAsync(BlockUpdateEventProperties properties)
+        {
+            await UniTask.SwitchToMainThread();
+            OnBlockUpdateEvent?.Invoke(properties);
         }
 
     }

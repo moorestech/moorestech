@@ -1,35 +1,38 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using UnityEngine;
 
 namespace MainGame.Network.Event
 {
-    
     public class BlockInventoryUpdateEvent 
     {
-        private SynchronizationContext _mainThread;
-        
-        public BlockInventoryUpdateEvent()
-        {
-            //Unityではメインスレッドでしか実行できないのでメインスレッドを保存しておく
-            _mainThread = SynchronizationContext.Current;
-        }
-        
-        
         public event Action<BlockInventorySlotUpdateProperties> OnBlockInventorySlotUpdate;
         public event Action<SettingBlockInventoryProperties> OnSettingBlockInventory;
 
         internal void InvokeSettingBlock(List<ItemStack> items,int blockId)
         {
-            _mainThread.Post(_ => OnSettingBlockInventory?.Invoke(new SettingBlockInventoryProperties(items, blockId)), null);
+            InvokeSettingBlockAsync(items,blockId).Forget();
         }
+        private async UniTask InvokeSettingBlockAsync(List<ItemStack> items,int blockId)
+        {
+            await UniTask.SwitchToMainThread();
+            OnSettingBlockInventory?.Invoke(new SettingBlockInventoryProperties(items, blockId));
+        }
+        
+        
+        
 
         internal void InvokeBlockInventorySlotUpdate(Vector2Int pos, int slot, int id, int count)
         {
-            _mainThread.Post(_ => OnBlockInventorySlotUpdate?.Invoke(new BlockInventorySlotUpdateProperties(pos, slot, id, count)), null);
-            
+            InvokeBlockInventorySlotUpdateAsync(new BlockInventorySlotUpdateProperties(pos, slot, id, count)).Forget();
+        }
+        private async UniTask InvokeBlockInventorySlotUpdateAsync(BlockInventorySlotUpdateProperties properties)
+        {
+            await UniTask.SwitchToMainThread();
+            OnBlockInventorySlotUpdate?.Invoke(properties);
         }
     }
 
