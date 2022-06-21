@@ -7,7 +7,8 @@ using Core.Ore;
 using Game.Crafting.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Server;
-using Server.StartServerSystem;
+using Server.Boot;
+
 
 namespace SinglePlay
 {

@@ -88,19 +88,19 @@ namespace Core.Block.Config.LoadConfig
                 if (modelTransformJson.pos != null)
                 {
                     var pos = modelTransformJson.pos;
-                    posVector3 = new CoreVector3(pos[0], pos[1], pos[2]);
+                    posVector3 = new CoreVector3((float)pos[0], (float)pos[1],(float) pos[2]);
                 }
                 
                 
                 if (modelTransformJson.rot != null)
                 {
                     var rot = modelTransformJson.rot;
-                    rotVector3 = new CoreVector3(rot[0], rot[1], rot[2]);
+                    rotVector3 = new CoreVector3((float)rot[0],(float) rot[1], (float)rot[2]);
                 }
                 if (modelTransformJson.scale != null)
                 {
                     var scale = modelTransformJson.scale;
-                    scaleVector3 = new CoreVector3(scale[0], scale[1], scale[2]);
+                    scaleVector3 = new CoreVector3((float)scale[0], (float)scale[1], (float)scale[2]);
                 }
                 
                 modelTransform = new ModelTransform(posVector3, rotVector3, scaleVector3);
