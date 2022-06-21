@@ -21,7 +21,7 @@ using NUnit.Framework;
 using PlayerInventory;
 using PlayerInventory.Event;
 using Server.Boot;
-using Server.StartServerSystem;
+
 using Test.Module.TestConfig;
 using Test.Module.TestMod;
 using World.DataStore;
