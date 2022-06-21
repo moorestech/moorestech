@@ -1,6 +1,6 @@
 namespace Game.Quest
 {
-    public class Quest
+    public class QuestDatastore
     {
         
     }
