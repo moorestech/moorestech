@@ -11,7 +11,8 @@
         "VRMShaders.VRM.IO.Runtime",
         "VRMShaders.VRM10.Format.Runtime",
         "VRMShaders.VRM10.MToon10.Runtime",
-        "UniTask"
+        "UniTask",
+        "Constant"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

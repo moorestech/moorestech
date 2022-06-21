@@ -2,7 +2,9 @@
 using System.Linq;
 using Core.Block.Config.LoadConfig;
 using Cysharp.Threading.Tasks;
+using MainGame.Basic.Util;
 using Mod.Loader;
+using Server.Event;
 using SinglePlay;
 using UnityEngine;
 
@@ -11,6 +13,9 @@ namespace MainGame.ModLoader.Glb
     public class BlockGlbLoader
     {
         private const string BlockDirectory = "assets/block/";
+        private const string UrpMaterialPath = "URPLit";
+        
+        
         public static async UniTask<List<BlockData>> GetBlockLoader(string modDirectory,SinglePlayInterface singlePlayInterface)
         {
             var blocks = new List<BlockData>();
@@ -47,11 +52,26 @@ namespace MainGame.ModLoader.Glb
                 
                 blockPrefabsParent.SetActive(false);
                 gameObject.transform.SetParent(blockPrefabsParent.transform);
-                
+                ChangeStandardToUrpMaterial(gameObject);
+
                 blocks.Add(new BlockData(gameObject.AddComponent<BlockGameObject>(),config.Name));
             }
 
             return blocks;
+        }
+
+        private static readonly Material urpMaterial = (Material)Resources.Load(UrpMaterialPath);
+        private static void ChangeStandardToUrpMaterial(GameObject gameObject)
+        {        
+            Debug.Log("Shader " + urpMaterial.name);
+            foreach (var meshRenderer in gameObject.GetComponentsInChildren<MeshRenderer>())
+            {
+                for (int i = 0; i < meshRenderer.materials.Length; i++)
+                {
+                    meshRenderer.sharedMaterials[i] = meshRenderer.materials[i].CopyMaterial(urpMaterial);
+                    Debug.Log("SharedMaterial:" + meshRenderer.sharedMaterials[i].shader.name);
+                }
+            }
         }
     }
     
