@@ -8,7 +8,7 @@ namespace MainGame.Basic.Util
         private static readonly Material urpMaterial = (Material)Resources.Load("URPLit");
         private static readonly Dictionary<string,string> standardToUrpColor = new() {{"_Color","_BaseColor"},{"_EmissionColor","_EmissionColor"}};
         private static readonly Dictionary<string,string> standardToUrpTexture = new() {{"_MainTex","_BaseMap"}, {"_BumpMap","_BumpMap"},{"_MetallicGlossMap","_MetallicGlossMap"},{"_ParallaxMap","_ParallaxMap"},{"_OcclusionMap","_OcclusionMap"} };
-        private static readonly Dictionary<string, string> standardToFloat = new() {{"_Metallic","_Metallic"},{"_Smoothness","_Smoothness"}};
+        private static readonly Dictionary<string, string> standardToFloat = new() {{"_Metallic","_Metallic"},{"_Glossiness","_Smoothness"}};
 
         public static Material StandardToUrpLit(this Material material)
         {
