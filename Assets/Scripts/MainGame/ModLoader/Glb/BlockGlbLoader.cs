@@ -50,6 +50,7 @@ namespace MainGame.ModLoader.Glb
                 }
                 
                 gameObject.SetActive(false);
+                gameObject.name = $"{mod.ModMetaJson.ModId} : {config.Name}";
                 gameObject.transform.SetParent(blockPrefabsParent.transform);
                 ChangeStandardToUrpMaterial(gameObject);
 
