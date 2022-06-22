@@ -28,35 +28,35 @@ namespace MainGame.ModLoader.Glb
                 var blockIds = singlePlayInterface.BlockConfig.GetBlockIds(mod.Value.ModMetaJson.ModId);
                 var blockConfigs = blockIds.Select(singlePlayInterface.BlockConfig.GetBlockConfig).ToList();
 
-                blocks.AddRange(await GetBlocks(blockConfigs,mod.Value,blockPrefabsParent));
+                blocks.AddRange(await GetBlocks(blockConfigs,mod.Value,blockPrefabsParent.transform));
             }
             
             
             return blocks;
         }
 
-        private static async UniTask<List<BlockData>> GetBlocks(List<BlockConfigData> blockConfigs, global::Mod.Loader.Mod mod,GameObject blockPrefabsParent)
+        private static async UniTask<List<BlockData>> GetBlocks(List<BlockConfigData> blockConfigs, global::Mod.Loader.Mod mod,Transform blockPrefabsParent)
         {
             var blocks = new List<BlockData>();
             
             
             foreach (var config in blockConfigs)
             {
-                //GameObjectの取得
+                //glbからモデルのロード
                 var gameObject = await GlbLoader.Load(mod.ExtractedPath, BlockDirectory + config.Name + ".glb");
                 if (gameObject == null)
                 {
                     Debug.LogWarning("GlbFile Not Found  ModId:" + mod.ModMetaJson.ModId + " BlockName:" + config.Name);
                     continue;
                 }
-
-                blocks.Add(new BlockData(,config.Name));
+                
+                blocks.Add(new BlockData(SetUpObject(gameObject,blockPrefabsParent, config, mod),config.Name));
             }
 
             return blocks;
         }
 
-        private static BlockData SetUpObject(GameObject blockModel,Transform blockPrefabParent,BlockConfigData config,global::Mod.Loader.Mod mod)
+        private static BlockGameObject SetUpObject(GameObject blockModel,Transform blockPrefabsParent,BlockConfigData config,global::Mod.Loader.Mod mod)
         {
             blockModel.name = "model";
             //ブロックモデルの位置をリセットしてから親の設定
@@ -76,7 +76,19 @@ namespace MainGame.ModLoader.Glb
             
             //コンポーネントの設定
             var blockObj = blockParent.AddComponent<BlockGameObject>();
+            //子要素のコンポーネントの設定
+            foreach (var mesh in blockObj.GetComponentsInChildren<MeshRenderer>())
+            {
+                mesh.gameObject.AddComponent<BlockGameObjectChild>().Init(blockObj);
+                mesh.gameObject.AddComponent<MeshCollider>();
+            }
+
+            //ヒエラルキーが散らばらないようにオブジェクトを設定
+            blockObj.gameObject.transform.SetParent(blockPrefabsParent);
             
+            blockObj.gameObject.SetActive(false);
+            
+            return blockObj;
         }
 
         private static void ChangeStandardToUrpMaterial(GameObject gameObject)

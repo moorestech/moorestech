@@ -21,6 +21,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
         
         public bool IsBlockClicked()
         {
+            //TODO trygatevalueにする
             var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
 
