@@ -6,6 +6,7 @@ using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
 using SinglePlay;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MainGame.UnityView.Block
 {
@@ -30,14 +31,16 @@ namespace MainGame.UnityView.Block
             OnLoadFinished?.Invoke();
         }
 
-        public BlockGameObject GetBlock(int index)
+        public BlockGameObject CreateBlock(int index)
         {
             if (_blockObjectList.Count <= index)
             {
-                return _nothingIndexBlockObject;
+                return Object.Instantiate(_nothingIndexBlockObject);
             }
 
-            return _blockObjectList[index].BlockObject;
+            var block = Object.Instantiate(_blockObjectList[index].BlockObject);
+            block.gameObject.SetActive(true);
+            return block;
         }
         public string GetName(int index)
         {
