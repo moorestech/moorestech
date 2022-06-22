@@ -42,22 +42,41 @@ namespace MainGame.ModLoader.Glb
             
             foreach (var config in blockConfigs)
             {
+                //GameObjectの取得
                 var gameObject = await GlbLoader.Load(mod.ExtractedPath, BlockDirectory + config.Name + ".glb");
                 if (gameObject == null)
                 {
                     Debug.LogWarning("GlbFile Not Found  ModId:" + mod.ModMetaJson.ModId + " BlockName:" + config.Name);
                     continue;
                 }
-                
-                gameObject.SetActive(false);
-                gameObject.name = $"{mod.ModMetaJson.ModId} : {config.Name}";
-                gameObject.transform.SetParent(blockPrefabsParent.transform);
-                ChangeStandardToUrpMaterial(gameObject);
 
-                blocks.Add(new BlockData(gameObject.AddComponent<BlockGameObject>(),config.Name));
+                blocks.Add(new BlockData(,config.Name));
             }
 
             return blocks;
+        }
+
+        private static BlockData SetUpObject(GameObject blockModel,Transform blockPrefabParent,BlockConfigData config,global::Mod.Loader.Mod mod)
+        {
+            blockModel.name = "model";
+            //ブロックモデルの位置をリセットしてから親の設定
+            blockModel.transform.position = Vector3.zero;
+            blockModel.transform.localScale = Vector3.one;
+            blockModel.transform.rotation = Quaternion.Euler(Vector3.zero);
+            var blockParent = new GameObject($"{mod.ModMetaJson.ModId} : {config.Name}");
+            blockModel.transform.SetParent(blockParent.transform);
+            
+            //コンフィグにあるモデルのサイズを適応
+            blockModel.transform.localPosition = config.ModelTransform.Position.ToUniVector3();
+            blockModel.transform.localRotation = config.ModelTransform.Rotation.ToQuotation();
+            blockModel.transform.localScale = config.ModelTransform.Scale.ToUniVector3();
+            
+            //マテリアルをURPに変更
+            ChangeStandardToUrpMaterial(blockModel);
+            
+            //コンポーネントの設定
+            var blockObj = blockParent.AddComponent<BlockGameObject>();
+            
         }
 
         private static void ChangeStandardToUrpMaterial(GameObject gameObject)
