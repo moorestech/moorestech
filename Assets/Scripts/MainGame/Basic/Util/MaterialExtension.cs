@@ -1,14 +1,24 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace MainGame.Basic.Util
 {
     public static class MaterialExtension
     {
-        public static Material CopyMaterial(this Material material, Material shader)
+        private static readonly Material urpMaterial = (Material)Resources.Load("URPLit");
+        private static List<string> standardToUrpColor = new() { };
+        public static Material StandardToUrpLit(this Material material)
         {
-            var newMaterial = new Material(shader);
-            newMaterial.CopyPropertiesFromMaterial(material);
-            newMaterial.shader = shader.shader;
+            if (material.shader.name != "Standard")
+            {
+                Debug.Log("このマテリアルはStandardではありません :" + material.name);
+                return null;
+            }
+            
+            var newMaterial = new Material(urpMaterial);
+            
+            newMaterial
+            
             return newMaterial;
         }
     }
