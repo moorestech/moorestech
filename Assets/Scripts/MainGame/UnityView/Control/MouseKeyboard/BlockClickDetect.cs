@@ -28,7 +28,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             // マウスでクリックした位置が地面なら
             if (!_input.Playable.ScreenClick.triggered) return false;
             if (!Physics.Raycast(ray, out var hit)) return false;
-            if (hit.collider.gameObject.GetComponent<BlockGameObject>() == null) return false;
+            if (hit.collider.gameObject.GetComponent<BlockGameObjectChild>() == null) return false;
 
             return true;
         }
@@ -40,10 +40,10 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             
             if (!_input.Playable.ScreenClick.triggered) return Vector2Int.zero;
             if (!Physics.Raycast(ray, out var hit)) return Vector2Int.zero;
-            if (hit.collider.gameObject.GetComponent<BlockGameObject>() == null) return Vector2Int.zero;
+            if (hit.collider.gameObject.GetComponent<BlockGameObjectChild>() == null) return Vector2Int.zero;
             
             
-            var blockPos = hit.collider.gameObject.GetComponent<BlockGameObject>().transform.position;
+            var blockPos = hit.collider.gameObject.GetComponent<BlockGameObjectChild>().BlockGameObject.transform.position;
             return new Vector2Int((int)blockPos.x,(int)blockPos.z);
         }
 
@@ -52,9 +52,9 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
             
-            if (Physics.Raycast(ray, out var hit) && hit.collider.gameObject.GetComponent<BlockGameObject>())
+            if (Physics.Raycast(ray, out var hit) && hit.collider.gameObject.GetComponent<BlockGameObjectChild>())
             {
-                return hit.collider.gameObject;
+                return hit.collider.gameObject.GetComponent<BlockGameObjectChild>().BlockGameObject.gameObject;
             }
             throw new Exception("クリックしたオブジェクトが見つかりませんでした");
         }
