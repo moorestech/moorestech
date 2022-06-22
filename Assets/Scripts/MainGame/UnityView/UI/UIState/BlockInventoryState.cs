@@ -7,6 +7,7 @@ using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.UI.CraftRecipe;
 using MainGame.UnityView.UI.UIState.UIObject;
 using SinglePlay;
+using UnityEngine;
 
 namespace MainGame.UnityView.UI.UIState
 {
@@ -21,7 +22,7 @@ namespace MainGame.UnityView.UI.UIState
         private readonly IBlockClickDetect _blockClickDetect;
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private readonly SinglePlayInterface _singlePlayInterface;
-        public event Action OnOpenBlockInventory;
+        public event Action<Vector2Int> OnOpenBlockInventory;
         public event Action OnCloseBlockInventory;
 
         public BlockInventoryState(MoorestechInputSettings inputSettings, BlockInventoryObject blockInventory,
@@ -59,7 +60,7 @@ namespace MainGame.UnityView.UI.UIState
 
         public void OnEnter(UIStateEnum lastStateEnum)
         {
-            OnOpenBlockInventory?.Invoke();
+            OnOpenBlockInventory?.Invoke(_blockClickDetect.GetClickPosition());
             
             _craftRecipeItemListViewer.gameObject.SetActive(true);
             _blockInventory.gameObject.SetActive(true);
