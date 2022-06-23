@@ -31,14 +31,17 @@ namespace MainGame.UnityView.Block
             OnLoadFinished?.Invoke();
         }
 
-        public BlockGameObject CreateBlock(int index)
+        public BlockGameObject CreateBlock(int blockId)
         {
-            if (_blockObjectList.Count <= index)
+            //block idは1から始まるのでマイナス１する
+            blockId--;
+            if (blockId < 0 || _blockObjectList.Count <= blockId)
             {
+                Debug.LogWarning("Not Id " + blockId);
                 return Object.Instantiate(_nothingIndexBlockObject);
             }
 
-            var block = Object.Instantiate(_blockObjectList[index].BlockObject);
+            var block = Object.Instantiate(_blockObjectList[blockId].BlockObject);
             block.gameObject.SetActive(true);
             return block;
         }
