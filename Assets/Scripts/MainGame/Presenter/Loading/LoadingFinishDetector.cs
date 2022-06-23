@@ -40,7 +40,7 @@ namespace MainGame.Presenter.Loading
             
             //プレイヤーのオブジェクトにポジションをセットする
             //この関数自体はawait UniTask.SwitchToMainThread(); のあと呼ばれているが、
-            //プレイヤーに座標をセットしああとThirdPersonControllerによる謎の「戻し」が発生する
+            //プレイヤーに座標をセットした後ThirdPersonControllerによる謎の「戻し」が発生する
             //そのため、あらかじめオフにしていたプレイヤーを、座標を設定した後オンにして一旦解決とする
             _playerPosition.SetPlayerPosition(playerStartPosition);
             _playerPosition.SetActive(true);

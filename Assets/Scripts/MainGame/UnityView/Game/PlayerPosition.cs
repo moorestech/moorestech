@@ -11,6 +11,11 @@ namespace MainGame.UnityView.Game
             return new Vector2(position.x, position.z);
         }
 
+        /// <summary>
+        /// アップデートのタイミングによってはThirdPersonController.csによる戻しが発生する可能性がある
+        /// セットしても位置が変わらなかった時はThirdPersonController.csをオフにして位置がセットできているか試してください
+        /// </summary>
+        /// <param name="vector2"></param>
         public void SetPlayerPosition(Vector2 vector2)
         {
             //サーバー側は2次元なのでx,yだ、unityはy upなのでzにyを入れる
