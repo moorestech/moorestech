@@ -39,10 +39,11 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             
             if (!_input.Playable.ScreenClick.triggered) return Vector2Int.zero;
             if (!Physics.Raycast(ray, out var hit)) return Vector2Int.zero;
-            if (hit.collider.gameObject.GetComponent<BlockGameObjectChild>() == null) return Vector2Int.zero;
+            var child = hit.collider.gameObject.GetComponent<BlockGameObjectChild>();
+            if (child == null) return Vector2Int.zero;
             
             
-            var blockPos = hit.collider.gameObject.GetComponent<BlockGameObjectChild>().BlockGameObject.transform.position;
+            var blockPos = child.BlockGameObject.transform.position;
             return new Vector2Int((int)blockPos.x,(int)blockPos.z);
         }
 
