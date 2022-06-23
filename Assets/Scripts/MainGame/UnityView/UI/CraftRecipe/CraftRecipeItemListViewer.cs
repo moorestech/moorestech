@@ -25,6 +25,12 @@ namespace MainGame.UnityView.UI.CraftRecipe
         [Inject]
         public void Construct(ItemImages itemImages)
         {
+            itemImages.OnLoadFinished += () => CreateItemLabel(itemImages);
+        }
+
+        private void CreateItemLabel(ItemImages itemImages)
+        {
+            
             for (int i = 0; i < itemImages.GetItemNum(); i++)
             {
                 var g = Instantiate(inventoryItemSlotPrefab, transform, true);
@@ -39,7 +45,5 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 g.OnCursorExit += itemSlot => OnCursorExit?.Invoke(_itemIdTable[itemSlot]);
             }
         }
-        
-        
     }
 }
