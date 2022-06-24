@@ -50,7 +50,7 @@ namespace MainGame.ModLoader.Glb
                     continue;
                 }
                 
-                blocks.Add(new BlockData(SetUpObject(gameObject,blockPrefabsParent, config, mod),config.Name));
+                blocks.Add(new BlockData(SetUpObject(gameObject,blockPrefabsParent, config, mod),config.Name,config.Type));
             }
 
             return blocks;
@@ -110,11 +110,13 @@ namespace MainGame.ModLoader.Glb
     
         public readonly BlockGameObject BlockObject;
         public readonly string Name;
+        public readonly string Type;
 
-        public BlockData(BlockGameObject blockObject, string name)
+        public BlockData(BlockGameObject blockObject, string name, string type)
         {
             BlockObject = blockObject;
             Name = name;
+            Type = type;
         }
     }
 }

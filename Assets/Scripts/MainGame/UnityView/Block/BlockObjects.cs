@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Core.Block.Config;
 using Cysharp.Threading.Tasks;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
@@ -37,15 +38,22 @@ namespace MainGame.UnityView.Block
             blockId--;
             if (blockId < 0 || _blockObjectList.Count <= blockId)
             {
+                //ブロックIDがないのでない時用のブロックを作る
                 Debug.LogWarning("Not Id " + blockId);
                 var nothing = Object.Instantiate(_nothingIndexBlockObject,position,rotation,parent);
                 nothing.SetUp(blockId);
                 return nothing.GetComponent<BlockGameObject>();
             }
 
+            //ブロックの作成とセットアップをして返す
             var block = Object.Instantiate(_blockObjectList[blockId].BlockObject,position,rotation,parent);
             block.gameObject.SetActive(true);
             block.SetUp(blockId);
+            //ブロックが開けるものの場合はそのコンポーネントを付与する
+            if (IsOpenableInventory(_blockObjectList[blockId].Type))
+            {
+                block.gameObject.AddComponent<OpenableInventoryBlock>();
+            }
             return block.GetComponent<BlockGameObject>();
         }
         public string GetName(int index)
@@ -56,6 +64,16 @@ namespace MainGame.UnityView.Block
             }
 
             return _blockObjectList[index].Name;
+        }
+
+        /// <summary>
+        /// todo ブロックコンフィグのロードのdynamicを辞める時に一緒にこれに対応したシステムを構築する
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private bool IsOpenableInventory(string type)
+        {
+            return type is VanillaBlockType.Chest or VanillaBlockType.Generator or VanillaBlockType.Miner or VanillaBlockType.Machine;
         }
     }
     
