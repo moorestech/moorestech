@@ -20,7 +20,6 @@ namespace MainGame.UnityView.UI.Inventory.Element
         public ItemImages(ModDirectory modDirectory,SinglePlayInterface singlePlayInterface)
         {
             _nothingIndexItemImage = new ItemViewData(null,"Item not found");
-            _itemImageList.Add(_emptyItemImage);
             LoadTexture(modDirectory,singlePlayInterface).Forget();
         }
         /// <summary>
@@ -42,7 +41,10 @@ namespace MainGame.UnityView.UI.Inventory.Element
 
         public ItemViewData GetItemView(int index)
         {
-            if (_itemImageList.Count <= index)
+            //item idは1から始まるのでマイナス１する
+            index--;
+            
+            if (index < 0 || _itemImageList.Count <= index)
             {
                 return _nothingIndexItemImage;
             }

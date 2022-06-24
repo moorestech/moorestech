@@ -30,8 +30,8 @@ namespace MainGame.UnityView.UI.CraftRecipe
 
         private void CreateItemLabel(ItemImages itemImages)
         {
-            
-            for (int i = 0; i < itemImages.GetItemNum(); i++)
+            //ブロックのIDは1から始まるので+1しておく
+            for (int i = 1; i < itemImages.GetItemNum() + 1; i++)
             {
                 var g = Instantiate(inventoryItemSlotPrefab, transform, true);
                 g.SetItem(itemImages.GetItemView(i),0);
