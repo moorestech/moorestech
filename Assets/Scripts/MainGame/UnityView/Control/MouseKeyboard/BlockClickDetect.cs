@@ -19,11 +19,11 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             _input.Enable();
         }
 
-        public bool TryGetPosition(out Vector2Int position)
+        public bool TryGetCursorOnBlockPosition(out Vector2Int position)
         {
             position = Vector2Int.zero;
 
-            if (!TryGetBlock(out var blockObject)) return false;
+            if (!TryGetCursorOnBlock(out var blockObject)) return false;
             
             
             var blockPos = blockObject.transform.position;
@@ -31,9 +31,33 @@ namespace MainGame.UnityView.Control.MouseKeyboard
                 
             return true;
         }
+
+        public bool TryGetClickBlock(out GameObject blockObject)
+        {
+            if (_input.Playable.ScreenClick.triggered && TryGetCursorOnBlock(out blockObject))
+            {
+                return true;
+            }
+
+            blockObject = null;
+            return false;
+        }
+
+        public bool TryGetClickBlockPosition(out Vector2Int position)
+        {
+            if (_input.Playable.ScreenClick.triggered && TryGetCursorOnBlockPosition(out position))
+            {
+                return true;
+            }
+
+            position = Vector2Int.zero;
+            return false;
+        }
         
         
-        public bool TryGetBlock(out GameObject blockObject)
+        
+
+        private bool TryGetCursorOnBlock(out GameObject blockObject)
         {
             blockObject = null;
             

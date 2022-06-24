@@ -65,7 +65,7 @@ namespace MainGame.Presenter.Inventory.Send
             };
             
             //ブロックだった場合のために現在の座標を取得しておく
-            _blockClickDetect.TryGetPosition(out _blockPos);
+            _blockClickDetect.TryGetCursorOnBlockPosition(out _blockPos);
         }
 
         public void Initialize() { }

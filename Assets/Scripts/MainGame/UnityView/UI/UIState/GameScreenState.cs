@@ -58,7 +58,7 @@ namespace MainGame.UnityView.UI.UIState
 
         private bool IsClickOpenableBlock()
         {
-            if (_blockClickDetect.TryGetBlock(out var block))
+            if (_blockClickDetect.TryGetClickBlock(out var block))
             {
                 return block.GetComponent<OpenableInventoryBlock>();
             }

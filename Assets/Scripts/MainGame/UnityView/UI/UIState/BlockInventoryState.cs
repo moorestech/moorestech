@@ -61,7 +61,7 @@ namespace MainGame.UnityView.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             
-            if (!_blockClickDetect.TryGetPosition(out var blockPos))
+            if (!_blockClickDetect.TryGetCursorOnBlockPosition(out var blockPos))
             {
                 Debug.LogError("開いたブロックの座標が取得できませんでした。UIステートに不具合があります。");
             }

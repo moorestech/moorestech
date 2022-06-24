@@ -4,7 +4,8 @@ namespace MainGame.UnityView.Control.MouseKeyboard
 {
     public interface IBlockClickDetect
     {
-        public bool TryGetPosition(out Vector2Int position);
-        public bool TryGetBlock(out GameObject blockObject);
+        public bool TryGetCursorOnBlockPosition(out Vector2Int position);
+        public bool TryGetClickBlock(out GameObject blockObject);
+        public bool TryGetClickBlockPosition(out Vector2Int position);
     }
 }
