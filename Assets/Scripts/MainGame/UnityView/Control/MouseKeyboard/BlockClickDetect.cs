@@ -18,45 +18,36 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             _input = new MoorestechInputSettings();
             _input.Enable();
         }
-        
-        public bool IsBlockClicked()
+
+        public bool TryGetPosition(out Vector2Int position)
         {
-            var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
-            var ray = _mainCamera.ScreenPointToRay(mousePosition);
+            position = Vector2Int.zero;
 
-            // マウスでクリックした位置が地面なら
-            if (!_input.Playable.ScreenClick.triggered) return false;
-            if (!Physics.Raycast(ray, out var hit)) return false;
-            if (hit.collider.gameObject.GetComponent<BlockGameObjectChild>() == null) return false;
-
+            if (!TryGetBlock(out var blockObject)) return false;
+            
+            
+            var blockPos = blockObject.transform.position;
+            position = new Vector2Int((int) blockPos.x, (int) blockPos.z);
+                
             return true;
         }
-
-        public Vector2Int GetClickPosition()
+        
+        
+        public bool TryGetBlock(out GameObject blockObject)
         {
+            blockObject = null;
+            
             var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
-            
-            if (!_input.Playable.ScreenClick.triggered) return Vector2Int.zero;
-            if (!Physics.Raycast(ray, out var hit)) return Vector2Int.zero;
+
+            if (!Physics.Raycast(ray, out var hit)) return false;
             var child = hit.collider.gameObject.GetComponent<BlockGameObjectChild>();
-            if (child == null) return Vector2Int.zero;
-            
-            
-            var blockPos = child.BlockGameObject.transform.position;
-            return new Vector2Int((int)blockPos.x,(int)blockPos.z);
-        }
+            if (child is null) return false;
 
-        public GameObject GetClickedObject()
-        {
-            var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
-            var ray = _mainCamera.ScreenPointToRay(mousePosition);
             
-            if (Physics.Raycast(ray, out var hit) && hit.collider.gameObject.GetComponent<BlockGameObjectChild>())
-            {
-                return hit.collider.gameObject.GetComponent<BlockGameObjectChild>().BlockGameObject.gameObject;
-            }
-            throw new Exception("クリックしたオブジェクトが見つかりませんでした");
+            blockObject = child.BlockGameObject.gameObject;
+            
+            return true;
         }
     }
 }

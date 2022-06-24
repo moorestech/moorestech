@@ -22,10 +22,9 @@ namespace MainGame.Presenter.Inventory.Send
         {
             if (_uiStateControl.CurrentState == UIStateEnum.DeleteBar)
             {
-                if (_blockClickDetect.IsBlockClicked())
+                if (_blockClickDetect.TryGetPosition(out var position))
                 {
-                    var pos = _blockClickDetect.GetClickPosition();
-                    _sendBlockRemoveProtocol.Send(pos.x,pos.y);
+                    _sendBlockRemoveProtocol.Send(position.x,position.y);
                 }
             }   
         }

@@ -79,7 +79,7 @@ namespace MainGame.ModLoader.Glb
             //子要素のコンポーネントの設定
             foreach (var mesh in blockObj.GetComponentsInChildren<MeshRenderer>())
             {
-                mesh.gameObject.AddComponent<BlockGameObjectChild>().Init(blockObj);
+                mesh.gameObject.AddComponent<BlockGameObjectChild>();
                 mesh.gameObject.AddComponent<MeshCollider>();
             }
 

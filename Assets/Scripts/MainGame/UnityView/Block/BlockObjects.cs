@@ -31,19 +31,22 @@ namespace MainGame.UnityView.Block
             OnLoadFinished?.Invoke();
         }
 
-        public BlockGameObject CreateBlock(int blockId)
+        public BlockGameObject CreateBlock(int blockId,Vector3 position,Quaternion rotation,Transform parent)
         {
             //block idは1から始まるのでマイナス１する
             blockId--;
             if (blockId < 0 || _blockObjectList.Count <= blockId)
             {
                 Debug.LogWarning("Not Id " + blockId);
-                return Object.Instantiate(_nothingIndexBlockObject);
+                var nothing = Object.Instantiate(_nothingIndexBlockObject,position,rotation,parent);
+                nothing.SetUp(blockId);
+                return nothing.GetComponent<BlockGameObject>();
             }
 
-            var block = Object.Instantiate(_blockObjectList[blockId].BlockObject);
+            var block = Object.Instantiate(_blockObjectList[blockId].BlockObject,position,rotation,parent);
             block.gameObject.SetActive(true);
-            return block;
+            block.SetUp(blockId);
+            return block.GetComponent<BlockGameObject>();
         }
         public string GetName(int index)
         {

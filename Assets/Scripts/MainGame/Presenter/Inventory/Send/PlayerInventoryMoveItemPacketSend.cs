@@ -14,7 +14,7 @@ namespace MainGame.Presenter.Inventory.Send
         private readonly InventoryMoveItemProtocol _inventoryMoveItem;
         private readonly IBlockClickDetect _blockClickDetect;
 
-        private InventoryType _currentInventoryType;
+        private InventoryType _currentSubInventoryType;
         private Vector2Int _blockPos;
 
         public PlayerInventoryMoveItemPacketSend(UIStateControl uiStateControl, PlayerInventoryViewModelController playerInventoryViewModelController,InventoryMoveItemProtocol inventoryMoveItem,IBlockClickDetect blockClickDetect)
@@ -36,7 +36,7 @@ namespace MainGame.Presenter.Inventory.Send
             }
             else
             {
-                _inventoryMoveItem.Send(true,_currentInventoryType, slot - PlayerInventoryConstant.MainInventorySize, count,_blockPos.x,_blockPos.y);
+                _inventoryMoveItem.Send(true,_currentSubInventoryType, slot - PlayerInventoryConstant.MainInventorySize, count,_blockPos.x,_blockPos.y);
             }
         }
 
@@ -48,20 +48,24 @@ namespace MainGame.Presenter.Inventory.Send
             }
             else
             {
-                _inventoryMoveItem.Send(false,_currentInventoryType, slot - PlayerInventoryConstant.MainInventorySize, addCount,_blockPos.x,_blockPos.y);
+                _inventoryMoveItem.Send(false,_currentSubInventoryType, slot - PlayerInventoryConstant.MainInventorySize, addCount,_blockPos.x,_blockPos.y);
             }
             
         }
 
         private void OnStateChanged(UIStateEnum state)
         {
-            _currentInventoryType = state switch
+            //今開いているサブインベントリのタイプを設定する
+            _currentSubInventoryType = state switch
             {
+                //プレイヤーインベントリを開いているということは、サブインベントリはCraftInventoryなのでそれを設定する
                 UIStateEnum.PlayerInventory => InventoryType.CraftInventory,
                 UIStateEnum.BlockInventory => InventoryType.BlockInventory,
-                _ => _currentInventoryType
+                _ => _currentSubInventoryType
             };
-            _blockPos = _blockClickDetect.GetClickPosition();
+            
+            //ブロックだった場合のために現在の座標を取得しておく
+            _blockClickDetect.TryGetPosition(out _blockPos);
         }
 
         public void Initialize() { }

@@ -39,14 +39,10 @@ namespace MainGame.UnityView.Chunk
 
                 
             //新しいブロックを設置
-            var block = Instantiate(
-                _blockObjects.CreateBlock(blockId),
-                new Vector3(blockPosition.x, 0, blockPosition.y),
-                BlockDirectionAngle.GetRotation(blockDirection),
-                transform).GetComponent<BlockGameObject>();
+            var pos = new Vector3(blockPosition.x, 0, blockPosition.y);
+            var rot = BlockDirectionAngle.GetRotation(blockDirection);
+            var block = _blockObjects.CreateBlock(blockId,pos,rot,transform);
                 
-            //IDを再設定
-            block.Construct(blockId);
             _blockObjectsDictionary.Add(blockPosition,block);
         }
 

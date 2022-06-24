@@ -60,14 +60,20 @@ namespace MainGame.UnityView.UI.UIState
 
         public void OnEnter(UIStateEnum lastStateEnum)
         {
-            OnOpenBlockInventory?.Invoke(_blockClickDetect.GetClickPosition());
             
+            if (!_blockClickDetect.TryGetPosition(out var blockPos))
+            {
+                Debug.LogError("開いたブロックの座標が取得できませんでした。UIステートに不具合があります。");
+            }
+            
+            OnOpenBlockInventory?.Invoke(blockPos);
+            
+            //UIのオブジェクトをオンにする
             _craftRecipeItemListViewer.gameObject.SetActive(true);
             _blockInventory.gameObject.SetActive(true);
 
             
             //ブロックインベントリのビューを設定する
-            var blockPos = _blockClickDetect.GetClickPosition();
             if (!_chunkBlockGameObjectDataStore.ContainsBlockGameObject(blockPos))return;
 
             var id = _chunkBlockGameObjectDataStore.GetBlockGameObject(blockPos).BlockId;

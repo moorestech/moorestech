@@ -4,11 +4,15 @@ namespace MainGame.ModLoader.Glb
 {
     public class BlockGameObject : MonoBehaviour
     {
-        public int BlockId => _blockId;
-        private int _blockId = 0;
-        public void Construct(int blockId)
+        public int BlockId { get; private set; } = 0;
+
+        public void SetUp(int blockId)
         {
-            _blockId = blockId;
+            BlockId = blockId;
+            foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>())
+            {
+                child.Init(this);
+            }
         }
     }
 }
