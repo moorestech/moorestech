@@ -7,7 +7,7 @@ namespace Game.Quest
 {
     public class ItemCraftQuest : IQuest
     {
-        public QuestMaster Quest { get; }
+        public QuestParameter Quest { get; }
         public string QuestType { get; }
         public bool IsCompleted { get; }
         public bool AcquiredReward { get; }

@@ -7,7 +7,7 @@ namespace Game.Quest
 {
     public interface IQuest
     {
-        QuestMaster Quest { get; }
+        QuestParameter Quest { get; }
         public string QuestType { get; }
         
         bool IsCompleted { get; }
