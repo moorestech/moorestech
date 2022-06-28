@@ -25,6 +25,9 @@ namespace Test.Module.TestConfig
             {"testMod",File.ReadAllText(Path.Combine(FolderDirectory, "Unit Test Block Config.json"))}
         };
 
+        public static string QuestConfigUintTestJson =>
+            File.ReadAllText(Path.Combine(FolderDirectory, "TestQuestConfig.json"));
+        
         public static List<string> Mods = new() {"testMod"};
     }
 }

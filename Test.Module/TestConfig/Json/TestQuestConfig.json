@@ -7,8 +7,8 @@
     "Type" : "ItemCraft",
     "Name": "Test Quest",
     "Description" : "Test Quest Description",
-    "UIPosX" : 0,
-    "UIPosY" : 0,
+    "UIPosX" : 3,
+    "UIPosY" : 5,
     "RewardItem" : [],
     "Param" : "{'id':1,'count':1}"
   },

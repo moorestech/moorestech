@@ -14,6 +14,7 @@ namespace Mod.Config
         private const string MachineRecipeConfigPath = "config/machine_recipe.json";
         private const string CraftRecipeConfigPath = "config/craft_recipe.json";
         private const string OreConfigPath = "config/ore.json";
+        private const string QuestConfigPath = "config/quest.json";
         
         
         public static Dictionary<string,ConfigJson> GetConfigString(string modDirectory)
@@ -32,8 +33,9 @@ namespace Mod.Config
                 var machineRecipeConfigJson = LoadConfigFromZip(zip,MachineRecipeConfigPath);
                 var craftRecipeConfigJson = LoadConfigFromZip(zip,CraftRecipeConfigPath);
                 var oreConfigJson = LoadConfigFromZip(zip,OreConfigPath);
+                var questConfigJson = LoadConfigFromZip(zip,QuestConfigPath);
                 
-                configDict.Add(mod.Value.ModMetaJson.ModId,new ConfigJson(mod.Value.ModMetaJson.ModId,itemConfigJson,blockConfigJson,machineRecipeConfigJson,craftRecipeConfigJson,oreConfigJson));
+                configDict.Add(mod.Value.ModMetaJson.ModId,new ConfigJson(mod.Value.ModMetaJson.ModId,itemConfigJson,blockConfigJson,machineRecipeConfigJson,craftRecipeConfigJson,oreConfigJson,questConfigJson));
             }
 
             return configDict;
