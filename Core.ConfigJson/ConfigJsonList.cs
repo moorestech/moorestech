@@ -20,6 +20,11 @@ namespace Core.ConfigJson
         /// Key modId : Value ConfigJson
         /// </summary>
         public readonly Dictionary<string,string> OreConfigs = new();
+        /// <summary>
+        /// クエストのコンフィグ
+        /// Key modId : Value ConfigJson
+        /// </summary>
+        public readonly Dictionary<string,string> QuestConfigs = new();
         
         public readonly List<string> SortedModIds;
 
@@ -39,6 +44,7 @@ namespace Core.ConfigJson
                 if (configs[key].MachineRecipeConfigJson != string.Empty) { SortedMachineRecipeConfigJsonList.Add(configs[key].MachineRecipeConfigJson); }
                 if (configs[key].CraftRecipeConfigJson != string.Empty) { SortedCraftRecipeConfigJsonList.Add(configs[key].CraftRecipeConfigJson); }
                 if (configs[key].OreConfigJson != string.Empty) { OreConfigs.Add(key,configs[key].OreConfigJson); }
+                if (configs[key].QuestConfigJson != string.Empty) { QuestConfigs.Add(key,configs[key].QuestConfigJson); }
             }
         }
     }
