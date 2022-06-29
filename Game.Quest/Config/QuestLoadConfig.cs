@@ -35,18 +35,6 @@ namespace Game.Quest.Config
                 var resultQuests = new List<QuestConfigData>();
                 foreach (var quest in loadedQuests)
                 {
-                    var questData = new QuestConfigData(
-                        questJson.Key,
-                        quest.Id,
-                        quest.ToPrerequisiteQuests(),
-                        quest.Category,
-                        quest.PrerequisiteType,
-                        quest.Type,
-                        quest.Name,
-                        quest.Description,
-                        new CoreVector2(quest.UiPosX, quest.UiPosY),
-                        GetRewardItemStacks(quest.RewardItem),
-                        quest.Param);
                     
                     resultQuests.Add(questData);
                 }
@@ -123,9 +111,29 @@ namespace Game.Quest.Config
 
     static class QuestLoadExtension
     {
-        public static List<QuestConfigData> ToPrerequisiteQuests(this QuestConfigJsonData questConfigJsonData,Dictionary<string, List<QuestConfigData>> loadedQuest,string modId)
+        public static QuestConfigData ToQuestConfigData(this QuestConfigJsonData questConfigJsonData,string modId,List<QuestConfigData> prerequisiteQuests,ItemStackFactory itemStackFactory)
         {
+            var rewardItems = new List<IItemStack>();
+            for (int i = 0; i < questConfigJsonData.RewardItem.GetLength(0); i++)
+            {
+                var id = questConfigJsonData.RewardItem[i, 0];
+                var count = questConfigJsonData.RewardItem[i, 1];
+                rewardItems.Add(itemStackFactory.Create(id,count));
+            }
             
+            
+            return new QuestConfigData(
+                modId,
+                questConfigJsonData.Id,
+                prerequisiteQuests,
+                questConfigJsonData.Category,
+                questConfigJsonData.PrerequisiteType,
+                questConfigJsonData.Type,
+                questConfigJsonData.Name,
+                questConfigJsonData.Description,
+                new CoreVector2(questConfigJsonData.UiPosX, questConfigJsonData.UiPosY),
+                rewardItems,
+                questConfigJsonData.Param);
         }
     }
 }
