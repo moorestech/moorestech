@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.ConfigJson;
 using Game.Quest;
+using Game.Quest.Config;
 using Game.Quest.Interface;
 using NUnit.Framework;
 using Test.Module.TestConfig;

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Core.ConfigJson;
 using Game.Quest.Interface;
 
-namespace Game.Quest
+namespace Game.Quest.Config
 {
     public class QuestConfig : IQuestConfig
     {
