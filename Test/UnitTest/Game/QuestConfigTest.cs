@@ -58,14 +58,14 @@ namespace Test.UnitTest.Game
             
             
             //Test3のチェック
-            var test3Quest = questConfig.GetQuestConfig("Test2");
+            var test3Quest = questConfig.GetQuestConfig("Test3");
             Assert.AreEqual(2,test3Quest.PrerequisiteQuests.Count); //前提クエストの数のチェック
             Assert.AreEqual("Test1",test3Quest.PrerequisiteQuests[0].QuestId);
             Assert.AreEqual("Test2",test3Quest.PrerequisiteQuests[1].QuestId);
             
             
             //Test4のチェック
-            var test4Quest = questConfig.GetQuestConfig("Test2");
+            var test4Quest = questConfig.GetQuestConfig("Test4");
             Assert.AreEqual(2,test4Quest.PrerequisiteQuests.Count); //前提クエストの数のチェック
             Assert.AreEqual("Test1",test4Quest.PrerequisiteQuests[0].QuestId);
             Assert.AreEqual("Test2",test4Quest.PrerequisiteQuests[1].QuestId);
