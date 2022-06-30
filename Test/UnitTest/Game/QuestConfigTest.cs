@@ -40,7 +40,7 @@ namespace Test.UnitTest.Game
             var test1Quest = questConfig.GetQuestConfig("Test1");
             Assert.AreEqual("Test1",test1Quest.QuestId); //クエストIDのチェク
             Assert.AreEqual(0,test1Quest.PrerequisiteQuests.Count); //前提クエストのチェック
-            Assert.AreEqual(QuestPrerequisiteType.And,test1Quest.PrerequisiteQuests);
+            Assert.AreEqual(QuestPrerequisiteType.And,test1Quest.QuestPrerequisiteType);
             Assert.AreEqual("Test Category",test1Quest.QuestCategory);
             Assert.AreEqual("ItemCraft",test1Quest.QuestType);
             Assert.AreEqual("Test Quest",test1Quest.QuestName);
@@ -69,7 +69,7 @@ namespace Test.UnitTest.Game
             Assert.AreEqual(2,test4Quest.PrerequisiteQuests.Count); //前提クエストの数のチェック
             Assert.AreEqual("Test1",test4Quest.PrerequisiteQuests[0].QuestId);
             Assert.AreEqual("Test2",test4Quest.PrerequisiteQuests[1].QuestId);
-            Assert.AreEqual(QuestPrerequisiteType.Or,test4Quest.PrerequisiteQuests);
+            Assert.AreEqual(QuestPrerequisiteType.Or,test4Quest.QuestPrerequisiteType);
         }
     }
 }
