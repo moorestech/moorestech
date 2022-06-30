@@ -1,10 +1,14 @@
 using System.Collections.Generic;
 using Core.ConfigJson;
+using Core.Item;
 using Game.Quest;
 using Game.Quest.Config;
 using Game.Quest.Interface;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server.Boot;
 using Test.Module.TestConfig;
+using Test.Module.TestMod;
 
 namespace Test.UnitTest.Game
 {
@@ -16,11 +20,14 @@ namespace Test.UnitTest.Game
         [Test]
         public void QuestLoadTest()
         {
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            
             var configJson = new ConfigJson(ModName,"","","","","",
                 TestModuleConfig.QuestConfigUintTestJson);
             var questOnlyConfig = new ConfigJsonList(new (){{ModName,configJson}});
 
-            IQuestConfig questConfig = new QuestConfig(questOnlyConfig);
+            IQuestConfig questConfig = new QuestConfig(questOnlyConfig,itemStackFactory);
 
 
             var ids = questConfig.GetQuestIds(ModName);
