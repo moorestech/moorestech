@@ -1,24 +1,42 @@
+using System;
 using System.Collections.Generic;
 using Core.ConfigJson;
+using Core.Item;
 using Game.Quest.Interface;
 
 namespace Game.Quest.Config
 {
     public class QuestConfig : IQuestConfig
     {
-        public QuestConfig(ConfigJsonList configJson)
+        private readonly Dictionary<string, List<string>> _modIdToQuests;
+        private readonly Dictionary<string, QuestConfigData> _questIdToQuestConfigs;
+        public QuestConfig(ConfigJsonList configJson,ItemStackFactory itemStackFactory)
         {
-            
+            (_modIdToQuests, _questIdToQuestConfigs) = QuestLoadConfig.LoadConfig(itemStackFactory,configJson.QuestConfigs);
         }
 
         public QuestConfigData GetQuestConfig(string id)
         {
-            throw new System.NotImplementedException();
+            if (_questIdToQuestConfigs.TryGetValue(id,out var quest))
+            {
+                return quest;
+            }
+
+            //TODO ログ取得基盤に入れるようにする
+            Console.WriteLine("[QuestConfig]指定された クエストID:"+id + "は存在しません。");
+            return null;
         }
 
         public List<string> GetQuestIds(string modId)
         {
-            throw new System.NotImplementedException();
+            if (_modIdToQuests.TryGetValue(modId,out var quests))
+            {
+                return quests;
+            }
+
+            //TODO ログ取得基盤に入れるようにする
+            Console.WriteLine("[QuestConfig]指定された ModId:"+modId + "にクエストは存在しません。");
+            return new List<string>();
         }
     }
 }

@@ -9,17 +9,9 @@ using Newtonsoft.Json.Converters;
 
 namespace Game.Quest.Config
 {
-    public class QuestLoadConfig
+    internal static class QuestLoadConfig
     {
-        private readonly ItemStackFactory _itemStackFactory;
-
-        public QuestLoadConfig(ItemStackFactory itemStackFactory)
-        {
-            _itemStackFactory = itemStackFactory;
-        }
-
-
-        public (Dictionary<string, List<string>> ModIdToQuests, Dictionary<string, QuestConfigData> QuestIdToQuestConfigs) LoadConfig(Dictionary<string,string> blockJsons)
+        public static (Dictionary<string, List<string>> ModIdToQuests, Dictionary<string, QuestConfigData> QuestIdToQuestConfigs) LoadConfig(ItemStackFactory itemStackFactory,Dictionary<string,string> blockJsons)
         {
             Dictionary<string, QuestConfigData> alreadyMadeConfigs = new();
             
@@ -29,11 +21,11 @@ namespace Game.Quest.Config
                 if (alreadyMadeConfigs.ContainsKey(jsonConfig.Id)) continue;
                 
                 //前提クエストを探索、作成
-                var prerequisiteQuests = AssemblyPrerequisiteQuests(jsonConfig, new List<string>(), alreadyMadeConfigs, jsonQuestConfig);
+                var prerequisiteQuests = AssemblyPrerequisiteQuests(itemStackFactory,jsonConfig, new List<string>(), alreadyMadeConfigs, jsonQuestConfig);
                 
                 //探索した結果前提クエストのなかに組み込まれていた場合はスルーする（おそらく前提クエストでループが発生した時これがtrueになる）
                 if (alreadyMadeConfigs.ContainsKey(jsonConfig.Id)) continue;
-                alreadyMadeConfigs.Add(jsonConfig.Id,jsonConfig.ToQuestConfigData(prerequisiteQuests,_itemStackFactory));
+                alreadyMadeConfigs.Add(jsonConfig.Id,jsonConfig.ToQuestConfigData(prerequisiteQuests,itemStackFactory));
             }
             
             
@@ -54,17 +46,17 @@ namespace Game.Quest.Config
             return (modIdToQuests, alreadyMadeConfigs);
         }
 
-        
-        
+
         /// <summary>
         /// 再帰を使って前提クエストの探索、作成をする
         /// </summary>
+        /// <param name="itemStackFactory">リワードアイテムを作る用のitemStackFactory</param>
         /// <param name="questConfigJsonData">前提クエストのリストを作りたいjsonコンフィグ</param>
         /// <param name="detectLoopLog">ループ検知用のログ。再帰以外の呼び出し時は新しく作る。</param>
         /// <param name="alreadyMadeConfigs">事前に作られたクエストの流用のために、すでに作られたクエストの辞書を渡す。再帰中に新しく作った場合は</param>
         /// <param name="keyQuestIdJsonConfigs"></param>
         /// <returns></returns>
-        private List<QuestConfigData> AssemblyPrerequisiteQuests(QuestConfigJsonData questConfigJsonData,List<string> detectLoopLog,Dictionary<string,QuestConfigData> alreadyMadeConfigs,Dictionary<string, QuestConfigJsonData> keyQuestIdJsonConfigs)
+        private static List<QuestConfigData> AssemblyPrerequisiteQuests(ItemStackFactory itemStackFactory,QuestConfigJsonData questConfigJsonData,List<string> detectLoopLog,Dictionary<string,QuestConfigData> alreadyMadeConfigs,Dictionary<string, QuestConfigJsonData> keyQuestIdJsonConfigs)
         {
             //ループがないかチェックする
             if (detectLoopLog.Contains(questConfigJsonData.Id))
@@ -98,9 +90,9 @@ namespace Game.Quest.Config
                 
                 
                 //再帰を使って前提クエストの前提クエストを取得
-                var newPrerequisiteQuests = AssemblyPrerequisiteQuests(prerequisiteJsonConfig, detectLoopLog, alreadyMadeConfigs, keyQuestIdJsonConfigs);
+                var newPrerequisiteQuests = AssemblyPrerequisiteQuests(itemStackFactory,prerequisiteJsonConfig, detectLoopLog, alreadyMadeConfigs, keyQuestIdJsonConfigs);
                 //前提クエストを作成
-                var newRequestQuest = prerequisiteJsonConfig.ToQuestConfigData(newPrerequisiteQuests, _itemStackFactory);
+                var newRequestQuest = prerequisiteJsonConfig.ToQuestConfigData(newPrerequisiteQuests, itemStackFactory);
                 //前提クエストリストと辞書に登録
                 prerequisiteQuests.Add(newRequestQuest);
                 alreadyMadeConfigs.Add(newRequestQuest.QuestId,newRequestQuest);
@@ -116,7 +108,7 @@ namespace Game.Quest.Config
         /// </summary>
         /// <param name="questJsons">modIdとJsonの辞書</param>
         /// <returns>クエストIDがキーの辞書</returns>
-        private Dictionary<string, QuestConfigJsonData> LoadJsonToQuestConfigJsonData(Dictionary<string,string> questJsons)
+        private static Dictionary<string, QuestConfigJsonData> LoadJsonToQuestConfigJsonData(Dictionary<string,string> questJsons)
         {
             var keyQuestIdConfigs = new Dictionary<string, QuestConfigJsonData>();
             
