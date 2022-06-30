@@ -19,11 +19,39 @@ namespace Game.Quest.Config
         }
 
 
-        public (Dictionary<string, List<string>> ModIdToQuest, Dictionary<string, List<QuestConfigData>> QuestConfigs) LoadConfig(Dictionary<string,string> blockJsons)
+        public (Dictionary<string, List<string>> ModIdToQuests, Dictionary<string, QuestConfigData> QuestIdToQuestConfigs) LoadConfig(Dictionary<string,string> blockJsons)
         {
-            var jsonQuestConfig = LoadJsonToQuestConfigJsonData(blockJsons);
+            Dictionary<string, QuestConfigData> alreadyMadeConfigs = new();
             
-            var
+            var jsonQuestConfig = LoadJsonToQuestConfigJsonData(blockJsons);
+            foreach (var jsonConfig in jsonQuestConfig.Values)
+            {
+                if (alreadyMadeConfigs.ContainsKey(jsonConfig.Id)) continue;
+                
+                //前提クエストを探索、作成
+                var prerequisiteQuests = AssemblyPrerequisiteQuests(jsonConfig, new List<string>(), alreadyMadeConfigs, jsonQuestConfig);
+                
+                //探索した結果前提クエストのなかに組み込まれていた場合はスルーする（おそらく前提クエストでループが発生した時これがtrueになる）
+                if (alreadyMadeConfigs.ContainsKey(jsonConfig.Id)) continue;
+                alreadyMadeConfigs.Add(jsonConfig.Id,jsonConfig.ToQuestConfigData(prerequisiteQuests,_itemStackFactory));
+            }
+            
+            
+            
+            Dictionary<string, List<string>> modIdToQuests = new();
+
+            foreach (var quest in alreadyMadeConfigs.Values)
+            {
+                if (modIdToQuests.TryGetValue(quest.ModId,out var questIdList))
+                {
+                 
+                    questIdList.Add(quest.QuestId);
+                    continue;
+                }
+                modIdToQuests.Add(quest.ModId,new List<string>{quest.QuestId});
+            }
+
+            return (modIdToQuests, alreadyMadeConfigs);
         }
 
         
