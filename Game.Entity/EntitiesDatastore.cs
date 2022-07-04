@@ -9,7 +9,6 @@ namespace Game.Entity
 
         private readonly IEntityFactory _entityFactory;
         
-        //todo セーブとロードを実装する
         private readonly Dictionary<long,IEntity> _entities = new();
 
         public EntitiesDatastore(IEntityFactory entityFactory)
