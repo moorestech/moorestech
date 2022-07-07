@@ -5,7 +5,7 @@ namespace Server.Protocol.PacketResponse
 {
     public class ReceiveQuestRewardItemProtocol
     {
-        
+        public const string Tag = "va:reciveQuestRewardItem"; 
     }
         
     
@@ -16,7 +16,7 @@ namespace Server.Protocol.PacketResponse
         {
             PlayerId = playerId;
             QuestId = questId;
-            Tag = QuestProgressRequestProtocol.Tag;
+            Tag = ReceiveQuestRewardItemProtocol.Tag;
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
