@@ -13,17 +13,37 @@ namespace Server.Protocol.PacketResponse
         }
     }
     
+    
     [MessagePackObject(keyAsPropertyName :true)]
     public class QuestProgressRequestProtocolMessagePack : ProtocolMessagePackBase
     {
-        public QuestProgressRequestProtocolMessagePack(List<QuestProgress> quests)
+        public QuestProgressRequestProtocolMessagePack(int playerId)
+        {
+            PlayerId = playerId;
+            Tag = QuestProgressRequestProtocol.Tag;
+        }
+        
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public QuestProgressRequestProtocolMessagePack() { }
+
+        public int PlayerId { get; set; }
+
+    }
+    
+    
+    
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public class QuestProgressResponseProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public QuestProgressResponseProtocolMessagePack(List<QuestProgress> quests)
         {
             Tag = QuestProgressRequestProtocol.Tag;
             Quests = quests;
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public QuestProgressRequestProtocolMessagePack() { }
+        public QuestProgressResponseProtocolMessagePack() { }
 
         public List<QuestProgress> Quests { get; set; }
 
