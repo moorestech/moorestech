@@ -36,16 +36,17 @@ namespace Game.Save.Json
 
     public class SaveData
     {
-        public SaveData(List<SaveBlockData> world, List<SaveInventoryData> inventory, List<SaveEntityData> entities,Dictionary<int,SaveQuestData> quests)
+        public SaveData(List<SaveBlockData> world, List<SaveInventoryData> inventory, List<SaveEntityData> entities,Dictionary<int, List<SaveQuestData>> quests)
         {
             World = world;
             Inventory = inventory;
             Entities = entities;
+            Quests = quests;
         }
 
         [JsonProperty("world")] public List<SaveBlockData> World { get; }
         [JsonProperty("playerInventory")] public List<SaveInventoryData> Inventory { get; }
         [JsonProperty("entities")] public List<SaveEntityData> Entities { get; }
-        [JsonProperty("quests")] public Dictionary<int,SaveQuestData> Quests { get; }
+        [JsonProperty("quests")] public Dictionary<int, List<SaveQuestData>> Quests { get; }
     }
 }

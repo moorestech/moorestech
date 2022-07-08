@@ -34,5 +34,14 @@ namespace Game.Quest
             return newQuests;
         }
 
+        public Dictionary<int,List<SaveQuestData>> GetQuestDataDictionary()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void LoadQuestDataDictionary(Dictionary<int, SaveQuestData> quests)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
