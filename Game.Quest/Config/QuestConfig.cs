@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.ConfigJson;
 using Core.Item;
 using Game.Quest.Interface;
@@ -13,6 +14,11 @@ namespace Game.Quest.Config
         public QuestConfig(ConfigJsonList configJson,ItemStackFactory itemStackFactory)
         {
             (_modIdToQuests, _questIdToQuestConfigs) = QuestLoadConfig.LoadConfig(itemStackFactory,configJson.QuestConfigs);
+        }
+
+        public IReadOnlyList<QuestConfigData> GetAllQuestConfig()
+        {
+            return _questIdToQuestConfigs.Values.ToList();
         }
 
         public QuestConfigData GetQuestConfig(string id)
