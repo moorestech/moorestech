@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Inventory;
 using Game.Entity.Interface;
 using Game.PlayerInventory.Interface;
+using Game.Quest.Interface;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
@@ -35,7 +36,7 @@ namespace Game.Save.Json
 
     public class SaveData
     {
-        public SaveData(List<SaveBlockData> world, List<SaveInventoryData> inventory, List<SaveEntityData> entities)
+        public SaveData(List<SaveBlockData> world, List<SaveInventoryData> inventory, List<SaveEntityData> entities,Dictionary<int,SaveQuestData> quests)
         {
             World = world;
             Inventory = inventory;
@@ -45,5 +46,6 @@ namespace Game.Save.Json
         [JsonProperty("world")] public List<SaveBlockData> World { get; }
         [JsonProperty("playerInventory")] public List<SaveInventoryData> Inventory { get; }
         [JsonProperty("entities")] public List<SaveEntityData> Entities { get; }
+        [JsonProperty("quests")] public Dictionary<int,SaveQuestData> Quests { get; }
     }
 }
