@@ -15,6 +15,7 @@ namespace Test.CombinedTest.Server.PacketTest
         /// <summary>
         /// 現在のクエスト進捗状況を取得するテスト
         /// </summary>
+        [Test]
         public void GetTest()
         {
             //テスト用のセーブデータを用意

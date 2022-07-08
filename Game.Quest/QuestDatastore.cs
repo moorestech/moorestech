@@ -7,5 +7,7 @@ namespace Game.Quest
         private readonly Dictionary<string, List<IQuest>> _quests = new();
         
         
+        
+        
     }
 }
