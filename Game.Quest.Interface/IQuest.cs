@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using Core.Item;
-using Core.Util;
-using Game.Quest.Interface;
 
-namespace Game.Quest
+namespace Game.Quest.Interface
 {
     public interface IQuest
     {

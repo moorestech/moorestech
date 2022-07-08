@@ -5,7 +5,7 @@ using Game.Quest.Interface;
 
 namespace Game.Quest
 {
-    public class QuestDatastore
+    public class QuestDatastore : IQuestDataStore
     {
         private readonly IQuestConfig _questConfig;
         private readonly QuestFactory _questFactory;
