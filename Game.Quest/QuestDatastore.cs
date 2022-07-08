@@ -28,7 +28,7 @@ namespace Game.Quest
 
             var newQuests =
                 _questConfig.GetAllQuestConfig().
-                    Select(quest => _questFactory.CreateQuest(quest.QuestId)).ToList();
+                    Select(q => _questFactory.CreateQuest(q.QuestId)).ToList();
             _quests.Add(playerId,newQuests);
             
             return newQuests;
@@ -36,12 +36,26 @@ namespace Game.Quest
 
         public Dictionary<int,List<SaveQuestData>> GetQuestDataDictionary()
         {
-            throw new System.NotImplementedException();
+            var saveData = new Dictionary<int, List<SaveQuestData>>();
+            foreach (var quest in _quests)
+            {
+                saveData.Add(quest.Key,quest.Value.Select(q => q.ToSaveData()).ToList());
+            }
+
+            return saveData;
         }
 
         public void LoadQuestDataDictionary(Dictionary<int, SaveQuestData> quests)
         {
             throw new System.NotImplementedException();
+        }
+    }
+
+    static class QuestExtension 
+    {
+        public static SaveQuestData ToSaveData(this IQuest quest)
+        {
+            return new SaveQuestData(quest.Quest.QuestId,quest.IsCompleted,quest.AcquiredReward);
         }
     }
 }

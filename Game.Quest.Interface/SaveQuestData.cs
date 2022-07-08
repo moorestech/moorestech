@@ -8,6 +8,13 @@ namespace Game.Quest.Interface
         [JsonProperty("id")] public string QuestId;
         
         [JsonProperty("co")] public bool IsCompleted;
-        [JsonProperty("re")] public bool AcquiredReward;   
+        [JsonProperty("re")] public bool AcquiredReward;
+
+        public SaveQuestData(string questId, bool isCompleted, bool acquiredReward)
+        {
+            QuestId = questId;
+            IsCompleted = isCompleted;
+            AcquiredReward = acquiredReward;
+        }
     }
 }
