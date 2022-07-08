@@ -8,7 +8,7 @@ namespace Game.Quest.Factory
     public class QuestFactory
     {
         private readonly IQuestConfig _questConfig;
-        private Dictionary<string,ItemCraftQuestTemplate> QuestTemplates =　new(); 
+        private Dictionary<string,IQuestTemplate> QuestTemplates =　new(); 
 
         public QuestFactory(IQuestConfig questConfig)
         {
