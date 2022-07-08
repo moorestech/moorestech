@@ -14,29 +14,36 @@ namespace Test.CombinedTest.Server.PacketTest
     {
         /// <summary>
         /// 現在のクエスト進捗状況を取得するテスト
+        /// note クエストの内容はTestQuestConfig.jsonと同じです
         /// </summary>
         [Test]
         public void GetTest()
         {
-            //テスト用のセーブデータを用意
+            //TODO テスト用のセーブデータを用意
             var json = "{\"world\":[],\"playerInventory\":[],\"entities\":[]}";
 
             var playerId = 1;
             
-            //TODO テスト用のmodを用意する
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.QuestTestModDirectory);
             (serviceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
 
 
             //クエストのデータ要求クラス
             var payload = MessagePackSerializer.Serialize(new QuestProgressRequestProtocolMessagePack(playerId)).ToList();
             //データの検証
-            var questResponse = MessagePackSerializer.Deserialize<QuestProgressResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0].ToArray());
+            var questResponse = MessagePackSerializer.Deserialize<QuestProgressResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0].ToArray()).Quests;
             
-            //TODO
-            Assert.Fail();
+            Assert.AreEqual("Test1",questResponse[0].Id);
+            Assert.AreEqual(false,questResponse[0].IsCompleted);
+            Assert.AreEqual(false,questResponse[0].AcquiredReward);
             
-
+            Assert.AreEqual("Test2",questResponse[0].Id);
+            Assert.AreEqual(true,questResponse[0].IsCompleted);
+            Assert.AreEqual(false,questResponse[0].AcquiredReward);
+            
+            Assert.AreEqual("Test3",questResponse[0].Id);
+            Assert.AreEqual(true,questResponse[0].IsCompleted);
+            Assert.AreEqual(true,questResponse[0].AcquiredReward);
         }
     }
 }
