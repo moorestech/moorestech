@@ -45,9 +45,23 @@ namespace Game.Quest
             return saveData;
         }
 
-        public void LoadQuestDataDictionary(Dictionary<int, SaveQuestData> quests)
+        public void LoadQuestDataDictionary(Dictionary<int, List<SaveQuestData>> quests)
         {
-            throw new System.NotImplementedException();
+            foreach (var questsList in quests)
+            {
+                //今あるクエストが全てロードずみかどうかチェックする辞書
+                var allQuests = _questConfig.GetAllQuestConfig().ToDictionary(q => q.QuestId, q => false);
+                var loadedQuestList = new List<IQuest>();
+                foreach (var quest in questsList.Value)
+                {
+                    if (allQuests.ContainsKey(quest.QuestId))
+                    {
+                        loadedQuestList.Add(_questFactory.LoadQuest(quest.QuestId,quest.IsCompleted,quest.AcquiredReward));
+                        continue;
+                    }
+                }
+            }
+            
         }
     }
 

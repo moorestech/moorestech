@@ -30,5 +30,10 @@ namespace Game.Quest.Factory
             //TODO ログ取得基盤に入れるようにする
             throw new ArgumentException("[QuestFactory]指定されたクエストタイプ:"+quest.QuestType + "は存在しません。");
         }
+
+        public IQuest LoadQuest(string questId, bool isCompleted, bool acquiredReward)
+        {
+            //todo
+        }
     }
 }
