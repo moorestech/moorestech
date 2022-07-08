@@ -4,6 +4,6 @@ namespace Game.Quest.Factory.QuestTemplate
 {
     public interface IQuestTemplate
     {
-        public IQuest CreateQuest(IQuestConfig questConfig);
+        public IQuest CreateQuest(QuestConfigData questConfig);
     }
 }
