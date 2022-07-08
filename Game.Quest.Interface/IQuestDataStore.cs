@@ -6,6 +6,6 @@ namespace Game.Quest.Interface
     {
         public IReadOnlyList<IQuest> GetPlayerQuestProgress(int playerId);
         public Dictionary<int, List<SaveQuestData>> GetQuestDataDictionary();
-        public void LoadQuestDataDictionary(Dictionary<int, SaveQuestData> quests);
+        public void LoadQuestDataDictionary(Dictionary<int, List<SaveQuestData>> quests);
     }
 }
