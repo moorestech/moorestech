@@ -11,16 +11,18 @@ namespace Game.Save.Json
 {
     public class AssembleSaveJsonText
     {
-        private IWorldBlockDatastore _worldBlockDatastore;
-        private IPlayerInventoryDataStore _inventoryDataStore;
-        private IEntitiesDatastore _entitiesDatastore;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly IPlayerInventoryDataStore _inventoryDataStore;
+        private readonly IEntitiesDatastore _entitiesDatastore;
+        private readonly IQuestDataStore _questDataStore;
 
         public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore,
-            IWorldBlockDatastore worldBlockDatastore, IEntitiesDatastore entitiesDatastore)
+            IWorldBlockDatastore worldBlockDatastore, IEntitiesDatastore entitiesDatastore, IQuestDataStore questDataStore)
         {
             _inventoryDataStore = inventoryDataStore;
             _worldBlockDatastore = worldBlockDatastore;
             _entitiesDatastore = entitiesDatastore;
+            _questDataStore = questDataStore;
         }
 
         public string AssembleSaveJson()
@@ -28,7 +30,8 @@ namespace Game.Save.Json
             var saveData = new SaveData(
                 _worldBlockDatastore.GetSaveBlockDataList(),
                 _inventoryDataStore.GetSaveInventoryDataList(),
-                _entitiesDatastore.GetSaveBlockDataList());
+                _entitiesDatastore.GetSaveBlockDataList(),
+                _questDataStore.GetQuestDataDictionary());
             
             return JsonConvert.SerializeObject(saveData);
         }
