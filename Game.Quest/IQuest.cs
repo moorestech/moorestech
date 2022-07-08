@@ -9,7 +9,6 @@ namespace Game.Quest
     public interface IQuest
     {
         QuestConfigData Quest { get; }
-        public string QuestType { get; }
         
         bool IsCompleted { get; }
         bool AcquiredReward { get; }
