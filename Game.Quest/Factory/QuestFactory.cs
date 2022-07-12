@@ -33,7 +33,15 @@ namespace Game.Quest.Factory
 
         public IQuest LoadQuest(string questId, bool isCompleted, bool isRewarded)
         {
-            //todo
+            var quest = _questConfig.GetQuestConfig(questId);
+            
+            if (QuestTemplates.ContainsKey(quest.QuestType))
+            {
+                return QuestTemplates[quest.QuestType].LoadQuest(quest,isCompleted,isRewarded);
+            }
+            
+            //TODO ログ取得基盤に入れるようにする
+            throw new ArgumentException("[QuestFactory]指定されたクエストタイプ:"+quest.QuestType + "は存在しません。");
         }
     }
 }
