@@ -25,7 +25,7 @@ namespace Test.UnitTest.Game.SaveLoad
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var json = assembleSaveJsonText.AssembleSaveJson();
             Console.WriteLine();
-            Assert.AreEqual("{\"world\":[],\"playerInventory\":[],\"entities\":[]}", json);
+            Assert.AreEqual("{\"world\":[],\"playerInventory\":[],\"entities\":[],\"quests\":{}}", json);
         }
 
         //ブロックを追加した時のテスト
