@@ -9,8 +9,8 @@ namespace Game.Quest
     public class ItemCraftQuest : IQuest
     {
         public QuestConfigData Quest { get; }
-        public bool IsCompleted { get; }
-        public bool IsRewarded { get; }
+        public bool IsCompleted { get; private set; }
+        public bool IsRewarded { get;  private set; }
         public event Action OnQuestCompleted;
         
         public ItemCraftQuest() { }
