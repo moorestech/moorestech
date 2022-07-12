@@ -30,7 +30,10 @@ namespace Core.Block.Config.LoadConfig
             var list = new List<BlockConfigData>();
             foreach (var mod in mods)
             {
-                var json = blockJsons[mod];
+                if (!blockJsons.TryGetValue(mod,out var json))
+                {
+                    continue;
+                }
                 list.AddRange(LoadFormOneJson(json,mod));
             }
             return list;

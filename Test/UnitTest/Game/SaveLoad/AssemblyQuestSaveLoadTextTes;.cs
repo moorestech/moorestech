@@ -26,17 +26,14 @@ namespace Test.UnitTest.Game.SaveLoad
             
             //クエストのステータスを強制的に更新する
             //index 1のクエストを完了しているようにする
-            typeof(ItemCraftQuest)
-                .GetField("IsCompleted", BindingFlags.NonPublic | BindingFlags.Instance)
-                .SetValue(quests[1], true);
+            typeof(ItemCraftQuest).GetProperty("IsCompleted").
+                SetValue(quests[1], true);
             
             //index 2のクエストを完了、アイテムを渡しているようにする
-            typeof(ItemCraftQuest)
-                .GetField("IsCompleted", BindingFlags.NonPublic | BindingFlags.Instance)
-                .SetValue(quests[2], true);
-            typeof(ItemCraftQuest)
-                .GetField("IsRewarded", BindingFlags.NonPublic | BindingFlags.Instance)
-                .SetValue(quests[2], true);
+            typeof(ItemCraftQuest).GetProperty("IsCompleted").
+                SetValue(quests[2], true);
+            typeof(ItemCraftQuest).GetProperty("IsCompleted").
+                SetValue(quests[2], true);
             
 
             //セーブの実行
