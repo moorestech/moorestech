@@ -19,6 +19,10 @@ using Game.Entity;
 using Game.Entity.Interface;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
+using Game.Quest;
+using Game.Quest.Config;
+using Game.Quest.Factory;
+using Game.Quest.Interface;
 using Game.Save.Interface;
 using Game.Save.Json;
 using Game.World.EventHandler;
@@ -80,6 +84,9 @@ namespace Server.Boot
             services.AddSingleton<IElectricSegmentMergeService, ElectricSegmentMergeService>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>();
+            services.AddSingleton<IQuestDataStore, QuestDatastore>();
+            services.AddSingleton<IQuestConfig, QuestConfig>();
+            services.AddSingleton<QuestFactory, QuestFactory>();
             
 
             //JSONファイルのセーブシステムの読み込み

@@ -10,6 +10,7 @@
       <ProjectReference Include="..\Game.Crafting\Game.Crafting.csproj" />
       <ProjectReference Include="..\Game.Entity\Game.Entity.csproj" />
       <ProjectReference Include="..\Game.PlayerInventory\Game.PlayerInventory.csproj" />
+      <ProjectReference Include="..\Game.Quest\Game.Quest.csproj" />
       <ProjectReference Include="..\Game.SaveLoad\Game.SaveLoad.csproj" />
       <ProjectReference Include="..\Game.World.EventHandler\Game.World.EventHandler.csproj" />
       <ProjectReference Include="..\Game.World\Game.World.csproj" />
