@@ -31,13 +31,13 @@ namespace Game.Quest.Factory
             throw new ArgumentException("[QuestFactory]指定されたクエストタイプ:"+quest.QuestType + "は存在しません。");
         }
 
-        public IQuest LoadQuest(string questId, bool isCompleted, bool isRewarded)
+        public IQuest LoadQuest(SaveQuestData loadedQuest)
         {
-            var quest = _questConfig.GetQuestConfig(questId);
+            var quest = _questConfig.GetQuestConfig(loadedQuest.QuestId);
             
             if (QuestTemplates.ContainsKey(quest.QuestType))
             {
-                return QuestTemplates[quest.QuestType].LoadQuest(quest,isCompleted,isRewarded);
+                return QuestTemplates[quest.QuestType].LoadQuest(quest,loadedQuest.IsCompleted,loadedQuest.IsRewarded);
             }
             
             //TODO ログ取得基盤に入れるようにする

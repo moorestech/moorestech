@@ -47,21 +47,17 @@ namespace Game.Quest
 
         public void LoadQuestDataDictionary(Dictionary<int, List<SaveQuestData>> quests)
         {
-            foreach (var questsList in quests)
+            foreach (var playerToQuestsList in quests)
             {
-                //今あるクエストが全てロードずみかどうかチェックする辞書
-                var allQuests = _questConfig.GetAllQuestConfig().ToDictionary(q => q.QuestId, q => false);
-                var loadedQuestList = new List<IQuest>();
-                foreach (var quest in questsList.Value)
+                var allQuests = 
+                    _questConfig.GetAllQuestConfig().ToDictionary(q => q.QuestId, q => _questFactory.CreateQuest(q.QuestId));
+                
+                foreach (var loadedQuest in playerToQuestsList.Value.Where(q => allQuests.ContainsKey(q.QuestId)))
                 {
-                    if (allQuests.ContainsKey(quest.QuestId))
-                    {
-                        loadedQuestList.Add(_questFactory.LoadQuest(quest.QuestId,quest.IsCompleted,quest.IsRewarded));
-                        continue;
-                    }
+                    allQuests[loadedQuest.QuestId] = _questFactory.LoadQuest(loadedQuest);
                 }
+                _quests.Add(playerToQuestsList.Key,allQuests.Values.ToList());
             }
-            
         }
     }
 
