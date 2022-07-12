@@ -33,6 +33,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(MiningOperationProtocol.Tag,new MiningOperationProtocol(serviceProvider)); 
             _packetResponseDictionary.Add(BlockInventoryOpenCloseProtocol.Tag,new BlockInventoryOpenCloseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SaveProtocol.Tag,new SaveProtocol(serviceProvider));
+            _packetResponseDictionary.Add(QuestProgressRequestProtocol.Tag,new QuestProgressRequestProtocol(serviceProvider));
 
             serviceProvider.GetService<VeinGenerator>();
         }
