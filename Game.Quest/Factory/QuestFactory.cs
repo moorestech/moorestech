@@ -31,7 +31,7 @@ namespace Game.Quest.Factory
             throw new ArgumentException("[QuestFactory]指定されたクエストタイプ:"+quest.QuestType + "は存在しません。");
         }
 
-        public IQuest LoadQuest(string questId, bool isCompleted, bool acquiredReward)
+        public IQuest LoadQuest(string questId, bool isCompleted, bool isRewarded)
         {
             //todo
         }

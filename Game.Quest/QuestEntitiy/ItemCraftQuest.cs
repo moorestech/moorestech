@@ -10,14 +10,14 @@ namespace Game.Quest
     {
         public QuestConfigData Quest { get; }
         public bool IsCompleted { get; }
-        public bool AcquiredReward { get; }
+        public bool IsRewarded { get; }
         public event Action OnQuestCompleted;
         
         public ItemCraftQuest() { }
-        public ItemCraftQuest(bool isCompleted, bool acquiredReward)
+        public ItemCraftQuest(bool isCompleted, bool isRewarded)
         {
             IsCompleted = isCompleted;
-            AcquiredReward = acquiredReward;
+            IsRewarded = isRewarded;
         }
     }
 }

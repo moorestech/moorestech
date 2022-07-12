@@ -53,11 +53,11 @@ namespace Server.Protocol.PacketResponse
     public class QuestProgress
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public QuestProgress(string id, bool isCompleted, bool acquiredReward)
+        public QuestProgress(string id, bool isCompleted, bool isRewarded)
         {
             Id = id;
             IsCompleted = isCompleted;
-            AcquiredReward = acquiredReward;
+            IsRewarded = isRewarded;
         }
 
 
@@ -66,7 +66,7 @@ namespace Server.Protocol.PacketResponse
         [Key(1)]
         public bool IsCompleted { get; set; }
         [Key(2)]
-        public bool AcquiredReward { get; set; }
+        public bool IsRewarded { get; set; }
         
     }
 }

@@ -56,7 +56,7 @@ namespace Game.Quest
                 {
                     if (allQuests.ContainsKey(quest.QuestId))
                     {
-                        loadedQuestList.Add(_questFactory.LoadQuest(quest.QuestId,quest.IsCompleted,quest.AcquiredReward));
+                        loadedQuestList.Add(_questFactory.LoadQuest(quest.QuestId,quest.IsCompleted,quest.IsRewarded));
                         continue;
                     }
                 }
@@ -69,7 +69,7 @@ namespace Game.Quest
     {
         public static SaveQuestData ToSaveData(this IQuest quest)
         {
-            return new SaveQuestData(quest.Quest.QuestId,quest.IsCompleted,quest.AcquiredReward);
+            return new SaveQuestData(quest.Quest.QuestId,quest.IsCompleted,quest.IsRewarded);
         }
     }
 }
