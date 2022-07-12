@@ -12,5 +12,12 @@ namespace Game.Quest
         public bool IsCompleted { get; }
         public bool AcquiredReward { get; }
         public event Action OnQuestCompleted;
+        
+        public ItemCraftQuest() { }
+        public ItemCraftQuest(bool isCompleted, bool acquiredReward)
+        {
+            IsCompleted = isCompleted;
+            AcquiredReward = acquiredReward;
+        }
     }
 }

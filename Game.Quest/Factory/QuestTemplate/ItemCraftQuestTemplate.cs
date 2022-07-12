@@ -8,5 +8,10 @@ namespace Game.Quest.Factory.QuestTemplate
         {
             return new ItemCraftQuest();
         }
+
+        public IQuest LoadQuest(QuestConfigData questConfigData, bool isCompleted, bool isRewarded)
+        {
+            return new ItemCraftQuest(isCompleted,isRewarded);
+        }
     }
 }
