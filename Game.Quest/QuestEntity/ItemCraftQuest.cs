@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
-using Core.Item;
-using Core.Util;
 using Game.Quest.Interface;
 
-namespace Game.Quest
+namespace Game.Quest.QuestEntity
 {
     public class ItemCraftQuest : IQuest
     {
@@ -13,9 +10,13 @@ namespace Game.Quest
         public bool IsRewarded { get;  private set; }
         public event Action OnQuestCompleted;
         
-        public ItemCraftQuest() { }
-        public ItemCraftQuest(bool isCompleted, bool isRewarded)
+        public ItemCraftQuest(QuestConfigData quest)
         {
+            Quest = quest;
+        }
+        public ItemCraftQuest(QuestConfigData quest,bool isCompleted, bool isRewarded)
+        {
+            Quest = quest;
             IsCompleted = isCompleted;
             IsRewarded = isRewarded;
         }

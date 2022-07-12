@@ -1,4 +1,5 @@
 using Game.Quest.Interface;
+using Game.Quest.QuestEntity;
 
 namespace Game.Quest.Factory.QuestTemplate
 {
@@ -6,12 +7,12 @@ namespace Game.Quest.Factory.QuestTemplate
     {
         public IQuest CreateQuest(QuestConfigData questConfig)
         {
-            return new ItemCraftQuest();
+            return new ItemCraftQuest(questConfig);
         }
 
-        public IQuest LoadQuest(QuestConfigData questConfigData, bool isCompleted, bool isRewarded)
+        public IQuest LoadQuest(QuestConfigData questConfig, bool isCompleted, bool isRewarded)
         {
-            return new ItemCraftQuest(isCompleted,isRewarded);
+            return new ItemCraftQuest(questConfig,isCompleted,isRewarded);
         }
     }
 }

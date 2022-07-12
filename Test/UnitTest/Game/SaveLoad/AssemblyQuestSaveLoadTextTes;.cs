@@ -2,6 +2,7 @@
 using System.Reflection;
 using Game.Quest;
 using Game.Quest.Interface;
+using Game.Quest.QuestEntity;
 using Game.Save.Interface;
 using Game.Save.Json;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +33,7 @@ namespace Test.UnitTest.Game.SaveLoad
             //index 2のクエストを完了、アイテムを渡しているようにする
             typeof(ItemCraftQuest).GetProperty("IsCompleted").
                 SetValue(quests[2], true);
-            typeof(ItemCraftQuest).GetProperty("IsCompleted").
+            typeof(ItemCraftQuest).GetProperty("IsRewarded").
                 SetValue(quests[2], true);
             
 
