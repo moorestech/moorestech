@@ -26,9 +26,9 @@ namespace Game.Quest
                 return _quests[playerId];
             }
 
+            //新しいクエストの作成
             var newQuests =
-                _questConfig.GetAllQuestConfig().
-                    Select(q => _questFactory.CreateQuest(q.QuestId)).ToList();
+                _questConfig.GetAllQuestConfig().Select(q => _questFactory.CreateQuest(q.QuestId)).ToList();
             _quests.Add(playerId,newQuests);
             
             return newQuests;
