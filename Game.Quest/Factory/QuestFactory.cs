@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Item;
 using Game.Quest.Factory.QuestTemplate;
 using Game.Quest.Interface;
 
@@ -8,12 +9,12 @@ namespace Game.Quest.Factory
     public class QuestFactory
     {
         private readonly IQuestConfig _questConfig;
-        private Dictionary<string,IQuestTemplate> QuestTemplates =　new(); 
+        private readonly Dictionary<string,IQuestTemplate> _questTemplates =　new(); 
 
-        public QuestFactory(IQuestConfig questConfig)
+        public QuestFactory(IQuestConfig questConfig,ItemStackFactory itemStackFactory)
         {
             //クエストのテンプレート一覧の作成
-            QuestTemplates.Add(VanillaQuestTypes.ItemCraftQuestType,new ItemCraftQuestTemplate());
+            _questTemplates.Add(VanillaQuestTypes.ItemCraftQuestType,new ItemCraftQuestTemplate(itemStackFactory));
             
             _questConfig = questConfig;
         }
@@ -22,9 +23,9 @@ namespace Game.Quest.Factory
         {
             var quest = _questConfig.GetQuestConfig(questId);
             
-            if (QuestTemplates.ContainsKey(quest.QuestType))
+            if (_questTemplates.ContainsKey(quest.QuestType))
             {
-                return QuestTemplates[quest.QuestType].CreateQuest(quest);
+                return _questTemplates[quest.QuestType].CreateQuest(quest);
             }
             
             //TODO ログ取得基盤に入れるようにする
@@ -35,9 +36,9 @@ namespace Game.Quest.Factory
         {
             var quest = _questConfig.GetQuestConfig(loadedQuest.QuestId);
             
-            if (QuestTemplates.ContainsKey(quest.QuestType))
+            if (_questTemplates.ContainsKey(quest.QuestType))
             {
-                return QuestTemplates[quest.QuestType].LoadQuest(quest,loadedQuest.IsCompleted,loadedQuest.IsRewarded);
+                return _questTemplates[quest.QuestType].LoadQuest(quest,loadedQuest.IsCompleted,loadedQuest.IsRewarded);
             }
             
             //TODO ログ取得基盤に入れるようにする
