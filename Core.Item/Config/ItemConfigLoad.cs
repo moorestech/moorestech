@@ -42,6 +42,7 @@ namespace Core.Item.Config
                 }
                 catch (Exception e)
                 {
+                    //TODO ログ基盤に入れる
                     Console.WriteLine(e.Message + "\n" + e.StackTrace + "\n アイテムコンフィグのロードに失敗しました mod id:" + mod);
                     continue;
                 }

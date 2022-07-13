@@ -24,6 +24,7 @@ namespace Core.Item.Config
                 var arrayIndex = itemId - 1;
                 if (_bockHashToId.ContainsKey(_itemConfigList[arrayIndex].ItemHash))
                 {
+                    //TODO ログ基盤に入れる
                     throw new Exception("アイテム名 " + _itemConfigList[arrayIndex].Name + " は重複しています。");
                 }
                 _bockHashToId.Add(_itemConfigList[arrayIndex].ItemHash, itemId);
@@ -45,6 +46,7 @@ namespace Core.Item.Config
             id -= 1;
             if (id < 0)
             {
+                //TODO ログ基盤に入れる
                 throw new ArgumentException("id must be greater than 0 ID:" + id);
             }
             if (id < _itemConfigList.Count)
@@ -52,6 +54,7 @@ namespace Core.Item.Config
                 return _itemConfigList[id];
             }
 
+            //TODO ログ基盤に入れる
             return new ItemConfigData("undefined id " + id, DefaultItemMaxCount,"mod is not found");
         }
 
