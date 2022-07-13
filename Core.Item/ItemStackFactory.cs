@@ -50,5 +50,11 @@ namespace Core.Item
         {
             return _nullItem;
         }
+
+        public IItemStack Create(string modId, string itemName, int count)
+        {
+            var id = _itemConfig.GetItemId(modId, itemName);
+            return Create(id, count);
+        }
     }
 }
