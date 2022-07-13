@@ -41,7 +41,7 @@ namespace Core.Item.Config
 
         public ItemConfigData GetItemConfig(int id)
         {
-            //0は何も持っていないことを表すので1から始める
+            //0は何も持っていないことを表すので-1してListのindexにする
             id -= 1;
             if (id < 0)
             {

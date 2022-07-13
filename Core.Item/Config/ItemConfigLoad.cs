@@ -67,6 +67,12 @@ namespace Core.Item.Config
             ItemHash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + Name).Hash);
         }
 
+        /// <summary>
+        /// アイテムが定義されていないとき用のコンストラクタ
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="maxStack"></param>
+        /// <param name="modId"></param>
         public ItemConfigData(string name, int maxStack, string modId)
         {
             Name = name;
