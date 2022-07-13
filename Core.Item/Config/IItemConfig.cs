@@ -7,5 +7,6 @@ namespace Core.Item.Config
         public ItemConfigData GetItemConfig(int id);
         public int GetItemId(ulong itemHash);
         public List<int> GetItemIds(string modId);
+        int GetItemId(string modId, string itemName);
     }
 }
