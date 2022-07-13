@@ -6,14 +6,14 @@ using Game.PlayerInventory.Interface;
 
 namespace Game.Crafting
 {
-    public class ItemCraftService : IItemCraftService
+    public class ItemCraftingService : IItemCraftingService
     {
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
         private readonly IOpenableInventory _mainOpenableInventoryData;
         private readonly IOpenableInventory _grabInventoryData;
         private readonly ICraftingOpenableInventory _craftingOpenableInventory;
 
-        public ItemCraftService(IIsCreatableJudgementService isCreatableJudgementService, IOpenableInventory grabInventoryData, ICraftingOpenableInventory craftingOpenableInventory, IOpenableInventory mainOpenableInventoryData)
+        public ItemCraftingService(IIsCreatableJudgementService isCreatableJudgementService, IOpenableInventory grabInventoryData, ICraftingOpenableInventory craftingOpenableInventory, IOpenableInventory mainOpenableInventoryData)
         {
             _isCreatableJudgementService = isCreatableJudgementService;
             _grabInventoryData = grabInventoryData;

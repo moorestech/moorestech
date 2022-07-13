@@ -17,25 +17,22 @@ namespace PlayerInventory.ItemManaged
         private readonly CraftInventoryUpdateEvent _craftInventoryUpdateEvent;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
-
-        private readonly GrabInventoryData _grabInventoryData;
-        private readonly MainOpenableInventoryData _mainOpenableInventoryData;
+        private readonly IItemCraftingService _itemCraftingService;
 
         public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData)
+            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService, IItemCraftingService itemCraftingService)
         {
             _playerId = playerId;
             
             _craftInventoryUpdateEvent = craftInventoryUpdateEvent;
             _itemStackFactory = itemStackFactory;
             _isCreatableJudgementService = isCreatableJudgementService;
-            _mainOpenableInventoryData = mainOpenableInventoryData;
-            _grabInventoryData = grabInventoryData;
+            _itemCraftingService = itemCraftingService;
             _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, 
                 itemStackFactory, PlayerInventoryConst.CraftingSlotSize);
         }
-        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService,List<IItemStack> itemStacks, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData) : 
-            this(playerId, craftInventoryUpdateEvent, itemStackFactory,isCreatableJudgementService, mainOpenableInventoryData, grabInventoryData)
+        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService,List<IItemStack> itemStacks, IItemCraftingService itemCraftingService) : 
+            this(playerId, craftInventoryUpdateEvent, itemStackFactory,isCreatableJudgementService, itemCraftingService)
         {
             for (int i = 0; i < itemStacks.Count; i++)
             {
@@ -45,62 +42,11 @@ namespace PlayerInventory.ItemManaged
 
         #region CraftLogic
         
-        public void NormalCraft()
-        {
-            //クラフトが可能なアイテムの配置かチェック
-            //クラフト結果のアイテムを持ちスロットに追加可能か判定
-            if (!IsCreatable()) return;
-            
-            //クラフト結果のアイテムを取得しておく
-            var result = _isCreatableJudgementService.GetResult(CraftingItems);
-            if (!_grabInventoryData.GetItem(0).IsAllowedToAdd(result)) return;
+        public void NormalCraft() { _itemCraftingService.NormalCraft(); }
 
-            //クラフトしたアイテムを消費する
-            ConsumptionCraftItem(1, CraftingItems);
-            
-            //元のクラフト結果のアイテムを足したアイテムを持ちインベントリに追加
-            var outputSlotItem = _grabInventoryData.GetItem(0);
-            var addedOutputSlot = outputSlotItem.AddItem(result).ProcessResultItemStack;
-            _grabInventoryData.SetItem(0, addedOutputSlot);
-        }
+        public void AllCraft() { _itemCraftingService.AllCraft(); }
 
-        public void AllCraft()
-        {
-            var craftNum = _isCreatableJudgementService.CalcAllCraftItemNum(CraftingItems,_mainOpenableInventoryData.Items);
-            var result = _isCreatableJudgementService.GetResult(CraftingItems);
-            for (int i = 0; i < craftNum; i++)
-            {
-                _mainOpenableInventoryData.InsertItem(result);
-            }
-            ConsumptionCraftItem(craftNum, CraftingItems);
-        }
-
-        public void OneStackCraft()
-        {
-            var craftNum = _isCreatableJudgementService.CalcOneStackCraftItemNum(CraftingItems,_mainOpenableInventoryData.Items);
-            var result = _isCreatableJudgementService.GetResult(CraftingItems);
-            for (int i = 0; i < craftNum; i++)
-            {
-                _mainOpenableInventoryData.InsertItem(result);
-            }
-            ConsumptionCraftItem(craftNum, CraftingItems);
-        }
-
-
-        private void ConsumptionCraftItem(int itemCount,IReadOnlyList<IItemStack> craftingItems)
-        {
-            for (int i = 0; i < itemCount; i++)
-            {
-                var craftConfig = _isCreatableJudgementService.GetCraftingConfigData(craftingItems);
-                for (int j = 0; j < PlayerInventoryConst.CraftingSlotSize; j++)
-                {
-                    //クラフトしたアイテムを消費する
-                    var subItem = _openableInventoryService.Inventory[j].SubItem(craftConfig.Items[j].Count);
-                    //インベントリにセット
-                    _openableInventoryService.SetItem(j, subItem);
-                }
-            }
-        }
+        public void OneStackCraft() { _itemCraftingService.OneStackCraft(); }
 
         #endregion
         
