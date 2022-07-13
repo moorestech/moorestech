@@ -53,7 +53,13 @@ namespace Game.Crafting
 
         public void OneStackCraft()
         {
-            throw new System.NotImplementedException();
+            var craftNum = _isCreatableJudgementService.CalcOneStackCraftItemNum(CraftingItems,_mainOpenableInventoryData.Items);
+            var result = _isCreatableJudgementService.GetResult(CraftingItems);
+            for (int i = 0; i < craftNum; i++)
+            {
+                _mainOpenableInventoryData.InsertItem(result);
+            }
+            ConsumptionCraftItem(craftNum, CraftingItems);
         }
 
         private bool IsCreatable() { return _isCreatableJudgementService.IsCreatable(CraftingItems); }
