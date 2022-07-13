@@ -41,7 +41,7 @@ namespace PlayerInventory
             {
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, _itemStackFactory);
-                var craft = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService);
+                var craft = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService,main,grab);
 
                 _playerInventoryData.Add(playerId, new PlayerInventoryData(main,craft,grab));
             }
@@ -75,7 +75,7 @@ namespace PlayerInventory
                 //アイテムを復元
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,mainItems);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, _itemStackFactory,grabItem);
-                var craftingInventory = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService,craftItems,grab);
+                var craftingInventory = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService,craftItems,main,grab);
 
                 var playerInventory = new PlayerInventoryData(main, craftingInventory,grab);
                 
