@@ -27,7 +27,7 @@ namespace Game.Quest.Factory.QuestTemplate
         private int GetCraftItem(string parameter)
         {
             var param = JsonConvert.DeserializeObject<ItemCraftQuestParameter>(parameter);
-            return _itemStackFactory.Create(param.ModId, param.ItemName);
+            return _itemStackFactory.Create(param.ModId, param.ItemName,1).Id;
         }
     }
     
