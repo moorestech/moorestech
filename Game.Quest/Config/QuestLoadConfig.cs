@@ -182,8 +182,8 @@ namespace Game.Quest.Config
                 var count = questConfigJsonData.RewardItem[i, 1];
                 rewardItems.Add(itemStackFactory.Create(id,count));
             }
-            
-            
+
+
             return new QuestConfigData(
                 questConfigJsonData.ModId,
                 questConfigJsonData.Id,
@@ -195,7 +195,8 @@ namespace Game.Quest.Config
                 questConfigJsonData.Description,
                 new CoreVector2(questConfigJsonData.UiPosX, questConfigJsonData.UiPosY),
                 rewardItems,
-                questConfigJsonData.Param);
+                // パラメーターは " を ' にしたjsonデータなのでReplaceする
+                questConfigJsonData.Param.Replace("'", "\""));
         }
     }
 }
