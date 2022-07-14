@@ -18,18 +18,20 @@ namespace PlayerInventory
         private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
         private readonly CraftInventoryUpdateEvent _craftInventoryUpdateEvent;
         private readonly GrabInventoryUpdateEvent _grabInventoryUpdateEvent;
+        private readonly CraftingEvent _craftingEvent;
         
         private readonly ItemStackFactory _itemStackFactory;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
         public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent,
             ICraftInventoryUpdateEvent craftInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService, IGrabInventoryUpdateEvent grabInventoryUpdateEvent)
+            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService, IGrabInventoryUpdateEvent grabInventoryUpdateEvent, ICraftingEvent craftingEvent)
         {
             //イベントの呼び出しをアセンブリに隠蔽するため、インターフェースをキャストします。
             _mainInventoryUpdateEvent = (MainInventoryUpdateEvent) mainInventoryUpdateEvent;
             _craftInventoryUpdateEvent = (CraftInventoryUpdateEvent) craftInventoryUpdateEvent;
             _grabInventoryUpdateEvent = (GrabInventoryUpdateEvent) grabInventoryUpdateEvent;
+            _craftingEvent = (CraftingEvent)craftingEvent;
             
             _itemStackFactory = itemStackFactory;
             _isCreatableJudgementService = isCreatableJudgementService;
@@ -41,7 +43,7 @@ namespace PlayerInventory
             {
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, _itemStackFactory);
-                var craft = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService,main,grab);
+                var craft = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService,main,grab,_craftingEvent);
 
                 _playerInventoryData.Add(playerId, new PlayerInventoryData(main,craft,grab));
             }
