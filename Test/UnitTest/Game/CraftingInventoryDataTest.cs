@@ -6,6 +6,7 @@ using Game.Crafting;
 using Game.Crafting.Config;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
+using Game.PlayerInventory.Interface.Event;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
@@ -18,10 +19,13 @@ using Test.Module.TestMod;
 
 namespace Test.UnitTest.Game
 {
+    /// <summary>
+    /// 正しくクラフトされているか、イベントが実行されるかをテストする
+    /// </summary>
     public class CraftingInventoryDataTest
     {
-        private const int PlayerId = 0;
-    
+        private const int PlayerId = 0; 
+        
         [Test]
         public void GetCreatableItemTest()
         {
@@ -53,6 +57,7 @@ namespace Test.UnitTest.Game
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var config = serviceProvider.GetService<ICraftingConfig>();
             var service = serviceProvider.GetService<IIsCreatableJudgementService>();
+            var craftingEvent = serviceProvider.GetService<ICraftingEvent>();
             
             var main = new MainOpenableInventoryData(PlayerId, new MainInventoryUpdateEvent(), itemStackFactory);
             var grabInventory = new GrabInventoryData(PlayerId,new GrabInventoryUpdateEvent(),itemStackFactory);
@@ -63,11 +68,19 @@ namespace Test.UnitTest.Game
             
             
             //craftingInventoryにアイテムを入れる
-            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service,main,grabInventory,new CraftingEvent());
+            var craftingInventory = new CraftingOpenableInventoryData(PlayerId,new CraftInventoryUpdateEvent(),itemStackFactory,service,main,grabInventory,(CraftingEvent)craftingEvent);
             for (int i = 0; i < craftConfig.Items.Count; i++)
             {
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
             }
+
+            //イベントをサブスクライブ
+            craftingEvent.Subscribe(i =>
+            {
+                //イベントのアイテムが正しく取得できているか検証
+                Assert.AreEqual(craftConfig.Result,i);
+            });
+            
             
             //クラフト実行
             craftingInventory.NormalCraft();
