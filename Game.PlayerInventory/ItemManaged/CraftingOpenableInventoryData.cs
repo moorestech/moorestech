@@ -24,7 +24,7 @@ namespace PlayerInventory.ItemManaged
         private readonly CraftingEvent _craftingEvent;
 
         public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData, ICraftingEvent craftingEvent)
+            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData, CraftingEvent craftingEvent)
         {
             _playerId = playerId;
             
@@ -37,7 +37,7 @@ namespace PlayerInventory.ItemManaged
             _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, 
                 itemStackFactory, PlayerInventoryConst.CraftingSlotSize);
         }
-        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService,List<IItemStack> itemStacks, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData, ICraftingEvent craftingEvent) : 
+        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService,List<IItemStack> itemStacks, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData, CraftingEvent craftingEvent) : 
             this(playerId, craftInventoryUpdateEvent, itemStackFactory,isCreatableJudgementService, mainOpenableInventoryData, grabInventoryData, craftingEvent)
         {
             for (int i = 0; i < itemStacks.Count; i++)
