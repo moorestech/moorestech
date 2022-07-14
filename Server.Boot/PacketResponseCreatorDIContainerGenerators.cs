@@ -101,6 +101,7 @@ namespace Server.Boot
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
             services.AddSingleton<ICraftInventoryUpdateEvent, CraftInventoryUpdateEvent>();
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
+            services.AddSingleton<ICraftingEvent, CraftingEvent>();
 
             //イベントレシーバーを登録
             services.AddSingleton<MainInventoryUpdateToSetEventPacket>();
