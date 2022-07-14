@@ -14,15 +14,17 @@ namespace PlayerInventory.ItemManaged
     {
         private readonly OpenableInventoryItemDataStoreService _openableInventoryService;
         private readonly int _playerId;
-        private readonly CraftInventoryUpdateEvent _craftInventoryUpdateEvent;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
         private readonly GrabInventoryData _grabInventoryData;
         private readonly MainOpenableInventoryData _mainOpenableInventoryData;
+        
+        private readonly CraftInventoryUpdateEvent _craftInventoryUpdateEvent;
+        private readonly CraftingEvent _craftingEvent;
 
         public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData)
+            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData, ICraftingEvent craftingEvent)
         {
             _playerId = playerId;
             
@@ -31,11 +33,12 @@ namespace PlayerInventory.ItemManaged
             _isCreatableJudgementService = isCreatableJudgementService;
             _mainOpenableInventoryData = mainOpenableInventoryData;
             _grabInventoryData = grabInventoryData;
+            _craftingEvent = craftingEvent;
             _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, 
                 itemStackFactory, PlayerInventoryConst.CraftingSlotSize);
         }
-        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService,List<IItemStack> itemStacks, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData) : 
-            this(playerId, craftInventoryUpdateEvent, itemStackFactory,isCreatableJudgementService, mainOpenableInventoryData, grabInventoryData)
+        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService,List<IItemStack> itemStacks, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData, ICraftingEvent craftingEvent) : 
+            this(playerId, craftInventoryUpdateEvent, itemStackFactory,isCreatableJudgementService, mainOpenableInventoryData, grabInventoryData, craftingEvent)
         {
             for (int i = 0; i < itemStacks.Count; i++)
             {
