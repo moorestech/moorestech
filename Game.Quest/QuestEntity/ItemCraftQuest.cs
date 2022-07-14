@@ -28,9 +28,9 @@ namespace Game.Quest.QuestEntity
             IsRewarded = isRewarded;
         }
 
-        private void OnItemCraft(IItemStack itemStack)
+        private void OnItemCraft((int itemId, int itemCount) result)
         {
-            if (!IsCompleted && itemStack.Id != _questItemId) return;
+            if (!IsCompleted && result.itemId != _questItemId) return;
             
             IsCompleted = true;
             OnQuestCompleted?.Invoke();

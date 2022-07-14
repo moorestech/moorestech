@@ -6,15 +6,15 @@ namespace PlayerInventory.Event
 {
     public class CraftingEvent : ICraftingEvent
     {
-        private event Action<IItemStack> OnCraft; 
-        public void Subscribe(Action<IItemStack> onCraft)
+        private event Action<(int id,int itemCount)> OnCraft; 
+        public void Subscribe(Action<(int itemId, int itemCount)> onCraft)
         {
             OnCraft += onCraft;
         }
 
-        internal void InvokeEvent(IItemStack craftItem)
+        internal void InvokeEvent(int id,int itemCount)
         {
-            OnCraft?.Invoke(craftItem);
+            OnCraft?.Invoke((id,itemCount));
         }
         
     }
