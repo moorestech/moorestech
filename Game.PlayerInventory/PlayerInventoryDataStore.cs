@@ -77,7 +77,7 @@ namespace PlayerInventory
                 //アイテムを復元
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,mainItems);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, _itemStackFactory,grabItem);
-                var craftingInventory = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService,craftItems,main,grab);
+                var craftingInventory = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,_isCreatableJudgementService,craftItems,main,grab,_craftingEvent);
 
                 var playerInventory = new PlayerInventoryData(main, craftingInventory,grab);
                 
