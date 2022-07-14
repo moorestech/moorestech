@@ -1,5 +1,6 @@
 using System;
 using Core.Item;
+using Game.PlayerInventory.Interface.Event;
 using Game.Quest.Interface;
 using Newtonsoft.Json;
 
@@ -12,19 +13,27 @@ namespace Game.Quest.QuestEntity
         public bool IsRewarded { get;  private set; }
         public event Action OnQuestCompleted;
         
-        private int _questItemId;
+        private readonly int _questItemId;
         
-        public ItemCraftQuest(QuestConfigData quest, int questItemId)
+        public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent, int questItemId)
         {
             Quest = quest;
             _questItemId = questItemId;
+            craftingEvent.Subscribe(OnItemCraft);
         }
-        public ItemCraftQuest(QuestConfigData quest,bool isCompleted, bool isRewarded, int questItemId)
+        public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent,bool isCompleted, bool isRewarded, int questItemId)
+            :this(quest,craftingEvent,questItemId)
         {
-            Quest = quest;
             IsCompleted = isCompleted;
             IsRewarded = isRewarded;
-            _questItemId = questItemId;
+        }
+
+        private void OnItemCraft(IItemStack itemStack)
+        {
+            if (!IsCompleted && itemStack.Id != _questItemId) return;
+            
+            IsCompleted = true;
+            OnQuestCompleted?.Invoke();
         }
     }
 }
