@@ -30,7 +30,7 @@ namespace Game.Quest.QuestEntity
 
         private void OnItemCraft((int itemId, int itemCount) result)
         {
-            if (!IsCompleted && result.itemId != _questItemId) return;
+            if (IsCompleted || result.itemId != _questItemId) return;
             
             IsCompleted = true;
             OnQuestCompleted?.Invoke();
