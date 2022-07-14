@@ -5,6 +5,7 @@ using Core.Item;
 using Core.Item.Config;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
+using Game.PlayerInventory.Interface.Event;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -18,6 +19,9 @@ using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
+    /// <summary>
+    /// クラフト実行プロトコルのテストと、クラフト時のイベント発火テスト
+    /// </summary>
     public class CraftProtocolTest
     {
         private const int PlayerId = 1;
@@ -32,6 +36,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).GrabInventory;
             //CraftConfigの作成
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[0];
+            var craftingEvent = serviceProvider.GetService<ICraftingEvent>();
             
             //craftingInventoryにアイテムを入れる
             for (int i = 0; i < craftConfig.Items.Count; i++)
@@ -39,6 +44,13 @@ namespace Test.CombinedTest.Server.PacketTest
                 craftInventory.SetItem(i,craftConfig.Items[i]);
             }
             
+            
+            //イベントをサブスクライブ
+            craftingEvent.Subscribe(i =>
+            {
+                //イベントのアイテムが正しく取得できているか検証
+                Assert.AreEqual(craftConfig.Result,i);
+            });
             
             
             //プロトコルでクラフト実行
@@ -60,11 +72,12 @@ namespace Test.CombinedTest.Server.PacketTest
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[2]; //id2のレシピはこのテスト用のレシピ
-            
+
             //craftingInventoryに2つ分のアイテムを入れる
             craftInventory.SetItem(0,itemStackFactory.Create(TestCraftItemId,2));
             
             
+
             
             //プロトコルでクラフト実行
             packet.GetPacketResponse(

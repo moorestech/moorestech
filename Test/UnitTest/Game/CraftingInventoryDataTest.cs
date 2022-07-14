@@ -20,7 +20,7 @@ using Test.Module.TestMod;
 namespace Test.UnitTest.Game
 {
     /// <summary>
-    /// 正しくクラフトされているか、イベントが実行されるかをテストする
+    /// 正しくクラフトされているかをテストする
     /// </summary>
     public class CraftingInventoryDataTest
     {
@@ -74,14 +74,6 @@ namespace Test.UnitTest.Game
                 craftingInventory.SetItem(i,craftConfig.Items[i]);
             }
 
-            //イベントをサブスクライブ
-            craftingEvent.Subscribe(i =>
-            {
-                //イベントのアイテムが正しく取得できているか検証
-                Assert.AreEqual(craftConfig.Result,i);
-            });
-            
-            
             //クラフト実行
             craftingInventory.NormalCraft();
             
