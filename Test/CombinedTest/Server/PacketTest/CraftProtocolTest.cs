@@ -49,7 +49,8 @@ namespace Test.CombinedTest.Server.PacketTest
             craftingEvent.Subscribe(i =>
             {
                 //イベントのアイテムが正しく取得できているか検証
-                Assert.AreEqual(craftConfig.Result,i);
+                Assert.AreEqual(craftConfig.Result.Id,i.itemId);
+                Assert.AreEqual(craftConfig.Result.Count,i.itemCount);
             });
             
             
@@ -72,12 +73,19 @@ namespace Test.CombinedTest.Server.PacketTest
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[2]; //id2のレシピはこのテスト用のレシピ
+            var craftingEvent = serviceProvider.GetService<ICraftingEvent>();
 
             //craftingInventoryに2つ分のアイテムを入れる
             craftInventory.SetItem(0,itemStackFactory.Create(TestCraftItemId,2));
             
             
-
+            //イベントをサブスクライブ
+            craftingEvent.Subscribe(i =>
+            {
+                //イベントのアイテムが正しく取得できているか検証
+                Assert.AreEqual(craftConfig.Result.Id,i.itemId);
+                Assert.AreEqual(160,i.itemCount);
+            });
             
             //プロトコルでクラフト実行
             packet.GetPacketResponse(
@@ -99,11 +107,18 @@ namespace Test.CombinedTest.Server.PacketTest
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[2]; //id2のレシピはこのテスト用のレシピ
+            var craftingEvent = serviceProvider.GetService<ICraftingEvent>();
             
             //craftingInventoryに2つ分のアイテムを入れる
             craftInventory.SetItem(0,itemStackFactory.Create(TestCraftItemId,2));
             
             
+            craftingEvent.Subscribe(i =>
+            {
+                //イベントのアイテムが正しく取得できているか検証
+                Assert.AreEqual(craftConfig.Result.Id,i.itemId);
+                Assert.AreEqual(80,i.itemCount);
+            });
             
             //プロトコルでクラフト実行
             packet.GetPacketResponse(
