@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Item;
+using Game.PlayerInventory.Interface.Event;
 using Game.Quest.Factory.QuestTemplate;
 using Game.Quest.Interface;
 
@@ -11,10 +12,10 @@ namespace Game.Quest.Factory
         private readonly IQuestConfig _questConfig;
         private readonly Dictionary<string,IQuestTemplate> _questTemplates =　new(); 
 
-        public QuestFactory(IQuestConfig questConfig,ItemStackFactory itemStackFactory)
+        public QuestFactory(IQuestConfig questConfig,ItemStackFactory itemStackFactory,ICraftingEvent craftingEvent)
         {
             //クエストのテンプレート一覧の作成
-            _questTemplates.Add(VanillaQuestTypes.ItemCraftQuestType,new ItemCraftQuestTemplate(itemStackFactory));
+            _questTemplates.Add(VanillaQuestTypes.ItemCraftQuestType,new ItemCraftQuestTemplate(itemStackFactory,craftingEvent));
             
             _questConfig = questConfig;
         }
