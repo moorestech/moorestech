@@ -46,7 +46,7 @@ namespace Test.UnitTest.Core.Other
             var itemConfig = serviceProvider.GetService<IItemConfig>();
             
             
-            Assert.AreEqual(7, itemConfig.GetItemIds("testMod2").Count);
+            Assert.AreEqual(7, itemConfig.GetItemIds("forUniTest").Count);
         }
     }
 }

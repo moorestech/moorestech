@@ -51,7 +51,7 @@ namespace Test.CombinedTest.Core
             var itemConfig = serviceProvider.GetService<IBlockConfig>();
             
             
-            Assert.AreEqual(7, itemConfig.GetBlockIds("testMod2").Count);
+            Assert.AreEqual(7, itemConfig.GetBlockIds("forUniTest").Count);
         }
     }
 }

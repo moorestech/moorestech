@@ -30,7 +30,7 @@ namespace Test.UnitTest.Core.Other
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             IOreConfig oreConfig = serviceProvider.GetService<IOreConfig>();
             
-            Assert.AreEqual(2, oreConfig.GetOreIds("testMod2").Count);
+            Assert.AreEqual(2, oreConfig.GetOreIds("forUniTest").Count);
         }
     }
 }

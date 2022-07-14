@@ -48,7 +48,7 @@ namespace Test.UnitTest.Game
             Assert.AreEqual(3,test1Quest.UiPosition.X);
             Assert.AreEqual(5,test1Quest.UiPosition.Y);
             Assert.AreEqual(0,test1Quest.RewardItemStacks.Count);
-            Assert.AreEqual("{'id':1,'count':1}",test1Quest.QuestParameter);
+            Assert.AreEqual("{\"id\":1,\"count\":1}",test1Quest.QuestParameter);
             
             //Test2のチェック
             //これ以降は前提クエストのチェックだけを行う
