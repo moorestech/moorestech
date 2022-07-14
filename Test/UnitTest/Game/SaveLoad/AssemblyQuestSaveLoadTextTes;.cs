@@ -19,7 +19,7 @@ namespace Test.UnitTest.Game.SaveLoad
         [Test]
         public void QuestLoadSaveTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.QuestTestModDirectory);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var questDataStore = serviceProvider.GetService<IQuestDataStore>();
 
@@ -44,7 +44,7 @@ namespace Test.UnitTest.Game.SaveLoad
             
 
             //ロードの実行
-            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.QuestTestModDirectory);
+            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
             
             //ロードしたクエストのチェック

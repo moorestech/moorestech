@@ -24,7 +24,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //テスト用のセーブデータ
             var json = "{\"world\":[],\"playerInventory\":[],\"entities\":[],\"quests\":{\"1\":[{\"id\":\"Test1\",\"co\":false,\"re\":false},{\"id\":\"Test2\",\"co\":true,\"re\":false},{\"id\":\"Test3\",\"co\":true,\"re\":true},{\"id\":\"Test4\",\"co\":false,\"re\":false}]}}";
 
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.QuestTestModDirectory);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (serviceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
 
 
