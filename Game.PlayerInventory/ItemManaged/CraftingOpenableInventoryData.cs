@@ -65,6 +65,9 @@ namespace PlayerInventory.ItemManaged
             var outputSlotItem = _grabInventoryData.GetItem(0);
             var addedOutputSlot = outputSlotItem.AddItem(result).ProcessResultItemStack;
             _grabInventoryData.SetItem(0, addedOutputSlot);
+            
+            //イベントを実行
+            _craftingEvent.InvokeEvent(addedOutputSlot);
         }
 
         public void AllCraft()
@@ -76,6 +79,10 @@ namespace PlayerInventory.ItemManaged
                 _mainOpenableInventoryData.InsertItem(result);
             }
             ConsumptionCraftItem(craftNum, CraftingItems);
+            
+            
+            //クラフトした数分のイベントを実行
+            _craftingEvent.InvokeEvent(_itemStackFactory.Create(result.Id,craftNum));
         }
 
         public void OneStackCraft()
@@ -87,6 +94,10 @@ namespace PlayerInventory.ItemManaged
                 _mainOpenableInventoryData.InsertItem(result);
             }
             ConsumptionCraftItem(craftNum, CraftingItems);
+            
+            
+            //クラフトした数分のイベントを実行
+            _craftingEvent.InvokeEvent(_itemStackFactory.Create(result.Id,craftNum));
         }
 
 
