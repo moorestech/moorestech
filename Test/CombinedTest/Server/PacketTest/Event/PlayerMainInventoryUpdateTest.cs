@@ -19,7 +19,6 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         [Test]
         public void UpdateTest()
         {
-
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
