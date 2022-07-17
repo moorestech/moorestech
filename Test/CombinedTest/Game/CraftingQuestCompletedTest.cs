@@ -42,14 +42,14 @@ namespace Test.CombinedTest.Game
             
             
             
-            //リフレクションでメソッドを取得、実行
-            var method = typeof(CraftingEvent).GetMethod("InvokeEvent", BindingFlags.NonPublic | BindingFlags.Instance);
 
 
             //クエストがまだクリアされていないことをチェックする
             Assert.IsFalse(quest.IsCompleted);
             
             
+            //リフレクションでメソッドを取得、実行
+            var method = typeof(CraftingEvent).GetMethod("InvokeEvent", BindingFlags.NonPublic | BindingFlags.Instance);
             //クラフトイベントを発火することで擬似的にクラフトを再現する
             method.Invoke(craftingEvent,new object?[]{questItemId,1});
 

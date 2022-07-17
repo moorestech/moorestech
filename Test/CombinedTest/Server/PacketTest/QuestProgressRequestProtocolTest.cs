@@ -16,7 +16,6 @@ namespace Test.CombinedTest.Server.PacketTest
         private const int PlayerId = 1;
         /// <summary>
         /// 現在のクエスト進捗状況を取得するテスト
-        /// note クエストの内容はTestQuestConfig.jsonと同じです
         /// </summary>
         [Test]
         public void GetTest()
