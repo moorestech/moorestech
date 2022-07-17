@@ -4,6 +4,6 @@ namespace Game.Quest.Interface.Event
 {
     public interface IQuestCompletedEvent
     {
-        public void SubscribeCompletedId(Action<string> questCompleted);   
+        public void SubscribeCompletedId(Action<(int playerId,string questId)> questCompleted);   
     }
 }
