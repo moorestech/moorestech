@@ -11,7 +11,7 @@ namespace Game.Quest.Event
             OnQuestCompleted += questCompleted;
         }
 
-        protected virtual void OnOnQuestCompleted(int playerId, string questId)
+        public void InvokeQuestCompleted(int playerId, string questId)
         {
             OnQuestCompleted?.Invoke((playerId,questId));
         }
