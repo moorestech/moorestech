@@ -16,8 +16,7 @@ namespace Test.CombinedTest.Game
     public class CraftingQuestCompletedTest
     {
         private const int PlayerId = 1;
-
-        private int eventInvokeCount = 0;
+        private int _eventInvokeCount = 0;
         
         /// <summary>
         /// アイテムクラフトイベントがアイテムをクラフトした時に発火することを確認する
@@ -25,7 +24,7 @@ namespace Test.CombinedTest.Game
         [Test]
         public void CraftToQuestCompleteTest()
         {
-            eventInvokeCount = 0;
+            _eventInvokeCount = 0;
             
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var questDatastore = serviceProvider.GetService<IQuestDataStore>();
@@ -57,7 +56,7 @@ namespace Test.CombinedTest.Game
             //クエストがクリアされていることをチェックする
             Assert.IsTrue(quest.IsCompleted);
             //１回目のイベントであることをチェックする
-            Assert.AreEqual(1,eventInvokeCount);
+            Assert.AreEqual(1,_eventInvokeCount);
 
             
             //２回目のクラフトイベント
@@ -65,9 +64,9 @@ namespace Test.CombinedTest.Game
             
             
             //イベントが発火されていないことをチェックする
-            Assert.AreEqual(1,eventInvokeCount);
+            Assert.AreEqual(1,_eventInvokeCount);
         }
 
-        private void OnQuestCompleted() { eventInvokeCount++; }
+        private void OnQuestCompleted(QuestConfigData obj) { _eventInvokeCount++; }
     }
 }
