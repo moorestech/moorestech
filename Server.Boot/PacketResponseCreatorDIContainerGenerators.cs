@@ -118,6 +118,7 @@ namespace Server.Boot
             services.AddSingleton<SetMiningItemToMiner>();
             services.AddSingleton<DisconnectTwoOreMoreElectricPoleFromSegmentService>();
             services.AddSingleton<DisconnectOneElectricPoleFromSegmentService>();
+            services.AddSingleton<QuestCompletedToSendEventPacket>();
 
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -140,6 +141,7 @@ namespace Server.Boot
             serviceProvider.GetService<DisconnectElectricPoleToFromElectricSegment>();
             serviceProvider.GetService<ConnectMachineToElectricSegment>();
             serviceProvider.GetService<SetMiningItemToMiner>();
+            serviceProvider.GetService<QuestCompletedToSendEventPacket>();
 
             return (packetResponse, serviceProvider);
         }
