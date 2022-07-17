@@ -11,7 +11,7 @@ namespace Game.Quest.QuestEntity
         public QuestConfigData Quest { get; }
         public bool IsCompleted { get; private set; }
         public bool IsRewarded { get;  private set; }
-        public event Action OnQuestCompleted;
+        public event Action<QuestConfigData> OnQuestCompleted;
         
         private readonly int _questItemId;
         
@@ -33,7 +33,7 @@ namespace Game.Quest.QuestEntity
             if (IsCompleted || result.itemId != _questItemId) return;
             
             IsCompleted = true;
-            OnQuestCompleted?.Invoke();
+            OnQuestCompleted?.Invoke(Quest);
         }
     }
 }
