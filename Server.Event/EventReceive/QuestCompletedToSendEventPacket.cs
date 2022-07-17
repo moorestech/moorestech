@@ -1,15 +1,23 @@
 using System;
+using Game.Quest.Interface.Event;
 using MessagePack;
 
 namespace Server.Event.EventReceive
 {
     public class QuestCompletedToSendEventPacket
     {
+        private readonly IQuestCompletedEvent _questCompletedEvent;
         public const string EventTag = "va:event:questCompleted";
 
-        public QuestCompletedToSendEventPacket()
+        public QuestCompletedToSendEventPacket(IQuestCompletedEvent questCompletedEvent)
         {
-            //TODO 実装
+            _questCompletedEvent = questCompletedEvent;
+            _questCompletedEvent.SubscribeCompletedId(OnQuestCompleted);
+        }
+
+        private void OnQuestCompleted(string obj)
+        {
+            
         }
     }
     
