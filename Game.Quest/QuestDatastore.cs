@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using Game.Quest.Event;
 using Game.Quest.Factory;
 using Game.Quest.Interface;
+using Game.Quest.Interface.Event;
 
 namespace Game.Quest
 {
@@ -9,13 +11,15 @@ namespace Game.Quest
     {
         private readonly IQuestConfig _questConfig;
         private readonly QuestFactory _questFactory;
+        private readonly QuestCompletedEvent _questCompletedEvent;
 
         private readonly Dictionary<int, List<IQuest>> _quests = new();
 
-        public QuestDatastore(IQuestConfig questConfig, QuestFactory questFactory)
+        public QuestDatastore(IQuestConfig questConfig, QuestFactory questFactory,IQuestCompletedEvent questCompletedEvent)
         {
             _questConfig = questConfig;
             _questFactory = questFactory;
+            _questCompletedEvent = (QuestCompletedEvent)questCompletedEvent;
         }
 
 
@@ -26,10 +30,13 @@ namespace Game.Quest
                 return _quests[playerId];
             }
 
-            //新しいクエストの作成
+            //新しいプレイヤーなので新しいクエストの作成
             var newQuests =
                 _questConfig.GetAllQuestConfig().Select(q => _questFactory.CreateQuest(q.QuestId)).ToList();
+                
             _quests.Add(playerId,newQuests);
+            //クエスト完了時にイベントを発火させる
+            SetPlayerEvent(playerId,newQuests);
             
             return newQuests;
         }
@@ -56,7 +63,23 @@ namespace Game.Quest
                 {
                     allQuests[loadedQuest.QuestId] = _questFactory.LoadQuest(loadedQuest);
                 }
-                _quests.Add(playerToQuestsList.Key,allQuests.Values.ToList());
+
+                var playerId = playerToQuestsList.Key;
+                var questList = allQuests.Values.ToList();
+                _quests.Add(playerId,questList);
+                //クエスト完了時にイベントを発火させるために登録
+                SetPlayerEvent(playerId,questList);
+            }
+        }
+
+        private void SetPlayerEvent(int playerId,IReadOnlyList<IQuest> quests)
+        {
+            foreach (var quest in quests)
+            {
+                quest.OnQuestCompleted += q =>
+                {
+                    _questCompletedEvent.InvokeQuestCompleted(playerId, q.QuestId);
+                };
             }
         }
     }
