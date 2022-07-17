@@ -50,7 +50,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             response = packetResponse.GetPacketResponse(EventRequestData());
             Assert.AreEqual(1, response.Count);
             var data = MessagePackSerializer.Deserialize<QuestCompletedEventMessagePack>(response[0].ToArray());
-            Assert.AreEqual(itemCraftQuest,data.QuestId);
+            Assert.AreEqual(itemCraftQuest.Quest.QuestId,data.QuestId);
         }
         
         
