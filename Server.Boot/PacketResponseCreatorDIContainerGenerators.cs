@@ -21,8 +21,10 @@ using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest;
 using Game.Quest.Config;
+using Game.Quest.Event;
 using Game.Quest.Factory;
 using Game.Quest.Interface;
+using Game.Quest.Interface.Event;
 using Game.Save.Interface;
 using Game.Save.Json;
 using Game.World.EventHandler;
@@ -102,6 +104,7 @@ namespace Server.Boot
             services.AddSingleton<ICraftInventoryUpdateEvent, CraftInventoryUpdateEvent>();
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
             services.AddSingleton<ICraftingEvent, CraftingEvent>();
+            services.AddSingleton<IQuestCompletedEvent, QuestCompletedEvent>();
 
             //イベントレシーバーを登録
             services.AddSingleton<MainInventoryUpdateToSetEventPacket>();
