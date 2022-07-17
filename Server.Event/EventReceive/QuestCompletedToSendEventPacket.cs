@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Game.Quest.Interface.Event;
 using MessagePack;
 
@@ -6,18 +7,19 @@ namespace Server.Event.EventReceive
 {
     public class QuestCompletedToSendEventPacket
     {
-        private readonly IQuestCompletedEvent _questCompletedEvent;
         public const string EventTag = "va:event:questCompleted";
-
-        public QuestCompletedToSendEventPacket(IQuestCompletedEvent questCompletedEvent)
+        
+        private readonly EventProtocolProvider _eventProtocolProvider;
+        public QuestCompletedToSendEventPacket(IQuestCompletedEvent questCompletedEvent, EventProtocolProvider eventProtocolProvider)
         {
-            _questCompletedEvent = questCompletedEvent;
-            _questCompletedEvent.SubscribeCompletedId(OnQuestCompleted);
+            _eventProtocolProvider = eventProtocolProvider;
+            questCompletedEvent.SubscribeCompletedId(OnQuestCompleted);
         }
 
-        private void OnQuestCompleted(string obj)
+        private void OnQuestCompleted((int playerId, string questId) args)
         {
-            
+            var packet = MessagePackSerializer.Serialize(new QuestCompletedEventMessagePack(args.questId));
+            _eventProtocolProvider.AddEvent(args.playerId,packet.ToList());
         }
     }
     
