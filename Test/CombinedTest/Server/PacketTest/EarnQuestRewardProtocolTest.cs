@@ -20,6 +20,7 @@ namespace Test.CombinedTest.Server.PacketTest
     public class EarnQuestRewardProtocolTest
     {
         private const int PlayerId = 1;
+        private const int RewardQuestIndex = 1;
         
         /// <summary>
         /// 通常のクエスト報酬受け取りテスト
@@ -28,7 +29,7 @@ namespace Test.CombinedTest.Server.PacketTest
         public void NormalEarnTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            var quest = (ItemCraftQuest)serviceProvider.GetService<IQuestDataStore>().GetPlayerQuestProgress(PlayerId)[0];
+            var quest = (ItemCraftQuest)serviceProvider.GetService<IQuestDataStore>().GetPlayerQuestProgress(PlayerId)[RewardQuestIndex];
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             
             
@@ -74,7 +75,7 @@ namespace Test.CombinedTest.Server.PacketTest
         public void ItemFullNotEarnTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            var quest = (ItemCraftQuest)serviceProvider.GetService<IQuestDataStore>().GetPlayerQuestProgress(PlayerId)[0];
+            var quest = (ItemCraftQuest)serviceProvider.GetService<IQuestDataStore>().GetPlayerQuestProgress(PlayerId)[RewardQuestIndex];
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             
             //クリアした状態をリフレクションで設定
