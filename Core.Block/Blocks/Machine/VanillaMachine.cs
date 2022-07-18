@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Machine.InventoryController;
 using Core.Block.Blocks.Machine.SaveLoad;
@@ -45,7 +46,10 @@ namespace Core.Block.Blocks.Machine
 
         public IItemStack InsertItem(IItemStack itemStack) { return _vanillaMachineBlockInventory.InsertItem(itemStack); }
         public IItemStack InsertItem(int itemId, int count) { return _vanillaMachineBlockInventory.InsertItem(_itemStackFactory.Create(itemId, count)); }
-        
+        public List<IItemStack> InsertItem(List<IItemStack> itemStacks) { return _vanillaMachineBlockInventory.InsertItem(itemStacks); }
+
+        public bool InsertionCheck(List<IItemStack> itemStacks) { return _vanillaMachineBlockInventory.InsertionCheck(itemStacks); }
+
 
         public void AddOutputConnector(IBlockInventory blockInventory) { _vanillaMachineBlockInventory.AddConnector(blockInventory); }
         public void RemoveOutputConnector(IBlockInventory blockInventory) { _vanillaMachineBlockInventory.RemoveConnector(blockInventory); }

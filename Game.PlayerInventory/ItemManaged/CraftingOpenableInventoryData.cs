@@ -14,15 +14,17 @@ namespace PlayerInventory.ItemManaged
     {
         private readonly OpenableInventoryItemDataStoreService _openableInventoryService;
         private readonly int _playerId;
-        private readonly CraftInventoryUpdateEvent _craftInventoryUpdateEvent;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
         private readonly GrabInventoryData _grabInventoryData;
         private readonly MainOpenableInventoryData _mainOpenableInventoryData;
+        
+        private readonly CraftInventoryUpdateEvent _craftInventoryUpdateEvent;
+        private readonly CraftingEvent _craftingEvent;
 
         public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData)
+            ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData, CraftingEvent craftingEvent)
         {
             _playerId = playerId;
             
@@ -31,11 +33,12 @@ namespace PlayerInventory.ItemManaged
             _isCreatableJudgementService = isCreatableJudgementService;
             _mainOpenableInventoryData = mainOpenableInventoryData;
             _grabInventoryData = grabInventoryData;
+            _craftingEvent = craftingEvent;
             _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, 
                 itemStackFactory, PlayerInventoryConst.CraftingSlotSize);
         }
-        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService,List<IItemStack> itemStacks, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData) : 
-            this(playerId, craftInventoryUpdateEvent, itemStackFactory,isCreatableJudgementService, mainOpenableInventoryData, grabInventoryData)
+        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory,IIsCreatableJudgementService isCreatableJudgementService,List<IItemStack> itemStacks, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData, CraftingEvent craftingEvent) : 
+            this(playerId, craftInventoryUpdateEvent, itemStackFactory,isCreatableJudgementService, mainOpenableInventoryData, grabInventoryData, craftingEvent)
         {
             for (int i = 0; i < itemStacks.Count; i++)
             {
@@ -62,6 +65,9 @@ namespace PlayerInventory.ItemManaged
             var outputSlotItem = _grabInventoryData.GetItem(0);
             var addedOutputSlot = outputSlotItem.AddItem(result).ProcessResultItemStack;
             _grabInventoryData.SetItem(0, addedOutputSlot);
+            
+            //イベントを実行
+            _craftingEvent.InvokeEvent(addedOutputSlot.Id,addedOutputSlot.Count);
         }
 
         public void AllCraft()
@@ -73,6 +79,10 @@ namespace PlayerInventory.ItemManaged
                 _mainOpenableInventoryData.InsertItem(result);
             }
             ConsumptionCraftItem(craftNum, CraftingItems);
+            
+            
+            //クラフトしたアイテムの数を計算してイベント実行
+            _craftingEvent.InvokeEvent(result.Id,result.Count * craftNum);
         }
 
         public void OneStackCraft()
@@ -84,6 +94,10 @@ namespace PlayerInventory.ItemManaged
                 _mainOpenableInventoryData.InsertItem(result);
             }
             ConsumptionCraftItem(craftNum, CraftingItems);
+            
+            
+            //クラフトしたアイテムの数を計算してイベント実行
+            _craftingEvent.InvokeEvent(result.Id,result.Count * craftNum);
         }
 
 
@@ -123,6 +137,9 @@ namespace PlayerInventory.ItemManaged
         public IItemStack ReplaceItem(int slot, int itemId, int count) { return _openableInventoryService.ReplaceItem(slot, itemId, count); }
         public IItemStack InsertItem(IItemStack itemStack) { return _openableInventoryService.InsertItem(itemStack); }
         public IItemStack InsertItem(int itemId, int count) { return _openableInventoryService.InsertItem(itemId, count); }
+        public List<IItemStack> InsertItem(List<IItemStack> itemStacks) { return _openableInventoryService.InsertItem(itemStacks); }
+        public bool InsertionCheck(List<IItemStack> itemStacks) { return _openableInventoryService.InsertionCheck(itemStacks); }
+
         public int GetSlotSize() { return _openableInventoryService.GetSlotSize(); }
         
         

@@ -8,6 +8,7 @@ using Core.Item.Util;
 
 namespace Core.Block.Config
 {
+    //todo クライアントのためにそのブロックタイプがopneableInventoryを持っているかをチェックするクラスを作成する
     public class BlockConfig : IBlockConfig
     {
         private readonly List<BlockConfigData> _blockConfigList;
