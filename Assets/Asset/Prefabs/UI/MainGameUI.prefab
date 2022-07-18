@@ -4107,8 +4107,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 602c7ba5491d480b9c160a95bf6c5265, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_QuestTabPrefab: {fileID: 0}
-  m_QuestCategory: {fileID: 0}
+  m_QuestTabPrefab: {fileID: -7286518986142907365, guid: 58af9d6d01f3ee64c995fcbd895991f8, type: 3}
+  m_QuestCategory: {fileID: -6350343795079843443, guid: 27bcee20aa9b1914d9eb8bff1b315046, type: 3}
 --- !u!1001 &285847258047765044
 PrefabInstance:
   m_ObjectHideFlags: 0
