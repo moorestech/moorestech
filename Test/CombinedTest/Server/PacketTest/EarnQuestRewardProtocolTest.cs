@@ -64,5 +64,37 @@ namespace Test.CombinedTest.Server.PacketTest
             //アイテムが入っていないことを確認する
             Assert.AreEqual(quest.Quest.RewardItemStacks[0],playerInventory.MainOpenableInventory.Items[0]);
         }
+
+
+
+        /// <summary>
+        /// インベントリが満タンでアイテムを受け取れないテスト
+        /// </summary>
+        [Test]
+        public void ItemFullNotEarnTest()
+        {
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var quest = (ItemCraftQuest)serviceProvider.GetService<IQuestDataStore>().GetPlayerQuestProgress(PlayerId)[0];
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+            
+            //クリアした状態をリフレクションで設定
+            typeof(ItemCraftQuest).GetProperty("IsCompleted").
+                SetValue(quest, true);
+            
+            //報酬以外のインベントリを満タンにする
+            for (int i = 0; i < mainInventory.Items.Count; i++)
+            {
+                var differItemId = quest.Quest.RewardItemStacks[0].Id + 1;
+                mainInventory.SetItem(i,differItemId,1);
+            }
+            
+            
+            
+            //報酬受け取りのパケットを送信
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.Quest.QuestId)).ToList());
+            //報酬が受け取りになっていないテスト
+            Assert.AreEqual(false, quest.IsEarnedReward);
+
+        }
     }
 }
