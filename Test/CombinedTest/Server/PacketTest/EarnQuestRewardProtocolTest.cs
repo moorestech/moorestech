@@ -40,7 +40,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //報酬が受け取れていないことを確認
             Assert.AreEqual(false, quest.IsEarnedReward);
             //アイテムが入っていないことを確認
-            Assert.AreEqual(quest.Quest.RewardItemStacks[0].Id,ItemConst.EmptyItemId);
+            Assert.AreEqual(ItemConst.EmptyItemId,playerInventory.MainOpenableInventory.Items[0].Id);
             
             
             
