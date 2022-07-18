@@ -25,6 +25,7 @@ namespace MainGame.UnityView.UI.Quest
                 
                 var questTab = Instantiate(QuestTabPrefab, QuestTabParent);
                 questTab.SetQuests(quests.Value);
+                questTab.SetActive(false);
             }
         }
     }

@@ -10,5 +10,10 @@ namespace MainGame.UnityView.UI.Quest
         {
             
         }
+        
+        public void SetActive(bool active)
+        {
+            gameObject.SetActive(active);
+        }
     }
 }
