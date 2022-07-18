@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Machine.Inventory;
 using Core.Item;
@@ -22,6 +23,14 @@ namespace Core.Block.Blocks.Machine.InventoryController
             var item = _vanillaMachineInputInventory.InsertItem(itemStack);
             return item;
         }
+
+        public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
+        {
+            //アイテムをインプットスロットに入れた後、プロセス開始できるなら開始
+            return _vanillaMachineInputInventory.InsertItem(itemStacks);
+        }
+
+        public bool InsertionCheck(List<IItemStack> itemStacks) { return _vanillaMachineInputInventory.InsertionCheck(itemStacks); }
 
         public void AddConnector(IBlockInventory blockInventory)
         {

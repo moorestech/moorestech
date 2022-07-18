@@ -71,13 +71,9 @@ namespace Core.Inventory
 
 
         #region Insert
-        public IItemStack InsertItem(IItemStack itemStack)
-        {
-            return InventoryInsertItem.InsertItem(itemStack,_inventory,_itemStackFactory,InvokeEvent);
-        }
+        public IItemStack InsertItem(IItemStack itemStack) { return InventoryInsertItem.InsertItem(itemStack,_inventory,_itemStackFactory,InvokeEvent); }
         public IItemStack InsertItem(int itemId, int count) { return InsertItem(_itemStackFactory.Create(itemId, count)); }
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks) { return InventoryInsertItem.InsertItem(itemStacks,_inventory,_itemStackFactory,InvokeEvent); }
-
 
         #endregion
         

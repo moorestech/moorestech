@@ -10,6 +10,10 @@ using Core.Item.Util;
 
 namespace Core.Block.Blocks.Machine.Inventory
 {
+    /// <summary>
+    /// インプットのインベントリとアウトプットのインベントリを同じように扱う
+    /// Insertなどの処理は基本的にInputのインベントリにのみ行う
+    /// </summary>
     public class VanillaMachineInputInventory
     {
         private readonly int _blockId;
@@ -30,10 +34,8 @@ namespace Core.Block.Blocks.Machine.Inventory
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory, inputSlot);
         }
 
-        public IItemStack InsertItem(IItemStack itemStack)
-        {
-            return _itemDataStoreService.InsertItem(itemStack);
-        }
+        public IItemStack InsertItem(IItemStack itemStack) { return _itemDataStoreService.InsertItem(itemStack); }
+        public List<IItemStack> InsertItem(List<IItemStack> itemStacks) { return _itemDataStoreService.InsertItem(itemStacks); }
 
         public bool IsAllowedToStartProcess
         {
@@ -46,10 +48,7 @@ namespace Core.Block.Blocks.Machine.Inventory
             }
         }
 
-        public IMachineRecipeData GetRecipeData()
-        {
-            return _machineRecipeConfig.GetRecipeData(_blockId, InputSlot);
-        }
+        public IMachineRecipeData GetRecipeData() { return _machineRecipeConfig.GetRecipeData(_blockId, InputSlot); }
 
         public void ReduceInputSlot(IMachineRecipeData recipe)
         {
@@ -66,10 +65,8 @@ namespace Core.Block.Blocks.Machine.Inventory
             }
         }
 
-        public void SetItem(int slot, IItemStack itemStack)
-        {
-            _itemDataStoreService.SetItem(slot,itemStack);
-        }
+        public void SetItem(int slot, IItemStack itemStack) { _itemDataStoreService.SetItem(slot,itemStack); }
+        public bool InsertionCheck(List<IItemStack> itemStacks) { return _itemDataStoreService.InsertionCheck(itemStacks); }
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
