@@ -37,10 +37,10 @@ namespace Test.CombinedTest.Server.PacketTest
             //クリアになって無いとき報酬を受け取れない時のテスト
             //報酬受け取りのパケットを送信
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.Quest.QuestId)).ToList());
+            //報酬が受け取れていないことを確認
+            Assert.AreEqual(false, quest.IsEarnedReward);
             //アイテムが入っていないことを確認
             Assert.AreEqual(quest.Quest.RewardItemStacks[0].Id,ItemConst.EmptyItemId);
-            //報酬が見受け取り化のテスト
-            Assert.AreEqual(false, quest.IsEarnedReward);
             
             
             
