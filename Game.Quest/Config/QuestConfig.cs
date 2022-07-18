@@ -44,5 +44,20 @@ namespace Game.Quest.Config
             Console.WriteLine("[QuestConfig]指定された ModId:"+modId + "にクエストは存在しません。");
             return new List<string>();
         }
+
+        public Dictionary<string, List<QuestConfigData>> GetQuestListEachCategory()
+        {
+            var questListEachCategory = new Dictionary<string, List<QuestConfigData>>();
+            foreach (var quest in _questIdToQuestConfigs.Values)
+            {
+                if (!questListEachCategory.TryGetValue(quest.QuestCategory, out var questList))
+                {
+                    questList = new List<QuestConfigData>();
+                    questListEachCategory.Add(quest.QuestCategory, questList);
+                }
+                questList.Add(quest);
+            }
+            return questListEachCategory;
+        }
     }
 }
