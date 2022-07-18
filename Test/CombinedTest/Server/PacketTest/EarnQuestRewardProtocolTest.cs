@@ -82,7 +82,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 SetValue(quest, true);
             
             //報酬以外のインベントリを満タンにする
-            for (int i = 0; i < mainInventory.Items.Count; i++)
+            for (int i = 0; i < mainInventory.GetSlotSize(); i++)
             {
                 var differItemId = quest.Quest.RewardItemStacks[0].Id + 1;
                 mainInventory.SetItem(i,differItemId,1);
