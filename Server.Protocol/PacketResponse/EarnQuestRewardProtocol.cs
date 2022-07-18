@@ -19,7 +19,7 @@ namespace Server.Protocol.PacketResponse
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public EarnQuestRewardMessagePack() { }
-        public EarnQuestRewardMessagePack(int playerId, int questId)
+        public EarnQuestRewardMessagePack(int playerId, string questId)
         {
             Tag = EarnQuestRewardProtocol.Tag;
             PlayerId = playerId;
@@ -27,6 +27,6 @@ namespace Server.Protocol.PacketResponse
         }
 
         public int PlayerId { get; set; }
-        public int QuestId { get; set; }
+        public string QuestId { get; set; }
     }
 }
