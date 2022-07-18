@@ -34,6 +34,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(BlockInventoryOpenCloseProtocol.Tag,new BlockInventoryOpenCloseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SaveProtocol.Tag,new SaveProtocol(serviceProvider));
             _packetResponseDictionary.Add(QuestProgressRequestProtocol.Tag,new QuestProgressRequestProtocol(serviceProvider));
+            _packetResponseDictionary.Add(EarnQuestRewardProtocol.Tag,new EarnQuestRewardProtocol(serviceProvider));
 
             serviceProvider.GetService<VeinGenerator>();
         }
