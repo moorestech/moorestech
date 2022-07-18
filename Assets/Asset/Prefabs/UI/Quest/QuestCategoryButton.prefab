@@ -9,10 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4753310029376216582}
+  - component: {fileID: -6350343795079843443}
   - component: {fileID: 4014351357837931367}
   - component: {fileID: 8870332245521657139}
   - component: {fileID: 4880062105643634412}
-  - component: {fileID: -6350343795079843443}
   m_Layer: 5
   m_Name: QuestCategoryButton
   m_TagString: Untagged
@@ -41,6 +41,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 105, y: 105}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &-6350343795079843443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5122145731891123217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e60025229f14b1f943b26d15139d950, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CategoryName: {fileID: 633753081446432413}
 --- !u!222 &4014351357837931367
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -123,18 +136,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &-6350343795079843443
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5122145731891123217}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3e60025229f14b1f943b26d15139d950, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &7582784114466852749
 GameObject:
   m_ObjectHideFlags: 0
