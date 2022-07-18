@@ -37,6 +37,7 @@ namespace Server.Protocol.PacketResponse
             
             //アイテムを追加
             mainInventory.InsertItem(quest.Quest.RewardItemStacks);
+            quest.EarnReward();
 
 
             return new List<List<byte>>();
