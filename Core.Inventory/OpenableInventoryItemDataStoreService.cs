@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Item;
@@ -70,66 +71,19 @@ namespace Core.Inventory
 
 
         #region Insert
-        
-        public IItemStack InsertItem(int slot, IItemStack itemStack)
-        {
-            if (itemStack.Equals(_itemStackFactory.CreatEmpty())) return itemStack;
-            if (!_inventory[slot].IsAllowedToAddWithRemain(itemStack)) return itemStack;
-            
-            var result = _inventory[slot].AddItem(itemStack);
-
-            //挿入を試した結果が今までと違う場合は入れ替えをしてイベントを発火
-            if (!_inventory[slot].Equals(result.ProcessResultItemStack))
-            {
-                _inventory[slot] = result.ProcessResultItemStack;
-                InvokeEvent(slot);
-            }
-            
-            return result.RemainderItemStack;
-        }
-        
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            for (var i = 0; i < _inventory.Count; i++)
-            {
-                //挿入できるスロットを探索
-                if (!_inventory[i].IsAllowedToAddWithRemain(itemStack)) continue;
-                
-                //挿入実行
-                var remain = InsertItem(i, itemStack);
-                
-                //挿入結果が空のアイテムならそのまま処理を終了
-                if (remain.Equals(_itemStackFactory.CreatEmpty()))
-                {
-                    return remain;
-                }
-                //そうでないならあまりのアイテムを入れるまで探索
-                itemStack = remain;
-            }
-            return itemStack;
+            return InventoryInsertItem.InsertItem(itemStack,_inventory,_itemStackFactory,InvokeEvent);
         }
         public IItemStack InsertItem(int itemId, int count) { return InsertItem(_itemStackFactory.Create(itemId, count)); }
-        public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
-        {
-            var reminderItemStacks = new List<IItemStack>();
-            
-            foreach (var item in itemStacks)
-            {
-                var remindItemStack = InsertItem(item);
-                if (remindItemStack.Equals(_itemStackFactory.CreatEmpty())) continue;
-                
-                reminderItemStacks.Add(remindItemStack);
-            }
-
-            return reminderItemStacks;
-        }
+        public List<IItemStack> InsertItem(List<IItemStack> itemStacks) { return InventoryInsertItem.InsertItem(itemStacks,_inventory,_itemStackFactory,InvokeEvent); }
 
 
         #endregion
         
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
         
         
