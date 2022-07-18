@@ -10,6 +10,6 @@ namespace Game.Quest.Interface
         bool IsEarnedReward { get; }
         event Action<QuestConfigData> OnQuestCompleted;
         
-        public void OnEarnReward();
+        public void EarnReward();
     }
 }
