@@ -9,5 +9,7 @@ namespace Game.Quest.Interface
         bool IsCompleted { get; }
         bool IsEarnedReward { get; }
         event Action<QuestConfigData> OnQuestCompleted;
+        
+        public void OnEarnReward();
     }
 }
