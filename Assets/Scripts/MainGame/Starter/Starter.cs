@@ -25,6 +25,7 @@ using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
+using MainGame.UnityView.UI.Quest;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.UI.UIState.UIObject;
 using MainGame.UnityView.WorldMapTile;
@@ -78,6 +79,7 @@ namespace MainGame.Starter
         [SerializeField] private PlayerPosition playerPosition;
         [SerializeField] private SelectHotBarView selectHotBarView;
         [SerializeField] private ItemRecipeView itemRecipeView;
+        [SerializeField] private QuestUI QuestUI;
         
         [SerializeField] private GrabbedItemImagePresenter grabbedItemImagePresenter;
 
@@ -198,6 +200,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(selectHotBarControl);
             builder.RegisterComponent(selectHotBarView);
             builder.RegisterComponent(itemRecipeView);
+            builder.RegisterComponent(QuestUI);
             
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(loadingFinishDetector);
