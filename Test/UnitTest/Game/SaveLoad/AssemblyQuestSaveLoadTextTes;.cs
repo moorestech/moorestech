@@ -33,7 +33,7 @@ namespace Test.UnitTest.Game.SaveLoad
             //index 2のクエストを完了、アイテムを渡しているようにする
             typeof(ItemCraftQuest).GetProperty("IsCompleted").
                 SetValue(quests[2], true);
-            typeof(ItemCraftQuest).GetProperty("IsRewarded").
+            typeof(ItemCraftQuest).GetProperty("IsEarnedReward").
                 SetValue(quests[2], true);
             
 
@@ -51,13 +51,13 @@ namespace Test.UnitTest.Game.SaveLoad
             var loadQuests = loadServiceProvider.GetService<IQuestDataStore>().GetPlayerQuestProgress(playerId);
             
             Assert.AreEqual(false, loadQuests[0].IsCompleted);
-            Assert.AreEqual(false, loadQuests[0].IsRewarded);
+            Assert.AreEqual(false, loadQuests[0].IsEarnedReward);
             
             Assert.AreEqual(true, loadQuests[1].IsCompleted);
-            Assert.AreEqual(false, loadQuests[1].IsRewarded);
+            Assert.AreEqual(false, loadQuests[1].IsEarnedReward);
             
             Assert.AreEqual(true, loadQuests[2].IsCompleted);
-            Assert.AreEqual(true, loadQuests[2].IsRewarded);
+            Assert.AreEqual(true, loadQuests[2].IsEarnedReward);
         }
     }
 }

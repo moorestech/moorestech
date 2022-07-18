@@ -10,7 +10,7 @@ namespace Game.Quest.QuestEntity
     {
         public QuestConfigData Quest { get; }
         public bool IsCompleted { get; private set; }
-        public bool IsRewarded { get;  private set; }
+        public bool IsEarnedReward { get;  private set; }
         public event Action<QuestConfigData> OnQuestCompleted;
         
         private readonly int _questItemId;
@@ -21,11 +21,11 @@ namespace Game.Quest.QuestEntity
             _questItemId = questItemId;
             craftingEvent.Subscribe(OnItemCraft);
         }
-        public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent,bool isCompleted, bool isRewarded, int questItemId)
+        public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent,bool isCompleted, bool isEarnedReward, int questItemId)
             :this(quest,craftingEvent,questItemId)
         {
             IsCompleted = isCompleted;
-            IsRewarded = isRewarded;
+            IsEarnedReward = isEarnedReward;
         }
 
         private void OnItemCraft((int itemId, int itemCount) result)

@@ -88,7 +88,7 @@ namespace Game.Quest
     {
         public static SaveQuestData ToSaveData(this IQuest quest)
         {
-            return new SaveQuestData(quest.Quest.QuestId,quest.IsCompleted,quest.IsRewarded);
+            return new SaveQuestData(quest.Quest.QuestId,quest.IsCompleted,quest.IsEarnedReward);
         }
     }
 }

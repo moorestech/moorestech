@@ -77,7 +77,7 @@ namespace Server.Protocol.PacketResponse
         {
             Id = quest.Quest.QuestId;
             IsCompleted = quest.IsCompleted;
-            IsRewarded = quest.IsRewarded;
+            IsRewarded = quest.IsEarnedReward;
         }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
