@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Quest.Event;
@@ -50,6 +51,19 @@ namespace Game.Quest
             }
 
             return saveData;
+        }
+
+        public IQuest GetQuestData(int playerId, string questId)
+        {
+            foreach (var quest in GetPlayerQuestProgress(playerId))
+            {
+                if (quest.Quest.QuestId != questId) continue;
+                
+                return quest;
+            }
+
+            //TODO ログ基盤
+            throw new ArgumentException("クエストがありませんでした QuestId:" + questId);
         }
 
         public void LoadQuestDataDictionary(Dictionary<int, List<SaveQuestData>> quests)
