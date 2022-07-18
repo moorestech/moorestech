@@ -8,13 +8,24 @@ namespace MainGame.UnityView.UI.Quest
 {
     public class QuestUI : MonoBehaviour
     {
-        [SerializeField] private QuestTab m_QuestTabPrefab;
-        [SerializeField] private QuestCategoryButton m_QuestCategory;
+        [SerializeField] private QuestCategoryButton QuestCategoryButtonPrefab;
+        [SerializeField] private QuestTab QuestTabPrefab;
+        
+        [SerializeField] private RectTransform QuestCategoryButtonContainer;
+        [SerializeField] private RectTransform QuestTabParent;
 
 
         [Inject]
         public void Construct(IQuestConfig questConfig)
         {
+            foreach (var quests in questConfig.GetQuestListEachCategory())
+            {
+                var questButton = Instantiate(QuestCategoryButtonPrefab, QuestCategoryButtonContainer);
+                questButton.SetCategory(quests.Key);
+                
+                var questTab = Instantiate(QuestTabPrefab, QuestTabParent);
+                questTab.SetQuests(quests.Value);
+            }
         }
     }
 }
