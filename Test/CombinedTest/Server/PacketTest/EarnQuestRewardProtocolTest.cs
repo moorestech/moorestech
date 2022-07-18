@@ -38,6 +38,8 @@ namespace Test.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.Quest.QuestId)).ToList());
             //アイテムが入っていないことを確認
             Assert.AreEqual(quest.Quest.RewardItemStacks[0].Id,ItemConst.EmptyItemId);
+            //報酬が見受け取り化のテスト
+            Assert.AreEqual(false, quest.IsRewarded);
             
             
             
@@ -51,6 +53,8 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //報酬が入っているか確認
             Assert.AreEqual(quest.Quest.RewardItemStacks[0],playerInventory.MainOpenableInventory.Items[0]);
+            //報酬が受け取り済みかどうかをテスト
+            Assert.AreEqual(true, quest.IsRewarded);
             
             
             
