@@ -12,7 +12,7 @@ namespace Game.Quest.QuestEntity
         public bool IsCompleted { get; private set; }
         public bool IsEarnedReward { get;  private set; }
         public event Action<QuestConfigData> OnQuestCompleted;
-        
+
         private readonly int _questItemId;
         
         public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent, int questItemId)
@@ -34,6 +34,17 @@ namespace Game.Quest.QuestEntity
             
             IsCompleted = true;
             OnQuestCompleted?.Invoke(Quest);
+        }
+        
+        public void EarnReward()
+        {
+            if (IsCompleted)
+            {
+                IsEarnedReward = true;
+                return;
+            }
+            //TODO ログ基盤に入れる
+            Console.WriteLine("You haven't completed this quest yet");
         }
     }
 }
