@@ -109,8 +109,28 @@ namespace Core.Inventory
             return itemStack;
         }
         public IItemStack InsertItem(int itemId, int count) { return InsertItem(_itemStackFactory.Create(itemId, count)); }
+        public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
+        {
+            var reminderItemStacks = new List<IItemStack>();
+            
+            foreach (var item in itemStacks)
+            {
+                var remindItemStack = InsertItem(item);
+                if (remindItemStack.Equals(_itemStackFactory.CreatEmpty())) continue;
+                
+                reminderItemStacks.Add(remindItemStack);
+            }
+
+            return reminderItemStacks;
+        }
+
 
         #endregion
+        
+        public bool InsertionCheck(List<IItemStack> itemStacks)
+        {
+            throw new System.NotImplementedException();
+        }
         
         
         
