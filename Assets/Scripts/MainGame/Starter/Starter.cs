@@ -64,8 +64,6 @@ namespace MainGame.Starter
         [Header("InHierarchy")]
         [SerializeField] Camera mainCamera;
 
-        [SerializeField] private BlockGameObject nothingIndexBlockObject; 
-
         [SerializeField] private GroundPlane groundPlane;
 
         [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
@@ -186,7 +184,6 @@ namespace MainGame.Starter
             builder.RegisterInstance(worldMapTileObject);
 
             //Hierarchy上にあるcomponent
-            builder.RegisterComponent(nothingIndexBlockObject);
             builder.RegisterComponent(chunkBlockGameObjectDataStore);
             builder.RegisterComponent(worldMapTileGameObjectDataStore);
             
