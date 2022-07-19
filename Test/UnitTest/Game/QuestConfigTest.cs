@@ -15,19 +15,13 @@ namespace Test.UnitTest.Game
     public class QuestConfigTest
     {
 
-        private const string ModName = "QuestTest";
+        private const string ModName = "forQuestTest";
         
         [Test]
         public void QuestLoadTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            
-            var configJson = new ConfigJson(ModName,"","","","","",
-                TestModuleConfig.QuestConfigUintTestJson);
-            var questOnlyConfig = new ConfigJsonList(new (){{ModName,configJson}});
-
-            IQuestConfig questConfig = new QuestConfig(questOnlyConfig,itemStackFactory);
+            var questConfig = serviceProvider.GetService<IQuestConfig>();
 
 
             var ids = questConfig.GetQuestIds(ModName);
@@ -48,10 +42,10 @@ namespace Test.UnitTest.Game
             Assert.AreEqual(3,test1Quest.UiPosition.X);
             Assert.AreEqual(5,test1Quest.UiPosition.Y);
             Assert.AreEqual(0,test1Quest.RewardItemStacks.Count);
-            Assert.AreEqual("{\"id\":1,\"count\":1}",test1Quest.QuestParameter);
+            Assert.AreEqual("{\"modId\":\"forUniTest\",\"name\":\"Test1\"}",test1Quest.QuestParameter);
             
             //Test2のチェック
-            //これ以降は前提クエストのチェックだけを行う
+            //これ以降は前提クエストのチェックだけを行うa
             var test2Quest = questConfig.GetQuestConfig("Test2");
             Assert.AreEqual(1,test2Quest.PrerequisiteQuests.Count); //前提クエストの数のチェック
             Assert.AreEqual("Test1",test2Quest.PrerequisiteQuests[0].QuestId);
