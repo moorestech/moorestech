@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Game.Quest.Interface;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.ModLoader;
@@ -65,6 +66,7 @@ namespace MainGame.Starter
         [SerializeField] Camera mainCamera;
 
         [SerializeField] private GroundPlane groundPlane;
+        [SerializeField] private BlockGameObject nothingIndexBlock;
 
         [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
         [SerializeField] private WorldMapTileGameObjectDataStore worldMapTileGameObjectDataStore;
@@ -106,7 +108,9 @@ namespace MainGame.Starter
         {
             var builder = new ContainerBuilder();
             //シングルプレイ用のインスタンス
-            builder.RegisterInstance(new SinglePlayInterface(ServerConst.ServerModsDirectory));
+            var singlePlayInterface = new SinglePlayInterface(ServerConst.ServerModsDirectory);
+            builder.RegisterInstance(singlePlayInterface);
+            builder.RegisterInstance(singlePlayInterface.QuestConfig);
             builder.RegisterInstance(new ModDirectory(ServerConst.ServerModsDirectory));    
             
             //サーバーに接続するためのインスタンス
@@ -184,6 +188,8 @@ namespace MainGame.Starter
             builder.RegisterInstance(worldMapTileObject);
 
             //Hierarchy上にあるcomponent
+            builder.RegisterComponent(nothingIndexBlock);
+            
             builder.RegisterComponent(chunkBlockGameObjectDataStore);
             builder.RegisterComponent(worldMapTileGameObjectDataStore);
             

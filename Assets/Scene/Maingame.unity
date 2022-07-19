@@ -901,8 +901,8 @@ MonoBehaviour:
   autoInjectGameObjects: []
   worldMapTileObject: {fileID: 11400000, guid: 8739e78e3bfce4a42a12c59e0582dadc, type: 2}
   mainCamera: {fileID: 1240479239}
-  nothingIndexBlockObject: {fileID: -4404788463801551958, guid: c297eff442e9c419db5659a81dba7084, type: 3}
   groundPlane: {fileID: 367739784}
+  nothingIndexBlock: {fileID: 9132462905212096051, guid: a1d79b5509bdd461d9b93377bbd5c780, type: 3}
   chunkBlockGameObjectDataStore: {fileID: 811504272}
   worldMapTileGameObjectDataStore: {fileID: 1857732743}
   hotBarItemView: {fileID: 135985976}
