@@ -11,7 +11,6 @@
     <ItemGroup>
       <Folder Include="TestMod\ConfigOnly" />
       <Folder Include="TestMod\ForUnitTestMod" />
-      <Folder Include="TestMod\QuestTestMod" />
     </ItemGroup>
 
 </Project>
