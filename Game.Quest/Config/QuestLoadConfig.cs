@@ -164,7 +164,7 @@ namespace Game.Quest.Config
         [JsonProperty("UIPosY")]
         public float UiPosY;
         [JsonProperty("RewardItem")]
-        public int[,] RewardItem;
+        public ItemJsonData[] RewardItem;
         [JsonProperty("Param")]
         public string Param;
     }
@@ -175,13 +175,7 @@ namespace Game.Quest.Config
     {
         public static QuestConfigData ToQuestConfigData(this QuestConfigJsonData questConfigJsonData,List<QuestConfigData> prerequisiteQuests,ItemStackFactory itemStackFactory)
         {
-            var rewardItems = new List<IItemStack>();
-            for (int i = 0; i < questConfigJsonData.RewardItem.GetLength(0); i++)
-            {
-                var id = questConfigJsonData.RewardItem[i, 0];
-                var count = questConfigJsonData.RewardItem[i, 1];
-                rewardItems.Add(itemStackFactory.Create(id,count));
-            }
+            var rewardItems = questConfigJsonData.RewardItem.Select(i => itemStackFactory.Create(i.ModId, i.Name, i.Count)).ToList();
 
 
             return new QuestConfigData(
