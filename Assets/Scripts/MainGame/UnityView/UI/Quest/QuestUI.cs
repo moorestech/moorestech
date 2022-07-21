@@ -22,10 +22,12 @@ namespace MainGame.UnityView.UI.Quest
             {
                 var questButton = Instantiate(QuestCategoryButtonPrefab, QuestCategoryButtonContainer);
                 questButton.SetCategory(quests.Key);
+                questButton.name = quests.Key + " Button";
                 
                 var questTab = Instantiate(QuestTabPrefab, QuestTabParent);
                 questTab.SetQuests(quests.Value);
                 questTab.SetActive(false);
+                questTab.name = quests.Key + " Tab";
             }
         }
     }
