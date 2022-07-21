@@ -9,9 +9,13 @@ namespace MainGame.UnityView.UI.Quest
     public class QuestTab : MonoBehaviour
     {
         [SerializeField] private QuestElement questElementPrefab;
-        public void SetQuests(List<QuestConfigData> questConfigs,ItemImages itemImages,IItemConfig itemConfig)
+        public void SetQuests(List<QuestConfigData> questConfigs)
         {
-            
+            foreach (var questConfig in questConfigs)
+            {
+                var questElement = Instantiate(questElementPrefab, transform);
+                questElement.SetQuest(questConfig);
+            }
         }
         
         public void SetActive(bool active)
