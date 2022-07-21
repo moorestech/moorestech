@@ -111,6 +111,7 @@ namespace MainGame.Starter
             var singlePlayInterface = new SinglePlayInterface(ServerConst.ServerModsDirectory);
             builder.RegisterInstance(singlePlayInterface);
             builder.RegisterInstance(singlePlayInterface.QuestConfig);
+            builder.RegisterInstance(singlePlayInterface.ItemConfig);
             builder.RegisterInstance(new ModDirectory(ServerConst.ServerModsDirectory));    
             
             //サーバーに接続するためのインスタンス
