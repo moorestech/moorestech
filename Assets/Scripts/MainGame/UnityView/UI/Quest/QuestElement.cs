@@ -15,7 +15,7 @@ namespace MainGame.UnityView.UI.Quest
             //もうちょっとちゃんとしたUI設定を行うようにする
             var rectTransform = GetComponent<RectTransform>();
             rectTransform.anchoredPosition = new Vector2(questConfigData.UiPosition.X, questConfigData.UiPosition.Y);
-            itemName.name = questConfigData.QuestName;
+            itemName.text = questConfigData.QuestName;
             
             gameObject.name = questConfigData.QuestId;
         }

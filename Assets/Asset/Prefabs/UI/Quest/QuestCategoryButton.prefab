@@ -53,6 +53,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e60025229f14b1f943b26d15139d950, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  button: {fileID: 4880062105643634412}
   CategoryName: {fileID: 633753081446432413}
 --- !u!222 &4014351357837931367
 CanvasRenderer:
