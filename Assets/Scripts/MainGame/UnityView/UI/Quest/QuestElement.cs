@@ -16,6 +16,8 @@ namespace MainGame.UnityView.UI.Quest
             var rectTransform = GetComponent<RectTransform>();
             rectTransform.anchoredPosition = new Vector2(questConfigData.UiPosition.X, questConfigData.UiPosition.Y);
             itemName.name = questConfigData.QuestName;
+            
+            gameObject.name = questConfigData.QuestId;
         }
     }
 }
