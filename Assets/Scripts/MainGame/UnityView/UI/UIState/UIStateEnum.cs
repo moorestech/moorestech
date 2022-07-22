@@ -9,5 +9,6 @@
         DeleteBar,
         BlockPlace,
         RecipeViewer,
+        QuestViewer,
     }
 }

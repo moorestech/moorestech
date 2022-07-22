@@ -446,7 +446,7 @@ RectTransform:
   - {fileID: 8171363177664287962}
   - {fileID: 7341784276983367380}
   m_Father: {fileID: 1438684973846715379}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -503,11 +503,11 @@ RectTransform:
   - {fileID: 676257463073032314}
   - {fileID: 5876296732415703059}
   - {fileID: 4132461011897688966}
+  - {fileID: 2767619454434803328}
   - {fileID: 8303870817415388897}
   - {fileID: 7788746559837318899}
   - {fileID: 5397458513212507163}
   - {fileID: 3970556276642430243}
-  - {fileID: 2767619454434803328}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1313,7 +1313,7 @@ RectTransform:
   - {fileID: 5113963161455901004}
   - {fileID: 4951092454766015539}
   m_Father: {fileID: 1438684973846715379}
-  m_RootOrder: 8
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -2154,7 +2154,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1438684973846715379}
-  m_RootOrder: 7
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -4037,7 +4037,7 @@ RectTransform:
   - {fileID: 4599616150051847739}
   - {fileID: 4097000099561543332}
   m_Father: {fileID: 1438684973846715379}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -4066,13 +4066,14 @@ GameObject:
   m_Component:
   - component: {fileID: 2767619454434803328}
   - component: {fileID: 3132147568074328283}
+  - component: {fileID: 7054405359593379705}
   m_Layer: 5
   m_Name: Quest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2767619454434803328
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4088,7 +4089,7 @@ RectTransform:
   - {fileID: 8352508001602385673}
   - {fileID: 1838137130296562462}
   m_Father: {fileID: 1438684973846715379}
-  m_RootOrder: 9
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -4111,6 +4112,18 @@ MonoBehaviour:
   QuestTabPrefab: {fileID: -7286518986142907365, guid: 58af9d6d01f3ee64c995fcbd895991f8, type: 3}
   QuestCategoryButtonContainer: {fileID: 1010419091695307386}
   QuestTabParent: {fileID: 6350065431538909398}
+--- !u!114 &7054405359593379705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9060259563219289972}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17968a829cf041ceacb7a2839c869065, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &285847258047765044
 PrefabInstance:
   m_ObjectHideFlags: 0
