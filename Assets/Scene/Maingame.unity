@@ -339,6 +339,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 444702c38aa74957a573527a4703509c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &345007850 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7054405359593379705, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17968a829cf041ceacb7a2839c869065, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &367739779
 GameObject:
   m_ObjectHideFlags: 0
@@ -928,6 +939,7 @@ MonoBehaviour:
   playerInventorySlots: {fileID: 2030610762}
   playerInventoryItemNamePresenter: {fileID: 1834001113}
   recipeViewerItemNamePresenter: {fileID: 1379452831}
+  questViewerObject: {fileID: 345007850}
   blockPlacePreview: {fileID: 1341326065}
   oreMapTileClickDetect: {fileID: 1857732744}
   saveButton: {fileID: 104714908}

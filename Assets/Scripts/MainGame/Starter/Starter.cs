@@ -96,6 +96,7 @@ namespace MainGame.Starter
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
         [SerializeField] private PlayerInventoryItemNamePresenter playerInventoryItemNamePresenter;
         [SerializeField] private RecipeViewerItemNamePresenter recipeViewerItemNamePresenter;
+        [SerializeField] private QuestViewerObject questViewerObject;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
@@ -177,6 +178,7 @@ namespace MainGame.Starter
             builder.Register<DeleteObjectInventoryState>(Lifetime.Singleton);
             builder.Register<BlockPlaceState>(Lifetime.Singleton);
             builder.Register<RecipeViewState>(Lifetime.Singleton);
+            builder.Register<QuestViewerState>(Lifetime.Singleton);
 
             //modからロードしてきたデータ
             builder.Register<ItemImages>(Lifetime.Singleton);
@@ -220,6 +222,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(playerInventorySlots);
             builder.RegisterComponent(playerInventoryItemNamePresenter);
             builder.RegisterComponent(recipeViewerItemNamePresenter);
+            builder.RegisterComponent(questViewerObject);
             
             
             builder.RegisterComponent<IPlayerPosition>(playerPosition);
