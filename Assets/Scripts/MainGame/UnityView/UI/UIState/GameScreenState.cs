@@ -23,7 +23,7 @@ namespace MainGame.UnityView.UI.UIState
             return _input.UI.OpenInventory.triggered || _input.UI.OpenMenu.triggered || 
                    IsClickOpenableBlock() || 
                    _input.UI.BlockDelete.triggered || _selectHotBarControl.IsClicked || 
-                   _input.UI.HotBar.ReadValue<int>() != 0;
+                   _input.UI.HotBar.ReadValue<int>() != 0 || _input.UI.QuestUI.triggered;
         }
 
         public UIStateEnum GetNext()
@@ -47,6 +47,10 @@ namespace MainGame.UnityView.UI.UIState
             if (_selectHotBarControl.IsClicked || _input.UI.HotBar.ReadValue<int>() != 0)
             {
                 return UIStateEnum.BlockPlace;
+            }
+            if (_input.UI.QuestUI.triggered)
+            {
+                return UIStateEnum.QuestViewer;
             }
 
 

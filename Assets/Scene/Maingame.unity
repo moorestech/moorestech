@@ -152,10 +152,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1255688096}
     m_Modifications:
-    - target: {fileID: 1010419091695307386, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1438684973846715379, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -243,22 +239,6 @@ PrefabInstance:
     - target: {fileID: 1438684973846715391, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
       propertyPath: m_Name
       value: MainGameUI
-      objectReference: {fileID: 0}
-    - target: {fileID: 5032131279606200742, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5032131279606200742, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5032131279606200742, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5032131279606200742, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c06acbf297d444764a23d26ca36b673b, type: 3}

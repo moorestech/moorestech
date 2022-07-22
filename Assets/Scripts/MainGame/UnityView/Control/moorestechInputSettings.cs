@@ -404,6 +404,15 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""QuestUI"",
+                    ""type"": ""Button"",
+                    ""id"": ""b6e2a7bb-43b9-40de-b975-aace67c3d62e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -615,6 +624,17 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""action"": ""OneStackCraft"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""86ff9c27-2e02-4f71-94ab-8b2e5127f970"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""QuestUI"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -692,6 +712,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         m_UI_BlockDelete = m_UI.FindAction("BlockDelete", throwIfNotFound: true);
         m_UI_AllCraft = m_UI.FindAction("AllCraft", throwIfNotFound: true);
         m_UI_OneStackCraft = m_UI.FindAction("OneStackCraft", throwIfNotFound: true);
+        m_UI_QuestUI = m_UI.FindAction("QuestUI", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -867,6 +888,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     private readonly InputAction m_UI_BlockDelete;
     private readonly InputAction m_UI_AllCraft;
     private readonly InputAction m_UI_OneStackCraft;
+    private readonly InputAction m_UI_QuestUI;
     public struct UIActions
     {
         private @MoorestechInputSettings m_Wrapper;
@@ -881,6 +903,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         public InputAction @BlockDelete => m_Wrapper.m_UI_BlockDelete;
         public InputAction @AllCraft => m_Wrapper.m_UI_AllCraft;
         public InputAction @OneStackCraft => m_Wrapper.m_UI_OneStackCraft;
+        public InputAction @QuestUI => m_Wrapper.m_UI_QuestUI;
         public InputActionMap Get() { return m_Wrapper.m_UI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -920,6 +943,9 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 @OneStackCraft.started -= m_Wrapper.m_UIActionsCallbackInterface.OnOneStackCraft;
                 @OneStackCraft.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnOneStackCraft;
                 @OneStackCraft.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnOneStackCraft;
+                @QuestUI.started -= m_Wrapper.m_UIActionsCallbackInterface.OnQuestUI;
+                @QuestUI.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnQuestUI;
+                @QuestUI.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnQuestUI;
             }
             m_Wrapper.m_UIActionsCallbackInterface = instance;
             if (instance != null)
@@ -954,6 +980,9 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                 @OneStackCraft.started += instance.OnOneStackCraft;
                 @OneStackCraft.performed += instance.OnOneStackCraft;
                 @OneStackCraft.canceled += instance.OnOneStackCraft;
+                @QuestUI.started += instance.OnQuestUI;
+                @QuestUI.performed += instance.OnQuestUI;
+                @QuestUI.canceled += instance.OnQuestUI;
             }
         }
     }
@@ -1019,5 +1048,6 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         void OnBlockDelete(InputAction.CallbackContext context);
         void OnAllCraft(InputAction.CallbackContext context);
         void OnOneStackCraft(InputAction.CallbackContext context);
+        void OnQuestUI(InputAction.CallbackContext context);
     }
 }

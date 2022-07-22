@@ -382,6 +382,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "QuestUI",
+                    "type": "Button",
+                    "id": "b6e2a7bb-43b9-40de-b975-aace67c3d62e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -591,6 +600,17 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "OneStackCraft",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "86ff9c27-2e02-4f71-94ab-8b2e5127f970",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "QuestUI",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
