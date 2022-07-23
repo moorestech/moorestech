@@ -19,12 +19,18 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
         [SerializeField] private QuestRewardItemElement rewardItemElementPrefab;
 
         [SerializeField] private GameObject getRwardButton;
+        [SerializeField] private Button getRewardButton;
 
+        public event Action<string> OnGetReward; 
         private readonly List<QuestRewardItemElement> _questRewardItemElements = new();
+        
+        private string _questId;
+        
 
 
         private void Start()
         {
+            getRewardButton.onClick.AddListener((() => OnGetReward?.Invoke(_questId)));
             closeButton.onClick.AddListener(() => gameObject.SetActive(false));
         }
 
@@ -33,6 +39,7 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
         {
             gameObject.SetActive(true);
             
+            _questId = config.QuestId;
             title.text = config.QuestName;
             description.text = config.QuestDescription;
             
