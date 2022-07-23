@@ -24,5 +24,6 @@ namespace MainGame.Network.Send
         {
             _socketSender.Send(MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack(playerId)).ToList());
         }
+        
     }
 }
