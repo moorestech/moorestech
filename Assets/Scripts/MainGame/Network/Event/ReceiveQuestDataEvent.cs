@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 
 namespace MainGame.Network.Event
 {
@@ -8,8 +9,9 @@ namespace MainGame.Network.Event
         public event Action<QuestProgressProperties> OnReceiveQuestProgress;
         public event Action<QuestCompletedProperties> OnQuestCompleted;
 
-        public virtual void InvokeReceiveQuestProgress(QuestProgressProperties properties)
+        public async UniTask  InvokeReceiveQuestProgress(QuestProgressProperties properties)
         {
+            await UniTask.SwitchToMainThread();
             OnReceiveQuestProgress?.Invoke(properties);
         }
     }
