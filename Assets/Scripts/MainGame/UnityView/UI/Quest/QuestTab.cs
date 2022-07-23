@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Core.Item.Config;
 using Game.Quest.Interface;
+using MainGame.Basic.Server;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Quest.QuestDetail;
 using UnityEngine;
@@ -9,6 +10,7 @@ namespace MainGame.UnityView.UI.Quest
 {
     public class QuestTab : MonoBehaviour
     {
+        [SerializeField] private RectTransform questElementParent;
         [SerializeField] private QuestElement questElementPrefab;
 
         [SerializeField] private RectTransform allowParent;
@@ -24,7 +26,7 @@ namespace MainGame.UnityView.UI.Quest
             foreach (var questConfig in questConfigs)
             {
                 //クエストの追加
-                var questElement = Instantiate(questElementPrefab, transform);
+                var questElement = Instantiate(questElementPrefab, questElementParent);
                 questElement.SetQuest(questConfig,SetQuestDetail);
                 
                 //前提クエストの矢印設定

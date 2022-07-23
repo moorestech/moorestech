@@ -18,7 +18,7 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
         [SerializeField] private RectTransform rewardIteParent;
         [SerializeField] private QuestRewardItemElement rewardItemElementPrefab;
 
-        private List<QuestRewardItemElement> _questRewardItemElements = new();
+        private readonly List<QuestRewardItemElement> _questRewardItemElements = new();
 
 
         private void Start()
@@ -34,6 +34,7 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
             title.text = questConfigData.QuestName;
             description.text = questConfigData.QuestDescription;
 
+            
             
             //今までのリワードアイテム表示を削除
             foreach (var questReward in _questRewardItemElements)
