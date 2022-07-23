@@ -20,7 +20,7 @@ namespace MainGame.Presenter.Quest
             };
             
             // クエストのデータが送られてきたらUIに返す
-            receiveQuestDataEvent.OnReciveQuestProgress += progress =>
+            receiveQuestDataEvent.OnReceiveQuestProgress += progress =>
             {
                 questUI.SetQuestProgress(progress.QuestProgress);
             };

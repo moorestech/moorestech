@@ -5,8 +5,13 @@ namespace MainGame.Network.Event
 {
     public class ReceiveQuestDataEvent
     {
-        public event Action<QuestProgressProperties> OnReciveQuestProgress;
+        public event Action<QuestProgressProperties> OnReceiveQuestProgress;
         public event Action<QuestCompletedProperties> OnQuestCompleted;
+
+        public virtual void InvokeReceiveQuestProgress(QuestProgressProperties properties)
+        {
+            OnReceiveQuestProgress?.Invoke(properties);
+        }
     }
 
     public class QuestProgressProperties
