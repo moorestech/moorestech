@@ -16,13 +16,32 @@
           "Game.World.EventHandler": "1.0.0",
           "Game.WorldMap": "1.0.0",
           "Microsoft.Extensions.DependencyInjection": "6.0.0",
+          "Server.Boot": "1.0.0",
           "Server.Event": "1.0.0",
           "Server.Protocol": "1.0.0",
-          "Server.StartServerSystem": "1.0.0",
           "Server.Util": "1.0.0"
         },
         "runtime": {
           "moorestech_server.dll": {}
+        }
+      },
+      "MessagePack/2.3.85": {
+        "dependencies": {
+          "MessagePack.Annotations": "2.3.85"
+        },
+        "runtime": {
+          "lib/net5.0/MessagePack.dll": {
+            "assemblyVersion": "2.3.0.0",
+            "fileVersion": "2.3.85.30390"
+          }
+        }
+      },
+      "MessagePack.Annotations/2.3.85": {
+        "runtime": {
+          "lib/netstandard2.0/MessagePack.Annotations.dll": {
+            "assemblyVersion": "2.3.0.0",
+            "fileVersion": "2.3.85.30390"
+          }
         }
       },
       "Microsoft.Extensions.DependencyInjection/6.0.0": {
@@ -775,6 +794,7 @@
           "Core.Item": "1.0.0",
           "Core.Ore": "1.0.0",
           "Core.Update": "1.0.0",
+          "Core.Util": "1.0.0",
           "Microsoft.Extensions.DependencyInjection": "6.0.0",
           "Newtonsoft.Json": "13.0.1"
         },
@@ -840,6 +860,14 @@
           "Core.Update.dll": {}
         }
       },
+      "Core.Util/1.0.0": {
+        "dependencies": {
+          "Newtonsoft.Json": "13.0.1"
+        },
+        "runtime": {
+          "Core.Util.dll": {}
+        }
+      },
       "Game.Crafting/1.0.0": {
         "dependencies": {
           "Game.Crafting.Interface": "1.0.0",
@@ -855,6 +883,27 @@
         },
         "runtime": {
           "Game.Crafting.Interface.dll": {}
+        }
+      },
+      "Game.Entity/1.0.0": {
+        "dependencies": {
+          "Game.Entity.Interface": "1.0.0"
+        },
+        "runtime": {
+          "Game.Entity.dll": {}
+        }
+      },
+      "Game.Entity.Interface/1.0.0": {
+        "dependencies": {
+          "Newtonsoft.Json": "13.0.1"
+        },
+        "runtime": {
+          "Game.Entity.Interface.dll": {}
+        }
+      },
+      "Game.Paths/1.0.0": {
+        "runtime": {
+          "Game.Paths.dll": {}
         }
       },
       "Game.PlayerInventory/1.0.0": {
@@ -879,9 +928,32 @@
           "Game.PlayerInventory.Interface.dll": {}
         }
       },
+      "Game.Quest/1.0.0": {
+        "dependencies": {
+          "Core.Item": "1.0.0",
+          "Core.Util": "1.0.0",
+          "Game.Quest.Interface": "1.0.0"
+        },
+        "runtime": {
+          "Game.Quest.dll": {}
+        }
+      },
+      "Game.Quest.Interface/1.0.0": {
+        "dependencies": {
+          "Core.Item": "1.0.0",
+          "Core.Util": "1.0.0",
+          "Game.PlayerInventory.Interface": "1.0.0"
+        },
+        "runtime": {
+          "Game.Quest.Interface.dll": {}
+        }
+      },
       "Game.SaveLoad/1.0.0": {
         "dependencies": {
+          "Game.Entity.Interface": "1.0.0",
+          "Game.Paths": "1.0.0",
           "Game.PlayerInventory.Interface": "1.0.0",
+          "Game.Quest.Interface": "1.0.0",
           "Game.SaveLoad.Interface": "1.0.0",
           "Game.World.Interface": "1.0.0"
         },
@@ -941,16 +1013,38 @@
       },
       "Mod.Loader/1.0.0": {
         "dependencies": {
+          "Game.Paths": "1.0.0",
           "Newtonsoft.Json": "13.0.1"
         },
         "runtime": {
           "Mod.Loader.dll": {}
         }
       },
+      "Server.Boot/1.0.0": {
+        "dependencies": {
+          "Game.Crafting": "1.0.0",
+          "Game.Crafting.Interface": "1.0.0",
+          "Game.Entity": "1.0.0",
+          "Game.PlayerInventory": "1.0.0",
+          "Game.Quest": "1.0.0",
+          "Game.SaveLoad": "1.0.0",
+          "Game.World": "1.0.0",
+          "Game.World.EventHandler": "1.0.0",
+          "Mod.Config": "1.0.0",
+          "Newtonsoft.Json": "13.0.1",
+          "Server.Protocol": "1.0.0"
+        },
+        "runtime": {
+          "Server.Boot.dll": {}
+        }
+      },
       "Server.Event/1.0.0": {
         "dependencies": {
           "Game.PlayerInventory.Interface": "1.0.0",
+          "Game.Quest.Interface": "1.0.0",
           "Game.World.Interface": "1.0.0",
+          "MessagePack": "2.3.85",
+          "MessagePack.Annotations": "2.3.85",
           "Microsoft.Extensions.DependencyInjection": "6.0.0",
           "Server.Util": "1.0.0"
         },
@@ -960,10 +1054,12 @@
       },
       "Server.Protocol/1.0.0": {
         "dependencies": {
+          "Game.Entity.Interface": "1.0.0",
           "Game.PlayerInventory.Interface": "1.0.0",
           "Game.SaveLoad.Interface": "1.0.0",
           "Game.World.Interface": "1.0.0",
           "Game.WorldMap": "1.0.0",
+          "MessagePack": "2.3.85",
           "Microsoft.Extensions.DependencyInjection": "6.0.0",
           "Server.Event": "1.0.0",
           "Server.Util": "1.0.0"
@@ -972,24 +1068,11 @@
           "Server.Protocol.dll": {}
         }
       },
-      "Server.StartServerSystem/1.0.0": {
-        "dependencies": {
-          "Game.Crafting": "1.0.0",
-          "Game.Crafting.Interface": "1.0.0",
-          "Game.PlayerInventory": "1.0.0",
-          "Game.SaveLoad": "1.0.0",
-          "Game.World": "1.0.0",
-          "Game.World.EventHandler": "1.0.0",
-          "Mod.Config": "1.0.0",
-          "Newtonsoft.Json": "13.0.1",
-          "Server.Protocol": "1.0.0"
-        },
-        "runtime": {
-          "Server.StartServerSystem.dll": {}
-        }
-      },
       "Server.Util/1.0.0": {
         "dependencies": {
+          "Core.Item": "1.0.0",
+          "Game.World.Interface": "1.0.0",
+          "MessagePack": "2.3.85",
           "Microsoft.Extensions.DependencyInjection": "6.0.0"
         },
         "runtime": {
@@ -1003,6 +1086,20 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "MessagePack/2.3.85": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-wOabnqkrXp7oeEYLY4Kd0m0eT4falJQukqvErfz5Y4FKKo9mSQQ1+rMxx9mapF2el+P0XQxiZOBKFm+oCvu0aw==",
+      "path": "messagepack/2.3.85",
+      "hashPath": "messagepack.2.3.85.nupkg.sha512"
+    },
+    "MessagePack.Annotations/2.3.85": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-2GCYZ9qgNS5Og0tiqfhWRhcfDZI/iRi8t07R0fNic1HthMMRfWxWOKDIBhtMA1RwZM4BuRsmJXUgk3evyisb1w==",
+      "path": "messagepack.annotations/2.3.85",
+      "hashPath": "messagepack.annotations.2.3.85.nupkg.sha512"
     },
     "Microsoft.Extensions.DependencyInjection/6.0.0": {
       "type": "package",
@@ -1609,6 +1706,11 @@
       "serviceable": false,
       "sha512": ""
     },
+    "Core.Util/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
     "Game.Crafting/1.0.0": {
       "type": "project",
       "serviceable": false,
@@ -1619,12 +1721,37 @@
       "serviceable": false,
       "sha512": ""
     },
+    "Game.Entity/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Game.Entity.Interface/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Game.Paths/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
     "Game.PlayerInventory/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
     "Game.PlayerInventory.Interface/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Game.Quest/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Game.Quest.Interface/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -1669,17 +1796,17 @@
       "serviceable": false,
       "sha512": ""
     },
+    "Server.Boot/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
     "Server.Event/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
     "Server.Protocol/1.0.0": {
-      "type": "project",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "Server.StartServerSystem/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
