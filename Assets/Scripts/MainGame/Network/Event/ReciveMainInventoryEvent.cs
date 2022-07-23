@@ -6,7 +6,7 @@ using MainGame.Basic;
 
 namespace MainGame.Network.Event
 {
-    public class MainInventoryUpdateEvent
+    public class ReceiveMainInventoryEvent
     {
         public event Action<MainInventoryUpdateProperties> OnMainInventoryUpdateEvent;
         public event Action<MainInventorySlotUpdateProperties> OnMainInventorySlotUpdateEvent;

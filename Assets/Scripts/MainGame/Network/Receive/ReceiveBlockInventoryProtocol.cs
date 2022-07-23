@@ -9,11 +9,11 @@ namespace MainGame.Network.Receive
 {
     public class ReceiveBlockInventoryProtocol : IAnalysisPacket
     {
-        private readonly BlockInventoryUpdateEvent _blockInventoryUpdateEvent;
+        private readonly ReceiveBlockInventoryEvent receiveBlockInventoryEvent;
 
-        public ReceiveBlockInventoryProtocol(BlockInventoryUpdateEvent blockInventoryUpdateEvent)
+        public ReceiveBlockInventoryProtocol(ReceiveBlockInventoryEvent receiveBlockInventoryEvent)
         {
-            _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
+            this.receiveBlockInventoryEvent = receiveBlockInventoryEvent;
         }
 
         public void Analysis(List<byte> packet)
@@ -29,7 +29,7 @@ namespace MainGame.Network.Receive
                 items.Add(new ItemStack(id, count));
             }
             
-            _blockInventoryUpdateEvent.InvokeSettingBlock(items,data.BlockId);
+            receiveBlockInventoryEvent.InvokeSettingBlock(items,data.BlockId);
         }
     }
 }

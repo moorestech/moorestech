@@ -18,14 +18,14 @@ namespace MainGame.Network
         
         
         public AllReceivePacketAnalysisService(
-            ReciveChunkDataEvent reciveChunkDataEvent, MainInventoryUpdateEvent mainInventoryUpdateEvent,ReciveCraftingInventoryEvent reciveCraftingInventoryEvent,BlockInventoryUpdateEvent blockInventoryUpdateEvent,GrabInventoryUpdateEvent grabInventoryUpdateEvent,ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol)
+            ReceiveChunkDataEvent receiveChunkDataEvent, ReceiveMainInventoryEvent receiveMainInventoryEvent,ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent,ReceiveBlockInventoryEvent receiveBlockInventoryEvent,ReceiveGrabInventoryEvent receiveGrabInventoryEvent,ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol)
         {
             _analysisPackets.Add(DummyProtocol.Tag,new ReciveDummyProtocol());
             _analysisPackets.Add(InitialHandshakeProtocol.Tag,receiveInitialHandshakeProtocol);
-            _analysisPackets.Add(PlayerCoordinateSendProtocol.ChunkDataTag,new ReceiveChunkDataProtocol(reciveChunkDataEvent)); 
-            _analysisPackets.Add(EventProtocolMessagePackBase.EventProtocolTag,new ReceiveEventProtocol(reciveChunkDataEvent,mainInventoryUpdateEvent,reciveCraftingInventoryEvent,blockInventoryUpdateEvent,grabInventoryUpdateEvent));
-            _analysisPackets.Add(PlayerInventoryResponseProtocol.Tag,new ReceivePlayerInventoryProtocol(mainInventoryUpdateEvent,reciveCraftingInventoryEvent,grabInventoryUpdateEvent));
-            _analysisPackets.Add(BlockInventoryRequestProtocol.Tag,new ReceiveBlockInventoryProtocol(blockInventoryUpdateEvent));
+            _analysisPackets.Add(PlayerCoordinateSendProtocol.ChunkDataTag,new ReceiveChunkDataProtocol(receiveChunkDataEvent)); 
+            _analysisPackets.Add(EventProtocolMessagePackBase.EventProtocolTag,new ReceiveEventProtocol(receiveChunkDataEvent,receiveMainInventoryEvent,receiveCraftingInventoryEvent,receiveBlockInventoryEvent,receiveGrabInventoryEvent));
+            _analysisPackets.Add(PlayerInventoryResponseProtocol.Tag,new ReceivePlayerInventoryProtocol(receiveMainInventoryEvent,receiveCraftingInventoryEvent,receiveGrabInventoryEvent));
+            _analysisPackets.Add(BlockInventoryRequestProtocol.Tag,new ReceiveBlockInventoryProtocol(receiveBlockInventoryEvent));
 
         }
 

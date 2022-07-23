@@ -9,11 +9,11 @@ namespace MainGame.Network.Receive.EventPacket
 {
     public class BlockInventorySlotUpdateEventProtocol : IAnalysisEventPacket
     {
-        private readonly BlockInventoryUpdateEvent _blockInventoryUpdateEvent;
+        private readonly ReceiveBlockInventoryEvent receiveBlockInventoryEvent;
 
-        public BlockInventorySlotUpdateEventProtocol(BlockInventoryUpdateEvent blockInventoryUpdateEvent)
+        public BlockInventorySlotUpdateEventProtocol(ReceiveBlockInventoryEvent receiveBlockInventoryEvent)
         {
-            _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
+            this.receiveBlockInventoryEvent = receiveBlockInventoryEvent;
         }
 
         public void Analysis(List<byte> packet)
@@ -22,7 +22,7 @@ namespace MainGame.Network.Receive.EventPacket
             var data = MessagePackSerializer
                 .Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(packet.ToArray());
             
-            _blockInventoryUpdateEvent.InvokeBlockInventorySlotUpdate(
+            receiveBlockInventoryEvent.InvokeBlockInventorySlotUpdate(
                 new Vector2Int(data.X,data.Y), data.Slot, data.Item.Id, data.Item.Count);
         }
     }

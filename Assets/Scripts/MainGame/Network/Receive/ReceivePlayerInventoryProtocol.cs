@@ -12,15 +12,15 @@ namespace MainGame.Network.Receive
     /// </summary>
     public class ReceivePlayerInventoryProtocol : IAnalysisPacket
     {
-        private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
-        private readonly ReciveCraftingInventoryEvent reciveCraftingInventoryEvent;
-        private readonly GrabInventoryUpdateEvent _grabInventoryUpdateEvent;
+        private readonly ReceiveMainInventoryEvent receiveMainInventoryEvent;
+        private readonly ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent;
+        private readonly ReceiveGrabInventoryEvent receiveGrabInventoryEvent;
 
-        public ReceivePlayerInventoryProtocol(MainInventoryUpdateEvent mainInventoryUpdateEvent,ReciveCraftingInventoryEvent reciveCraftingInventoryEvent,GrabInventoryUpdateEvent grabInventoryUpdateEvent)
+        public ReceivePlayerInventoryProtocol(ReceiveMainInventoryEvent receiveMainInventoryEvent,ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent,ReceiveGrabInventoryEvent receiveGrabInventoryEvent)
         {
-            _mainInventoryUpdateEvent = mainInventoryUpdateEvent;
-            this.reciveCraftingInventoryEvent = reciveCraftingInventoryEvent;
-            _grabInventoryUpdateEvent = grabInventoryUpdateEvent;
+            this.receiveMainInventoryEvent = receiveMainInventoryEvent;
+            this.receiveCraftingInventoryEvent = receiveCraftingInventoryEvent;
+            this.receiveGrabInventoryEvent = receiveGrabInventoryEvent;
         }
 
 
@@ -39,7 +39,7 @@ namespace MainGame.Network.Receive
                 var item = data.Main[i];
                 mainItems.Add(new ItemStack(item.Id, item.Count));
             }
-            _mainInventoryUpdateEvent.InvokeMainInventoryUpdate(
+            receiveMainInventoryEvent.InvokeMainInventoryUpdate(
                 new MainInventoryUpdateProperties(
                     data.PlayerId,
                     mainItems));
@@ -49,7 +49,7 @@ namespace MainGame.Network.Receive
             
             //grab inventory items
             var grabItem = new ItemStack(data.Grab.Id, data.Grab.Count);
-            _grabInventoryUpdateEvent.GrabInventoryUpdateEventInvoke(new GrabInventoryUpdateEventProperties(grabItem));
+            receiveGrabInventoryEvent.GrabInventoryUpdateEventInvoke(new GrabInventoryUpdateEventProperties(grabItem));
             
             
             
@@ -62,7 +62,7 @@ namespace MainGame.Network.Receive
                 craftItems.Add(new ItemStack(item.Id, item.Count));
             }
             var resultItem = new ItemStack(data.CraftResult.Id,data.CraftResult.Count);
-            reciveCraftingInventoryEvent.InvokeCraftingInventoryUpdate(
+            receiveCraftingInventoryEvent.InvokeCraftingInventoryUpdate(
                 new CraftingInventoryUpdateProperties(data.PlayerId,data.IsCreatable,craftItems,resultItem));
             
         }

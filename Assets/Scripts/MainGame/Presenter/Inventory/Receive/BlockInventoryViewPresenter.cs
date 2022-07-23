@@ -8,18 +8,18 @@ namespace MainGame.Presenter.Inventory.Receive
 {
     public class BlockInventoryViewPresenter : IInitializable
     {
-        private readonly BlockInventoryUpdateEvent _blockInventoryUpdateEvent;
+        private readonly ReceiveBlockInventoryEvent receiveBlockInventoryEvent;
         private readonly PlayerInventoryViewModelController _playerInventoryViewModelController;
         private readonly PlayerInventoryViewModel _playerInventoryViewModel;
 
-        public BlockInventoryViewPresenter(BlockInventoryUpdateEvent blockInventoryUpdateEvent,
+        public BlockInventoryViewPresenter(ReceiveBlockInventoryEvent receiveBlockInventoryEvent,
             PlayerInventoryViewModelController playerInventoryViewModelController,
             PlayerInventoryViewModel playerInventoryViewModel)
         {
             _playerInventoryViewModelController = playerInventoryViewModelController;
             _playerInventoryViewModel = playerInventoryViewModel;
-            blockInventoryUpdateEvent.OnSettingBlockInventory += SettingBlockInventory;
-            blockInventoryUpdateEvent.OnBlockInventorySlotUpdate += BlockInventoryUpdate;
+            receiveBlockInventoryEvent.OnSettingBlockInventory += SettingBlockInventory;
+            receiveBlockInventoryEvent.OnBlockInventorySlotUpdate += BlockInventoryUpdate;
         }
 
         public void SettingBlockInventory(SettingBlockInventoryProperties properties)

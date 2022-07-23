@@ -12,15 +12,15 @@ namespace MainGame.Network.Receive
     {
         readonly Dictionary<string,IAnalysisEventPacket> _eventPacket = new();
 
-        public ReceiveEventProtocol(ReciveChunkDataEvent reciveChunkDataEvent, MainInventoryUpdateEvent mainInventoryUpdateEvent,
-            ReciveCraftingInventoryEvent reciveCraftingInventoryEvent,BlockInventoryUpdateEvent blockInventoryUpdateEvent,GrabInventoryUpdateEvent grabInventoryUpdateEvent)
+        public ReceiveEventProtocol(ReceiveChunkDataEvent receiveChunkDataEvent, ReceiveMainInventoryEvent receiveMainInventoryEvent,
+            ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent,ReceiveBlockInventoryEvent receiveBlockInventoryEvent,ReceiveGrabInventoryEvent receiveGrabInventoryEvent)
         {
-            _eventPacket.Add(PlaceBlockToSetEventPacket.EventTag,new BlockPlaceEventProtocol(reciveChunkDataEvent));
-            _eventPacket.Add(MainInventoryUpdateToSetEventPacket.EventTag,new MainInventorySlotEventProtocol(mainInventoryUpdateEvent));
-            _eventPacket.Add(OpenableBlockInventoryUpdateToSetEventPacket.EventTag,new BlockInventorySlotUpdateEventProtocol(blockInventoryUpdateEvent));
-            _eventPacket.Add(RemoveBlockToSetEventPacket.EventTag,new BlockRemoveEventProtocol(reciveChunkDataEvent));
-            _eventPacket.Add(CraftingInventoryUpdateToSetEventPacket.EventTag,new CraftingInventorySlotEventProtocol(reciveCraftingInventoryEvent));
-            _eventPacket.Add(GrabInventoryUpdateToSetEventPacket.EventTag,new GrabInventoryUpdateEventProtocol(grabInventoryUpdateEvent));
+            _eventPacket.Add(PlaceBlockToSetEventPacket.EventTag,new BlockPlaceEventProtocol(receiveChunkDataEvent));
+            _eventPacket.Add(MainInventoryUpdateToSetEventPacket.EventTag,new MainInventorySlotEventProtocol(receiveMainInventoryEvent));
+            _eventPacket.Add(OpenableBlockInventoryUpdateToSetEventPacket.EventTag,new BlockInventorySlotUpdateEventProtocol(receiveBlockInventoryEvent));
+            _eventPacket.Add(RemoveBlockToSetEventPacket.EventTag,new BlockRemoveEventProtocol(receiveChunkDataEvent));
+            _eventPacket.Add(CraftingInventoryUpdateToSetEventPacket.EventTag,new CraftingInventorySlotEventProtocol(receiveCraftingInventoryEvent));
+            _eventPacket.Add(GrabInventoryUpdateToSetEventPacket.EventTag,new GrabInventoryUpdateEventProtocol(receiveGrabInventoryEvent));
         }
         
         /// <summary>

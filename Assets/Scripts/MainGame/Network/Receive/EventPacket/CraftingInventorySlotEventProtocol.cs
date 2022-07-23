@@ -9,10 +9,10 @@ namespace MainGame.Network.Receive.EventPacket
 {
     public class CraftingInventorySlotEventProtocol : IAnalysisEventPacket
     {
-        private readonly ReciveCraftingInventoryEvent reciveCraftingInventoryEvent;
-        public CraftingInventorySlotEventProtocol(ReciveCraftingInventoryEvent reciveCraftingInventoryEvent)
+        private readonly ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent;
+        public CraftingInventorySlotEventProtocol(ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent)
         {
-            this.reciveCraftingInventoryEvent = reciveCraftingInventoryEvent;
+            this.receiveCraftingInventoryEvent = receiveCraftingInventoryEvent;
         }
 
         public void Analysis(List<byte> packet)
@@ -26,7 +26,7 @@ namespace MainGame.Network.Receive.EventPacket
             var craftResult = new ItemStack(data.CreatableItem.Id, data.CreatableItem.Count);
             
             
-            reciveCraftingInventoryEvent.InvokeCraftingInventorySlotUpdate(
+            receiveCraftingInventoryEvent.InvokeCraftingInventorySlotUpdate(
                 new CraftingInventorySlotUpdateProperties(data.Slot,item,craftResult,data.IsCraftable));
         }
     }

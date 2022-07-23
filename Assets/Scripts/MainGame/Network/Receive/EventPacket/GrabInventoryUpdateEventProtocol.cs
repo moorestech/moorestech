@@ -10,11 +10,11 @@ namespace MainGame.Network.Receive.EventPacket
     public class GrabInventoryUpdateEventProtocol : IAnalysisEventPacket
     {
         
-        private readonly GrabInventoryUpdateEvent _grabInventoryUpdateEvent;
+        private readonly ReceiveGrabInventoryEvent receiveGrabInventoryEvent;
 
-        public GrabInventoryUpdateEventProtocol(GrabInventoryUpdateEvent grabInventoryUpdate)
+        public GrabInventoryUpdateEventProtocol(ReceiveGrabInventoryEvent receiveGrabInventory)
         {
-            _grabInventoryUpdateEvent = grabInventoryUpdate;
+            receiveGrabInventoryEvent = receiveGrabInventory;
         }
         public void Analysis(List<byte> packet)
         {
@@ -22,7 +22,7 @@ namespace MainGame.Network.Receive.EventPacket
             var data = MessagePackSerializer
                 .Deserialize<GrabInventoryUpdateEventMessagePack>(packet.ToArray());
 
-            _grabInventoryUpdateEvent.GrabInventoryUpdateEventInvoke(
+            receiveGrabInventoryEvent.GrabInventoryUpdateEventInvoke(
                 new GrabInventoryUpdateEventProperties(new ItemStack(data.Item.Id,data.Item.Count)));
             
         }

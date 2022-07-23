@@ -8,7 +8,7 @@ namespace MainGame.Presenter.Quest
 {
     public class QuestUIPresenter : IInitializable
     {
-        public QuestUIPresenter(QuestUI questUI,RequestQuestProgressProtocol requestQuestProgressProtocol,ReciveQuestDataEvent reciveQuestDataEvent,UIStateControl uiStateControl)
+        public QuestUIPresenter(QuestUI questUI,RequestQuestProgressProtocol requestQuestProgressProtocol,ReceiveQuestDataEvent receiveQuestDataEvent,UIStateControl uiStateControl)
         {
             // UIステートがクエストになったら必要なデータのリクエストをする
             uiStateControl.OnStateChanged += uiState =>
@@ -20,7 +20,7 @@ namespace MainGame.Presenter.Quest
             };
             
             // クエストのデータが送られてきたらUIに返す
-            reciveQuestDataEvent.OnReciveQuestProgress += progress =>
+            receiveQuestDataEvent.OnReciveQuestProgress += progress =>
             {
                 questUI.SetQuestProgress(progress.QuestProgress);
             };

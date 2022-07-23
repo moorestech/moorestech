@@ -5,7 +5,7 @@ using MainGame.Basic;
 
 namespace MainGame.Network.Event
 {
-    public class GrabInventoryUpdateEvent
+    public class ReceiveGrabInventoryEvent
     {
         public event Action<GrabInventoryUpdateEventProperties> OnGrabInventoryUpdateEvent;
 

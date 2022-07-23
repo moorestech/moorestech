@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace MainGame.Network.Event
 {
-    public class BlockInventoryUpdateEvent 
+    public class ReceiveBlockInventoryEvent 
     {
         public event Action<BlockInventorySlotUpdateProperties> OnBlockInventorySlotUpdate;
         public event Action<SettingBlockInventoryProperties> OnSettingBlockInventory;

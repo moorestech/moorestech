@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MainGame.Network.Event
 {
-    public class ReciveChunkDataEvent
+    public class ReceiveChunkDataEvent
     {
         public event Action<ChunkUpdateEventProperties> OnChunkUpdateEvent;
         public event Action<BlockUpdateEventProperties> OnBlockUpdateEvent;

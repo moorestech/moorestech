@@ -13,9 +13,9 @@ namespace MainGame.Presenter.Inventory.Receive
         private PlayerInventoryViewModelController _playerInventoryViewModel;
 
         [Inject]
-        public void Construct(GrabInventoryUpdateEvent grabInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModel)
+        public void Construct(ReceiveGrabInventoryEvent receiveGrabInventoryEvent,PlayerInventoryViewModelController playerInventoryViewModel)
         {
-            grabInventoryUpdateEvent.OnGrabInventoryUpdateEvent += UpdateGrabbedItemImage;
+            receiveGrabInventoryEvent.OnGrabInventoryUpdateEvent += UpdateGrabbedItemImage;
             _playerInventoryViewModel = playerInventoryViewModel;
         }
 
