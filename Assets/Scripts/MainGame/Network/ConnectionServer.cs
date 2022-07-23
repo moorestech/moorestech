@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Util;
+using MessagePack;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -79,9 +80,20 @@ namespace MainGame.Network
                     var packetsStr = new StringBuilder();
                     foreach (var @byte in buffer)
                     {
-                        packetsStr.Append(@byte + " ");
+                        packetsStr.Append($"{@byte:X2}" + " ");
                     }
-                    Debug.LogError("受信パケット内容：" + packetsStr);
+
+
+                    try
+                    {
+                        var json = MessagePackSerializer.ConvertToJson(buffer);
+                        Debug.LogError("受信パケット内容 JSON:" + json + " bytes:" +packetsStr);
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.LogError("受信パケット内容 JSON:解析に失敗 bytes:" +packetsStr);
+                    }
+
                     throw new Exception("受信パケット解析失敗", e);
                 }
             }
