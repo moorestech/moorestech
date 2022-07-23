@@ -52,6 +52,15 @@ namespace MainGame.UnityView.UI.Quest
             }
             QuestTabs[category].SetActive(true);
         }
+
+
+        /// <summary>
+        /// クエストIDごとの進捗を設定する
+        /// </summary>
+        /// <param name="questProgress"></param>
+        public void SetQuestProgress(Dictionary<string,(bool IsCompleted,bool IsRewarded)> questProgress)
+        {
+        }
         
     }
 }
