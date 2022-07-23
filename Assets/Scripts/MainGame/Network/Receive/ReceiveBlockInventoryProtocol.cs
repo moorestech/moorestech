@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
@@ -29,7 +30,7 @@ namespace MainGame.Network.Receive
                 items.Add(new ItemStack(id, count));
             }
             
-            receiveBlockInventoryEvent.InvokeSettingBlock(items,data.BlockId);
+            receiveBlockInventoryEvent.InvokeSettingBlock(new SettingBlockInventoryProperties(items,data.BlockId)).Forget();
         }
     }
 }

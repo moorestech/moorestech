@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
 using MessagePack;
@@ -23,7 +24,7 @@ namespace MainGame.Network.Receive.EventPacket
                 .Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(packet.ToArray());
             
             receiveBlockInventoryEvent.InvokeBlockInventorySlotUpdate(
-                new Vector2Int(data.X,data.Y), data.Slot, data.Item.Id, data.Item.Count);
+                new BlockInventorySlotUpdateProperties(new Vector2Int(data.X,data.Y), data.Slot, data.Item.Id, data.Item.Count)).Forget();
         }
     }
 }

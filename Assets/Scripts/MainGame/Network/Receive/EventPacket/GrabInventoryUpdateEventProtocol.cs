@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
@@ -22,8 +23,8 @@ namespace MainGame.Network.Receive.EventPacket
             var data = MessagePackSerializer
                 .Deserialize<GrabInventoryUpdateEventMessagePack>(packet.ToArray());
 
-            receiveGrabInventoryEvent.GrabInventoryUpdateEventInvoke(
-                new GrabInventoryUpdateEventProperties(new ItemStack(data.Item.Id,data.Item.Count)));
+            receiveGrabInventoryEvent.OnGrabInventoryUpdateEventInvoke(
+                new GrabInventoryUpdateEventProperties(new ItemStack(data.Item.Id,data.Item.Count))).Forget();
             
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
@@ -28,7 +29,7 @@ namespace MainGame.Network.Receive.EventPacket
 
             //ブロックをセットする
             receiveChunkDataEvent.InvokeBlockUpdateEvent(new BlockUpdateEventProperties(
-                new Vector2Int(data.X,data.Y), data.BlockId,direction));
+                new Vector2Int(data.X,data.Y), data.BlockId,direction)).Forget();
         }
     }
 }

@@ -9,11 +9,7 @@ namespace MainGame.Network.Event
     {
         public event Action<GrabInventoryUpdateEventProperties> OnGrabInventoryUpdateEvent;
 
-        internal void GrabInventoryUpdateEventInvoke(GrabInventoryUpdateEventProperties properties)
-        {
-            GrabInventoryUpdateEventInvokeAsync(properties).Forget();
-        }
-        private async UniTask GrabInventoryUpdateEventInvokeAsync(GrabInventoryUpdateEventProperties properties)
+        internal async UniTask OnGrabInventoryUpdateEventInvoke(GrabInventoryUpdateEventProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnGrabInventoryUpdateEvent?.Invoke(properties);

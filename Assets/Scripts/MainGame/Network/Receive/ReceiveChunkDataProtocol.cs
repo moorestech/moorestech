@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.Network.Event;
 using MessagePack;
@@ -36,7 +37,7 @@ namespace MainGame.Network.Receive
 
             //chunk data event
             receiveChunkDataEvent.InvokeChunkUpdateEvent(new ChunkUpdateEventProperties(
-                chunkPos,  data.BlockIds,blockDirections,data.MapTileIds));
+                chunkPos,  data.BlockIds,blockDirections,data.MapTileIds)).Forget();
         }
     }
 }

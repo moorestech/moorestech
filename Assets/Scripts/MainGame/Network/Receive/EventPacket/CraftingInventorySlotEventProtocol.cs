@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
@@ -27,7 +28,7 @@ namespace MainGame.Network.Receive.EventPacket
             
             
             receiveCraftingInventoryEvent.InvokeCraftingInventorySlotUpdate(
-                new CraftingInventorySlotUpdateProperties(data.Slot,item,craftResult,data.IsCraftable));
+                new CraftingInventorySlotUpdateProperties(data.Slot,item,craftResult,data.IsCraftable)).Forget();
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
@@ -24,7 +25,7 @@ namespace MainGame.Network.Receive.EventPacket
 
             receiveMainInventoryEvent.InvokeMainInventorySlotUpdate(
                 new MainInventorySlotUpdateProperties(
-                    data.Slot,new ItemStack(data.Item.Id,data.Item.Count)));
+                    data.Slot,new ItemStack(data.Item.Id,data.Item.Count))).Forget();
         }
     }
 }

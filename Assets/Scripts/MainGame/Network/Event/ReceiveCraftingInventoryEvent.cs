@@ -10,11 +10,7 @@ namespace MainGame.Network.Event
         public event Action<CraftingInventoryUpdateProperties> OnCraftingInventoryUpdate;
         public event Action<CraftingInventorySlotUpdateProperties> OnCraftingInventorySlotUpdate;
 
-        internal void InvokeCraftingInventorySlotUpdate(CraftingInventorySlotUpdateProperties properties)
-        {
-            InvokeCraftingInventorySlotUpdateAsync(properties).Forget();
-        }
-        private async UniTask InvokeCraftingInventorySlotUpdateAsync(CraftingInventorySlotUpdateProperties properties)
+        internal async UniTask InvokeCraftingInventorySlotUpdate(CraftingInventorySlotUpdateProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnCraftingInventorySlotUpdate?.Invoke(properties);
@@ -22,11 +18,7 @@ namespace MainGame.Network.Event
         
         
 
-        internal void InvokeCraftingInventoryUpdate(CraftingInventoryUpdateProperties properties)
-        {
-            InvokeCraftingInventoryUpdateAsync(properties).Forget();
-        }
-        private async UniTask InvokeCraftingInventoryUpdateAsync(CraftingInventoryUpdateProperties properties)
+        internal async UniTask InvokeCraftingInventoryUpdate(CraftingInventoryUpdateProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnCraftingInventoryUpdate?.Invoke(properties);

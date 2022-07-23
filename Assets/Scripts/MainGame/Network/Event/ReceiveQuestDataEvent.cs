@@ -9,7 +9,7 @@ namespace MainGame.Network.Event
         public event Action<QuestProgressProperties> OnReceiveQuestProgress;
         public event Action<QuestCompletedProperties> OnQuestCompleted;
 
-        public async UniTask  InvokeReceiveQuestProgress(QuestProgressProperties properties)
+        internal async UniTask  InvokeReceiveQuestProgress(QuestProgressProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnReceiveQuestProgress?.Invoke(properties);

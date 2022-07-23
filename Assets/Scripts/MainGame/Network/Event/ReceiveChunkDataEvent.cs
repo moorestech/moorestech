@@ -11,27 +11,17 @@ namespace MainGame.Network.Event
         public event Action<ChunkUpdateEventProperties> OnChunkUpdateEvent;
         public event Action<BlockUpdateEventProperties> OnBlockUpdateEvent;
 
-        internal void InvokeChunkUpdateEvent(ChunkUpdateEventProperties properties)
-        {
-            InvokeChunkUpdateEventAsync(properties).Forget();
-        }
-        private async UniTask InvokeChunkUpdateEventAsync(ChunkUpdateEventProperties properties)
+        internal async UniTask InvokeChunkUpdateEvent(ChunkUpdateEventProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnChunkUpdateEvent?.Invoke(properties);
         }
         
-        
-        internal void InvokeBlockUpdateEvent(BlockUpdateEventProperties properties)
-        {
-            InvokeBlockUpdateEventAsync(properties).Forget();
-        }
-        private async UniTask InvokeBlockUpdateEventAsync(BlockUpdateEventProperties properties)
+        internal async UniTask InvokeBlockUpdateEvent(BlockUpdateEventProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnBlockUpdateEvent?.Invoke(properties);
         }
-
     }
     
     

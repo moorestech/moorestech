@@ -12,24 +12,15 @@ namespace MainGame.Network.Event
         public event Action<MainInventorySlotUpdateProperties> OnMainInventorySlotUpdateEvent;
 
 
-        internal void InvokeMainInventoryUpdate(MainInventoryUpdateProperties properties)
-        {
-            InvokeMainInventoryUpdateAsync(properties).Forget();
-        }
-        private async UniTask InvokeMainInventoryUpdateAsync(MainInventoryUpdateProperties properties)
+        internal async UniTask InvokeMainInventoryUpdate(MainInventoryUpdateProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnMainInventoryUpdateEvent?.Invoke(properties);
         }
         
         
-        
 
-        internal void InvokeMainInventorySlotUpdate(MainInventorySlotUpdateProperties properties)
-        {
-            InvokeMainInventorySlotUpdateAsync(properties).Forget();
-        }
-        private async UniTask InvokeMainInventorySlotUpdateAsync(MainInventorySlotUpdateProperties properties)
+        internal async UniTask InvokeMainInventorySlotUpdate(MainInventorySlotUpdateProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnMainInventorySlotUpdateEvent?.Invoke(properties);

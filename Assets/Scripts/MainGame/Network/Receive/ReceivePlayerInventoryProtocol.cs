@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.Network.Util;
@@ -42,14 +43,14 @@ namespace MainGame.Network.Receive
             receiveMainInventoryEvent.InvokeMainInventoryUpdate(
                 new MainInventoryUpdateProperties(
                     data.PlayerId,
-                    mainItems));
+                    mainItems)).Forget();
             
             
             
             
             //grab inventory items
             var grabItem = new ItemStack(data.Grab.Id, data.Grab.Count);
-            receiveGrabInventoryEvent.GrabInventoryUpdateEventInvoke(new GrabInventoryUpdateEventProperties(grabItem));
+            receiveGrabInventoryEvent.OnGrabInventoryUpdateEventInvoke(new GrabInventoryUpdateEventProperties(grabItem)).Forget();
             
             
             
@@ -63,7 +64,7 @@ namespace MainGame.Network.Receive
             }
             var resultItem = new ItemStack(data.CraftResult.Id,data.CraftResult.Count);
             receiveCraftingInventoryEvent.InvokeCraftingInventoryUpdate(
-                new CraftingInventoryUpdateProperties(data.PlayerId,data.IsCreatable,craftItems,resultItem));
+                new CraftingInventoryUpdateProperties(data.PlayerId,data.IsCreatable,craftItems,resultItem)).Forget();
             
         }
     }

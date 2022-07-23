@@ -12,24 +12,16 @@ namespace MainGame.Network.Event
         public event Action<BlockInventorySlotUpdateProperties> OnBlockInventorySlotUpdate;
         public event Action<SettingBlockInventoryProperties> OnSettingBlockInventory;
 
-        internal void InvokeSettingBlock(List<ItemStack> items,int blockId)
-        {
-            InvokeSettingBlockAsync(items,blockId).Forget();
-        }
-        private async UniTask InvokeSettingBlockAsync(List<ItemStack> items,int blockId)
+        internal async UniTask InvokeSettingBlock(SettingBlockInventoryProperties properties)
         {
             await UniTask.SwitchToMainThread();
-            OnSettingBlockInventory?.Invoke(new SettingBlockInventoryProperties(items, blockId));
+            OnSettingBlockInventory?.Invoke(properties);
         }
         
         
         
 
-        internal void InvokeBlockInventorySlotUpdate(Vector2Int pos, int slot, int id, int count)
-        {
-            InvokeBlockInventorySlotUpdateAsync(new BlockInventorySlotUpdateProperties(pos, slot, id, count)).Forget();
-        }
-        private async UniTask InvokeBlockInventorySlotUpdateAsync(BlockInventorySlotUpdateProperties properties)
+        internal async UniTask InvokeBlockInventorySlotUpdate(BlockInventorySlotUpdateProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnBlockInventorySlotUpdate?.Invoke(properties);
