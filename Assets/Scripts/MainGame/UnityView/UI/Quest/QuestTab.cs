@@ -19,7 +19,8 @@ namespace MainGame.UnityView.UI.Quest
         [SerializeField] private QuestDetailUI questDetailUI;
 
         private ItemImages _itemImages;
-        
+        private readonly Dictionary<string,QuestElement> _questElements = new Dictionary<string, QuestElement>();
+
         public void SetQuests(List<QuestConfigData> questConfigs,ItemImages itemImages)
         {
             _itemImages = itemImages;
@@ -28,6 +29,7 @@ namespace MainGame.UnityView.UI.Quest
                 //クエストの追加
                 var questElement = Instantiate(questElementPrefab, questElementParent);
                 questElement.SetQuest(questConfig,SetQuestDetail);
+                _questElements.Add(questConfig.QuestId,questElement);
                 
                 //前提クエストの矢印設定
                 foreach (var prerequisite in questConfig.PrerequisiteQuests)
@@ -39,9 +41,9 @@ namespace MainGame.UnityView.UI.Quest
         }
 
 
-        private void SetQuestDetail(QuestConfigData questConfigData)
+        private void SetQuestDetail((QuestConfigData config, bool isCompleted, bool isRewarded) c)
         {
-            questDetailUI.SetQuest(questConfigData, _itemImages);
+            questDetailUI.SetQuest(c.config,c.isCompleted,c.isRewarded, _itemImages);
         }
         
         
@@ -49,7 +51,7 @@ namespace MainGame.UnityView.UI.Quest
 
         public void SetQuestProgress(string quest, bool isCompleted, bool isRewarded)
         {
-            throw new System.NotImplementedException();
+            _questElements[quest].SetProgress(isCompleted, isRewarded);
         }
     }
 }

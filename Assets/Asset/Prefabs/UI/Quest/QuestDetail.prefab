@@ -153,7 +153,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3039897154197762240
 RectTransform:
   m_ObjectHideFlags: 0
@@ -850,6 +850,7 @@ MonoBehaviour:
   description: {fileID: 2109250244843780422}
   rewardIteParent: {fileID: 3545183120785258591}
   rewardItemElementPrefab: {fileID: -4853191482787160067, guid: 9dd5e4dde6b1b4aaf8e404efa157bd8d, type: 3}
+  getRwardButton: {fileID: 2683402358468935489}
 --- !u!1 &8648257334287130889
 GameObject:
   m_ObjectHideFlags: 0

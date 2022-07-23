@@ -12,8 +12,14 @@ namespace MainGame.UnityView.UI.Quest
     {
         [SerializeField] private TMP_Text itemName;
         [SerializeField] private Button questButton;
+        
+        [SerializeField] private GameObject questCompleted;
+        [SerializeField] private GameObject completedAndNotReadrded;
 
-        public void SetQuest(QuestConfigData questConfigData,Action<QuestConfigData> onClick)
+        private bool _isCompleted;
+        private bool _isRewarded;
+        
+        public void SetQuest(QuestConfigData questConfigData,Action<(QuestConfigData config,bool isCompleted,bool isRewarded)> onClick)
         {
             //もうちょっとちゃんとしたUI設定を行うようにする
             var rectTransform = GetComponent<RectTransform>();
@@ -24,8 +30,17 @@ namespace MainGame.UnityView.UI.Quest
             
             questButton.onClick.AddListener(() =>
             {
-                onClick?.Invoke(questConfigData);
+                onClick?.Invoke((questConfigData,_isCompleted,_isRewarded));
             });
+        }
+
+        public void SetProgress(bool isCompleted, bool isRewarded)
+        {
+            _isCompleted = isCompleted;
+            _isRewarded = isRewarded;
+            
+            questCompleted.SetActive(isCompleted);
+            completedAndNotReadrded.SetActive(isCompleted && !isRewarded);
         }
     }
 }

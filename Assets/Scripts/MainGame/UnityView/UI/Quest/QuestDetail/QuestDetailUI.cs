@@ -18,6 +18,8 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
         [SerializeField] private RectTransform rewardIteParent;
         [SerializeField] private QuestRewardItemElement rewardItemElementPrefab;
 
+        [SerializeField] private GameObject getRwardButton;
+
         private readonly List<QuestRewardItemElement> _questRewardItemElements = new();
 
 
@@ -27,15 +29,16 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
         }
 
 
-        public void SetQuest(QuestConfigData questConfigData,ItemImages itemImages)
+        public void SetQuest(QuestConfigData config, bool isCompleted, bool isRewarded,ItemImages itemImages)
         {
             gameObject.SetActive(true);
             
-            title.text = questConfigData.QuestName;
-            description.text = questConfigData.QuestDescription;
+            title.text = config.QuestName;
+            description.text = config.QuestDescription;
+            
+            getRwardButton.SetActive(isCompleted && !isRewarded);
 
-            
-            
+
             //今までのリワードアイテム表示を削除
             foreach (var questReward in _questRewardItemElements)
             {
@@ -43,7 +46,7 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
             }
             //リワードアイテムを再生成
             _questRewardItemElements.Clear();
-            foreach (var rewardItem in questConfigData.RewardItemStacks)
+            foreach (var rewardItem in config.RewardItemStacks)
             {
                 var rewardItemElement = Instantiate(rewardItemElementPrefab, rewardIteParent);
                 rewardItemElement.SetItem(rewardItem,itemImages);
