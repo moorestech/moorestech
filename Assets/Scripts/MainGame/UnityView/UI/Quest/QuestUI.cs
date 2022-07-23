@@ -15,12 +15,15 @@ namespace MainGame.UnityView.UI.Quest
         [SerializeField] private RectTransform QuestCategoryButtonContainer;
         [SerializeField] private RectTransform QuestTabParent;
 
-        private Dictionary<string, QuestTab> QuestTabs = new();
+        private readonly Dictionary<string, QuestTab> questTabs = new();
+        private IQuestConfig _questConfig;
 
 
         [Inject]
         public void Construct(IQuestConfig questConfig,ItemImages itemImages)
         {
+            _questConfig = questConfig;
+            
             string firstCategory = null;
             foreach (var quests in questConfig.GetQuestListEachCategory())
             {
@@ -35,22 +38,22 @@ namespace MainGame.UnityView.UI.Quest
                 questTab.SetActive(false);
                 questTab.name = quests.Key + " Tab";
                 
-                QuestTabs.Add(quests.Key, questTab);
+                questTabs.Add(quests.Key, questTab);
             }
 
             if (firstCategory != null)
             {
-                QuestTabs[firstCategory].SetActive(true);   
+                questTabs[firstCategory].SetActive(true);   
             }
         }
 
         private void OnPushQuestButton(string category)
         {
-            foreach (var tab in QuestTabs.Values)
+            foreach (var tab in questTabs.Values)
             {
                 tab.SetActive(false);
             }
-            QuestTabs[category].SetActive(true);
+            questTabs[category].SetActive(true);
         }
 
 
@@ -60,6 +63,13 @@ namespace MainGame.UnityView.UI.Quest
         /// <param name="questProgress"></param>
         public void SetQuestProgress(Dictionary<string,(bool IsCompleted,bool IsRewarded)> questProgress)
         {
+            foreach (var quest in questProgress)
+            {
+                //カテゴリを取得
+                var cat = _questConfig.GetQuestConfig(quest.Key).QuestCategory;
+                //クエストタブに進捗を設定
+                questTabs[cat].SetQuestProgress(quest.Key,quest.Value.IsCompleted,quest.Value.IsRewarded);
+            }
         }
         
     }

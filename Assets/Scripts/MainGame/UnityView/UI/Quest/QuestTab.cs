@@ -46,5 +46,10 @@ namespace MainGame.UnityView.UI.Quest
         
         
         public void SetActive(bool active) { gameObject.SetActive(active); }
+
+        public void SetQuestProgress(string quest, bool isCompleted, bool isRewarded)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
