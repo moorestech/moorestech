@@ -25,6 +25,7 @@ namespace MainGame.UnityView.UI.Quest
 
         public void SetQuests(List<QuestConfigData> questConfigs,ItemImages itemImages,Action<string> getReward)
         {
+            //報酬アイテム取得イベントをQuestUIに伝える
             questDetailUI.OnGetReward += getReward;
             
             _itemImages = itemImages;

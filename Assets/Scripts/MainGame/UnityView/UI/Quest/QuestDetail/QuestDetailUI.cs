@@ -21,6 +21,9 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
         [SerializeField] private GameObject getRwardButton;
         [SerializeField] private Button getRewardButton;
 
+        /// <summary>
+        /// クエストUIまでイベントを伝えるためのイベント
+        /// </summary>
         public event Action<string> OnGetReward; 
         private readonly List<QuestRewardItemElement> _questRewardItemElements = new();
         

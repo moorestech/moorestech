@@ -851,6 +851,7 @@ MonoBehaviour:
   rewardIteParent: {fileID: 3545183120785258591}
   rewardItemElementPrefab: {fileID: -4853191482787160067, guid: 9dd5e4dde6b1b4aaf8e404efa157bd8d, type: 3}
   getRwardButton: {fileID: 2683402358468935489}
+  getRewardButton: {fileID: 7832001656177531438}
 --- !u!1 &8648257334287130889
 GameObject:
   m_ObjectHideFlags: 0
