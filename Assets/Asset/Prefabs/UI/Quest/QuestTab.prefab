@@ -90,6 +90,7 @@ MonoBehaviour:
   questElementPrefab: {fileID: 5914037889574599682, guid: 49d6ffa7c70254d968b7c294da000867, type: 3}
   allowParent: {fileID: 482568858544529062}
   prerequisiteQuestsAllow: {fileID: 4664666530355364950, guid: b6d8ecf3722a44ae5b448a117256e0da, type: 3}
+  questDetailUI: {fileID: 8605724184446385927}
 --- !u!1001 &1145339999427839394
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -196,3 +197,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7260128310600300561, guid: bd0df8d9395fc4be6bcf7e5307d67cd6, type: 3}
   m_PrefabInstance: {fileID: 1145339999427839394}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8605724184446385927 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8685398751639730853, guid: bd0df8d9395fc4be6bcf7e5307d67cd6, type: 3}
+  m_PrefabInstance: {fileID: 1145339999427839394}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50732c91c7834968b37d41b8f2b9e0d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

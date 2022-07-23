@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.Quest.Interface;
 using MainGame.UnityView.UI.Inventory.Element;
 using TMPro;
@@ -16,7 +17,9 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
         
         [SerializeField] private RectTransform rewardIteParent;
         [SerializeField] private QuestRewardItemElement rewardItemElementPrefab;
-        
+
+        private List<QuestRewardItemElement> _questRewardItemElements = new();
+
 
         private void Start()
         {
@@ -31,10 +34,19 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
             title.text = questConfigData.QuestName;
             description.text = questConfigData.QuestDescription;
 
+            
+            //今までのリワードアイテム表示を削除
+            foreach (var questReward in _questRewardItemElements)
+            {
+                Destroy(questReward.gameObject);
+            }
+            //リワードアイテムを再生成
+            _questRewardItemElements.Clear();
             foreach (var rewardItem in questConfigData.RewardItemStacks)
             {
                 var rewardItemElement = Instantiate(rewardItemElementPrefab, rewardIteParent);
                 rewardItemElement.SetItem(rewardItem,itemImages);
+                _questRewardItemElements.Add(rewardItemElement);
             }
         }
     }
