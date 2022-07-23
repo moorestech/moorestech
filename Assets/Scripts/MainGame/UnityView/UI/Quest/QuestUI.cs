@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Game.Quest.Config;
 using Game.Quest.Interface;
+using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
 using VContainer;
 
@@ -18,7 +19,7 @@ namespace MainGame.UnityView.UI.Quest
 
 
         [Inject]
-        public void Construct(IQuestConfig questConfig)
+        public void Construct(IQuestConfig questConfig,ItemImages itemImages)
         {
             string firstCategory = null;
             foreach (var quests in questConfig.GetQuestListEachCategory())
@@ -30,7 +31,7 @@ namespace MainGame.UnityView.UI.Quest
                 questButton.name = quests.Key + " Button";
                 
                 var questTab = Instantiate(QuestTabPrefab, QuestTabParent);
-                questTab.SetQuests(quests.Value);
+                questTab.SetQuests(quests.Value,itemImages);
                 questTab.SetActive(false);
                 questTab.name = quests.Key + " Tab";
                 

@@ -16,15 +16,7 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
         
         [SerializeField] private RectTransform rewardIteParent;
         [SerializeField] private QuestRewardItemElement rewardItemElementPrefab;
-
-        private ItemImages _itemImages;
-
         
-        [Inject]
-        public void Construct(ItemImages itemImages)
-        {
-            _itemImages = itemImages;
-        }
 
         private void Start()
         {
@@ -32,7 +24,7 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
         }
 
 
-        public void SetQuest(QuestConfigData questConfigData)
+        public void SetQuest(QuestConfigData questConfigData,ItemImages itemImages)
         {
             gameObject.SetActive(true);
             
@@ -42,7 +34,7 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
             foreach (var rewardItem in questConfigData.RewardItemStacks)
             {
                 var rewardItemElement = Instantiate(rewardItemElementPrefab, rewardIteParent);
-                rewardItemElement.SetItem(rewardItem,_itemImages);
+                rewardItemElement.SetItem(rewardItem,itemImages);
             }
         }
     }
