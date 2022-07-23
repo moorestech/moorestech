@@ -15,12 +15,12 @@ namespace MainGame.Presenter.Chunk
     {
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private readonly Dictionary<Vector2Int, int[,]> _chunk = new();
-        public ChunkDataPresenter(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
+        public ChunkDataPresenter(ReciveChunkDataEvent reciveChunkDataEvent,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             //イベントをサブスクライブする
-            networkReceivedChunkDataEvent.OnChunkUpdateEvent += OnChunkUpdate;
-            networkReceivedChunkDataEvent.OnBlockUpdateEvent += OnBlockUpdate;
+            reciveChunkDataEvent.OnChunkUpdateEvent += OnChunkUpdate;
+            reciveChunkDataEvent.OnBlockUpdateEvent += OnBlockUpdate;
         }
         
         /// <summary>

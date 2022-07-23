@@ -10,11 +10,11 @@ namespace MainGame.Network.Receive.EventPacket
 {
     public class BlockRemoveEventProtocol : IAnalysisEventPacket 
     {
-        private readonly NetworkReceivedChunkDataEvent _networkReceivedChunkDataEvents;
+        private readonly ReciveChunkDataEvent reciveChunkDataEvents;
 
-        public BlockRemoveEventProtocol(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvents)
+        public BlockRemoveEventProtocol(ReciveChunkDataEvent reciveChunkDataEvents)
         {
-            _networkReceivedChunkDataEvents = networkReceivedChunkDataEvents;
+            this.reciveChunkDataEvents = reciveChunkDataEvents;
         }
 
         public void Analysis(List<byte> packet)
@@ -24,7 +24,7 @@ namespace MainGame.Network.Receive.EventPacket
                 .Deserialize<RemoveBlockEventMessagePack>(packet.ToArray());
             
             
-            _networkReceivedChunkDataEvents.InvokeBlockUpdateEvent(
+            reciveChunkDataEvents.InvokeBlockUpdateEvent(
                 new BlockUpdateEventProperties(new Vector2Int(data.X,data.Y),BlockConstant.NullBlockId,BlockDirection.North));
         }
     }

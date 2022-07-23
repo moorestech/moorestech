@@ -126,12 +126,13 @@ namespace MainGame.Starter
             builder.Register<ISocketSender, SocketSender>(Lifetime.Singleton);
 
             //パケット受け取りイベント
-            builder.Register<NetworkReceivedChunkDataEvent>(Lifetime.Singleton);
+            builder.Register<ReciveChunkDataEvent>(Lifetime.Singleton);
             builder.Register<MainInventoryUpdateEvent>(Lifetime.Singleton);
-            builder.Register<CraftingInventoryUpdateEvent>(Lifetime.Singleton);
+            builder.Register<ReciveCraftingInventoryEvent>(Lifetime.Singleton);
             builder.Register<BlockInventoryUpdateEvent>(Lifetime.Singleton);
             builder.Register<GrabInventoryUpdateEvent>(Lifetime.Singleton);
             builder.Register<ReceiveInitialHandshakeProtocol>(Lifetime.Singleton); //初期接続時に受け取るプロトコル
+            builder.Register<ReciveQuestDataEvent>(Lifetime.Singleton);
             
             //パケット送信インスタンス
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
@@ -147,6 +148,7 @@ namespace MainGame.Starter
             builder.Register<SendMiningProtocol>(Lifetime.Singleton);
             builder.Register<SendSaveProtocol>(Lifetime.Singleton);
             builder.Register<InventoryMoveItemProtocol>(Lifetime.Singleton);
+            builder.Register<RequestQuestProgressProtocol>(Lifetime.Singleton);
 
             //インベントリのUIコントロール
             builder.Register<PlayerInventoryViewModel>(Lifetime.Singleton);

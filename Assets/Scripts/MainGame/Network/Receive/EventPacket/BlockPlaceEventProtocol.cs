@@ -10,11 +10,11 @@ namespace MainGame.Network.Receive.EventPacket
 {
     public class BlockPlaceEventProtocol : IAnalysisEventPacket
     {
-        readonly NetworkReceivedChunkDataEvent _networkReceivedChunkDataEvent;
+        readonly ReciveChunkDataEvent reciveChunkDataEvent;
 
-        public BlockPlaceEventProtocol(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent)
+        public BlockPlaceEventProtocol(ReciveChunkDataEvent reciveChunkDataEvent)
         {
-            _networkReceivedChunkDataEvent = networkReceivedChunkDataEvent;
+            this.reciveChunkDataEvent = reciveChunkDataEvent;
         }
 
         public void Analysis(List<byte> packet)
@@ -27,7 +27,7 @@ namespace MainGame.Network.Receive.EventPacket
             var direction = (BlockDirection)data.Direction;
 
             //ブロックをセットする
-            _networkReceivedChunkDataEvent.InvokeBlockUpdateEvent(new BlockUpdateEventProperties(
+            reciveChunkDataEvent.InvokeBlockUpdateEvent(new BlockUpdateEventProperties(
                 new Vector2Int(data.X,data.Y), data.BlockId,direction));
         }
     }

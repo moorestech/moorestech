@@ -11,12 +11,12 @@ namespace MainGame.Presenter.Inventory.Receive
         private readonly PlayerInventoryViewModelController _playerInventoryViewModelController;
         private readonly PlayerInventoryViewModel _playerInventoryViewModel;
 
-        public CraftingInventoryViewPresenter(CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,PlayerInventoryViewModelController playerInventoryViewModelController,PlayerInventoryViewModel playerInventoryViewModel)
+        public CraftingInventoryViewPresenter(ReciveCraftingInventoryEvent reciveCraftingInventoryEvent,PlayerInventoryViewModelController playerInventoryViewModelController,PlayerInventoryViewModel playerInventoryViewModel)
         {
             _playerInventoryViewModelController = playerInventoryViewModelController;
             _playerInventoryViewModel = playerInventoryViewModel;
-            craftingInventoryUpdateEvent.OnCraftingInventoryUpdate += UpdateInventory;
-            craftingInventoryUpdateEvent.OnCraftingInventorySlotUpdate += UpdateSlotInventory;
+            reciveCraftingInventoryEvent.OnCraftingInventoryUpdate += UpdateInventory;
+            reciveCraftingInventoryEvent.OnCraftingInventorySlotUpdate += UpdateSlotInventory;
         }
 
         public void UpdateInventory(CraftingInventoryUpdateProperties properties)

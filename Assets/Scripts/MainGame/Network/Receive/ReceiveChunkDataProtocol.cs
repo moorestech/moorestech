@@ -10,11 +10,11 @@ namespace MainGame.Network.Receive
 {
     public class ReceiveChunkDataProtocol : IAnalysisPacket
     {
-        private readonly NetworkReceivedChunkDataEvent _networkReceivedChunkDataEvent;
+        private readonly ReciveChunkDataEvent reciveChunkDataEvent;
 
-        public ReceiveChunkDataProtocol(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent)
+        public ReceiveChunkDataProtocol(ReciveChunkDataEvent reciveChunkDataEvent)
         {
-            _networkReceivedChunkDataEvent = networkReceivedChunkDataEvent;
+            this.reciveChunkDataEvent = reciveChunkDataEvent;
         }
 
         public void Analysis(List<byte> packet)
@@ -35,7 +35,7 @@ namespace MainGame.Network.Receive
             }
 
             //chunk data event
-            _networkReceivedChunkDataEvent.InvokeChunkUpdateEvent(new ChunkUpdateEventProperties(
+            reciveChunkDataEvent.InvokeChunkUpdateEvent(new ChunkUpdateEventProperties(
                 chunkPos,  data.BlockIds,blockDirections,data.MapTileIds));
         }
     }

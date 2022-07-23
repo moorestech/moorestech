@@ -10,10 +10,10 @@ namespace MainGame.Presenter.Chunk
     {
         private readonly WorldMapTileGameObjectDataStore _worldMapTileGameObjectDataStore;
 
-        public WorldMapTilePresenter(NetworkReceivedChunkDataEvent networkReceivedChunkDataEvent,WorldMapTileGameObjectDataStore worldMapTileGameObjectDataStore)
+        public WorldMapTilePresenter(ReciveChunkDataEvent reciveChunkDataEvent,WorldMapTileGameObjectDataStore worldMapTileGameObjectDataStore)
         {
             _worldMapTileGameObjectDataStore = worldMapTileGameObjectDataStore;
-            networkReceivedChunkDataEvent.OnChunkUpdateEvent += OnChunkUpdate;
+            reciveChunkDataEvent.OnChunkUpdateEvent += OnChunkUpdate;
         }
 
 

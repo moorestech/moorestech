@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MainGame.Network.Event
 {
-    public class QuestEvent
+    public class ReciveQuestDataEvent
     {
         public event Action<QuestProgressProperties> OnReciveQuestProgress;
         public event Action<QuestCompletedProperties> OnQuestCompleted;

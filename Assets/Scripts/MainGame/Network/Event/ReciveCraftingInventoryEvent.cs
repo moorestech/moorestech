@@ -5,7 +5,7 @@ using MainGame.Basic;
 
 namespace MainGame.Network.Event
 {
-    public class CraftingInventoryUpdateEvent
+    public class ReciveCraftingInventoryEvent
     {
         public event Action<CraftingInventoryUpdateProperties> OnCraftingInventoryUpdate;
         public event Action<CraftingInventorySlotUpdateProperties> OnCraftingInventorySlotUpdate;

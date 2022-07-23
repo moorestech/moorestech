@@ -13,13 +13,13 @@ namespace MainGame.Network.Receive
     public class ReceivePlayerInventoryProtocol : IAnalysisPacket
     {
         private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
-        private readonly CraftingInventoryUpdateEvent _craftingInventoryUpdateEvent;
+        private readonly ReciveCraftingInventoryEvent reciveCraftingInventoryEvent;
         private readonly GrabInventoryUpdateEvent _grabInventoryUpdateEvent;
 
-        public ReceivePlayerInventoryProtocol(MainInventoryUpdateEvent mainInventoryUpdateEvent,CraftingInventoryUpdateEvent craftingInventoryUpdateEvent,GrabInventoryUpdateEvent grabInventoryUpdateEvent)
+        public ReceivePlayerInventoryProtocol(MainInventoryUpdateEvent mainInventoryUpdateEvent,ReciveCraftingInventoryEvent reciveCraftingInventoryEvent,GrabInventoryUpdateEvent grabInventoryUpdateEvent)
         {
             _mainInventoryUpdateEvent = mainInventoryUpdateEvent;
-            _craftingInventoryUpdateEvent = craftingInventoryUpdateEvent;
+            this.reciveCraftingInventoryEvent = reciveCraftingInventoryEvent;
             _grabInventoryUpdateEvent = grabInventoryUpdateEvent;
         }
 
@@ -62,7 +62,7 @@ namespace MainGame.Network.Receive
                 craftItems.Add(new ItemStack(item.Id, item.Count));
             }
             var resultItem = new ItemStack(data.CraftResult.Id,data.CraftResult.Count);
-            _craftingInventoryUpdateEvent.InvokeCraftingInventoryUpdate(
+            reciveCraftingInventoryEvent.InvokeCraftingInventoryUpdate(
                 new CraftingInventoryUpdateProperties(data.PlayerId,data.IsCreatable,craftItems,resultItem));
             
         }
