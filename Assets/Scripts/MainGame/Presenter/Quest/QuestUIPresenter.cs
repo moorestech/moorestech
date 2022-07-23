@@ -2,10 +2,11 @@ using MainGame.Network.Event;
 using MainGame.Network.Send;
 using MainGame.UnityView.UI.Quest;
 using MainGame.UnityView.UI.UIState;
+using VContainer.Unity;
 
 namespace MainGame.Presenter.Quest
 {
-    public class QuestUIPresenter
+    public class QuestUIPresenter : IInitializable
     {
         public QuestUIPresenter(QuestUI questUI,RequestQuestProgressProtocol requestQuestProgressProtocol,QuestEvent questEvent,UIStateControl uiStateControl)
         {
@@ -24,5 +25,7 @@ namespace MainGame.Presenter.Quest
                 questUI.SetQuestProgress(progress.QuestProgress);
             };
         }
+
+        public void Initialize() { }
     }
 }

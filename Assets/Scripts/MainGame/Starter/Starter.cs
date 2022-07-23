@@ -17,6 +17,7 @@ using MainGame.Presenter.Inventory.Receive;
 using MainGame.Presenter.Inventory.Send;
 using MainGame.Presenter.Loading;
 using MainGame.Presenter.Player;
+using MainGame.Presenter.Quest;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
@@ -165,6 +166,7 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<PlayerInventoryMoveItemPacketSend>();
             builder.RegisterEntryPoint<CraftPacketSend>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
+            builder.RegisterEntryPoint<QuestUIPresenter>();
             
             //インプット
             builder.Register<MoorestechInputSettings>(Lifetime.Singleton);
