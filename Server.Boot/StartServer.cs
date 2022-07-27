@@ -18,24 +18,24 @@ namespace Server.Boot
             try
             {
 #if DEBUG
-                var configPath = DebugModsDirectory;
+                var modsDirectory = DebugModsDirectory;
 #else
-                var configPath = ReleasesModsDirectory;
+                var modsDirectory = ReleasesModsDirectory;
                 if (args.Length == 0)
                 {
                     Console.WriteLine("コマンドライン引数にコンフィグのパスが指定されていませんでした。デフォルトコンフィグパスを使用します。");
                 } 
                 else if(args[0] == "startupFromClient")
                 {
-                    configPath = StartupFromClientFolderPath;
+                    modsDirectory = StartupFromClientFolderPath;
                 }
                 else
                 {
-                    configPath = args[0];
+                    modsDirectory = args[0];
                 }
 #endif
                 
-                var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(configPath);
+                var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(modsDirectory);
                 
                 //マップをロードする
                 serviceProvider.GetService<ILoadRepository>().Load();
@@ -86,7 +86,7 @@ namespace Server.Boot
             get
             {
                 DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
-                return Path.Combine(di.FullName,"server", "Config");
+                return Path.Combine(di.FullName,"server", "mods");
             }
         }
     }
