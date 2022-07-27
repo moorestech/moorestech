@@ -5,7 +5,6 @@ using Game.Quest.Interface;
 using MainGame.Basic.Server;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Quest.QuestDetail;
-using Unity.Plastic.Newtonsoft.Json.Serialization;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Quest

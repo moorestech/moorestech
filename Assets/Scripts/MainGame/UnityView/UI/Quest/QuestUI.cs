@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Game.Quest.Config;
 using Game.Quest.Interface;
 using MainGame.UnityView.UI.Inventory.Element;
-using Unity.Plastic.Newtonsoft.Json.Serialization;
 using UnityEngine;
 using VContainer;
 
