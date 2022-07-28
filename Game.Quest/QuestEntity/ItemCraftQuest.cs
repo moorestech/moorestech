@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Core.Item;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest.Interface;
@@ -13,16 +14,19 @@ namespace Game.Quest.QuestEntity
         public bool IsEarnedReward { get;  private set; }
         public event Action<QuestConfigData> OnQuestCompleted;
 
+        private readonly List<IQuest> _preRequestQuests;
+
         private readonly int _questItemId;
         
-        public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent, int questItemId)
+        public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent, int questItemId, List<IQuest> preRequestQuests)
         {
             Quest = quest;
             _questItemId = questItemId;
+            _preRequestQuests = preRequestQuests;
             craftingEvent.Subscribe(OnItemCraft);
         }
-        public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent,bool isCompleted, bool isEarnedReward, int questItemId)
-            :this(quest,craftingEvent,questItemId)
+        public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent,bool isCompleted, bool isEarnedReward, int questItemId, List<IQuest> prequests)
+            :this(quest,craftingEvent,questItemId, prequests)
         {
             IsCompleted = isCompleted;
             IsEarnedReward = isEarnedReward;
