@@ -37,7 +37,7 @@ namespace MainGame.UnityView.UI.Quest
                 questButton.name = quests.Key + " Button";
                 
                 var questTab = Instantiate(QuestTabPrefab, QuestTabParent);
-                questTab.SetQuests(quests.Value,itemImages,OnGetReward);
+                questTab.SetQuests(quests.Value,itemImages,s => OnGetReward?.Invoke(s));
                 questTab.SetActive(false);
                 questTab.name = quests.Key + " Tab";
                 
