@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Mod.Loader
 {
-    public class ModFileList
+    internal class ModFileList
     {
         public static List<string> Get(string modDirectory)
         {
