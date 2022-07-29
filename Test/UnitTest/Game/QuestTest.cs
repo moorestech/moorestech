@@ -14,7 +14,7 @@ namespace Test.UnitTest.Game
     {
         private const int PlayerId = 1;
         /// <summary>
-        /// 前提クエストがあるとき、前のクエストが終了してから次のクエストが開始されることを確認する。
+        /// 前提クエストがあるとき、前のクエストが終了してから報酬受け取りが可能になるかのテスト
         /// </summary>
         [Test]
         public void OnePreRequestQuestTest()
@@ -38,20 +38,59 @@ namespace Test.UnitTest.Game
             //クエスト2のアイテムクラフトイベントをInvoke
             InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(test2Quest));
            
-            //この段階ではまだクエスト2がクリアしていないことをテスト
-            Assert.False(test2Quest.IsCompleted);
+            //この段階ではまだクエスト2が合格しているが報酬受け取りができない事をテスト
+            Assert.False(test2Quest.IsRewardEarnable);
+            Assert.True(test2Quest.IsCompleted);
             
             //前提クエストのクエスト1のクリア
             InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(test1Quest));
             //クエスト1がクリアしたことをテスト
             Assert.True(test1Quest.IsCompleted);
-            //クエスト2のアイテムをクラフトしたのでクエスト2がクリアされることをテスト
-            Assert.True(test2Quest.IsCompleted);
+            Assert.True(test1Quest.IsEarnedReward);
+            //クエスト2の報酬受け取りができることをテスト
+            Assert.True(test2Quest.IsRewardEarnable);
         }
 
+        
+        /// <summary>
+        /// And条件の前提クエストが正しく報酬受け取り可能になるかのテスト
+        /// </summary>
         [Test]
         public void AndPreRequestQuest()
         {
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+
+            var questDataStore = serviceProvider.GetService<IQuestDataStore>();
+            var craftEvent = serviceProvider.GetService<ICraftingEvent>();
+            
+            var test1Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "Test1");
+            var test2Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "Test2");
+            var testAndPreRequestQuest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "Test3");
+            
+            //全てのクエストがまだ合格していないことをテスト
+            Assert.False(test1Quest.IsCompleted);
+            Assert.False(test2Quest.IsCompleted);
+            Assert.False(testAndPreRequestQuest.IsCompleted);
+            
+            
+            //And条件のクエストをクリア
+            InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(testAndPreRequestQuest));
+            
+            //クリアはしているが報酬は受け取れないテスト
+            Assert.True(testAndPreRequestQuest.IsCompleted);
+            Assert.False(testAndPreRequestQuest.IsRewardEarnable);
+            
+            //クエスト1をクリア
+            InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(test1Quest));
+            
+            //AND条件のクエストはまだ報酬受け取りは出来ないテスト
+            Assert.False(testAndPreRequestQuest.IsRewardEarnable);
+            
+            //クエスト2をクリア
+            InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(test2Quest));
+            
+            //AND条件クエストが報酬受け取り可能になるテスト
+            Assert.True(testAndPreRequestQuest.IsRewardEarnable);
             
         }
         
