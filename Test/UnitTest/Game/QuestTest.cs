@@ -46,7 +46,7 @@ namespace Test.UnitTest.Game
             InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(test1Quest));
             //クエスト1がクリアしたことをテスト
             Assert.True(test1Quest.IsCompleted);
-            Assert.True(test1Quest.IsEarnedReward);
+            Assert.True(test1Quest.IsRewardEarnable);
             //クエスト2の報酬受け取りができることをテスト
             Assert.True(test2Quest.IsRewardEarnable);
         }
