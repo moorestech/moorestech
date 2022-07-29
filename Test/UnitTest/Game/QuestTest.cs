@@ -95,6 +95,38 @@ namespace Test.UnitTest.Game
         }
         
         /// <summary>
+        /// Or条件の前提クエストが正しく報酬受け取り可能になるかのテスト
+        /// </summary>
+        [Test]
+        public void OrPreRequestQuest()
+        {
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+
+            var questDataStore = serviceProvider.GetService<IQuestDataStore>();
+            var craftEvent = serviceProvider.GetService<ICraftingEvent>();
+            
+            var test1Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "Test1");
+            var testOrPreRequestQuest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "Test4");
+            
+            //全てのクエストがまだ合格していないことをテスト
+            Assert.False(test1Quest.IsCompleted);
+            Assert.False(testOrPreRequestQuest.IsCompleted);
+            
+            
+            //Or条件のクエストをクリア
+            InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(testOrPreRequestQuest));
+            
+            //クリアはしているが報酬は受け取れないテスト
+            Assert.True(testOrPreRequestQuest.IsCompleted);
+            Assert.False(testOrPreRequestQuest.IsRewardEarnable);
+            
+            //クエスト1をクリア
+            InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(test1Quest));
+            
+            //Or条件のクエストなので報酬受け取りは出来るテスト
+            Assert.False(testOrPreRequestQuest.IsRewardEarnable);
+        }
+        /// <summary>
         /// アイテムクラフトのイベントを無理やり発火する
         /// </summary>
         private void InvokeCraftEventWithReflection(ICraftingEvent craftingEvent,int itemId)
