@@ -35,14 +35,17 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual("Test1",questResponse[0].Id);
             Assert.AreEqual(false,questResponse[0].IsCompleted);
             Assert.AreEqual(false,questResponse[0].IsRewarded);
+            Assert.AreEqual(false,questResponse[0].IsRewardEarnable);
             
             Assert.AreEqual("Test2",questResponse[1].Id);
             Assert.AreEqual(true,questResponse[1].IsCompleted);
             Assert.AreEqual(false,questResponse[1].IsRewarded);
+            Assert.AreEqual(true,questResponse[1].IsRewardEarnable);
             
             Assert.AreEqual("Test3",questResponse[2].Id);
             Assert.AreEqual(true,questResponse[2].IsCompleted);
             Assert.AreEqual(true,questResponse[2].IsRewarded);
+            Assert.AreEqual(false,questResponse[2].IsRewardEarnable);
         }
     }
 }
