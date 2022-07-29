@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Item;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest.Interface;
@@ -17,14 +18,14 @@ namespace Game.Quest.Factory.QuestTemplate
             _craftingEvent = craftingEvent;
         }
 
-        public IQuest CreateQuest(QuestConfigData questConfig)
+        public IQuest CreateQuest(QuestConfigData questConfig,List<IQuest> preRequestQuests)
         {
-            return new ItemCraftQuest(questConfig,_craftingEvent,GetCraftItem(questConfig.QuestParameter));
+            return new ItemCraftQuest(questConfig,_craftingEvent,GetCraftItem(questConfig.QuestParameter),preRequestQuests);
         }
 
-        public IQuest LoadQuest(QuestConfigData questConfig, bool isCompleted, bool isRewarded)
+        public IQuest LoadQuest(QuestConfigData questConfig, bool isCompleted, bool isRewarded,List<IQuest> preRequestQuests)
         {
-            return new ItemCraftQuest(questConfig,_craftingEvent,isCompleted,isRewarded,GetCraftItem(questConfig.QuestParameter));
+            return new ItemCraftQuest(questConfig,_craftingEvent,isCompleted,isRewarded,GetCraftItem(questConfig.QuestParameter),preRequestQuests);
         }
 
         private int GetCraftItem(string parameter)
