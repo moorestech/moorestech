@@ -32,8 +32,7 @@ namespace Game.Quest
             }
 
             //新しいプレイヤーなので新しいクエストの作成
-            var newQuests =
-                _questConfig.GetAllQuestConfig().Select(q => _questFactory.CreateQuest(q.QuestId)).ToList();
+            var newQuests = _questFactory.CreateQuests();
                 
             _quests.Add(playerId,newQuests);
             //クエスト完了時にイベントを発火させる
@@ -70,16 +69,8 @@ namespace Game.Quest
         {
             foreach (var playerToQuestsList in quests)
             {
-                var allQuests = 
-                    _questConfig.GetAllQuestConfig().ToDictionary(q => q.QuestId, q => _questFactory.CreateQuest(q.QuestId));
-                
-                foreach (var loadedQuest in playerToQuestsList.Value.Where(q => allQuests.ContainsKey(q.QuestId)))
-                {
-                    allQuests[loadedQuest.QuestId] = _questFactory.LoadQuest(loadedQuest);
-                }
-
                 var playerId = playerToQuestsList.Key;
-                var questList = allQuests.Values.ToList();
+                var questList = _questFactory.LoadQuests(playerToQuestsList.Value);
                 _quests.Add(playerId,questList);
                 //クエスト完了時にイベントを発火させるために登録
                 SetPlayerEvent(playerId,questList);
