@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Item;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest.Interface;
@@ -11,14 +12,52 @@ namespace Game.Quest.QuestEntity
     {
         public QuestConfigData Quest { get; }
         public bool IsCompleted { get; private set; }
-        public bool IsRewardEarnable { get; }
         public bool IsEarnedReward { get;  private set; }
         public event Action<QuestConfigData> OnQuestCompleted;
 
         private readonly List<IQuest> _preRequestQuests;
 
         private readonly int _questItemId;
-        
+
+
+
+        public bool IsRewardEarnable
+        {
+            get
+            {
+                //既に報酬を受け取ったのでfalse
+                if (IsEarnedReward)
+                {
+                    return false;
+                }
+                //まだクエストを完了していないのでfalse
+                if (!IsCompleted)
+                {
+                    return false;
+                }
+                //完了済みで前提クエストが無ければtrue
+                if (_preRequestQuests.Count == 0)
+                {
+                    return true;
+                }
+                
+                
+                //前提クエストの完了しているクエスト数を取得
+                var preRequestQuestCount = _preRequestQuests.Count(quest => quest.IsCompleted);
+
+                switch (Quest.QuestPrerequisiteType)
+                {
+                    //AND条件ですべて完了していたらtrue
+                    case QuestPrerequisiteType.And when preRequestQuestCount == _preRequestQuests.Count:
+                    //OR条件でいずれか完了していたらtrue
+                    case QuestPrerequisiteType.Or when preRequestQuestCount > 0:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
+
         public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent, int questItemId, List<IQuest> preRequestQuests)
         {
             Quest = quest;
