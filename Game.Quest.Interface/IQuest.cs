@@ -10,7 +10,8 @@ namespace Game.Quest.Interface
         bool IsRewardEarnable { get; }
         bool IsEarnedReward { get; }
         event Action<QuestConfigData> OnQuestCompleted;
-        
+
+        public void LoadQuestData(SaveQuestData saveQuestData);
         public void EarnReward();
     }
 }

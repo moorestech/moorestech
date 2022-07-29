@@ -40,7 +40,19 @@ namespace Game.Quest.QuestEntity
             IsCompleted = true;
             OnQuestCompleted?.Invoke(Quest);
         }
-        
+
+        public void LoadQuestData(SaveQuestData saveQuestData)
+        {
+            if (saveQuestData.QuestId != Quest.QuestId)
+            {
+                //TODO ログ基盤に入れる
+                throw new ArgumentException("ロードすべきクエストIDが一致しません");
+                    
+            }
+            IsCompleted = saveQuestData.IsCompleted;
+            IsEarnedReward = saveQuestData.IsRewarded;
+        }
+
         public void EarnReward()
         {
             if (IsCompleted)
