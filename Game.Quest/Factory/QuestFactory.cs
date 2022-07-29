@@ -83,15 +83,21 @@ namespace Game.Quest.Factory
         
         public List<IQuest> LoadQuests(List<SaveQuestData> loadedQuests)
         {
-            var quest = _questConfig.GetQuestConfig(loadedQuest.QuestId);
-            
-            if (_questTemplates.ContainsKey(quest.QuestType))
+            var newQuests = CreateQuestDictionary();
+            foreach (var quest in loadedQuests)
             {
-                return _questTemplates[quest.QuestType].LoadQuest(quest,loadedQuest.IsCompleted,loadedQuest.IsRewarded);
+                //クエストが存在するときはそのクエストを取得する
+                if (newQuests.TryGetValue(quest.QuestId,out var newQuest))
+                {
+                    newQuest.LoadQuestData(quest);
+                    continue;
+                }
+
+                //TODO ログ取得基盤に入れるようにする
+                throw new ArgumentException("[QuestFactory]クエストID:"+quest.QuestId+"が存在しません。");
             }
-            
-            //TODO ログ取得基盤に入れるようにする
-            throw new ArgumentException("[QuestFactory]指定されたクエストタイプ:"+quest.QuestType + "は存在しません。");
+
+            return newQuests.Values.ToList();
         }
     }
 }
