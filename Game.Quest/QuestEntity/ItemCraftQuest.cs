@@ -11,6 +11,7 @@ namespace Game.Quest.QuestEntity
     {
         public QuestConfigData Quest { get; }
         public bool IsCompleted { get; private set; }
+        public bool IsRewardEarnable { get; }
         public bool IsEarnedReward { get;  private set; }
         public event Action<QuestConfigData> OnQuestCompleted;
 

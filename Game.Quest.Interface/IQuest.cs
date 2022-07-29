@@ -7,6 +7,7 @@ namespace Game.Quest.Interface
         QuestConfigData Quest { get; }
         
         bool IsCompleted { get; }
+        bool IsRewardEarnable { get; }
         bool IsEarnedReward { get; }
         event Action<QuestConfigData> OnQuestCompleted;
         
