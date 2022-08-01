@@ -29,8 +29,7 @@ namespace Game.Quest.Config
             }
 
             //TODO ログ取得基盤に入れるようにする
-            Console.WriteLine("[QuestConfig]指定された クエストID:"+id + "は存在しません。");
-            return null;
+            throw new ArgumentException("[QuestConfig]指定された クエストID:" + id + "は存在しません。");
         }
 
         public List<string> GetQuestIds(string modId)

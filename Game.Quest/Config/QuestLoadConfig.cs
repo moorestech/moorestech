@@ -9,42 +9,40 @@ using Newtonsoft.Json.Converters;
 
 namespace Game.Quest.Config
 {
+    /// <summary>
+    /// クエストコンフィグからのロードを行う
+    /// 前提クエストのリスト構築を行う
+    /// </summary>
     internal static class QuestLoadConfig
     {
         public static (Dictionary<string, List<string>> ModIdToQuests, Dictionary<string, QuestConfigData> QuestIdToQuestConfigs) LoadConfig(ItemStackFactory itemStackFactory,Dictionary<string,string> blockJsons)
         {
+            var questIdConfig = CreateQuestIdConfig(itemStackFactory,blockJsons);
+            var modIdToQuests = CreateModIdToQuestId(questIdConfig);
+
+            return (modIdToQuests, questIdConfig);
+        }
+
+        private static Dictionary<string, QuestConfigData> CreateQuestIdConfig(ItemStackFactory itemStackFactory,Dictionary<string,string> blockJsons)
+        {
             Dictionary<string, QuestConfigData> alreadyMadeConfigs = new();
-            
             var jsonQuestConfig = LoadJsonToQuestConfigJsonData(blockJsons);
+            
+            //JSONからロードした生データをクエストコンフィグに変換する
             foreach (var jsonConfig in jsonQuestConfig.Values)
             {
-                if (alreadyMadeConfigs.ContainsKey(jsonConfig.Id)) continue;
+                if (alreadyMadeConfigs.ContainsKey(jsonConfig.QuestId)) continue;
                 
                 //前提クエストを探索、作成
                 var prerequisiteQuests = AssemblyPrerequisiteQuests(itemStackFactory,jsonConfig, new List<string>(), alreadyMadeConfigs, jsonQuestConfig);
                 
                 //探索した結果前提クエストのなかに組み込まれていた場合はスルーする（おそらく前提クエストでループが発生した時これがtrueになる）
-                if (alreadyMadeConfigs.ContainsKey(jsonConfig.Id)) continue;
-                alreadyMadeConfigs.Add(jsonConfig.Id,jsonConfig.ToQuestConfigData(prerequisiteQuests,itemStackFactory));
-            }
-            
-            
-            
-            Dictionary<string, List<string>> modIdToQuests = new();
-
-            foreach (var quest in alreadyMadeConfigs.Values)
-            {
-                if (modIdToQuests.TryGetValue(quest.ModId,out var questIdList))
-                {
-                 
-                    questIdList.Add(quest.QuestId);
-                    continue;
-                }
-                modIdToQuests.Add(quest.ModId,new List<string>{quest.QuestId});
+                if (alreadyMadeConfigs.ContainsKey(jsonConfig.QuestId)) continue;
+                alreadyMadeConfigs.Add(jsonConfig.QuestId,jsonConfig.ToQuestConfigData(prerequisiteQuests,itemStackFactory));
             }
 
-            return (modIdToQuests, alreadyMadeConfigs);
-        }
+            return alreadyMadeConfigs;
+        }   
 
 
         /// <summary>
@@ -59,15 +57,15 @@ namespace Game.Quest.Config
         private static List<QuestConfigData> AssemblyPrerequisiteQuests(ItemStackFactory itemStackFactory,QuestConfigJsonData questConfigJsonData,List<string> detectLoopLog,Dictionary<string,QuestConfigData> alreadyMadeConfigs,Dictionary<string, QuestConfigJsonData> keyQuestIdJsonConfigs)
         {
             //ループがないかチェックする
-            if (detectLoopLog.Contains(questConfigJsonData.Id))
+            if (detectLoopLog.Contains(questConfigJsonData.QuestId))
             {
                 //TODO 例外を出力す方法を考える
-                Console.WriteLine("[ConfigLoadLog] ModId:" + questConfigJsonData.ModId + "の前提クエストにループがありました。前提クエストをチェックしてください。　クエストId:"+questConfigJsonData.Id);
+                Console.WriteLine("[ConfigLoadLog] ModId:" + questConfigJsonData.ModId + "の前提クエストにループがありました。前提クエストをチェックしてください。　クエストId:"+questConfigJsonData.QuestId);
                 return new List<QuestConfigData>();
             }
+            detectLoopLog.Add(questConfigJsonData.QuestId);
             
-            detectLoopLog.Add(questConfigJsonData.Id);
-            
+            //ここから実際の前提クエスト構築処理-----------------------------------------------------
             //前提クエストを探索、作成するループ
             var prerequisiteQuests = new List<QuestConfigData>();
             foreach (var prerequisiteId in questConfigJsonData.Prerequisite)
@@ -83,7 +81,7 @@ namespace Game.Quest.Config
                 if (!keyQuestIdJsonConfigs.TryGetValue(prerequisiteId,out var prerequisiteJsonConfig))
                 {
                     //TODO 例外を出力す方法を考える
-                    Console.WriteLine("[ConfigLoadLog] ModId:" + questConfigJsonData.ModId + "のクエスト "+questConfigJsonData.Id  +"前提クエストに存在しないクエストIDが渡されました。　存在しないクエストId:"+prerequisiteId);
+                    Console.WriteLine("[ConfigLoadLog] ModId:" + questConfigJsonData.ModId + "のクエスト "+questConfigJsonData.QuestId  +"の前提クエストに存在しないクエストIDが渡されました。　存在しないクエストId:"+prerequisiteId);
                     continue;
                 }
                 
@@ -128,69 +126,29 @@ namespace Game.Quest.Config
                 foreach (var quest in loadedQuests)
                 {
                     quest.ModId = modId;
-                    keyQuestIdConfigs.Add(quest.Id,quest);
+                    keyQuestIdConfigs.Add(quest.QuestId,quest);
                 }
             }
 
             return keyQuestIdConfigs;
         }
-    }
-    
 
-    [JsonObject("SpaceAssets")]
-    internal class QuestConfigJsonData
-    {
-        [JsonIgnore]
-        public string ModId = null;
-        
-        
-        [JsonProperty("Id")]
-        public string Id;
-        [JsonProperty("Prerequisite")]
-        public string[] Prerequisite;
-        [JsonProperty("PrerequisiteType")]
-        [JsonConverter(typeof(StringEnumConverter))]
-        public QuestPrerequisiteType PrerequisiteType;
-        [JsonProperty("Category")]
-        public string Category;
-        [JsonProperty("Type")]
-        public string Type;
-        [JsonProperty("Name")]
-        public string Name;
-        [JsonProperty("Description")]
-        public string Description;
-        [JsonProperty("UIPosX")]
-        public float UiPosX;
-        [JsonProperty("UIPosY")]
-        public float UiPosY;
-        [JsonProperty("RewardItem")]
-        public ItemJsonData[] RewardItem;
-        [JsonProperty("Param")]
-        public string Param;
-    }
-
-
-
-    static class QuestLoadExtension
-    {
-        public static QuestConfigData ToQuestConfigData(this QuestConfigJsonData questConfigJsonData,List<QuestConfigData> prerequisiteQuests,ItemStackFactory itemStackFactory)
+        private static Dictionary<string, List<string>> CreateModIdToQuestId(Dictionary<string, QuestConfigData> alreadyMadeConfigs)
         {
-            var rewardItems = questConfigJsonData.RewardItem.Select(i => itemStackFactory.Create(i.ModId, i.Name, i.Count)).ToList();
+            Dictionary<string, List<string>> modIdToQuests = new();
 
+            foreach (var quest in alreadyMadeConfigs.Values)
+            {
+                if (modIdToQuests.TryGetValue(quest.ModId,out var questIdList))
+                {
+                 
+                    questIdList.Add(quest.QuestId);
+                    continue;
+                }
+                modIdToQuests.Add(quest.ModId,new List<string>{quest.QuestId});
+            }
 
-            return new QuestConfigData(
-                questConfigJsonData.ModId,
-                questConfigJsonData.Id,
-                prerequisiteQuests,
-                questConfigJsonData.Category,
-                questConfigJsonData.PrerequisiteType,
-                questConfigJsonData.Type,
-                questConfigJsonData.Name,
-                questConfigJsonData.Description,
-                new CoreVector2(questConfigJsonData.UiPosX, questConfigJsonData.UiPosY),
-                rewardItems,
-                // パラメーターは " を ' にしたjsonデータなのでReplaceする
-                questConfigJsonData.Param.Replace("'", "\""));
+            return modIdToQuests;
         }
     }
 }

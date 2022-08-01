@@ -24,8 +24,8 @@ namespace Test.UnitTest.Game
             var questDataStore = serviceProvider.GetService<IQuestDataStore>();
             var craftEvent = serviceProvider.GetService<ICraftingEvent>();
             
-            var test1Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "Test1");
-            var test2Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "Test2");
+            var test1Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "forQuestTest:Test1");
+            var test2Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "forQuestTest:Test2");
 
             
             //全てのクエストがまだ合格していないことをテスト
@@ -63,9 +63,9 @@ namespace Test.UnitTest.Game
             var questDataStore = serviceProvider.GetService<IQuestDataStore>();
             var craftEvent = serviceProvider.GetService<ICraftingEvent>();
             
-            var test1Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "Test1");
-            var test2Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "Test2");
-            var testAndPreRequestQuest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "Test3");
+            var test1Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "forQuestTest:Test1");
+            var test2Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "forQuestTest:Test2");
+            var testAndPreRequestQuest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "forQuestTest:Test3");
             
             //全てのクエストがまだ合格していないことをテスト
             Assert.False(test1Quest.IsCompleted);
@@ -105,8 +105,8 @@ namespace Test.UnitTest.Game
             var questDataStore = serviceProvider.GetService<IQuestDataStore>();
             var craftEvent = serviceProvider.GetService<ICraftingEvent>();
             
-            var test1Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "Test1");
-            var testOrPreRequestQuest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "Test4");
+            var test1Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "forQuestTest:Test1");
+            var testOrPreRequestQuest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "forQuestTest:Test4");
             
             //全てのクエストがまだ合格していないことをテスト
             Assert.False(test1Quest.IsCompleted);

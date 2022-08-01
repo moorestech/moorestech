@@ -22,17 +22,16 @@ namespace Test.UnitTest.Game
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var questConfig = serviceProvider.GetService<IQuestConfig>();
-
-
+            
             var ids = questConfig.GetQuestIds(ModName);
-            Assert.AreEqual("Test1",ids[0]);
-            Assert.AreEqual("Test2",ids[1]);
-            Assert.AreEqual("Test3",ids[2]);
-            Assert.AreEqual("Test4",ids[3]);
+            Assert.AreEqual("forQuestTest:Test1",ids[0]);
+            Assert.AreEqual("forQuestTest:Test2",ids[1]);
+            Assert.AreEqual("forQuestTest:Test3",ids[2]);
+            Assert.AreEqual("forQuestTest:Test4",ids[3]);
             
             //Test1のチェック
-            var test1Quest = questConfig.GetQuestConfig("Test1");
-            Assert.AreEqual("Test1",test1Quest.QuestId); //クエストIDのチェク
+            var test1Quest = questConfig.GetQuestConfig("forQuestTest:Test1");
+            Assert.AreEqual("forQuestTest:Test1",test1Quest.QuestId); //クエストIDのチェク
             Assert.AreEqual(0,test1Quest.PrerequisiteQuests.Count); //前提クエストのチェック
             Assert.AreEqual(QuestPrerequisiteType.And,test1Quest.QuestPrerequisiteType);
             Assert.AreEqual("Test Category",test1Quest.QuestCategory);
@@ -46,23 +45,23 @@ namespace Test.UnitTest.Game
             
             //Test2のチェック
             //これ以降は前提クエストのチェックだけを行うa
-            var test2Quest = questConfig.GetQuestConfig("Test2");
+            var test2Quest = questConfig.GetQuestConfig("forQuestTest:Test2");
             Assert.AreEqual(1,test2Quest.PrerequisiteQuests.Count); //前提クエストの数のチェック
-            Assert.AreEqual("Test1",test2Quest.PrerequisiteQuests[0].QuestId);
+            Assert.AreEqual("forQuestTest:Test1",test2Quest.PrerequisiteQuests[0].QuestId);
             
             
             //Test3のチェック
-            var test3Quest = questConfig.GetQuestConfig("Test3");
+            var test3Quest = questConfig.GetQuestConfig("forQuestTest:Test3");
             Assert.AreEqual(2,test3Quest.PrerequisiteQuests.Count); //前提クエストの数のチェック
-            Assert.AreEqual("Test1",test3Quest.PrerequisiteQuests[0].QuestId);
-            Assert.AreEqual("Test2",test3Quest.PrerequisiteQuests[1].QuestId);
+            Assert.AreEqual("forQuestTest:Test1",test3Quest.PrerequisiteQuests[0].QuestId);
+            Assert.AreEqual("forQuestTest:Test2",test3Quest.PrerequisiteQuests[1].QuestId);
             
             
             //Test4のチェック
-            var test4Quest = questConfig.GetQuestConfig("Test4");
+            var test4Quest = questConfig.GetQuestConfig("forQuestTest:Test4");
             Assert.AreEqual(2,test4Quest.PrerequisiteQuests.Count); //前提クエストの数のチェック
-            Assert.AreEqual("Test1",test4Quest.PrerequisiteQuests[0].QuestId);
-            Assert.AreEqual("Test2",test4Quest.PrerequisiteQuests[1].QuestId);
+            Assert.AreEqual("forQuestTest:Test1",test4Quest.PrerequisiteQuests[0].QuestId);
+            Assert.AreEqual("forQuestTest:Test2",test4Quest.PrerequisiteQuests[1].QuestId);
             Assert.AreEqual(QuestPrerequisiteType.Or,test4Quest.QuestPrerequisiteType);
         }
     }
