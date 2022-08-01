@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using MainGame.Basic.Quest;
 using MainGame.Network.Event;
 using MessagePack;
 using Server.Protocol.PacketResponse;
@@ -20,7 +21,10 @@ namespace MainGame.Network.Receive
         {
             var data = MessagePackSerializer.Deserialize<QuestProgressResponseProtocolMessagePack>(packet.ToArray());
             
-            var result = data.Quests.ToDictionary(q => q.Id, q => (q.IsCompleted, q.IsRewarded));
+            var result = data.Quests.ToDictionary(q => q.Id, q =>
+            {
+                return new QuestProgress(q.IsCompleted, q.IsRewarded,q.IsRewardEarnable);
+            });
 
             receiveQuestDataEvent.InvokeReceiveQuestProgress(new QuestProgressProperties(result)).Forget();
         }

@@ -1,16 +1,24 @@
+using Cysharp.Threading.Tasks;
 using MainGame.Network.Event;
 using MainGame.Network.Send;
 using MainGame.UnityView.UI.Quest;
 using MainGame.UnityView.UI.UIState;
 using Server.Protocol.PacketResponse;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace MainGame.Presenter.Quest
 {
+    /// <summary>
+    /// ネットワークから来たクエストのデータを受け取り、UIに反映するクラス
+    /// </summary>
     public class QuestUIPresenter : IInitializable
     {
+        private readonly RequestQuestProgressProtocol _requestQuestProgressProtocol;
+
         public QuestUIPresenter(QuestUI questUI,RequestQuestProgressProtocol requestQuestProgressProtocol,ReceiveQuestDataEvent receiveQuestDataEvent,UIStateControl uiStateControl,SendEarnQuestRewardProtocol sendEarnQuestReward)
         {
+            _requestQuestProgressProtocol = requestQuestProgressProtocol;
             // UIステートがクエストになったら必要なデータのリクエストをする
             uiStateControl.OnStateChanged += uiState =>
             {
@@ -24,8 +32,7 @@ namespace MainGame.Presenter.Quest
             questUI.OnGetReward += questId =>
             {
                 sendEarnQuestReward.Send(questId);
-                //更新するためにリクエストを送る
-                requestQuestProgressProtocol.Send();
+                SendRequestQuestProgress().Forget();
             };
             
             
@@ -34,6 +41,16 @@ namespace MainGame.Presenter.Quest
             {
                 questUI.SetQuestProgress(progress.QuestProgress);
             };
+        }
+        
+        /// <summary>
+        /// 報酬受け取りした後すぐに要求することはできないので0.1秒待機する
+        /// </summary>
+        private async UniTask SendRequestQuestProgress()
+        {
+            await UniTask.Delay(100);
+            //更新するためにリクエストを送る
+            _requestQuestProgressProtocol.Send();
         }
 
         public void Initialize() { }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Game.Quest.Config;
 using Game.Quest.Interface;
+using MainGame.Basic.Quest;
 using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
 using VContainer;
@@ -64,14 +65,14 @@ namespace MainGame.UnityView.UI.Quest
         /// クエストIDごとの進捗を設定する
         /// </summary>
         /// <param name="questProgress"></param>
-        public void SetQuestProgress(Dictionary<string,(bool IsCompleted,bool IsRewarded)> questProgress)
+        public void SetQuestProgress(Dictionary<string,QuestProgress> questProgress)
         {
             foreach (var quest in questProgress)
             {
                 //カテゴリを取得
                 var cat = _questConfig.GetQuestConfig(quest.Key).QuestCategory;
                 //クエストタブに進捗を設定
-                questTabs[cat].SetQuestProgress(quest.Key,quest.Value.IsCompleted,quest.Value.IsRewarded);
+                questTabs[cat].SetQuestProgress(quest.Key,quest.Value);
             }
         }
         

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using MainGame.Basic.Quest;
 
 namespace MainGame.Network.Event
 {
@@ -18,9 +19,9 @@ namespace MainGame.Network.Event
 
     public class QuestProgressProperties
     {
-        public readonly Dictionary<string, (bool IsCompleted, bool IsRewarded)> QuestProgress;
+        public readonly Dictionary<string, QuestProgress> QuestProgress;
 
-        public QuestProgressProperties(Dictionary<string, (bool IsCompleted, bool IsRewarded)> questProgress)
+        public QuestProgressProperties(Dictionary<string, QuestProgress> questProgress)
         {
             QuestProgress = questProgress;
         }

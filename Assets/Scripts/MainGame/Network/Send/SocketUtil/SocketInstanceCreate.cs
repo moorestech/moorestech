@@ -7,9 +7,8 @@ namespace MainGame.Network.Send.SocketUtil
 {
     public class SocketInstanceCreate
     {
-        public Socket SocketInstance => _socket;
-        
-        private readonly Socket _socket;
+        public Socket SocketInstance { get; }
+
         private readonly IPEndPoint _remoteEndPoint;
         public SocketInstanceCreate(ConnectionServerConfig config)
         {
@@ -29,7 +28,7 @@ namespace MainGame.Network.Send.SocketUtil
             }
             //ソケットを作成
             _remoteEndPoint = new IPEndPoint(ipAddress, config.Port);
-            _socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            SocketInstance = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
         }
         
         public IPEndPoint GetRemoteEndPoint()

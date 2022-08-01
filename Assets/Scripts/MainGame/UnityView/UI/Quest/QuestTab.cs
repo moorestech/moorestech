@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Core.Item.Config;
 using Game.Quest.Interface;
+using MainGame.Basic.Quest;
 using MainGame.Basic.Server;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Quest.QuestDetail;
@@ -35,6 +36,7 @@ namespace MainGame.UnityView.UI.Quest
                 questElement.SetQuest(questConfig,SetQuestDetail);
                 _questElements.Add(questConfig.QuestId,questElement);
                 
+                
                 //前提クエストの矢印設定
                 foreach (var prerequisite in questConfig.PrerequisiteQuests)
                 {
@@ -45,17 +47,17 @@ namespace MainGame.UnityView.UI.Quest
         }
 
 
-        private void SetQuestDetail((QuestConfigData config, bool isCompleted, bool isRewarded) c)
+        private void SetQuestDetail(QuestConfigData config,QuestProgress questProgress)
         {
-            questDetailUI.SetQuest(c.config,c.isCompleted,c.isRewarded, _itemImages);
+            questDetailUI.SetQuest(config,questProgress, _itemImages);
         }
         
         
         public void SetActive(bool active) { gameObject.SetActive(active); }
 
-        public void SetQuestProgress(string quest, bool isCompleted, bool isRewarded)
+        public void SetQuestProgress(string quest,QuestProgress questProgress) 
         {
-            _questElements[quest].SetProgress(isCompleted, isRewarded);
+            _questElements[quest].SetProgress(questProgress);
         }
     }
 }

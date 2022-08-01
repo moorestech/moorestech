@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Quest.Interface;
+using MainGame.Basic.Quest;
 using MainGame.UnityView.UI.Inventory.Element;
 using TMPro;
 using UnityEngine;
@@ -18,7 +19,6 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
         [SerializeField] private RectTransform rewardIteParent;
         [SerializeField] private QuestRewardItemElement rewardItemElementPrefab;
 
-        [SerializeField] private GameObject getRwardButton;
         [SerializeField] private Button getRewardButton;
 
         /// <summary>
@@ -33,12 +33,16 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
 
         private void Start()
         {
-            getRewardButton.onClick.AddListener((() => OnGetReward?.Invoke(_questId)));
+            getRewardButton.onClick.AddListener(() =>
+            {
+                OnGetReward?.Invoke(_questId);
+                getRewardButton.gameObject.SetActive(false);
+            });
             closeButton.onClick.AddListener(() => gameObject.SetActive(false));
         }
 
 
-        public void SetQuest(QuestConfigData config, bool isCompleted, bool isRewarded,ItemImages itemImages)
+        public void SetQuest(QuestConfigData config,QuestProgress questProgress ,ItemImages itemImages)
         {
             gameObject.SetActive(true);
             
@@ -46,7 +50,7 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
             title.text = config.QuestName;
             description.text = config.QuestDescription;
             
-            getRwardButton.SetActive(isCompleted && !isRewarded);
+            getRewardButton.gameObject.SetActive(questProgress.IsRewardEarnbable);
 
 
             //今までのリワードアイテム表示を削除
