@@ -6,7 +6,7 @@
     "veinFrequency" : 1,
     "priority" : 10,
     "itemName": "Test3",
-    "modId": "Test Author:forUniTest"
+    "itemModId": "Test Author:forUniTest"
   },
   {
     "oreId": 2,
@@ -15,6 +15,6 @@
     "veinFrequency" : 1,
     "priority" : 9,
     "itemName": "Test4",
-    "modId": "Test Author:forUniTest"
+    "itemModId": "Test Author:forUniTest"
   }
 ]
