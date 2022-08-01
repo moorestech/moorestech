@@ -10,11 +10,11 @@
     "UIPosX" : 3,
     "UIPosY" : 5,
     "RewardItem" : [],
-    "Param" : "{'modId':'forUniTest','name':'Test1'}"
+    "Param" : "{'modId':'Test Author:forUniTest','name':'Test1'}"
   },
   {
     "Id" : "Test2",
-    "Prerequisite" : ["forQuestTest:Test1"],
+    "Prerequisite" : ["QuestAuthor:forQuestTest:Test1"],
     "PrerequisiteType" : "And",
     "Category" : "Test Category",
     "Type" : "ItemCraft",
@@ -24,16 +24,16 @@
     "UIPosY" : 0,
     "RewardItem" : [
       {
-        "modId": "forUniTest",
+        "modId": "Test Author:forUniTest",
         "name": "Test1",
         "cnt": 1
       }
     ],
-    "Param" : "{'modId':'forUniTest','name':'Test2'}"
+    "Param" : "{'modId':'Test Author:forUniTest','name':'Test2'}"
   },
   {
     "Id" : "Test3",
-    "Prerequisite" : ["forQuestTest:Test1","forQuestTest:Test2"],
+    "Prerequisite" : ["QuestAuthor:forQuestTest:Test1","QuestAuthor:forQuestTest:Test2"],
     "PrerequisiteType" : "And",
     "Category" : "Test Category",
     "Type" : "ItemCraft",
@@ -43,16 +43,16 @@
     "UIPosY" : 0,
     "RewardItem" : [
       {
-        "modId": "forUniTest",
+        "modId": "Test Author:forUniTest",
         "name": "Test1",
         "cnt": 1
       }
     ],
-    "Param" : "{'modId':'forUniTest','name':'Test3'}"
+    "Param" : "{'modId':'Test Author:forUniTest','name':'Test3'}"
   },
   {
     "Id" : "Test4",
-    "Prerequisite" : ["forQuestTest:Test1","forQuestTest:Test2"],
+    "Prerequisite" : ["QuestAuthor:forQuestTest:Test1","QuestAuthor:forQuestTest:Test2"],
     "PrerequisiteType" : "Or",
     "Category" : "Test Category",
     "Type" : "ItemCraft",
@@ -62,16 +62,16 @@
     "UIPosY" : 0,
     "RewardItem" : [
       {
-        "modId": "forUniTest",
+        "modId": "Test Author:forUniTest",
         "name": "Test1",
         "cnt": 1
       },
       {
-        "modId": "forUniTest",
+        "modId": "Test Author:forUniTest",
         "name": "Test2",
         "cnt": 1
       }
     ],
-    "Param" : "{'modId':'forUniTest','name':'Test4'}"
+    "Param" : "{'modId':'Test Author:forUniTest','name':'Test4'}"
   }
 ]

@@ -1,8 +1,8 @@
 {
-    "mod_id":"forQuestTest",
+    "mod_id":"forUniTest",
     "mod_name":"Test Mod 2",
     "mod_version":"2.0",
-    "mod_author":"QuestAuthor",
+    "mod_author":"Test Author",
     "mod_description":"This is a test mod."
 
 }
