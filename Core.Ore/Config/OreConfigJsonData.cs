@@ -9,14 +9,17 @@ namespace Core.Ore.Config
     {
         [JsonProperty("oreId")] private int _oreId;
         [JsonProperty("name")] private string _name;
-        [JsonProperty("miningItemId")] private int _miningItem;
         [JsonProperty("veinSize")] private float _veinSize;
         [JsonProperty("veinFrequency")] private float _veinFrequency;
         [JsonProperty("priority")] private int _priority;
+        [JsonProperty("itemName")] private string _itemName;
+        [JsonProperty("itemModId")] private string _itemModId;
+
+        public string ItemName => _itemName;
+
+        public string ItemModId => _itemModId;
 
         public int Priority => _priority;
-
-        public int MiningItem => _miningItem;
 
         public float VeinSize => _veinSize;
 
@@ -25,7 +28,5 @@ namespace Core.Ore.Config
         public int OreId => _oreId;
 
         public string Name => _name;
-
-        public int MiningItemId => _miningItem;
     }
 }

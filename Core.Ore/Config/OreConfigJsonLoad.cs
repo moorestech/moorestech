@@ -35,20 +35,25 @@ namespace Core.Ore.Config
         
         public readonly int OreId;
         public readonly string Name;
-        public readonly int MiningItemId;
         public readonly float VeinSize;
         public readonly float VeinFrequency;
         public readonly int Priority;
+        
+        public readonly string ItemName;
+        public readonly string ItemModId;
+        
 
         public OreConfigData(string modId,OreConfigJsonData oreConfigJsonData)
         {
             ModId = modId;
             OreId = oreConfigJsonData.OreId;
             Name = oreConfigJsonData.Name;
-            MiningItemId = oreConfigJsonData.MiningItem;
             VeinSize = oreConfigJsonData.VeinSize;
             VeinFrequency = oreConfigJsonData.VeinFrequency;
             Priority = oreConfigJsonData.Priority;
+
+            ItemName = oreConfigJsonData.ItemName;
+            ItemModId = oreConfigJsonData.ItemModId;
         }
     }
 }

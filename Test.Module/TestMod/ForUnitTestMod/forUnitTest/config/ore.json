@@ -2,17 +2,19 @@
   {
     "oreId": 1,
     "name": "iron",
-    "miningItemId": 3,
     "veinSize" : 1,
     "veinFrequency" : 1,
-    "priority" : 100
+    "priority" : 10,
+    "itemName": "Test3",
+    "modId": "Test Author:forUniTest"
   },
   {
     "oreId": 2,
     "name": "copper",
-    "miningItemId": 4,
     "veinSize" : 1,
     "veinFrequency" : 1,
-    "priority" : 90
+    "priority" : 9,
+    "itemName": "Test4",
+    "modId": "Test Author:forUniTest"
   }
 ]

@@ -12,9 +12,11 @@ namespace Core.Ore.Config
     {
         private readonly List<OreConfigData> _oreConfigData;
         private readonly Dictionary<string,List<int>> _modIdToOreIds = new();
-
-        public OreConfig(ConfigJsonList configJson)
+        private readonly IItemConfig _itemConfig;
+        
+        public OreConfig(ConfigJsonList configJson, IItemConfig itemConfig)
         {
+            _itemConfig = itemConfig;
             _oreConfigData = new OreConfigJsonLoad().Load(configJson.SortedModIds, configJson.OreConfigs);
             foreach (var oreConfig in _oreConfigData)
             {                
@@ -40,7 +42,7 @@ namespace Core.Ore.Config
             }
             if (oreId < _oreConfigData.Count)
             {
-                return _oreConfigData[oreId].MiningItemId;
+                return _itemConfig.GetItemId(_oreConfigData[oreId].ItemModId, _oreConfigData[oreId].ItemName); 
             }
 
             return ItemConst.EmptyItemId;
