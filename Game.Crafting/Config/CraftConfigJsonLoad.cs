@@ -29,7 +29,17 @@ namespace Game.Crafting.Config
             
             foreach (var config in loadedData)
             {
-                var items = config.Items.Select(item => _itemStackFactory.Create(item.ModId,item.ItemName, item.Count)).ToList();
+                var items = new List<IItemStack>();
+                foreach (var craftItem in config.Items)
+                {
+                    if (string.IsNullOrEmpty(craftItem.ItemName) || string.IsNullOrEmpty(craftItem.ModId))
+                    {
+                        items.Add(_itemStackFactory.CreatEmpty());
+                        continue;
+                    }
+                    items.Add(_itemStackFactory.Create(craftItem.ModId, craftItem.ItemName, craftItem.Count));
+                }
+                
                 var resultItem = _itemStackFactory.Create(config.Result.ModId,config.Result.ItemName, config.Result.Count);
                 
                 result.Add(new CraftingConfigData(items,resultItem));

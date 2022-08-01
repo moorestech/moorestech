@@ -2,133 +2,163 @@
   {
     "items": [
       {
-        "id" : 1,
-        "count" : 1
+        "count": 1,
+        "itemName": "Test1",
+        "modId": "Test Author:forUniTest"
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 1,
-        "count" : 1
+        "itemName": "Test1",
+        "modId": "Test Author:forUniTest",
+        "count": 1
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 2,
-        "count" : 3
+        "itemName": "Test2",
+        "modId": "Test Author:forUniTest",
+        "count": 3
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 3,
-        "count" : 2
+        "itemName": "Test3",
+        "modId": "Test Author:forUniTest",
+        "count": 2
       },
       {
-        "id" : 3,
-        "count" : 3
+        "itemName": "Test3",
+        "modId": "Test Author:forUniTest",
+        "count": 3
       },
       {
-        "id" : 3,
-        "count" : 2
+        "itemName": "Test3",
+        "modId": "Test Author:forUniTest",
+        "count": 2
       }
     ],
-    "result" : {
-      "id" : 3,
-      "count" : 1
+    "result": {
+      "itemName": "Test3",
+      "modId": "Test Author:forUniTest",
+      "count": 1
     }
   },
   {
     "items": [
       {
-        "id" : 1,
-        "count" : 1
+        "itemName": "Test1",
+        "modId": "Test Author:forUniTest",
+        "count": 1
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       }
     ],
-    "result" : {
-      "id" : 3,
-      "count" : 2
+    "result": {
+      "itemName": "Test3",
+      "modId": "Test Author:forUniTest",
+      "count": 2
     }
   },
   {
     "items": [
       {
-        "id" : 6,
-        "count" : 1
+        "itemName": "Test6",
+        "modId": "Test Author:forUniTest",
+        "count": 1
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       },
       {
-        "id" : 0,
-        "count" : 0
+        "itemName": "",
+        "modId": "",
+        "count": 0
       }
     ],
-    "result" : {
-      "id" : 6,
-      "count" : 80
+    "result": {
+      "itemName": "Test6",
+      "modId": "Test Author:forUniTest",
+      "count": 80
     }
   }
 ]
