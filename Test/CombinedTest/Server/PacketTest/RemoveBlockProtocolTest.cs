@@ -17,7 +17,7 @@ using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 
 using Server.Util;
-using Test.Module.TestConfig;
+
 using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest

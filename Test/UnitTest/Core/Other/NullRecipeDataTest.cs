@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 
-using Test.Module.TestConfig;
+
 using Test.Module.TestMod;
 
 namespace Test.UnitTest.Core.Other

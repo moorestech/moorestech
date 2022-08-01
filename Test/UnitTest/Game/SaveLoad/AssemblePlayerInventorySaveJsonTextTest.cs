@@ -9,7 +9,7 @@ using NUnit.Framework;
 using Server;
 using Server.Boot;
 
-using Test.Module.TestConfig;
+
 using Test.Module.TestMod;
 
 namespace Test.UnitTest.Game.SaveLoad

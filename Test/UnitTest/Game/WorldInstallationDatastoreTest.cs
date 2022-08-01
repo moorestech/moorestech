@@ -12,7 +12,7 @@ using NUnit.Framework;
 using Server;
 using Server.Boot;
 
-using Test.Module.TestConfig;
+
 using Test.Module.TestMod;
 using EntityId = Game.World.Interface.Util.EntityId;
 

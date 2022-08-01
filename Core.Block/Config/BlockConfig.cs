@@ -4,6 +4,7 @@ using Core.Block.Config.LoadConfig;
 using Core.Block.Config.LoadConfig.Param;
 using Core.ConfigJson;
 using Core.Const;
+using Core.Item.Config;
 using Core.Item.Util;
 
 namespace Core.Block.Config
@@ -15,9 +16,9 @@ namespace Core.Block.Config
         private readonly Dictionary<ulong, BlockConfigData> _bockHashToConfig = new();
         private readonly Dictionary<string,List<int>> _modIdToBlockIds = new();
 
-        public BlockConfig(ConfigJsonList configJson)
+        public BlockConfig(ConfigJsonList configJson,IItemConfig itemConfig)
         {
-            _blockConfigList = new BlockConfigJsonLoad().LoadFromJsons(configJson.BlockConfigs,configJson.SortedModIds);            
+            _blockConfigList = new BlockConfigJsonLoad(itemConfig).LoadFromJsons(configJson.BlockConfigs,configJson.SortedModIds);            
             foreach (var blockConfig in _blockConfigList)
             {
                 if (_bockHashToConfig.ContainsKey(blockConfig.BlockHash))

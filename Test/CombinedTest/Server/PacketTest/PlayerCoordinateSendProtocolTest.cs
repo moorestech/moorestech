@@ -20,7 +20,7 @@ using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Const;
 
-using Test.Module.TestConfig;
+
 using Test.Module.TestMod;
 using EntityId = Game.World.Interface.Util.EntityId;
 

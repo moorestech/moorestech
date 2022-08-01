@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using Core.Block.Config.LoadConfig.ConfigParamGenerator;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Const;
+using Core.Item.Config;
 using Core.Util;
 using Newtonsoft.Json.Linq;
 
@@ -18,10 +19,12 @@ namespace Core.Block.Config.LoadConfig
     {
         readonly string _jsonPath;
         private readonly Dictionary<string, IBlockConfigParamGenerator> _generators;
+        private readonly IItemConfig _itemConfig;
 
 
-        public BlockConfigJsonLoad()
+        public BlockConfigJsonLoad(IItemConfig itemConfig)
         {
+            _itemConfig = itemConfig;
             _generators = new VanillaBlockConfigGenerator().Generate();
         }
 
@@ -64,7 +67,22 @@ namespace Core.Block.Config.LoadConfig
                 
                 string name = block.name;
                 string type = block.type;
-                int itemId = block.itemId;
+
+                string itemModId = block.itemModId;
+                string itemName = block.itemName;
+
+                var itemId = 0;
+                if (itemModId == null || itemName == null)
+                {
+                    //TODO ログ基盤に入れる
+                    Console.WriteLine("[BlockJsonLoad] ブロックのアイテム設定が不正です。modId:" + modId + " ブロック名:" + name);
+                }
+                else
+                {
+                    itemId = _itemConfig.GetItemId(itemModId, itemName);
+                }
+                
+                
                 IBlockConfigParam blockParam = _generators[type].Generate(block.param);
 
                 ulong hash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + name).Hash);

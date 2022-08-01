@@ -8,7 +8,7 @@ using Server;
 using Server.Boot;
 
 using Test.Module;
-using Test.Module.TestConfig;
+
 using Test.Module.TestMod;
 
 namespace Test.UnitTest.Core.Other

@@ -21,7 +21,7 @@ using Server.Boot;
 
 using Test.CombinedTest.Core.Generate;
 using Test.Module;
-using Test.Module.TestConfig;
+
 using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Core

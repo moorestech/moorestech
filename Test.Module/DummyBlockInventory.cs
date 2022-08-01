@@ -6,7 +6,7 @@ using Core.Const;
 using Core.Item;
 using Core.Item.Config;
 using Core.Item.Util;
-using Test.Module.TestConfig;
+
 
 namespace Test.Module
 {

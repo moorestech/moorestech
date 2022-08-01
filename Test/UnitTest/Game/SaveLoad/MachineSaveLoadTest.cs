@@ -22,7 +22,7 @@ using PlayerInventory;
 using PlayerInventory.Event;
 using Server.Boot;
 
-using Test.Module.TestConfig;
+
 using Test.Module.TestMod;
 using World.DataStore;
 using World.Event;

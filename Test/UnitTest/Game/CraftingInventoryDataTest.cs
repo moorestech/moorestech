@@ -14,7 +14,7 @@ using PlayerInventory.Event;
 using PlayerInventory.ItemManaged;
 using Server.Boot;
 
-using Test.Module.TestConfig;
+
 using Test.Module.TestMod;
 
 namespace Test.UnitTest.Game

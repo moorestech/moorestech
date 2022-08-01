@@ -9,7 +9,7 @@ using Core.Item.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot;
 
-using Test.Module.TestConfig;
+
 using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Core.Generate

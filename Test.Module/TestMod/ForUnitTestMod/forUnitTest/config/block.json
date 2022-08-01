@@ -3,7 +3,8 @@
     {
       "name": "TestMachine",
       "type": "Machine",
-      "itemId": 1,
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test1",
       "param": {
         "inputSlot": 2,
         "outputSlot": 3,
@@ -13,13 +14,15 @@
     {
       "name": "TestBlock",
       "type": "Block",
-      "itemId": 3,
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test2",
       "param": {}
     },
     {
       "name": "TestBeltConveyor",
       "type": "BeltConveyor",
-      "itemId": 4,
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test3",
       "param": {
         "slot": 4,
         "time": 2000
@@ -28,7 +31,8 @@
     {
       "name": "TestElectricPole",
       "type": "ElectricPole",
-      "itemId": 5,
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test4",
       "param": {
         "poleConnectionRange": 7,
         "machineConnectionRange": 5
@@ -37,7 +41,8 @@
     {
       "name": "TestGenerator",
       "type": "Generator",
-      "itemId": 6,
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test5",
       "param": {
         "fuelSlot": 10,
         "fuel": [
@@ -57,7 +62,8 @@
     {
       "name": "TestMiner",
       "type": "Miner",
-      "itemId": 7,
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test6",
       "param": {
         "requiredPower": 100,
         "outputSlot": 3,
@@ -72,7 +78,8 @@
     {
       "name": "TestChest",
       "type": "Chest",
-      "itemId": 8,
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test7",
       "param": {
         "slot": 5
       }
