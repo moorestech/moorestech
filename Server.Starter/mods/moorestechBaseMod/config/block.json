@@ -1,0 +1,295 @@
+﻿{
+  "Blocks": [
+    {
+      "name": "belt_conveyor",
+      "type": "BeltConveyor",
+      "itemId": 7,
+      "param": {
+        "slot": 4,
+        "time": 2000
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "electric_pole",
+      "type": "ElectricPole",
+      "itemId": 8,
+      "param": {
+        "poleConnectionRange": 11,
+        "machineConnectionRange": 11
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "crasher",
+      "type": "Machine",
+      "itemId": 14,
+      "param": {
+        "inputSlot": 1,
+        "outputSlot": 1,
+        "requiredPower": 100
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "compressor",
+      "type": "Machine",
+      "itemId": 15,
+      "param": {
+        "inputSlot": 1,
+        "outputSlot": 1,
+        "requiredPower": 100
+
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "generator",
+      "type": "Generator",
+      "itemId": 16,
+      "param": {
+        "fuelSlot": 3,
+        "fuel": [
+          {
+            "id": 18,
+            "time": 10000,
+            "power": 500
+          }
+        ]
+
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "miner",
+      "type": "Miner",
+      "itemId": 17,
+      "param": {
+        "requiredPower": 10,
+        "outputSlot": 3,
+        "oreSetting": [
+          {
+            "oreId": 1,
+            "time": 1000
+          },
+          {
+            "oreId": 2,
+            "time": 1000
+          },
+          {
+            "oreId": 3,
+            "time": 1000
+          },
+          {
+            "oreId": 4,
+            "time": 1000
+          },
+          {
+            "oreId": 5,
+            "time": 1000
+          }
+        ]
+
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "generator_mk2",
+      "type": "Generator",
+      "itemId": 29,
+      "param": {
+        "fuelSlot": 3,
+        "fuel": [
+          {
+            "id": 18,
+            "time": 10000,
+            "power": 2000
+          }
+        ]
+      }
+    },
+    {
+      "name": "miner_mk2",
+      "type": "Miner",
+      "itemId": 30,
+      "param": {
+        "requiredPower": 100,
+        "outputSlot": 3,
+        "oreSetting": [
+          {
+            "oreId": 1,
+            "time": 500
+          },
+          {
+            "oreId": 2,
+            "time": 500
+          },
+          {
+            "oreId": 3,
+            "time": 500
+          },
+          {
+            "oreId": 4,
+            "time": 500
+          },
+          {
+            "oreId": 5,
+            "time": 500
+          }
+        ]
+
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "silicon_processor",
+      "type": "Machine",
+      "itemId": 31,
+      "param": {
+        "inputSlot": 1,
+        "outputSlot": 1,
+        "requiredPower": 100
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "ic_chip_assembler",
+      "type": "Machine",
+      "itemId": 38,
+      "param": {
+        "inputSlot": 3,
+        "outputSlot": 1,
+        "requiredPower": 100
+
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "generator_mk3",
+      "type": "Generator",
+      "itemId": 40,
+      "param": {
+        "fuelSlot": 3,
+        "fuel": [
+          {
+            "id": 18,
+            "time": 10000,
+            "power": 10000
+          }
+        ]
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "btc_miner",
+      "type": "Machine",
+      "itemId": 42,
+      "param": {
+        "inputSlot": 1,
+        "outputSlot": 1,
+        "requiredPower": 100
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "smelter",
+      "type": "Machine",
+      "itemId": 48,
+      "param": {
+        "inputSlot": 2,
+        "outputSlot": 1,
+        "requiredPower": 100
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "precision_assembler",
+      "type": "Machine",
+      "itemId": 49,
+      "param": {
+        "inputSlot": 2,
+        "outputSlot": 1,
+        "requiredPower": 100
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "iron_chest",
+      "type": "Chest",
+      "itemId": 50,
+      "param": {
+        "slot": 5
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    },
+    {
+      "name": "steel_chest",
+      "type": "Chest",
+      "itemId": 51,
+      "param": {
+        "slot": 10
+      },
+      "modelTransform" : {
+        "pos" : [0, 0, 0],
+        "rot" : [0, -90, 0],
+        "scale" : [1, 1, 1]
+      }
+    }
+  ]
+}

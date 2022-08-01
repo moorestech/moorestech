@@ -27,9 +27,6 @@
 
     <ItemGroup>
       <None Remove="mods\moorestechBaseMod.zip" />
-      <Content Include="mods\moorestechBaseMod.zip">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
     </ItemGroup>
 
 </Project>
