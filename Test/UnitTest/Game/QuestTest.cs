@@ -124,7 +124,7 @@ namespace Test.UnitTest.Game
             InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(test1Quest));
             
             //Or条件のクエストなので報酬受け取りは出来るテスト
-            Assert.False(testOrPreRequestQuest.IsRewardEarnable);
+            Assert.True(testOrPreRequestQuest.IsRewardEarnable);
         }
         /// <summary>
         /// アイテムクラフトのイベントを無理やり発火する
