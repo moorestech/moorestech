@@ -1,0 +1,30 @@
+﻿[
+  {
+    "name": "Test1",
+    "max_stacks": 100
+  },
+  {
+    "name": "Test2",
+    "max_stacks": 50
+  },
+  {
+    "name": "Test3",
+    "max_stacks": 300
+  },
+  {
+    "name": "Test4",
+    "max_stacks": 100
+  },
+  {
+    "name": "Test5",
+    "max_stacks": 200
+  },
+  {
+    "name": "Test6",
+    "max_stacks": 100
+  },
+  {
+    "name": "Test7",
+    "max_stacks":  100
+  }
+]
