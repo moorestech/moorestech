@@ -20,20 +20,20 @@ namespace Mod.Config
         public static Dictionary<string,ConfigJson> GetConfigString(string modDirectory)
         {
             
-            using var modResource = new ModsResource(modDirectory);
+            var modResource = new ModsResource(modDirectory);
             
             var configDict = new Dictionary<string, ConfigJson>();
             //zipファイルの中身のjsonファイルを読み込む
             foreach (var mod in modResource.Mods)
             {
-                var zip = mod.Value.ZipArchive;
+                var extractedPath = mod.Value.ExtractedPath;
                 
-                var itemConfigJson = LoadConfigFromZip(zip,ItemConfigPath);
-                var blockConfigJson = LoadConfigFromZip(zip,BlockConfigPath);
-                var machineRecipeConfigJson = LoadConfigFromZip(zip,MachineRecipeConfigPath);
-                var craftRecipeConfigJson = LoadConfigFromZip(zip,CraftRecipeConfigPath);
-                var oreConfigJson = LoadConfigFromZip(zip,OreConfigPath);
-                var questConfigJson = LoadConfigFromZip(zip,QuestConfigPath);
+                var itemConfigJson = LoadConfigFile(extractedPath,ItemConfigPath);
+                var blockConfigJson = LoadConfigFile(extractedPath,BlockConfigPath);
+                var machineRecipeConfigJson = LoadConfigFile(extractedPath,MachineRecipeConfigPath);
+                var craftRecipeConfigJson = LoadConfigFile(extractedPath,CraftRecipeConfigPath);
+                var oreConfigJson = LoadConfigFile(extractedPath,OreConfigPath);
+                var questConfigJson = LoadConfigFile(extractedPath,QuestConfigPath);
                 
                 configDict.Add(mod.Value.ModMetaJson.ModId,new ConfigJson(mod.Value.ModMetaJson.ModId,itemConfigJson,blockConfigJson,machineRecipeConfigJson,craftRecipeConfigJson,oreConfigJson,questConfigJson));
             }
@@ -41,14 +41,11 @@ namespace Mod.Config
             return configDict;
         }
 
-        private static string LoadConfigFromZip(ZipArchive zip, string configPath)
+        private static string LoadConfigFile(string extractedPath, string configPath)
         {
-            var config = zip.GetEntry(configPath);
-            if (config == null) return string.Empty;
+            var fullPath = Path.Combine(extractedPath, configPath);
             
-            using var itemJsonStream = config.Open();
-            using var itemJsonString = new StreamReader(itemJsonStream);
-            return itemJsonString.ReadToEnd();
+            return !File.Exists(fullPath) ? string.Empty : File.ReadAllText(fullPath);
         }
     }
 }
