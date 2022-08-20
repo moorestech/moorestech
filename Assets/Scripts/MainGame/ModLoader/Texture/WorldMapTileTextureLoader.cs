@@ -45,6 +45,11 @@ namespace MainGame.ModLoader.Texture
                     mainTexture = texture,
                     name = config.Name,
                 };
+                
+                //透過テクスチャの時もあるのでアルファクリップを設定
+                newMaterial.SetFloat("_AlphaClip",1.0f);
+                newMaterial.SetFloat("_Cutoff",0.5f);
+                
                 textureList.Add(newMaterial);
             }
 
