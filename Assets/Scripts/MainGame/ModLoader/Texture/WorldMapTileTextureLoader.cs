@@ -40,8 +40,11 @@ namespace MainGame.ModLoader.Texture
                     Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " OreName:" + config.Name);
                     continue;
                 }
-                var newMaterial = new Material(baseMaterial.shader);
-                newMaterial.mainTexture = texture;
+                var newMaterial = new Material(baseMaterial.shader)
+                {
+                    mainTexture = texture,
+                    name = config.Name,
+                };
                 textureList.Add(newMaterial);
             }
 
