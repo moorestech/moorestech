@@ -112,7 +112,7 @@ GameObject:
   - component: {fileID: -7247767681942226254}
   - component: {fileID: -6536903931796064334}
   m_Layer: 0
-  m_Name: NoneTIle
+  m_Name: MapTile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
