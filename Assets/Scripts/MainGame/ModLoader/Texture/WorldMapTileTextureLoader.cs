@@ -31,7 +31,7 @@ namespace MainGame.ModLoader.Texture
 
         private static List<Material> GetTextures(List<OreConfigData> oreConfigs,global::Mod.Loader.Mod mod,Material baseMaterial)
         {
-            var textureList = new List<Material>();
+            var resultMaterial = new List<Material>();
             foreach (var config in oreConfigs)
             {
                 var texture = GetExtractedZipTexture.Get(mod.ExtractedPath, TextureDirectory + config.Name + ".png");
@@ -40,20 +40,16 @@ namespace MainGame.ModLoader.Texture
                     Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " OreName:" + config.Name);
                     continue;
                 }
-                var newMaterial = new Material(baseMaterial.shader)
-                {
-                    mainTexture = texture,
-                    name = config.Name,
-                };
-                
-                //透過テクスチャの時もあるのでアルファクリップを設定
-                newMaterial.SetFloat("_AlphaClip",1.0f);
-                newMaterial.SetFloat("_Cutoff",0.5f);
-                
-                textureList.Add(newMaterial);
+
+                var newMaterial = new Material(baseMaterial.shader);
+                newMaterial.CopyPropertiesFromMaterial(baseMaterial);
+                newMaterial.name = config.Name;
+                newMaterial.mainTexture = texture;
+
+                resultMaterial.Add(newMaterial);
             }
 
-            return textureList;
+            return resultMaterial;
         }
     }
 }
