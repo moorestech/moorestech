@@ -39,7 +39,7 @@ namespace Game.Save.Json
                 }
                 catch (Exception e)
                 {
-                    throw new Exception("セーブファイルのロードに失敗しました。セーブファイルを確認してください。", e);
+                    throw new Exception($"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
                 }
             }
             else

@@ -8,6 +8,9 @@ using Game.World.Interface.Event;
 
 namespace Game.WorldMap.EventListener
 {
+    /// <summary>
+    /// 採掘機が設置されたらその採掘機に下にある鉱石の種類を設定する
+    /// </summary>
     public class SetMiningItemToMiner
     {
         private readonly IWorldBlockComponentDatastore<IMiner> _minerDatastore;
@@ -42,11 +45,16 @@ namespace Game.WorldMap.EventListener
             var oreConfig = _oreConfig.Get(oreId);
             var miner = _minerDatastore.GetBlock(x, y);
             var minerConfig = _blockConfig.GetBlockConfig(((IBlock) miner).BlockId).Param as MinerBlockConfigParam;
-            //鉱石IDから鉱石採掘時間を取得
+            
+            //マイナー自体の設定からその採掘機が鉱石を採掘するのに必要な時間を取得し、設定する
             foreach (var oreSetting in minerConfig.OreSettings)
             {
+                //採掘可能な鉱石設定の中にあるか？
                 if (oreSetting.OreId != oreConfig.OreId) continue;
-                miner.SetMiningItem(oreConfig.MiningItemId,oreSetting.MiningTime);
+                
+                //採掘時間、アイテムを設定する
+                var itemId = _oreConfig.OreIdToItemId(oreConfig.OreId);
+                miner.SetMiningItem(itemId,oreSetting.MiningTime);
                 return;
             }
         }

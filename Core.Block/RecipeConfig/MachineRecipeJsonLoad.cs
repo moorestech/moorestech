@@ -29,13 +29,13 @@ namespace Core.Block.RecipeConfig
             var r = data.ToList().Select((r, index) =>
             {
                 var inputItem =
-                    r.ItemInputs.ToList().Select(item => itemStackFactory.Create(item.ItemId, item.Count)).ToList();
+                    r.ItemInputs.ToList().Select(item => itemStackFactory.Create(item.ModId,item.ItemName, item.Count)).ToList();
 
 
                 inputItem = inputItem.OrderBy(i => i.Id).ToList();
 
                 var outputs =
-                    r.ItemOutputs.Select(r => new ItemOutput(itemStackFactory.Create(r.ItemId, r.Count), r.Percent));
+                    r.ItemOutputs.Select(r => new ItemOutput(itemStackFactory.Create(r.ModId,r.ItemName, r.Count), r.Percent));
 
                 return (IMachineRecipeData) new MachineRecipeData(r.BlockId, r.Time, inputItem, outputs.ToList(),
                     index);
@@ -63,28 +63,34 @@ namespace Core.Block.RecipeConfig
         public int BlockId => _blockId;
     }
 
-    [DataContract]
-    class MachineRecipeInput
+    [JsonObject]
+    internal class MachineRecipeInput
     {
-        [DataMember(Name = "id")] private int _itemId;
-        [DataMember(Name = "count")] private int _count;
-
-        public int ItemId => _itemId;
+        [JsonProperty("modId")] private string _modId;
+        [JsonProperty("itemName")] private string _itemName;
+        [JsonProperty("count")] private int _count;
 
         public int Count => _count;
+
+        public string ItemName => _itemName;
+
+        public string ModId => _modId;
     }
 
-    [DataContract]
-    class MachineRecipeOutput
+    [JsonObject]
+    internal class MachineRecipeOutput
     {
-        [DataMember(Name = "id")] private int _itemId;
-        [DataMember(Name = "count")] private int _count;
-        [DataMember(Name = "percent")] private double _percent;
+        [JsonProperty("modId")] private string _modId;
+        [JsonProperty("itemName")] private string _itemName;
+        [JsonProperty("count")] private int _count;
+        [JsonProperty("percent")] private double _percent;
 
         public double Percent => _percent;
 
-        public int ItemId => _itemId;
-
         public int Count => _count;
+
+        public string ItemName => _itemName;
+
+        public string ModId => _modId;
     }
 }

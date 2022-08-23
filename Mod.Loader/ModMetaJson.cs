@@ -5,7 +5,10 @@ namespace Mod.Loader
     [JsonObject("ModMeta")]
     public class ModMetaJson
     {
-        public string ModId => _modId;
+        /// <summary>
+        ///内部的にmodIdは 製作者名 + : + modId として扱う
+        /// </summary>
+        public string ModId => _modAuthor + ":"+_modId;
         public string ModName => _modName;
         public string ModVersion => _modVersion;
         public string ModAuthor => _modAuthor;

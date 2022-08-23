@@ -73,6 +73,10 @@ namespace Core.Item.Config
 
         public List<int> GetItemIds(string modId)
         {
+            if (modId == null)
+            {
+                throw new ArgumentException("Mod id is null");
+            }
             return _modIdToItemIds.TryGetValue(modId, out var itemIds) ? itemIds : new List<int>();
         }
 

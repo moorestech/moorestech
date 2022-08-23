@@ -8,18 +8,11 @@ namespace Game.Crafting.Config
 {
     public class CraftConfig : ICraftingConfig
     {
-        private List<CraftingConfigData> _configDataList = new();
+        private readonly List<CraftingConfigData> _configDataList;
         public CraftConfig(ItemStackFactory itemStackFactory,ConfigJsonList configJson)
         {
             //ロードしたコンフィグのデータを元に、CraftingConfigDataを作成
-            var loadedData = new CraftConfigJsonLoad().Load(configJson.SortedCraftRecipeConfigJsonList);
-            foreach (var config in loadedData)
-            {
-                var items = config.Items.Select(item => itemStackFactory.Create(item.Id, item.Count)).ToList();
-                var resultItem = itemStackFactory.Create(config.Result.Id, config.Result.Count);
-                
-                _configDataList.Add(new CraftingConfigData(items,resultItem));
-            }
+            _configDataList = new CraftConfigJsonLoad(itemStackFactory).Load(configJson.SortedCraftRecipeConfigJsonList);
         }
 
         public IReadOnlyList<CraftingConfigData> GetCraftingConfigList()

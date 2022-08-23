@@ -18,11 +18,13 @@ namespace Game.Crafting.Config
     [JsonObject]
     public class CraftItem
     {
-        [JsonProperty("id")] private int _id;
+        [JsonProperty("modId")] private string _modId;
+        [JsonProperty("itemName")] private string _itemName;
         [JsonProperty("count")] private int _count;
 
-        public int Id => _id;
-
+        public string ItemName => _itemName;
+        public string ModId => _modId;
+        
         public int Count => _count;
     }
 }

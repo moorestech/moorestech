@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Mod.Loader
 {
-    public class ModsResource : IDisposable
+    public class ModsResource 
     {
         public readonly Dictionary<string, Mod> Mods = new Dictionary<string, Mod>();
         
@@ -16,8 +16,8 @@ namespace Mod.Loader
         private const string ModMetaFilePath = "mod_meta.json";
         public ModsResource(string modDirectory)
         {
-            
-            foreach (var zipFile in ModFileList.Get(modDirectory))
+            // zipファイルのmodをロードする
+            foreach (var zipFile in Directory.GetFiles(modDirectory, "*.zip").ToList())
             {
                 var zip = ZipFile.Open(zipFile, ZipArchiveMode.Read);
                 var modMeta = JsonConvert.DeserializeObject<ModMetaJson>(LoadConfigFromZip(zip,ModMetaFilePath));
@@ -30,9 +30,24 @@ namespace Mod.Loader
                 
                 //extract zip
                 var extractedDir = ExtractModZip(zipFile, modMeta);
+                zip.Dispose();
                 
-                
-                Mods.Add(modMeta.ModId, new Mod(zip,modMeta,extractedDir));
+                Mods.Add(modMeta.ModId, new Mod(modMeta,extractedDir));
+            }
+            // 通常のディレクトリのmodをロードする
+            foreach (var modDir in Directory.GetDirectories(modDirectory))
+            {
+                //mod metaファイルがあるかどうかをチェック
+                var modMetaFile = Path.Combine(modDir, ModMetaFilePath);
+                if (!File.Exists(modMetaFile))
+                {
+                    //TODO ログ基盤に入れる
+                    Console.WriteLine("Mod meta file not found in " + modDir);
+                    continue;
+                }
+                var modMeta = JsonConvert.DeserializeObject<ModMetaJson>(File.ReadAllText(modMetaFile));
+
+                Mods.Add(modMeta.ModId, new Mod(modMeta,modDir));
             }
         }
 
@@ -65,29 +80,16 @@ namespace Mod.Loader
             ZipFile.ExtractToDirectory(zipPath,path);
             return path;
         }
-        
-        
-
-        public void Dispose()
-        {
-            foreach (var mod in Mods)
-            {
-                mod.Value.ZipArchive.Dispose();
-            }
-            Mods.Clear();
-        }
     }
 
     public class Mod
     {
-        public readonly ZipArchive ZipArchive;
         public readonly string ExtractedPath; 
             
         public readonly ModMetaJson ModMetaJson;
 
-        public Mod(ZipArchive zipArchive, ModMetaJson modMetaJson, string extractedPath)
+        public Mod(ModMetaJson modMetaJson, string extractedPath)
         {
-            ZipArchive = zipArchive;
             ModMetaJson = modMetaJson;
             this.ExtractedPath = extractedPath;
         }
