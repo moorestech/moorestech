@@ -22,10 +22,10 @@ namespace Server.Protocol.PacketResponse
         {
             var playerId = MessagePackSerializer.Deserialize<QuestProgressRequestProtocolMessagePack>(payload.ToArray()).PlayerId;
 
-            var responseQuest = new List<QuestProgress>();
+            var responseQuest = new List<QuestProgressMessagePack>();
             foreach (var quest in  _questDataStore.GetPlayerQuestProgress(playerId))
             {
-                responseQuest.Add(new QuestProgress(quest));
+                responseQuest.Add(new QuestProgressMessagePack(quest));
             }
 
             var responseData = new QuestProgressResponseProtocolMessagePack(responseQuest);
@@ -57,7 +57,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(keyAsPropertyName :true)]
     public class QuestProgressResponseProtocolMessagePack : ProtocolMessagePackBase
     {
-        public QuestProgressResponseProtocolMessagePack(List<QuestProgress> quests)
+        public QuestProgressResponseProtocolMessagePack(List<QuestProgressMessagePack> quests)
         {
             Tag = QuestProgressRequestProtocol.Tag;
             Quests = quests;
@@ -66,14 +66,14 @@ namespace Server.Protocol.PacketResponse
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public QuestProgressResponseProtocolMessagePack() { }
 
-        public List<QuestProgress> Quests { get; set; }
+        public List<QuestProgressMessagePack> Quests { get; set; }
 
     }
     
     [MessagePackObject(false)]
-    public class QuestProgress
+    public class QuestProgressMessagePack
     {
-        public QuestProgress(IQuest quest)
+        public QuestProgressMessagePack(IQuest quest)
         {
             Id = quest.Quest.QuestId;
             IsCompleted = quest.IsCompleted;
@@ -82,7 +82,7 @@ namespace Server.Protocol.PacketResponse
         }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public QuestProgress() { }
+        public QuestProgressMessagePack() { }
 
 
         [Key(0)]
