@@ -5,6 +5,7 @@ using MainGame.UnityView.Chunk;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using VContainer;
 
 namespace MainGame.Presenter.Inventory.Send
@@ -77,7 +78,7 @@ namespace MainGame.Presenter.Inventory.Send
             _blockPlacePreview.SetActive(true);
             
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-            if (_input.Playable.ScreenClick.triggered)
+            if (_input.Playable.ScreenClick.triggered && !EventSystem.current.IsPointerOverGameObject())
             {
                 _sendPlaceHotBarBlockProtocol.Send(hitPoint.x,hitPoint.y,(short)_hotBarControl.SelectIndex,_currentBlockDirection);
                 return;

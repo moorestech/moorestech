@@ -2,6 +2,7 @@
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.WorldMapTile;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using VContainer;
 
 namespace MainGame.Presenter.Inventory
@@ -39,6 +40,8 @@ namespace MainGame.Presenter.Inventory
 
             // マウスでクリックした位置にタイルマップがあるとき
             if (!_input.Playable.ScreenClick.triggered) return false;
+            // UIのクリックかどうかを判定
+            if (!EventSystem.current.IsPointerOverGameObject()) return false;
             if (!Physics.Raycast(ray, out var hit)) return false;
             if (hit.collider.gameObject.GetComponent<OreTileObject>() == null) return false;
             

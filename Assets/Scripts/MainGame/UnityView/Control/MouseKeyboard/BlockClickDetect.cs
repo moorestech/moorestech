@@ -2,6 +2,7 @@ using System;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Block;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using VContainer;
 
 namespace MainGame.UnityView.Control.MouseKeyboard
@@ -34,6 +35,9 @@ namespace MainGame.UnityView.Control.MouseKeyboard
 
         public bool TryGetClickBlock(out GameObject blockObject)
         {
+            blockObject = null;
+            // UIのクリックかどうかを判定
+            if (EventSystem.current.IsPointerOverGameObject()) return false;
             if (_input.Playable.ScreenClick.triggered && TryGetCursorOnBlock(out blockObject))
             {
                 return true;
