@@ -19,7 +19,7 @@ namespace MainGame.ModLoader.Glb
         {
             var blocks = new List<BlockData>();
             
-            using var mods = new ModsResource(modDirectory);
+            var mods = new ModsResource(modDirectory);
 
             var blockPrefabsParent = new GameObject("BlockPrefabsParent");
             

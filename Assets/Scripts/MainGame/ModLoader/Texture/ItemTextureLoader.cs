@@ -18,7 +18,7 @@ namespace MainGame.ModLoader.Texture
         {
             var textureList = new List<(Texture2D,string)>();
             
-            using var mods = new ModsResource(modDirectory);
+            var mods = new ModsResource(modDirectory);
 
             foreach (var mod in mods.Mods)
             {

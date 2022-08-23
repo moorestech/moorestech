@@ -14,8 +14,7 @@ namespace MainGame.ModLoader.Texture
         public static List<Material> GetMapTileMaterial(string modDirectory,SinglePlayInterface singlePlayInterface,Material baseMaterial)
         {
             var materials = new List<Material>();
-            
-            using var mods = new ModsResource(modDirectory);
+            var mods = new ModsResource(modDirectory);
 
             foreach (var mod in mods.Mods)
             {
