@@ -26,9 +26,10 @@ namespace Game.Crafting.Config
             var loadedData = jsons.SelectMany(JsonConvert.DeserializeObject<CraftConfigDataElement[]>).ToList();
             
             var result = new List<CraftingConfigData>();
-            
-            foreach (var config in loadedData)
+
+            for (var i = 0; i < loadedData.Count; i++)
             {
+                var config = loadedData[i];
                 var items = new List<IItemStack>();
                 foreach (var craftItem in config.Items)
                 {
@@ -37,14 +38,22 @@ namespace Game.Crafting.Config
                         items.Add(_itemStackFactory.CreatEmpty());
                         continue;
                     }
+
                     items.Add(_itemStackFactory.Create(craftItem.ModId, craftItem.ItemName, craftItem.Count));
                 }
-                
-                var resultItem = _itemStackFactory.Create(config.Result.ModId,config.Result.ItemName, config.Result.Count);
-                
-                result.Add(new CraftingConfigData(items,resultItem));
+
+                //TODO ロードした時にあるべきものがなくnullだったらエラーを出す
+                if (config.Result.ModId == null)
+                {
+                    Console.WriteLine(i + " : Result item is null");
+                }
+
+                var resultItem =
+                    _itemStackFactory.Create(config.Result.ModId, config.Result.ItemName, config.Result.Count);
+
+                result.Add(new CraftingConfigData(items, resultItem));
             }
-            
+
             return result;
         }
     }
