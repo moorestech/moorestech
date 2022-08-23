@@ -1,9 +1,9 @@
 namespace MainGame.UnityView.UI.Builder.BluePrint
 {
-    public class ArraySlot : ISubInventoryElement
+    public class UIBluePrintItemSlotArray : ISubInventoryElement
     {
 
-        public SubInventoryElementType ElementType => SubInventoryElementType.ArraySlot;
+        public UIBluePrintType ElementType => UIBluePrintType.ArraySlot;
         public int Priority { get; }
         public readonly int BottomBlank;
 
@@ -13,7 +13,7 @@ namespace MainGame.UnityView.UI.Builder.BluePrint
         public readonly int Height;
         public readonly int Width;
 
-        public ArraySlot(float x, float y, int priority, int height, int width, int bottomBlank = 0)
+        public UIBluePrintItemSlotArray(float x, float y, int priority, int height, int width, int bottomBlank = 0)
         {
             X = x;
             Y = y;

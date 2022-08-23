@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace MainGame.UnityView.UI.Builder.Unity
 {
-    public class UIButton : MonoBehaviour
+    public class UIBuilderButton : MonoBehaviour
     {
         [SerializeField] private RectTransform RectTransform;
         [SerializeField] private Button Button;

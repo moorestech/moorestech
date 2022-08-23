@@ -18,12 +18,12 @@ namespace MainGame.UnityView.UI.UIState.UIObject
             var resultSlotOption = new InventorySlotElementOptions(){IsEnableControllerEvent = false};
             resultSlotOption.OnLeftClickDown += _ => OnResultSlotClick?.Invoke();
             
-            var resultSlot = new OneSlot(172, 272, 0,resultSlotOption);
+            var resultSlot = new UIBluePrintItemSlot(172, 272, 0,resultSlotOption);
             
-            var craftSlot = new List<ArraySlot>() {new(-172,272,10,3,3)};
+            var craftSlot = new List<UIBluePrintItemSlotArray>() {new(-172,272,10,3,3)};
             var craftSubInventoryData = new SubInventoryViewBluePrint
             {
-                OneSlots = new List<OneSlot>() {resultSlot},
+                OneSlots = new List<UIBluePrintItemSlot>() {resultSlot},
                 ArraySlots = craftSlot
             };
             

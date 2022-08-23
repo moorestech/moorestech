@@ -4,8 +4,8 @@ namespace MainGame.UnityView.UI.Builder.BluePrint
 {
     public class SubInventoryViewBluePrint
     {
-        public List<OneSlot> OneSlots = new();
-        public List<ArraySlot> ArraySlots = new();
+        public List<UIBluePrintItemSlot> OneSlots = new();
+        public List<UIBluePrintItemSlotArray> ArraySlots = new();
         public List<TextElement> TextElements = new();
 
         public List<ISubInventoryElement> Elements

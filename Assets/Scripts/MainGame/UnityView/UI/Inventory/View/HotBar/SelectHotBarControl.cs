@@ -31,12 +31,12 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
             
         }
 
-        private void ClickItem(InventoryItemSlot inventoryItemSlot)
+        private void ClickItem(UIBuilderItemSlotObject uiBuilderItemSlotObject)
         {
             var slot = 0;
             for (var i = 0; i < hotBarItemView.Slots.Count; i++)
             {
-                if (inventoryItemSlot == hotBarItemView.Slots[i])
+                if (uiBuilderItemSlotObject == hotBarItemView.Slots[i])
                 {
                     slot = i;
                 }

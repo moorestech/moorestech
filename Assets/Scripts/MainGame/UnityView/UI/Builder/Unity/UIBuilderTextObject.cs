@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MainGame.UnityView.UI.Builder.Unity
 {
-    public class InventoryTextElement : MonoBehaviour
+    public class UIBuilderTextObject : MonoBehaviour
     {
         [SerializeField] private TMP_Text tmpText;
 

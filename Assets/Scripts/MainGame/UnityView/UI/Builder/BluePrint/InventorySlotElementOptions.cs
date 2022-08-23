@@ -20,14 +20,14 @@ namespace MainGame.UnityView.UI.Builder.BluePrint
         /// 右クリックされた時に発生するイベント
         /// IsEnableControllerEventがfalseでも発生する
         /// </summary>
-        public event Action<InventoryItemSlot> OnRightClickDown;
-        public void InvokeOnRightClickDown(InventoryItemSlot slot) { OnRightClickDown?.Invoke(slot); }
+        public event Action<UIBuilderItemSlotObject> OnRightClickDown;
+        public void InvokeOnRightClickDown(UIBuilderItemSlotObject slotObject) { OnRightClickDown?.Invoke(slotObject); }
         
         /// <summary>
         /// 左クリックされた時に発生するイベント
         /// IsEnableControllerEventがfalseでも発生する
         /// </summary>
-        public event Action<InventoryItemSlot> OnLeftClickDown;
-        public void InvokeOnLeftClickDown(InventoryItemSlot slot) { OnLeftClickDown?.Invoke(slot); }
+        public event Action<UIBuilderItemSlotObject> OnLeftClickDown;
+        public void InvokeOnLeftClickDown(UIBuilderItemSlotObject slotObject) { OnLeftClickDown?.Invoke(slotObject); }
     }
 }

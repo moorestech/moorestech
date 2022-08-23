@@ -12,7 +12,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
 {
     public class CraftRecipeItemListViewer : MonoBehaviour
     {
-        [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
+        [SerializeField] private UIBuilderItemSlotObject UIBuilderItemSlotObjectPrefab;
         
 
         public delegate void ItemSlotClick(int itemId);
@@ -21,7 +21,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
         public event Action<int> OnCursorEnter;
         public event Action<int> OnCursorExit;
         
-        private readonly Dictionary<InventoryItemSlot, int> _itemIdTable = new();
+        private readonly Dictionary<UIBuilderItemSlotObject, int> _itemIdTable = new();
 
 
         [Inject]
@@ -35,7 +35,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
             //ブロックのIDは1から始まるので+1しておく
             for (int i = 1; i < itemImages.GetItemNum() + 1; i++)
             {
-                var g = Instantiate(inventoryItemSlotPrefab, transform, true);
+                var g = Instantiate(UIBuilderItemSlotObjectPrefab, transform, true);
                 g.SetItem(itemImages.GetItemView(i),0);
                 _itemIdTable.Add(g,i);
 

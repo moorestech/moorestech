@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5426186619535438760}
   - component: {fileID: 1130232090119242278}
   m_Layer: 5
-  m_Name: InventoryTextElement
+  m_Name: UIBuilderTextObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

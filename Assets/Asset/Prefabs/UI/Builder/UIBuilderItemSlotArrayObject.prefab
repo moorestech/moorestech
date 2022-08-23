@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 9020211643857976701}
   - component: {fileID: 2899649785497079085}
   m_Layer: 5
-  m_Name: InventoryArraySlot
+  m_Name: UIBuilderItemSlotArrayObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -83,4 +83,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0b17c77e5984314995341c3bb0d883b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inventoryItemSlot: {fileID: 7226362693378105453, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
+  UIBuilderItemSlotObject: {fileID: 7226362693378105453, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}

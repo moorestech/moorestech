@@ -11,7 +11,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
     public class PlayerInventoryPresenter : MonoBehaviour
     {
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
-        [SerializeField] private InventoryItemSlot grabbedItem;
+        [SerializeField] private UIBuilderItemSlotObject grabbedItem;
 
         [Inject]
         public void Construct(PlayerInventoryViewModelController playerInventoryViewModelController,ItemImages itemImages,PlayerInventoryViewModel playerInventoryViewModel)

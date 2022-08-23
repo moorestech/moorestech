@@ -2,7 +2,7 @@ namespace MainGame.UnityView.UI.Builder.BluePrint
 {
     public class TextElement : ISubInventoryElement
     {
-        public SubInventoryElementType ElementType => SubInventoryElementType.Text;
+        public UIBluePrintType ElementType => UIBluePrintType.Text;
         public int Priority { get; }
         
         public readonly float X;

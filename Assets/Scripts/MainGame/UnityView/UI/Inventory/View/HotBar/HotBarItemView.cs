@@ -13,18 +13,18 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
 {
     public class HotBarItemView : MonoBehaviour
     {
-        [SerializeField] private InventoryItemSlot inventoryItemSlotPrefab;
-        List<InventoryItemSlot> _slots;
-        public IReadOnlyList<InventoryItemSlot> Slots => _slots;
+        [SerializeField] private UIBuilderItemSlotObject UIBuilderItemSlotObjectPrefab;
+        List<UIBuilderItemSlotObject> _slots;
+        public IReadOnlyList<UIBuilderItemSlotObject> Slots => _slots;
 
         private ItemImages _itemImages;
 
         private void Awake()
         {
-            _slots = new List<InventoryItemSlot>();
+            _slots = new List<UIBuilderItemSlotObject>();
             for (int i = 0; i < PlayerInventoryConstant.MainInventoryColumns; i++)
             {
-                var slot = Instantiate(inventoryItemSlotPrefab.gameObject, transform).GetComponent<InventoryItemSlot>();
+                var slot = Instantiate(UIBuilderItemSlotObjectPrefab.gameObject, transform).GetComponent<UIBuilderItemSlotObject>();
                 _slots.Add(slot);
             }
         }

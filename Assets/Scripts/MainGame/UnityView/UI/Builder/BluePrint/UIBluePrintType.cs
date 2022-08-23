@@ -1,6 +1,6 @@
 namespace MainGame.UnityView.UI.Builder.BluePrint
 {
-    public enum SubInventoryElementType{
+    public enum UIBluePrintType{
         OneSlot,
         ArraySlot,
         Text,

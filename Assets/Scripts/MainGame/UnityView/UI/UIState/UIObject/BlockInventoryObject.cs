@@ -13,7 +13,7 @@ namespace MainGame.UnityView.UI.UIState.UIObject
 
         public void SetOneSlotInventory(string blockName,int slot)
         {
-            var arraySlot = new List<ArraySlot>();
+            var arraySlot = new List<UIBluePrintItemSlotArray>();
             arraySlot.Add(CreateArraySlot(0,272,10,slot,PlayerInventoryConst.MainInventoryColumns));
             
             var text = new List<TextElement>(){new(0,436,0,blockName,30)};
@@ -26,7 +26,7 @@ namespace MainGame.UnityView.UI.UIState.UIObject
         public void SetIOSlotInventory(string blockName,int input,int output)
         {
             const int maxSlotColumns = 5;
-            var arraySlot = new List<ArraySlot>();
+            var arraySlot = new List<UIBluePrintItemSlotArray>();
             arraySlot.Add(CreateArraySlot(330,272,10,input,maxSlotColumns));
             arraySlot.Add(CreateArraySlot(-330,272,10,output,maxSlotColumns));
             
@@ -38,18 +38,18 @@ namespace MainGame.UnityView.UI.UIState.UIObject
         }
 
 
-        private ArraySlot CreateArraySlot(int x,int y,int priority,int slot,int maxSlotColumns)
+        private UIBluePrintItemSlotArray CreateArraySlot(int x,int y,int priority,int slot,int maxSlotColumns)
         {
             if (slot < maxSlotColumns)
             {
-                return new ArraySlot(x, y, priority, 1, slot);
+                return new UIBluePrintItemSlotArray(x, y, priority, 1, slot);
             }
 
             var height = 1 + slot / maxSlotColumns;
             var width = maxSlotColumns;
             var blank = maxSlotColumns - slot % maxSlotColumns;
                 
-            return new ArraySlot(x, y, priority, height, maxSlotColumns,blank);
+            return new UIBluePrintItemSlotArray(x, y, priority, height, maxSlotColumns,blank);
 
         }
         

@@ -22,11 +22,11 @@ namespace MainGame.UnityView.UI.CraftRecipe
         [SerializeField] private GameObject craftingRecipeView;
         [SerializeField] private GameObject machineCraftingRecipeView;
         
-        [SerializeField] private List<InventoryItemSlot> craftingRecipeSlots;
-        [SerializeField] private InventoryItemSlot craftingResultSlot;
+        [SerializeField] private List<UIBuilderItemSlotObject> craftingRecipeSlots;
+        [SerializeField] private UIBuilderItemSlotObject CraftingResultSlotObject;
         
-        [SerializeField] private List<InventoryItemSlot> machineCraftingRecipeSlots;
-        [SerializeField] private InventoryItemSlot machineCraftingResultSlot;
+        [SerializeField] private List<UIBuilderItemSlotObject> machineCraftingRecipeSlots;
+        [SerializeField] private UIBuilderItemSlotObject MachineCraftingResultSlotObject;
         [SerializeField] private TMP_Text machineNameText;
         
         public event CraftRecipeItemListViewer.ItemSlotClick OnCraftSlotClick;
@@ -51,10 +51,10 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 slot.OnCursorEnter += InvokeCursorEnter;
                 slot.OnCursorExit += InvokeCursorExit;
             }
-            craftingResultSlot.OnCursorEnter += _ => OnCursorEnter?.Invoke(_craftResultItemStack);
-            craftingResultSlot.OnCursorExit += _ => OnCursorExit?.Invoke(_craftResultItemStack);
-            machineCraftingResultSlot.OnCursorEnter += _ => OnCursorEnter?.Invoke(_machineCraftResultItemStack);
-            machineCraftingResultSlot.OnCursorExit += _ => OnCursorExit?.Invoke(_machineCraftResultItemStack);
+            CraftingResultSlotObject.OnCursorEnter += _ => OnCursorEnter?.Invoke(_craftResultItemStack);
+            CraftingResultSlotObject.OnCursorExit += _ => OnCursorExit?.Invoke(_craftResultItemStack);
+            MachineCraftingResultSlotObject.OnCursorEnter += _ => OnCursorEnter?.Invoke(_machineCraftResultItemStack);
+            MachineCraftingResultSlotObject.OnCursorExit += _ => OnCursorExit?.Invoke(_machineCraftResultItemStack);
         }
         
         
@@ -71,7 +71,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 var item = itemStacks[i];
                 craftingRecipeSlots[i].SetItem(_itemImages.GetItemView(item.ID),item.Count);
             }
-            craftingResultSlot.SetItem(_itemImages.GetItemView(result.ID),result.Count);
+            CraftingResultSlotObject.SetItem(_itemImages.GetItemView(result.ID),result.Count);
             _craftResultItemStack = result;
             
             _craftItemStacks = itemStacks;
@@ -100,19 +100,19 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 machineCraftingRecipeSlots[i].SetItem(_itemImages.GetItemView(item.ID),item.Count);
             }
             _machineCraftResultItemStack = result;
-            machineCraftingResultSlot.SetItem(_itemImages.GetItemView(result.ID),result.Count);
+            MachineCraftingResultSlotObject.SetItem(_itemImages.GetItemView(result.ID),result.Count);
             _machineCraftItemStacks = itemStacks;
         }
 
-        private void OnClick(InventoryItemSlot inventoryItemSlot) { OnCraftSlotClick?.Invoke(GetItemStack(inventoryItemSlot).ID); }
-        private void InvokeCursorEnter(InventoryItemSlot inventoryItemSlot) { OnCursorEnter?.Invoke(GetItemStack(inventoryItemSlot)); }
-        private void InvokeCursorExit(InventoryItemSlot inventoryItemSlot) { OnCursorExit?.Invoke(GetItemStack(inventoryItemSlot)); }
+        private void OnClick(UIBuilderItemSlotObject uiBuilderItemSlotObject) { OnCraftSlotClick?.Invoke(GetItemStack(uiBuilderItemSlotObject).ID); }
+        private void InvokeCursorEnter(UIBuilderItemSlotObject uiBuilderItemSlotObject) { OnCursorEnter?.Invoke(GetItemStack(uiBuilderItemSlotObject)); }
+        private void InvokeCursorExit(UIBuilderItemSlotObject uiBuilderItemSlotObject) { OnCursorExit?.Invoke(GetItemStack(uiBuilderItemSlotObject)); }
 
 
-        private ItemStack GetItemStack(InventoryItemSlot inventoryItemSlot)
+        private ItemStack GetItemStack(UIBuilderItemSlotObject uiBuilderItemSlotObject)
         {
-            var craftIndex = craftingRecipeSlots.IndexOf(inventoryItemSlot);
-            var machineCraftIndex = machineCraftingRecipeSlots.IndexOf(inventoryItemSlot);
+            var craftIndex = craftingRecipeSlots.IndexOf(uiBuilderItemSlotObject);
+            var machineCraftIndex = machineCraftingRecipeSlots.IndexOf(uiBuilderItemSlotObject);
             
             if (craftIndex != -1)
             {

@@ -8,17 +8,17 @@ using UnityEngine.UI;
 
 namespace MainGame.UnityView.UI.Builder.Unity
 {
-    public class InventoryItemSlot: MonoBehaviour,IPointerDownHandler,IPointerUpHandler,IPointerEnterHandler,IPointerClickHandler,IPointerExitHandler,IPointerMoveHandler
+    public class UIBuilderItemSlotObject: MonoBehaviour,IPointerDownHandler,IPointerUpHandler,IPointerEnterHandler,IPointerClickHandler,IPointerExitHandler,IPointerMoveHandler
     {
-        public event Action<InventoryItemSlot> OnRightClickDown;
-        public event Action<InventoryItemSlot> OnLeftClickDown;
+        public event Action<UIBuilderItemSlotObject> OnRightClickDown;
+        public event Action<UIBuilderItemSlotObject> OnLeftClickDown;
         
-        public event Action<InventoryItemSlot> OnRightClickUp;
-        public event Action<InventoryItemSlot> OnLeftClickUp;
-        public event Action<InventoryItemSlot> OnCursorEnter;
-        public event Action<InventoryItemSlot> OnCursorExit;
-        public event Action<InventoryItemSlot> OnDoubleClick;
-        public event Action<InventoryItemSlot> OnCursorMove;
+        public event Action<UIBuilderItemSlotObject> OnRightClickUp;
+        public event Action<UIBuilderItemSlotObject> OnLeftClickUp;
+        public event Action<UIBuilderItemSlotObject> OnCursorEnter;
+        public event Action<UIBuilderItemSlotObject> OnCursorExit;
+        public event Action<UIBuilderItemSlotObject> OnDoubleClick;
+        public event Action<UIBuilderItemSlotObject> OnCursorMove;
         
 
         [SerializeField] private Image image;

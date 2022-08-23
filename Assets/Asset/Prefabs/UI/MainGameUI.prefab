@@ -677,12 +677,12 @@ MonoBehaviour:
   - {fileID: 1043735245072901620}
   - {fileID: 6863560748488369956}
   - {fileID: 6381490633452986399}
-  craftingResultSlot: {fileID: 1195723350918881321}
+  CraftingResultSlotObject: {fileID: 1195723350918881321}
   machineCraftingRecipeSlots:
   - {fileID: 3173611456140442524}
   - {fileID: 4594387163865982501}
   - {fileID: 1191701023680984646}
-  machineCraftingResultSlot: {fileID: 3211264935970176220}
+  MachineCraftingResultSlotObject: {fileID: 3211264935970176220}
   machineNameText: {fileID: 960764915238112041}
 --- !u!1 &1960350296268097667
 GameObject:
@@ -3979,7 +3979,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cea87218810c4ef79cea7614f5791a1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inventoryItemSlotPrefab: {fileID: 7226362693378105453, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
+  UIBuilderItemSlotObjectPrefab: {fileID: 7226362693378105453, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
 --- !u!114 &7127252788400813186
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6096,6 +6096,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1438684973846715379}
     m_Modifications:
+    - target: {fileID: 8184339839084704, guid: a412bfaee16774508b054f6851eed7e7, type: 3}
+      propertyPath: UIBuilderItemSlotObjectPrefab
+      value: 
+      objectReference: {fileID: 7226362693378105453, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
     - target: {fileID: 7354747110705459430, guid: a412bfaee16774508b054f6851eed7e7, type: 3}
       propertyPath: m_Name
       value: HotBar
