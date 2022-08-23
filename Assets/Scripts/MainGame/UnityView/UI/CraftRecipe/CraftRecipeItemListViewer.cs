@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using MainGame.Basic;
+using MainGame.UnityView.UI.Builder;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;

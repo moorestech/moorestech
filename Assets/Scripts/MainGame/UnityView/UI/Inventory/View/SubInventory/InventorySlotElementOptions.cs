@@ -1,4 +1,5 @@
 ﻿using System;
+using MainGame.UnityView.UI.Builder;
 using MainGame.UnityView.UI.Inventory.Element;
 
 namespace MainGame.UnityView.UI.Inventory.View.SubInventory
