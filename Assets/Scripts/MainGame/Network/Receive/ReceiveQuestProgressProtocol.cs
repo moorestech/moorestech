@@ -21,10 +21,7 @@ namespace MainGame.Network.Receive
         {
             var data = MessagePackSerializer.Deserialize<QuestProgressResponseProtocolMessagePack>(packet.ToArray());
             
-            var result = data.Quests.ToDictionary(q => q.Id, q =>
-            {
-                return new QuestProgressData(q.IsCompleted, q.IsRewarded,q.IsRewardEarnable);
-            });
+            var result = data.Quests.ToDictionary(q => q.Id, q => new QuestProgressData(q.IsCompleted, q.IsRewarded,q.IsRewardEarnable));
 
             receiveQuestDataEvent.InvokeReceiveQuestProgress(new QuestProgressProperties(result)).Forget();
         }
