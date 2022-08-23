@@ -1,4 +1,4 @@
-namespace MainGame.UnityView.UI.Inventory.View.SubInventory.Element
+namespace MainGame.UnityView.UI.Builder.BluePrint
 {
     public class TextElement : ISubInventoryElement
     {

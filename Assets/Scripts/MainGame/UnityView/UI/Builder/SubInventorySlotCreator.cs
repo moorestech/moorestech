@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MainGame.UnityView.UI.Builder;
-using MainGame.UnityView.UI.Inventory.Element;
-using MainGame.UnityView.UI.Inventory.View.SubInventory.Element;
+using MainGame.UnityView.UI.Builder.BluePrint;
+using MainGame.UnityView.UI.Builder.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MainGame.UnityView.UI.Inventory.View.SubInventory
+namespace MainGame.UnityView.UI.Builder
 {
     public class SubInventorySlotCreator : MonoBehaviour
     {

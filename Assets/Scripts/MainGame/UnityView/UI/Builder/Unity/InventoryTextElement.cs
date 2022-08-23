@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace MainGame.UnityView.UI.Inventory.View.SubInventory
+namespace MainGame.UnityView.UI.Builder.Unity
 {
     public class InventoryTextElement : MonoBehaviour
     {

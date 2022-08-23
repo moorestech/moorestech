@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using MainGame.Basic;
 using MainGame.UnityView.UI.Builder;
+using MainGame.UnityView.UI.Builder.Unity;
 using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;

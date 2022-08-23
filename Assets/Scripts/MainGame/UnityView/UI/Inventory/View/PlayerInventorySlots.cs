@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MainGame.UnityView.UI.Builder;
+using MainGame.UnityView.UI.Builder.BluePrint;
+using MainGame.UnityView.UI.Builder.Unity;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View.SubInventory;
-using MainGame.UnityView.UI.Inventory.View.SubInventory.Element;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory.View
