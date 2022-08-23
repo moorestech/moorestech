@@ -81,7 +81,7 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory
             rect.anchoredPosition = new Vector2(arraySlot.X, arraySlot.Y);
             rect.sizeDelta = new Vector2(arraySlot.Width * slotSize.x, arraySlot.Height * slotSize.y);
 
-            return slot.SetArraySlot(arraySlot.Height, arraySlot.Width, arraySlot.BottomBlank, inventoryItemSlotPrefab);
+            return slot.SetArraySlot(arraySlot.Height, arraySlot.Width, arraySlot.BottomBlank);
         }
         
 
