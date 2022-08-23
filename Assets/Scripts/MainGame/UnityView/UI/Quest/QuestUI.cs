@@ -65,7 +65,7 @@ namespace MainGame.UnityView.UI.Quest
         /// クエストIDごとの進捗を設定する
         /// </summary>
         /// <param name="questProgress"></param>
-        public void SetQuestProgress(Dictionary<string,QuestProgress> questProgress)
+        public void SetQuestProgress(Dictionary<string,QuestProgressData> questProgress)
         {
             foreach (var quest in questProgress)
             {

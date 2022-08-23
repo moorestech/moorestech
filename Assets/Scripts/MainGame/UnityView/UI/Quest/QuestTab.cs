@@ -47,17 +47,17 @@ namespace MainGame.UnityView.UI.Quest
         }
 
 
-        private void SetQuestDetail(QuestConfigData config,QuestProgress questProgress)
+        private void SetQuestDetail(QuestConfigData config,QuestProgressData questProgressData)
         {
-            questDetailUI.SetQuest(config,questProgress, _itemImages);
+            questDetailUI.SetQuest(config,questProgressData, _itemImages);
         }
         
         
         public void SetActive(bool active) { gameObject.SetActive(active); }
 
-        public void SetQuestProgress(string quest,QuestProgress questProgress) 
+        public void SetQuestProgress(string quest,QuestProgressData questProgressData) 
         {
-            _questElements[quest].SetProgress(questProgress);
+            _questElements[quest].SetProgress(questProgressData);
         }
     }
 }

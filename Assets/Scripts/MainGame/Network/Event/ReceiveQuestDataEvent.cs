@@ -19,9 +19,9 @@ namespace MainGame.Network.Event
 
     public class QuestProgressProperties
     {
-        public readonly Dictionary<string, QuestProgress> QuestProgress;
+        public readonly Dictionary<string, QuestProgressData> QuestProgress;
 
-        public QuestProgressProperties(Dictionary<string, QuestProgress> questProgress)
+        public QuestProgressProperties(Dictionary<string, QuestProgressData> questProgress)
         {
             QuestProgress = questProgress;
         }

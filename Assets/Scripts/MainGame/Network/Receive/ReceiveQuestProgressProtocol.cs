@@ -23,7 +23,7 @@ namespace MainGame.Network.Receive
             
             var result = data.Quests.ToDictionary(q => q.Id, q =>
             {
-                return new QuestProgress(q.IsCompleted, q.IsRewarded,q.IsRewardEarnable);
+                return new QuestProgressData(q.IsCompleted, q.IsRewarded,q.IsRewardEarnable);
             });
 
             receiveQuestDataEvent.InvokeReceiveQuestProgress(new QuestProgressProperties(result)).Forget();

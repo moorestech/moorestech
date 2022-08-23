@@ -42,7 +42,7 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
         }
 
 
-        public void SetQuest(QuestConfigData config,QuestProgress questProgress ,ItemImages itemImages)
+        public void SetQuest(QuestConfigData config,QuestProgressData questProgressData ,ItemImages itemImages)
         {
             gameObject.SetActive(true);
             
@@ -50,7 +50,7 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
             title.text = config.QuestName;
             description.text = config.QuestDescription;
             
-            getRewardButton.gameObject.SetActive(questProgress.IsRewardEarnbable);
+            getRewardButton.gameObject.SetActive(questProgressData.IsRewardEarnbable);
 
 
             //今までのリワードアイテム表示を削除
