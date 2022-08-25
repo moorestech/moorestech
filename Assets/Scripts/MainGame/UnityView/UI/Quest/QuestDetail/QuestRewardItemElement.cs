@@ -13,7 +13,7 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
         public void SetItem(IItemStack itemStack,ItemImages itemImages)
         {
             cntText.text = itemStack.Count.ToString();
-            iconImage.sprite = itemImages.GetItemView(itemStack.Id).itemImage;
+            iconImage.sprite = itemImages.GetItemView(itemStack.Id).ItemImage;
         }
         
     }

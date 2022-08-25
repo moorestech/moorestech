@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Const;
 using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.ModLoader;
@@ -14,12 +15,12 @@ namespace MainGame.UnityView.UI.Inventory.Element
         public event Action OnLoadFinished;
         
         private readonly List<ItemViewData> _itemImageList = new ();
-        private readonly ItemViewData _emptyItemImage = new(null,"Empty");
         private readonly ItemViewData _nothingIndexItemImage;
 
         public ItemImages(ModDirectory modDirectory,SinglePlayInterface singlePlayInterface)
         {
-            _nothingIndexItemImage = new ItemViewData(null,"Item not found");
+            _nothingIndexItemImage = new ItemViewData(null,"Item not found",ItemConst.EmptyItemId);
+            
             LoadTexture(modDirectory,singlePlayInterface).Forget();
         }
         /// <summary>
@@ -31,9 +32,12 @@ namespace MainGame.UnityView.UI.Inventory.Element
             await UniTask.WaitForFixedUpdate();
             
             var textures = ItemTextureLoader.GetItemTexture(modDirectory.Directory,singlePlayInterface);
-            foreach (var texture in textures)
+            for (var i = 0; i < textures.Count; i++)
             {
-                _itemImageList.Add(new ItemViewData(texture.texture2D.ToSprite(),texture.name));
+                var texture = textures[i];
+                //idは1から始まるので+1する
+                var itemId = i + 1;
+                _itemImageList.Add(new ItemViewData(texture.texture2D.ToSprite(), texture.name,itemId));
             }
             OnLoadFinished?.Invoke();
         }
@@ -57,13 +61,15 @@ namespace MainGame.UnityView.UI.Inventory.Element
 
     public class ItemViewData
     {
-        public readonly Sprite itemImage;
-        public readonly string itemName;
+        public readonly Sprite ItemImage;
+        public readonly string ItemName;
+        public readonly int ItemId;
 
-        public ItemViewData(Sprite itemImage, string itemName)
+        public ItemViewData(Sprite itemImage, string itemName, int itemId)
         {
-            this.itemImage = itemImage;
-            this.itemName = itemName;
+            this.ItemImage = itemImage;
+            this.ItemName = itemName;
+            this.ItemId = itemId;
         }
     }
 }

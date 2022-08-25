@@ -4,14 +4,20 @@ using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory.Element
 {
-    public class ItemNameBar : MonoBehaviour
+    public interface IItemNameBar
+    {
+        public void HideItemName();
+        public void ShowItemName(string name);
+
+    }
+    public class ItemNameBar : MonoBehaviour,IItemNameBar
     {
         [SerializeField] private GameObject itemNameBar;
         [SerializeField] private TMP_Text itemName;
         
-        public static ItemNameBar Instance { get; private set; }
+        public static IItemNameBar Instance { get; private set; }
 
-        private void Start()
+        private void Awake()
         {
             Instance = this;
         }
@@ -22,17 +28,9 @@ namespace MainGame.UnityView.UI.Inventory.Element
             itemName.text = name;
         }
 
-        public void ShowItemName()
-        {
-            itemNameBar.SetActive(true);
-        }
         
-        public void HideItemName(bool clearText = true)
+        public void HideItemName()
         {
-            if (clearText)
-            {
-                itemName.text = "";
-            }
             itemNameBar.SetActive(false);
         }
     }

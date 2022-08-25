@@ -95,8 +95,6 @@ namespace MainGame.Starter
         [SerializeField] private CraftRecipeItemListViewer craftRecipeItemListViewer;
         [SerializeField] private PlayerInventoryPresenter playerInventoryPresenter;
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
-        [SerializeField] private PlayerInventoryItemNamePresenter playerInventoryItemNamePresenter;
-        [SerializeField] private RecipeViewerItemNamePresenter recipeViewerItemNamePresenter;
         [SerializeField] private QuestViewerObject questViewerObject;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
@@ -225,8 +223,6 @@ namespace MainGame.Starter
             builder.RegisterComponent(itemRecipePresenter);
             builder.RegisterComponent(craftRecipeItemListViewer);
             builder.RegisterComponent(playerInventorySlots);
-            builder.RegisterComponent(playerInventoryItemNamePresenter);
-            builder.RegisterComponent(recipeViewerItemNamePresenter);
             builder.RegisterComponent(questViewerObject);
             
             

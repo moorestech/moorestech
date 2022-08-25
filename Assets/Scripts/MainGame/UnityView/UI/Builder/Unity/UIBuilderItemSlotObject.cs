@@ -1,4 +1,5 @@
 ﻿using System;
+using Core.Const;
 using MainGame.UnityView.UI.Builder.BluePrint;
 using MainGame.UnityView.UI.Inventory.Element;
 using TMPro;
@@ -25,20 +26,20 @@ namespace MainGame.UnityView.UI.Builder.Unity
         [SerializeField] private TMP_Text countText;
 
         private InventorySlotElementOptions _slotOptions = new();
-        
+        private ItemViewData _itemViewData;
+
+        private bool _onPointing;
 
 
         public void SetItem(ItemViewData itemView, int count)
         {
-            image.sprite = itemView.itemImage;
-            
-            if (count == 0)
+            _itemViewData = itemView;
+            image.sprite = itemView.ItemImage;
+
+            countText.text = count == 0 ? "" : count.ToString();
+            if (_onPointing && itemView.ItemId != ItemConst.EmptyItemId)
             {
-                countText.text = "";
-            }
-            else
-            {
-                countText.text = count.ToString();
+                ItemNameBar.Instance.ShowItemName(itemView.ItemName);
             }
         }
 
@@ -83,6 +84,12 @@ namespace MainGame.UnityView.UI.Builder.Unity
         }
         public void OnPointerEnter(PointerEventData eventData)
         {
+            _onPointing = true;
+            if (_itemViewData.ItemId != ItemConst.EmptyItemId)
+            {
+                ItemNameBar.Instance.ShowItemName(_itemViewData.ItemName);
+            }
+
             if (!_slotOptions.IsEnableControllerEvent)return;
             
             OnCursorEnter?.Invoke(this);
@@ -98,6 +105,8 @@ namespace MainGame.UnityView.UI.Builder.Unity
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            _onPointing = false;
+            ItemNameBar.Instance.HideItemName();
             if (!_slotOptions.IsEnableControllerEvent)return;
             
             OnCursorExit?.Invoke(this);

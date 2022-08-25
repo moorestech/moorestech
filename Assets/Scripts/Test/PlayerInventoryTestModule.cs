@@ -20,7 +20,6 @@ namespace Test
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
         [SerializeField] private PlayerInventorySlotsInputControl playerInventorySlotsInputControl;
         [SerializeField] private PlayerInventoryPresenter playerInventoryPresenter;
-        [SerializeField] private PlayerInventoryItemNamePresenter playerInventoryItemNamePresenter;
         
         private void Start()
         {
@@ -63,9 +62,6 @@ namespace Test
             
             
             inventoryModel.SetSubInventory(subInventory.ToList());
-            
-            
-            playerInventoryItemNamePresenter.Construct(inventoryModel,inventoryController,itemImages);
         }
     }
 }

@@ -57,7 +57,7 @@ namespace MainGame.UnityView.UI.UIState
             return UIStateEnum.GameScreen;
         }
 
-        public void OnEnter(UIStateEnum lastStateEnum) { ItemNameBar.Instance.HideItemName(); }
+        public void OnEnter(UIStateEnum lastStateEnum) { }
         public void OnExit() { }
 
         private bool IsClickOpenableBlock()

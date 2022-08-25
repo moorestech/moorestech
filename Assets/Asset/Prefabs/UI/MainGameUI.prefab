@@ -3806,7 +3806,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5876296732415703059}
-  - component: {fileID: 6293454036772858141}
   m_Layer: 5
   m_Name: RecipeViwer
   m_TagString: Untagged
@@ -3836,20 +3835,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &6293454036772858141
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8080787407839976752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b8ff6b7ca83415f991e2c841ebf2868, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemRecipeView: {fileID: 2543833984019787275}
-  craftRecipeItemListViewer: {fileID: 3978477083281486116}
 --- !u!1 &8236452674810671230
 GameObject:
   m_ObjectHideFlags: 0
