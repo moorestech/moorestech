@@ -27,7 +27,7 @@ namespace MainGame.UnityView.UI.UIState.UIObject
                 ArraySlots = craftSlot
             };
             
-            //結果スロットは収集から除外するオプションの設定
+            //クラフト結果スロットは収集から除外するオプションの設定
             var withoutSlot = PlayerInventoryConstant.CraftingSlotSize + PlayerInventoryConstant.MainInventorySize;
             var subInventoryOption = new SubInventoryOptions(){WithoutCollectSlots = new List<int> {withoutSlot}};
             
