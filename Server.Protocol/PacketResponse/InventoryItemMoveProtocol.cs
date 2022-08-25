@@ -37,13 +37,13 @@ namespace Server.Protocol.PacketResponse
 
             
             if (data.ToGrab)
-            {
-                new InventoryItemMoveService().Move(
+            { 
+                InventoryItemMoveService.Move(
                     _itemStackFactory,inventory,data.Slot,grabInventory,0,data.Count);
             }
             else
             {
-                new InventoryItemMoveService().Move(
+                InventoryItemMoveService.Move(
                     _itemStackFactory,grabInventory,0,inventory,data.Slot,data.Count);
             }
             
