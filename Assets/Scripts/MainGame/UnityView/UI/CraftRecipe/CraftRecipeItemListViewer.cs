@@ -1,10 +1,6 @@
-using System;
 using System.Collections.Generic;
-using MainGame.Basic;
-using MainGame.UnityView.UI.Builder;
 using MainGame.UnityView.UI.Builder.Unity;
 using MainGame.UnityView.UI.Inventory.Element;
-using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
 
@@ -17,9 +13,6 @@ namespace MainGame.UnityView.UI.CraftRecipe
 
         public delegate void ItemSlotClick(int itemId);
         public event ItemSlotClick OnItemListClick;
-        
-        public event Action<int> OnCursorEnter;
-        public event Action<int> OnCursorExit;
         
         private readonly Dictionary<UIBuilderItemSlotObject, int> _itemIdTable = new();
 
@@ -43,8 +36,6 @@ namespace MainGame.UnityView.UI.CraftRecipe
 
                 
                 g.OnLeftClickDown += itemSlot => OnItemListClick?.Invoke(_itemIdTable[itemSlot]);
-                g.OnCursorEnter += itemSlot => OnCursorEnter?.Invoke(_itemIdTable[itemSlot]);
-                g.OnCursorExit += itemSlot => OnCursorExit?.Invoke(_itemIdTable[itemSlot]);
             }
         }
     }

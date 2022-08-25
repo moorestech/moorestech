@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
@@ -6,7 +5,6 @@ using MainGame.Basic;
 using SinglePlay;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
 namespace MainGame.UnityView.UI.CraftRecipe
 {
@@ -58,7 +56,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
             
             
             
-            //イベントをサブスクライブ
+            //アイテムリストからアイテムをクリックした時のイベントをサブスクライブ
             craftRecipeItemListViewer.OnItemListClick += OnItemListClick;
             itemRecipeView.OnCraftSlotClick += OnItemListClick;
             _itemRecipeView = itemRecipeView;
