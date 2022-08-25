@@ -18,10 +18,10 @@ namespace MainGame.Network.Send
             _socketSender = socketSender;
             _playerId = playerConnectionSetting.PlayerId;
         }
-        public void Send(bool toGrab, InventoryType inventoryType, int inventorySlot, int itemCount, int x = 0, int y = 0)
+        public void Send(int count, ItemMoveInventoryInfo fromInventory,ItemMoveInventoryInfo toInventory)
         {
             _socketSender.Send(MessagePackSerializer.Serialize(new InventoryItemMoveProtocolMessagePack(
-                _playerId,toGrab,inventoryType,inventorySlot,itemCount,x,y)).ToList());
+                _playerId, count, fromInventory, toInventory)).ToList());
         }
     }
 }

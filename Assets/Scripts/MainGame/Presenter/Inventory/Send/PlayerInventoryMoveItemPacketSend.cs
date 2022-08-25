@@ -14,7 +14,7 @@ namespace MainGame.Presenter.Inventory.Send
         private readonly InventoryMoveItemProtocol _inventoryMoveItem;
         private readonly IBlockClickDetect _blockClickDetect;
 
-        private InventoryType _currentSubInventoryType;
+        private ItemMoveInventoryType  _currentSubInventoryType;
         private Vector2Int _blockPos;
 
         public PlayerInventoryMoveItemPacketSend(UIStateControl uiStateControl, PlayerInventoryViewModelController playerInventoryViewModelController,InventoryMoveItemProtocol inventoryMoveItem,IBlockClickDetect blockClickDetect)
@@ -28,29 +28,47 @@ namespace MainGame.Presenter.Inventory.Send
             _blockClickDetect = blockClickDetect;
         }
 
+        
+        /// <summary>
+        /// アイテムをクリックしてもつ時に発火する
+        /// </summary>
         private void ItemSlotGrabbed(int slot, int count)
         {
+            ItemMoveInventoryInfo from;
+            ItemMoveInventoryInfo to;
+            //スロット番号はメインインベントリから始まり、サブインベントリがメインインベントリの最後+1から始まるのでこのifが必要
             if (slot < PlayerInventoryConstant.MainInventorySize)
             {
-                _inventoryMoveItem.Send(true,InventoryType.MainInventory, slot, count,_blockPos.x,_blockPos.y);
+                from = new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, slot);
+                to = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
             }
             else
             {
-                _inventoryMoveItem.Send(true,_currentSubInventoryType, slot - PlayerInventoryConstant.MainInventorySize, count,_blockPos.x,_blockPos.y);
+                from = new ItemMoveInventoryInfo(_currentSubInventoryType, slot);
+                to = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
             }
+            _inventoryMoveItem.Send(count,from,to);
         }
 
+        /// <summary>
+        /// 持っているスロットからインベントリにおいた時に発火する
+        /// </summary>
         private void ItemSlotAdded(int slot, int addCount)
         {
+            ItemMoveInventoryInfo from;
+            ItemMoveInventoryInfo to;
+            //スロット番号はメインインベントリから始まり、サブインベントリがメインインベントリの最後+1から始まるのでこのifが必要
             if (slot < PlayerInventoryConstant.MainInventorySize)
             {
-                _inventoryMoveItem.Send(false,InventoryType.MainInventory, slot, addCount,_blockPos.x,_blockPos.y);
+                from = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
+                to = new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, slot);
             }
             else
             {
-                _inventoryMoveItem.Send(false,_currentSubInventoryType, slot - PlayerInventoryConstant.MainInventorySize, addCount,_blockPos.x,_blockPos.y);
+                from = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
+                to = new ItemMoveInventoryInfo(_currentSubInventoryType, slot);
             }
-            
+            _inventoryMoveItem.Send(addCount,from,to);
         }
 
         private void OnStateChanged(UIStateEnum state)
@@ -59,8 +77,8 @@ namespace MainGame.Presenter.Inventory.Send
             _currentSubInventoryType = state switch
             {
                 //プレイヤーインベントリを開いているということは、サブインベントリはCraftInventoryなのでそれを設定する
-                UIStateEnum.PlayerInventory => InventoryType.CraftInventory,
-                UIStateEnum.BlockInventory => InventoryType.BlockInventory,
+                UIStateEnum.PlayerInventory => ItemMoveInventoryType.CraftInventory,
+                UIStateEnum.BlockInventory => ItemMoveInventoryType.BlockInventory,
                 _ => _currentSubInventoryType
             };
             
