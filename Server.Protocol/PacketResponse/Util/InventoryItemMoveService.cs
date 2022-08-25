@@ -3,9 +3,9 @@ using Core.Item;
 
 namespace Server.Protocol.PacketResponse.Util
 {
-    public class InventoryItemMoveService
+    public static class InventoryItemMoveService
     {
-        public void Move(ItemStackFactory itemStackFactory, IOpenableInventory sourceOpenableInventory, int sourceSlot,
+        public static void Move(ItemStackFactory itemStackFactory, IOpenableInventory sourceOpenableInventory, int sourceSlot,
             IOpenableInventory destinationOpenableInventory, int destinationSlot, int itemCount)
         {
             //移動元と移動先のスロットが同じ場合は移動しない

@@ -69,51 +69,61 @@ namespace Server.Protocol.PacketResponse
         }
 
 
-        private void ExportInventoryLog(PlayerInventoryData playerInventory)
+        /// <summary>
+        /// デバッグ用でインベントリの中身が知りたい時に使用する 
+        /// </summary>
+        public static void ExportInventoryLog(PlayerInventoryData playerInventory,bool isExportMain,bool isExportCraft,bool isExportGrab)
         {
             var inventoryStr = new StringBuilder();
             inventoryStr.AppendLine("Main Inventory");
-            
 
-            //メインインベントリのアイテムを設定
-            for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+
+            if (isExportMain)
             {
-                var id = playerInventory.MainOpenableInventory.GetItem(i).Id;
-                var count = playerInventory.MainOpenableInventory.GetItem(i).Count;
-
-                inventoryStr.Append(id + " " + count + "  ");
-                if ((i + 1) % PlayerInventoryConst.MainInventoryColumns == 0)
+                //メインインベントリのアイテムを設定
+                for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
                 {
-                    inventoryStr.AppendLine();
+                    var id = playerInventory.MainOpenableInventory.GetItem(i).Id;
+                    var count = playerInventory.MainOpenableInventory.GetItem(i).Count;
+
+                    inventoryStr.Append(id + " " + count + "  ");
+                    if ((i + 1) % PlayerInventoryConst.MainInventoryColumns == 0)
+                    {
+                        inventoryStr.AppendLine();
+                    }
                 }
             }
-            
-            
-            inventoryStr.AppendLine();
-            inventoryStr.AppendLine("Grab Inventory");
-            inventoryStr.AppendLine(playerInventory.GrabInventory.GetItem(0).Id + " " + playerInventory.GrabInventory.GetItem(0).Count + "  ");
-            
-            inventoryStr.AppendLine();
-            inventoryStr.AppendLine("Craft Inventory");
 
-            
-            //クラフトインベントリのアイテムを設定
-            for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
+            inventoryStr.AppendLine();
+
+            if (isExportGrab)
             {
-                var id = playerInventory.CraftingOpenableInventory.GetItem(i).Id;
-                var count = playerInventory.CraftingOpenableInventory.GetItem(i).Count;
+                inventoryStr.AppendLine("Grab Inventory");
+                inventoryStr.AppendLine(playerInventory.GrabInventory.GetItem(0).Id + " " + playerInventory.GrabInventory.GetItem(0).Count + "  ");
+            }
 
-                inventoryStr.Append(id + " " + count + "  ");
-                if ((i + 1) % PlayerInventoryConst.CraftingInventoryColumns == 0)
+
+            if (isExportCraft)
+            {
+                inventoryStr.AppendLine();
+                inventoryStr.AppendLine("Craft Inventory");
+                //クラフトインベントリのアイテムを設定
+                for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
                 {
-                    inventoryStr.AppendLine();
+                    var id = playerInventory.CraftingOpenableInventory.GetItem(i).Id;
+                    var count = playerInventory.CraftingOpenableInventory.GetItem(i).Count;
+
+                    inventoryStr.Append(id + " " + count + "  ");
+                    if ((i + 1) % PlayerInventoryConst.CraftingInventoryColumns == 0)
+                    {
+                        inventoryStr.AppendLine();
+                    }
                 }
+                inventoryStr.AppendLine("Craft Result Item");
+                inventoryStr.AppendLine(playerInventory.CraftingOpenableInventory.GetCreatableItem().Id + " " + playerInventory.CraftingOpenableInventory.GetCreatableItem().Count + "  ");
             }
             
-            
-            inventoryStr.AppendLine("Craft Result Item");
-            inventoryStr.AppendLine(playerInventory.CraftingOpenableInventory.GetCreatableItem().Id + " " + playerInventory.CraftingOpenableInventory.GetCreatableItem().Count + "  ");
-            
+            Console.WriteLine(inventoryStr);
         }
     }
     
