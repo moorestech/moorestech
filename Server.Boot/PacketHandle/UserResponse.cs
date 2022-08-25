@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using Server.Protocol;
 using Server.Util;
 
@@ -39,7 +37,12 @@ namespace Server.Boot.PacketHandle
                     
                     foreach (var packet in packets)
                     {
-                        Task.Run(() => ResponsesPacket(packet));
+                        var results = _packetResponseCreator.GetPacketResponse(packet);
+                        foreach (var result in results)
+                        {
+                            result.InsertRange(0,ToByteList.Convert((short)result.Count));
+                            _client.Send(result.ToArray());
+                        }
                     }
                 }
             }
@@ -49,20 +52,5 @@ namespace Server.Boot.PacketHandle
                 Console.WriteLine(e);
             }
         }
-
-
-        private async Task ResponsesPacket(List<byte> bytes)
-        {
-            var results = await Task.Run(() => _packetResponseCreator.GetPacketResponse(bytes));
-            foreach (var result in results)
-            {
-                //パケット長を先端に追加
-                result.InsertRange(0, ToByteList.Convert((short)result.Count));
-                _client.Send(result.ToArray());
-            }
-        }
-
-        
-        
     }
 }
