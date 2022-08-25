@@ -33,44 +33,35 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload.ToArray());
             
-            var inventory = GetInventory(data.InventoryId, data.PlayerId, x:data.X, data.Y);
-            if (inventory == null)return new List<List<byte>>();
-            
-            var grabInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).GrabInventory;
+            var fromInventory = GetInventory(data.FromInventoryId, data.PlayerId, data.FromInventoryX, data.FromInventoryY);
+            if (fromInventory == null)return new List<List<byte>>();
+            var toInventory = GetInventory(data.ToInventoryId, data.PlayerId, data.ToInventoryX, data.ToInventoryY);
+            if (toInventory == null)return new List<List<byte>>();
 
-            
-            if (data.ToGrab)
-            { 
-                InventoryItemMoveService.Move(
-                    _itemStackFactory,inventory,data.Slot,grabInventory,0,data.Count);
-            }
-            else
-            {
-                InventoryItemMoveService.Move(
-                    _itemStackFactory,grabInventory,0,inventory,data.Slot,data.Count);
-            }
-            
+
+            InventoryItemMoveService.Move(
+                    _itemStackFactory,fromInventory,data.FromInventorySlot,toInventory,data.ToInventorySlot,data.Count);
 
             return new List<List<byte>>();
         }
 
         private IOpenableInventory GetInventory(int inventoryId,int playerId, int x, int y)
         {
-            var inventoryType = (InventoryType)Enum.ToObject(typeof(InventoryType), inventoryId);
+            var inventoryType = (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), inventoryId);
             IOpenableInventory inventory = null;
             switch (inventoryType)
             {
-                case InventoryType.MainInventory:
+                case ItemMoveInventoryType.MainInventory:
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory;
                     break;
-                case InventoryType.CraftInventory:
+                case ItemMoveInventoryType.CraftInventory:
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).CraftingOpenableInventory;
                     break;
-                case InventoryType.BlockInventory:
-                    if (_openableBlockDatastore.ExistsComponentBlock(x,y))
-                    {
-                        inventory = _openableBlockDatastore.GetBlock(x, y);
-                    }
+                case ItemMoveInventoryType.GrabInventory:
+                    inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
+                    break;
+                case ItemMoveInventoryType.BlockInventory:
+                    inventory = _openableBlockDatastore.ExistsComponentBlock(x,y) ? _openableBlockDatastore.GetBlock(x, y) : null;; 
                     break;
             }
             return inventory;
@@ -88,32 +79,61 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public InventoryItemMoveProtocolMessagePack(int playerId, bool toGrab, InventoryType inventoryType, int slot, int count, int x, int y)
+        public InventoryItemMoveProtocolMessagePack(int playerId,int count, ItemMoveInventoryInfo fromInventory,ItemMoveInventoryInfo toInventory)
         {
             Tag = InventoryItemMoveProtocol.Tag;
             PlayerId = playerId;
-            ToGrab = toGrab;
-            InventoryId = (int)inventoryType;
-            Slot = slot;
             Count = count;
-            X = x;
-            Y = y;
+
+            //メッセージパックでenumは思いらしいのでintを使う
+            FromInventoryId = (int)fromInventory.ItemMoveInventoryType;
+            FromInventorySlot = fromInventory.Slot;
+            FromInventoryX = fromInventory.X;
+            FromInventoryY = fromInventory.Y;
+            
+            ToInventoryId = (int)toInventory.ItemMoveInventoryType;
+            ToInventorySlot = toInventory.Slot;
+            ToInventoryX = toInventory.X;
+            ToInventoryY = toInventory.Y;
         }
 
-        public bool ToGrab { get; set; }
-        public int InventoryId { get; set; }
         public int PlayerId { get; set; }
-        public int Slot { get; set; }
         public int Count { get; set; }
+        public int FromInventoryId { get; set; }
+        public int FromInventorySlot { get; set; }
+        public int FromInventoryX { get; set; }
+        public int FromInventoryY { get; set; }
         
-        public int X { get; set; }
-        public int Y { get; set; }
+        public int ToInventoryId { get; set; }
+        public int ToInventorySlot { get; set; }
+        public int ToInventoryX { get; set; }
+        public int ToInventoryY { get; set; }
+        
+        
+
     }
 
-    public enum InventoryType
+    public enum ItemMoveInventoryType
     {
         MainInventory,
         CraftInventory,
-        BlockInventory
+        GrabInventory,
+        BlockInventory,
+    }
+
+    public class ItemMoveInventoryInfo
+    {
+        public readonly ItemMoveInventoryType ItemMoveInventoryType;
+        public readonly int Slot;
+        public readonly int X;
+        public readonly int Y;
+
+        public ItemMoveInventoryInfo(ItemMoveInventoryType itemMoveInventoryType, int slot, int x, int y)
+        {
+            ItemMoveInventoryType = itemMoveInventoryType;
+            Slot = slot;
+            X = x;
+            Y = y;
+        }
     }
 }

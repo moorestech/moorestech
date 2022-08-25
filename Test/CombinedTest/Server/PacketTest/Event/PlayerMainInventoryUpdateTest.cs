@@ -126,7 +126,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         {
             return MessagePackSerializer.Serialize(
                 new InventoryItemMoveProtocolMessagePack(
-                    PlayerId,toGrab,InventoryType.MainInventory,inventorySlot,itemCount,0,0)).ToList();
+                    PlayerId,toGrab,ItemMoveInventoryType.MainInventory,inventorySlot,itemCount,0,0)).ToList();
         }
     }
 }
