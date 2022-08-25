@@ -12,6 +12,9 @@ using Server.Util;
 
 namespace Server.Protocol.PacketResponse
 {
+    /// <summary>
+    /// インベントリでマウスを使ってアイテムの移動を操作するプロトコルです
+    /// </summary>
     public class InventoryItemMoveProtocol : IPacketResponse
     {
         public const string Tag = "va:invItemMove";
