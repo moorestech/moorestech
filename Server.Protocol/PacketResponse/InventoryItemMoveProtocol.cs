@@ -128,7 +128,7 @@ namespace Server.Protocol.PacketResponse
         public readonly int X;
         public readonly int Y;
 
-        public ItemMoveInventoryInfo(ItemMoveInventoryType itemMoveInventoryType, int slot, int x, int y)
+        public ItemMoveInventoryInfo(ItemMoveInventoryType itemMoveInventoryType, int slot, int x = 0, int y = 0)
         {
             ItemMoveInventoryType = itemMoveInventoryType;
             Slot = slot;

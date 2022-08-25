@@ -124,9 +124,21 @@ namespace Test.CombinedTest.Server.PacketTest.Event
 
         private List<byte> PlayerInventoryItemMove(bool toGrab, int inventorySlot, int itemCount)
         {
+            ItemMoveInventoryInfo from;
+            ItemMoveInventoryInfo to;
+            if (toGrab)
+            {
+                from = new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, inventorySlot);
+                to = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
+            }
+            else
+            {
+                from = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
+                to = new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, inventorySlot);
+            }
+            
             return MessagePackSerializer.Serialize(
-                new InventoryItemMoveProtocolMessagePack(
-                    PlayerId,toGrab,ItemMoveInventoryType.MainInventory,inventorySlot,itemCount,0,0)).ToList();
+                new InventoryItemMoveProtocolMessagePack(PlayerId,itemCount,from,to)).ToList();
         }
     }
 }
