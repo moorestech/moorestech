@@ -10,9 +10,10 @@ namespace MainGame.UnityView.UI.CraftRecipe
 {
     public class ItemRecipePresenter : MonoBehaviour
     {
-        private readonly Dictionary<int, List<Recipe>> _itemIdToRecipe = new();
-        
-        
+        private readonly Dictionary<int, List<ViewerRecipeData>> _itemIdToRecipe = new();
+
+        public ViewerRecipeData CurrentViewerRecipeData { get; private set; }
+
         private  ItemRecipeView _itemRecipeView;
         
         public bool IsClicked => _isClickedCount == 0 || _isClickedCount == 1;
@@ -34,7 +35,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
                     _itemIdToRecipe[recipe.Result.Id] = list;
                 }
                 
-                list.Add(new Recipe(recipe.Items,recipe.Result,RecipeType.Craft));
+                list.Add(new ViewerRecipeData(recipe.Items,recipe.Result,ViewerRecipeType.Craft));
             }
             
             
@@ -50,7 +51,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
                         _itemIdToRecipe[output.OutputItem.Id] = list;
                     }
                     
-                    list.Add(new Recipe(recipe.ItemInputs,resultItem,RecipeType.Machine,recipe.BlockId));
+                    list.Add(new ViewerRecipeData(recipe.ItemInputs,resultItem,ViewerRecipeType.Machine,recipe.BlockId));
                 }
             }
             
@@ -73,13 +74,16 @@ namespace MainGame.UnityView.UI.CraftRecipe
             
             //TODO 複数レシピに対応させる
             var recipe = _itemIdToRecipe[itemId][0];
-            if (recipe.RecipeType == RecipeType.Craft)
+            CurrentViewerRecipeData = recipe;
+            
+            switch (recipe.RecipeType)
             {
-                _itemRecipeView.SetCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0]);
-            }
-            else if (recipe.RecipeType == RecipeType.Machine) 
-            {
-                _itemRecipeView.SetMachineCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0],recipe.BlockId);
+                case ViewerRecipeType.Craft:
+                    _itemRecipeView.SetCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0]);
+                    break;
+                case ViewerRecipeType.Machine:
+                    _itemRecipeView.SetMachineCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0],recipe.BlockId);
+                    break;
             }
         }
 
@@ -97,42 +101,4 @@ namespace MainGame.UnityView.UI.CraftRecipe
         }
     }
 
-    class Recipe
-    {
-        public readonly List<ItemStack> ItemStacks = new();
-        public readonly List<ItemStack> ResultItem = new();
-        public readonly RecipeType RecipeType;
-        public readonly int BlockId;
-
-        public Recipe(List<IItemStack> itemStacks, List<IItemStack> resultItem, RecipeType recipeType,int blockId)
-        {
-            foreach (var item in itemStacks)
-            {
-                ItemStacks.Add(new ItemStack(item.Id,item.Count));
-            }
-            foreach (var item in resultItem)
-            {
-                ResultItem.Add(new ItemStack(item.Id,item.Count));
-            }
-
-            BlockId = blockId;
-            RecipeType = recipeType;
-        }
-        public Recipe(List<IItemStack> itemStacks, IItemStack resultItem, RecipeType recipeType)
-        {
-            foreach (var item in itemStacks)
-            {
-                ItemStacks.Add(new ItemStack(item.Id,item.Count));
-            }
-            ResultItem.Add(new ItemStack(resultItem.Id,resultItem.Count));
-            
-            RecipeType = recipeType;
-        }
-    }
-
-    enum RecipeType
-    {
-        Craft,
-        Machine
-    }
 }
