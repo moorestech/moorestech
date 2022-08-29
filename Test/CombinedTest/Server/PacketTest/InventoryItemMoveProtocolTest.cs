@@ -38,7 +38,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory,0), new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory,0)));
+                new FromItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory,0), new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory,0)));
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,3), mainInventory.GetItem(0));
@@ -48,7 +48,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory,0), new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory,0)));
+                new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory,0), new ToItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory,0)));
             
             
             //移っているかチェック
@@ -70,7 +70,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.CraftInventory,0), new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory,0)));
+                new FromItemMoveInventoryInfo(ItemMoveInventoryType.CraftInventory,0), new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory,0)));
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,3), craftInventory.GetItem(0));
@@ -80,7 +80,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory,0), new ItemMoveInventoryInfo(ItemMoveInventoryType.CraftInventory,0)));
+                new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory,0), new ToItemMoveInventoryInfo(ItemMoveInventoryType.CraftInventory,0)));
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,8), craftInventory.GetItem(0));
@@ -107,7 +107,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory,1,5,10), new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory,0)));
+                new FromItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory,1,5,10), new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory,0)));
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,3), chest.GetItem(1));
@@ -117,18 +117,49 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory,0), new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory,1,5,10)));
+                new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory,0), new ToItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory,1,5,10)));
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1,8), chest.GetItem(1));
             Assert.AreEqual(itemStackFactory.Create(1,2), grabInventory.GetItem(0));
         }
+
+        [Test]
+        public void MainInventoryInsertTest()
+        {
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).CraftingOpenableInventory;
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            
+            //インベントリの設定
+            mainInventory.SetItem(0,1,10);
+            craftInventory.SetItem(0,1,10);
+            craftInventory.SetItem(2,2,10);
+            
+            //クラフトからメインにid 1のアイテムを移す
+            packet.GetPacketResponse(GetPacket(5,
+                new FromItemMoveInventoryInfo(ItemMoveInventoryType.CraftInventory,0), new ToItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory),ItemMoveType.InsertSlot));
+           
+            Assert.AreEqual(15,mainInventory.GetItem(0).Count);
+            Assert.AreEqual(5,craftInventory.GetItem(0).Count);
+            
+            
+            //id 2のアイテムをクラフトからメインに移す
+            packet.GetPacketResponse(GetPacket(10,
+                new FromItemMoveInventoryInfo(ItemMoveInventoryType.CraftInventory,2), new ToItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory),ItemMoveType.InsertSlot));
+            
+            Assert.AreEqual(10,mainInventory.GetItem(1).Count);
+            Assert.AreEqual(0,craftInventory.GetItem(2).Count);
+            
+        }
         
 
-        private List<byte> GetPacket(int count,ItemMoveInventoryInfo from,ItemMoveInventoryInfo to)
+        private List<byte> GetPacket(int count,FromItemMoveInventoryInfo from,ToItemMoveInventoryInfo to,ItemMoveType itemMoveType = ItemMoveType.SwapSlot)
         {
             return MessagePackSerializer.Serialize(
-                new InventoryItemMoveProtocolMessagePack(PlayerId,count,from,to)).ToList();
+                new InventoryItemMoveProtocolMessagePack(PlayerId,count,itemMoveType,from,to)).ToList();
         }
     }
 }

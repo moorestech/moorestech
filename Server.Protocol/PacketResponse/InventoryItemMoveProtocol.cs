@@ -76,18 +76,21 @@ namespace Server.Protocol.PacketResponse
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public InventoryItemMoveProtocolMessagePack() { }
 
-        public InventoryItemMoveProtocolMessagePack(int playerId,int count, ItemMoveInventoryInfo fromInventory,ItemMoveInventoryInfo toInventory)
+        public InventoryItemMoveProtocolMessagePack(int playerId,int count,ItemMoveType itemMoveType, FromItemMoveInventoryInfo fromInventory,ToItemMoveInventoryInfo toInventory)
         {
             Tag = InventoryItemMoveProtocol.Tag;
             PlayerId = playerId;
             Count = count;
             
+            ItemMoveTypeId = (int)itemMoveType;
             FromInventory = new ItemMoveInventoryInfoMessagePack(fromInventory);
             ToInventory = new ItemMoveInventoryInfoMessagePack(toInventory);
         }
 
         public int PlayerId { get; set; }
         public int Count { get; set; }
+        public int ItemMoveTypeId { get; set; }
+        public ItemMoveType ItemMoveType => (ItemMoveType)ItemMoveTypeId;
         
         public ItemMoveInventoryInfoMessagePack FromInventory { get; set; }
         public ItemMoveInventoryInfoMessagePack ToInventory { get; set; }
@@ -102,24 +105,25 @@ namespace Server.Protocol.PacketResponse
         public ItemMoveInventoryType InventoryType => (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), InventoryId);
         
         
-
-        [Obsolete("シリアライズ用の値です。ItemMoveTypeを使用してください")]
-        public int ItemMoveId { get; set; }
-        public ItemMoveType ItemMoveType => (ItemMoveType)Enum.ToObject(typeof(ItemMoveType), ItemMoveId);
-        
-        
         public  int Slot{ get; set; }
         public  int X { get; set; }
         public  int Y { get; set; }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public  ItemMoveInventoryInfoMessagePack(){}
-        
-        public ItemMoveInventoryInfoMessagePack(ItemMoveInventoryInfo info)
+        public ItemMoveInventoryInfoMessagePack(FromItemMoveInventoryInfo info)
         {
             //メッセージパックでenumは重いらしいのでintを使う
             InventoryId = (int)info.ItemMoveInventoryType;
-            ItemMoveId = (int)info.ItemMoveType;
+            Slot = info.Slot;
+            X = info.X;
+            Y = info.Y;
+        }
+        
+        public ItemMoveInventoryInfoMessagePack(ToItemMoveInventoryInfo info)
+        {
+            //メッセージパックでenumは重いらしいのでintを使う
+            InventoryId = (int)info.ItemMoveInventoryType;
             Slot = info.Slot;
             X = info.X;
             Y = info.Y;
