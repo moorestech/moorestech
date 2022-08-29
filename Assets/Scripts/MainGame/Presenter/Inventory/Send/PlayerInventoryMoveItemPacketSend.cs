@@ -4,6 +4,7 @@ using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.UIState;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -34,20 +35,20 @@ namespace MainGame.Presenter.Inventory.Send
         /// </summary>
         private void ItemSlotGrabbed(int slot, int count)
         {
-            ItemMoveInventoryInfo from;
-            ItemMoveInventoryInfo to;
+            FromItemMoveInventoryInfo from;
+            ToItemMoveInventoryInfo to;
             //スロット番号はメインインベントリから始まり、サブインベントリがメインインベントリの最後+1から始まるのでこのifが必要
             if (slot < PlayerInventoryConstant.MainInventorySize)
             {
-                from = new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, slot);
-                to = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
+                from = new FromItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, slot);
+                to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
             }
             else
             {
-                from = new ItemMoveInventoryInfo(_currentSubInventoryType, slot);
-                to = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
+                from = new FromItemMoveInventoryInfo(_currentSubInventoryType, slot);
+                to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
             }
-            _inventoryMoveItem.Send(count,from,to);
+            _inventoryMoveItem.Send(count,ItemMoveType.SwapSlot,from,to);
         }
 
         /// <summary>
@@ -55,20 +56,20 @@ namespace MainGame.Presenter.Inventory.Send
         /// </summary>
         private void ItemSlotAdded(int slot, int addCount)
         {
-            ItemMoveInventoryInfo from;
-            ItemMoveInventoryInfo to;
+            FromItemMoveInventoryInfo from;
+            ToItemMoveInventoryInfo to;
             //スロット番号はメインインベントリから始まり、サブインベントリがメインインベントリの最後+1から始まるのでこのifが必要
             if (slot < PlayerInventoryConstant.MainInventorySize)
             {
-                from = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
-                to = new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, slot);
+                from = new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
+                to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, slot);
             }
             else
             {
-                from = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
-                to = new ItemMoveInventoryInfo(_currentSubInventoryType, slot);
+                from = new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
+                to = new ToItemMoveInventoryInfo(_currentSubInventoryType, slot);
             }
-            _inventoryMoveItem.Send(addCount,from,to);
+            _inventoryMoveItem.Send(addCount,ItemMoveType.SwapSlot,from,to);
         }
 
         private void OnStateChanged(UIStateEnum state)

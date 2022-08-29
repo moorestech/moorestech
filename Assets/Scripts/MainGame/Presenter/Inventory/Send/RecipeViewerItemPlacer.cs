@@ -14,24 +14,19 @@ namespace MainGame.Presenter.Inventory.Send
         {
             _inventoryMoveItemProtocol = inventoryMoveItemProtocol;
             _playerInventoryViewModel = playerInventoryViewModel;
-            recipePlaceButton.OnClick += Place;
+            recipePlaceButton.OnClick += ReplaceCraftRecipe;
         }
 
-        private void Place(ViewerRecipeData viewerRecipeData)
+
+        private void ReplaceCraftRecipe(ViewerRecipeData viewerRecipeData)
         {
             if (viewerRecipeData.RecipeType == ViewerRecipeType.Craft)
             {
                 
-            }
+                
             
-        }
-
-        
-        
-        
-        
-        private void ReplaceCraftRecipe(ViewerRecipeData viewerRecipeData)
-        {
+                
+            }
             
         }
 

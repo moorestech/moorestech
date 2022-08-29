@@ -4,6 +4,7 @@ using MainGame.Network.Settings;
 using MainGame.Network.Util;
 using MessagePack;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util;
 using UnityEngine;
 
 namespace MainGame.Network.Send
@@ -18,10 +19,10 @@ namespace MainGame.Network.Send
             _socketSender = socketSender;
             _playerId = playerConnectionSetting.PlayerId;
         }
-        public void Send(int count, ItemMoveInventoryInfo fromInventory,ItemMoveInventoryInfo toInventory)
+        public void Send(int count,ItemMoveType itemMoveType, FromItemMoveInventoryInfo fromInventory,ToItemMoveInventoryInfo toInventory)
         {
             _socketSender.Send(MessagePackSerializer.Serialize(new InventoryItemMoveProtocolMessagePack(
-                _playerId, count, fromInventory, toInventory)).ToList());
+                _playerId, count,itemMoveType, fromInventory, toInventory)).ToList());
         }
     }
 }
