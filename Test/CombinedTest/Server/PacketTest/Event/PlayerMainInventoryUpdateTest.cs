@@ -8,7 +8,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
-
+using Server.Protocol.PacketResponse.Util;
 using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest.Event

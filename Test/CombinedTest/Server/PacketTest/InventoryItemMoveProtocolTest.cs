@@ -11,7 +11,7 @@ using NUnit.Framework;
 using Server;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
-
+using Server.Protocol.PacketResponse.Util;
 using Server.Util;
 
 using Test.Module.TestMod;
