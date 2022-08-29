@@ -38,9 +38,30 @@ namespace Server.Protocol.PacketResponse
             var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.X, data.ToInventory.Y);
             if (toInventory == null)return new List<List<byte>>();
 
+            var fromSlot = data.FromInventory.Slot;
+            var toSlot = data.ToInventory.Slot;
 
-            InventoryItemMoveService.Move(
-                    _itemStackFactory,fromInventory,data.FromInventory.Slot,toInventory,data.ToInventory.Slot,data.Count);
+            switch (data.ItemMoveType)
+            {
+                case ItemMoveType.SwapSlot:
+                    InventoryItemMoveService.Move(
+                        _itemStackFactory,fromInventory,fromSlot,toInventory,toSlot,data.Count);
+                    break;
+                case ItemMoveType.InsertSlot:
+                {
+                    var insertItemId = fromInventory.GetItem(fromSlot).Id;
+                    //持っているアイテム以上のアイテムをinsertしないようにする
+                    var insertItemCount = Math.Min(fromInventory.GetItem(fromSlot).Count,data.Count); 
+                    
+                    var insertResult = toInventory.InsertItem(insertItemId,insertItemCount);
+                    
+                    //挿入した結果手元に何個アイテムが残るかを計算
+                    var returnItemCount = fromInventory.GetItem(fromSlot).Count - insertItemCount + insertResult.Count;
+                    
+                    fromInventory.SetItem(fromSlot,insertItemId,returnItemCount);
+                    break;
+                }
+            }
 
             return new List<List<byte>>();
         }
