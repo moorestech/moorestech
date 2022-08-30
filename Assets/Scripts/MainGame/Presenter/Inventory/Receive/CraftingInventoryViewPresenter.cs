@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Core.Item;
+using Game.PlayerInventory.Interface;
 using MainGame.Basic;
 using MainGame.Network.Event;
 using MainGame.UnityView.UI.Inventory.Control;
@@ -10,16 +12,20 @@ namespace MainGame.Presenter.Inventory.Receive
     {
         private readonly PlayerInventoryViewModelController _playerInventoryViewModelController;
         private readonly PlayerInventoryViewModel _playerInventoryViewModel;
+        
+        private const int MainSize = PlayerInventoryConst.MainInventorySize;
+        private const int CraftSize = PlayerInventoryConst.CraftingSlotSize;
 
         public CraftingInventoryViewPresenter(ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent,PlayerInventoryViewModelController playerInventoryViewModelController,PlayerInventoryViewModel playerInventoryViewModel)
         {
+            
             _playerInventoryViewModelController = playerInventoryViewModelController;
             _playerInventoryViewModel = playerInventoryViewModel;
             receiveCraftingInventoryEvent.OnCraftingInventoryUpdate += UpdateInventory;
             receiveCraftingInventoryEvent.OnCraftingInventorySlotUpdate += UpdateSlotInventory;
         }
 
-        public void UpdateInventory(CraftingInventoryUpdateProperties properties)
+        private void UpdateInventory(CraftingInventoryUpdateProperties properties)
         {
             //サブインベントリの内容を設定する
             var subInventory = new List<ItemStack>();
@@ -28,33 +34,28 @@ namespace MainGame.Presenter.Inventory.Receive
             
             _playerInventoryViewModel.SetSubInventory(subInventory);
             
-            
             //イベントの発火
             for (int i = 0; i < properties.ItemStacks.Count; i++)
             {
                 //viewのUIにインベントリが更新されたことを通知する
-                var id = properties.ItemStacks[i].ID;
-                var count = properties.ItemStacks[i].Count;
-                _playerInventoryViewModelController.SetInventoryItem(PlayerInventoryConstant.MainInventorySize + i,id,count);
+                SetInventory(MainSize+ i,properties.ItemStacks[i]);
             }
             //クラフト結果のアイテムを更新する
-            _playerInventoryViewModelController.SetInventoryItem(
-                PlayerInventoryConstant.MainInventorySize + PlayerInventoryConstant.CraftingSlotSize,properties.ResultItemStack.ID,properties.ResultItemStack.Count);
+            SetInventory(MainSize + CraftSize,properties.ResultItemStack);
         }
 
-        public void UpdateSlotInventory(CraftingInventorySlotUpdateProperties properties)
+        private void UpdateSlotInventory(CraftingInventorySlotUpdateProperties properties)
         {
             var slot = properties.SlotId;
-            var id = properties.ItemStack.ID;
-            var count = properties.ItemStack.Count;
             
             //更新対象のインベントリにアイテムを設定
-            _playerInventoryViewModelController.SetInventoryItem(PlayerInventoryConstant.MainInventorySize + slot,id,count);
+            SetInventory(MainSize + slot,properties.ItemStack);
             //結果スロットにアイテムを設定
-            _playerInventoryViewModelController.SetInventoryItem(
-                PlayerInventoryConstant.MainInventorySize + PlayerInventoryConstant.CraftingSlotSize,properties.ResultItemStack.ID,properties.ResultItemStack.Count);
+            SetInventory(MainSize + PlayerInventoryConst.CraftingSlotSize,properties.ResultItemStack);
         }
-
+        
+        
+        private void SetInventory(int slot, ItemStack itemStack) { _playerInventoryViewModelController.SetInventoryItem(slot,itemStack.ID,itemStack.Count); }
         public void Initialize() { }
     }
 }
