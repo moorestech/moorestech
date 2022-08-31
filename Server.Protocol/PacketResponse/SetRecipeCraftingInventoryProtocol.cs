@@ -23,9 +23,10 @@ namespace Server.Protocol.PacketResponse
             var mainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
             var craftingInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).CraftingOpenableInventory;
             var grabInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).GrabInventory;
-            
-            
 
+
+
+            return new List<List<byte>>();
         }
     }
     

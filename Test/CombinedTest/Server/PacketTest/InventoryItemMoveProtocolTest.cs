@@ -131,7 +131,6 @@ namespace Test.CombinedTest.Server.PacketTest
             
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).CraftingOpenableInventory;
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             //インベントリの設定
             mainInventory.SetItem(0,1,10);
