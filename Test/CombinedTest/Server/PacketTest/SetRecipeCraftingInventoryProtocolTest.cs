@@ -40,7 +40,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 new(0,0),new(0,0),new(0,0)
             };
             //レシピの設置を送信
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new SetRecipeCraftingInventoryProtocolMessagePack(recipe)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new SetRecipeCraftingInventoryProtocolMessagePack(0,recipe)).ToList());
             
             //アイテムが綺麗に分散して配置されているかチェック
             Assert.AreEqual(1,craftInventory.GetItem(0).Id);

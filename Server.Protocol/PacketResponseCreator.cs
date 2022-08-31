@@ -35,6 +35,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(SaveProtocol.Tag,new SaveProtocol(serviceProvider));
             _packetResponseDictionary.Add(QuestProgressRequestProtocol.Tag,new QuestProgressRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(EarnQuestRewardProtocol.Tag,new EarnQuestRewardProtocol(serviceProvider));
+            _packetResponseDictionary.Add(SetRecipeCraftingInventoryProtocol.Tag,new SetRecipeCraftingInventoryProtocol(serviceProvider));
 
             serviceProvider.GetService<VeinGenerator>();
         }
