@@ -56,7 +56,7 @@ namespace Test.CombinedTest.Game
             //インベントリをアイテムで満たす
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
-                mainInventory.SetItem(0,1,id1MaxStack);
+                mainInventory.SetItem(i,1,id1MaxStack);
             }
             //クラフトインベントリの設定
             craftInventory.SetItem(0,1,10);
