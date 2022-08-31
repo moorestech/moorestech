@@ -79,7 +79,7 @@ namespace Test.CombinedTest.Game
             //クラフトからメインにid 1のアイテムを全て移す
             InventoryItemInsertService.Insert(craftInventory,0,mainInventory,10);
             //挿入されていることをテスト
-            Assert.AreEqual(5,mainInventory.GetItem(0).Count);
+            Assert.AreEqual(5,craftInventory.GetItem(0).Count);
         }
     }
 }
