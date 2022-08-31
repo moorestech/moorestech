@@ -51,10 +51,8 @@ namespace Test.CombinedTest.Game
             
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).CraftingOpenableInventory;
-            var itemConfig = serviceProvider.GetService<ItemConfig>();
+            var id1MaxStack = serviceProvider.GetService<IItemConfig>().GetItemConfig(1).MaxStack;
 
-            var id1MaxStack = itemConfig.GetItemConfig(1).MaxStack;
-            
             //インベントリをアイテムで満たす
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
