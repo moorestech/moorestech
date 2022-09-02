@@ -9,6 +9,7 @@ namespace MainGame.UnityView.UI.UIState
         private readonly RecipeViewerObject _recipeViewerObject;
         private readonly CraftRecipeItemListViewer _craftRecipeItemListViewer;
         
+        
 
         private UIStateEnum _lastInventoryUI;
 

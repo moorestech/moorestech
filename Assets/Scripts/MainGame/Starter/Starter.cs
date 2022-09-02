@@ -81,6 +81,7 @@ namespace MainGame.Starter
         [SerializeField] private SelectHotBarView selectHotBarView;
         [SerializeField] private ItemRecipeView itemRecipeView;
         [SerializeField] private QuestUI QuestUI;
+        [SerializeField] private RecipePlaceButton recipePlaceButton;
         
         [SerializeField] private GrabbedItemImagePresenter grabbedItemImagePresenter;
 
@@ -226,6 +227,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(craftRecipeItemListViewer);
             builder.RegisterComponent(playerInventorySlots);
             builder.RegisterComponent(questViewerObject);
+            builder.RegisterComponent(recipePlaceButton);
             
             
             builder.RegisterComponent<IPlayerPosition>(playerPosition);

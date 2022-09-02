@@ -981,6 +981,7 @@ MonoBehaviour:
   selectHotBarView: {fileID: 340415641}
   itemRecipeView: {fileID: 2090249934}
   QuestUI: {fileID: 1548914974}
+  recipePlaceButton: {fileID: 1319172663}
   grabbedItemImagePresenter: {fileID: 135985977}
   uIStateControl: {fileID: 1520253678}
   loadingFinishDetector: {fileID: 981512584}
@@ -989,12 +990,10 @@ MonoBehaviour:
   pauseMenuObject: {fileID: 816961701}
   deleteBarObject: {fileID: 110116535}
   recipeViewerObject: {fileID: 140883334}
-  itemRecipePresenter: {fileID: 1868551568}
+  itemRecipePresenter: {fileID: 1319172662}
   craftRecipeItemListViewer: {fileID: 529398943}
   playerInventoryPresenter: {fileID: 2030610761}
   playerInventorySlots: {fileID: 2030610762}
-  playerInventoryItemNamePresenter: {fileID: 1834001113}
-  recipeViewerItemNamePresenter: {fileID: 1379452831}
   questViewerObject: {fileID: 345007850}
   blockPlacePreview: {fileID: 1341326065}
   oreMapTileClickDetect: {fileID: 1857732744}
@@ -1024,6 +1023,28 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1319172662 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4135037409227276873, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6317f7c691ee46b99b3dca70d64eeb10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1319172663 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4167738205153046430, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 135985972}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6182b1abd7d0400aa3c9eafd994d7aef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &1341326064 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8246183721359946851, guid: ecd6bdc7e6a738a4bb1e8d5e4f0135d9, type: 3}
@@ -1116,17 +1137,6 @@ MonoBehaviour:
   m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
   m_DeselectOnBackgroundClick: 1
   m_PointerBehavior: 0
---- !u!114 &1379452831 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6293454036772858141, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-  m_PrefabInstance: {fileID: 135985972}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b8ff6b7ca83415f991e2c841ebf2868, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1389156164
 GameObject:
   m_ObjectHideFlags: 0
@@ -1367,17 +1377,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbe0bd8b61ed48bface9c481ec026095, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1834001113 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2280525633465901022, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-  m_PrefabInstance: {fileID: 135985972}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f3a376eff5f44c2baec2c440d804f5e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1857732741
 GameObject:
   m_ObjectHideFlags: 0
@@ -1433,17 +1432,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 743d0a5d64b94c21ab8f4038b39c45da, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1868551568 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1111281765082534015, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-  m_PrefabInstance: {fileID: 135985972}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6317f7c691ee46b99b3dca70d64eeb10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &2030610761 stripped
