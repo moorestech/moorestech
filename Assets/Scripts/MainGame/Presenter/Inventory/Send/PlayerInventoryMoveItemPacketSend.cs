@@ -5,6 +5,8 @@ using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.UIState;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util;
+using Server.Protocol.PacketResponse.Util.InventoryMoveUitl;
+using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using UnityEngine;
 using VContainer.Unity;
 

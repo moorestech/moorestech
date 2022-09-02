@@ -5,6 +5,8 @@ using MainGame.Network.Util;
 using MessagePack;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util;
+using Server.Protocol.PacketResponse.Util.InventoryMoveUitl;
+using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using UnityEngine;
 
 namespace MainGame.Network.Send
