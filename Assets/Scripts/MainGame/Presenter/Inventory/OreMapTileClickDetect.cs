@@ -41,14 +41,14 @@ namespace MainGame.Presenter.Inventory
             // マウスでクリックした位置にタイルマップがあるとき
             if (!_input.Playable.ScreenClick.triggered) return false;
             // UIのクリックかどうかを判定
-            if (!EventSystem.current.IsPointerOverGameObject()) return false;
+            if (EventSystem.current.IsPointerOverGameObject()) return false;
             if (!Physics.Raycast(ray, out var hit)) return false;
             if (hit.collider.gameObject.GetComponent<OreTileObject>() == null) return false;
-            
+
             return true;
         }
 
-        public Vector2Int GetClickPosition()
+        private Vector2Int GetClickPosition()
         {
             var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
