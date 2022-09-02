@@ -1,3 +1,4 @@
+using System;
 using Core.Inventory;
 using Core.Item;
 
@@ -5,8 +6,26 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
 {
     public static class InventoryItemMoveService
     {
-        public static void Move(ItemStackFactory itemStackFactory, IOpenableInventory fromInventory, int fromSlot,
-            IOpenableInventory toInventory, int toSlot, int itemCount)
+        public static void Move(ItemStackFactory itemStackFactory, IOpenableInventory fromInventory, int fromSlot, IOpenableInventory toInventory, int toSlot, int itemCount)
+        {
+            try
+            {
+                ExecuteMove(itemStackFactory, fromInventory, fromSlot, toInventory, toSlot, itemCount);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                //TODO ログ基盤に入れる
+                string fromInventoryName = fromInventory.GetType().Name;
+                string toInventoryName = toInventory.GetType().Name;
+                Console.WriteLine($"InventoryItemMoveService.Move: \n {e.Message} \n fromInventory={fromInventoryName} fromSlot={fromSlot} toInventory={toInventoryName} toSlot={toSlot} itemCount={itemCount}  \n {e.StackTrace}");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+
+        private static void ExecuteMove(ItemStackFactory itemStackFactory, IOpenableInventory fromInventory, int fromSlot, IOpenableInventory toInventory, int toSlot, int itemCount)
         {
             //移動元と移動先のスロットが同じ場合は移動しない
             if (fromInventory.GetHashCode() == toInventory.GetHashCode() && fromSlot == toSlot)
@@ -51,6 +70,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
                 toInventory.SetItem(toSlot, originItem);
                 fromInventory.SetItem(fromSlot, destinationInventoryItem);
             }
+            
         }
     }
 }
