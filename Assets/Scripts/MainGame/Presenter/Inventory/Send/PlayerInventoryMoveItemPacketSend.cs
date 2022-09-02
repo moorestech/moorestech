@@ -47,6 +47,7 @@ namespace MainGame.Presenter.Inventory.Send
             }
             else
             {
+                slot -= PlayerInventoryConstant.MainInventorySize; 
                 from = new FromItemMoveInventoryInfo(_currentSubInventoryType, slot);
                 to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
             }
@@ -68,6 +69,7 @@ namespace MainGame.Presenter.Inventory.Send
             }
             else
             {
+                slot -= PlayerInventoryConstant.MainInventorySize;
                 from = new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
                 to = new ToItemMoveInventoryInfo(_currentSubInventoryType, slot);
             }
