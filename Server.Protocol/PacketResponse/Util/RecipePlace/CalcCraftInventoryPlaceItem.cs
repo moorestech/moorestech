@@ -78,12 +78,14 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 var id = recipe[i].Id;
-                if (id == ItemConst.EmptyItemId)
+                //レシピがからのアイテムか、メインインベントリに当該アイテムがなければ空のアイテムを入れる
+                if (id == ItemConst.EmptyItemId || !mainInventoryRequiredItemCount.ContainsKey(id))
                 {
                     craftInventoryPlaceItem[i] = itemStackFactory.CreatEmpty();
                     continue;
                 }
-                
+
+
                 //一旦あまりを考慮しないアイテム数を計算する
                 //メインインベントリに入っているアイテム数 / 必要とするスロット数 = スロットに入るアイテム数　となる
                 var count = mainInventoryRequiredItemCount[id] / requiredItemSlotCount[id];
