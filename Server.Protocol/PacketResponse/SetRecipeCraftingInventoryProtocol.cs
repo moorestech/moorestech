@@ -72,10 +72,16 @@ namespace Server.Protocol.PacketResponse
         {
             //必要なアイテムがMainインベントリにあるかチェックするための必要アイテム数辞書を作成
             var requiredItemCount = new Dictionary<int, int>();
-            requiredItemCount[0] = 1;
             foreach (var item in recipeItem)
             {
-                requiredItemCount[item.Id] += item.Count;
+                if (requiredItemCount.ContainsKey(item.Id))
+                {
+                    requiredItemCount[item.Id] += item.Count;
+                }
+                else
+                {
+                    requiredItemCount.Add(item.Id, item.Count);
+                }
             }
             //必要なアイテム数があるかチェックするためにMainインベントリを走査
             var mainInventoryRequiredItemCount = new Dictionary<int, int>();
@@ -84,7 +90,14 @@ namespace Server.Protocol.PacketResponse
                 var itemId = mainInventory.GetItem(i).Id;
                 if (!requiredItemCount.ContainsKey(itemId)) continue;
 
-                mainInventoryRequiredItemCount[itemId] += mainInventory.GetItem(i).Count;
+                if (mainInventoryRequiredItemCount.ContainsKey(itemId))
+                {
+                    mainInventoryRequiredItemCount[itemId] += mainInventory.GetItem(i).Count;
+                }
+                else
+                {
+                    mainInventoryRequiredItemCount.Add(itemId, mainInventory.GetItem(i).Count);
+                }
             }
             
             //アイテム数が足りているかチェックする
@@ -106,7 +119,16 @@ namespace Server.Protocol.PacketResponse
             var requiredItemSlotCount = new Dictionary<int, int>();
             foreach (var item in recipe)
             {
-                requiredItemSlotCount[item.Id] += item.Count;
+                if (item.Id == ItemConst.EmptyItemId) continue;
+                
+                if (requiredItemSlotCount.ContainsKey(item.Id))
+                {
+                    requiredItemSlotCount[item.Id] += item.Count;
+                }
+                else
+                {
+                    requiredItemSlotCount.Add(item.Id, item.Count);
+                }
             }
             
             
@@ -115,7 +137,11 @@ namespace Server.Protocol.PacketResponse
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
                 var id = recipe[i].Id;
-                if (id == ItemConst.EmptyItemId)  continue;
+                if (id == ItemConst.EmptyItemId)
+                {
+                    craftInventoryPlaceItem[i] = itemStackFactory.CreatEmpty();
+                    continue;
+                }
                 
                 //一旦あまりを考慮しないアイテム数を計算する
                 //メインインベントリに入っているアイテム数 / 必要とするスロット数 = スロットに入るアイテム数　となる
