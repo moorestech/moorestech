@@ -12,6 +12,8 @@ using Server;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util;
+using Server.Protocol.PacketResponse.Util.InventoryMoveUitl;
+using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Util;
 
 using Test.Module.TestMod;

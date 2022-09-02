@@ -8,6 +8,7 @@ using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util;
+using Server.Protocol.PacketResponse.Util.InventoryService;
 using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse

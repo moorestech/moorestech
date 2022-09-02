@@ -9,6 +9,8 @@ using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util;
+using Server.Protocol.PacketResponse.Util.InventoryMoveUitl;
+using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest.Event

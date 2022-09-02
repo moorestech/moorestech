@@ -1,7 +1,7 @@
 using System;
 using Core.Inventory;
 
-namespace Server.Protocol.PacketResponse.Util
+namespace Server.Protocol.PacketResponse.Util.InventoryService
 {
     public static class InventoryItemInsertService
     {

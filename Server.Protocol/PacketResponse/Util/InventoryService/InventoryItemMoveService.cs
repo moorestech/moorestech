@@ -1,7 +1,7 @@
 using Core.Inventory;
 using Core.Item;
 
-namespace Server.Protocol.PacketResponse.Util
+namespace Server.Protocol.PacketResponse.Util.InventoryService
 {
     public static class InventoryItemMoveService
     {

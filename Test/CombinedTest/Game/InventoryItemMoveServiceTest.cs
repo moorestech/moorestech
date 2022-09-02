@@ -5,8 +5,7 @@ using NUnit.Framework;
 using Server;
 using Server.Boot;
 using Server.Protocol.PacketResponse.Util;
-
-
+using Server.Protocol.PacketResponse.Util.InventoryService;
 using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Game
