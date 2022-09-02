@@ -1,4 +1,4 @@
-﻿namespace Server.Protocol.PacketResponse.Util
+﻿namespace Server.Protocol.PacketResponse.Util.InventoryMoveUitl
 {
     public enum ItemMoveInventoryType
     {

@@ -8,6 +8,9 @@ using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util;
+using Server.Protocol.PacketResponse.Util.InventoryMoveUitl;
+using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using Server.Protocol.PacketResponse.Util.InventoryService;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
@@ -49,16 +52,7 @@ namespace Server.Protocol.PacketResponse
                     break;
                 case ItemMoveType.InsertSlot:
                 {
-                    var insertItemId = fromInventory.GetItem(fromSlot).Id;
-                    //持っているアイテム以上のアイテムをinsertしないようにする
-                    var insertItemCount = Math.Min(fromInventory.GetItem(fromSlot).Count,data.Count); 
-                    
-                    var insertResult = toInventory.InsertItem(insertItemId,insertItemCount);
-                    
-                    //挿入した結果手元に何個アイテムが残るかを計算
-                    var returnItemCount = fromInventory.GetItem(fromSlot).Count - insertItemCount + insertResult.Count;
-                    
-                    fromInventory.SetItem(fromSlot,insertItemId,returnItemCount);
+                    InventoryItemInsertService.Insert(fromInventory,fromSlot,toInventory,data.Count);
                     break;
                 }
             }
