@@ -4,7 +4,7 @@ using Server.Protocol.PacketResponse.Util.InventoryService;
 
 namespace Server.Protocol.PacketResponse.Util.RecipePlace
 {
-    public class MovingItemToMainInventory
+    public static class MovingItemToMainInventory
     {
         
         /// <summary>

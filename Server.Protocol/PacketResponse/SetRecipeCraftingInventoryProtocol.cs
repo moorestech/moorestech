@@ -58,6 +58,7 @@ namespace Server.Protocol.PacketResponse
         public SetRecipeCraftingInventoryProtocolMessagePack(int playerId,ItemMessagePack[] recipe)
         {
             Tag = SetRecipeCraftingInventoryProtocol.Tag;
+            PlayerId = playerId;
             Recipe = recipe;
         }
         
