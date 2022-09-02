@@ -148,6 +148,7 @@ namespace MainGame.Starter
             builder.Register<InventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<RequestQuestProgressProtocol>(Lifetime.Singleton);
             builder.Register<SendEarnQuestRewardProtocol>(Lifetime.Singleton);
+            builder.Register<SendSetRecipeCraftingInventoryProtocol>(Lifetime.Singleton);
 
             //インベントリのUIコントロール
             builder.Register<PlayerInventoryViewModel>(Lifetime.Singleton);
@@ -168,6 +169,7 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<CraftPacketSend>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<QuestUIPresenter>();
+            builder.RegisterEntryPoint<RecipeViewerItemPlacer>();
             
             //インプット
             builder.Register<MoorestechInputSettings>(Lifetime.Singleton);
