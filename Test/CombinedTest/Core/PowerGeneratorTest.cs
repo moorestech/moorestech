@@ -19,7 +19,7 @@ namespace Test.CombinedTest.Core
 {
     public class PowerGeneratorTest
     {
-        private const int PowerGeneratorId = 5;
+        private const int PowerGeneratorId = UnitTestMod.GeneratorId;
         private const int FuelItem1Id = 1;
         private const int FuelItem2Id = 2;
 

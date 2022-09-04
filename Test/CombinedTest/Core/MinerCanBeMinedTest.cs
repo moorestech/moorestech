@@ -15,7 +15,7 @@ namespace Test.CombinedTest.Core
 {
     public class MinerCanBeMinedTest
     {
-        private int MinerId = 6;
+        private int MinerId = UnitTestMod.MinerId;
         [Test]
         public void MinerTest()
         {

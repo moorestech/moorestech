@@ -22,7 +22,7 @@ namespace Test.CombinedTest.Core
 {
     public class MinerMiningTest
     {
-        private int MinerId = 6;
+        private int MinerId = UnitTestMod.MinerId;
 
         //一定時間たったら鉱石が出るテスト
         [Test]

@@ -19,7 +19,7 @@ namespace Test.UnitTest.Game.SaveLoad
 {
     public class PowerGeneratorSaveLoadTest
     {
-        private const int PowerGeneratorId = 5;
+        private const int PowerGeneratorId = UnitTestMod.GeneratorId;
 
         [Test]
         public void PowerGeneratorTest()

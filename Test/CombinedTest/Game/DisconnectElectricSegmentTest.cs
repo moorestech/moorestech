@@ -14,9 +14,9 @@ namespace Test.CombinedTest.Game
     //電柱が無くなったときにセグメントが切断されるテスト
     public class DisconnectElectricSegmentTest
     {
-        private const int ElectricPoleId = 4;
-        private const int MachineId = 1;
-        private const int PowerGenerateId = 5;
+        private const int ElectricPoleId = UnitTestMod.ElectricPoleId;
+        private const int MachineId = UnitTestMod.MachineId;
+        private const int GenerateId = UnitTestMod.GeneratorId;
         
         [Test]
         public void RemoveElectricPoleToDisconnectSegment()
@@ -38,9 +38,9 @@ namespace Test.CombinedTest.Game
             
             //発電機と機械の設定
             worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 3), 0, 1, BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(PowerGenerateId, 4), 0, -1, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 4), 0, -1, BlockDirection.North);
             
-            worldBlockDatastore.AddBlock(blockFactory.Create(PowerGenerateId, 5), 3, 1, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 5), 3, 1, BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 6), 6, 1, BlockDirection.North);
             
             var worldElectricSegment = saveServiceProvider.GetService<IWorldElectricSegmentDatastore>();
@@ -105,9 +105,9 @@ namespace Test.CombinedTest.Game
             
             //発電機と機械の設定
             worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 103), 0, 1, BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(PowerGenerateId, 104), 0, -1, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 104), 0, -1, BlockDirection.North);
             
-            worldBlockDatastore.AddBlock(blockFactory.Create(PowerGenerateId, 105), 3, -1, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 105), 3, -1, BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 106), 6, 1, BlockDirection.North);
             
             

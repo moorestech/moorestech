@@ -26,9 +26,9 @@ namespace Test.UnitTest.Game
     /// </summary>
     public class BlockPlaceToConnectionBlockTest
     {
-        const int MachineId = 1;
-        const int BeltConveyorId = 3;
-        private const int ChestId = 7;
+        const int MachineId = UnitTestMod.MachineId;
+        const int BeltConveyorId = UnitTestMod.BeltConveyorId;
+        private const int ChestId = UnitTestMod.ChestId;
 
         /// <summary>
         /// 機械にベルトコンベアが自動でつながるかをテストする
@@ -189,7 +189,15 @@ namespace Test.UnitTest.Game
             
             Assert.AreEqual(targetChest.EntityId,connector.EntityId);
         }
-        
+
+        /// <summary>
+        /// 接続できないブロック同士が接続していないテスト
+        /// </summary>
+        [Test]
+        public void NotConnectableBlockTest()
+        {
+            
+        }
         
     }
 }
