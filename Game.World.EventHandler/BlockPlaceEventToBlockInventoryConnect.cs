@@ -45,6 +45,8 @@ namespace Game.World.EventHandler
             }
         }
 
+        
+        
         /// <summary>
         /// ブロックを接続元から接続先に接続できるなら接続する
         /// その場所にブロックがあるか、
@@ -80,9 +82,14 @@ namespace Game.World.EventHandler
                 GetConnectionPositions(
                     destinationBlockType,
                     _worldBlockDatastore.GetBlockDirection(destinationX, destinationY));
+            
+            
+            //接続元の接続可能リストに接続先がなかったら終了
+            if (!_ioConnectionDataDictionary[sourceBlockType].ConnectableBlockType.Contains(destinationBlockType)) return;
 
 
-            //接続元から接続先へのブロックの距離を取得
+
+                //接続元から接続先へのブロックの距離を取得
             var distanceX = destinationX - sourceX;
             var distanceY = destinationY - sourceY;
 
