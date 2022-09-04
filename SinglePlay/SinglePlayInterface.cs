@@ -1,4 +1,5 @@
 using Core.Block.Config;
+using Core.Block.Config.Service;
 using Core.Block.RecipeConfig;
 using Core.ConfigJson;
 using Core.Item;
@@ -23,6 +24,8 @@ namespace SinglePlay
         public readonly IQuestConfig QuestConfig;
         
         public readonly ConfigJsonList ConfigJsonList;
+
+        public readonly ItemIdToBlockId ItemIdToBlockId;
         
         public readonly ItemStackFactory ItemStackFactory;
         
@@ -40,6 +43,7 @@ namespace SinglePlay
             ConfigJsonList = serviceProvider.GetService<ConfigJsonList>();
             OreConfig = serviceProvider.GetService<IOreConfig>();
             QuestConfig = serviceProvider.GetService<IQuestConfig>();
+            ItemIdToBlockId = serviceProvider.GetService<ItemIdToBlockId>();
         }
     }
 }

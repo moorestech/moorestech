@@ -31,7 +31,7 @@ namespace Server.Protocol.PacketResponse
             Console.WriteLine("Place Block blockID:" + data.Id + " x:" + data.X + " y:" + data.Y);
             
             
-            var block = blockFactory.Create(data.Id, EntityId.NewEntityId());
+            var block = blockFactory.Create(data.Id, CreateBlockEntityId.Create());
 
             _worldBlockDatastore.AddBlock(block, data.X, data.Y, BlockDirection.North);
             return new List<List<byte>>();

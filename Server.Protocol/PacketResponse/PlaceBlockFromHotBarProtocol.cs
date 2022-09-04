@@ -15,10 +15,10 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:palceHotbarBlock";
         
-        private ItemIdToBlockId _itemIdToBlockId;
+        private readonly ItemIdToBlockId _itemIdToBlockId;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        private IWorldBlockDatastore _worldBlockDatastore;
-        private BlockFactory _blockFactory;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly BlockFactory _blockFactory;
 
         public SendPlaceHotBarBlockProtocol(ServiceProvider serviceProvider)
         {
@@ -54,7 +54,7 @@ namespace Server.Protocol.PacketResponse
 
             
             //ブロックの作成
-            var block = _blockFactory.Create(_itemIdToBlockId.Convert(item.Id), EntityId.NewEntityId());
+            var block = _blockFactory.Create(_itemIdToBlockId.Convert(item.Id), CreateBlockEntityId.Create());
             //ブロックの設置
             _worldBlockDatastore.AddBlock(block, data.X, data.Y,blockDirection);
             

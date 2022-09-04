@@ -36,11 +36,8 @@ namespace Server.Protocol.PacketResponse
             MovingItemToMainInventory.Move(mainInventory,craftingInventory,grabInventory);
             
             //移動できるかチェック
-            var (isReplaceable,mainInventoryRequiredItemCount) = CheckPlaceableRecipe.IsPlaceable(mainInventory,data.Recipe);
-            if (!isReplaceable)
-            {
-                return new List<List<byte>>();
-            }
+            //todo isPlaceable はいずれクライアント側で作れないアイテムであることを表示するために必要なので残しておく
+            var (isPlaceable,mainInventoryRequiredItemCount) = CheckPlaceableRecipe.IsPlaceable(mainInventory,data.Recipe);
             
             //実際に移動するアイテム数を計算
             var moveItem = CalcCraftInventoryPlaceItem.Calc(_itemStackFactory,_itemConfig,data.Recipe,mainInventoryRequiredItemCount);

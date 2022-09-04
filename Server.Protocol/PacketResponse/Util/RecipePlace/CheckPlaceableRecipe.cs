@@ -26,11 +26,11 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
             //アイテム数が足りているかチェックする
             foreach (var item in requiredItemCount)
             {
-                if (!mainInventoryRequiredItemCount.ContainsKey(item.Key)) return (false,null);
+                if (!mainInventoryRequiredItemCount.ContainsKey(item.Key)) return (false,mainInventoryRequiredItemCount);
                 
                 if (mainInventoryRequiredItemCount[item.Key] < item.Value)
                 {
-                    return (false,null);
+                    return (false,mainInventoryRequiredItemCount);
                 }
             }
             return (true,mainInventoryRequiredItemCount);
