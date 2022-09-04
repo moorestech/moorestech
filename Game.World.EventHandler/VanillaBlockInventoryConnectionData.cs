@@ -47,7 +47,7 @@ namespace Game.World.EventHandler
                     new ConnectDirection[] {new(-1, 0), new(0, 1), new(0, -1)},
                     //北向きに出力する
                     new ConnectDirection[] {new(1, 0)},
-                    new[] {VanillaBlockType.Machine,VanillaBlockType.Block,VanillaBlockType.Generator,VanillaBlockType.Miner,VanillaBlockType.BeltConveyor})
+                    new[] {VanillaBlockType.Machine,VanillaBlockType.Chest,VanillaBlockType.Generator,VanillaBlockType.Miner,VanillaBlockType.BeltConveyor})
             }
         };
     }
