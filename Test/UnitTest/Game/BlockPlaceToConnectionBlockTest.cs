@@ -191,11 +191,44 @@ namespace Test.UnitTest.Game
         }
 
         /// <summary>
-        /// 接続できないブロック同士が接続していないテスト
+        /// 接続できないブロック(機械とチェスト)同士が接続していないテスト
         /// </summary>
         [Test]
         public void NotConnectableBlockTest()
         {
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var world = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            
+            
+            var machine = (VanillaMachine) blockFactory.Create(MachineId, CreateBlockEntityId.Create());
+            var chest = (VanillaChest) blockFactory.Create(ChestId, CreateBlockEntityId.Create());
+            
+            //機械とチェストを設置
+            world.AddBlock(machine, 0, 0, BlockDirection.North);
+            world.AddBlock(chest, 0, 1, BlockDirection.North);
+            
+            //機械のコネクターを取得
+            var machineInventory = (VanillaMachineInventory) typeof(VanillaMachine)
+                .GetField("_vanillaMachineInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(machine);
+            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory) typeof(VanillaMachineInventory)
+                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(machineInventory);
+            var machineConnectInventory = (List<IBlockInventory>) typeof(VanillaMachineOutputInventory)
+                .GetField("_connectInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(vanillaMachineOutputInventory);
+
+            //接続されていないことをチェック
+            Assert.AreEqual(0, machineConnectInventory.Count);
+            
+            //チェストのコネクターを取得
+            var chestConnectInventory = (List<IBlockInventory>) typeof(VanillaChest)
+                .GetField("_connectInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(vanillaMachineOutputInventory);
+            
+            //接続されていないことをチェック
+            Assert.AreEqual(0, chestConnectInventory.Count);
             
         }
         
