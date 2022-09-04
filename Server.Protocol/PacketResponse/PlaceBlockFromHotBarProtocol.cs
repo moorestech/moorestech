@@ -15,10 +15,10 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:palceHotbarBlock";
         
-        private ItemIdToBlockId _itemIdToBlockId;
+        private readonly ItemIdToBlockId _itemIdToBlockId;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        private IWorldBlockDatastore _worldBlockDatastore;
-        private BlockFactory _blockFactory;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly BlockFactory _blockFactory;
 
         public SendPlaceHotBarBlockProtocol(ServiceProvider serviceProvider)
         {
