@@ -11,6 +11,7 @@ namespace MainGame.UnityView.Chunk
     {
         private BlockObjects _blockObjects;
         
+        public IReadOnlyDictionary<Vector2Int,BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
         private readonly Dictionary<Vector2Int,BlockGameObject> _blockObjectsDictionary = new();
 
         [Inject]
