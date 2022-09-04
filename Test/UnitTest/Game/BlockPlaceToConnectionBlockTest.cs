@@ -225,7 +225,7 @@ namespace Test.UnitTest.Game
             //チェストのコネクターを取得
             var chestConnectInventory = (List<IBlockInventory>) typeof(VanillaChest)
                 .GetField("_connectInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(vanillaMachineOutputInventory);
+                .GetValue(chest);
             
             //接続されていないことをチェック
             Assert.AreEqual(0, chestConnectInventory.Count);
