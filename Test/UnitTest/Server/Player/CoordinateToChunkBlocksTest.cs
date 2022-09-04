@@ -9,6 +9,7 @@ using Core.Const;
 using Core.Item;
 using Core.Item.Config;
 using Game.World.Interface.DataStore;
+using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
@@ -18,7 +19,6 @@ using Server.Protocol.PacketResponse.Player;
 
 
 using Test.Module.TestMod;
-using EntityId = Game.World.Interface.Util.EntityId;
 
 namespace Test.UnitTest.Server.Player
 {
@@ -88,7 +88,7 @@ namespace Test.UnitTest.Server.Player
                 _blockFactory = serviceProvider.GetService<BlockFactory>();
             }
 
-            return _blockFactory.Create(id, EntityId.NewEntityId());
+            return _blockFactory.Create(id, CreateBlockEntityId.Create());
         }
     }
 }

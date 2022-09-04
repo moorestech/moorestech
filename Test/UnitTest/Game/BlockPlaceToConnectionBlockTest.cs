@@ -68,11 +68,11 @@ namespace Test.UnitTest.Game
             int conveyorY, BlockDirection direction, BlockFactory blockFactory, IWorldBlockDatastore world)
         {
             //機械の設置
-            var vanillaMachine = blockFactory.Create(MachineId, EntityId.NewEntityId());
+            var vanillaMachine = blockFactory.Create(MachineId, CreateBlockEntityId.Create());
             world.AddBlock(vanillaMachine, machineX, machineY, BlockDirection.North);
 
             //ベルトコンベアの設置
-            var beltConveyor = (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, EntityId.NewEntityId());
+            var beltConveyor = (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create());
             world.AddBlock(beltConveyor, conveyorX, conveyorY, direction);
 
             //繋がっているコネクターを取得
@@ -96,16 +96,16 @@ namespace Test.UnitTest.Game
             var blockFactory = serviceProvider.GetService<BlockFactory>();
 
             //機械の設置
-            var vanillaMachine = (VanillaMachine) blockFactory.Create(MachineId, EntityId.NewEntityId());
+            var vanillaMachine = (VanillaMachine) blockFactory.Create(MachineId, CreateBlockEntityId.Create());
             world.AddBlock(vanillaMachine, 0, 0, BlockDirection.North);
 
             //機械から4方向にベルトコンベアが出るように配置
             var beltConveyors = new List<VanillaBeltConveyor>
             {
-                (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, EntityId.NewEntityId()),
-                (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, EntityId.NewEntityId()),
-                (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, EntityId.NewEntityId()),
-                (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, EntityId.NewEntityId()),
+                (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create()),
+                (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create()),
+                (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create()),
+                (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create()),
             };
             world.AddBlock(beltConveyors[0], 1, 0, BlockDirection.North);
             world.AddBlock(beltConveyors[1], 0, 1, BlockDirection.East);
@@ -160,7 +160,7 @@ namespace Test.UnitTest.Game
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             
             //チェストの設置
-            var vanillaChest = (VanillaChest) blockFactory.Create(ChestId, EntityId.NewEntityId());
+            var vanillaChest = (VanillaChest) blockFactory.Create(ChestId, CreateBlockEntityId.Create());
             world.AddBlock(vanillaChest, 0, 0, BlockDirection.North);
             
             
@@ -179,7 +179,7 @@ namespace Test.UnitTest.Game
 
         private void BeltConveyorPlaceAndCheckConnector(int beltConveyorX,int beltConveyorY,BlockDirection direction,VanillaChest targetChest,BlockFactory blockFactory,IWorldBlockDatastore world)
         {
-            var northBeltConveyor = (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, EntityId.NewEntityId());
+            var northBeltConveyor = (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create());
             world.AddBlock(northBeltConveyor, beltConveyorX, beltConveyorY, direction);
             var connector = (VanillaChest) typeof(VanillaBeltConveyor)
                 .GetField("_connector", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(northBeltConveyor);

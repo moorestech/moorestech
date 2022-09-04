@@ -11,6 +11,7 @@ using Core.Item;
 using Core.Item.Config;
 using Core.Ore;
 using Game.World.Interface.DataStore;
+using Game.World.Interface.Util;
 using Game.WorldMap;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +23,6 @@ using Server.Protocol.PacketResponse.Const;
 
 
 using Test.Module.TestMod;
-using EntityId = Game.World.Interface.Util.EntityId;
 
 namespace Test.CombinedTest.Server.PacketTest
 {
@@ -149,11 +149,11 @@ namespace Test.CombinedTest.Server.PacketTest
                 IBlock b = null;
                 if (random.Next(0, 3) == 1)
                 {
-                    b = blockFactory.Create(random.Next(short.MaxValue, int.MaxValue),EntityId.NewEntityId());
+                    b = blockFactory.Create(random.Next(short.MaxValue, int.MaxValue),CreateBlockEntityId.Create());
                 }
                 else
                 {
-                    b = blockFactory.Create(random.Next(1, 500),EntityId.NewEntityId());
+                    b = blockFactory.Create(random.Next(1, 500),CreateBlockEntityId.Create());
                 }
                 
                 

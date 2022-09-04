@@ -54,7 +54,7 @@ namespace Server.Protocol.PacketResponse
 
             
             //ブロックの作成
-            var block = _blockFactory.Create(_itemIdToBlockId.Convert(item.Id), EntityId.NewEntityId());
+            var block = _blockFactory.Create(_itemIdToBlockId.Convert(item.Id), CreateBlockEntityId.Create());
             //ブロックの設置
             _worldBlockDatastore.AddBlock(block, data.X, data.Y,blockDirection);
             

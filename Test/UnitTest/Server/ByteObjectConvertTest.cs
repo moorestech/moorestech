@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Game.World.Interface.Util;
 using NUnit.Framework;
 using Server.Util;
-using EntityId = Game.World.Interface.Util.EntityId;
 
 namespace Test.UnitTest.Server
 {
@@ -65,8 +65,8 @@ namespace Test.UnitTest.Server
         {
             var random = new Random();
             var id = (short) random.Next(short.MinValue, short.MaxValue);
-            var entityId1 = EntityId.NewEntityId();
-            var entityId2 = EntityId.NewEntityId();
+            var entityId1 = CreateBlockEntityId.Create();
+            var entityId2 = CreateBlockEntityId.Create();
             var ans = new List<byte>();
             ans.AddRange(ToByteList.Convert(id));
             ans.AddRange(ToByteList.Convert(entityId1));

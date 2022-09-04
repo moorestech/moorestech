@@ -7,6 +7,7 @@ using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
 using Game.World.Interface.DataStore;
+using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
@@ -14,7 +15,6 @@ using Server.Boot;
 
 
 using Test.Module.TestMod;
-using EntityId = Game.World.Interface.Util.EntityId;
 
 namespace Test.UnitTest.Game
 {
@@ -29,7 +29,7 @@ namespace Test.UnitTest.Game
             var random = new Random(131513);
             for (int i = 0; i < 10; i++)
             {
-                var entityId = EntityId.NewEntityId();
+                var entityId = CreateBlockEntityId.Create();
                 var ins = CreateMachine(1, entityId);
 
                 int x = random.Next(-1000, 1000);
@@ -48,7 +48,7 @@ namespace Test.UnitTest.Game
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
-            var entityId = EntityId.NewEntityId();
+            var entityId = CreateBlockEntityId.Create();
             var i = CreateMachine(1, entityId);
             worldData.AddBlock(i, 1, 1, BlockDirection.North);
 
@@ -63,11 +63,11 @@ namespace Test.UnitTest.Game
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
-            var i = CreateMachine(1, EntityId.NewEntityId());
+            var i = CreateMachine(1, CreateBlockEntityId.Create());
             worldData.AddBlock(i, 1, 1, BlockDirection.North);
 
             //座標だけ変えてintIDは同じ
-            var i2 = CreateMachine(1, EntityId.NewEntityId());
+            var i2 = CreateMachine(1, CreateBlockEntityId.Create());
             Assert.False(worldData.AddBlock(i2, 1, 1, BlockDirection.North));
         }
 

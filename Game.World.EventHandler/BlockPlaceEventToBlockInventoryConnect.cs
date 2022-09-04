@@ -15,7 +15,7 @@ namespace Game.World.EventHandler
         private readonly IWorldBlockComponentDatastore<IBlockInventory> _worldBlockInventoryDatastore;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IBlockConfig _blockConfig;
-        private readonly Dictionary<string, IoConnectionData> _ioConnectionDataDictionary;
+        private readonly Dictionary<string, IoConnectionData> _ioConnectionDataDictionary = VanillaBlockInventoryConnectionData.IoConnectionData;
 
         public BlockPlaceEventToBlockInventoryConnect(
             IWorldBlockComponentDatastore<IBlockInventory> worldBlockInventoryDatastore,
@@ -24,7 +24,6 @@ namespace Game.World.EventHandler
             _worldBlockInventoryDatastore = worldBlockInventoryDatastore;
             _blockConfig = blockConfig;
             _worldBlockDatastore = worldBlockDatastore;
-            _ioConnectionDataDictionary = new VanillaBlockInventoryConnectionData().Get();
             blockPlaceEvent.Subscribe(OnBlockPlace);
         }
 

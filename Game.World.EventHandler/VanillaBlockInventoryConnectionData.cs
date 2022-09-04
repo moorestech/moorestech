@@ -10,41 +10,38 @@ namespace Game.World.EventHandler
     /// </summary>
     public class VanillaBlockInventoryConnectionData
     {
-        public Dictionary<string, IoConnectionData> Get()
+        public static Dictionary<string,IoConnectionData> IoConnectionData = new()
         {
-            return new Dictionary<string, IoConnectionData>
             {
-                {
-                    VanillaBlockType.Machine, new IoConnectionData(
-                        new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)},
-                        new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)})
-                },
-                {
-                    VanillaBlockType.Chest, new IoConnectionData(
-                        new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)},
-                        new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)})
-                },
-                {
-                    VanillaBlockType.Generator, new IoConnectionData(
-                        new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)},
-                        new ConnectDirection[] {})
-                },
-                {
-                    VanillaBlockType.Miner, new IoConnectionData(
-                        new ConnectDirection[] {},
-                        new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)})
-                },
-
-                {
-                    VanillaBlockType.BeltConveyor, new IoConnectionData(
-                        // 南、西、東をからの接続を受け、アイテムをインプットする
-                        new ConnectDirection[] {new(-1, 0), new(0, 1), new(0, -1)},
-                        //北向きに出力する
-                        new ConnectDirection[] {new(1, 0)})
-                }
-            };
-        }
+                VanillaBlockType.Machine,
+                new IoConnectionData(new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)},
+                    new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)})
+            },
+            {
+                VanillaBlockType.Chest,
+                new IoConnectionData(new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)},
+                    new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)})
+            },
+            {
+                VanillaBlockType.Generator,
+                new IoConnectionData(new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)},
+                    new ConnectDirection[] { })
+            },
+            {
+                VanillaBlockType.Miner,
+                new IoConnectionData(new ConnectDirection[] { },
+                    new ConnectDirection[] {new(1, 0), new(-1, 0), new(0, 1), new(0, -1)})
+            },
+            {
+                VanillaBlockType.BeltConveyor, new IoConnectionData(
+                    // 南、西、東をからの接続を受け、アイテムをインプットする
+                    new ConnectDirection[] {new(-1, 0), new(0, 1), new(0, -1)},
+                    //北向きに出力する
+                    new ConnectDirection[] {new(1, 0)})
+            }
+        };
     }
+    
 
     /// <summary>
     /// 入力位置と出力位置を指定するクラス
