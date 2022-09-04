@@ -21,6 +21,9 @@ using Test.Module.TestMod;
 
 namespace Test.UnitTest.Game
 {
+    /// <summary>
+    /// ブロックが設置された時ブロック同士が接続するテスト
+    /// </summary>
     public class BlockPlaceToConnectionBlockTest
     {
         const int MachineId = 1;
