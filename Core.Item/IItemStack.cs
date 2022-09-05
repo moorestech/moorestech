@@ -6,8 +6,12 @@ namespace Core.Item
     {
         int Id { get; }
         int Count { get; }
-        
         ulong ItemHash { get; }
+        /// <summary>
+        /// アイテムを識別するID
+        /// 新しいインスタンスが生成されるたびにかわる
+        /// </summary>
+        long ItemInstanceId { get; } 
         
         ItemProcessResult AddItem(IItemStack receiveItemStack);
         IItemStack SubItem(int subCount);

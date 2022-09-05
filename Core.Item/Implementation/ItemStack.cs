@@ -11,6 +11,7 @@ namespace Core.Item.Implementation
         public int Id { get; }
         public int Count { get; }
         public ulong ItemHash { get; }
+        public long ItemInstanceId { get; }
         private readonly IItemConfig _itemConfig;
         private readonly ItemStackFactory _itemStackFactory;
 
@@ -18,6 +19,7 @@ namespace Core.Item.Implementation
         {
             _itemConfig = itemConfig;
             _itemStackFactory = itemStackFactory;
+            ItemInstanceId = ItemInstanceIdGenerator.Generate();
             ItemHash = itemConfig.GetItemConfig(id).ItemHash;
             if (id == ItemConst.EmptyItemId)
             {

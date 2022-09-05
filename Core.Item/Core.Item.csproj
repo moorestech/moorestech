@@ -7,6 +7,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Core.ConfigJson\Core.ConfigJson.csproj" />
         <ProjectReference Include="..\Core.Const\Core.Const.csproj" />
+        <ProjectReference Include="..\Core.Util\Core.Util.csproj" />
     </ItemGroup>
 
     <ItemGroup>
