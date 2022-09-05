@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.ModLoader.Glb;
@@ -10,7 +11,9 @@ namespace MainGame.UnityView.Chunk
     public class ChunkBlockGameObjectDataStore : MonoBehaviour
     {
         private BlockObjects _blockObjects;
-        
+
+        public event Action<BlockGameObject> OnPlaceBlock;
+
         public IReadOnlyDictionary<Vector2Int,BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
         private readonly Dictionary<Vector2Int,BlockGameObject> _blockObjectsDictionary = new();
 
@@ -45,6 +48,7 @@ namespace MainGame.UnityView.Chunk
             var block = _blockObjects.CreateBlock(blockId,pos,rot,transform);
                 
             _blockObjectsDictionary.Add(blockPosition,block);
+            OnPlaceBlock?.Invoke(block);
         }
 
         public void GameObjectBlockRemove(Vector2Int blockPosition)

@@ -43,7 +43,9 @@ namespace MainGame.Extension
             
             _playerInventoryViewModel = playerInventoryViewModel;
             _selectHotBarControl = selectHotBarControl;
+            
             uiStateControl.OnStateChanged += OnStateChanged;
+            chunkBlockGameObjectDataStore.OnPlaceBlock += OnPlaceBlock;
         }
 
         private void OnStateChanged(UIStateEnum state)
@@ -51,11 +53,7 @@ namespace MainGame.Extension
             if (isBlockPlaceState && state != UIStateEnum.BlockPlace)
             {
                 isBlockPlaceState = false;
-                foreach (var rangeObject in rangeObjects)
-                {
-                    Destroy(rangeObject.gameObject);
-                }
-                rangeObjects.Clear();
+                ResetRangeObject();
                 return;
             }
             
@@ -63,6 +61,30 @@ namespace MainGame.Extension
             isBlockPlaceState = true;
 
             
+            CreateRangeObject();
+        }
+        
+        private void OnPlaceBlock(BlockGameObject blockGameObject)
+        {
+            if (!isBlockPlaceState) return;
+            
+            ResetRangeObject();
+            CreateRangeObject();
+        }
+        
+
+        private void ResetRangeObject()
+        {
+            foreach (var rangeObject in rangeObjects)
+            {
+                Destroy(rangeObject.gameObject);
+            }
+            rangeObjects.Clear();
+        }
+
+
+        private void CreateRangeObject()
+        {
             var (isElectricalBlock,isPole) = IsDisplay();
             //電気ブロックでも電柱でもない
             if (!isElectricalBlock && !isPole) return;
