@@ -11,7 +11,7 @@ namespace Core.Item
 
         public static long Generate()
         {
-            return 0;
+            return Random.NextInt64(long.MinValue,long.MaxValue);
         }
 
     }
