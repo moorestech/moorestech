@@ -45,12 +45,19 @@ namespace Server.Protocol.PacketResponse
             _entitiesDatastore.SetPosition(data.PlayerId,newPosition);
 
             
-
-
-
             //プレイヤーの座標から返すチャンクのブロックデータを取得をする
-            var responseChunk = new List<List<byte>>();
+            var responseChunk = GetChunkBytes(data);
             
+            //エンティティのデータを取得する
+            
+
+            return responseChunk;
+        }
+
+
+        private List<List<byte>> GetChunkBytes(PlayerCoordinateSendProtocolMessagePack data)
+        {
+            var responseChunk = new List<List<byte>>();
             var responseChunkCoordinates = _responses[data.PlayerId].GetResponseChunkCoordinates(new Coordinate((int)data.X,(int) data.Y));
             foreach (var chunkCoordinate in responseChunkCoordinates)
             {
@@ -59,6 +66,13 @@ namespace Server.Protocol.PacketResponse
             }
 
             return responseChunk;
+        }
+
+
+        private List<List<byte>> GetEntityBytes(PlayerCoordinateSendProtocolMessagePack data)
+        {
+            var response = new List<List<byte>>();
+            //TODO 今はベルトコンベアのアイテムをエンティティとして返しているだけ 今後は本当のentityも返す
         }
     }
     
