@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Game.Quest.Interface;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
+using MainGame.Extension;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
 using MainGame.Network;
@@ -102,6 +103,8 @@ namespace MainGame.Starter
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
+
+        [SerializeField] private DisplayEnergizedRange displayEnergizedRange; 
 
         [SerializeField] private PlayerInventorySlotsInputControl playerInventorySlotsInputControl;
 
@@ -229,6 +232,8 @@ namespace MainGame.Starter
             builder.RegisterComponent(questViewerObject);
             builder.RegisterComponent(recipePlaceButton);
             
+            builder.RegisterComponent(displayEnergizedRange);
+            
             
             builder.RegisterComponent<IPlayerPosition>(playerPosition);
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
@@ -245,6 +250,7 @@ namespace MainGame.Starter
             _resolver.Resolve<CommandUIInput>();
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<LoadingFinishDetector>();
+            _resolver.Resolve<DisplayEnergizedRange>();
 
         }
 
