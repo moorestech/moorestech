@@ -44,10 +44,16 @@ namespace MainGame.Extension
             _playerInventoryViewModel = playerInventoryViewModel;
             _selectHotBarControl = selectHotBarControl;
             
+            selectHotBarControl.OnSelectHotBar += OnSelectHotBar;
             uiStateControl.OnStateChanged += OnStateChanged;
             chunkBlockGameObjectDataStore.OnPlaceBlock += OnPlaceBlock;
         }
 
+        private void OnSelectHotBar(int index)
+        {
+            ResetRangeObject();
+            CreateRangeObject();
+        }
         private void OnStateChanged(UIStateEnum state)
         {
             if (isBlockPlaceState && state != UIStateEnum.BlockPlace)
@@ -60,10 +66,8 @@ namespace MainGame.Extension
             if (state != UIStateEnum.BlockPlace) return;
             isBlockPlaceState = true;
 
-            
             CreateRangeObject();
         }
-        
         private void OnPlaceBlock(BlockGameObject blockGameObject)
         {
             if (!isBlockPlaceState) return;

@@ -1,3 +1,4 @@
+using System;
 using MainGame.UnityView.UI.Builder;
 using MainGame.UnityView.UI.Builder.Unity;
 using MainGame.UnityView.UI.Inventory.Element;
@@ -12,6 +13,8 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
         
         private MoorestechInputSettings _inputSettings;
         
+        public event Action<int> OnSelectHotBar;
+
         public int SelectIndex => _selectIndex;
         private int _selectIndex = 0;
         
@@ -44,6 +47,8 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
             _selectIndex = slot;
             _isClickedCount = 0;
             selectHotBarView.SetSelect(slot);
+            
+            OnSelectHotBar?.Invoke(_selectIndex);
         }
 
         private void Update()
@@ -54,6 +59,8 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
                 //キー入力で得られる値は1〜9なので-1する
                 _selectIndex = _inputSettings.UI.HotBar.ReadValue<int>() - 1;
                 selectHotBarView.SetSelect(_selectIndex);
+                
+                OnSelectHotBar?.Invoke(_selectIndex);
             }
             
             // ButtonがクリックされたことをUpdate内で確認したいのでクリックされてから2フレームはtrueとする
