@@ -7,7 +7,6 @@ namespace Core.Ore.Config
     [JsonObject("OreConfigJsonData")]
     public class OreConfigJsonData
     {
-        [JsonProperty("oreId")] private int _oreId;
         [JsonProperty("name")] private string _name;
         [JsonProperty("veinSize")] private float _veinSize;
         [JsonProperty("veinFrequency")] private float _veinFrequency;
@@ -24,8 +23,6 @@ namespace Core.Ore.Config
         public float VeinSize => _veinSize;
 
         public float VeinFrequency => _veinFrequency;
-
-        public int OreId => _oreId;
 
         public string Name => _name;
     }

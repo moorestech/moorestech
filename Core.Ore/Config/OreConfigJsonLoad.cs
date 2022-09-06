@@ -20,9 +20,12 @@ namespace Core.Ore.Config
                 {
                     continue;
                 }
-                
-                var itemConfigData = JsonConvert.DeserializeObject<OreConfigJsonData[]>(config);
-                configList.AddRange(itemConfigData.Select(c => new OreConfigData(modIds, c)));
+                //TODO ログ基盤に入れる
+                foreach (var oreConfigJsonData in JsonConvert.DeserializeObject<OreConfigJsonData[]>(config))
+                {
+                    var id = configList.Count;
+                    configList.Add(new OreConfigData(modIds,id,oreConfigJsonData));
+                }
             }
 
             return configList;
@@ -43,10 +46,10 @@ namespace Core.Ore.Config
         public readonly string ItemModId;
         
 
-        public OreConfigData(string modId,OreConfigJsonData oreConfigJsonData)
+        public OreConfigData(string modId,int oreId,OreConfigJsonData oreConfigJsonData)
         {
             ModId = modId;
-            OreId = oreConfigJsonData.OreId;
+            OreId = oreId;
             Name = oreConfigJsonData.Name;
             VeinSize = oreConfigJsonData.VeinSize;
             VeinFrequency = oreConfigJsonData.VeinFrequency;
