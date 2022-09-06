@@ -23,7 +23,8 @@ namespace Core.Ore.Config
                 //TODO ログ基盤に入れる
                 foreach (var oreConfigJsonData in JsonConvert.DeserializeObject<OreConfigJsonData[]>(config))
                 {
-                    var id = configList.Count;
+                    //ID 0は何もないことを表すため、鉱石は1から始まる
+                    var id = configList.Count + 1;
                     configList.Add(new OreConfigData(modIds,id,oreConfigJsonData));
                 }
             }
