@@ -1,7 +1,8 @@
 namespace Game.Entity.Interface
 {
-    public class EntityType
+    public static class EntityType
     {
         public const string VanillaPlayer = "vanilla:Player";
+        public const string VanillaItem = "vanilla:Item";
     }
 }
