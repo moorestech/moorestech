@@ -127,7 +127,7 @@ namespace Test.CombinedTest.Server
 
         private VanillaBeltConveyor CreateOneItemInsertedItem(ItemStackFactory itemsStackFactory)
         {
-            var belt = new VanillaBeltConveyor(1, 10,1, itemsStackFactory, 4, TimeOfItemEnterToExit);
+            var belt = new VanillaBeltConveyor(UnitTestMod.BeltConveyorId, 10,1, itemsStackFactory, 4, TimeOfItemEnterToExit);
             InsertItemToBeltConveyor(belt,new BeltConveyorInventoryItem(1,RemainingTime,0,ItemInstanceId));
             return belt;
         }
