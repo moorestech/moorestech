@@ -111,7 +111,7 @@ namespace Test.CombinedTest.Server
             //座標を検証
             Assert.AreEqual(-0.25,itemEntity.Position.X);
             Assert.AreEqual(0,itemEntity.Position.Y);
-            Assert.AreEqual(0.5,itemEntity.Position.Z);
+            Assert.AreEqual(-0.5,itemEntity.Position.Z);
             
             
             
@@ -120,7 +120,7 @@ namespace Test.CombinedTest.Server
             worldDataStore.AddBlock(CreateOneItemInsertedItem(itemsStackFactory), -1, -1, BlockDirection.South);
             itemEntity = CollectBeltConveyorItems.CollectItem(_minusPlayerCoordinate, worldDataStore, blockConfig, entityFactory)[0];
             //座標を検証
-            Assert.AreEqual(0.5,itemEntity.Position.X);
+            Assert.AreEqual(-0.5,itemEntity.Position.X);
             Assert.AreEqual(0,itemEntity.Position.Y);
             Assert.AreEqual(-0.75,itemEntity.Position.Z);
             
@@ -133,7 +133,7 @@ namespace Test.CombinedTest.Server
             //ブロックを削除し座標を検証
             Assert.AreEqual(-0.75,itemEntity.Position.X);
             Assert.AreEqual(0,itemEntity.Position.Y);
-            Assert.AreEqual(0.5,itemEntity.Position.Z);
+            Assert.AreEqual(-0.5,itemEntity.Position.Z);
         }
 
 
