@@ -51,7 +51,7 @@ namespace Test.CombinedTest.Server
             Assert.AreEqual(0.75,itemEntity.Position.Z); //0,0に設置してベルトコンベアの中心にアイテムがあるため、Z座標は0.5となる
             //エンティティを検証
             Assert.AreEqual(ItemInstanceId,itemEntity.InstanceId);
-            Assert.AreEqual(EntityType.VanillaItem,itemEntity.EntityType);
+            Assert.AreEqual(VanillaEntityType.VanillaItem,itemEntity.EntityType);
             
             
             

@@ -22,12 +22,12 @@ namespace Test.UnitTest.Game.SaveLoad
             
             
             //セーブ用のエンティ追加
-            var entity1 = entityFactory.CreateEntity(EntityType.VanillaPlayer,10);
+            var entity1 = entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer,10);
             var entityPosition = new ServerVector3(1,2,3);
             entity1.SetPosition(entityPosition);
             entitiesDatastore.Add(entity1);
             
-            var entity2 = entityFactory.CreateEntity(EntityType.VanillaPlayer,30);
+            var entity2 = entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer,30);
             var entityPosition2 = new ServerVector3(4,5,6);
             entity2.SetPosition(entityPosition2);
             entitiesDatastore.Add(entity2);

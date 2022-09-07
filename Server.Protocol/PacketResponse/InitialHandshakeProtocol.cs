@@ -42,7 +42,7 @@ namespace Server.Protocol.PacketResponse
                 return new Vector2MessagePack(pos.X, pos.Z);
             }
 
-            var playerEntity = _entityFactory.CreateEntity(EntityType.VanillaPlayer, playerId);
+            var playerEntity = _entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, playerId);
             _entitiesDatastore.Add(playerEntity);
 
             
