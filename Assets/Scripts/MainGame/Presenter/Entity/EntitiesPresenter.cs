@@ -10,6 +10,8 @@ namespace MainGame.Presenter.Entity
     public class EntitiesPresenter : MonoBehaviour
     {
         [SerializeField] private ItemEntityObject itemPrefab;
+        
+        private Dictionary<long,>
 
         [Inject]
         public void Construct(ReceiveEntitiesDataEvent receiveEntitiesDataEvent)
