@@ -42,14 +42,16 @@ namespace MainGame.Presenter.Inventory.Send
             //スロット番号はメインインベントリから始まり、サブインベントリがメインインベントリの最後+1から始まるのでこのifが必要
             if (slot < PlayerInventoryConstant.MainInventorySize)
             {
+                //メインインベントリに置く
                 from = new FromItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, slot);
                 to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
             }
             else
             {
+                //サブインベントリに置く
                 slot -= PlayerInventoryConstant.MainInventorySize; 
                 from = new FromItemMoveInventoryInfo(_currentSubInventoryType, slot);
-                to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
+                to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0,_blockPos.x,_blockPos.y);
             }
             _inventoryMoveItem.Send(count,ItemMoveType.SwapSlot,from,to);
         }
@@ -64,14 +66,16 @@ namespace MainGame.Presenter.Inventory.Send
             //スロット番号はメインインベントリから始まり、サブインベントリがメインインベントリの最後+1から始まるのでこのifが必要
             if (slot < PlayerInventoryConstant.MainInventorySize)
             {
+                //メインインベントリに置く
                 from = new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
                 to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, slot);
             }
             else
             {
+                //サブインベントリに置く
                 slot -= PlayerInventoryConstant.MainInventorySize;
                 from = new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
-                to = new ToItemMoveInventoryInfo(_currentSubInventoryType, slot);
+                to = new ToItemMoveInventoryInfo(_currentSubInventoryType, slot,_blockPos.x,_blockPos.y);
             }
             _inventoryMoveItem.Send(addCount,ItemMoveType.SwapSlot,from,to);
         }
