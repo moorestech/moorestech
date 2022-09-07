@@ -7,12 +7,12 @@ using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse.MessagePack
 {
-    public class EntityResponseMessagePack : ProtocolMessagePackBase
+    public class EntitiesResponseMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public EntityResponseMessagePack() { }
+        public EntitiesResponseMessagePack() { }
 
-        public EntityResponseMessagePack(List<IEntity> entities)
+        public EntitiesResponseMessagePack(List<IEntity> entities)
         {
             Tag = PlayerCoordinateSendProtocol.ChunkDataTag;
             Entities = entities.Select(e => new EntityMessagePack(e)).ToArray();

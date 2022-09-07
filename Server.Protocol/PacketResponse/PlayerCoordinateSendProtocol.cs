@@ -86,7 +86,7 @@ namespace Server.Protocol.PacketResponse
             var responseChunkCoordinates = PlayerCoordinateToResponse.GetChunkCoordinates(coordinate);
             var items = CollectBeltConveyorItems.CollectItem(responseChunkCoordinates,_worldBlockDatastore,_blockConfig,_entityFactory);
 
-            var response = MessagePackSerializer.Serialize(new EntityResponseMessagePack(items)).ToList();
+            var response = MessagePackSerializer.Serialize(new EntitiesResponseMessagePack(items)).ToList();
 
             return response;
         }
