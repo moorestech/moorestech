@@ -20,8 +20,7 @@ using Server;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Const;
-
-
+using Server.Protocol.PacketResponse.MessagePack;
 using Test.Module.TestMod;
 
 namespace Test.CombinedTest.Server.PacketTest
