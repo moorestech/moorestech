@@ -58,22 +58,27 @@ namespace Server.Protocol.PacketResponse.Util
             var result = new List<IEntity>();
             foreach (var beltConveyorItem in vanillaBeltConveyor.InventoryItems)
             { 
-                var parent = (float)(beltConveyorItem.RemainingTime / vanillaBeltConveyor.TimeOfItemEnterToExit);
+                //残り時間をどこまで進んだかに変換するために 1- する
+                var parent = 1 - (float)(beltConveyorItem.RemainingTime / vanillaBeltConveyor.TimeOfItemEnterToExit);
                 float entityX = x;
                 float entityY = y;
                 switch (blockDirection)
                 {
                     case BlockDirection.North:
+                        entityX += 0.5f; //ベルトコンベアの基準座標は中心なので0.5を他してアイテムを中心に持ってくる
                         entityY += parent;
                         break;
                     case BlockDirection.South:
+                        entityX += 0.5f;
                         entityY -= parent;
                         break;
                     case BlockDirection.East:
                         entityX += parent;
+                        entityY += 0.5f;
                         break;
                     case BlockDirection.West:
                         entityX -= parent;
+                        entityY += 0.5f;
                         break;
                 }
                 
