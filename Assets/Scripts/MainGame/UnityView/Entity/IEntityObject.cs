@@ -4,7 +4,8 @@ namespace MainGame.UnityView.Entity
 {
     public interface IEntityObject
     {
-        public void SetPosition(Vector3 position);
+        public void SetDirectPosition(Vector3 position);
+        public void SetInterpolationPosition(Vector3 position);
         public void Destroy();
     }
 }

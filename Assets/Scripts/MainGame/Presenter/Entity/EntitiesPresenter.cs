@@ -35,7 +35,7 @@ namespace MainGame.Presenter.Entity
             {
                 if (_entities.ContainsKey(entity.InstanceId))
                 {
-                    _entities[entity.InstanceId].objectEntity.SetPosition(entity.Position);
+                    _entities[entity.InstanceId].objectEntity.SetInterpolationPosition(entity.Position);
                     _entities[entity.InstanceId] = (DateTime.Now, _entities[entity.InstanceId].objectEntity);
                 }
                 else
@@ -53,8 +53,8 @@ namespace MainGame.Presenter.Entity
         {
             if (entityProperties.Type == VanillaEntityType.VanillaItem)
             {
-                var item = Instantiate(itemPrefab, transform, true);
-                item.SetPosition(entityProperties.Position);
+                var item = Instantiate(itemPrefab, entityProperties.Position,Quaternion.identity);
+                
                 
                 var id = int.Parse(entityProperties.State.Split(',')[0]);
                 item.SetTexture(_itemImages.GetItemView(id).ItemTexture);

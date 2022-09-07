@@ -24,7 +24,12 @@ namespace MainGame.UnityView.Entity
         
         private Vector3 _targetPosition;
         private float _linerTime;
-        public void SetPosition(Vector3 position)
+        public void SetDirectPosition(Vector3 position)
+        {
+            transform.position = position;
+        }
+
+        public void SetInterpolationPosition(Vector3 position)
         {
             _targetPosition = position;
             _linerTime = 0;
