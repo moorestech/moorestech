@@ -25,8 +25,8 @@ namespace Server.Protocol.PacketResponse.Player
             
             _lastGetTime = DateTime.Now;
             
-            var now = GetCoordinates(coordinate);
-            var last = GetCoordinates(_lastCoordinate);
+            var now = GetChunkCoordinates(coordinate);
+            var last = GetChunkCoordinates(_lastCoordinate);
             _lastCoordinate = coordinate;
             for (int i = now.Count - 1; i >= 0; i--)
             {
@@ -38,7 +38,7 @@ namespace Server.Protocol.PacketResponse.Player
             return now;
         }
 
-        private List<Coordinate> GetCoordinates(Coordinate coordinate)
+        public static List<Coordinate> GetChunkCoordinates(Coordinate coordinate)
         {
             var chunkHalf = ChunkResponseConst.PlayerVisibleRangeChunk / 2;
             //その座標のチャンクの原点

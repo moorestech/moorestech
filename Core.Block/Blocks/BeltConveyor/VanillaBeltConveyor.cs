@@ -17,8 +17,10 @@ namespace Core.Block.Blocks.BeltConveyor
         public ulong BlockHash { get; }
         
         private readonly int _inventoryItemNum;
-        private readonly double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
+        
+        public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
 
+        public IReadOnlyList<BeltConveyorInventoryItem> InventoryItems => _inventoryItems;
         private readonly List<BeltConveyorInventoryItem> _inventoryItems = new();
         private IBlockInventory _connector;
         private readonly ItemStackFactory _itemStackFactory;
@@ -29,7 +31,7 @@ namespace Core.Block.Blocks.BeltConveyor
             BlockId = blockId;
             _itemStackFactory = itemStackFactory;
             _inventoryItemNum = inventoryItemNum;
-            _timeOfItemEnterToExit = timeOfItemEnterToExit;
+            TimeOfItemEnterToExit = timeOfItemEnterToExit;
             BlockHash = blockHash;
             _connector = new NullIBlockInventory(_itemStackFactory);
             GameUpdate.AddUpdateObject(this);
@@ -47,45 +49,49 @@ namespace Core.Block.Blocks.BeltConveyor
                 var id = int.Parse(stateList[i]);
                 var remainTime = double.Parse(stateList[i + 1]);
                 var limitTime = double.Parse(stateList[i + 2]);
-                _inventoryItems.Add(new BeltConveyorInventoryItem(id, remainTime, limitTime));
+                _inventoryItems.Add(new BeltConveyorInventoryItem(id, remainTime, limitTime,ItemInstanceIdGenerator.Generate()));
             }
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
             //新しく挿入可能か
-            if (1 <= _inventoryItems.Count && _inventoryItems.Count < _inventoryItemNum &&
-                _inventoryItems[0].RemainingTime <
-                _timeOfItemEnterToExit - _timeOfItemEnterToExit / _inventoryItemNum ||
-                _inventoryItems.Count == 0)
+            if ((1 > _inventoryItems.Count || _inventoryItems.Count >= _inventoryItemNum ||
+                 !(_inventoryItems[0].RemainingTime <
+                   TimeOfItemEnterToExit - TimeOfItemEnterToExit / _inventoryItemNum)) &&
+                _inventoryItems.Count != 0)
             {
-                if (_inventoryItems.Count == 0)
+                //挿入可能でない
+                return itemStack;
+            }
+            
+            
+            //アイテムをベルトコンベア内のアイテムに挿入する
+            if (_inventoryItems.Count == 0)
+            {
+                _inventoryItems.Add(
+                    new BeltConveyorInventoryItem(itemStack.Id, TimeOfItemEnterToExit, 0,itemStack.ItemInstanceId));
+            }
+            else
+            {
+                //インデックスをずらす
+
+                //indexエラーにならないためにダミーアイテムを追加しておく
+                _inventoryItems.Add(new BeltConveyorInventoryItem(0, 0, 0,0));
+                //アイテムをずらす
+                for (int i = _inventoryItems.Count - 1; i >= 1; i--)
                 {
-                    _inventoryItems.Add(
-                        new BeltConveyorInventoryItem(itemStack.Id, _timeOfItemEnterToExit, 0));
-                }
-                else
-                {
-                    //インデックスをずらす
-
-                    //indexエラーにならないためにダミーアイテムを追加しておく
-                    _inventoryItems.Add(new BeltConveyorInventoryItem(0, 0, 0));
-                    //アイテムをずらす
-                    for (int i = _inventoryItems.Count - 1; i >= 1; i--)
-                    {
-                        _inventoryItems[i] = _inventoryItems[i - 1];
-                    }
-
-                    _inventoryItems[0] = new BeltConveyorInventoryItem(
-                        itemStack.Id,
-                        _timeOfItemEnterToExit,
-                        _inventoryItems[1].RemainingTime + (_timeOfItemEnterToExit / _inventoryItemNum));
+                    _inventoryItems[i] = _inventoryItems[i - 1];
                 }
 
-                return itemStack.SubItem(1);
+                _inventoryItems[0] = new BeltConveyorInventoryItem(
+                    itemStack.Id,
+                    TimeOfItemEnterToExit,
+                    _inventoryItems[1].RemainingTime + (TimeOfItemEnterToExit / _inventoryItemNum),itemStack.ItemInstanceId);
             }
 
-            return itemStack;
+            return itemStack.SubItem(1);
+
         }
 
         public void AddOutputConnector(IBlockInventory blockInventory) { _connector = blockInventory; }
@@ -110,7 +116,7 @@ namespace Core.Block.Blocks.BeltConveyor
                 for (int i = 0; i < _inventoryItems.Count - 1; i++)
                 {
                     _inventoryItems[i].LimitTime =
-                        _inventoryItems[i + 1].RemainingTime + _timeOfItemEnterToExit / _inventoryItemNum;
+                        _inventoryItems[i + 1].RemainingTime + TimeOfItemEnterToExit / _inventoryItemNum;
                 }
 
                 _inventoryItems[^1].LimitTime = 0;
@@ -126,7 +132,8 @@ namespace Core.Block.Blocks.BeltConveyor
             //最後のアイテムが0だったら接続先に渡す
             if (1 <= _inventoryItems.Count && _inventoryItems[^1].RemainingTime <= 0)
             {
-                var output = _connector.InsertItem(_itemStackFactory.Create(_inventoryItems[^1].ItemId, 1));
+                var item = _itemStackFactory.Create(_inventoryItems[^1].ItemId, 1, _inventoryItems[^1].ItemInstanceId);
+                var output = _connector.InsertItem(item);
                 //渡した結果がnullItemだったらそのアイテムを消す
                 if (output.Count == 0)
                 {
@@ -139,7 +146,7 @@ namespace Core.Block.Blocks.BeltConveyor
         {
             if (_inventoryItems.Count == 0) return String.Empty;
 
-            //stateの定義 itemid1,RemainingTime1,LimitTime1,itemid2,RemainingTime2,LimitTime2,itemid3,RemainingTime3,LimitTime3...
+            //stateの定義 ItemId,RemainingTime,LimitTime,InstanceId...
             var state = new StringBuilder();
             foreach (var t in _inventoryItems)
             {
@@ -162,7 +169,7 @@ namespace Core.Block.Blocks.BeltConveyor
         public void SetItem(int slot, IItemStack itemStack)
         {
             var limitTime = _inventoryItems[slot].RemainingTime;
-            _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.Id, _timeOfItemEnterToExit, limitTime);
+            _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.Id, TimeOfItemEnterToExit, limitTime,itemStack.ItemInstanceId);
         }
     }
 }

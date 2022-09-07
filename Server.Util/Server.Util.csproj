@@ -11,6 +11,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Core.Item\Core.Item.csproj" />
+      <ProjectReference Include="..\Game.Entity.Interface\Game.Entity.Interface.csproj" />
       <ProjectReference Include="..\Game.World.Interface\Game.World.Interface.csproj" />
     </ItemGroup>
 
