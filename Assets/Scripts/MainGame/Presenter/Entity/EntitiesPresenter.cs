@@ -52,7 +52,8 @@ namespace MainGame.Presenter.Entity
         {
             if (entityProperties.Type == VanillaEntityType.VanillaItem)
             {
-                var item = Instantiate(itemPrefab);
+                var item = Instantiate(itemPrefab, transform, true);
+                item.transform.position = entityProperties.Position;
                 
                 var id = int.Parse(entityProperties.State.Split(',')[0]);
                 item.SetTexture(_itemImages.GetItemView(id).ItemTexture);

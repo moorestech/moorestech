@@ -13,6 +13,7 @@ using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Settings;
 using MainGame.Presenter.Chunk;
 using MainGame.Presenter.Command;
+using MainGame.Presenter.Entity;
 using MainGame.Presenter.Inventory;
 using MainGame.Presenter.Inventory.Receive;
 using MainGame.Presenter.Inventory.Send;
@@ -85,6 +86,7 @@ namespace MainGame.Starter
         [SerializeField] private RecipePlaceButton recipePlaceButton;
         
         [SerializeField] private GrabbedItemImagePresenter grabbedItemImagePresenter;
+        [SerializeField] private EntitiesPresenter entitiesPresenter;
 
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private LoadingFinishDetector loadingFinishDetector;
@@ -135,6 +137,7 @@ namespace MainGame.Starter
             builder.Register<ReceiveGrabInventoryEvent>(Lifetime.Singleton);
             builder.Register<ReceiveInitialHandshakeProtocol>(Lifetime.Singleton); //初期接続時に受け取るプロトコル
             builder.Register<ReceiveQuestDataEvent>(Lifetime.Singleton);
+            builder.Register<ReceiveEntitiesDataEvent>(Lifetime.Singleton);
             
             //パケット送信インスタンス
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
@@ -233,6 +236,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(recipePlaceButton);
             
             builder.RegisterComponent(displayEnergizedRange);
+            builder.RegisterComponent(entitiesPresenter);
             
             
             builder.RegisterComponent<IPlayerPosition>(playerPosition);
@@ -251,6 +255,7 @@ namespace MainGame.Starter
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<LoadingFinishDetector>();
             _resolver.Resolve<DisplayEnergizedRange>();
+            _resolver.Resolve<EntitiesPresenter>();
 
         }
 
