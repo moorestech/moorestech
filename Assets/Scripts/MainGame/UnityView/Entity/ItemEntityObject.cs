@@ -7,5 +7,9 @@ namespace MainGame.UnityView.Entity
         [SerializeField] private MeshRenderer meshRenderer;
         [SerializeField] private Renderer itemMaterial;
 
+        public void SetTexture(Texture texture)
+        {
+            
+        }
     }
 }

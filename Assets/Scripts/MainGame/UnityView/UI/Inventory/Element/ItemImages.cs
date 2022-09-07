@@ -19,7 +19,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
 
         public ItemImages(ModDirectory modDirectory,SinglePlayInterface singlePlayInterface)
         {
-            _nothingIndexItemImage = new ItemViewData(null,"Item not found",ItemConst.EmptyItemId);
+            _nothingIndexItemImage = new ItemViewData(null,null,"Item not found",ItemConst.EmptyItemId);
             
             LoadTexture(modDirectory,singlePlayInterface).Forget();
         }
@@ -37,7 +37,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
                 var texture = textures[i];
                 //idは1から始まるので+1する
                 var itemId = i + 1;
-                _itemImageList.Add(new ItemViewData(texture.texture2D.ToSprite(), texture.name,itemId));
+                _itemImageList.Add(new ItemViewData(texture.texture2D.ToSprite(),texture.texture2D, texture.name,itemId));
             }
             OnLoadFinished?.Invoke();
         }
@@ -62,14 +62,16 @@ namespace MainGame.UnityView.UI.Inventory.Element
     public class ItemViewData
     {
         public readonly Sprite ItemImage;
+        public readonly Texture ItemTexture;
         public readonly string ItemName;
         public readonly int ItemId;
 
-        public ItemViewData(Sprite itemImage, string itemName, int itemId)
+        public ItemViewData(Sprite itemImage, Texture itemTexture, string itemName, int itemId)
         {
             this.ItemImage = itemImage;
             this.ItemName = itemName;
             this.ItemId = itemId;
+            ItemTexture = itemTexture;
         }
     }
 }
