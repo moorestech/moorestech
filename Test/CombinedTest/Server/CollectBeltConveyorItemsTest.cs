@@ -101,7 +101,7 @@ namespace Test.CombinedTest.Server
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             
             var belt1 = CreateOneItemInsertedItem(itemsStackFactory);
-            var belt2 = new VanillaBeltConveyor(1, 10,1, itemsStackFactory, 4, TimeOfItemEnterToExit);
+            var belt2 = new VanillaBeltConveyor(1, 11,1, itemsStackFactory, 4, TimeOfItemEnterToExit);
             //二つのベルトコンベアを繋がるように設置
             worldDataStore.AddBlock(belt1, 0, 0, BlockDirection.North);
             worldDataStore.AddBlock(belt2, 0, 1, BlockDirection.North);
