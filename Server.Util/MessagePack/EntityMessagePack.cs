@@ -16,8 +16,11 @@ namespace Server.Util.MessagePack
             Type = entity.EntityType;
             Position = new Vector3MessagePack(entity.Position);
         }
+        [Key(0)]
         public long InstanceId { get; set; }
+        [Key(1)]
         public string Type { get; set; }
+        [Key(2)]
         public Vector3MessagePack Position { get; set; }
     }
 }
