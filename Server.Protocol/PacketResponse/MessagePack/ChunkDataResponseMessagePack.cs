@@ -1,8 +1,10 @@
 ﻿using System;
 using Game.World.Interface.DataStore;
+using MessagePack;
 
 namespace Server.Protocol.PacketResponse.MessagePack
 {
+    [MessagePackObject(keyAsPropertyName :true)]
     public class ChunkDataResponseMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
