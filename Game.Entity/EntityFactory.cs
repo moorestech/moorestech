@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Game.Entity.EntityInstance;
 using Game.Entity.Interface;
+using Game.Entity.Interface.EntityInstance;
 
 namespace Game.Entity
 {
@@ -8,14 +8,14 @@ namespace Game.Entity
     {
         public IEntity CreateEntity(string entityType, long instanceId,ServerVector3 position = default)
         {
-            if (entityType == EntityType.VanillaPlayer)
+            if (entityType == VanillaEntityType.VanillaPlayer)
             {
-                return new PlayerEntity(instanceId, entityType, position);
+                return new PlayerEntity(instanceId,position);
             }
 
-            if (entityType == EntityType.VanillaItem)
+            if (entityType == VanillaEntityType.VanillaItem)
             {
-                return new ItemEntity(instanceId,entityType, position);
+                return new ItemEntity(instanceId, position);
             }
 
             throw new KeyNotFoundException("Entity type not found : " + entityType);

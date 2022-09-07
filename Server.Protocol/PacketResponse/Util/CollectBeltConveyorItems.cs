@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Block.Blocks.BeltConveyor;
 using Core.Block.Config;
 using Game.Entity.Interface;
+using Game.Entity.Interface.EntityInstance;
 using Game.World.Interface.DataStore;
 using Server.Protocol.PacketResponse.Const;
 
@@ -84,7 +85,11 @@ namespace Server.Protocol.PacketResponse.Util
                 
                 //Unity側ではZ軸がサーバーのY軸になるため変換する
                 var position = new ServerVector3(entityX,0,entityY);
-                result.Add(entityFactory.CreateEntity(EntityType.VanillaItem,beltConveyorItem.ItemInstanceId,position));
+                
+                var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, beltConveyorItem.ItemInstanceId, position);
+                itemEntity.SetState(beltConveyorItem.ItemId,1);
+                
+                result.Add(itemEntity);
             }
 
             return result;

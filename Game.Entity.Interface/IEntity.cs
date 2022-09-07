@@ -6,6 +6,8 @@ namespace Game.Entity.Interface
         string EntityType { get; }
         
         ServerVector3 Position { get; }
+        
+        string State { get; }
 
         void SetPosition(ServerVector3 serverVector3);
     }
