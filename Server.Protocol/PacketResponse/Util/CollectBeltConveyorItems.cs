@@ -70,14 +70,14 @@ namespace Server.Protocol.PacketResponse.Util
                         break;
                     case BlockDirection.South:
                         entityX += 0.5f;
-                        entityY -= parent;
+                        entityY += 1 - parent; //北とは逆向きなので1を引いて逆向きにする
                         break;
                     case BlockDirection.East:
                         entityX += parent;
                         entityY += 0.5f;
                         break;
                     case BlockDirection.West:
-                        entityX -= parent;
+                        entityX += 1 - parent;
                         entityY += 0.5f;
                         break;
                 }
