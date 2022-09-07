@@ -1,3 +1,4 @@
+using MainGame.Basic.Server;
 using MainGame.Network.Receive;
 using MainGame.Network.Send;
 using MainGame.UnityView.Game;
@@ -11,7 +12,6 @@ namespace MainGame.Presenter.Player
         private readonly SendPlayerPositionProtocolProtocol _protocol;
         private readonly IPlayerPosition _playerPosition;
         
-        private const float Interval = 0.2f;
 
         private bool _startPositionSend = false;
         
@@ -40,7 +40,7 @@ namespace MainGame.Presenter.Player
             
             
             _timer += Time.deltaTime;
-            if (_timer < Interval) return;
+            if (_timer < NetworkConst.UpdateIntervalSeconds) return;
             _timer = 0;
             _protocol.Send(_playerPosition.GetPlayerPosition());
         }

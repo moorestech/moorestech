@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MainGame.Basic.Server;
 using MainGame.Network.Settings;
 using MainGame.Network.Util;
 using MessagePack;
@@ -13,7 +14,6 @@ namespace MainGame.Network.Send
 {
     public class RequestEventProtocol : ITickable
     {
-        private const int RequestEventIntervalMilliSeconds = 100;
 
         private readonly int _playerId;
         private readonly ISocketSender _socketSender;
@@ -27,7 +27,7 @@ namespace MainGame.Network.Send
         private DateTime _lastRequestTime = DateTime.Now;
         public void Tick()
         {
-            if (DateTime.Now - _lastRequestTime < TimeSpan.FromMilliseconds(RequestEventIntervalMilliSeconds)) return;
+            if (DateTime.Now - _lastRequestTime < TimeSpan.FromMilliseconds(NetworkConst.UpdateIntervalMilliseconds)) return;
 
             _lastRequestTime = DateTime.Now;
             Send(_playerId);
