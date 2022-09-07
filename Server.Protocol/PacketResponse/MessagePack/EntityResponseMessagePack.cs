@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
+using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse.MessagePack
 {
@@ -8,21 +12,13 @@ namespace Server.Protocol.PacketResponse.MessagePack
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public EntityResponseMessagePack() { }
 
-        public EntityResponseMessagePack(Coordinate chunk, int[,] blockIds, int[,] blockDirect, int[,] mapTileIds)
+        public EntityResponseMessagePack(List<IEntity> entities)
         {
             Tag = PlayerCoordinateSendProtocol.ChunkDataTag;
-            ChunkX = chunk.X;
-            ChunkY = chunk.Y;
-            BlockIds = blockIds;
-            BlockDirect = blockDirect;
-            MapTileIds = mapTileIds;
+            Entities = entities.Select(e => new EntityMessagePack(e)).ToArray();
         }
+        
+        public EntityMessagePack[] Entities { get; set; }
 
-        public int ChunkX { get; set; }
-        public int ChunkY { get; set; }
-
-        public int[,] BlockIds { get; set; }
-        public int[,] BlockDirect { get; set; }
-        public int[,] MapTileIds { get; set; }
     }
 }

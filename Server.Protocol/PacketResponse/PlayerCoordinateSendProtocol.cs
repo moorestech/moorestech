@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Block.Config;
 using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.PacketResponse.MessagePack;
 using Server.Protocol.PacketResponse.Player;
+using Server.Protocol.PacketResponse.Util;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
@@ -21,15 +24,20 @@ namespace Server.Protocol.PacketResponse
         public const string EntityDataTag = "va:entityData";
         
         private readonly Dictionary<int, PlayerCoordinateToResponse> _responses = new();
+        
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly WorldMapTile _worldMapTile;
         private readonly IEntitiesDatastore _entitiesDatastore;
-
+        private readonly IBlockConfig _blockConfig;
+        private readonly IEntityFactory _entityFactory;
+        
         public PlayerCoordinateSendProtocol(ServiceProvider serviceProvider)
         {
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _worldMapTile = serviceProvider.GetService<WorldMapTile>();
             _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
+            _blockConfig = serviceProvider.GetService<IBlockConfig>();
+            _entityFactory = serviceProvider.GetService<IEntityFactory>();
         }
         
         public List<List<byte>> GetResponse(List<byte> payload)
@@ -50,6 +58,7 @@ namespace Server.Protocol.PacketResponse
             var responseChunk = GetChunkBytes(data);
             
             //エンティティのデータを取得する
+            responseChunk.Add(GetEntityBytes(data));
             
 
             return responseChunk;
@@ -70,10 +79,16 @@ namespace Server.Protocol.PacketResponse
         }
 
 
-        private List<List<byte>> GetEntityBytes(PlayerCoordinateSendProtocolMessagePack data)
+        private List<byte> GetEntityBytes(PlayerCoordinateSendProtocolMessagePack data)
         {
-            var response = new List<List<byte>>();
             //TODO 今はベルトコンベアのアイテムをエンティティとして返しているだけ 今後は本当のentityも返す
+            var coordinate = new Coordinate((int)data.X,(int)data.Y);
+            var responseChunkCoordinates = PlayerCoordinateToResponse.GetChunkCoordinates(coordinate);
+            var items = CollectBeltConveyorItems.CollectItem(responseChunkCoordinates,_worldBlockDatastore,_blockConfig,_entityFactory);
+
+            var response = MessagePackSerializer.Serialize(new EntityResponseMessagePack(items)).ToList();
+
+            return response;
         }
     }
     

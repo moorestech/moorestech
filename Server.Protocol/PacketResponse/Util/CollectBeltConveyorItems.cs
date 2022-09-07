@@ -7,9 +7,9 @@ using Server.Protocol.PacketResponse.Const;
 
 namespace Server.Protocol.PacketResponse.Util
 {
-    public class CollectBeltConveyorItems
+    public static class CollectBeltConveyorItems
     {
-        public static List<IEntity> CollectItem(List<Coordinate> collectChunks,IWorldBlockDatastore worldBlockDatastore,BlockConfig blockConfig,IEntityFactory entityFactory)
+        public static List<IEntity> CollectItem(List<Coordinate> collectChunks,IWorldBlockDatastore worldBlockDatastore,IBlockConfig blockConfig,IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
             foreach (var collectChunk in collectChunks)
@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse.Util
         }
 
 
-        private static List<IEntity> CollectItemFromChunk(Coordinate chunk, IWorldBlockDatastore worldBlockDatastore,BlockConfig blockConfig,IEntityFactory entityFactory)
+        private static List<IEntity> CollectItemFromChunk(Coordinate chunk, IWorldBlockDatastore worldBlockDatastore,IBlockConfig blockConfig,IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
             for (int i = 0; i < ChunkResponseConst.ChunkSize; i++)
