@@ -50,8 +50,8 @@ namespace MainGame.Presenter.Inventory.Send
             {
                 //サブインベントリに置く
                 slot -= PlayerInventoryConstant.MainInventorySize; 
-                from = new FromItemMoveInventoryInfo(_currentSubInventoryType, slot);
-                to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0,_blockPos.x,_blockPos.y);
+                from = new FromItemMoveInventoryInfo(_currentSubInventoryType, slot,_blockPos.x,_blockPos.y);
+                to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
             }
             _inventoryMoveItem.Send(count,ItemMoveType.SwapSlot,from,to);
         }
