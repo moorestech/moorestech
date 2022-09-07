@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace MainGame.UnityView.Entity
 {
-    public class ItemEntityObject : MonoBehaviour
+    public class ItemEntityObject : MonoBehaviour, IEntityObject
     {
         [SerializeField] private MeshRenderer meshRenderer;
         [SerializeField] private Material itemMaterial;
@@ -14,6 +14,11 @@ namespace MainGame.UnityView.Entity
                 mainTexture = texture
             };
             meshRenderer.material = material;
+        }
++
+        public void SetPosition(Vector3 position)
+        {
+            
         }
     }
 }

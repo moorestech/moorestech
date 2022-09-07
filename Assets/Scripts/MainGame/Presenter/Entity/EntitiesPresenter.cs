@@ -15,7 +15,7 @@ namespace MainGame.Presenter.Entity
     {
         [SerializeField] private ItemEntityObject itemPrefab;
         
-        private readonly Dictionary<long, (DateTime lastUpdate, GameObject objectEntity)> _entities = new();
+        private readonly Dictionary<long, (DateTime lastUpdate, IEntityObject objectEntity)> _entities = new();
 
         private ItemImages _itemImages;
 
@@ -35,6 +35,7 @@ namespace MainGame.Presenter.Entity
             {
                 if (_entities.ContainsKey(entity.InstanceId))
                 {
+                    _entities[entity.InstanceId].objectEntity.SetPosition(entity.Position);
                     _entities[entity.InstanceId] = (DateTime.Now, _entities[entity.InstanceId].objectEntity);
                 }
                 else
@@ -48,16 +49,16 @@ namespace MainGame.Presenter.Entity
         /// <summary>
         /// タイプに応じたエンティティの作成
         /// </summary>
-        private GameObject CreateEntity(EntityProperties entityProperties)
+        private IEntityObject CreateEntity(EntityProperties entityProperties)
         {
             if (entityProperties.Type == VanillaEntityType.VanillaItem)
             {
                 var item = Instantiate(itemPrefab, transform, true);
-                item.transform.position = entityProperties.Position;
+                item.SetPosition(entityProperties.Position);
                 
                 var id = int.Parse(entityProperties.State.Split(',')[0]);
                 item.SetTexture(_itemImages.GetItemView(id).ItemTexture);
-                return item.gameObject;
+                return item;
             }
 
             throw new ArgumentException("エンティティタイプがありません");
@@ -80,7 +81,7 @@ namespace MainGame.Presenter.Entity
             }
             foreach (var removeEntity in removeEntities)
             {
-                Destroy(_entities[removeEntity].objectEntity);
+                _entities[removeEntity].objectEntity.Destroy();
                 _entities.Remove(removeEntity);
             }
         }
