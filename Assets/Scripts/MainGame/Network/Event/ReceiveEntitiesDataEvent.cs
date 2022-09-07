@@ -11,7 +11,7 @@ namespace MainGame.Network.Event
 {
     public class ReceiveEntitiesDataEvent
     {
-        public event Action<List<EntityProperties>> OnChunkUpdateEvent;
+        public event Action<List<EntityProperties>> OnEntitiesUpdate;
 
         internal async UniTask InvokeChunkUpdateEvent(EntitiesResponseMessagePack response)
         {
@@ -23,7 +23,7 @@ namespace MainGame.Network.Event
                 properties.Add(new EntityProperties(entity));
             }
             
-            OnChunkUpdateEvent?.Invoke(properties);
+            OnEntitiesUpdate?.Invoke(properties);
         }
     }
 
