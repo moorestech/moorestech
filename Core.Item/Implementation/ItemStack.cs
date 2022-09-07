@@ -39,6 +39,10 @@ namespace Core.Item.Implementation
             Id = id;
             Count = count;
         }
+        public ItemStack(int id, int count, IItemConfig itemConfig, ItemStackFactory itemStackFactory,long instanceId) : this(id,count,itemConfig,itemStackFactory)
+        {
+            ItemInstanceId = instanceId;
+        }
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {

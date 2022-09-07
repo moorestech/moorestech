@@ -132,7 +132,8 @@ namespace Core.Block.Blocks.BeltConveyor
             //最後のアイテムが0だったら接続先に渡す
             if (1 <= _inventoryItems.Count && _inventoryItems[^1].RemainingTime <= 0)
             {
-                var output = _connector.InsertItem(_itemStackFactory.Create(_inventoryItems[^1].ItemId, 1));
+                var item = _itemStackFactory.Create(_inventoryItems[^1].ItemId, 1, _inventoryItems[^1].ItemInstanceId);
+                var output = _connector.InsertItem(item);
                 //渡した結果がnullItemだったらそのアイテムを消す
                 if (output.Count == 0)
                 {
