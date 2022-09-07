@@ -55,13 +55,17 @@ namespace Server.Protocol.PacketResponse
 
             
             //プレイヤーの座標から返すチャンクのブロックデータを取得をする
-            var responseChunk = GetChunkBytes(data);
+            var response = GetChunkBytes(data);
             
             //エンティティのデータを取得する
-            responseChunk.Add(GetEntityBytes(data));
+            var entityResponse = GetEntityBytes(data);
+            if (entityResponse != null)
+            {
+                response.Add(entityResponse);
+            }
             
 
-            return responseChunk;
+            return response;
         }
 
 
@@ -85,6 +89,12 @@ namespace Server.Protocol.PacketResponse
             var coordinate = new Coordinate((int)data.X,(int)data.Y);
             var responseChunkCoordinates = PlayerCoordinateToResponse.GetChunkCoordinates(coordinate);
             var items = CollectBeltConveyorItems.CollectItem(responseChunkCoordinates,_worldBlockDatastore,_blockConfig,_entityFactory);
+            
+            
+            if (items.Count == 0)
+            {
+                return null;
+            }
 
             var response = MessagePackSerializer.Serialize(new EntitiesResponseMessagePack(items)).ToList();
 
