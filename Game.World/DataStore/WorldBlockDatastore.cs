@@ -77,6 +77,17 @@ namespace World.DataStore
             return _nullBlock;
         }
 
+        public bool TryGetBlock(int x, int y, out IBlock block)
+        {
+            if (Exists(x,y))
+            {
+                block = GetBlock(x, y);
+                return true;
+            }
+            block = _nullBlock;
+            return false;
+        }
+
         public (int, int) GetBlockPosition(int entityId)
         {
             if (_blockMasterDictionary.ContainsKey(entityId))

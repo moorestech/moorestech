@@ -5,16 +5,18 @@ namespace Core.Item.Implementation
 {
     internal class NullItemStack : IItemStack
     {
-        ItemStackFactory _itemStackFactory;
+        readonly ItemStackFactory _itemStackFactory;
 
         public NullItemStack(ItemStackFactory itemStackFactory)
         {
             _itemStackFactory = itemStackFactory;
+            ItemInstanceId = ItemInstanceIdGenerator.Generate();
         }
 
         public int Id => ItemConst.EmptyItemId;
         public int Count => 0;
         public ulong ItemHash => 0;
+        public long ItemInstanceId { get; }
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
