@@ -34,7 +34,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //1回のレスポンスのテスト
             packetResponse.GetPacketResponse(GetHandshakePacket(10));
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
-                .Select(PayloadToBlock).ToList();
+                .Select(PayloadToBlock).Where(p => p is not null).ToList();
 
             Assert.AreEqual(25, response.Count());
             var ans = new List<Coordinate>();
@@ -63,20 +63,20 @@ namespace Test.CombinedTest.Server.PacketTest
             //2回目は何も返ってこないテスト
             packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0));
             response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
-                .Select(PayloadToBlock).ToList();
+                .Select(PayloadToBlock).Where(p => p is not null).ToList();
             Assert.AreEqual(response.Count, 0);
 
 
             //場所をずらしたら返ってくるテスト
             packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0));
             response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 25, 25))
-                .Select(PayloadToBlock).ToList();
+                .Select(PayloadToBlock).Where(p => p is not null).ToList();
             Assert.AreEqual(response.Count, 9);
 
             //他の名前は普通に取得できるテスト
             packetResponse.GetPacketResponse(GetHandshakePacket(15));
             response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(15, 0, 0))
-                .Select(PayloadToBlock).ToList();
+                .Select(PayloadToBlock).Where(p => p is not null).ToList();
 
             Assert.AreEqual(25, response.Count());
         }
@@ -100,7 +100,7 @@ namespace Test.CombinedTest.Server.PacketTest
             packetResponse.GetPacketResponse(GetHandshakePacket(20));
             
             var bytes = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0));
-            var response = bytes.Select(PayloadToBlock).ToList();
+            var response = bytes.Select(PayloadToBlock).Where(p => p is not null).ToList();
 
             
             
@@ -165,7 +165,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
 
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(25, 0, 0))
-                .Select(PayloadToBlock).ToList();
+                .Select(PayloadToBlock).Where(p => p is not null).ToList();
             
             
             
@@ -225,7 +225,7 @@ namespace Test.CombinedTest.Server.PacketTest
             //鉱石がある座標のチャンクを取得
             packetResponse.GetPacketResponse(GetHandshakePacket(25));
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(25, veinCoordinate.X, veinCoordinate.Y))
-                .Select(PayloadToBlock).ToList();
+                .Select(PayloadToBlock).Where(p => p is not null).ToList();
             
             
             //正しく鉱石IDが帰ってきているかチェックする
@@ -261,6 +261,11 @@ namespace Test.CombinedTest.Server.PacketTest
         ChunkData PayloadToBlock(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<ChunkDataResponseMessagePack>(payload.ToArray());
+            //エンティティタグの時はnullを返す
+            if (data.Tag == PlayerCoordinateSendProtocol.EntityDataTag)
+            {
+                return null;
+            }
             
 
             return new ChunkData(new Coordinate(data.ChunkX, data.ChunkY),data.BlockIds,data.MapTileIds,data.BlockDirect);
