@@ -53,7 +53,7 @@ namespace MainGame.Presenter.Entity
         {
             if (entityProperties.Type == VanillaEntityType.VanillaItem)
             {
-                var item = Instantiate(itemPrefab, entityProperties.Position,Quaternion.identity);
+                var item = Instantiate(itemPrefab, entityProperties.Position,Quaternion.identity,transform);
                 
                 
                 var id = int.Parse(entityProperties.State.Split(',')[0]);

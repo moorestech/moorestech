@@ -11,21 +11,23 @@ namespace MainGame.UnityView.Entity
 
         private const float Interval = NetworkConst.UpdateIntervalSeconds;
         
+        private Vector3 _targetPosition;
+        private float _linerTime;
+
+        private void Awake()
+        {
+            _targetPosition = transform.position;
+        }
+
         public void SetTexture(Texture texture)
         {
-            var material = new Material(itemMaterial)
-            {
-                mainTexture = texture
-            };
+            var material = new Material(itemMaterial) {mainTexture = texture};
             meshRenderer.material = material;
         }
         
-        
-        
-        private Vector3 _targetPosition;
-        private float _linerTime;
         public void SetDirectPosition(Vector3 position)
         {
+            _targetPosition = position;
             transform.position = position;
         }
 
