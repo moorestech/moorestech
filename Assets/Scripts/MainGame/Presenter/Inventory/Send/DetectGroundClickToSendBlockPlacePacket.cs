@@ -102,9 +102,9 @@ namespace MainGame.Presenter.Inventory.Send
             //UIの状態がゲーム中か
             if (_uiStateControl.CurrentState != UIStateEnum.BlockPlace) return (false,new Vector2Int());
             
-            
-            var x = Mathf.RoundToInt(hit.point.x);
-            var y = Mathf.RoundToInt(hit.point.z);
+            //基本的にブロックの原点は0,0なので、0.5を引いてintの座標に変換する
+            var x = Mathf.RoundToInt(hit.point.x - 0.5f);
+            var y = Mathf.RoundToInt(hit.point.z - 0.5f);
 
             return (true ,new Vector2Int(x,y));
         }
