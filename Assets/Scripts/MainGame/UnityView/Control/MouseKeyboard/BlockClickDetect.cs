@@ -27,13 +27,12 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             if (!TryGetCursorOnBlock(out var blockObject)) return false;
             
             
-            var blockPos = blockObject.transform.position;
-            position = new Vector2Int((int) blockPos.x, (int) blockPos.z);
+            position = blockObject.BlockPosition;
                 
             return true;
         }
 
-        public bool TryGetClickBlock(out GameObject blockObject)
+        public bool TryGetClickBlock(out BlockGameObject blockObject)
         {
             blockObject = null;
             // UIのクリックかどうかを判定
@@ -61,7 +60,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
         
         
 
-        private bool TryGetCursorOnBlock(out GameObject blockObject)
+        private bool TryGetCursorOnBlock(out BlockGameObject blockObject)
         {
             blockObject = null;
             
@@ -73,7 +72,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             if (child is null) return false;
 
             
-            blockObject = child.BlockGameObject.gameObject;
+            blockObject = child.BlockGameObject;
             
             return true;
         }
