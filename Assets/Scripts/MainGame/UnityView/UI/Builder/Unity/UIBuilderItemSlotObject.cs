@@ -118,5 +118,10 @@ namespace MainGame.UnityView.UI.Builder.Unity
             
             OnCursorMove?.Invoke(this);
         }
+
+        private void OnDisable()
+        {
+            ItemNameBar.Instance.HideItemName();
+        }
     }
 }
