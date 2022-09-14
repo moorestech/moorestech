@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Item;
 using MainGame.Basic;
 using SinglePlay;
@@ -85,18 +86,12 @@ namespace MainGame.UnityView.UI.Inventory.Control
             return GetEnumerator();
         }
     }
+}
 
-    public static class ListItemStackExtend
+public static class ListItemStackExtend
+{
+    public static List<IItemStack> ToIItemStackList(this List<ItemStack> list, ItemStackFactory factory)
     {
-        public static List<IItemStack> ToIItemStackList(this List<ItemStack> list,ItemStackFactory factory)
-        {
-            List<IItemStack> result = new List<IItemStack>();
-            foreach (var itemStack in list)
-            {
-                result.Add(factory.Create(itemStack.ID,itemStack.Count));
-            }
-            return result;
-        }
+        return list.Select(i => factory.Create(i.ID, i.Count)).ToList();
     }
-    
 }
