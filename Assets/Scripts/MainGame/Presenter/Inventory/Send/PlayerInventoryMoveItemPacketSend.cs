@@ -1,13 +1,8 @@
 using MainGame.Basic;
 using MainGame.Network.Send;
-using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.UI.Inventory.Control;
-using MainGame.UnityView.UI.UIState;
-using Server.Protocol.PacketResponse;
-using Server.Protocol.PacketResponse.Util;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUitl;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
-using UnityEngine;
 using VContainer.Unity;
 
 namespace MainGame.Presenter.Inventory.Send
@@ -15,20 +10,17 @@ namespace MainGame.Presenter.Inventory.Send
     public class PlayerInventoryMoveItemPacketSend : IInitializable
     {
         private readonly InventoryMoveItemProtocol _inventoryMoveItem;
-        private readonly IBlockClickDetect _blockClickDetect;
+        private readonly SubInventoryTypeProvider _subInventoryTypeProvider;
 
-        private ItemMoveInventoryType  _currentSubInventoryType;
-        private Vector2Int _blockPos;
 
-        public PlayerInventoryMoveItemPacketSend(UIStateControl uiStateControl, PlayerInventoryViewModelController playerInventoryViewModelController,InventoryMoveItemProtocol inventoryMoveItem,IBlockClickDetect blockClickDetect)
+        public PlayerInventoryMoveItemPacketSend(PlayerInventoryViewModelController playerInventoryViewModelController,InventoryMoveItemProtocol inventoryMoveItem,SubInventoryTypeProvider subInventoryTypeProvider)
         {
-            uiStateControl.OnStateChanged += OnStateChanged;
             playerInventoryViewModelController.OnItemSlotGrabbed += ItemSlotGrabbed;
             playerInventoryViewModelController.OnItemSlotCollect += ItemSlotGrabbed;
             playerInventoryViewModelController.OnGrabItemReplaced += ItemSlotGrabbed;
             playerInventoryViewModelController.OnItemSlotAdded += ItemSlotAdded;
             _inventoryMoveItem = inventoryMoveItem;
-            _blockClickDetect = blockClickDetect;
+            _subInventoryTypeProvider = subInventoryTypeProvider;
         }
 
         
@@ -49,8 +41,9 @@ namespace MainGame.Presenter.Inventory.Send
             else
             {
                 //サブインベントリに置く
-                slot -= PlayerInventoryConstant.MainInventorySize; 
-                from = new FromItemMoveInventoryInfo(_currentSubInventoryType, slot,_blockPos.x,_blockPos.y);
+                slot -= PlayerInventoryConstant.MainInventorySize;
+                var pos = _subInventoryTypeProvider.BlockPos;
+                from = new FromItemMoveInventoryInfo(_subInventoryTypeProvider.CurrentSubInventory, slot,pos.x,pos.y);
                 to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
             }
             _inventoryMoveItem.Send(count,ItemMoveType.SwapSlot,from,to);
@@ -75,25 +68,12 @@ namespace MainGame.Presenter.Inventory.Send
                 //サブインベントリに置く
                 slot -= PlayerInventoryConstant.MainInventorySize;
                 from = new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
-                to = new ToItemMoveInventoryInfo(_currentSubInventoryType, slot,_blockPos.x,_blockPos.y);
+                var pos = _subInventoryTypeProvider.BlockPos;
+                to = new ToItemMoveInventoryInfo(_subInventoryTypeProvider.CurrentSubInventory, slot,pos.x,pos.y);
             }
             _inventoryMoveItem.Send(addCount,ItemMoveType.SwapSlot,from,to);
         }
 
-        private void OnStateChanged(UIStateEnum state)
-        {
-            //今開いているサブインベントリのタイプを設定する
-            _currentSubInventoryType = state switch
-            {
-                //プレイヤーインベントリを開いているということは、サブインベントリはCraftInventoryなのでそれを設定する
-                UIStateEnum.PlayerInventory => ItemMoveInventoryType.CraftInventory,
-                UIStateEnum.BlockInventory => ItemMoveInventoryType.BlockInventory,
-                _ => _currentSubInventoryType
-            };
-            
-            //ブロックだった場合のために現在の座標を取得しておく
-            _blockClickDetect.TryGetCursorOnBlockPosition(out _blockPos);
-        }
 
         public void Initialize() { }
     }

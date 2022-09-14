@@ -10,15 +10,12 @@ namespace MainGame.UnityView.UI.Inventory.Control
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
 
         private PlayerInventoryViewModelController _playerInventoryViewModelController;
-        private MoorestechInputSettings _moorestechInputSettings;
 
-        public event Action<int> OnItemoDirectInventoryMove;
 
         [Inject]
-        public void Construct(PlayerInventoryViewModelController playerInventoryViewModelController,MoorestechInputSettings moorestechInputSettings)
+        public void Construct(PlayerInventoryViewModelController playerInventoryViewModelController)
         {
             _playerInventoryViewModelController = playerInventoryViewModelController;
-            _moorestechInputSettings = moorestechInputSettings;
         }
         
         private void Awake()
@@ -72,18 +69,6 @@ namespace MainGame.UnityView.UI.Inventory.Control
             {
                 _playerInventoryViewModelController.ItemSplitDragEndSlot(slotIndex);
                 return;
-            }
-
-            //なんらかのインベントリの操作をしてるときはスルー
-            if (_playerInventoryViewModelController.IsGrabbed || _playerInventoryViewModelController.IsItemOneDragging)
-            {
-                return;
-            }
-            
-            //アイテムをサブインベントリに移動するためのイベント発火
-            if (_moorestechInputSettings.UI.ItemDirectMove.triggered)
-            {
-                OnItemoDirectInventoryMove?.Invoke(slotIndex);
             }
         }
 
