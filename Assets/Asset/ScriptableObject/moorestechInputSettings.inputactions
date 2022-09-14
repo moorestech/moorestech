@@ -391,6 +391,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ItemDirectMove",
+                    "type": "Button",
+                    "id": "4063cc99-dc31-4a12-8b27-11c6c7eba545",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -611,6 +620,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "QuestUI",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4b0c3c9e-4a0e-4275-ab26-32682c2ed4cc",
+                    "path": "<Keyboard>/leftShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ItemDirectMove",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
