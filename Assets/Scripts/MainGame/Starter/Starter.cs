@@ -160,6 +160,7 @@ namespace MainGame.Starter
             //インベントリのUIコントロール
             builder.Register<PlayerInventoryViewModel>(Lifetime.Singleton);
             builder.Register<PlayerInventoryViewModelController>(Lifetime.Singleton);
+            builder.Register<SubInventoryTypeProvider>(Lifetime.Singleton);
             builder.RegisterComponent(playerInventorySlotsInputControl);
             builder.RegisterComponent(playerInventoryPresenter);
             
@@ -177,6 +178,7 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<QuestUIPresenter>();
             builder.RegisterEntryPoint<RecipeViewerItemPlacer>();
+            builder.RegisterEntryPoint<DirectItemMovePacketSend>();
             
             //インプット
             builder.Register<MoorestechInputSettings>(Lifetime.Singleton);
