@@ -651,7 +651,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""KeyboardMouse"",
                     ""action"": ""ItemDirectMove"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false

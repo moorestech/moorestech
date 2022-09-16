@@ -31,7 +31,7 @@ namespace Test
             inventoryController.OnItemSlotAdded += (slot, count) => Debug.Log($"put {slot} {count}");
             inventoryController.OnItemSlotCollect += (slot, count) => Debug.Log($"collect {slot} {count}");
 
-            playerInventorySlotsInputControl.Construct(inventoryController);
+            playerInventorySlotsInputControl.Construct(inventoryController,new MoorestechInputSettings());
             playerInventoryPresenter.Construct(inventoryController,itemImages,inventoryModel);
             
             var oneSlots = new List<UIBluePrintItemSlot>() {new(172,272,0,new InventorySlotElementOptions())};

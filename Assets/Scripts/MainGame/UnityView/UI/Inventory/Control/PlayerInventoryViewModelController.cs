@@ -29,6 +29,8 @@ namespace MainGame.UnityView.UI.Inventory.Control
         
         public bool IsItemSplitDragging => _isItemSplitDragging;
         public bool IsItemOneDragging => _isItemOneDragging;
+        
+        public bool IsActioning => _isGrabbed || _isItemSplitDragging || _isItemOneDragging;
 
 
         public event Action<int,ItemStack> OnSlotUpdate;

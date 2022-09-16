@@ -7,15 +7,19 @@ namespace MainGame.UnityView.UI.Inventory.Control
 {
     public class PlayerInventorySlotsInputControl : MonoBehaviour
     {
+        public event Action<int> OnDirectMoveItem; 
+
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
 
         private PlayerInventoryViewModelController _playerInventoryViewModelController;
+        private MoorestechInputSettings _moorestechInputSettings;
 
 
         [Inject]
-        public void Construct(PlayerInventoryViewModelController playerInventoryViewModelController)
+        public void Construct(PlayerInventoryViewModelController playerInventoryViewModelController,MoorestechInputSettings moorestechInputSettings)
         {
             _playerInventoryViewModelController = playerInventoryViewModelController;
+            _moorestechInputSettings = moorestechInputSettings;
         }
         
         private void Awake()
@@ -93,6 +97,13 @@ namespace MainGame.UnityView.UI.Inventory.Control
             {
                 //アイテムを持っている時に左クリックするとアイテムを置くもしくは置き換える処理
                 _playerInventoryViewModelController.PlaceItem(slotIndex);
+                return;
+            }
+
+            if (_moorestechInputSettings.UI.ItemDirectMove.IsPressed())
+            {
+                //シフト（デフォルト）＋クリックでメイン、サブのアイテム移動を直接やる処理
+                OnDirectMoveItem?.Invoke(slotIndex);
             }
             else
             {
@@ -100,7 +111,5 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 _playerInventoryViewModelController.GrabbedItem(slotIndex);
             }
         }
-        
-        
     }
 }
