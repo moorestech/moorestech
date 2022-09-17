@@ -1,30 +1,29 @@
+using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.UIState.UIObject;
 
 namespace MainGame.UnityView.UI.UIState
 {
     public class QuestViewerState : IUIState
     {
-        private readonly MoorestechInputSettings _input;
         private readonly QuestViewerObject _questViewerObject;
 
-        public QuestViewerState(MoorestechInputSettings input, QuestViewerObject questViewerObject)
+        public QuestViewerState(QuestViewerObject questViewerObject)
         {
-            _input = input;
             _questViewerObject = questViewerObject;
         }
 
         public bool IsNext()
         {
-            return _input.UI.CloseUI.triggered || _input.UI.OpenInventory.triggered || _input.UI.QuestUI.triggered;
+            return InputManager.Settings.UI.CloseUI.triggered || InputManager.Settings.UI.OpenInventory.triggered || InputManager.Settings.UI.QuestUI.triggered;
         }
 
         public UIStateEnum GetNext()
         {
-            if (_input.UI.CloseUI.triggered || _input.UI.QuestUI.triggered)
+            if (InputManager.Settings.UI.CloseUI.triggered || InputManager.Settings.UI.QuestUI.triggered)
             {
                 return UIStateEnum.GameScreen;
             }
-            if (_input.UI.OpenInventory.triggered)
+            if (InputManager.Settings.UI.OpenInventory.triggered)
             {
                 return UIStateEnum.PlayerInventory;
             }

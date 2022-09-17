@@ -1,4 +1,5 @@
 ﻿using MainGame.Network.Send;
+using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.WorldMapTile;
 using UnityEngine;
@@ -10,7 +11,6 @@ namespace MainGame.Presenter.Inventory
     public class OreMapTileClickDetect : MonoBehaviour
     {
         private Camera _mainCamera;
-        private MoorestechInputSettings _input;
         private SendMiningProtocol _sendMiningProtocol;
         private UIStateControl _uiStateControl; 
         
@@ -21,8 +21,6 @@ namespace MainGame.Presenter.Inventory
             _sendMiningProtocol = sendMiningProtocol;
             _uiStateControl = uiStateControl;
             
-            _input = new MoorestechInputSettings();
-            _input.Enable();
         }
 
         private void Update()
@@ -35,11 +33,11 @@ namespace MainGame.Presenter.Inventory
 
         private bool IsBlockClicked()
         {
-             var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
+            var mousePosition = InputManager.Settings.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
 
             // マウスでクリックした位置にタイルマップがあるとき
-            if (!_input.Playable.ScreenClick.triggered) return false;
+            if (!InputManager.Settings.Playable.ScreenClick.triggered) return false;
             // UIのクリックかどうかを判定
             if (EventSystem.current.IsPointerOverGameObject()) return false;
             if (!Physics.Raycast(ray, out var hit)) return false;
@@ -50,7 +48,7 @@ namespace MainGame.Presenter.Inventory
 
         private Vector2Int GetClickPosition()
         {
-            var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
+            var mousePosition = InputManager.Settings.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
             
             if (Physics.Raycast(ray, out var hit))

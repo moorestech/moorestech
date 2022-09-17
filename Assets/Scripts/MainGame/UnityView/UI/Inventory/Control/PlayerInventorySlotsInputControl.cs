@@ -1,4 +1,5 @@
 using System;
+using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory.View;
 using UnityEngine;
 using VContainer;
@@ -12,14 +13,12 @@ namespace MainGame.UnityView.UI.Inventory.Control
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
 
         private PlayerInventoryViewModelController _playerInventoryViewModelController;
-        private MoorestechInputSettings _moorestechInputSettings;
 
 
         [Inject]
-        public void Construct(PlayerInventoryViewModelController playerInventoryViewModelController,MoorestechInputSettings moorestechInputSettings)
+        public void Construct(PlayerInventoryViewModelController playerInventoryViewModelController)
         {
             _playerInventoryViewModelController = playerInventoryViewModelController;
-            _moorestechInputSettings = moorestechInputSettings;
         }
         
         private void Awake()
@@ -100,7 +99,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 return;
             }
 
-            if (_moorestechInputSettings.UI.ItemDirectMove.IsPressed())
+            if (InputManager.Settings.UI.ItemDirectMove.IsPressed())
             {
                 //シフト（デフォルト）＋クリックでメイン、サブのアイテム移動を直接やる処理
                 OnDirectMoveItem?.Invoke(slotIndex);

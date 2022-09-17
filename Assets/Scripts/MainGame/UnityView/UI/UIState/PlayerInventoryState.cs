@@ -1,4 +1,5 @@
 ﻿using System;
+using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.CraftRecipe;
 using MainGame.UnityView.UI.UIState.UIObject;
 
@@ -8,18 +9,15 @@ namespace MainGame.UnityView.UI.UIState
     {
         private readonly PlayerInventoryObject _playerInventory;
         
-        private readonly MoorestechInputSettings _inputSettings;
-
         private readonly CraftRecipeItemListViewer _craftRecipeItemListViewer;
         private readonly ItemRecipePresenter _itemRecipePresenter;
 
 
         public event Action OnOpenInventory;
 
-        public PlayerInventoryState( MoorestechInputSettings inputSettings, PlayerInventoryObject playerInventory,
+        public PlayerInventoryState(PlayerInventoryObject playerInventory,
             CraftRecipeItemListViewer craftRecipeItemListViewer,ItemRecipePresenter itemRecipePresenter)
         {
-            _inputSettings = inputSettings;
             _playerInventory = playerInventory;
             _craftRecipeItemListViewer = craftRecipeItemListViewer;
             _itemRecipePresenter = itemRecipePresenter;
@@ -29,12 +27,12 @@ namespace MainGame.UnityView.UI.UIState
 
         public bool IsNext()
         {
-            return _inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered || _itemRecipePresenter.IsClicked;
+            return InputManager.Settings.UI.CloseUI.triggered || InputManager.Settings.UI.OpenInventory.triggered || _itemRecipePresenter.IsClicked;
         }
 
         public UIStateEnum GetNext()
         {
-            if (_inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered)
+            if (InputManager.Settings.UI.CloseUI.triggered || InputManager.Settings.UI.OpenInventory.triggered)
             {
                 return UIStateEnum.GameScreen;
             }

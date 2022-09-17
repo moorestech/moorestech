@@ -1,4 +1,5 @@
 using System;
+using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Builder;
 using MainGame.UnityView.UI.Builder.Unity;
 using MainGame.UnityView.UI.Inventory.Element;
@@ -11,8 +12,6 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
         [SerializeField] private SelectHotBarView selectHotBarView;
         [SerializeField] private HotBarItemView hotBarItemView;
         
-        private MoorestechInputSettings _inputSettings;
-        
         public event Action<int> OnSelectHotBar;
 
         public int SelectIndex => _selectIndex;
@@ -24,8 +23,6 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
         
         public void Start()
         {
-            _inputSettings = new();
-            _inputSettings.Enable();
 
             foreach (var slot in hotBarItemView.Slots)
             {
@@ -54,10 +51,10 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
         private void Update()
         {
             //キーボード入力で選択
-            if (_inputSettings.UI.HotBar.ReadValue<int>() != 0)
+            if (InputManager.Settings.UI.HotBar.ReadValue<int>() != 0)
             {
                 //キー入力で得られる値は1〜9なので-1する
-                _selectIndex = _inputSettings.UI.HotBar.ReadValue<int>() - 1;
+                _selectIndex = InputManager.Settings.UI.HotBar.ReadValue<int>() - 1;
                 selectHotBarView.SetSelect(_selectIndex);
                 
                 OnSelectHotBar?.Invoke(_selectIndex);

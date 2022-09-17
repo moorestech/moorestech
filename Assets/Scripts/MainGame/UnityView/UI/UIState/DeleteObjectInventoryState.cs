@@ -1,47 +1,46 @@
-﻿using MainGame.UnityView.UI.Inventory.View.HotBar;
+﻿using MainGame.UnityView.Control;
+using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState.UIObject;
 
 namespace MainGame.UnityView.UI.UIState
 {
     public class DeleteObjectInventoryState : IUIState
     {
-        private readonly MoorestechInputSettings _input;
         private readonly DeleteBarObject _deleteBarObject;
         private readonly SelectHotBarControl _selectHotBarControl;
 
-        public DeleteObjectInventoryState(MoorestechInputSettings input, DeleteBarObject deleteBarObject,SelectHotBarControl selectHotBarControl)
+        public DeleteObjectInventoryState(DeleteBarObject deleteBarObject,SelectHotBarControl selectHotBarControl)
         {
             _selectHotBarControl = selectHotBarControl;
-            _input = input;
             _deleteBarObject = deleteBarObject;
             deleteBarObject.gameObject.SetActive(false);
         }
 
         public bool IsNext()
         {
-            return _input.UI.CloseUI.triggered || 
-                   _input.UI.BlockDelete.triggered || 
-                   _selectHotBarControl.IsClicked || _input.UI.HotBar.ReadValue<int>() != 0 || 
-                   _input.UI.OpenInventory.triggered ||
-                   _input.UI.OpenMenu.triggered;
+            return InputManager.Settings.UI.CloseUI.triggered || 
+                   InputManager.Settings.UI.BlockDelete.triggered || 
+                   _selectHotBarControl.IsClicked || InputManager.Settings.UI.HotBar.ReadValue<int>() != 0 || 
+                   InputManager.Settings.UI.OpenInventory.triggered ||
+                   InputManager.Settings.UI.OpenMenu.triggered;
         }
 
         public UIStateEnum GetNext()
         {
-            if (_input.UI.CloseUI.triggered || _input.UI.BlockDelete.triggered)
+            if (InputManager.Settings.UI.CloseUI.triggered || InputManager.Settings.UI.BlockDelete.triggered)
             {
                 return UIStateEnum.GameScreen;
             }
 
-            if (_selectHotBarControl.IsClicked || _input.UI.HotBar.ReadValue<int>() != 0)
+            if (_selectHotBarControl.IsClicked || InputManager.Settings.UI.HotBar.ReadValue<int>() != 0)
             {
                 return UIStateEnum.BlockPlace;
             }
-            if (_input.UI.OpenInventory.triggered)
+            if (InputManager.Settings.UI.OpenInventory.triggered)
             {
                 return UIStateEnum.PlayerInventory;
             }
-            if (_input.UI.OpenMenu.triggered)
+            if (InputManager.Settings.UI.OpenMenu.triggered)
             {
                 return UIStateEnum.PauseMenu;
             }

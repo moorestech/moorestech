@@ -1,3 +1,4 @@
+using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.CraftRecipe;
 using MainGame.UnityView.UI.UIState.UIObject;
 
@@ -5,30 +6,28 @@ namespace MainGame.UnityView.UI.UIState
 {
     public class RecipeViewState : IUIState
     {
-        private readonly MoorestechInputSettings _inputSettings;
         private readonly RecipeViewerObject _recipeViewerObject;
         private readonly CraftRecipeItemListViewer _craftRecipeItemListViewer;
 
         private bool _isRecipePlaceButton = false;
 
-            private UIStateEnum _lastInventoryUI;
+        private UIStateEnum _lastInventoryUI;
 
-        public RecipeViewState(MoorestechInputSettings inputSettings, RecipeViewerObject recipeViewerObject,CraftRecipeItemListViewer craftRecipeItemListViewer,RecipePlaceButton recipePlaceButton)
+        public RecipeViewState(RecipeViewerObject recipeViewerObject,CraftRecipeItemListViewer craftRecipeItemListViewer,RecipePlaceButton recipePlaceButton)
         {
             _craftRecipeItemListViewer = craftRecipeItemListViewer;
-            _inputSettings = inputSettings;
             _recipeViewerObject = recipeViewerObject;
             recipePlaceButton.OnClick += _ => { _isRecipePlaceButton = true; };
         }
 
         public bool IsNext()
         {
-            return _inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered || _isRecipePlaceButton;
+            return InputManager.Settings.UI.CloseUI.triggered || InputManager.Settings.UI.OpenInventory.triggered || _isRecipePlaceButton;
         }
 
         public UIStateEnum GetNext()
         {
-            if (_inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered)
+            if (InputManager.Settings.UI.CloseUI.triggered || InputManager.Settings.UI.OpenInventory.triggered)
             {
                 return _lastInventoryUI;
             }

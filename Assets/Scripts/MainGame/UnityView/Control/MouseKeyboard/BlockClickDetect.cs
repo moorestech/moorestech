@@ -10,14 +10,11 @@ namespace MainGame.UnityView.Control.MouseKeyboard
     public class BlockClickDetect : MonoBehaviour,IBlockClickDetect
     {
         private Camera _mainCamera;
-        private MoorestechInputSettings _input;
         
         [Inject]
         public void Construct(Camera mainCamera)
         {
             _mainCamera = mainCamera;
-            _input = new MoorestechInputSettings();
-            _input.Enable();
         }
 
         public bool TryGetCursorOnBlockPosition(out Vector2Int position)
@@ -37,7 +34,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             blockObject = null;
             // UIのクリックかどうかを判定
             if (EventSystem.current.IsPointerOverGameObject()) return false;
-            if (_input.Playable.ScreenClick.triggered && TryGetCursorOnBlock(out blockObject))
+            if (InputManager.Settings.Playable.ScreenClick.triggered && TryGetCursorOnBlock(out blockObject))
             {
                 return true;
             }
@@ -48,7 +45,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
 
         public bool TryGetClickBlockPosition(out Vector2Int position)
         {
-            if (_input.Playable.ScreenClick.triggered && TryGetCursorOnBlockPosition(out position))
+            if (InputManager.Settings.Playable.ScreenClick.triggered && TryGetCursorOnBlockPosition(out position))
             {
                 return true;
             }
@@ -64,7 +61,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
         {
             blockObject = null;
             
-            var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
+            var mousePosition = InputManager.Settings.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
 
             if (!Physics.Raycast(ray, out var hit)) return false;

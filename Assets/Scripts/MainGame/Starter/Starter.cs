@@ -180,8 +180,6 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<RecipeViewerItemPlacer>();
             builder.RegisterEntryPoint<DirectItemMovePacketSend>();
             
-            //インプット
-            builder.Register<MoorestechInputSettings>(Lifetime.Singleton);
             
             //UIコントロール
             builder.Register<UIStateDictionary>(Lifetime.Singleton);

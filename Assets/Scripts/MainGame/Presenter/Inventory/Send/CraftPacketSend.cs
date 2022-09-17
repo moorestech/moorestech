@@ -1,4 +1,5 @@
 ﻿using MainGame.Network.Send;
+using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.UIState.UIObject;
 using VContainer.Unity;
 
@@ -7,24 +8,22 @@ namespace MainGame.Presenter.Inventory.Send
     public class CraftPacketSend : IInitializable
     {
         private readonly SendCraftProtocol _sendCraftProtocol;
-        private readonly MoorestechInputSettings _inputSettings;
 
-        public CraftPacketSend(PlayerInventoryObject playerInventoryObject,SendCraftProtocol sendCraftProtocol,MoorestechInputSettings inputSettings)
+        public CraftPacketSend(PlayerInventoryObject playerInventoryObject,SendCraftProtocol sendCraftProtocol)
         {
             _sendCraftProtocol = sendCraftProtocol;
-            _inputSettings = inputSettings;
             playerInventoryObject.OnResultSlotClick += OnCraft;
         }
 
         private void OnCraft()
         {
-            if (_inputSettings.UI.AllCraft.IsPressed())
+            if (InputManager.Settings.UI.AllCraft.IsPressed())
             {
                 _sendCraftProtocol.SendAllCraft();
                 return;
             }
 
-            if (_inputSettings.UI.OneStackCraft.IsPressed())
+            if (InputManager.Settings.UI.OneStackCraft.IsPressed())
             {
                 _sendCraftProtocol.SendOneStackCraft();
                 return;

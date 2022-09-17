@@ -2,6 +2,7 @@ using MainGame.Basic;
 using MainGame.Network.Send;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
+using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
 using UnityEngine;
@@ -17,7 +18,6 @@ namespace MainGame.Presenter.Inventory.Send
     {
         private Camera _mainCamera;
         private GroundPlane _groundPlane;
-        private MoorestechInputSettings _input;
         private SelectHotBarControl _hotBarControl;
         private SendPlaceHotBarBlockProtocol _sendPlaceHotBarBlockProtocol;
         private UIStateControl _uiStateControl;
@@ -36,9 +36,6 @@ namespace MainGame.Presenter.Inventory.Send
             _mainCamera = mainCamera;
             _groundPlane = groundPlane;
             _blockPlacePreview = blockPlacePreview;
-            
-            _input = new MoorestechInputSettings();
-            _input.Enable();
         }
 
         private void Update()
@@ -49,7 +46,7 @@ namespace MainGame.Presenter.Inventory.Send
 
         private void BlockDirectionControl()
         {
-            if (!_input.Playable.BlockPlaceRotation.triggered) return;
+            if (!InputManager.Settings.Playable.BlockPlaceRotation.IsPressed()) return;
             
             _currentBlockDirection = _currentBlockDirection switch
             {
@@ -78,7 +75,7 @@ namespace MainGame.Presenter.Inventory.Send
             _blockPlacePreview.SetActive(true);
             
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-            if (_input.Playable.ScreenClick.triggered && !EventSystem.current.IsPointerOverGameObject())
+            if (InputManager.Settings.Playable.ScreenClick.triggered && !EventSystem.current.IsPointerOverGameObject())
             {
                 _sendPlaceHotBarBlockProtocol.Send(hitPoint.x,hitPoint.y,(short)_hotBarControl.SelectIndex,_currentBlockDirection);
                 return;
@@ -92,7 +89,7 @@ namespace MainGame.Presenter.Inventory.Send
         
         private (bool,Vector2Int pos) GetPreviewPosition()
         {
-            var mousePosition = _input.Playable.ClickPosition.ReadValue<Vector2>();
+            var mousePosition = InputManager.Settings.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
             
             //画面からのrayが何かにヒットしているか

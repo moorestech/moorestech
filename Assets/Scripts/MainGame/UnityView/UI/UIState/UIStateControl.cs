@@ -15,9 +15,8 @@ namespace MainGame.UnityView.UI.UIState
         public event Action<UIStateEnum> OnStateChanged;
         
         [Inject]
-        public void Construct(UIStateDictionary uiStateDictionary,MoorestechInputSettings inputSettings)
+        public void Construct(UIStateDictionary uiStateDictionary)
         {
-            inputSettings.Enable();
             _uiStateDictionary = uiStateDictionary;
         }
         

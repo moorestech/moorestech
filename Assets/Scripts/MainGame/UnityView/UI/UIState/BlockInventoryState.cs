@@ -3,6 +3,7 @@ using System.Web.Razor.Parser.SyntaxTree;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using MainGame.UnityView.Chunk;
+using MainGame.UnityView.Control;
 using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.UI.CraftRecipe;
 using MainGame.UnityView.UI.UIState.UIObject;
@@ -13,7 +14,6 @@ namespace MainGame.UnityView.UI.UIState
 {
     public class BlockInventoryState : IUIState
     {
-        private readonly MoorestechInputSettings _inputSettings;
         private readonly BlockInventoryObject _blockInventory;
         private readonly CraftRecipeItemListViewer _craftRecipeItemListViewer;
         
@@ -25,7 +25,7 @@ namespace MainGame.UnityView.UI.UIState
         public event Action<Vector2Int> OnOpenBlockInventory;
         public event Action OnCloseBlockInventory;
 
-        public BlockInventoryState(MoorestechInputSettings inputSettings, BlockInventoryObject blockInventory,
+        public BlockInventoryState(BlockInventoryObject blockInventory,
             CraftRecipeItemListViewer craftRecipeItemListViewer,ItemRecipePresenter itemRecipePresenter,IBlockClickDetect blockClickDetect,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,SinglePlayInterface singlePlayInterface)
         {
             _craftRecipeItemListViewer = craftRecipeItemListViewer;
@@ -33,19 +33,18 @@ namespace MainGame.UnityView.UI.UIState
             _blockClickDetect = blockClickDetect;
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _singlePlayInterface = singlePlayInterface;
-            _inputSettings = inputSettings;
             _blockInventory = blockInventory;
             blockInventory.gameObject.SetActive(false);
         }
 
         public bool IsNext()
         {
-            return _inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered || _itemRecipePresenter.IsClicked;
+            return InputManager.Settings.UI.CloseUI.triggered || InputManager.Settings.UI.OpenInventory.triggered || _itemRecipePresenter.IsClicked;
         }
 
         public UIStateEnum GetNext()
         {
-            if (_inputSettings.UI.CloseUI.triggered || _inputSettings.UI.OpenInventory.triggered)
+            if (InputManager.Settings.UI.CloseUI.triggered || InputManager.Settings.UI.OpenInventory.triggered)
             {
                 return UIStateEnum.GameScreen;
             }

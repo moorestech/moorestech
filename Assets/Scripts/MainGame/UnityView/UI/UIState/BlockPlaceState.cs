@@ -1,40 +1,39 @@
-﻿using MainGame.UnityView.UI.Inventory.View.HotBar;
+﻿using MainGame.UnityView.Control;
+using MainGame.UnityView.UI.Inventory.View.HotBar;
 
 namespace MainGame.UnityView.UI.UIState
 {
     public class BlockPlaceState : IUIState
     {
         private readonly SelectHotBarView _selectHotBarView;
-        private readonly MoorestechInputSettings _input;
 
-        public BlockPlaceState(SelectHotBarView selectHotBarView,MoorestechInputSettings input)
+        public BlockPlaceState(SelectHotBarView selectHotBarView)
         {
             _selectHotBarView = selectHotBarView;
-            _input = input;
         }
         
         public bool IsNext()
         {
-            return _input.UI.CloseUI.triggered || _input.UI.BlockDelete.triggered ||
-                   _input.UI.OpenInventory.triggered || 
-                   _input.UI.OpenMenu.triggered;;
+            return InputManager.Settings.UI.CloseUI.triggered || InputManager.Settings.UI.BlockDelete.triggered ||
+                   InputManager.Settings.UI.OpenInventory.triggered || 
+                   InputManager.Settings.UI.OpenMenu.triggered;;
         }
 
         public UIStateEnum GetNext()
         {
-            if (_input.UI.CloseUI.triggered)
+            if (InputManager.Settings.UI.CloseUI.triggered)
             {
                 return UIStateEnum.GameScreen;
             }
-            if (_input.UI.BlockDelete.triggered)
+            if (InputManager.Settings.UI.BlockDelete.triggered)
             {
                 return UIStateEnum.DeleteBar;
             }
-            if (_input.UI.OpenInventory.triggered)
+            if (InputManager.Settings.UI.OpenInventory.triggered)
             {
                 return UIStateEnum.PlayerInventory;
             }
-            if (_input.UI.OpenMenu.triggered)
+            if (InputManager.Settings.UI.OpenMenu.triggered)
             {
                 return UIStateEnum.PauseMenu;
             }
