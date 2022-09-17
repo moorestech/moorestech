@@ -42,11 +42,11 @@ namespace Server.Protocol.PacketResponse
             if (toInventory == null)return new List<List<byte>>();
 
             var fromSlot = data.FromInventory.Slot;
-            var toSlot = data.ToInventory.Slot;
 
             switch (data.ItemMoveType)
             {
                 case ItemMoveType.SwapSlot:
+                    var toSlot = data.ToInventory.Slot;
                     InventoryItemMoveService.Move(
                         _itemStackFactory,fromInventory,fromSlot,toInventory,toSlot,data.Count);
                     break;
