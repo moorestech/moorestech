@@ -15,7 +15,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
 
         private void Update()
         {
-            cinemachineFraming.m_CameraDistance += InputManager.Settings.UI.SwitchHotBar.ReadValue<float>() / -100;
+            cinemachineFraming.m_CameraDistance += InputManager.UI.SwitchHotBar.ReadValue<float>() / -100;
 
             cinemachineFraming.m_CameraDistance = Mathf.Clamp(cinemachineFraming.m_CameraDistance, 3, 75);
         }

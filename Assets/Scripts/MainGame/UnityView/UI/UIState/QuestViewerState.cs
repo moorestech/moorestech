@@ -14,16 +14,16 @@ namespace MainGame.UnityView.UI.UIState
 
         public bool IsNext()
         {
-            return InputManager.Settings.UI.CloseUI.triggered || InputManager.Settings.UI.OpenInventory.triggered || InputManager.Settings.UI.QuestUI.triggered;
+            return InputManager.UI.CloseUI.GetKey || InputManager.UI.OpenInventory.GetKey || InputManager.UI.QuestUI.GetKey;
         }
 
         public UIStateEnum GetNext()
         {
-            if (InputManager.Settings.UI.CloseUI.triggered || InputManager.Settings.UI.QuestUI.triggered)
+            if (InputManager.UI.CloseUI.GetKey || InputManager.UI.QuestUI.GetKey)
             {
                 return UIStateEnum.GameScreen;
             }
-            if (InputManager.Settings.UI.OpenInventory.triggered)
+            if (InputManager.UI.OpenInventory.GetKey)
             {
                 return UIStateEnum.PlayerInventory;
             }

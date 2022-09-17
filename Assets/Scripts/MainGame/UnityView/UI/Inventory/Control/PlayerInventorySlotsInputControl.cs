@@ -99,7 +99,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 return;
             }
 
-            if (InputManager.Settings.UI.ItemDirectMove.IsPressed())
+            if (InputManager.UI.ItemDirectMove.GetKey)
             {
                 //シフト（デフォルト）＋クリックでメイン、サブのアイテム移動を直接やる処理
                 OnDirectMoveItem?.Invoke(slotIndex);

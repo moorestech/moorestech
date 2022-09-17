@@ -19,19 +19,19 @@ namespace MainGame.UnityView.UI.UIState
 
         public bool IsNext()
         {
-            return InputManager.Settings.UI.OpenInventory.triggered || InputManager.Settings.UI.OpenMenu.triggered || 
+            return InputManager.UI.OpenInventory.GetKey || InputManager.UI.OpenMenu.GetKey || 
                    IsClickOpenableBlock() || 
-                   InputManager.Settings.UI.BlockDelete.triggered || _selectHotBarControl.IsClicked || 
-                   InputManager.Settings.UI.HotBar.ReadValue<int>() != 0 || InputManager.Settings.UI.QuestUI.triggered;
+                   InputManager.UI.BlockDelete.GetKey || _selectHotBarControl.IsClicked || 
+                   InputManager.UI.HotBar.ReadValue<int>() != 0 || InputManager.UI.QuestUI.GetKey;
         }
 
         public UIStateEnum GetNext()
         {
-            if (InputManager.Settings.UI.OpenInventory.triggered)
+            if (InputManager.UI.OpenInventory.GetKey)
             {
                 return UIStateEnum.PlayerInventory;
             }
-            if (InputManager.Settings.UI.OpenMenu.triggered)
+            if (InputManager.UI.OpenMenu.GetKey)
             {
                 return UIStateEnum.PauseMenu;
             }
@@ -39,15 +39,15 @@ namespace MainGame.UnityView.UI.UIState
             {
                 return UIStateEnum.BlockInventory;
             }
-            if (InputManager.Settings.UI.BlockDelete.triggered)
+            if (InputManager.UI.BlockDelete.GetKey)
             {
                 return UIStateEnum.DeleteBar;
             }
-            if (_selectHotBarControl.IsClicked || InputManager.Settings.UI.HotBar.ReadValue<int>() != 0)
+            if (_selectHotBarControl.IsClicked || InputManager.UI.HotBar.ReadValue<int>() != 0)
             {
                 return UIStateEnum.BlockPlace;
             }
-            if (InputManager.Settings.UI.QuestUI.triggered)
+            if (InputManager.UI.QuestUI.GetKey)
             {
                 return UIStateEnum.QuestViewer;
             }

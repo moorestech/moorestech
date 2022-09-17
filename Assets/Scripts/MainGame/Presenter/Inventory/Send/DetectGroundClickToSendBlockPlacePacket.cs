@@ -46,7 +46,7 @@ namespace MainGame.Presenter.Inventory.Send
 
         private void BlockDirectionControl()
         {
-            if (!InputManager.Settings.Playable.BlockPlaceRotation.IsPressed()) return;
+            if (!InputManager.Playable.BlockPlaceRotation.GetKey) return;
             
             _currentBlockDirection = _currentBlockDirection switch
             {
@@ -75,7 +75,7 @@ namespace MainGame.Presenter.Inventory.Send
             _blockPlacePreview.SetActive(true);
             
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-            if (InputManager.Settings.Playable.ScreenClick.triggered && !EventSystem.current.IsPointerOverGameObject())
+            if (InputManager.Playable.ScreenClick.GetKey && !EventSystem.current.IsPointerOverGameObject())
             {
                 _sendPlaceHotBarBlockProtocol.Send(hitPoint.x,hitPoint.y,(short)_hotBarControl.SelectIndex,_currentBlockDirection);
                 return;
@@ -89,7 +89,7 @@ namespace MainGame.Presenter.Inventory.Send
         
         private (bool,Vector2Int pos) GetPreviewPosition()
         {
-            var mousePosition = InputManager.Settings.Playable.ClickPosition.ReadValue<Vector2>();
+            var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
             
             //画面からのrayが何かにヒットしているか

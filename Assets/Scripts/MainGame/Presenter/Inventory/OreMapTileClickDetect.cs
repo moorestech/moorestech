@@ -33,11 +33,11 @@ namespace MainGame.Presenter.Inventory
 
         private bool IsBlockClicked()
         {
-            var mousePosition = InputManager.Settings.Playable.ClickPosition.ReadValue<Vector2>();
+            var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
 
             // マウスでクリックした位置にタイルマップがあるとき
-            if (!InputManager.Settings.Playable.ScreenClick.triggered) return false;
+            if (!InputManager.Playable.ScreenClick.GetKey) return false;
             // UIのクリックかどうかを判定
             if (EventSystem.current.IsPointerOverGameObject()) return false;
             if (!Physics.Raycast(ray, out var hit)) return false;
@@ -48,7 +48,7 @@ namespace MainGame.Presenter.Inventory
 
         private Vector2Int GetClickPosition()
         {
-            var mousePosition = InputManager.Settings.Playable.ClickPosition.ReadValue<Vector2>();
+            var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
             
             if (Physics.Raycast(ray, out var hit))

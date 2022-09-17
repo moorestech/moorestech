@@ -104,6 +104,7 @@ namespace MainGame.UnityView.Control
         
         public InputKey(InputAction key)
         {
+            _inputAction = key;
             key.started += _ => { OnGetKeyDown?.Invoke(); };
             key.performed += _ => { OnGetKey?.Invoke(); };
             key.canceled += _ => { OnGetKeyUp?.Invoke(); };

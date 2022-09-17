@@ -51,10 +51,10 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
         private void Update()
         {
             //キーボード入力で選択
-            if (InputManager.Settings.UI.HotBar.ReadValue<int>() != 0)
+            if (InputManager.UI.HotBar.ReadValue<int>() != 0)
             {
                 //キー入力で得られる値は1〜9なので-1する
-                _selectIndex = InputManager.Settings.UI.HotBar.ReadValue<int>() - 1;
+                _selectIndex = InputManager.UI.HotBar.ReadValue<int>() - 1;
                 selectHotBarView.SetSelect(_selectIndex);
                 
                 OnSelectHotBar?.Invoke(_selectIndex);

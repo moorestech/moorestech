@@ -17,13 +17,13 @@ namespace MainGame.Presenter.Inventory.Send
 
         private void OnCraft()
         {
-            if (InputManager.Settings.UI.AllCraft.IsPressed())
+            if (InputManager.UI.AllCraft.GetKey)
             {
                 _sendCraftProtocol.SendAllCraft();
                 return;
             }
 
-            if (InputManager.Settings.UI.OneStackCraft.IsPressed())
+            if (InputManager.UI.OneStackCraft.GetKey)
             {
                 _sendCraftProtocol.SendOneStackCraft();
                 return;
