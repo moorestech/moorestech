@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 
 namespace MainGame.UnityView.Control
 {
-    public class InputManager
+    public static class InputManager
     {
         public static PayerInputManager Player => player ??= new PayerInputManager(Instance);
         private static PayerInputManager player;
