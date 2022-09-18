@@ -17,14 +17,6 @@ namespace MainGame.UnityView.UI.UIState
             _selectHotBarControl = selectHotBarControl;
         }
 
-        public bool IsNext()
-        {
-            return InputManager.UI.OpenInventory.GetKeyDown || InputManager.UI.OpenMenu.GetKeyDown || 
-                   IsClickOpenableBlock() || 
-                   InputManager.UI.BlockDelete.GetKeyDown || _selectHotBarControl.IsClicked || 
-                   InputManager.UI.HotBar.ReadValue<int>() != 0 || InputManager.UI.QuestUI.GetKeyDown;
-        }
-
         public UIStateEnum GetNext()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown)
@@ -53,7 +45,7 @@ namespace MainGame.UnityView.UI.UIState
             }
 
 
-            return UIStateEnum.GameScreen;
+            return UIStateEnum.Current;
         }
 
         public void OnEnter(UIStateEnum lastStateEnum) { }

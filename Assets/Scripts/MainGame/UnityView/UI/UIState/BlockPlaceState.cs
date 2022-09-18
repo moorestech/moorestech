@@ -11,13 +11,6 @@ namespace MainGame.UnityView.UI.UIState
         {
             _selectHotBarView = selectHotBarView;
         }
-        
-        public bool IsNext()
-        {
-            return InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.BlockDelete.GetKeyDown ||
-                   InputManager.UI.OpenInventory.GetKeyDown || 
-                   InputManager.UI.OpenMenu.GetKeyDown;;
-        }
 
         public UIStateEnum GetNext()
         {
@@ -38,7 +31,7 @@ namespace MainGame.UnityView.UI.UIState
                 return UIStateEnum.PauseMenu;
             }
             
-            return UIStateEnum.BlockPlace;
+            return UIStateEnum.Current;
         }
 
         public void OnEnter(UIStateEnum lastStateEnum)

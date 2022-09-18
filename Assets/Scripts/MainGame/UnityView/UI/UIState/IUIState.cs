@@ -2,7 +2,6 @@
 {
     public interface IUIState
     {
-        public bool IsNext();
         public UIStateEnum GetNext();
         public void OnEnter(UIStateEnum lastStateEnum);
         public void OnExit();

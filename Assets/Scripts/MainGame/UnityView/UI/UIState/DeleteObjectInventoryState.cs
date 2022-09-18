@@ -16,15 +16,6 @@ namespace MainGame.UnityView.UI.UIState
             deleteBarObject.gameObject.SetActive(false);
         }
 
-        public bool IsNext()
-        {
-            return InputManager.UI.CloseUI.GetKeyDown || 
-                   InputManager.UI.BlockDelete.GetKeyDown || 
-                   _selectHotBarControl.IsClicked || InputManager.UI.HotBar.ReadValue<int>() != 0 || 
-                   InputManager.UI.OpenInventory.GetKeyDown ||
-                   InputManager.UI.OpenMenu.GetKeyDown;
-        }
-
         public UIStateEnum GetNext()
         {
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.BlockDelete.GetKeyDown)
@@ -46,7 +37,7 @@ namespace MainGame.UnityView.UI.UIState
             }
             
 
-            return UIStateEnum.DeleteBar;
+            return UIStateEnum.Current;
         }
 
         public void OnEnter(UIStateEnum lastStateEnum)

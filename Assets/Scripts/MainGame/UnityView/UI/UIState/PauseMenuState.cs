@@ -13,11 +13,6 @@ namespace MainGame.UnityView.UI.UIState
             pauseMenu.gameObject.SetActive(false);
         }
 
-        public bool IsNext()
-        {
-            return InputManager.UI.CloseUI.GetKeyDown;
-        }
-
         public UIStateEnum GetNext()
         {
             if (InputManager.UI.CloseUI.GetKeyDown)
@@ -25,7 +20,7 @@ namespace MainGame.UnityView.UI.UIState
                 return UIStateEnum.GameScreen;
             }
 
-            return UIStateEnum.PauseMenu;
+            return UIStateEnum.Current;
         }
 
         public void OnEnter(UIStateEnum lastStateEnum) { _pauseMenu.gameObject.SetActive(true); }

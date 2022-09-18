@@ -37,11 +37,6 @@ namespace MainGame.UnityView.UI.UIState
             blockInventory.gameObject.SetActive(false);
         }
 
-        public bool IsNext()
-        {
-            return InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown || _itemRecipePresenter.IsClicked;
-        }
-
         public UIStateEnum GetNext()
         {
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown)
@@ -54,7 +49,7 @@ namespace MainGame.UnityView.UI.UIState
                 return UIStateEnum.RecipeViewer;
             }
 
-            return UIStateEnum.BlockInventory;
+            return UIStateEnum.Current;
         }
 
         public void OnEnter(UIStateEnum lastStateEnum)

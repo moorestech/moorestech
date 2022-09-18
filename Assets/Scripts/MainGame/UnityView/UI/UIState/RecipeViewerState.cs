@@ -20,11 +20,6 @@ namespace MainGame.UnityView.UI.UIState
             recipePlaceButton.OnClick += _ => { _isRecipePlaceButton = true; };
         }
 
-        public bool IsNext()
-        {
-            return InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown || _isRecipePlaceButton;
-        }
-
         public UIStateEnum GetNext()
         {
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown)
@@ -37,7 +32,7 @@ namespace MainGame.UnityView.UI.UIState
                 return UIStateEnum.PlayerInventory;
             }
 
-            return UIStateEnum.RecipeViewer;
+            return UIStateEnum.Current;
         }
 
         public void OnEnter(UIStateEnum lastStateEnum)

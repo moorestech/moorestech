@@ -12,11 +12,6 @@ namespace MainGame.UnityView.UI.UIState
             _questViewerObject = questViewerObject;
         }
 
-        public bool IsNext()
-        {
-            return InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown || InputManager.UI.QuestUI.GetKeyDown;
-        }
-
         public UIStateEnum GetNext()
         {
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.QuestUI.GetKeyDown)
@@ -28,7 +23,7 @@ namespace MainGame.UnityView.UI.UIState
                 return UIStateEnum.PlayerInventory;
             }
 
-            return UIStateEnum.QuestViewer;
+            return UIStateEnum.Current;
         }
 
         public void OnEnter(UIStateEnum lastStateEnum)
