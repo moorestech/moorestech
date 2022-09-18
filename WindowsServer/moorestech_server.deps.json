@@ -836,6 +836,7 @@
         "dependencies": {
           "Core.ConfigJson": "1.0.0",
           "Core.Const": "1.0.0",
+          "Core.Util": "1.0.0",
           "Microsoft.Extensions.DependencyInjection": "6.0.0",
           "Newtonsoft.Json": "13.0.1",
           "System.Data.HashFunction.xxHash": "2.0.0"
@@ -895,6 +896,7 @@
       },
       "Game.Entity.Interface/1.0.0": {
         "dependencies": {
+          "Core.Item": "1.0.0",
           "Newtonsoft.Json": "13.0.1"
         },
         "runtime": {
@@ -1071,6 +1073,7 @@
       "Server.Util/1.0.0": {
         "dependencies": {
           "Core.Item": "1.0.0",
+          "Game.Entity.Interface": "1.0.0",
           "Game.World.Interface": "1.0.0",
           "MessagePack": "2.3.85",
           "Microsoft.Extensions.DependencyInjection": "6.0.0"
