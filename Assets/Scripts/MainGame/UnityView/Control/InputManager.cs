@@ -1,13 +1,19 @@
 using System;
+using System.Management.Instrumentation;
 using UnityEngine.InputSystem;
 
 namespace MainGame.UnityView.Control
 {
     public class InputManager
     {
-        public static PayerInputManager Player => new(Instance);
-        public static PlayableInputManager Playable => new(Instance);
-        public static UIInputManager UI => new(Instance);
+        public static PayerInputManager Player => player ??= new PayerInputManager(Instance);
+        private static PayerInputManager player;
+            
+        public static PlayableInputManager Playable => playable ??= new PlayableInputManager(Instance);
+        private static PlayableInputManager playable;
+
+        public static UIInputManager UI => ui ??= new UIInputManager(Instance);
+        private static UIInputManager ui;
         
         
         private static MoorestechInputSettings Instance

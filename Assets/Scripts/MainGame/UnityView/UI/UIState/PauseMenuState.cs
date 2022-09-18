@@ -15,12 +15,12 @@ namespace MainGame.UnityView.UI.UIState
 
         public bool IsNext()
         {
-            return InputManager.UI.CloseUI.GetKey;
+            return InputManager.UI.CloseUI.GetKeyDown;
         }
 
         public UIStateEnum GetNext()
         {
-            if (InputManager.UI.CloseUI.GetKey)
+            if (InputManager.UI.CloseUI.GetKeyDown)
             {
                 return UIStateEnum.GameScreen;
             }

@@ -14,26 +14,26 @@ namespace MainGame.UnityView.UI.UIState
         
         public bool IsNext()
         {
-            return InputManager.UI.CloseUI.GetKey || InputManager.UI.BlockDelete.GetKey ||
-                   InputManager.UI.OpenInventory.GetKey || 
-                   InputManager.UI.OpenMenu.GetKey;;
+            return InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.BlockDelete.GetKeyDown ||
+                   InputManager.UI.OpenInventory.GetKeyDown || 
+                   InputManager.UI.OpenMenu.GetKeyDown;;
         }
 
         public UIStateEnum GetNext()
         {
-            if (InputManager.UI.CloseUI.GetKey)
+            if (InputManager.UI.CloseUI.GetKeyDown)
             {
                 return UIStateEnum.GameScreen;
             }
-            if (InputManager.UI.BlockDelete.GetKey)
+            if (InputManager.UI.BlockDelete.GetKeyDown)
             {
                 return UIStateEnum.DeleteBar;
             }
-            if (InputManager.UI.OpenInventory.GetKey)
+            if (InputManager.UI.OpenInventory.GetKeyDown)
             {
                 return UIStateEnum.PlayerInventory;
             }
-            if (InputManager.UI.OpenMenu.GetKey)
+            if (InputManager.UI.OpenMenu.GetKeyDown)
             {
                 return UIStateEnum.PauseMenu;
             }

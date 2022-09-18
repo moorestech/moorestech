@@ -19,19 +19,19 @@ namespace MainGame.UnityView.UI.UIState
 
         public bool IsNext()
         {
-            return InputManager.UI.OpenInventory.GetKey || InputManager.UI.OpenMenu.GetKey || 
+            return InputManager.UI.OpenInventory.GetKeyDown || InputManager.UI.OpenMenu.GetKeyDown || 
                    IsClickOpenableBlock() || 
-                   InputManager.UI.BlockDelete.GetKey || _selectHotBarControl.IsClicked || 
-                   InputManager.UI.HotBar.ReadValue<int>() != 0 || InputManager.UI.QuestUI.GetKey;
+                   InputManager.UI.BlockDelete.GetKeyDown || _selectHotBarControl.IsClicked || 
+                   InputManager.UI.HotBar.ReadValue<int>() != 0 || InputManager.UI.QuestUI.GetKeyDown;
         }
 
         public UIStateEnum GetNext()
         {
-            if (InputManager.UI.OpenInventory.GetKey)
+            if (InputManager.UI.OpenInventory.GetKeyDown)
             {
                 return UIStateEnum.PlayerInventory;
             }
-            if (InputManager.UI.OpenMenu.GetKey)
+            if (InputManager.UI.OpenMenu.GetKeyDown)
             {
                 return UIStateEnum.PauseMenu;
             }
@@ -39,7 +39,7 @@ namespace MainGame.UnityView.UI.UIState
             {
                 return UIStateEnum.BlockInventory;
             }
-            if (InputManager.UI.BlockDelete.GetKey)
+            if (InputManager.UI.BlockDelete.GetKeyDown)
             {
                 return UIStateEnum.DeleteBar;
             }
@@ -47,7 +47,7 @@ namespace MainGame.UnityView.UI.UIState
             {
                 return UIStateEnum.BlockPlace;
             }
-            if (InputManager.UI.QuestUI.GetKey)
+            if (InputManager.UI.QuestUI.GetKeyDown)
             {
                 return UIStateEnum.QuestViewer;
             }

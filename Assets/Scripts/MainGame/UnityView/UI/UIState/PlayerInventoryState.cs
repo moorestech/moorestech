@@ -27,12 +27,12 @@ namespace MainGame.UnityView.UI.UIState
 
         public bool IsNext()
         {
-            return InputManager.UI.CloseUI.GetKey || InputManager.UI.OpenInventory.GetKey || _itemRecipePresenter.IsClicked;
+            return InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown || _itemRecipePresenter.IsClicked;
         }
 
         public UIStateEnum GetNext()
         {
-            if (InputManager.UI.CloseUI.GetKey || InputManager.UI.OpenInventory.GetKey)
+            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown)
             {
                 return UIStateEnum.GameScreen;
             }
