@@ -42,7 +42,6 @@ namespace MainGame.Network
                 Debug.LogError("Count " + _packetCount + " NotFoundTag " + tag);
                 return;
             }
-            Debug.Log("Count " + _packetCount + " Tag " + tag + " " + _analysisPackets[tag].GetType().Name);
             
             
             //analysis packet
