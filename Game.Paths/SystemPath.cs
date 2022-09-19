@@ -15,7 +15,7 @@ namespace Game.Paths
                     case PlatformID.Win32S:
                     case PlatformID.Win32Windows:
                     case PlatformID.WinCE:
-                        return DirectoryCreator("C:", "Users", Environment.UserName, "AppData", "Roaming", ".moorestech");
+                        return DirectoryCreator("C:\\Users", Environment.UserName, "AppData", "Roaming", ".moorestech");
                     case PlatformID.Unix:
                     case PlatformID.MacOSX:
                         return DirectoryCreator("/Users", Environment.UserName, "Library", "Application Support", "moorestech");

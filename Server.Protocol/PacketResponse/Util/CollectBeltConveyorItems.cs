@@ -8,6 +8,9 @@ using Server.Protocol.PacketResponse.Const;
 
 namespace Server.Protocol.PacketResponse.Util
 {
+    /// <summary>
+    /// ベルトコンベアにあるアイテムを収集し、エンティティに変換して返す
+    /// </summary>
     public static class CollectBeltConveyorItems
     {
         public static List<IEntity> CollectItem(List<Coordinate> collectChunks,IWorldBlockDatastore worldBlockDatastore,IBlockConfig blockConfig,IEntityFactory entityFactory)

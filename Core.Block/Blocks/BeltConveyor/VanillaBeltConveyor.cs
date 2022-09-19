@@ -113,12 +113,17 @@ namespace Core.Block.Blocks.BeltConveyor
             //リミットの更新
             if (2 <= _inventoryItems.Count)
             {
+                //アイテムが2個以上あるときは、次のアイテムと間隔をあけてリミットを設定する
+                //間隔値は ベルトコンベアに入るアイテム数 / アイテムが入ってから出るまでの時間 で決まる
                 for (int i = 0; i < _inventoryItems.Count - 1; i++)
                 {
                     _inventoryItems[i].LimitTime =
                         _inventoryItems[i + 1].RemainingTime + TimeOfItemEnterToExit / _inventoryItemNum;
                 }
-
+            }
+            if (_inventoryItems.Count != 0)
+            {
+                //最後のアイテムは最後まで進むのでリミットは0になる
                 _inventoryItems[^1].LimitTime = 0;
             }
 
