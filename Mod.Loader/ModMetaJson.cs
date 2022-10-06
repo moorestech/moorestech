@@ -15,10 +15,10 @@ namespace Mod.Loader
         public string ModDescription => _modDescription;
 
 
-        [JsonProperty("mod_id")]private string _modId;
-        [JsonProperty("mod_name")]private string _modName;
-        [JsonProperty("mod_version")]private string _modVersion;
-        [JsonProperty("mod_author")]private string _modAuthor;
-        [JsonProperty("mod_description")]private string _modDescription;
+        [JsonProperty("id")]private string _modId;
+        [JsonProperty("name")]private string _modName;
+        [JsonProperty("version")]private string _modVersion;
+        [JsonProperty("author")]private string _modAuthor;
+        [JsonProperty("description")]private string _modDescription;
     }
 }
