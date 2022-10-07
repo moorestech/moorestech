@@ -54,29 +54,29 @@ namespace Core.Item.Config
     public class ItemConfigData
     {
         public readonly string ModId;
-        public string Name { get; }
+        public string Id { get; }
         public int MaxStack { get; }
         public readonly ulong ItemHash = 0;
 
         internal ItemConfigData(ItemConfigJsonData jsonData,string modId,IxxHash xxHash)
         {
             ModId = modId;
-            Name = jsonData.Name;
+            Id = jsonData.Id;
             MaxStack = jsonData.MaxStack;
             ItemHash = 1;
             
-            ItemHash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + Name).Hash);
+            ItemHash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + Id).Hash);
         }
 
         /// <summary>
         /// アイテムが定義されていないとき用のコンストラクタ
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="id"></param>
         /// <param name="maxStack"></param>
         /// <param name="modId"></param>
-        public ItemConfigData(string name, int maxStack, string modId)
+        public ItemConfigData(string id, int maxStack, string modId)
         {
-            Name = name;
+            Id = id;
             MaxStack = maxStack;
             ModId = modId;
         }
@@ -85,17 +85,17 @@ namespace Core.Item.Config
     [JsonObject("SpaceAssets")]
     internal class ItemConfigJsonData
     {
-        public string Name => _name;
+        public string Id => _id;
         public int MaxStack => _maxStack;
         
-        [JsonProperty("name")]
-        private string _name;
-        [JsonProperty("max_stacks")]
+        [JsonProperty("id")]
+        private string _id;
+        [JsonProperty("maxStacks")]
         private int _maxStack;
 
-        public ItemConfigJsonData(string name, int id, int maxStack)
+        public ItemConfigJsonData(string id, int maxStack)
         {
-            _name = name;
+            _id = id;
             _maxStack = maxStack;
         }
     }
