@@ -11,8 +11,8 @@ namespace Mod.Config
     {
         private const string ItemConfigPath = "config/item.json";
         private const string BlockConfigPath = "config/block.json";
-        private const string MachineRecipeConfigPath = "config/machine_recipe.json";
-        private const string CraftRecipeConfigPath = "config/craft_recipe.json";
+        private const string MachineRecipeConfigPath = "config/machineRecipe.json";
+        private const string CraftRecipeConfigPath = "config/craftRecipe.json";
         private const string OreConfigPath = "config/ore.json";
         private const string QuestConfigPath = "config/quest.json";
         
