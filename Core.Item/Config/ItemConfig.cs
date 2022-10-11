@@ -26,7 +26,7 @@ namespace Core.Item.Config
                 if (_bockHashToId.ContainsKey(_itemConfigList[arrayIndex].ItemHash))
                 {
                     //TODO ログ基盤に入れる
-                    throw new Exception("アイテム名 " + _itemConfigList[arrayIndex].Id + " は重複しています。");
+                    throw new Exception("アイテム名 " + _itemConfigList[arrayIndex].Name + " は重複しています。");
                 }
                 _bockHashToId.Add(_itemConfigList[arrayIndex].ItemHash, itemId);
 
@@ -82,7 +82,7 @@ namespace Core.Item.Config
 
         public int GetItemId(string modId, string itemName)
         {
-            foreach (var itemId in GetItemIds(modId).Where(i => GetItemConfig(i).Id == itemName))
+            foreach (var itemId in GetItemIds(modId).Where(i => GetItemConfig(i).Name == itemName))
             {
                 return itemId;
             }

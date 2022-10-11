@@ -1,30 +1,30 @@
 ﻿[
   {
-    "id": "Test1",
-    "maxStacks": 100
+    "name": "Test1",
+    "max_stacks": 100
   },
   {
-    "id": "Test2",
-    "maxStacks": 50
+    "name": "Test2",
+    "max_stacks": 50
   },
   {
-    "id": "Test3",
-    "maxStacks": 300
+    "name": "Test3",
+    "max_stacks": 300
   },
   {
-    "id": "Test4",
-    "maxStacks": 100
+    "name": "Test4",
+    "max_stacks": 100
   },
   {
-    "id": "Test5",
-    "maxStacks": 200
+    "name": "Test5",
+    "max_stacks": 200
   },
   {
-    "id": "Test6",
-    "maxStacks": 100
+    "name": "Test6",
+    "max_stacks": 100
   },
   {
-    "id": "Test7",
-    "maxStacks":  100
+    "name": "Test7",
+    "max_stacks":  100
   }
 ]

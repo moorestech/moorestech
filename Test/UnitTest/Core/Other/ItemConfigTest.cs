@@ -36,7 +36,7 @@ namespace Test.UnitTest.Core.Other
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemConfig = serviceProvider.GetService<IItemConfig>();
-            Assert.AreEqual(name, itemConfig.GetItemConfig(id).Id);
+            Assert.AreEqual(name, itemConfig.GetItemConfig(id).Name);
         }
 
         [Test]
