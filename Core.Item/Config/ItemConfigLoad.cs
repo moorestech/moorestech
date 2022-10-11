@@ -90,7 +90,7 @@ namespace Core.Item.Config
         
         [JsonProperty("name")]
         private string _name;
-        [JsonProperty("max_stacks")]
+        [JsonProperty("maxStacks")]
         private int _maxStack;
 
         public ItemConfigJsonData(string name, int id, int maxStack)
