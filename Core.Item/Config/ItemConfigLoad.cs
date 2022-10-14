@@ -56,6 +56,7 @@ namespace Core.Item.Config
         public readonly string ModId;
         public string Name { get; }
         public int MaxStack { get; }
+        public string ImagePath { get; }
         public readonly ulong ItemHash = 0;
 
         internal ItemConfigData(ItemConfigJsonData jsonData,string modId,IxxHash xxHash)
@@ -63,6 +64,7 @@ namespace Core.Item.Config
             ModId = modId;
             Name = jsonData.Name;
             MaxStack = jsonData.MaxStack;
+            ImagePath = jsonData.ImagePath;
             ItemHash = 1;
             
             ItemHash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + Name).Hash);
@@ -87,16 +89,13 @@ namespace Core.Item.Config
     {
         public string Name => _name;
         public int MaxStack => _maxStack;
+        public string ImagePath => _imagePath;
         
         [JsonProperty("name")]
         private string _name;
         [JsonProperty("maxStacks")]
         private int _maxStack;
-
-        public ItemConfigJsonData(string name, int id, int maxStack)
-        {
-            _name = name;
-            _maxStack = maxStack;
-        }
+        [JsonProperty("imagePath")]
+        private string _imagePath;
     }
 }
