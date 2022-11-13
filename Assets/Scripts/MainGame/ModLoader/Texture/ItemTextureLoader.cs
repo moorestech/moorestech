@@ -37,7 +37,7 @@ namespace MainGame.ModLoader.Texture
             var textureList = new List<(Texture2D,string)>();
             foreach (var config in itemConfigs)
             {
-                var texture = GetExtractedZipTexture.Get(mod.ExtractedPath, ModTextureDirectory + config.Name + ".png");
+                var texture = GetExtractedZipTexture.Get(mod.ExtractedPath, config.ImagePath);
                 if (texture == null)
                 {
                     Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + config.Name);
