@@ -106,16 +106,16 @@ namespace Core.Block.Config.LoadConfig
                 var posVector3 = new CoreVector3();
                 var rotVector3 = new CoreVector3();
                 var scaleVector3 = new CoreVector3();
-                if (modelTransformJson.pos != null)
+                if (modelTransformJson.position != null)
                 {
-                    var pos = modelTransformJson.pos;
+                    var pos = modelTransformJson.position;
                     posVector3 = new CoreVector3((float)pos[0], (float)pos[1],(float) pos[2]);
                 }
                 
                 
-                if (modelTransformJson.rot != null)
+                if (modelTransformJson.rotation != null)
                 {
-                    var rot = modelTransformJson.rot;
+                    var rot = modelTransformJson.rotation;
                     rotVector3 = new CoreVector3((float)rot[0],(float) rot[1], (float)rot[2]);
                 }
                 if (modelTransformJson.scale != null)

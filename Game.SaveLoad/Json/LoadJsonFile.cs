@@ -36,15 +36,17 @@ namespace Game.Save.Json
                 try
                 {
                     Load(json);
+                    Console.WriteLine("セーブデータのロードが完了しました。");
                 }
                 catch (Exception e)
                 {
-                    throw new Exception($"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
+                    Console.WriteLine("セーブデータが破損していたか古いバージョンでした。新しく作成します。");
+                    //throw new Exception($"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
                 }
             }
             else
             {
-                Console.WriteLine("セーブデータがありませんでした");
+                Console.WriteLine("セーブデータがありませんでした。新規作成します。");
             }
         }
 

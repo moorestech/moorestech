@@ -39,7 +39,6 @@ namespace Server.Boot
                 
                 //マップをロードする
                 serviceProvider.GetService<ILoadRepository>().Load();
-                Console.WriteLine("マップをロード又は新規作成します。");
                 
                 //サーバーの起動とゲームアップデートの開始
                 new Thread(() => new PacketHandler().StartServer(packet)).Start();

@@ -13,7 +13,7 @@ namespace Mod.Loader
         public readonly Dictionary<string, Mod> Mods = new Dictionary<string, Mod>();
         
         
-        private const string ModMetaFilePath = "mod_meta.json";
+        private const string ModMetaFilePath = "modMeta.json";
         public ModsResource(string modDirectory)
         {
             // zipファイルのmodをロードする
