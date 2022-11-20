@@ -13,21 +13,10 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
 {
     public class HotBarItemView : MonoBehaviour
     {
-        [SerializeField] private UIBuilderItemSlotObject UIBuilderItemSlotObjectPrefab;
-        List<UIBuilderItemSlotObject> _slots;
-        public IReadOnlyList<UIBuilderItemSlotObject> Slots => _slots;
+        [SerializeField] List<UIBuilderItemSlotObject> hotBarSlots;
+        public IReadOnlyList<UIBuilderItemSlotObject> Slots => hotBarSlots;
 
         private ItemImages _itemImages;
-
-        private void Awake()
-        {
-            _slots = new List<UIBuilderItemSlotObject>();
-            for (int i = 0; i < PlayerInventoryConstant.MainInventoryColumns; i++)
-            {
-                var slot = Instantiate(UIBuilderItemSlotObjectPrefab.gameObject, transform).GetComponent<UIBuilderItemSlotObject>();
-                _slots.Add(slot);
-            }
-        }
 
 
         [Inject]
@@ -37,7 +26,7 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
             playerInventoryViewModelController.OnSlotUpdate += OnInventoryUpdate;
         }
 
-        public void OnInventoryUpdate(int slot ,ItemStack item)
+        private void OnInventoryUpdate(int slot ,ItemStack item)
         {
             //スロットが一番下の段もしくはメインインベントリの範囲外の時はスルー
             var c = PlayerInventoryConstant.MainInventoryColumns;
@@ -48,8 +37,7 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
             
             var sprite = _itemImages.GetItemView(item.ID);
             slot -= startHotBarSlot;
-            _slots[slot].SetItem(sprite,item.Count);
-
+            hotBarSlots[slot].SetItem(sprite,item.Count);
         }
     }
 }
