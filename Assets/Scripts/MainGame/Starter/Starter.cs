@@ -63,6 +63,8 @@ namespace MainGame.Starter
 
         private IObjectResolver _resolver;
         
+        [SerializeField] private WorldMapTileObject worldMapTileObject;
+        
         [Header("InHierarchy")]
         [SerializeField] Camera mainCamera;
 
@@ -196,6 +198,9 @@ namespace MainGame.Starter
             builder.Register<BlockObjects>(Lifetime.Singleton);
             
             
+
+            //ScriptableObjectの登録
+            builder.RegisterInstance(worldMapTileObject);
 
             //Hierarchy上にあるcomponent
             builder.RegisterComponent(nothingIndexBlock);
