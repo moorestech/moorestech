@@ -1,6 +1,7 @@
 ﻿using Core.Ore;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
+using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.WorldMapTile;
 using SinglePlay;
@@ -15,6 +16,8 @@ namespace MainGame.Presenter.Inventory
     /// </summary>
     public class OreMapTileClickDetect : MonoBehaviour
     {
+        [SerializeField] private ProgressBarView progressBarView;
+        
         private const float MiningTime = 3.0f;
         
         private Camera _mainCamera;
@@ -38,7 +41,7 @@ namespace MainGame.Presenter.Inventory
 
         private void Update()
         {
-            if (_uiStateControl.CurrentState != UIStateEnum.DeleteBar || _currentMapTileObject == null) return;
+            if (_uiStateControl.CurrentState != UIStateEnum.DeleteBar) return;
             
             if (_currentMapTileObject == null)
             {
@@ -49,12 +52,15 @@ namespace MainGame.Presenter.Inventory
             var clickedObject = GetBlockClicked();
             if (clickedObject != _currentMapTileObject)
             {
+                _currentMapTileObject = clickedObject;
                 _currentClickTime = 0;
                 return;
             }
             _currentClickTime += Time.deltaTime;
             //TODO 将来的に採掘時間をコンフィグから取得する
             var config = _oreConfig.Get(_currentMapTileObject.TileId);
+            
+            progressBarView.SetProgress(_currentClickTime / MiningTime);
 
             if (MiningTime <= _currentClickTime)
             {
@@ -69,7 +75,7 @@ namespace MainGame.Presenter.Inventory
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
 
             // マウスでクリックした位置にタイルマップがあるとき
-            if (!InputManager.Playable.ScreenClick.GetKeyDown) return null;
+            if (!InputManager.Playable.ScreenClick.GetKey) return null;
             // UIのクリックかどうかを判定
             if (EventSystem.current.IsPointerOverGameObject()) return null;
             if (!Physics.Raycast(ray, out var hit)) return null;
