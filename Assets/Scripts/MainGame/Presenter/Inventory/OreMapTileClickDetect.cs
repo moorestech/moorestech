@@ -1,49 +1,82 @@
-﻿using MainGame.Network.Send;
+﻿using Core.Ore;
+using MainGame.Network.Send;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.WorldMapTile;
+using SinglePlay;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
 
 namespace MainGame.Presenter.Inventory
 {
+    /// <summary>
+    /// マップ上をクリック長押しして一定時間が経てば採掘実行プロトコルを送る
+    /// </summary>
     public class OreMapTileClickDetect : MonoBehaviour
     {
+        private const float MiningTime = 3.0f;
+        
         private Camera _mainCamera;
         private SendMiningProtocol _sendMiningProtocol;
         private UIStateControl _uiStateControl; 
+        //TODO 用語の統一が出来てないのでOreConfigをMapTileConfigに変更する
+        private IOreConfig _oreConfig; 
+        
+        private MapTileObject _currentMapTileObject;
+        private float _currentClickTime;
         
         [Inject]
-        public void Construct(Camera mainCamera,SendMiningProtocol sendMiningProtocol,UIStateControl uiStateControl)
+        public void Construct(Camera mainCamera,SendMiningProtocol sendMiningProtocol,UIStateControl uiStateControl,SinglePlayInterface singlePlayInterface)
         {
             _mainCamera = mainCamera;
             _sendMiningProtocol = sendMiningProtocol;
             _uiStateControl = uiStateControl;
             
+            _oreConfig = singlePlayInterface.OreConfig;
         }
 
         private void Update()
         {
-            if (IsBlockClicked() && _uiStateControl.CurrentState == UIStateEnum.DeleteBar)
+            if (_uiStateControl.CurrentState != UIStateEnum.DeleteBar || _currentMapTileObject == null) return;
+            
+            if (_currentMapTileObject == null)
+            {
+                _currentMapTileObject = GetBlockClicked();
+                _currentClickTime = 0;
+                return;
+            }
+            var clickedObject = GetBlockClicked();
+            if (clickedObject != _currentMapTileObject)
+            {
+                _currentClickTime = 0;
+                return;
+            }
+            _currentClickTime += Time.deltaTime;
+            //TODO 将来的に採掘時間をコンフィグから取得する
+            var config = _oreConfig.Get(_currentMapTileObject.TileId);
+
+            if (MiningTime <= _currentClickTime)
             {
                 _sendMiningProtocol.Send(GetClickPosition());
+                _currentClickTime = 0;
             }
         }
 
-        private bool IsBlockClicked()
+        private MapTileObject GetBlockClicked()
         {
             var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
 
             // マウスでクリックした位置にタイルマップがあるとき
-            if (!InputManager.Playable.ScreenClick.GetKeyDown) return false;
+            if (!InputManager.Playable.ScreenClick.GetKeyDown) return null;
             // UIのクリックかどうかを判定
-            if (EventSystem.current.IsPointerOverGameObject()) return false;
-            if (!Physics.Raycast(ray, out var hit)) return false;
-            if (hit.collider.gameObject.GetComponent<OreTileObject>() == null) return false;
+            if (EventSystem.current.IsPointerOverGameObject()) return null;
+            if (!Physics.Raycast(ray, out var hit)) return null;
+            var mapTile = hit.collider.GetComponent<MapTileObject>();
+            if (mapTile == null) return null;
 
-            return true;
+            return mapTile;
         }
 
         private Vector2Int GetClickPosition()
