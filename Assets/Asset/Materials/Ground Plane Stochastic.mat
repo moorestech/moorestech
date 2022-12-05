@@ -55,12 +55,12 @@ Material:
     m_Ints: []
     m_Floats:
     - Boolean_5D85C13D: 0
-    - Vector1_C633521B: 3000
+    - Vector1_C633521B: 9000
     - _Contrast: 1
     - _Metallic: 0
     - _Multiply: 3.59
     - _NormalStrength: 1
-    - _NormalTile: 5000
+    - _NormalTile: 9000
     - _QueueControl: 0
     - _QueueOffset: -2
     - _Saturation: 1
