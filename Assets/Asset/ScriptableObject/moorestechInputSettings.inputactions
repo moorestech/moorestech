@@ -226,9 +226,18 @@
             "id": "3b8c937a-e56c-4355-8df4-4b18aebda850",
             "actions": [
                 {
-                    "name": "ScreenClick",
+                    "name": "ScreenLeftClick",
                     "type": "Button",
                     "id": "2daa6d31-e71b-44fb-a02c-1a3022394306",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "ScreenRightClick",
+                    "type": "Button",
+                    "id": "d5203e91-bd51-4d08-8095-5616e05b4135",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -261,7 +270,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "KeyboardMouse",
-                    "action": "ScreenClick",
+                    "action": "ScreenLeftClick",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -284,6 +293,17 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "BlockPlaceRotation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b87d5855-8a6a-4fa3-993e-b2fd913a9b72",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "ScreenRightClick",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

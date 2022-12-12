@@ -75,7 +75,7 @@ namespace MainGame.Presenter.Inventory
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
 
             // マウスでクリックした位置にタイルマップがあるとき
-            if (!InputManager.Playable.ScreenClick.GetKey) return null;
+            if (!InputManager.Playable.ScreenLeftClick.GetKey) return null;
             // UIのクリックかどうかを判定
             if (EventSystem.current.IsPointerOverGameObject()) return null;
             if (!Physics.Raycast(ray, out var hit)) return null;

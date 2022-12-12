@@ -50,13 +50,15 @@ namespace MainGame.UnityView.Control
 
     public class PlayableInputManager
     {
-        public readonly InputKey ScreenClick;
+        public readonly InputKey ScreenLeftClick;
+        public readonly InputKey ScreenRightClick;
         public readonly InputKey ClickPosition;
         public readonly InputKey BlockPlaceRotation;
 
         public PlayableInputManager(MoorestechInputSettings settings)
         {
-            ScreenClick = new InputKey(settings.Playable.ScreenClick);
+            ScreenLeftClick = new InputKey(settings.Playable.ScreenLeftClick);
+            ScreenRightClick = new InputKey(settings.Playable.ScreenRightClick);
             ClickPosition = new InputKey(settings.Playable.ClickPosition);
             BlockPlaceRotation = new InputKey(settings.Playable.BlockPlaceRotation);
         }

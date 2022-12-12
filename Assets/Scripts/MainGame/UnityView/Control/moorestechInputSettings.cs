@@ -248,9 +248,18 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
             ""id"": ""3b8c937a-e56c-4355-8df4-4b18aebda850"",
             ""actions"": [
                 {
-                    ""name"": ""ScreenClick"",
+                    ""name"": ""ScreenLeftClick"",
                     ""type"": ""Button"",
                     ""id"": ""2daa6d31-e71b-44fb-a02c-1a3022394306"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""ScreenRightClick"",
+                    ""type"": ""Button"",
+                    ""id"": ""d5203e91-bd51-4d08-8095-5616e05b4135"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -283,7 +292,7 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",
-                    ""action"": ""ScreenClick"",
+                    ""action"": ""ScreenLeftClick"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -306,6 +315,17 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",
                     ""action"": ""BlockPlaceRotation"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b87d5855-8a6a-4fa3-993e-b2fd913a9b72"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""ScreenRightClick"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -717,7 +737,8 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
         // Playable
         m_Playable = asset.FindActionMap("Playable", throwIfNotFound: true);
-        m_Playable_ScreenClick = m_Playable.FindAction("ScreenClick", throwIfNotFound: true);
+        m_Playable_ScreenLeftClick = m_Playable.FindAction("ScreenLeftClick", throwIfNotFound: true);
+        m_Playable_ScreenRightClick = m_Playable.FindAction("ScreenRightClick", throwIfNotFound: true);
         m_Playable_ClickPosition = m_Playable.FindAction("ClickPosition", throwIfNotFound: true);
         m_Playable_BlockPlaceRotation = m_Playable.FindAction("BlockPlaceRotation", throwIfNotFound: true);
         // UI
@@ -850,14 +871,16 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     // Playable
     private readonly InputActionMap m_Playable;
     private IPlayableActions m_PlayableActionsCallbackInterface;
-    private readonly InputAction m_Playable_ScreenClick;
+    private readonly InputAction m_Playable_ScreenLeftClick;
+    private readonly InputAction m_Playable_ScreenRightClick;
     private readonly InputAction m_Playable_ClickPosition;
     private readonly InputAction m_Playable_BlockPlaceRotation;
     public struct PlayableActions
     {
         private @MoorestechInputSettings m_Wrapper;
         public PlayableActions(@MoorestechInputSettings wrapper) { m_Wrapper = wrapper; }
-        public InputAction @ScreenClick => m_Wrapper.m_Playable_ScreenClick;
+        public InputAction @ScreenLeftClick => m_Wrapper.m_Playable_ScreenLeftClick;
+        public InputAction @ScreenRightClick => m_Wrapper.m_Playable_ScreenRightClick;
         public InputAction @ClickPosition => m_Wrapper.m_Playable_ClickPosition;
         public InputAction @BlockPlaceRotation => m_Wrapper.m_Playable_BlockPlaceRotation;
         public InputActionMap Get() { return m_Wrapper.m_Playable; }
@@ -869,9 +892,12 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
         {
             if (m_Wrapper.m_PlayableActionsCallbackInterface != null)
             {
-                @ScreenClick.started -= m_Wrapper.m_PlayableActionsCallbackInterface.OnScreenClick;
-                @ScreenClick.performed -= m_Wrapper.m_PlayableActionsCallbackInterface.OnScreenClick;
-                @ScreenClick.canceled -= m_Wrapper.m_PlayableActionsCallbackInterface.OnScreenClick;
+                @ScreenLeftClick.started -= m_Wrapper.m_PlayableActionsCallbackInterface.OnScreenLeftClick;
+                @ScreenLeftClick.performed -= m_Wrapper.m_PlayableActionsCallbackInterface.OnScreenLeftClick;
+                @ScreenLeftClick.canceled -= m_Wrapper.m_PlayableActionsCallbackInterface.OnScreenLeftClick;
+                @ScreenRightClick.started -= m_Wrapper.m_PlayableActionsCallbackInterface.OnScreenRightClick;
+                @ScreenRightClick.performed -= m_Wrapper.m_PlayableActionsCallbackInterface.OnScreenRightClick;
+                @ScreenRightClick.canceled -= m_Wrapper.m_PlayableActionsCallbackInterface.OnScreenRightClick;
                 @ClickPosition.started -= m_Wrapper.m_PlayableActionsCallbackInterface.OnClickPosition;
                 @ClickPosition.performed -= m_Wrapper.m_PlayableActionsCallbackInterface.OnClickPosition;
                 @ClickPosition.canceled -= m_Wrapper.m_PlayableActionsCallbackInterface.OnClickPosition;
@@ -882,9 +908,12 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
             m_Wrapper.m_PlayableActionsCallbackInterface = instance;
             if (instance != null)
             {
-                @ScreenClick.started += instance.OnScreenClick;
-                @ScreenClick.performed += instance.OnScreenClick;
-                @ScreenClick.canceled += instance.OnScreenClick;
+                @ScreenLeftClick.started += instance.OnScreenLeftClick;
+                @ScreenLeftClick.performed += instance.OnScreenLeftClick;
+                @ScreenLeftClick.canceled += instance.OnScreenLeftClick;
+                @ScreenRightClick.started += instance.OnScreenRightClick;
+                @ScreenRightClick.performed += instance.OnScreenRightClick;
+                @ScreenRightClick.canceled += instance.OnScreenRightClick;
                 @ClickPosition.started += instance.OnClickPosition;
                 @ClickPosition.performed += instance.OnClickPosition;
                 @ClickPosition.canceled += instance.OnClickPosition;
@@ -1061,7 +1090,8 @@ public partial class @MoorestechInputSettings : IInputActionCollection2, IDispos
     }
     public interface IPlayableActions
     {
-        void OnScreenClick(InputAction.CallbackContext context);
+        void OnScreenLeftClick(InputAction.CallbackContext context);
+        void OnScreenRightClick(InputAction.CallbackContext context);
         void OnClickPosition(InputAction.CallbackContext context);
         void OnBlockPlaceRotation(InputAction.CallbackContext context);
     }

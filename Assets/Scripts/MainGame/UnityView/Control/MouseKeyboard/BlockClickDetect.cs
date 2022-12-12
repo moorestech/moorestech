@@ -34,7 +34,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             blockObject = null;
             // UIのクリックかどうかを判定
             if (EventSystem.current.IsPointerOverGameObject()) return false;
-            if (InputManager.Playable.ScreenClick.GetKeyDown && TryGetCursorOnBlock(out blockObject))
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && TryGetCursorOnBlock(out blockObject))
             {
                 return true;
             }
@@ -45,7 +45,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
 
         public bool TryGetClickBlockPosition(out Vector2Int position)
         {
-            if (InputManager.Playable.ScreenClick.GetKeyDown && TryGetCursorOnBlockPosition(out position))
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && TryGetCursorOnBlockPosition(out position))
             {
                 return true;
             }
