@@ -104,12 +104,16 @@ Material:
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
+    - _DisableDistanse: 2
+    - _DitherIn: 1.7
+    - _DitherOut: 4.75
     - _DstBlend: 0
     - _EnvironmentReflections: 1
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
+    - _MinDither: 0.55
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueControl: 0
@@ -124,6 +128,11 @@ Material:
     - _ZTest: 4
     - _ZWrite: 1
     - _ZWriteControl: 0
+    - _a: 1
+    - _color_offset: 0
+    - _noise: -1.08
+    - _noise_offset: 0
+    - _noise_strength: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
@@ -131,4 +140,5 @@ Material:
     - _ReafColor: {r: 0.32941177, g: 0.7254902, b: 0.11372549, a: 1}
     - _ReafTiling: {r: 1, g: 1, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _calmp: {r: 0, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
