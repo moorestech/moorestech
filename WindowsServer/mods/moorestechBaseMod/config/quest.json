@@ -1,0 +1,90 @@
+[
+  {
+    "Id" : "Test1",
+    "Prerequisite" : [],
+    "PrerequisiteType" : "And",
+    "Category" : "Test Category",
+    "Type" : "ItemCraft",
+    "Name": "Test Quest",
+    "Description" : "Test Quest Description",
+    "UIPosX" : 0,
+    "UIPosY" : 0,
+    "RewardItem" : [],
+    "Param" : "{'modId':'sakastudio:moorestechBaseMod','name':'iron ingot'}"
+  },
+  {
+    "Id" : "Test2",
+    "Prerequisite" : ["sakastudio:moorestechBaseMod:Test1"],
+    "PrerequisiteType" : "And",
+    "Category" : "Test Category",
+    "Type" : "ItemCraft",
+    "Name": "Test Quest",
+    "Description" : "Test Quest Description",
+    "UIPosX" : 200,
+    "UIPosY" : 0,
+    "RewardItem" : [
+      {
+        "modId": "sakastudio:moorestechBaseMod",
+        "name": "iron ore",
+        "cnt": 1
+      }
+    ],
+    "Param" : "{'modId':'sakastudio:moorestechBaseMod','name':'iron ingot'}"
+  },
+  {
+    "Id" : "Test3",
+    "Prerequisite" : ["sakastudio:moorestechBaseMod:Test1","sakastudio:moorestechBaseMod:Test2"],
+    "PrerequisiteType" : "And",
+    "Category" : "Test Category",
+    "Type" : "ItemCraft",
+    "Name": "Test Quest",
+    "Description" : "Test Quest Description",
+    "UIPosX" : 400,
+    "UIPosY" : 0,
+    "RewardItem" : [
+      {
+        "modId": "sakastudio:moorestechBaseMod",
+        "name": "iron ore",
+        "cnt": 1
+      }
+    ],
+    "Param" : "{'modId':'sakastudio:moorestechBaseMod','name':'iron ingot'}"
+  },
+  {
+    "Id" : "Test4",
+    "Prerequisite" : ["sakastudio:moorestechBaseMod:Test1","sakastudio:moorestechBaseMod:Test2"],
+    "PrerequisiteType" : "Or",
+    "Category" : "Test Category",
+    "Type" : "ItemCraft",
+    "Name": "Test Quest",
+    "Description" : "Test Quest Description",
+    "UIPosX" : 150,
+    "UIPosY" : 200,
+    "RewardItem" : [
+      {
+        "modId": "sakastudio:moorestechBaseMod",
+        "name": "iron ore",
+        "cnt": 1
+      },
+      {
+        "modId": "sakastudio:moorestechBaseMod",
+        "name": "iron ore",
+        "cnt": 1
+      }
+    ],
+    "Param" : "{'modId':'sakastudio:moorestechBaseMod','name':'iron ingot'}"
+  },
+  {
+    "Id" : "Test5",
+    "Prerequisite" : [],
+    "PrerequisiteType" : "And",
+    "Category" : "Test Category2",
+    "Type" : "ItemCraft",
+    "Name": "Test Quest",
+    "Description" : "Test Quest Description",
+    "UIPosX" : 0,
+    "UIPosY" : 0,
+    "RewardItem" : [],
+    "Param" : "{'modId':'sakastudio:moorestechBaseMod','name':'iron ingot'}"
+  }
+]

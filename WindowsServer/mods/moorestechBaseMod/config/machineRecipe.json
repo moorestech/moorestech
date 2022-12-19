@@ -1,0 +1,250 @@
+﻿[
+  {
+    "BlockID": 3,
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"coal",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"coal powder",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "BlockID": 13,
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"coal powder",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "BlockID": 3,
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"goald ore",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"gold powder",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "BlockID": 13,
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"gold powder",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"goald ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "BlockID": 4,
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"goald ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"gold wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "BlockID": 13,
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"sand",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"silicon",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "BlockID": 9,
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"silicon",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"silicon wafer",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "BlockID": 11,
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"silicon",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"silicon wafer",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "BlockID": 14,
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"precision gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "BlockID": 14,
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"stick",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":"copper wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"precision mortor",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "BlockID": 10,
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"silicon wafer",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":"gold wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":"precision circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"ic chip",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "BlockID": 12,
+    "time": 1000,
+    "input": [
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"btc",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  }
+]

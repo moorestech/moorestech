@@ -1,0 +1,1892 @@
+[
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"iron ore",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"iron ingot",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"plate",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 3
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"stick",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 3
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      }
+    ],
+    "result": {
+      "itemName":"gear",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count": 2
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      },
+      {
+        "itemName":"stick",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      }
+    ],
+    "result": {
+      "itemName":"iron screw",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count": 5
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count": 0
+      }
+    ],
+    "result": {
+      "itemName":"beltconbeyor",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count": 5
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"copper ore",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"copper ingot",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"copper ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"copper wiere",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 3
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"copper wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"copper wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"copper wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"basic circuit",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron screw",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"basic circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron screw",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"machine case",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"basic circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"machine case",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"basic circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"crasher",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"machine case",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"compressor",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"generator",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":"iron screw",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron screw",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron screw",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron screw",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"miner",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"copper wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"stick",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"stick",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"pole",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"steel screw",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"steel gear",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":"copper wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"copper wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"copper wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"machine case",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"copper wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"copper wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"copper wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"smelting",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"gold wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"copper ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"gold wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"advansed circuit",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":"steel gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel screw",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"advansed circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel screw",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"adovanced machine case",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"steel gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"steel screw",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"adovanced machine case",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel screw",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"steel gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"generator mk2",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"copper wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"steel gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"adovanced machine case",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"advansed circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"copper wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"advansed circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"miner mk2",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"gold wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"advansed circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"advansed circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"advansed circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"gold wiere",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"precision circuit",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"precision circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"adovanced machine case",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"precision circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"silicon processor",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"precision circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"adovanced machine case",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"precision circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"precision assembler",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"precision circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"precision gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"adovanced machine case",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"precision gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"precision mortor",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"precision circuit",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"precision mortor",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"IC chip assembler",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"precision mortor",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"precision gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"adovanced machine case",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"precision gear",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"ic chip",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"precision mortor",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"ic chip",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"generator mk3",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"ic chip",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"ic chip",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"ic chip",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"plate",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"graphic board",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":"graphic board",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"graphic board",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"graphic board",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"graphic board",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"adovanced machine case",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"graphic board",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"graphic board",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"graphic board",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"graphic board",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"btc miner",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"btc",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 10
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"10btc",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"10btc",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 10
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"100btc",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"100btc",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 10
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"1000btc",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"1000btc",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 10
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      }
+    ],
+    "result" : {
+      "itemName":"10000btc",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"ironchest",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":null,
+        "modId":null,
+        "count" : 0
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      },
+      {
+        "itemName":"steel ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count" : 1
+      }
+    ],
+    "result" : {
+      "itemName":"steel chest",
+      "modId":"sakastudio:moorestechBaseMod",
+      "count" : 1
+    }
+  }
+]
