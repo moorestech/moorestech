@@ -4,6 +4,7 @@ using Core.Block.BlockInventory;
 using Core.Block.Blocks.Miner;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
+using Core.Block.Event;
 using Core.Electric;
 using Core.Item;
 using Core.Ore;
@@ -35,10 +36,11 @@ namespace Test.CombinedTest.Core
             var minerBlockConfigParam = blockConfig.GetBlockConfig(MinerId).Param as MinerBlockConfigParam;
 
             //手動で鉱石の設定を行う
+            var outputCount = minerBlockConfigParam.OutputSlot;
             var miningTime = minerBlockConfigParam.OreSettings[0].MiningTime;
             var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.OreSettings[0].OreId);
 
-            var miner = new VanillaMiner(MinerId, CreateBlockEntityId.Create(),1, 100, 10, itemStackFactory);
+            var miner = new VanillaMiner(MinerId, CreateBlockEntityId.Create(),1, 100, 10, itemStackFactory,new BlockOpenableInventoryUpdateEvent());
             miner.SetMiningItem(miningItemId, miningTime);
 
             var dummyInventory = new DummyBlockInventory(itemStackFactory);

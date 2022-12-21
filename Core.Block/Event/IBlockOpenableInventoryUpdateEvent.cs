@@ -2,6 +2,10 @@
 
 namespace Core.Block.Event
 {
+    /// <summary>
+    /// Subscribeだけができるイベントインタフェース
+    /// 勝手にInvokeされないように定義している
+    /// </summary>
     public interface IBlockOpenableInventoryUpdateEvent
     {
         public delegate void BlockInventoryEvent(

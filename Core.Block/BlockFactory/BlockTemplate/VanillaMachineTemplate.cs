@@ -18,11 +18,11 @@ namespace Core.Block.BlockFactory.BlockTemplate
         private readonly ItemStackFactory _itemStackFactory;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
 
-        public VanillaMachineTemplate(IMachineRecipeConfig machineRecipeConfig, ItemStackFactory itemStackFactory, IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
+        public VanillaMachineTemplate(IMachineRecipeConfig machineRecipeConfig, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             _machineRecipeConfig = machineRecipeConfig;
             _itemStackFactory = itemStackFactory;
-            _blockInventoryUpdateEvent = blockInventoryUpdateEvent as BlockOpenableInventoryUpdateEvent;
+            _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
         }
 
         public IBlock New(BlockConfigData param, int entityId, ulong blockHash)
