@@ -66,6 +66,25 @@
     "time": 3000,
     "input": [
       {
+        "itemName":"iron ore",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechBaseMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "BlockID": 13,
+    "time": 3000,
+    "input": [
+      {
         "itemName":"gold powder",
         "modId":"sakastudio:moorestechBaseMod",
         "count": 1
