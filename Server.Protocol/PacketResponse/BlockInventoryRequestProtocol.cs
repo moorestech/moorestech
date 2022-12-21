@@ -37,9 +37,11 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<RequestBlockInventoryRequestProtocolMessagePack>(payload.ToArray());
 
+            //開けるインベントリを持つブロックが存在するかどうかをチェック
             if (!_blockComponentDatastore.ExistsComponentBlock(data.X, data.Y)) return new List<List<byte>>();
 
 
+            //存在したらアイテム数とアイテムIDをまとめてレスポンスする
             var itemIds = new List<int>();
             var itemCounts = new List<int>();
 
