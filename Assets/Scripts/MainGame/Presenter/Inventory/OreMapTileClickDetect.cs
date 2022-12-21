@@ -18,7 +18,8 @@ namespace MainGame.Presenter.Inventory
     {
         [SerializeField] private ProgressBarView progressBarView;
         
-        private const float MiningTime = 3.0f;
+        //今の所は一律5秒
+        private const float MiningTime = 5.0f;
         
         private Camera _mainCamera;
         private SendMiningProtocol _sendMiningProtocol;
