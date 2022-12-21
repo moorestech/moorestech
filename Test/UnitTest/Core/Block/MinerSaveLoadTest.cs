@@ -4,6 +4,7 @@ using System.Reflection;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Miner;
 using Core.Block.Config;
+using Core.Inventory;
 using Core.Item;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -24,18 +25,17 @@ namespace Test.UnitTest.Core.Block
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = serviceProvider.GetService<BlockFactory>();
-            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             ulong minerHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(MinerId).BlockHash;
             
             var originalMiner = blockFactory.Create(MinerId, 1);
             int originalRemainingMillSecond = 350;
             
-            var outputSlot = 
-                (List<IItemStack>)typeof(VanillaMiner).
-                    GetField("_outputSlot", BindingFlags.Instance | BindingFlags.NonPublic).
+            var inventory = 
+                (OpenableInventoryItemDataStoreService)typeof(VanillaMiner).
+                    GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic).
                     GetValue(originalMiner);
-            outputSlot[0] = itemStackFactory.Create(1,1);
-            outputSlot[2] = itemStackFactory.Create(4,1);
+            inventory.SetItem(0,1,1);
+            inventory.SetItem(2,4,1);
             typeof(VanillaMiner).
                 GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic).
                 SetValue(originalMiner,originalRemainingMillSecond);
@@ -47,18 +47,18 @@ namespace Test.UnitTest.Core.Block
             
             
             var loadedMiner = blockFactory.Load(minerHash, 1,json);
-            var loadedOutputSlot = 
-                (List<IItemStack>)typeof(VanillaMiner).
-                    GetField("_outputSlot", BindingFlags.Instance | BindingFlags.NonPublic).
-                    GetValue(loadedMiner);
+            var loadedInventory = 
+                (OpenableInventoryItemDataStoreService)typeof(VanillaMiner).
+                    GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic).
+                    GetValue(originalMiner);
             var loadedRemainingMillSecond = 
                 (int)typeof(VanillaMiner).
                     GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic).
                     GetValue(loadedMiner);
             
-            Assert.AreEqual(outputSlot[0],loadedOutputSlot[0]);
-            Assert.AreEqual(outputSlot[1],loadedOutputSlot[1]);
-            Assert.AreEqual(outputSlot[2],loadedOutputSlot[2]);
+            Assert.AreEqual(inventory.GetItem(0),loadedInventory.GetItem(0));
+            Assert.AreEqual(inventory.GetItem(1),loadedInventory.GetItem(1));
+            Assert.AreEqual(inventory.GetItem(2),loadedInventory.GetItem(2));
             Assert.AreEqual(originalRemainingMillSecond,loadedRemainingMillSecond);
         }
     }

@@ -40,7 +40,7 @@ namespace Test.CombinedTest.Core
             var miningTime = minerBlockConfigParam.OreSettings[0].MiningTime;
             var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.OreSettings[0].OreId);
 
-            var miner = new VanillaMiner(MinerId, CreateBlockEntityId.Create(),1, 100, 10, itemStackFactory,new BlockOpenableInventoryUpdateEvent());
+            var miner = new VanillaMiner(MinerId, CreateBlockEntityId.Create(),1, 100, outputCount, itemStackFactory,new BlockOpenableInventoryUpdateEvent());
             miner.SetMiningItem(miningItemId, miningTime);
 
             var dummyInventory = new DummyBlockInventory(itemStackFactory);
@@ -77,10 +77,9 @@ namespace Test.CombinedTest.Core
 
             miner.Update();
             //鉱石2個が残っているかチェック
-            var outputSlot = (List<IItemStack>) typeof(VanillaMiner).GetField("_outputSlot",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(miner);
-            Assert.AreEqual(miningItemId, outputSlot[0].Id);
-            Assert.AreEqual(2, outputSlot[0].Count);
+            var outputSlot = miner.Items[0];
+            Assert.AreEqual(miningItemId, outputSlot.Id);
+            Assert.AreEqual(2, outputSlot.Count);
 
             //またコネクターをつなげる
             ((IBlockInventory) miner).AddOutputConnector(dummyInventory);

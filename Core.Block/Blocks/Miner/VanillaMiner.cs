@@ -54,11 +54,16 @@ namespace Core.Block.Blocks.Miner
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var split = saveData.Split(',');
             _remainingMillSecond = int.Parse(split[0]);
+            var inventoryItems = new List<IItemStack>();
             for (var i = 1; i < split.Length; i += 2)
             {
                 var itemHash = ulong.Parse(split[i]);
                 var itemCount = int.Parse(split[i + 1]);
-                _openableInventoryItemDataStoreService.SetItem(i,_itemStackFactory.Create(itemHash, itemCount));
+                inventoryItems.Add(_itemStackFactory.Create(itemHash, itemCount));
+            }
+            for (int i = 0; i < inventoryItems.Count; i++)
+            {
+                _openableInventoryItemDataStoreService.SetItem(i,inventoryItems[i]);
             }
         }
 
