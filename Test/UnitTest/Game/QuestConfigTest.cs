@@ -14,7 +14,6 @@ namespace Test.UnitTest.Game
 {
     public class QuestConfigTest
     {
-
         private const string ModId = "QuestAuthor:forQuestTest";
         
         [Test]

@@ -11,7 +11,7 @@ using Test.Module.TestMod;
 
 namespace Test.UnitTest.Game
 {
-    public class QuestTest
+    public class CraftingQuestTest
     {
         private const int PlayerId = 1;
         /// <summary>
