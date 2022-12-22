@@ -1,19 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Service;
-using Core.Block.Config.LoadConfig.Param;
+using Core.Block.Event;
 using Core.Const;
 using Core.Electric;
 using Core.Inventory;
 using Core.Item;
 using Core.Item.Util;
-using Core.Ore;
 using Core.Update;
 
 namespace Core.Block.Blocks.Miner
 {
-    public class VanillaMiner : IBlock, IBlockElectric, IBlockInventory, IUpdate,IMiner
+    public class VanillaMiner : IBlock, IBlockElectric, IBlockInventory, IUpdate,IMiner,IOpenableInventory
     {
 
         public int EntityId { get; }
@@ -23,7 +23,7 @@ namespace Core.Block.Blocks.Miner
         public int RequestPower  { get; }
         private readonly ItemStackFactory _itemStackFactory;
         private readonly List<IBlockInventory> _connectInventory = new();
-        private readonly List<IItemStack> _outputSlot;
+        private readonly OpenableInventoryItemDataStoreService _openableInventoryItemDataStoreService;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
 
         private int _defaultMiningTime = int.MaxValue;
@@ -31,38 +31,39 @@ namespace Core.Block.Blocks.Miner
         
         private int _nowPower = 0;
         private int _remainingMillSecond = int.MaxValue;
+        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
 
-        public VanillaMiner(int blockId, int entityId, ulong blockHash, int requestPower, int outputSlot, ItemStackFactory itemStackFactory)
+        public VanillaMiner(int blockId, int entityId, ulong blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
         {
             BlockId = blockId;
             EntityId = entityId;
             RequestPower = requestPower;
-            _itemStackFactory = itemStackFactory;
             BlockHash = blockHash;
-            _outputSlot = CreateEmptyItemStacksList.Create(outputSlot, itemStackFactory);
+            
+            _itemStackFactory = itemStackFactory;
+            _blockInventoryUpdate = openableInventoryUpdateEvent;
+            
+            _openableInventoryItemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,outputSlotCount);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
+            
             GameUpdate.AddUpdateObject(this);
         }
-        public VanillaMiner(string saveData,int blockId, int entityId, ulong blockHash, int requestPower, int miningTime , ItemStackFactory itemStackFactory)
+        public VanillaMiner(string saveData,int blockId, int entityId, ulong blockHash, int requestPower,int outputSlotCount, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
+            :this(blockId, entityId, blockHash, requestPower, outputSlotCount, itemStackFactory,openableInventoryUpdateEvent)
         {
-            BlockId = blockId;
-            EntityId = entityId;
-            RequestPower = requestPower;
-            _remainingMillSecond = miningTime;
-            _itemStackFactory = itemStackFactory;
-            BlockHash = blockHash;
-            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
-            GameUpdate.AddUpdateObject(this);
-
-            _outputSlot = new List<IItemStack>();
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var split = saveData.Split(',');
             _remainingMillSecond = int.Parse(split[0]);
+            var inventoryItems = new List<IItemStack>();
             for (var i = 1; i < split.Length; i += 2)
             {
                 var itemHash = ulong.Parse(split[i]);
                 var itemCount = int.Parse(split[i + 1]);
-                _outputSlot.Add(_itemStackFactory.Create(itemHash, itemCount));
+                inventoryItems.Add(_itemStackFactory.Create(itemHash, itemCount));
+            }
+            for (int i = 0; i < inventoryItems.Count; i++)
+            {
+                _openableInventoryItemDataStoreService.SetItem(i,inventoryItems[i]);
             }
         }
 
@@ -81,13 +82,7 @@ namespace Core.Block.Blocks.Miner
 
                 //空きスロットを探索し、あるならアイテムを挿入
                 var addItem = _itemStackFactory.Create(_miningItemId, 1);
-                for (int i = 0; i < _outputSlot.Count; i++)
-                {
-                    if (!_outputSlot[i].IsAllowedToAdd(addItem)) continue;
-                    //空きスロットに掘ったアイテムを挿入
-                    _outputSlot[i] = _outputSlot[i].AddItem(addItem).ProcessResultItemStack;
-                    break;
-                }
+                _openableInventoryItemDataStoreService.InsertItem(addItem);
             }
 
             _nowPower = 0;
@@ -96,9 +91,10 @@ namespace Core.Block.Blocks.Miner
 
         void InsertConnectInventory()
         {
-            for (int i = 0; i < _outputSlot.Count; i++)
+            for (int i = 0; i < _openableInventoryItemDataStoreService.Items.Count; i++)
             {
-                _outputSlot[i] = _connectInventoryService.InsertItem(_outputSlot[i]);
+                var insertedItem = _connectInventoryService.InsertItem(_openableInventoryItemDataStoreService.Items[i]);
+                _openableInventoryItemDataStoreService.SetItem(i,insertedItem);
             }
         }
 
@@ -106,7 +102,7 @@ namespace Core.Block.Blocks.Miner
         {
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var saveState = $"{_remainingMillSecond}";
-            foreach (var itemStack in _outputSlot)
+            foreach (var itemStack in _openableInventoryItemDataStoreService.Items)
             {
                 saveState += $",{itemStack.ItemHash},{itemStack.Count}";
             }
@@ -124,10 +120,23 @@ namespace Core.Block.Blocks.Miner
             _connectInventory.Remove(blockInventory);
         }
 
-        public IItemStack InsertItem(IItemStack itemStack)
-        {
-            return itemStack;
-        }
+
+        #region Implimantion IOpenableInventory
+
+        public ReadOnlyCollection<IItemStack> Items => _openableInventoryItemDataStoreService.Items;
+        public IItemStack ReplaceItem(int slot, int itemId, int count) { return _openableInventoryItemDataStoreService.ReplaceItem(slot, itemId, count); }
+
+        public IItemStack InsertItem(IItemStack itemStack) { return _openableInventoryItemDataStoreService.InsertItem(itemStack); }
+        public IItemStack InsertItem(int itemId, int count) { return _openableInventoryItemDataStoreService.InsertItem(itemId, count); }
+        public List<IItemStack> InsertItem(List<IItemStack> itemStacks) { return _openableInventoryItemDataStoreService.InsertItem(itemStacks); }
+        public bool InsertionCheck(List<IItemStack> itemStacks) { return _openableInventoryItemDataStoreService.InsertionCheck(itemStacks); }
+        public void SetItem(int slot, int itemId, int count) { _openableInventoryItemDataStoreService.SetItem(slot,itemId,count); }
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack) { return _openableInventoryItemDataStoreService.ReplaceItem(slot, itemStack); }
+
+        #endregion
+        
+        private void InvokeEvent(int slot, IItemStack itemStack) { _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack)); }
+
 
         public void SupplyPower(int power)
         {
@@ -144,9 +153,10 @@ namespace Core.Block.Blocks.Miner
             _defaultMiningTime = miningTime;
             _remainingMillSecond = _defaultMiningTime;
         }
-        
-        public IItemStack GetItem(int slot) { return _outputSlot[slot]; }
-        public void SetItem(int slot, IItemStack itemStack) { _outputSlot[slot] = itemStack; }
-        public int GetSlotSize() { return _outputSlot.Count; }
+
+        public IItemStack GetItem(int slot) { return _openableInventoryItemDataStoreService.GetItem(slot); }
+
+        public void SetItem(int slot, IItemStack itemStack) { _openableInventoryItemDataStoreService.SetItem(slot, itemStack); }
+        public int GetSlotSize() { return _openableInventoryItemDataStoreService.GetSlotSize(); }
     }
 }

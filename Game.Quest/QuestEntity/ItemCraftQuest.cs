@@ -10,63 +10,24 @@ namespace Game.Quest.QuestEntity
 {
     public class ItemCraftQuest : IQuest
     {
-        public QuestConfigData Quest { get; }
+        public QuestConfigData QuestConfig { get; }
         public bool IsCompleted { get; private set; }
         public bool IsEarnedReward { get;  private set; }
+        public IReadOnlyList<IQuest> PreRequestQuests { get; private set; }
         public event Action<QuestConfigData> OnQuestCompleted;
-
-        private readonly List<IQuest> _preRequestQuests;
 
         private readonly int _questItemId;
 
 
-
-        public bool IsRewardEarnable
-        {
-            get
-            {
-                //既に報酬を受け取ったのでfalse
-                if (IsEarnedReward)
-                {
-                    return false;
-                }
-                //まだクエストを完了していないのでfalse
-                if (!IsCompleted)
-                {
-                    return false;
-                }
-                //完了済みで前提クエストが無ければtrue
-                if (_preRequestQuests.Count == 0)
-                {
-                    return true;
-                }
-                
-                
-                //前提クエストの完了しているクエスト数を取得
-                var preRequestQuestCount = _preRequestQuests.Count(quest => quest.IsCompleted);
-
-                switch (Quest.QuestPrerequisiteType)
-                {
-                    //AND条件ですべて完了していたらtrue
-                    case QuestPrerequisiteType.And when preRequestQuestCount == _preRequestQuests.Count:
-                    //OR条件でいずれか完了していたらtrue
-                    case QuestPrerequisiteType.Or when preRequestQuestCount > 0:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-        }
-
         public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent, int questItemId, List<IQuest> preRequestQuests)
         {
-            Quest = quest;
+            QuestConfig = quest;
             _questItemId = questItemId;
-            _preRequestQuests = preRequestQuests;
+            PreRequestQuests = preRequestQuests;
             craftingEvent.Subscribe(OnItemCraft);
         }
-        public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent,bool isCompleted, bool isEarnedReward, int questItemId, List<IQuest> prequests)
-            :this(quest,craftingEvent,questItemId, prequests)
+        public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent,bool isCompleted, bool isEarnedReward, int questItemId, List<IQuest> preRequestQuests)
+            :this(quest,craftingEvent,questItemId, preRequestQuests)
         {
             IsCompleted = isCompleted;
             IsEarnedReward = isEarnedReward;
@@ -77,12 +38,12 @@ namespace Game.Quest.QuestEntity
             if (IsCompleted || result.itemId != _questItemId) return;
             
             IsCompleted = true;
-            OnQuestCompleted?.Invoke(Quest);
+            OnQuestCompleted?.Invoke(QuestConfig);
         }
 
         public void LoadQuestData(SaveQuestData saveQuestData)
         {
-            if (saveQuestData.QuestId != Quest.QuestId)
+            if (saveQuestData.QuestId != QuestConfig.QuestId)
             {
                 //TODO ログ基盤に入れる
                 throw new ArgumentException("ロードすべきクエストIDが一致しません");

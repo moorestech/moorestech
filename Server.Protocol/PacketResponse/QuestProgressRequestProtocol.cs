@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Quest.Interface;
+using Game.Quest.Interface.Extension;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -75,10 +76,10 @@ namespace Server.Protocol.PacketResponse
     {
         public QuestProgressMessagePack(IQuest quest)
         {
-            Id = quest.Quest.QuestId;
+            Id = quest.QuestConfig.QuestId;
             IsCompleted = quest.IsCompleted;
             IsRewarded = quest.IsEarnedReward;
-            IsRewardEarnable = quest.IsRewardEarnable;
+            IsRewardEarnable = quest.IsRewardEarnable();
         }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

@@ -1,7 +1,8 @@
 namespace Game.Quest.Interface
 {
-    public class VanillaQuestTypes
+    public static class VanillaQuestTypes
     {
         public const string ItemCraftQuestType = "ItemCraft";
+        public const string ItemAcquisitionQuestType = "ItemAcquisition";
     }
 }

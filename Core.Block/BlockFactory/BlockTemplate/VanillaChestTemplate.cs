@@ -12,10 +12,10 @@ namespace Core.Block.BlockFactory.BlockTemplate
         private readonly ItemStackFactory _itemStackFactory;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
 
-        public VanillaChestTemplate(ItemStackFactory itemStackFactory,IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
+        public VanillaChestTemplate(ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             _itemStackFactory = itemStackFactory;
-            _blockInventoryUpdateEvent = blockInventoryUpdateEvent as BlockOpenableInventoryUpdateEvent;
+            _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
 
         }
 

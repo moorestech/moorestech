@@ -65,7 +65,7 @@ namespace Game.Quest.Factory
 
                 //既に作ったクエストになかったので作成してリストに入れる
                 var quest = CreateQuest(preRequestConfig, GetPreRequestQuest(preRequestConfig, allQuests));
-                allQuests.Add(quest.Quest.QuestId,quest);
+                allQuests.Add(quest.QuestConfig.QuestId,quest);
                 preRequestQuests.Add(quest);
             }
             return preRequestQuests;
