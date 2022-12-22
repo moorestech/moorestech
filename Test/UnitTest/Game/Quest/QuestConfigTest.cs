@@ -1,16 +1,10 @@
-using System.Collections.Generic;
-using Core.ConfigJson;
-using Core.Item;
-using Game.Quest;
-using Game.Quest.Config;
 using Game.Quest.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-
 using Test.Module.TestMod;
 
-namespace Test.UnitTest.Game
+namespace Test.UnitTest.Game.Quest
 {
     public class QuestConfigTest
     {

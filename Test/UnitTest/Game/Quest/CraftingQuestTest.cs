@@ -9,7 +9,7 @@ using PlayerInventory.Event;
 using Server.Boot;
 using Test.Module.TestMod;
 
-namespace Test.UnitTest.Game
+namespace Test.UnitTest.Game.Quest
 {
     public class CraftingQuestTest
     {

@@ -4,7 +4,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Test.Module.TestMod;
 
-namespace Test.UnitTest.Game
+namespace Test.UnitTest.Game.Quest
 {
     [TestFixture]
     public class ItemAcquisitionQuestTest
