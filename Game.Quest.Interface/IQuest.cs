@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Game.Quest.Interface
 {
@@ -7,8 +8,8 @@ namespace Game.Quest.Interface
         QuestConfigData Quest { get; }
         
         bool IsCompleted { get; }
-        bool IsRewardEarnable { get; }
         bool IsEarnedReward { get; }
+        IReadOnlyList<IQuest> PreRequestQuests { get; }
         event Action<QuestConfigData> OnQuestCompleted;
 
         public void LoadQuestData(SaveQuestData saveQuestData);

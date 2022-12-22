@@ -34,6 +34,9 @@ namespace Game.Quest.Interface
         public string QuestParameter { get; }
     }
     
+    /// <summary>
+    /// 前提クエストがAND（全てのクエストを達成してから達成できる）かOR（いずれかのクエストを達成したら達成できる）か
+    /// </summary>
     public enum QuestPrerequisiteType
     {
         And,
