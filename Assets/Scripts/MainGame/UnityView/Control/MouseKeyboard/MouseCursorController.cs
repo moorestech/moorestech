@@ -1,15 +1,16 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace MainGame.UnityView.Control.MouseKeyboard
 {
     public class MouseCursorController : MonoBehaviour
     {
-        [SerializeField] CinemachineController cinemachineController;
+        [SerializeField] CameraController cameraController;
 
         private void Update()
         {
-            SetCursor(!cinemachineController.IsCameraControlling);
+            SetCursor(!cameraController.IsCameraControlling);
         }
 
 

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MainGame.UnityView.Control.MouseKeyboard
 {
-    public class CinemachineController : MonoBehaviour
+    public class CameraController : MonoBehaviour
     {
         private const float XSpeed = 10;
         private const float YSpeed = 0.05f;
