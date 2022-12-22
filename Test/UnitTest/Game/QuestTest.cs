@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest.Interface;
+using Game.Quest.Interface.Extension;
 using Game.Quest.QuestEntity;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -39,16 +40,16 @@ namespace Test.UnitTest.Game
             InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(test2Quest));
            
             //この段階ではまだクエスト2が合格しているが報酬受け取りができない事をテスト
-            Assert.False(test2Quest.IsRewardEarnable);
+            Assert.False(test2Quest.IsRewardEarnable());
             Assert.True(test2Quest.IsCompleted);
             
             //前提クエストのクエスト1のクリア
             InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(test1Quest));
             //クエスト1がクリアしたことをテスト
             Assert.True(test1Quest.IsCompleted);
-            Assert.True(test1Quest.IsRewardEarnable);
+            Assert.True(test1Quest.IsRewardEarnable());
             //クエスト2の報酬受け取りができることをテスト
-            Assert.True(test2Quest.IsRewardEarnable);
+            Assert.True(test2Quest.IsRewardEarnable());
         }
 
         
@@ -78,19 +79,19 @@ namespace Test.UnitTest.Game
             
             //クリアはしているが報酬は受け取れないテスト
             Assert.True(testAndPreRequestQuest.IsCompleted);
-            Assert.False(testAndPreRequestQuest.IsRewardEarnable);
+            Assert.False(testAndPreRequestQuest.IsRewardEarnable());
             
             //クエスト1をクリア
             InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(test1Quest));
             
             //AND条件のクエストはまだ報酬受け取りは出来ないテスト
-            Assert.False(testAndPreRequestQuest.IsRewardEarnable);
+            Assert.False(testAndPreRequestQuest.IsRewardEarnable());
             
             //クエスト2をクリア
             InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(test2Quest));
             
             //AND条件クエストが報酬受け取り可能になるテスト
-            Assert.True(testAndPreRequestQuest.IsRewardEarnable);
+            Assert.True(testAndPreRequestQuest.IsRewardEarnable());
             
         }
         
@@ -118,13 +119,13 @@ namespace Test.UnitTest.Game
             
             //クリアはしているが報酬は受け取れないテスト
             Assert.True(testOrPreRequestQuest.IsCompleted);
-            Assert.False(testOrPreRequestQuest.IsRewardEarnable);
+            Assert.False(testOrPreRequestQuest.IsRewardEarnable());
             
             //クエスト1をクリア
             InvokeCraftEventWithReflection(craftEvent,GetQuestIdWithReflection(test1Quest));
             
             //Or条件のクエストなので報酬受け取りは出来るテスト
-            Assert.True(testOrPreRequestQuest.IsRewardEarnable);
+            Assert.True(testOrPreRequestQuest.IsRewardEarnable());
         }
         /// <summary>
         /// アイテムクラフトのイベントを無理やり発火する

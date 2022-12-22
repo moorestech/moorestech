@@ -16,47 +16,8 @@ namespace Game.Quest.QuestEntity
         public IReadOnlyList<IQuest> PreRequestQuests { get; private set; }
         public event Action<QuestConfigData> OnQuestCompleted;
 
-
         private readonly int _questItemId;
 
-
-
-        public bool IsRewardEarnable
-        {
-            get
-            {
-                //既に報酬を受け取ったのでfalse
-                if (IsEarnedReward)
-                {
-                    return false;
-                }
-                //まだクエストを完了していないのでfalse
-                if (!IsCompleted)
-                {
-                    return false;
-                }
-                //完了済みで前提クエストが無ければtrue
-                if (PreRequestQuests.Count == 0)
-                {
-                    return true;
-                }
-                
-                
-                //前提クエストの完了しているクエスト数を取得
-                var preRequestQuestCount = PreRequestQuests.Count(quest => quest.IsCompleted);
-
-                switch (Quest.QuestPrerequisiteType)
-                {
-                    //AND条件ですべて完了していたらtrue
-                    case QuestPrerequisiteType.And when preRequestQuestCount == PreRequestQuests.Count:
-                    //OR条件でいずれか完了していたらtrue
-                    case QuestPrerequisiteType.Or when preRequestQuestCount > 0:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-        }
 
         public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent, int questItemId, List<IQuest> preRequestQuests)
         {
