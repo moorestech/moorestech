@@ -36,7 +36,7 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //クリアになって無いとき報酬を受け取れない時のテスト
             //報酬受け取りのパケットを送信
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.Quest.QuestId)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.QuestConfig.QuestId)).ToList());
             //報酬が受け取れていないことを確認
             Assert.AreEqual(false, quest.IsEarnedReward);
             //アイテムが入っていないことを確認
@@ -50,10 +50,10 @@ namespace Test.CombinedTest.Server.PacketTest
                 SetValue(quest, true);
             
             //報酬受け取りのパケットを送信
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.Quest.QuestId)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.QuestConfig.QuestId)).ToList());
 
             //報酬が入っているか確認
-            Assert.AreEqual(quest.Quest.RewardItemStacks[0],playerInventory.MainOpenableInventory.Items[0]);
+            Assert.AreEqual(quest.QuestConfig.RewardItemStacks[0],playerInventory.MainOpenableInventory.Items[0]);
             //報酬が受け取り済みかどうかをテスト
             Assert.AreEqual(true, quest.IsEarnedReward);
             
@@ -61,9 +61,9 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //報酬は複数受け取れない時のテスト
             //報酬受け取りのパケットを送信
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.Quest.QuestId)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.QuestConfig.QuestId)).ToList());
             //アイテムが入っていないことを確認する
-            Assert.AreEqual(quest.Quest.RewardItemStacks[0],playerInventory.MainOpenableInventory.Items[0]);
+            Assert.AreEqual(quest.QuestConfig.RewardItemStacks[0],playerInventory.MainOpenableInventory.Items[0]);
         }
 
 
@@ -85,14 +85,14 @@ namespace Test.CombinedTest.Server.PacketTest
             //報酬以外のインベントリを満タンにする
             for (int i = 0; i < mainInventory.GetSlotSize(); i++)
             {
-                var differItemId = quest.Quest.RewardItemStacks[0].Id + 1;
+                var differItemId = quest.QuestConfig.RewardItemStacks[0].Id + 1;
                 mainInventory.SetItem(i,differItemId,1);
             }
             
             
             
             //報酬受け取りのパケットを送信
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.Quest.QuestId)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.QuestConfig.QuestId)).ToList());
             //報酬が受け取りになっていないテスト
             Assert.AreEqual(false, quest.IsEarnedReward);
 

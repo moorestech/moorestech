@@ -10,7 +10,7 @@ namespace Game.Quest.QuestEntity
 {
     public class ItemCraftQuest : IQuest
     {
-        public QuestConfigData Quest { get; }
+        public QuestConfigData QuestConfig { get; }
         public bool IsCompleted { get; private set; }
         public bool IsEarnedReward { get;  private set; }
         public IReadOnlyList<IQuest> PreRequestQuests { get; private set; }
@@ -21,7 +21,7 @@ namespace Game.Quest.QuestEntity
 
         public ItemCraftQuest(QuestConfigData quest,ICraftingEvent craftingEvent, int questItemId, List<IQuest> preRequestQuests)
         {
-            Quest = quest;
+            QuestConfig = quest;
             _questItemId = questItemId;
             PreRequestQuests = preRequestQuests;
             craftingEvent.Subscribe(OnItemCraft);
@@ -38,12 +38,12 @@ namespace Game.Quest.QuestEntity
             if (IsCompleted || result.itemId != _questItemId) return;
             
             IsCompleted = true;
-            OnQuestCompleted?.Invoke(Quest);
+            OnQuestCompleted?.Invoke(QuestConfig);
         }
 
         public void LoadQuestData(SaveQuestData saveQuestData)
         {
-            if (saveQuestData.QuestId != Quest.QuestId)
+            if (saveQuestData.QuestId != QuestConfig.QuestId)
             {
                 //TODO ログ基盤に入れる
                 throw new ArgumentException("ロードすべきクエストIDが一致しません");

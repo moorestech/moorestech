@@ -56,7 +56,7 @@ namespace Game.Quest
         {
             foreach (var quest in GetPlayerQuestProgress(playerId))
             {
-                if (quest.Quest.QuestId != questId) continue;
+                if (quest.QuestConfig.QuestId != questId) continue;
                 
                 return quest;
             }
@@ -93,7 +93,7 @@ namespace Game.Quest
     {
         public static SaveQuestData ToSaveData(this IQuest quest)
         {
-            return new SaveQuestData(quest.Quest.QuestId,quest.IsCompleted,quest.IsEarnedReward);
+            return new SaveQuestData(quest.QuestConfig.QuestId,quest.IsCompleted,quest.IsEarnedReward);
         }
     }
 }

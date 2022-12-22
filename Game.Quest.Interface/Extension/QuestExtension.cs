@@ -31,7 +31,7 @@ namespace Game.Quest.Interface.Extension
             //前提クエストの完了しているクエスト数を取得
             var preRequestQuestCount = quest.PreRequestQuests.Count(q => q.IsCompleted);
 
-            switch (quest.Quest.QuestPrerequisiteType)
+            switch (quest.QuestConfig.QuestPrerequisiteType)
             {
                 //AND条件ですべて完了していたらtrue
                 case QuestPrerequisiteType.And when preRequestQuestCount == quest.PreRequestQuests.Count:

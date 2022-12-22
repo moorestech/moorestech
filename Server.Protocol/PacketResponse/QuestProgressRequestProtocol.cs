@@ -76,7 +76,7 @@ namespace Server.Protocol.PacketResponse
     {
         public QuestProgressMessagePack(IQuest quest)
         {
-            Id = quest.Quest.QuestId;
+            Id = quest.QuestConfig.QuestId;
             IsCompleted = quest.IsCompleted;
             IsRewarded = quest.IsEarnedReward;
             IsRewardEarnable = quest.IsRewardEarnable();

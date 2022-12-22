@@ -33,10 +33,10 @@ namespace Server.Protocol.PacketResponse
             //全てのアイテムが追加可能かチェック
             var mainInventory = _inventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
             //追加できなかったら終了
-            if (!mainInventory.InsertionCheck(quest.Quest.RewardItemStacks)) return new List<List<byte>>();
+            if (!mainInventory.InsertionCheck(quest.QuestConfig.RewardItemStacks)) return new List<List<byte>>();
             
             //アイテムを追加
-            mainInventory.InsertItem(quest.Quest.RewardItemStacks);
+            mainInventory.InsertItem(quest.QuestConfig.RewardItemStacks);
             quest.EarnReward();
 
 
