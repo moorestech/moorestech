@@ -1,15 +1,78 @@
 [
   {
-    "Id" : "Test1",
+    "Id" : "MakeIronIngot",
     "Prerequisite" : [],
     "PrerequisiteType" : "And",
-    "Category" : "Test Category",
+    "Category" : "入門",
     "Type" : "ItemCraft",
-    "Name": "Test Quest",
-    "Description" : "Test Quest Description",
+    "Name": "鉄インゴット",
+    "Description" : "鉄って工業ゲーでとりあえず最初に作るよね？",
     "UIPosX" : 0,
     "UIPosY" : 0,
-    "RewardItem" : [],
+    "RewardItem" : [
+      {
+        "modId": "sakastudio:moorestechBaseMod",
+        "name": "iron ingot",
+        "cnt": 5
+      }
+    ],
     "Param" : "{'modId':'sakastudio:moorestechBaseMod','name':'iron ingot'}"
+  },
+  {
+    "Id" : "MakeMiner",
+    "Prerequisite" : ["sakastudio:moorestechBaseMod:MakeIronIngot"],
+    "PrerequisiteType" : "And",
+    "Category" : "入門",
+    "Type" : "ItemCraft",
+    "Name": "採掘機",
+    "Description" : "鉄生産自動化への道 #1 〜採掘機を作ろう〜",
+    "UIPosX" : 200,
+    "UIPosY" : 0,
+    "RewardItem" : [
+      {
+        "modId": "sakastudio:moorestechBaseMod",
+        "name": "iron ingot",
+        "cnt": 5
+      }
+    ],
+    "Param" : "{'modId':'sakastudio:moorestechBaseMod','name':'miner'}"
+  },
+  {
+    "Id" : "MakeGeneratorMk1",
+    "Prerequisite" : ["sakastudio:moorestechBaseMod:MakeMiner"],
+    "PrerequisiteType" : "And",
+    "Category" : "入門",
+    "Type" : "ItemCraft",
+    "Name": "発電機",
+    "Description" : "鉄生産自動化への道 #2 〜発電機を作ろう〜",
+    "UIPosX" : 400,
+    "UIPosY" : 0,
+    "RewardItem" : [
+      {
+        "modId": "sakastudio:moorestechBaseMod",
+        "name": "coal",
+        "cnt": 5
+      }
+    ],
+    "Param" : "{'modId':'sakastudio:moorestechBaseMod','name':'generator'}"
+  },
+  {
+    "Id" : "MakePole",
+    "Prerequisite" : ["sakastudio:moorestechBaseMod:MakeGeneratorMk1"],
+    "PrerequisiteType" : "And",
+    "Category" : "入門",
+    "Type" : "ItemCraft",
+    "Name": "電柱",
+    "Description" : "鉄生産自動化への道 #3 〜電柱を作ろう〜\n発電機と採掘機をつなぐには電柱も必要、これで3つを繋げれば採掘機が動く",
+    "UIPosX" : 600,
+    "UIPosY" : 0,
+    "RewardItem" : [
+      {
+        "modId": "sakastudio:moorestechBaseMod",
+        "name": "coal",
+        "cnt": 5
+      }
+    ],
+    "Param" : "{'modId':'sakastudio:moorestechBaseMod','name':'pole'}"
   }
 ]
