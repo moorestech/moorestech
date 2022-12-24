@@ -117,7 +117,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
-    - _MinDither: 2
+    - _MinDither: 0.56
     - _NormalStrength: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
@@ -129,6 +129,13 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _Surface: 0
+    - _WindDensity: 0.2
+    - _WindSpeed: 2
+    - _WindStrength: 0.5
+    - _WindYPosOffset: -1.5
+    - _WindYPosStrength: 6.26
+    - _WindYPosStrength_1: 0
+    - _WindYPosWeight: 1
     - _WorkflowMode: 1
     - _ZTest: 4
     - _ZWrite: 1
@@ -142,6 +149,7 @@ Material:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _MainColor: {r: 0, g: 0, b: 0, a: 0}
     - _ReafColor: {r: 0.32941177, g: 0.7254902, b: 0.11372549, a: 1}
     - _ReafTiling: {r: 1, g: 1, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
