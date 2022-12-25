@@ -96,7 +96,7 @@ Material:
     - _UVSec: 0
     - _WindDensity: 0.2
     - _WindSpeed: 2
-    - _WindStrength: 0.3
+    - _WindStrength: 0.4
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 0.12919998, g: 0.45183522, b: 0.05740104, a: 1}
