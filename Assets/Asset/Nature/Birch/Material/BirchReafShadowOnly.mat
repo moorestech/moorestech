@@ -117,7 +117,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
-    - _MinDither: 0.56
+    - _MinDither: 2
     - _NormalStrength: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
