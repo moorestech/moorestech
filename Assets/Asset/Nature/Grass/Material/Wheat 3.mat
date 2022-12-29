@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Grass
+  m_Name: Wheat 3
   m_Shader: {fileID: -6465566751694194690, guid: 8cf2ab8561e7246d6b4c12e140f8557e, type: 3}
   m_ShaderKeywords: _ALPHATEST_ON
   m_LightmapFlags: 4
@@ -57,7 +57,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainReaf:
-        m_Texture: {fileID: 2800000, guid: cfa6c43b449464762bc20ff5b3cab357, type: 3}
+        m_Texture: {fileID: 2800000, guid: 6062532d258cc46478cdc98a721f6504, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -132,7 +132,7 @@ Material:
     - _Surface: 0
     - _WindDensity: 1
     - _WindSpeed: 0.5
-    - _WindStrength: 0.07
+    - _WindStrength: 0.03
     - _WindYPosOffset: -1.5
     - _WindYPosStrength: 6.26
     - _WindYPosStrength_1: 0
@@ -151,7 +151,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _MainColor: {r: 0, g: 0, b: 0, a: 0}
-    - _ReafColor: {r: 0.32941177, g: 0.7254902, b: 0.11372549, a: 1}
+    - _ReafColor: {r: 1, g: 0.48584908, b: 0.60088503, a: 1}
     - _ReafTiling: {r: 1, g: 1, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _calmp: {r: 0, g: 1, b: 0, a: 0}
