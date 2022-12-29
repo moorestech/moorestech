@@ -154,5 +154,6 @@ Material:
     - _ReafColor: {r: 0.764151, g: 0.66434735, b: 0.09732112, a: 1}
     - _ReafTiling: {r: 1, g: 1, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _WindVector3Strength: {r: 1, g: 0, b: 1, a: 0}
     - _calmp: {r: 0, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
