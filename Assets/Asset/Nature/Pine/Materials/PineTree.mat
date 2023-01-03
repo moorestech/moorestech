@@ -11,7 +11,7 @@ Material:
   m_Shader: {fileID: -6465566751694194690, guid: 8cf2ab8561e7246d6b4c12e140f8557e, type: 3}
   m_ShaderKeywords: _ALPHATEST_ON
   m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
+  m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -112,6 +112,7 @@ Material:
     - _Color: {r: 0.38666055, g: 0.25182816, b: 0.16047001, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _ReafColor: {r: 0.9528302, g: 0.6927923, b: 0.3460751, a: 1}
+    - _WindVector3Strength: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &6256884228665650437
 MonoBehaviour:
