@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Bush
+  m_Name: Bush02
   m_Shader: {fileID: -6465566751694194690, guid: 8cf2ab8561e7246d6b4c12e140f8557e, type: 3}
   m_ShaderKeywords: _ALPHATEST_ON
   m_LightmapFlags: 4
@@ -151,7 +151,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _MainColor: {r: 0, g: 0, b: 0, a: 0}
-    - _ReafColor: {r: 0.48207238, g: 0.8784314, b: 0.3019608, a: 1}
+    - _ReafColor: {r: 0, g: 0.5577687, b: 0.77254903, a: 1}
     - _ReafTiling: {r: 1, g: 1, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _WindVector3Strength: {r: 1, g: 1, b: 1, a: 0}
