@@ -94,7 +94,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2205276598268374429}
   m_Layer: 0
-  m_Name: PineTree
+  m_Name: PineTree01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
