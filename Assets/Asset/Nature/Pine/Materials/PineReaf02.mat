@@ -111,7 +111,7 @@ Material:
     m_Colors:
     - _Color: {r: 0.12919998, g: 0.45183522, b: 0.05740104, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _ReafColor: {r: 0.34221783, g: 0.43529412, b: 0, a: 0}
+    - _ReafColor: {r: 0.15941204, g: 0.41509432, b: 0.029369876, a: 0}
     - _WindVector3Strength: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &9034596922071820344

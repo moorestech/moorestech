@@ -43,7 +43,7 @@ public class TreePlacer : EditorWindow
     private GameObject _parent;
 
     // 配置された木のゲームオブジェクトの配列
-    private List<GameObject> _trees;
+    private List<GameObject> _trees = new();
 
     // 木を配置するボタンが押された時の処理
     private void OnPlaceButton()
@@ -113,6 +113,10 @@ public class TreePlacer : EditorWindow
         // 木を配置するボタンを表示
         if (GUILayout.Button("Place Trees")) OnPlaceButton();
 
+        if (GUILayout.Button("キャッシュをクリア"))
+        {
+            _trees.Clear();
+        }
 
         so.ApplyModifiedProperties();
     }
