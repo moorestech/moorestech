@@ -40,7 +40,7 @@ using VContainer.Unity;
 
 namespace MainGame.Starter
 {
-    public class Starter : LifetimeScope
+    public class MainGameStarter : LifetimeScope
     {
         private string IPAddress = ServerConst.LocalServerIp;
         private int Port = ServerConst.LocalServerPort;

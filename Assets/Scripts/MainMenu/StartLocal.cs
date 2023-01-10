@@ -38,7 +38,7 @@ namespace MainMenu
         private void OnMainGameSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             SceneManager.sceneLoaded -= OnMainGameSceneLoaded;
-            var starter = GameObject.FindObjectOfType<Starter>();
+            var starter = GameObject.FindObjectOfType<MainGameStarter>();
 
             var isLocal = true;
             
