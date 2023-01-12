@@ -227,6 +227,13 @@ namespace StarterAssets
 			}
 		}
 
+		public void Warp(Vector3 position)
+		{
+			_controller.enabled = false;
+			transform.position = position;
+			_controller.enabled = true;
+		}
+
 		private void JumpAndGravity()
 		{
 			if (Grounded)

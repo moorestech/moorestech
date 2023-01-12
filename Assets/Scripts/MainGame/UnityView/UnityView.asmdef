@@ -10,7 +10,8 @@
         "GameConst",
         "Server",
         "ModLoader",
-        "UniTask"
+        "UniTask",
+        "ThirdPersonController"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

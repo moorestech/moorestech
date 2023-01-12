@@ -1,10 +1,12 @@
 ﻿using System;
+using StarterAssets;
 using UnityEngine;
 
 namespace MainGame.UnityView.Game
 {
     public class PlayerPosition : MonoBehaviour,IPlayerPosition
     {
+        [SerializeField] private ThirdPersonController controller;
         public Vector2 GetPlayerPosition()
         {
             var position = transform.position;
@@ -19,7 +21,7 @@ namespace MainGame.UnityView.Game
         public void SetPlayerPosition(Vector2 vector2)
         {
             //サーバー側は2次元なのでx,yだ、unityはy upなのでzにyを入れる
-            gameObject.transform.position = new Vector3(vector2.x, transform.position.y, vector2.y);
+            controller.Warp(new Vector3(vector2.x, transform.position.y, vector2.y));
         }
 
         public void SetActive(bool active)
