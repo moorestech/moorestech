@@ -9,7 +9,7 @@ namespace MainGame.UnityView.Block
         {
             transform.rotation = BlockDirectionAngle.GetRotation(blockDirection);
             //0.5のオフセットをすることで正しい位置に設定する
-            transform.position = new Vector3(vector2Int.x + 0.5f, 0, vector2Int.y + 0.5f);
+            transform.position = new Vector3(vector2Int.x, 0, vector2Int.y).AddOffset();
         }
 
         public void SetActive(bool active)
