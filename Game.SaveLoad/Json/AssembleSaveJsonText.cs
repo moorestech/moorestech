@@ -27,7 +27,7 @@ namespace Game.Save.Json
 
         public string AssembleSaveJson()
         {
-            var saveData = new SaveData(
+            var saveData = new WorldSaveAllInfo(
                 _worldBlockDatastore.GetSaveBlockDataList(),
                 _inventoryDataStore.GetSaveInventoryDataList(),
                 _entitiesDatastore.GetSaveBlockDataList(),
@@ -37,9 +37,9 @@ namespace Game.Save.Json
         }
     }
 
-    public class SaveData
+    public class WorldSaveAllInfo
     {
-        public SaveData(List<SaveBlockData> world, List<SaveInventoryData> inventory, List<SaveEntityData> entities,Dictionary<int, List<SaveQuestData>> quests)
+        public WorldSaveAllInfo(List<SaveBlockData> world, List<SaveInventoryData> inventory, List<SaveEntityData> entities,Dictionary<int, List<SaveQuestData>> quests)
         {
             World = world;
             Inventory = inventory;

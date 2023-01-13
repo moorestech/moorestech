@@ -52,7 +52,7 @@ namespace Game.Save.Json
 
         public void Load(string jsonText)
         {
-            var load = JsonConvert.DeserializeObject<SaveData>(jsonText);
+            var load = JsonConvert.DeserializeObject<WorldSaveAllInfo>(jsonText);
             
             _worldBlockDatastore.LoadBlockDataList(load.World);
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);
