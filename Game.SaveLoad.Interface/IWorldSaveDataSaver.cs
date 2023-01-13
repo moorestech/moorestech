@@ -1,6 +1,6 @@
 namespace Game.Save.Interface
 {
-    public interface ISaveRepository
+    public interface IWorldSaveDataSaver
     {
         public void Save();
     }

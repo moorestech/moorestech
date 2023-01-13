@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace Game.Save.Json
 {
-    public class LoadJsonFile : ILoadRepository
+    public class WorldLoaderFromJson : IWorldSaveDataLoader
     {
         private readonly SaveJsonFileName _saveJsonFileName;
 
@@ -18,7 +18,7 @@ namespace Game.Save.Json
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IQuestDataStore _questDataStore;
 
-        public LoadJsonFile(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore,
+        public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IQuestDataStore questDataStore)
         {
             _saveJsonFileName = saveJsonFileName;

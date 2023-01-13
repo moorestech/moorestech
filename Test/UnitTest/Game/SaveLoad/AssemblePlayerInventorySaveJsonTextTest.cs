@@ -69,7 +69,7 @@ namespace Test.UnitTest.Game.SaveLoad
             
             //セーブしたデータをロードする
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
+            (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
             var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerEntityId);
 
             //メインのインベントリのチェック
@@ -130,7 +130,7 @@ namespace Test.UnitTest.Game.SaveLoad
             
             //セーブしたデータをロードする
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
+            (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
             var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>();
             
             //データを検証する

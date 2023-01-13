@@ -124,7 +124,7 @@ namespace Test.UnitTest.Game.SaveLoad
             Assert.AreEqual(itemStackFactory.Create(3, 2), outputInventoryField.OutputSlot[2]);
         }
 
-        private (ItemStackFactory, BlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,LoadJsonFile)
+        private (ItemStackFactory, BlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,WorldLoaderFromJson)
             CreateBlockTestModule()
         {
             
@@ -135,7 +135,7 @@ namespace Test.UnitTest.Game.SaveLoad
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var playerInventoryDataStore = serviceProvider.GetService<PlayerInventoryDataStore>();
-            var loadJsonFile = serviceProvider.GetService<ILoadRepository>() as LoadJsonFile;
+            var loadJsonFile = serviceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
 
             return (itemStackFactory, blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText,loadJsonFile);
         }

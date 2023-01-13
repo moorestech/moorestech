@@ -38,13 +38,13 @@ namespace Server.Boot
                 var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(modsDirectory);
                 
                 //マップをロードする
-                serviceProvider.GetService<ILoadRepository>().Load();
+                serviceProvider.GetService<IWorldSaveDataLoader>().Load();
                 
                 //サーバーの起動とゲームアップデートの開始
                 new Thread(() => new PacketHandler().StartServer(packet)).Start();
                 new Thread(() => { while (true) { GameUpdate.Update(); } }).Start();
 
-                await new AutoSaveSystem(serviceProvider.GetService<ISaveRepository>()).AutoSave();
+                await new AutoSaveSystem(serviceProvider.GetService<IWorldSaveDataSaver>()).AutoSave();
 
                 Console.ReadKey();
             }

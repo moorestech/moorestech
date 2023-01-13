@@ -6,11 +6,11 @@ namespace Server.Boot
 {
     public class AutoSaveSystem
     {
-        private readonly ISaveRepository _saveRepository;
+        private readonly IWorldSaveDataSaver _worldSaveDataSaver;
 
-        public AutoSaveSystem(ISaveRepository saveRepository)
+        public AutoSaveSystem(IWorldSaveDataSaver worldSaveDataSaver)
         {
-            _saveRepository = saveRepository;
+            _worldSaveDataSaver = worldSaveDataSaver;
         }
 
         public async Task AutoSave()
@@ -18,7 +18,7 @@ namespace Server.Boot
             while (true)
             {
                 await Task.Delay(TimeSpan.FromSeconds(30));
-                _saveRepository.Save();
+                _worldSaveDataSaver.Save();
             }
         }
     }

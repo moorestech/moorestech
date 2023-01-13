@@ -1,6 +1,6 @@
 namespace Game.Save.Interface
 {
-    public interface ILoadRepository
+    public interface IWorldSaveDataLoader
     {
         public void Load();
     }

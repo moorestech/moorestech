@@ -39,7 +39,7 @@ namespace Test.CombinedTest.Game
             worldBlockDatastore.AddBlock(blockFactory.Create(2, 5), 0, 1, BlockDirection.East);
             worldBlockDatastore.AddBlock(blockFactory.Create(3, 1000), 30, -10, BlockDirection.West);
 
-            saveServiceProvider.GetService<ISaveRepository>().Save();
+            saveServiceProvider.GetService<IWorldSaveDataSaver>().Save();
 
             
             
@@ -60,7 +60,7 @@ namespace Test.CombinedTest.Game
             ChangeFilePath(loadServiceProvider.GetService<SaveJsonFileName>(),"SaveJsonAndLoadTest.json");
             Console.WriteLine(loadServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
 
-            loadServiceProvider.GetService<ILoadRepository>().Load();
+            loadServiceProvider.GetService<IWorldSaveDataLoader>().Load();
             var loadWorldBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
 
             

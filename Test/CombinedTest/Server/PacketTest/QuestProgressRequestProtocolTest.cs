@@ -24,7 +24,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var json = "{\"world\":[],\"playerInventory\":[],\"entities\":[],\"quests\":{\"1\":[{\"id\":\"QuestAuthor:forQuestTest:Test1\",\"co\":false,\"re\":false},{\"id\":\"QuestAuthor:forQuestTest:Test2\",\"co\":true,\"re\":false},{\"id\":\"QuestAuthor:forQuestTest:Test3\",\"co\":true,\"re\":true},{\"id\":\"QuestAuthor:forQuestTest:Test4\",\"co\":false,\"re\":false}]}}";
 
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            (serviceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
+            (serviceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
 
 
             //クエストのデータ要求クラス

@@ -45,7 +45,7 @@ namespace Test.UnitTest.Game.SaveLoad
 
             //ロードの実行
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
+            (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
             
             //ロードしたクエストのチェック
             var loadQuests = loadServiceProvider.GetService<IQuestDataStore>().GetPlayerQuestProgress(playerId);

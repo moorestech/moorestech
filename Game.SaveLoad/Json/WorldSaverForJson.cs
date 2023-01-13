@@ -6,12 +6,12 @@ using Game.World.Interface;
 
 namespace Game.Save.Json
 {
-    public class SaveJsonFile : ISaveRepository
+    public class WorldSaverForJson : IWorldSaveDataSaver
     {
         private readonly SaveJsonFileName _fileName;
         private readonly AssembleSaveJsonText _assembleSaveJsonText;
 
-        public SaveJsonFile(SaveJsonFileName fileName, AssembleSaveJsonText assembleSaveJsonText)
+        public WorldSaverForJson(SaveJsonFileName fileName, AssembleSaveJsonText assembleSaveJsonText)
         {
             _fileName = fileName;
             _assembleSaveJsonText = assembleSaveJsonText;

@@ -92,8 +92,8 @@ namespace Server.Boot
             
 
             //JSONファイルのセーブシステムの読み込み
-            services.AddSingleton<ISaveRepository, SaveJsonFile>();
-            services.AddSingleton<ILoadRepository, LoadJsonFile>();
+            services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
+            services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(new SaveJsonFileName("save_1.json"));
 
             //イベントを登録

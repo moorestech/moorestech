@@ -49,7 +49,7 @@ namespace Test.UnitTest.Game.SaveLoad
             Console.WriteLine(json);
 
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            (loadServiceProvider.GetService<ILoadRepository>() as LoadJsonFile).Load(json);
+            (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
             
             var worldLoadBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
 

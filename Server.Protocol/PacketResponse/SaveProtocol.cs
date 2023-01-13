@@ -10,15 +10,15 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:save";
         
-        private readonly ISaveRepository _saveRepository;
+        private readonly IWorldSaveDataSaver _worldSaveDataSaver;
         public SaveProtocol(ServiceProvider serviceProvider)
         {
-            _saveRepository = serviceProvider.GetService<ISaveRepository>();
+            _worldSaveDataSaver = serviceProvider.GetService<IWorldSaveDataSaver>();
         }
         public List<List<byte>> GetResponse(List<byte> payload)
         {
             Console.WriteLine("セーブ開始");
-            _saveRepository.Save();
+            _worldSaveDataSaver.Save();
             Console.WriteLine("セーブ完了");
             return new List<List<byte>>();
         }
