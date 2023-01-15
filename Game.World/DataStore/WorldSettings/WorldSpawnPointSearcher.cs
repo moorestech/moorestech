@@ -9,7 +9,7 @@ namespace World.DataStore.WorldSettings
         /// 鉄の鉱石ID
         /// TODO このマジックナンバーを解消する
         /// </summary>
-        private const int IronOreId = 1;
+        public const int IronOreId = 1;
         
         /// <summary>
         /// ワールドの開始地点を探索する
