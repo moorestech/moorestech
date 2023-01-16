@@ -10,9 +10,21 @@
                 "time": 2000
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -25,9 +37,21 @@
                 "machineConnectionRange": 11
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -41,9 +65,21 @@
                 "requiredPower": 100
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -57,9 +93,21 @@
                 "requiredPower": 100
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -78,9 +126,21 @@
                 ]
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -115,9 +175,21 @@
                 ]
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -136,9 +208,21 @@
                 ]
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -173,9 +257,21 @@
                 ]
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -189,9 +285,21 @@
                 "requiredPower": 100
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -205,9 +313,21 @@
                 "requiredPower": 100
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -226,9 +346,21 @@
                 ]
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -242,9 +374,21 @@
                 "requiredPower": 100
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -258,9 +402,21 @@
                 "requiredPower": 100
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -274,9 +430,21 @@
                 "requiredPower": 100
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -288,9 +456,21 @@
                 "slot": 5
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
@@ -302,21 +482,70 @@
                 "slot": 10
             },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         },
         {
-            "name": "aaaaaa",
-            "type": "Block",
+            "name": "smiple miner",
+            "type": "Miner",
             "itemModId": "sakastudio:moorestechBaseMod",
-            "itemName": "adovanced machine case",
-            "param": {},
+            "itemName": "smiple miner",
+            "param": {
+                "requiredPower": 0,
+                "outputSlot": 3,
+                "oreSetting": [
+                    {
+                        "oreId": 1,
+                        "time": 1000
+                    },
+                    {
+                        "oreId": 2,
+                        "time": 1000
+                    },
+                    {
+                        "oreId": 3,
+                        "time": 1000
+                    },
+                    {
+                        "oreId": 4,
+                        "time": 1000
+                    },
+                    {
+                        "oreId": 5,
+                        "time": 1000
+                    }
+                ]
+            },
             "modelTransform": {
-                "position": {},
-                "rotation": {},
-                "scale": {}
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
             }
         }
     ]
