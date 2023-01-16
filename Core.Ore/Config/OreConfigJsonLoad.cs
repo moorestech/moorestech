@@ -21,11 +21,12 @@ namespace Core.Ore.Config
                     continue;
                 }
                 //TODO ログ基盤に入れる
+                //ID 0は何もないことを表すため、鉱石は1から始まる
+                var oreId = 1;
                 foreach (var oreConfigJsonData in JsonConvert.DeserializeObject<OreConfigJsonData[]>(config))
                 {
-                    //ID 0は何もないことを表すため、鉱石は1から始まる
-                    var id = configList.Count + 1;
-                    configList.Add(new OreConfigData(modIds,id,oreConfigJsonData));
+                    configList.Add(new OreConfigData(modIds,oreId,oreConfigJsonData));
+                    oreId++;
                 }
             }
 

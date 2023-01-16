@@ -42,6 +42,7 @@ using Server.Event;
 using Server.Event.EventReceive;
 using Server.Protocol;
 using World.DataStore;
+using World.DataStore.WorldSettings;
 using World.Event;
 using World.Service;
 
@@ -68,6 +69,7 @@ namespace Server.Boot
             //ゲームプレイに必要なクラスのインスタンスを生成
             services.AddSingleton<IIsCreatableJudgementService, IsCreatableJudgementService>();
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
+            services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
             services.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             services.AddSingleton<IWorldBlockComponentDatastore<IBlockElectric>, WorldBlockComponentDatastore<IBlockElectric>>();
             services.AddSingleton<IWorldBlockComponentDatastore<IElectricPole>, WorldBlockComponentDatastore<IElectricPole>>();
@@ -92,8 +94,8 @@ namespace Server.Boot
             
 
             //JSONファイルのセーブシステムの読み込み
-            services.AddSingleton<ISaveRepository, SaveJsonFile>();
-            services.AddSingleton<ILoadRepository, LoadJsonFile>();
+            services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
+            services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(new SaveJsonFileName("save_1.json"));
 
             //イベントを登録
