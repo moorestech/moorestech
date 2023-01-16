@@ -109,19 +109,19 @@ namespace Core.Block.Config.LoadConfig
                 if (modelTransformJson.position != null)
                 {
                     var pos = modelTransformJson.position;
-                    posVector3 = new CoreVector3((float)pos[0], (float)pos[1],(float) pos[2]);
+                    posVector3 = new CoreVector3((float)pos.x, (float)pos.y, (float)pos.z);
                 }
                 
                 
                 if (modelTransformJson.rotation != null)
                 {
                     var rot = modelTransformJson.rotation;
-                    rotVector3 = new CoreVector3((float)rot[0],(float) rot[1], (float)rot[2]);
+                    rotVector3 = new CoreVector3((float)rot.x, (float)rot.y, (float)rot.z);
                 }
                 if (modelTransformJson.scale != null)
                 {
                     var scale = modelTransformJson.scale;
-                    scaleVector3 = new CoreVector3((float)scale[0], (float)scale[1], (float)scale[2]);
+                    scaleVector3 = new CoreVector3((float)scale.x, (float)scale.y, (float)scale.z);
                 }
                 
                 modelTransform = new ModelTransform(posVector3, rotVector3, scaleVector3);
