@@ -82,6 +82,7 @@ namespace Core.Inventory
         /// もしそのスロットに入れられるのであれば、まずはそれらのスロットに入れてから、余ったものを返す 
         /// </summary>
         public IItemStack InsertItemWithPrioritySlot(IItemStack itemStack,int[] prioritySlots) { return InventoryInsertItem.InsertItemWithPrioritySlot(itemStack,_inventory,_itemStackFactory,prioritySlots,InvokeEvent); }
+        public IItemStack InsertItemWithPrioritySlot(int itemId,int count,int[] prioritySlots) { return InsertItemWithPrioritySlot(_itemStackFactory.Create(itemId,count),prioritySlots); }
 
         #endregion
         

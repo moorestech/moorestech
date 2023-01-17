@@ -45,8 +45,12 @@ namespace PlayerInventory.ItemManaged
         public void SetItem(int slot, int itemId, int count) { _openableInventoryService.SetItem(slot, itemId,count); }
         public IItemStack ReplaceItem(int slot, IItemStack itemStack) { return _openableInventoryService.ReplaceItem(slot, itemStack); }
         public IItemStack ReplaceItem(int slot, int itemId, int count) { return _openableInventoryService.ReplaceItem(slot, itemId,count); }
-        public IItemStack InsertItem(IItemStack itemStack) { return _openableInventoryService.InsertItem(itemStack); }
-        public IItemStack InsertItem(int itemId, int count) { return _openableInventoryService.InsertItem(itemId,count); }
+        
+        /// <summary>
+        /// プレイヤーのメインインベントリの場合はホットバーを優先的にInsertする 
+        /// </summary>
+        public IItemStack InsertItem(IItemStack itemStack) { return _openableInventoryService.InsertItemWithPrioritySlot(itemStack,PlayerInventoryConst.HotBarSlots); }
+        public IItemStack InsertItem(int itemId, int count) { return _openableInventoryService.InsertItemWithPrioritySlot(itemId,count,PlayerInventoryConst.HotBarSlots); }
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks) { return _openableInventoryService.InsertItem(itemStacks); }
         public bool InsertionCheck(List<IItemStack> itemStacks) { return _openableInventoryService.InsertionCheck(itemStacks); }
 
