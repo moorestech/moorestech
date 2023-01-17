@@ -5,6 +5,9 @@ using Core.Item;
 
 namespace Core.Inventory
 {
+    /// <summary>
+    /// 開くことができるインベントリ（プレイヤーインベントリやチェストのインベントリ）の処理を統合的に行うクラスです
+    /// </summary>
     public class OpenableInventoryItemDataStoreService : IOpenableInventory
     {
         public delegate void OnInventoryUpdate(int slot, IItemStack itemStack);
@@ -74,6 +77,11 @@ namespace Core.Inventory
         public IItemStack InsertItem(IItemStack itemStack) { return InventoryInsertItem.InsertItem(itemStack,_inventory,_itemStackFactory,InvokeEvent); }
         public IItemStack InsertItem(int itemId, int count) { return InsertItem(_itemStackFactory.Create(itemId, count)); }
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks) { return InventoryInsertItem.InsertItem(itemStacks,_inventory,_itemStackFactory,InvokeEvent); }
+        
+        /// <summary>
+        /// もしそのスロットに入れられるのであれば、まずはそれらのスロットに入れてから、余ったものを返す 
+        /// </summary>
+        public IItemStack InsertItemWithPrioritySlot(IItemStack itemStack,List<int> prioritySlots) { return InventoryInsertItem.InsertItemWithPrioritySlot(itemStack,_inventory,_itemStackFactory,prioritySlots,InvokeEvent); }
 
         #endregion
         

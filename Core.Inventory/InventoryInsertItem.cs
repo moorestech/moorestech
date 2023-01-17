@@ -50,7 +50,7 @@ namespace Core.Inventory
                 if (!inventoryItems[i].IsAllowedToAddWithRemain(insertItemStack)) continue;
                 
                 //挿入実行
-                var remain = InsertItem(i, insertItemStack,inventoryItems,itemStackFactory,onSlotUpdate);
+                var remain = InsertionItemBySlot(i, insertItemStack,inventoryItems,itemStackFactory,onSlotUpdate);
                 
                 //挿入結果が空のアイテムならそのまま処理を終了
                 if (remain.Equals(itemStackFactory.CreatEmpty()))
@@ -64,10 +64,27 @@ namespace Core.Inventory
         }
 
         /// <summary>
+        /// 特定のスロットを優先してアイテムを挿入します
+        /// 優先すべきスロットに入らない場合は、通常通り挿入処理を行います
+        /// </summary>
+        public static IItemStack InsertItemWithPrioritySlot(IItemStack itemStack, List<IItemStack> inventory, ItemStackFactory itemStackFactory, List<int> prioritySlots, Action<int> invokeEvent)
+        {
+            //優先スロットに挿入を試みる
+            var remainItem = itemStack;
+            foreach (var prioritySlot in prioritySlots)
+            {
+                remainItem = InsertionItemBySlot(prioritySlot, remainItem, inventory, itemStackFactory, invokeEvent);
+            }
+            
+            //優先スロットに入り切らなかったアイテムは通常のインサート処理を行う
+            return InsertItem(remainItem, inventory, itemStackFactory, invokeEvent);
+        }
+        
+        /// <summary>
         /// 指定されたスロットにアイテムを挿入する
         /// </summary>
-        /// <returns>余ったアイテム</returns>
-        private static IItemStack InsertItem(int slot, IItemStack itemStack,List<IItemStack> inventoryItems,ItemStackFactory itemStackFactory,Action<int> onSlotUpdate = null)
+        /// <returns>余ったアイテム 余ったアイテムがなければ空のアイテムを返す</returns>
+        private static IItemStack InsertionItemBySlot(int slot, IItemStack itemStack,List<IItemStack> inventoryItems,ItemStackFactory itemStackFactory,Action<int> onSlotUpdate = null)
         {
             if (itemStack.Equals(itemStackFactory.CreatEmpty())) return itemStack;
             if (!inventoryItems[slot].IsAllowedToAddWithRemain(itemStack)) return itemStack;
@@ -83,5 +100,6 @@ namespace Core.Inventory
             
             return result.RemainderItemStack;
         }
+
     }
 }
