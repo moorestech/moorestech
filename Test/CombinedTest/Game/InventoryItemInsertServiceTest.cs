@@ -23,21 +23,21 @@ namespace Test.CombinedTest.Game
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).CraftingOpenableInventory;
             
             //インベントリの設定
-            mainInventory.SetItem(0,1,10);
+            mainInventory.SetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0),1,10);
             craftInventory.SetItem(0,1,10);
             craftInventory.SetItem(2,2,10);
             
             //クラフトからメインにid 1のアイテムを移す
             InventoryItemInsertService.Insert(craftInventory,0,mainInventory,5);
            
-            Assert.AreEqual(15,mainInventory.GetItem(0).Count);
+            Assert.AreEqual(15,mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0)).Count);
             Assert.AreEqual(5,craftInventory.GetItem(0).Count);
             
             
             //id 2のアイテムをクラフトからメインに移す
             InventoryItemInsertService.Insert(craftInventory,2,mainInventory,10);
             
-            Assert.AreEqual(10,mainInventory.GetItem(1).Count);
+            Assert.AreEqual(10,mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(1)).Count);
             Assert.AreEqual(0,craftInventory.GetItem(2).Count);
         }
 
