@@ -67,7 +67,7 @@ namespace Core.Inventory
         /// 特定のスロットを優先してアイテムを挿入します
         /// 優先すべきスロットに入らない場合は、通常通り挿入処理を行います
         /// </summary>
-        public static IItemStack InsertItemWithPrioritySlot(IItemStack itemStack, List<IItemStack> inventory, ItemStackFactory itemStackFactory, List<int> prioritySlots, Action<int> invokeEvent)
+        public static IItemStack InsertItemWithPrioritySlot(IItemStack itemStack, List<IItemStack> inventory, ItemStackFactory itemStackFactory, int[] prioritySlots, Action<int> invokeEvent)
         {
             //優先スロットに挿入を試みる
             var remainItem = itemStack;
