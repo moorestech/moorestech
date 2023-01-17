@@ -135,7 +135,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).CraftingOpenableInventory;
             
             //インベントリの設定
-            mainInventory.SetItem(0,1,10);
+            mainInventory.SetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0),1,10);
             craftInventory.SetItem(0,1,10);
             craftInventory.SetItem(2,2,10);
             
@@ -143,7 +143,7 @@ namespace Test.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(GetPacket(5,
                 new FromItemMoveInventoryInfo(ItemMoveInventoryType.CraftInventory,0), new ToItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory),ItemMoveType.InsertSlot));
            
-            Assert.AreEqual(15,mainInventory.GetItem(0).Count);
+            Assert.AreEqual(15,mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0)).Count);
             Assert.AreEqual(5,craftInventory.GetItem(0).Count);
             
             
@@ -151,7 +151,7 @@ namespace Test.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(GetPacket(10,
                 new FromItemMoveInventoryInfo(ItemMoveInventoryType.CraftInventory,2), new ToItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory),ItemMoveType.InsertSlot));
             
-            Assert.AreEqual(10,mainInventory.GetItem(1).Count);
+            Assert.AreEqual(10,mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(1)).Count);
             Assert.AreEqual(0,craftInventory.GetItem(2).Count);
             
         }

@@ -30,8 +30,6 @@ namespace Test.CombinedTest.Server.PacketTest
         [Test]
         public void RemoveTest()
         {
-            int playerSlotIndex = 0;
-
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<BlockFactory>();
@@ -62,6 +60,8 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.False(worldBlock.Exists(0,0));
             
             
+            
+            int playerSlotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
             //ブロック内のアイテムがインベントリに入っているか
             Assert.AreEqual(10, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(7, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);

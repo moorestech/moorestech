@@ -27,7 +27,6 @@ namespace Test.CombinedTest.Server.PacketTest
         {
 
             int PlayerId = 0;
-            int playerSlotIndex = 0;
             var oreId = 0;
             
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
@@ -63,6 +62,7 @@ namespace Test.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(MiningOperation(x, y, PlayerId));
             
             //インベントリーに鉱石がはいっているか
+            int playerSlotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
             Assert.AreEqual(oreItemId, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);
 

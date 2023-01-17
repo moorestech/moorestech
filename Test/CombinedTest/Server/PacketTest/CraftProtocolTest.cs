@@ -93,9 +93,9 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //クラフト結果がメインインベントリにアイテムが入っているかチェック
-            Assert.AreEqual(craftConfig.Result.Id,mainInventory.GetItem(0 ).Id);
-            Assert.AreEqual(100,mainInventory.GetItem(0 ).Count);
-            Assert.AreEqual(60,mainInventory.GetItem(1 ).Count);
+            Assert.AreEqual(craftConfig.Result.Id,mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0)).Id);
+            Assert.AreEqual(100,mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0) ).Count);
+            Assert.AreEqual(60,mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(1) ).Count);
         }
 
         [Test]
@@ -126,8 +126,8 @@ namespace Test.CombinedTest.Server.PacketTest
             
             
             //クラフト結果がメインインベントリにアイテムが入っているかチェック
-            Assert.AreEqual(craftConfig.Result.Id,mainInventory.GetItem(0 ).Id);
-            Assert.AreEqual(80,mainInventory.GetItem(0 ).Count);
+            Assert.AreEqual(craftConfig.Result.Id,mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0) ).Id);
+            Assert.AreEqual(80,mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0) ).Count);
         }
     }
 }
