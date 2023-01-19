@@ -279,6 +279,7 @@ Transform:
   - {fileID: 3084759532686723505}
   - {fileID: 3084759532940359043}
   - {fileID: 968792338582425333}
+  - {fileID: 7741747857552304000}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -334,6 +335,7 @@ MonoBehaviour:
   backToMainMenu: {fileID: 7458221982512240989}
   displayEnergizedRange: {fileID: 3084759532686723504}
   playerInventorySlotsInputControl: {fileID: 2570931860095091700}
+  tutorialExecuter: {fileID: 5835557314942654642}
 --- !u!1 &3084759534699882492
 GameObject:
   m_ObjectHideFlags: 0
@@ -446,7 +448,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 1.7777778, y: 1}
+    m_SensorSize: {x: 1.7782755, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -468,6 +470,50 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   virtualCamera: {fileID: 4355437551273583194}
+--- !u!1 &5086556154385004439
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7741747857552304000}
+  - component: {fileID: 5835557314942654642}
+  m_Layer: 0
+  m_Name: TutorialExecuter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7741747857552304000
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5086556154385004439}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3084759534298576664}
+  m_RootOrder: 10
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5835557314942654642
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5086556154385004439}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fdfac00a46f46a09b9ed6a960b92861, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6264488112558647033
 GameObject:
   m_ObjectHideFlags: 0

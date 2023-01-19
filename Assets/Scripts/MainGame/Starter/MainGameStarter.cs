@@ -20,6 +20,8 @@ using MainGame.Presenter.Inventory.Send;
 using MainGame.Presenter.Loading;
 using MainGame.Presenter.Player;
 using MainGame.Presenter.Quest;
+using MainGame.Presenter.Tutorial;
+using MainGame.Presenter.Tutorial.ExecutableTutorials;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
@@ -40,6 +42,10 @@ using VContainer.Unity;
 
 namespace MainGame.Starter
 {
+    /// <summary>
+    /// ゲームの起動と依存解決を行うクラス
+    /// 誰かこの最初に全部依存を解決する方法じゃない方法で、いい感じに依存解決できる方法あったら教えてください
+    /// </summary>
     public class MainGameStarter : LifetimeScope
     {
         private string IPAddress = ServerConst.LocalServerIp;
@@ -62,6 +68,10 @@ namespace MainGame.Starter
         
 
         private IObjectResolver _resolver;
+        
+        
+        // Hierarchy上にある依存解決が必要なものをまとめたところ
+        //TODO regionでちゃんと分類分けしたい
         
         [SerializeField] private WorldMapTileObject worldMapTileObject;
         
@@ -109,6 +119,8 @@ namespace MainGame.Starter
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange; 
 
         [SerializeField] private PlayerInventorySlotsInputControl playerInventorySlotsInputControl;
+
+        [SerializeField] private TutorialExecuter tutorialExecuter;
 
         void Start()
         {
@@ -197,6 +209,8 @@ namespace MainGame.Starter
             builder.Register<WorldMapTileMaterials>(Lifetime.Singleton);
             builder.Register<BlockObjects>(Lifetime.Singleton);
             
+            //チュートリアル関係
+            builder.Register<IronMiningTutorial>(Lifetime.Singleton);
             
 
             //ScriptableObjectの登録
@@ -242,6 +256,8 @@ namespace MainGame.Starter
             builder.RegisterComponent<IPlayerPosition>(playerPosition);
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
+            
+            builder.RegisterComponent(tutorialExecuter);
             
             
 
