@@ -28,6 +28,8 @@ namespace MainGame.Presenter.Loading
             _loadingStopwatch.Start();
             _playerPosition = playerPosition;
             
+            loadingUI.SetActive(true);
+
             receiveInitialHandshakeProtocol.OnFinishHandshake += OnFinishHandshake;
             blockObjects.OnLoadFinished += FinishBlockModelLoading;
             itemImages.OnLoadFinished += FinishItemTextureLoading;
