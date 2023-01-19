@@ -15,7 +15,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
     /// </summary>
     public class PlayerInventoryViewModel : IEnumerable<IItemStack>
     {
-        private List<IItemStack> _mainInventory = new();
+        private readonly List<IItemStack> _mainInventory;
         private List<IItemStack> _subInventory = new();
         private readonly ItemStackFactory _itemStackFactory;
         public event Action OnInventoryUpdate;
@@ -25,6 +25,12 @@ namespace MainGame.UnityView.UI.Inventory.Control
         public PlayerInventoryViewModel(SinglePlayInterface single)
         {
             _itemStackFactory = single.ItemStackFactory;
+            
+            _mainInventory = new List<IItemStack>();
+            for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
+            {
+                _mainInventory.Add(_itemStackFactory.CreatEmpty());
+            }
         }
 
         public IItemStack this[int index]
@@ -61,11 +67,6 @@ namespace MainGame.UnityView.UI.Inventory.Control
             }
         }
 
-        public void SetMainInventory(List<ItemStack> mainInventory)
-        {
-            _mainInventory = mainInventory.ToIItemStackList(_itemStackFactory);
-            OnInventoryUpdate?.Invoke();
-        }
         
         public void SetSubInventory(List<ItemStack> subInventory)
         {

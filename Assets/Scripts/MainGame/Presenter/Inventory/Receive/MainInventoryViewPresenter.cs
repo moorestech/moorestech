@@ -8,19 +8,16 @@ namespace MainGame.Presenter.Inventory.Receive
     public class MainInventoryViewPresenter : IInitializable
     {
         private readonly PlayerInventoryViewModelController _playerInventoryViewModelController;
-        private readonly PlayerInventoryViewModel _playerInventoryViewModel;
 
         public MainInventoryViewPresenter(ReceiveMainInventoryEvent receiveMainInventoryEvent,PlayerInventoryViewModelController playerInventoryViewModelController,PlayerInventoryViewModel playerInventoryViewModel)
         {
             _playerInventoryViewModelController = playerInventoryViewModelController;
-            _playerInventoryViewModel = playerInventoryViewModel;
             receiveMainInventoryEvent.OnMainInventoryUpdateEvent +=UpdateInventory;
             receiveMainInventoryEvent.OnMainInventorySlotUpdateEvent +=UpdateSlotInventory;
         }
 
         public void UpdateInventory(MainInventoryUpdateProperties properties)
         {
-            _playerInventoryViewModel.SetMainInventory(properties.ItemStacks);
             for (int i = 0; i < properties.ItemStacks.Count; i++)
             {
                 var id = properties.ItemStacks[i].ID;
