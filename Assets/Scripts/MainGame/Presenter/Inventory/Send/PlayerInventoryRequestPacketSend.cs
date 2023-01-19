@@ -8,10 +8,10 @@ namespace MainGame.Presenter.Inventory.Send
     {
         private readonly RequestPlayerInventoryProtocol _requestPlayerInventoryProtocol;
 
-        public PlayerInventoryRequestPacketSend(PlayerInventoryState blockInventoryState, RequestPlayerInventoryProtocol requestPlayerInventoryProtocol)
+        public PlayerInventoryRequestPacketSend(PlayerInventoryState playerInventoryState, RequestPlayerInventoryProtocol requestPlayerInventoryProtocol)
         {
             _requestPlayerInventoryProtocol = requestPlayerInventoryProtocol;
-            blockInventoryState.OnOpenInventory += OpenInventory;
+            playerInventoryState.OnOpenInventory += OpenInventory;
         }
 
         private void OpenInventory()
