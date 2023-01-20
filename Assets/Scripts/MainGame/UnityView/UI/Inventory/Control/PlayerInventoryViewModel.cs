@@ -20,6 +20,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
         /// シフトを押してアイテムを分割しておく時など、サーバーとの同期を取る前の段階でのインベントリの状態を保持する
         /// </summary>
         private readonly List<IItemStack> _mainInventory;
+        public IReadOnlyList<IItemStack> MainInventory => _mainInventory;
         /// <summary>
         /// <see cref="_mainInventory"/>と同じ理由でキャッシュしている
         /// サブインベントリはクラフトの時もあればブロックの時もあって、直接セットする必要があるのでreadonlyにしていない

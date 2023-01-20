@@ -42,8 +42,9 @@ namespace MainGame.Presenter.Tutorial
                 _tutorials[_currentTutorialIndex].EndTutorial();
                 _currentTutorialIndex++;
                 
-                PlayerPrefs.SetInt(TutorialIndexPlayerPrefsKey, _currentTutorialIndex);
-                PlayerPrefs.Save();
+                //TODO デバッグで進捗をセーブしないようにする
+                //PlayerPrefs.SetInt(TutorialIndexPlayerPrefsKey, _currentTutorialIndex);
+                //PlayerPrefs.Save();
                 
                 //次のチュートリアルがある場合は開始メソッドを呼ぶ
                 if (_tutorials.Count <= _currentTutorialIndex)

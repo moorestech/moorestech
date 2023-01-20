@@ -210,6 +210,7 @@ namespace MainGame.Starter
             builder.Register<BlockObjects>(Lifetime.Singleton);
             
             //チュートリアル関係
+            builder.RegisterComponent(tutorialExecuter);
             builder.Register<IronMiningTutorial>(Lifetime.Singleton);
             
 
@@ -257,7 +258,6 @@ namespace MainGame.Starter
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
             
-            builder.RegisterComponent(tutorialExecuter);
             
             
 
