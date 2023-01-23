@@ -1,6 +1,7 @@
 using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Tutorial;
 using MainGame.UnityView.UI.UIState;
+using SinglePlay;
 using UnityEngine;
 
 namespace MainGame.Presenter.Tutorial.ExecutableTutorials
@@ -11,17 +12,20 @@ namespace MainGame.Presenter.Tutorial.ExecutableTutorials
     /// </summary>
     public class IronMiningTutorial : IExecutableTutorial
     {
-        private const ulong IronOreItemId = 1;
+        private const string IronOreModId = "sakastudio:moorestechBaseMod";
+        private const string IronOreItemName = "iron ore";
         
         public bool IsFinishTutorial { get; private set; }
 
         private readonly UIStateControl _uiStateControl;
         private readonly PlayerInventoryViewModel _playerInventoryViewModel;
+        private readonly int  _ironItemId;
         
-        public IronMiningTutorial(UIStateControl uiStateControl,PlayerInventoryViewModel playerInventoryViewModel)
+        public IronMiningTutorial(UIStateControl uiStateControl,PlayerInventoryViewModel playerInventoryViewModel,SinglePlayInterface singlePlayInterface)
         {
             _uiStateControl = uiStateControl;
             _playerInventoryViewModel = playerInventoryViewModel;
+            _ironItemId = singlePlayInterface.ItemConfig.GetItemId(IronOreModId, IronOreItemName);
         }
 
 
@@ -39,7 +43,7 @@ namespace MainGame.Presenter.Tutorial.ExecutableTutorials
             var ironIngotCount = 0;
             foreach (var item in _playerInventoryViewModel.MainInventory)
             {
-                if (item.ItemHash == IronOreItemId)
+                if (item.Id == _ironItemId)
                 {
                     ironIngotCount += item.Count;
                 }
@@ -54,17 +58,17 @@ namespace MainGame.Presenter.Tutorial.ExecutableTutorials
             //採掘モードじゃなければ、採掘モードにする説明を出す
             if (_uiStateControl.CurrentState != UIStateEnum.DeleteBar)
             {
-                MouseCursorDescription.Instance.SetDescription("<b>最初の一歩<\\b>\n[G]キー を押して採掘/破壊モードにする");
+                MouseCursorDescription.Instance.SetDescription("<size=27>最初の一歩</size>\n[G]キー を押して採掘/破壊モードにする");
                 return;
             }
 
             if (ironIngotCount == 0)
             {
-                MouseCursorDescription.Instance.SetDescription("<b>最初の一歩<\\b>\n左クリック長押しで鉄鉱石を採掘する");
+                MouseCursorDescription.Instance.SetDescription("<size=27>最初の一歩</size>\n左クリック長押しで鉄鉱石を採掘する");
                 return;
             }
             
-            MouseCursorDescription.Instance.SetDescription("<b>最初の一歩<\\b>\nGood! 3つ鉄鉱石を採掘しよう");
+            MouseCursorDescription.Instance.SetDescription("<size=27>最初の一歩</size>\nGood! 3つ鉄鉱石を採掘しよう");
         }
 
         public void EndTutorial()
