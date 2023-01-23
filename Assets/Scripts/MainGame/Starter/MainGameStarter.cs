@@ -211,7 +211,7 @@ namespace MainGame.Starter
             
             //チュートリアル関係
             builder.RegisterComponent(tutorialExecuter);
-            builder.Register<IronMiningTutorial>(Lifetime.Singleton);
+            builder.Register<_0_IronMiningTutorial>(Lifetime.Singleton);
             
 
             //ScriptableObjectの登録

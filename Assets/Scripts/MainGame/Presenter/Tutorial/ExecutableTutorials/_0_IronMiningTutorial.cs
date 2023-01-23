@@ -10,7 +10,7 @@ namespace MainGame.Presenter.Tutorial.ExecutableTutorials
     /// <summary>
     /// 鉄の採掘をさせるチュートリアル
     /// </summary>
-    public class IronMiningTutorial : IExecutableTutorial
+    public class _0_IronMiningTutorial : IExecutableTutorial
     {
         private const string IronOreModId = "sakastudio:moorestechBaseMod";
         private const string IronOreItemName = "iron ore";
@@ -21,7 +21,7 @@ namespace MainGame.Presenter.Tutorial.ExecutableTutorials
         private readonly PlayerInventoryViewModel _playerInventoryViewModel;
         private readonly int  _ironItemId;
         
-        public IronMiningTutorial(UIStateControl uiStateControl,PlayerInventoryViewModel playerInventoryViewModel,SinglePlayInterface singlePlayInterface)
+        public _0_IronMiningTutorial(UIStateControl uiStateControl,PlayerInventoryViewModel playerInventoryViewModel,SinglePlayInterface singlePlayInterface)
         {
             _uiStateControl = uiStateControl;
             _playerInventoryViewModel = playerInventoryViewModel;

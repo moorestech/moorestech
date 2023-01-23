@@ -19,7 +19,7 @@ namespace MainGame.Presenter.Tutorial
         private int _currentTutorialIndex;
         
         [Inject]
-        public void Inject(IronMiningTutorial ironMiningTutorial)
+        public void Inject(_0_IronMiningTutorial ironMiningTutorial)
         {
             //TODO 今は手動で追加しているけど、将来的には動的に追加できるようにする
             _tutorials.Add(ironMiningTutorial);
