@@ -1,5 +1,6 @@
 ﻿using System;
 using Core.Const;
+using MainGame.Basic.UI;
 using MainGame.UnityView.UI.Builder.BluePrint;
 using MainGame.UnityView.UI.Inventory.Element;
 using TMPro;
@@ -47,6 +48,11 @@ namespace MainGame.UnityView.UI.Builder.Unity
         {
             _slotOptions = slotOptions;
             GetComponent<Button>().enabled = slotOptions.IsButtonEnable;
+        }
+        
+        public RectTransformReadonlyData GetRectTransformData()
+        {
+            return new RectTransformReadonlyData(transform as RectTransform);
         }
 
         public void OnPointerDown(PointerEventData eventData)

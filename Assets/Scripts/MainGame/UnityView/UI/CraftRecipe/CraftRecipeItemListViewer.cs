@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MainGame.Basic.UI;
 using MainGame.UnityView.UI.Builder.Unity;
 using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
@@ -14,7 +15,8 @@ namespace MainGame.UnityView.UI.CraftRecipe
         public delegate void ItemSlotClick(int itemId);
         public event ItemSlotClick OnItemListClick;
         
-        private readonly Dictionary<UIBuilderItemSlotObject, int> _itemIdTable = new();
+        private readonly Dictionary<UIBuilderItemSlotObject, int> _uiObjectToItemId = new();
+        private readonly Dictionary<int, UIBuilderItemSlotObject> _itemIdToUiObject = new();
 
 
         [Inject]
@@ -30,13 +32,20 @@ namespace MainGame.UnityView.UI.CraftRecipe
             {
                 var g = Instantiate(UIBuilderItemSlotObjectPrefab, transform, true);
                 g.SetItem(itemImages.GetItemView(i),0);
-                _itemIdTable.Add(g,i);
+                
+                _uiObjectToItemId.Add(g,i);
+                _itemIdToUiObject.Add(i,g);
 
                 g.transform.localScale = new Vector3(1,1,1);
 
                 
-                g.OnLeftClickDown += itemSlot => OnItemListClick?.Invoke(_itemIdTable[itemSlot]);
+                g.OnLeftClickDown += itemSlot => OnItemListClick?.Invoke(_uiObjectToItemId[itemSlot]);
             }
+        }
+        
+        public RectTransformReadonlyData GetRectTransformData(int itemId)
+        {
+            return _itemIdToUiObject[itemId].GetRectTransformData();
         }
     }
 }
