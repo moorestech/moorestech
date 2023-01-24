@@ -10,6 +10,11 @@
         "imagePath": "assets/item/iron ingot.png"
     },
     {
+        "name": "smiple miner",
+        "maxStacks": 100,
+        "imagePath": "assets/item/smiple miner.png"
+    },
+    {
         "name": "stick",
         "maxStacks": 100,
         "imagePath": "assets/item/stick.png"
@@ -253,10 +258,5 @@
         "name": "steel chest",
         "maxStacks": 100,
         "imagePath": "assets/item/steel chest.png"
-    },
-    {
-        "name": "smiple miner",
-        "maxStacks": 100,
-        "imagePath": "assets/item/smiple miner.png"
     }
 ]

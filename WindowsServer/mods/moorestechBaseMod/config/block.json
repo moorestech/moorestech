@@ -510,23 +510,23 @@
                 "oreSetting": [
                     {
                         "oreId": 1,
-                        "time": 1000
+                        "time": 10000
                     },
                     {
                         "oreId": 2,
-                        "time": 1000
+                        "time": 10000
                     },
                     {
                         "oreId": 3,
-                        "time": 1000
+                        "time": 10000
                     },
                     {
                         "oreId": 4,
-                        "time": 1000
+                        "time": 10000
                     },
                     {
                         "oreId": 5,
-                        "time": 1000
+                        "time": 10000
                     }
                 ]
             },
