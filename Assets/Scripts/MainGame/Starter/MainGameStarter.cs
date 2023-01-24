@@ -32,6 +32,7 @@ using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.Quest;
+using MainGame.UnityView.UI.Tutorial;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.UI.UIState.UIObject;
 using MainGame.UnityView.WorldMapTile;
@@ -110,6 +111,7 @@ namespace MainGame.Starter
         [SerializeField] private PlayerInventoryPresenter playerInventoryPresenter;
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
         [SerializeField] private QuestViewerObject questViewerObject;
+        [SerializeField] private HighlightRecipeViewerItem highlightRecipeViewerItem; 
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
@@ -212,6 +214,7 @@ namespace MainGame.Starter
             //チュートリアル関係
             builder.RegisterComponent(tutorialExecuter);
             builder.Register<_0_IronMiningTutorial>(Lifetime.Singleton);
+            builder.Register<_1_SimpleMinerCraftTutorial>(Lifetime.Singleton);
             
 
             //ScriptableObjectの登録
@@ -234,6 +237,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(selectHotBarView);
             builder.RegisterComponent(itemRecipeView);
             builder.RegisterComponent(QuestUI);
+            builder.RegisterComponent(highlightRecipeViewerItem);
             
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(loadingFinishDetector);
