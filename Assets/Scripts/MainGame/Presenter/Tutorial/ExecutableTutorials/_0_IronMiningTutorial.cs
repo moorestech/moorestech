@@ -1,3 +1,4 @@
+using MainGame.Basic;
 using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Tutorial;
 using MainGame.UnityView.UI.UIState;
@@ -12,7 +13,6 @@ namespace MainGame.Presenter.Tutorial.ExecutableTutorials
     /// </summary>
     public class _0_IronMiningTutorial : IExecutableTutorial
     {
-        private const string IronOreModId = "sakastudio:moorestechBaseMod";
         private const string IronOreItemName = "iron ore";
         
         public bool IsFinishTutorial { get; private set; }
@@ -25,7 +25,7 @@ namespace MainGame.Presenter.Tutorial.ExecutableTutorials
         {
             _uiStateControl = uiStateControl;
             _playerInventoryViewModel = playerInventoryViewModel;
-            _ironItemId = singlePlayInterface.ItemConfig.GetItemId(IronOreModId, IronOreItemName);
+            _ironItemId = singlePlayInterface.ItemConfig.GetItemId(BaseMod.ModId, IronOreItemName);
         }
 
 
