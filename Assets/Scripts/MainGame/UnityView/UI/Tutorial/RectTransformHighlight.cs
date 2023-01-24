@@ -9,22 +9,39 @@ namespace MainGame.UnityView.UI.Tutorial
         public RectTransformHighlightObject CreateHighlightObject(RectTransformReadonlyData rectTransform)
         {
             var highlight = Instantiate(highlightPrefab, transform);
-            rectTransform.SyncRectTransform(highlight);
-            return new RectTransformHighlightObject(highlight.gameObject);
+            return new RectTransformHighlightObject(highlight,rectTransform);
         }
     }
 
     public class RectTransformHighlightObject
     {
-        private readonly GameObject _gameObject;
+        /// <summary>
+        /// 自分の<see cref="RectTransform"/>
+        /// </summary>
+        private readonly RectTransform _rectTransform;
         
-        public RectTransformHighlightObject(GameObject gameObject)
+        /// <summary>
+        /// ハイライトを置く場所である<see cref="RectTransformReadonlyData"/>
+        /// </summary>
+        private readonly RectTransformReadonlyData _targetHighlightRectTransform;
+
+
+        public RectTransformHighlightObject(RectTransform rectTransform, RectTransformReadonlyData targetHighlightRectTransform)
         {
-            _gameObject = gameObject;
+            _rectTransform = rectTransform;
+            _targetHighlightRectTransform = targetHighlightRectTransform;
+            
+            UpdateTransform();
         }
+        
+        public void UpdateTransform()
+        {
+            _targetHighlightRectTransform.SyncRectTransform(_rectTransform);
+        }
+
         public void Destroy()
         {
-            GameObject.Destroy(_gameObject);
+            GameObject.Destroy(_rectTransform.gameObject);
         }
     } 
 }

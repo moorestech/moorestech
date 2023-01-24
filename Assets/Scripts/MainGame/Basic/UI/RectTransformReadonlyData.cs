@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 namespace MainGame.Basic.UI
 {
@@ -7,52 +8,46 @@ namespace MainGame.Basic.UI
     /// </summary>
     public class RectTransformReadonlyData
     {
-        public readonly Vector3 position;
-        public readonly Quaternion rotation;
-        public readonly Vector3 scale;
-        
-        public readonly Vector2 pivot;
-        public readonly Rect rect;
-        public readonly Vector2 anchoredPosition;
-        public readonly Vector2 anchorMax;
-        public readonly Vector2 anchorMin;
-        public readonly Vector2 offsetMax;
-        public readonly Vector2 offsetMin;
-        public readonly Vector2 sizeDelta;
-        public readonly Vector3 anchoredPosition3D;
+
+        /// <summary>
+        /// RectTransformの位置が変わった時のために保持しておく
+        /// </summary>
+        private readonly RectTransform _dataTargetTransform;
         
 
-        public RectTransformReadonlyData(RectTransform transform)
+        public RectTransformReadonlyData(RectTransform dataTargetTransform)
         {
-            position = transform.position;
-            rotation = transform.rotation;
-            scale = transform.localScale;
-            
-            pivot = transform.pivot;
-            rect = transform.rect;
-            anchoredPosition = transform.anchoredPosition;
-            anchorMax = transform.anchorMax;
-            anchorMin = transform.anchorMin;
-            offsetMax = transform.offsetMax;
-            offsetMin = transform.offsetMin;
-            sizeDelta = transform.sizeDelta;
-            anchoredPosition3D = transform.anchoredPosition3D;
+            _dataTargetTransform = dataTargetTransform;
         }
+
         
-        public void SyncRectTransform(RectTransform transform)
+        /// <summary>
+        /// 指定された<see cref="RectTransform"/>を、このオブジェクトが保持している値と同じ値にします
+        /// </summary>
+        /// <param name="syncTargetTransform">変更される<see cref="RectTransform"/></param>
+        public void SyncRectTransform(RectTransform syncTargetTransform)
         {
-            transform.position = position;
-            transform.rotation = rotation;
-            transform.localScale = scale;
+            //一旦SyncTargetをDataTargetの親に変更する
+            //一旦親を変更し、また親を戻すことによって、ローカル座標を正しく反映することができる
+            var tmpParent = syncTargetTransform.parent;
+            syncTargetTransform.SetParent(_dataTargetTransform.parent);
             
-            transform.pivot = pivot;
-            transform.anchoredPosition = anchoredPosition;
-            transform.anchorMax = anchorMax;
-            transform.anchorMin = anchorMin;
-            transform.offsetMax = offsetMax;
-            transform.offsetMin = offsetMin;
-            transform.sizeDelta = sizeDelta;
-            transform.anchoredPosition3D = anchoredPosition3D;
+            //変更した上で、データを反映する
+            syncTargetTransform.position = _dataTargetTransform.position;
+            syncTargetTransform.rotation = _dataTargetTransform.rotation;
+            syncTargetTransform.localScale = _dataTargetTransform.localScale;
+            
+            syncTargetTransform.pivot = _dataTargetTransform.pivot;
+            syncTargetTransform.anchoredPosition = _dataTargetTransform.anchoredPosition;
+            syncTargetTransform.anchorMax = _dataTargetTransform.anchorMax;
+            syncTargetTransform.anchorMin = _dataTargetTransform.anchorMin;
+            syncTargetTransform.offsetMax = _dataTargetTransform.offsetMax;
+            syncTargetTransform.offsetMin = _dataTargetTransform.offsetMin;
+            syncTargetTransform.sizeDelta = _dataTargetTransform.sizeDelta;
+            syncTargetTransform.anchoredPosition3D = _dataTargetTransform.anchoredPosition3D;
+            
+            //元の親に戻す
+            syncTargetTransform.SetParent(tmpParent);
         }
     }
 }
