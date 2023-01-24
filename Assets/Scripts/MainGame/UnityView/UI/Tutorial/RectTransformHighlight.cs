@@ -38,6 +38,11 @@ namespace MainGame.UnityView.UI.Tutorial
         {
             _targetHighlightRectTransform.SyncRectTransform(_rectTransform);
         }
+        
+        public void SetActive(bool isActive)
+        {
+            _rectTransform.gameObject.SetActive(isActive);
+        }
 
         public void Destroy()
         {

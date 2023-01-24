@@ -17,6 +17,8 @@ namespace MainGame.UnityView.UI.CraftRecipe
         
         private readonly Dictionary<UIBuilderItemSlotObject, int> _uiObjectToItemId = new();
         private readonly Dictionary<int, UIBuilderItemSlotObject> _itemIdToUiObject = new();
+        
+        public bool IsUIActive => gameObject.activeSelf;
 
 
         [Inject]

@@ -13,7 +13,7 @@ namespace MainGame.UnityView.UI.Tutorial
         private IItemConfig _itemConfig;
         private readonly Dictionary<int, RectTransformHighlightObject> _rectTransformHighlightObjects = new ();
 
-        [SerializeField] private CraftRecipeItemListViewer itemListViewer;
+        [SerializeField] private CraftRecipeItemListViewer craftRecipeItemListViewer;
         [SerializeField] private RectTransformHighlight rectTransformHighlight;
         
         [Inject]
@@ -29,7 +29,7 @@ namespace MainGame.UnityView.UI.Tutorial
             //ハイライトがない場合でオンにする場合は作成
             if (!isExist && enable)
             {
-                var rectData = itemListViewer.GetRectTransformData(itemId);
+                var rectData = craftRecipeItemListViewer.GetRectTransformData(itemId);
                 _rectTransformHighlightObjects[itemId] = rectTransformHighlight.CreateHighlightObject(rectData);
                 
                 return;
@@ -45,12 +45,14 @@ namespace MainGame.UnityView.UI.Tutorial
         }
 
         /// <summary>
-        /// アイテム一覧は生成時と一番最初にアイテムリストを開いたときでや、スクロールなどで位置が変わるなどがあるので、毎フレームアップデートして位置を同期させる
+        /// アイテム一覧は生成時と一番最初にアイテムリストを開いたときでや
+        /// スクロールなどで位置が変わるなどがあるので、毎フレームアップデートして位置を同期させる
         /// </summary>
         private void Update()
         {
             foreach (var retTransformObjects in _rectTransformHighlightObjects.Values)
             {
+                retTransformObjects.SetActive(craftRecipeItemListViewer.isActiveAndEnabled);
                 retTransformObjects.UpdateTransform();
             }
             

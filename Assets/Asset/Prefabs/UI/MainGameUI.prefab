@@ -3809,7 +3809,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cba0883ba4d34fd0b14071866c5ba1e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemListViewer: {fileID: 3978477083281486116}
+  craftRecipeItemListViewer: {fileID: 3978477083281486116}
   rectTransformHighlight: {fileID: 8484671291784470160}
 --- !u!1 &6728829439058119555
 GameObject:
