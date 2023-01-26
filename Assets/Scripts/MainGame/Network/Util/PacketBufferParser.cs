@@ -9,7 +9,7 @@ namespace MainGame.Network.Util
     /// </summary>
     public class PacketBufferParser
     {
-        List<byte> _protocol = new();
+        List<byte> _continuationFromLastTimeBytes = new();
         int _packetLength = 0;
         int _nextPacketLengthOffset = 0;
         
@@ -25,7 +25,7 @@ namespace MainGame.Network.Util
             while (0 < reminderLength)
             {
                 //前回からの続きのデータがない場合
-                if (_protocol.Count == 0)
+                if (_continuationFromLastTimeBytes.Count == 0)
                 {
                     //パケット長を取得
                     _packetLength = GetLength(packet, packetIndex);
@@ -43,7 +43,7 @@ namespace MainGame.Network.Util
                 //パケットが切れているので、残りのデータを一時保存
                 if (reminderLength < 0)
                 {
-                    _protocol.AddRange(packet.Skip(packetIndex));
+                    _continuationFromLastTimeBytes.AddRange(packet.Skip(packetIndex));
                     //次回の受信のためにどこからデータを保存するかのオフセットを保存
                     _nextPacketLengthOffset = length - packetIndex;
                     break;
@@ -51,12 +51,12 @@ namespace MainGame.Network.Util
                         
                 for (int i = 0; i < _packetLength && packetIndex < length; packetIndex++,i++)
                 {
-                    _protocol.Add(packet[packetIndex]);
+                    _continuationFromLastTimeBytes.Add(packet[packetIndex]);
                 }
                         
-                result.Add(_protocol);
+                result.Add(_continuationFromLastTimeBytes);
                 //受信したパケットに対する応答を返す
-                _protocol = new();
+                _continuationFromLastTimeBytes = new();
             }
 
             return result;
