@@ -60,7 +60,7 @@ namespace Test.CombinedTest.Game
             ChangeFilePath(loadServiceProvider.GetService<SaveJsonFileName>(),"SaveJsonAndLoadTest.json");
             Console.WriteLine(loadServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
 
-            loadServiceProvider.GetService<IWorldSaveDataLoader>().Load();
+            loadServiceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
             var loadWorldBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
 
             

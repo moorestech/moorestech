@@ -38,7 +38,7 @@ namespace Server.Boot
                 var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(modsDirectory);
                 
                 //マップをロードする
-                serviceProvider.GetService<IWorldSaveDataLoader>().Load();
+                serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
                 
                 //サーバーの起動とゲームアップデートの開始
                 new Thread(() => new PacketHandler().StartServer(packet)).Start();

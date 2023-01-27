@@ -22,12 +22,12 @@ namespace World.DataStore.WorldSettings
             WorldSpawnPoint = WorldSpawnPointSearcher.SearchSpawnPoint(_veinGenerator);
         }
 
-        public WorldSettingSaveData Save()
+        public WorldSettingSaveData GetSettingsSaveData()
         {
             return new WorldSettingSaveData(WorldSpawnPoint);
         }
 
-        public void Load(WorldSettingSaveData worldSettingSaveData)
+        public void LoadSettingData(WorldSettingSaveData worldSettingSaveData)
         {
             WorldSpawnPoint = new Coordinate(worldSettingSaveData.SpawnX, worldSettingSaveData.SpawnY);
         }

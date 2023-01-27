@@ -17,18 +17,20 @@ namespace Game.Save.Json
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IQuestDataStore _questDataStore;
+        private readonly IWorldSettingsDatastore _worldSettingsDatastore;
 
         public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore,
-            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IQuestDataStore questDataStore)
+            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IQuestDataStore questDataStore, IWorldSettingsDatastore worldSettingsDatastore)
         {
             _saveJsonFileName = saveJsonFileName;
             _worldBlockDatastore = worldBlockDatastore;
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
             _questDataStore = questDataStore;
+            _worldSettingsDatastore = worldSettingsDatastore;
         }
 
-        public void Load()
+        public void LoadOrInitialize()
         {
             if (File.Exists(_saveJsonFileName.FullSaveFilePath))
             {
@@ -47,6 +49,7 @@ namespace Game.Save.Json
             else
             {
                 Console.WriteLine("セーブデータがありませんでした。新規作成します。");
+                WorldInitialize();
             }
         }
 
@@ -58,11 +61,12 @@ namespace Game.Save.Json
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _questDataStore.LoadQuestDataDictionary(load.Quests);
+            _worldSettingsDatastore.LoadSettingData(load.Setting);
         }
 
-        public void Initialize()
+        private void WorldInitialize()
         {
-            
+            _worldSettingsDatastore.Initialize();
         }
     }
 }
