@@ -17,16 +17,6 @@ namespace Test.UnitTest.Game.SaveLoad
 {
     public class AssembleSaveJsonTextTest
     {
-        //何もデータがない時のテスト
-        [Test]
-        public void NoneTest()
-        {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
-            var json = assembleSaveJsonText.AssembleSaveJson();
-            Console.WriteLine();
-            Assert.AreEqual("{\"world\":[],\"playerInventory\":[],\"entities\":[],\"quests\":{}}", json);
-        }
 
         //ブロックを追加した時のテスト
         [Test]

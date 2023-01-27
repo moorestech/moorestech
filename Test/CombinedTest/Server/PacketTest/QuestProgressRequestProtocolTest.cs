@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Linq;
+using Game.Quest.Interface;
 using Game.Save.Interface;
 using Game.Save.Json;
 using MessagePack;
@@ -21,10 +23,20 @@ namespace Test.CombinedTest.Server.PacketTest
         public void GetTest()
         {
             //テスト用のセーブデータ
-            var json = "{\"world\":[],\"playerInventory\":[],\"entities\":[],\"quests\":{\"1\":[{\"id\":\"QuestAuthor:forQuestTest:Test1\",\"co\":false,\"re\":false},{\"id\":\"QuestAuthor:forQuestTest:Test2\",\"co\":true,\"re\":false},{\"id\":\"QuestAuthor:forQuestTest:Test3\",\"co\":true,\"re\":true},{\"id\":\"QuestAuthor:forQuestTest:Test4\",\"co\":false,\"re\":false}]}}";
 
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            (serviceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
+            
+            //セーブデータを生成し、ロードする
+            var playerQuests = new List<SaveQuestData>
+            {
+                new("QuestAuthor:forQuestTest:Test1", false, false),
+                new("QuestAuthor:forQuestTest:Test2", true, false),
+                new("QuestAuthor:forQuestTest:Test3",true,true),
+                new("QuestAuthor:forQuestTest:Test4",false,false)
+            };
+            var quests = new Dictionary<int, List<SaveQuestData>> {{1, playerQuests}};
+
+            serviceProvider.GetService<IQuestDataStore>().LoadQuestDataDictionary(quests);
 
 
             //クエストのデータ要求クラス
