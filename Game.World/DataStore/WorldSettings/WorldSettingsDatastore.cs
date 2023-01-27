@@ -9,11 +9,27 @@ namespace World.DataStore.WorldSettings
     /// </summary>
     public class WorldSettingsDatastore : IWorldSettingsDatastore
     {
+        public Coordinate WorldSpawnPoint { get; private set;}
+        
+        private readonly VeinGenerator _veinGenerator;
         public WorldSettingsDatastore(VeinGenerator veinGenerator)
         {
-            WorldSpawnPoint = WorldSpawnPointSearcher.SearchSpawnPoint(veinGenerator);
+            _veinGenerator = veinGenerator;
         }
 
-        public Coordinate WorldSpawnPoint { get; }
+        public void Initialize()
+        {
+            WorldSpawnPoint = WorldSpawnPointSearcher.SearchSpawnPoint(_veinGenerator);
+        }
+
+        public WorldSettingSaveData Save()
+        {
+            return new WorldSettingSaveData(WorldSpawnPoint);
+        }
+
+        public void Load(WorldSettingSaveData worldSettingSaveData)
+        {
+            WorldSpawnPoint = new Coordinate(worldSettingSaveData.SpawnX, worldSettingSaveData.SpawnY);
+        }
     }
 }

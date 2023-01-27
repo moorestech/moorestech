@@ -59,5 +59,10 @@ namespace Game.Save.Json
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _questDataStore.LoadQuestDataDictionary(load.Quests);
         }
+
+        public void Initialize()
+        {
+            
+        }
     }
 }
