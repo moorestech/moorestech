@@ -39,6 +39,7 @@ namespace Game.Save.Json
                 {
                     Load(json);
                     Console.WriteLine("セーブデータのロードが完了しました。");
+                    return;
                 }
                 catch (Exception e)
                 {
@@ -49,8 +50,8 @@ namespace Game.Save.Json
             else
             {
                 Console.WriteLine("セーブデータがありませんでした。新規作成します。");
-                WorldInitialize();
             }
+            WorldInitialize();
         }
 
         public void Load(string jsonText)
