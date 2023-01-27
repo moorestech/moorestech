@@ -50,6 +50,7 @@ namespace Server.Boot
 {
     public class PacketResponseCreatorDiContainerGenerators
     {
+        //TODO セーブファイルのディレクトリもここで指定できるようにする
         public (PacketResponseCreator, ServiceProvider) Create(string modDirectory)
         {
             var services = new ServiceCollection();
