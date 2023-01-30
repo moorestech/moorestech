@@ -111,7 +111,8 @@ namespace MainGame.Starter
         [SerializeField] private PlayerInventoryPresenter playerInventoryPresenter;
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
         [SerializeField] private QuestViewerObject questViewerObject;
-        [SerializeField] private HighlightRecipeViewerItem highlightRecipeViewerItem; 
+        [SerializeField] private HighlightRecipeViewerItem highlightRecipeViewerItem;
+        [SerializeField] private GameUIHighlight gameUIHighlight;
         
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
@@ -238,6 +239,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(itemRecipeView);
             builder.RegisterComponent(QuestUI);
             builder.RegisterComponent(highlightRecipeViewerItem);
+            builder.RegisterComponent(gameUIHighlight);
             
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(loadingFinishDetector);

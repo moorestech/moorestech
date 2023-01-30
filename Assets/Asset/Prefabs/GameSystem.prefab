@@ -330,6 +330,7 @@ MonoBehaviour:
   playerInventorySlots: {fileID: 2570931860095091699}
   questViewerObject: {fileID: 5415873495264648437}
   highlightRecipeViewerItem: {fileID: 7059951361752421811}
+  gameUIHighlight: {fileID: 5121736004927879411}
   blockPlacePreview: {fileID: 6394847674541098202}
   oreMapTileClickDetect: {fileID: 3084759533826814000}
   saveButton: {fileID: 343332371435527697}
@@ -449,7 +450,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 1.7782755, y: 1}
+    m_SensorSize: {x: 1.7782258, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -1412,6 +1413,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 21b40b126a134e9d9d52dafa69dacc34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5121736004927879411 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7916003993725367167, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 3084759533195561868}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18564c2894ec463d8298bdd0f4b6e88b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &5415873495264648437 stripped

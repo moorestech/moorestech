@@ -3757,6 +3757,7 @@ GameObject:
   - component: {fileID: 7040410928933711292}
   - component: {fileID: 8484671291784470160}
   - component: {fileID: 5419721683950296639}
+  - component: {fileID: 7916003993725367167}
   m_Layer: 5
   m_Name: Higitlight
   m_TagString: Untagged
@@ -3811,6 +3812,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   craftRecipeItemListViewer: {fileID: 3978477083281486116}
   rectTransformHighlight: {fileID: 8484671291784470160}
+--- !u!114 &7916003993725367167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6723995037838728122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18564c2894ec463d8298bdd0f4b6e88b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rectTransformHighlight: {fileID: 8484671291784470160}
+  craftItemPutButton: {fileID: 544008844171843137}
 --- !u!1 &6728829439058119555
 GameObject:
   m_ObjectHideFlags: 0
