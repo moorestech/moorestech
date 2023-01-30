@@ -709,26 +709,6 @@
                 "count": 0
             },
             {
-                "itemName": "iron ingot",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": "gear",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
                 "itemName": null,
                 "modId": null,
                 "count": 0
@@ -742,6 +722,26 @@
                 "itemName": "iron ingot",
                 "modId": "sakastudio:moorestechBaseMod",
                 "count": 1
+            },
+            {
+                "itemName": "iron ingot",
+                "modId": "sakastudio:moorestechBaseMod",
+                "count": 1
+            },
+            {
+                "itemName": "iron ingot",
+                "modId": "sakastudio:moorestechBaseMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
             },
             {
                 "itemName": null,
@@ -1885,60 +1885,6 @@
         ],
         "result": {
             "itemName": "steel chest",
-            "modId": "sakastudio:moorestechBaseMod",
-            "count": 1
-        }
-    },
-    {
-        "items": [
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": "iron ingot",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
-                "itemName": "iron ingot",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
-                "itemName": "iron ingot",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            }
-        ],
-        "result": {
-            "itemName": "smiple miner",
             "modId": "sakastudio:moorestechBaseMod",
             "count": 1
         }

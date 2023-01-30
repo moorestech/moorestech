@@ -10,9 +10,9 @@
         "imagePath": "assets/item/iron ingot.png"
     },
     {
-        "name": "simple miner",
+        "name": "miner",
         "maxStacks": 100,
-        "imagePath": "assets/item/simple miner.png"
+        "imagePath": "assets/item/miner.png"
     },
     {
         "name": "stick",
@@ -83,11 +83,6 @@
         "name": "generator",
         "maxStacks": 100,
         "imagePath": "assets/item/generator.png"
-    },
-    {
-        "name": "miner",
-        "maxStacks": 100,
-        "imagePath": "assets/item/miner.png"
     },
     {
         "name": "coal",

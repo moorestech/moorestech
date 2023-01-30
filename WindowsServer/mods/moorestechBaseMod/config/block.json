@@ -498,55 +498,6 @@
                     "z": 1
                 }
             }
-        },
-        {
-            "name": "simple miner",
-            "type": "Miner",
-            "itemModId": "sakastudio:moorestechBaseMod",
-            "itemName": "simple miner",
-            "param": {
-                "requiredPower": 0,
-                "outputSlot": 3,
-                "oreSetting": [
-                    {
-                        "oreId": 1,
-                        "time": 10000
-                    },
-                    {
-                        "oreId": 2,
-                        "time": 10000
-                    },
-                    {
-                        "oreId": 3,
-                        "time": 10000
-                    },
-                    {
-                        "oreId": 4,
-                        "time": 10000
-                    },
-                    {
-                        "oreId": 5,
-                        "time": 10000
-                    }
-                ]
-            },
-            "modelTransform": {
-                "position": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "rotation": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "scale": {
-                    "x": 1,
-                    "y": 1,
-                    "z": 1
-                }
-            }
         }
     ]
 }
