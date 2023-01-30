@@ -80,7 +80,7 @@ namespace Core.Block.Blocks.Machine
 
         private void Processing()
         {
-            _remainingMillSecond -= GameUpdate.UpdateTime * (_nowPower / (double) RequestPower);
+            _remainingMillSecond -= GameUpdate.UpdateMillSecondTime * (_nowPower / (double) RequestPower);
             if (_remainingMillSecond <= 0)
             {
                 _state = ProcessState.Idle;

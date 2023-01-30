@@ -130,7 +130,7 @@ namespace Core.Block.Blocks.BeltConveyor
             //時間を減らす
             foreach (var t in _inventoryItems)
             {
-                t.RemainingTime -= GameUpdate.UpdateTime;
+                t.RemainingTime -= GameUpdate.UpdateMillSecondTime;
             }
 
 
