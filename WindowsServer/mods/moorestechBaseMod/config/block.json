@@ -17,7 +17,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -500,10 +500,10 @@
             }
         },
         {
-            "name": "smiple miner",
+            "name": "simple miner",
             "type": "Miner",
             "itemModId": "sakastudio:moorestechBaseMod",
-            "itemName": "smiple miner",
+            "itemName": "simple miner",
             "param": {
                 "requiredPower": 0,
                 "outputSlot": 3,

@@ -34,6 +34,9 @@ namespace MainGame.UnityView.Block
 
         public BlockGameObject CreateBlock(int blockId,Vector3 position,Quaternion rotation,Transform parent,Vector2Int blockPosition)
         {
+            //ブロックIDは1から始まるので、オブジェクトのリストインデックスマイナス１する
+            blockId -= 1;
+            
             if (blockId < 0 || _blockObjectList.Count <= blockId)
             {
                 //ブロックIDがないのでない時用のブロックを作る
@@ -42,16 +45,13 @@ namespace MainGame.UnityView.Block
                 nothing.SetUp(blockId,blockPosition);
                 return nothing.GetComponent<BlockGameObject>();
             }
-            
-            //ブロックIDは1から始まるので、オブジェクトのリストインデックスマイナス１する
-            var blockObjectIndex = blockId - 1;
 
             //ブロックの作成とセットアップをして返す
-            var block = Object.Instantiate(_blockObjectList[blockObjectIndex].BlockObject,position,rotation,parent);
+            var block = Object.Instantiate(_blockObjectList[blockId].BlockObject,position,rotation,parent);
             block.gameObject.SetActive(true);
             block.SetUp(blockId,blockPosition);
             //ブロックが開けるものの場合はそのコンポーネントを付与する
-            if (IsOpenableInventory(_blockObjectList[blockObjectIndex].Type))
+            if (IsOpenableInventory(_blockObjectList[blockId].Type))
             {
                 block.gameObject.AddComponent<OpenableInventoryBlock>();
             }
