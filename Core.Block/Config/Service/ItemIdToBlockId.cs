@@ -14,7 +14,7 @@ namespace Core.Block.Config.Service
         /// </summary>
         public ItemIdToBlockId(IBlockConfig blockConfig)
         {
-            for (int i = 1; i < blockConfig.GetBlockConfigCount(); i++)
+            for (int i = 1; i <= blockConfig.GetBlockConfigCount(); i++)
             {
                 var itemId = blockConfig.GetBlockConfig(i).ItemId;
                 if (itemId == ItemConst.EmptyItemId) { continue; }

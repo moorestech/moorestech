@@ -2,6 +2,8 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Core.Item;
+using Core.Item.Config;
 using Core.Update;
 using Game.Save.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +21,7 @@ namespace Server.Boot
             {
 #if DEBUG
                 var modsDirectory = DebugModsDirectory;
+                modsDirectory = "/Users/sato-katsumi/moorestech_client/WindowsServer/mods/";
 #else
                 var modsDirectory = ReleasesModsDirectory;
                 if (args.Length == 0)
