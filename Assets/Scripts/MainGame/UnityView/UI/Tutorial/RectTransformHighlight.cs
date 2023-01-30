@@ -31,17 +31,12 @@ namespace MainGame.UnityView.UI.Tutorial
             _rectTransform = rectTransform;
             _targetHighlightRectTransform = targetHighlightRectTransform;
             
-            UpdateTransform();
+            UpdateObject();
         }
         
-        public void UpdateTransform()
+        public void UpdateObject()
         {
             _targetHighlightRectTransform.SyncRectTransform(_rectTransform);
-        }
-        
-        public void SetActive(bool isActive)
-        {
-            _rectTransform.gameObject.SetActive(isActive);
         }
 
         public void Destroy()

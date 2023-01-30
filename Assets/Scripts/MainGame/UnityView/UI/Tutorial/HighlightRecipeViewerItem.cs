@@ -52,8 +52,7 @@ namespace MainGame.UnityView.UI.Tutorial
         {
             foreach (var retTransformObjects in _rectTransformHighlightObjects.Values)
             {
-                retTransformObjects.SetActive(craftRecipeItemListViewer.isActiveAndEnabled);
-                retTransformObjects.UpdateTransform();
+                retTransformObjects.UpdateObject();
             }
             
         }

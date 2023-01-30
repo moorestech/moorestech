@@ -27,6 +27,8 @@ namespace MainGame.Basic.UI
         /// <param name="syncTargetTransform">変更される<see cref="RectTransform"/></param>
         public void SyncRectTransform(RectTransform syncTargetTransform)
         {
+            syncTargetTransform.gameObject.SetActive(_dataTargetTransform.gameObject.activeInHierarchy);
+            
             //一旦SyncTargetをDataTargetの親に変更する
             //一旦親を変更し、また親を戻すことによって、ローカル座標を正しく反映することができる
             var tmpParent = syncTargetTransform.parent;
