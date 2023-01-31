@@ -24,6 +24,7 @@ namespace MainGame.UnityView.UI.Tutorial
 
         public void SetHighLight(int itemId,bool enable)
         {
+            // TODO ここがmodのロード前に呼び出されるとバグるので修正する そもそもここが動く時データがロードされていないのが問題であるので、設計を変更する必要がある
             var isExist = _rectTransformHighlightObjects.TryGetValue(itemId, out var highlightObject);
             
             //ハイライトがない場合でオンにする場合は作成

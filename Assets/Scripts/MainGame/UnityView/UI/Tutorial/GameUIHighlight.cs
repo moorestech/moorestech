@@ -10,6 +10,7 @@ namespace MainGame.UnityView.UI.Tutorial
         [SerializeField] private RectTransformHighlight rectTransformHighlight;
 
         [SerializeField] private RectTransform craftItemPutButton;
+        [SerializeField] private RectTransform craftResultSlot;
         private readonly Dictionary<HighlightType, RectTransformHighlightObject> _rectTransformHighlightObjects = new Dictionary<HighlightType, RectTransformHighlightObject>();
 
         public void SetHighlight(HighlightType highlightType,bool isActive)
@@ -24,6 +25,7 @@ namespace MainGame.UnityView.UI.Tutorial
                     RectTransform rectTransform = highlightType switch
                     {
                         HighlightType.CraftItemPutButton => craftItemPutButton,
+                        HighlightType.CraftResultSlot => craftResultSlot,
                         _ => null
                     };
 
@@ -51,5 +53,6 @@ namespace MainGame.UnityView.UI.Tutorial
     public enum HighlightType
     {
         CraftItemPutButton,
+        CraftResultSlot,
     }
 }
