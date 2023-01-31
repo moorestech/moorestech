@@ -4,6 +4,7 @@ namespace MainGame.UnityView.UI.Builder.BluePrint
     {
         public UIBluePrintType ElementType => UIBluePrintType.OneSlot;
         public int Priority { get; }
+        public string IdName { get; }
 
         //表示するX座標
         public readonly float X;
@@ -13,12 +14,13 @@ namespace MainGame.UnityView.UI.Builder.BluePrint
 
         public readonly InventorySlotElementOptions Options;
 
-        public UIBluePrintItemSlot(float x, float y, int priority, InventorySlotElementOptions options)
+        public UIBluePrintItemSlot(float x, float y, int priority, InventorySlotElementOptions options, string idName = "")
         {
             X = x;
             Y = y;
             Priority = priority;
             Options = options;
+            IdName = idName;
         }
     }
 }

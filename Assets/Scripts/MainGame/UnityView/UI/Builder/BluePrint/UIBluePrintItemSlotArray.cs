@@ -5,6 +5,7 @@ namespace MainGame.UnityView.UI.Builder.BluePrint
 
         public UIBluePrintType ElementType => UIBluePrintType.ArraySlot;
         public int Priority { get; }
+        public string IdName { get; }
         public readonly int BottomBlank;
 
         public readonly float X;
@@ -13,7 +14,7 @@ namespace MainGame.UnityView.UI.Builder.BluePrint
         public readonly int Height;
         public readonly int Width;
 
-        public UIBluePrintItemSlotArray(float x, float y, int priority, int height, int width, int bottomBlank = 0)
+        public UIBluePrintItemSlotArray(float x, float y, int priority, int height, int width,  int bottomBlank = 0,string idName = "")
         {
             X = x;
             Y = y;
@@ -21,6 +22,7 @@ namespace MainGame.UnityView.UI.Builder.BluePrint
             BottomBlank = bottomBlank;
             Height = height;
             Width = width;
+            IdName = idName;
         }
     }
 }
