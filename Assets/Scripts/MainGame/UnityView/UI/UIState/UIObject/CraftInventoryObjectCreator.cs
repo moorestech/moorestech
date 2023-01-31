@@ -13,6 +13,8 @@ namespace MainGame.UnityView.UI.UIState.UIObject
     /// </summary>
     public class CraftInventoryObjectCreator : MonoBehaviour
     {
+        public const string ResultSlotName = "ResultSlot";
+        
         public event Action OnResultSlotClick;
         
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
@@ -21,7 +23,7 @@ namespace MainGame.UnityView.UI.UIState.UIObject
             var resultSlotOption = new InventorySlotElementOptions(){IsEnableControllerEvent = false};
             resultSlotOption.OnLeftClickDown += _ => OnResultSlotClick?.Invoke();
             
-            var resultSlot = new UIBluePrintItemSlot(172, 272, 0,resultSlotOption);
+            var resultSlot = new UIBluePrintItemSlot(172, 272, 0,resultSlotOption,ResultSlotName);
             
             var craftSlot = new List<UIBluePrintItemSlotArray>() {new(-172,272,10,3,3)};
             var craftSubInventoryData = new SubInventoryViewBluePrint

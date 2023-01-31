@@ -319,8 +319,8 @@ MonoBehaviour:
   entitiesPresenter: {fileID: 3084759532940359042}
   uIStateControl: {fileID: 5718959970521607651}
   loadingFinishDetector: {fileID: 5519936175666617125}
-  blockInventoryObject: {fileID: 945279233305511414}
-  playerInventoryObject: {fileID: 4704001377950666075}
+  blockInventoryObjectCreator: {fileID: 945279233305511414}
+  craftInventoryObjectCreator: {fileID: 4704001377950666075}
   pauseMenuObject: {fileID: 7380476673096835332}
   deleteBarObject: {fileID: 5629390872597005522}
   recipeViewerObject: {fileID: 445118494103795281}
@@ -450,7 +450,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 1.7782258, y: 1}
+    m_SensorSize: {x: 1.7772021, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0

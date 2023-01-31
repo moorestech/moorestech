@@ -185,8 +185,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 6577080534896647594}
   - {fileID: 7040410928933711292}
+  - {fileID: 6577080534896647594}
   m_Father: {fileID: 1438684973846715379}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2325,7 +2325,7 @@ RectTransform:
   m_Children:
   - {fileID: 5438358907295536593}
   m_Father: {fileID: 3984441997110539183}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -3778,7 +3778,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3984441997110539183}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -3826,7 +3826,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rectTransformHighlight: {fileID: 8484671291784470160}
   craftItemPutButton: {fileID: 544008844171843137}
-  craftResultSlot: {fileID: 8845891919215697405}
+  playerInventorySlots: {fileID: 676257463073032319}
 --- !u!1 &6728829439058119555
 GameObject:
   m_ObjectHideFlags: 0
@@ -5892,6 +5892,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 762520133390832206, guid: 37fff13570dcb40ba8ee9024d25f749f, type: 3}
   m_PrefabInstance: {fileID: 285847258047765044}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &676257463073032319 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 762520133390832203, guid: 37fff13570dcb40ba8ee9024d25f749f, type: 3}
+  m_PrefabInstance: {fileID: 285847258047765044}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9fe6491b502466288e07a070e6bc626, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &956838539151344945
 PrefabInstance:
   m_ObjectHideFlags: 0

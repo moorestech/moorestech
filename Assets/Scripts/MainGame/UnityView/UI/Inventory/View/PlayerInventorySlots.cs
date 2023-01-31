@@ -99,19 +99,13 @@ namespace MainGame.UnityView.UI.Inventory.View
         {
             foreach (var slot in _subInventorySlots)
             {
-                if (slot.BluePrintElement.IdName == name)
+                if (slot.BluePrintElement?.IdName == idName)
                 {
                     return new RectTransformReadonlyData(slot.transform as RectTransform);
                 }
             }
 
-            foreach (var elementObject in _subInventoryElementObjects)
-            {
-                if (elementObject.name == name)
-                {
-                    return new RectTransformReadonlyData(elementObject.transform as RectTransform);
-                }
-            }
+            //TODO スロット以外の要素も探索するようにする
 
             return null;
         }
