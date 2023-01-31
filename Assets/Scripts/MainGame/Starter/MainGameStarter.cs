@@ -102,7 +102,7 @@ namespace MainGame.Starter
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private LoadingFinishDetector loadingFinishDetector;
         [SerializeField] private BlockInventoryObject blockInventoryObject;
-        [SerializeField] private PlayerInventoryObject playerInventoryObject;
+        [SerializeField] private CraftInventoryObjectCreator craftInventoryObjectCreator;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private RecipeViewerObject recipeViewerObject;
@@ -243,7 +243,7 @@ namespace MainGame.Starter
             
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(loadingFinishDetector);
-            builder.RegisterComponent(playerInventoryObject);
+            builder.RegisterComponent(craftInventoryObjectCreator);
             builder.RegisterComponent(blockInventoryObject);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);

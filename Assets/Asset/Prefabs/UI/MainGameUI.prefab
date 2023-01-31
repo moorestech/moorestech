@@ -3826,6 +3826,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rectTransformHighlight: {fileID: 8484671291784470160}
   craftItemPutButton: {fileID: 544008844171843137}
+  craftResultSlot: {fileID: 8845891919215697405}
 --- !u!1 &6728829439058119555
 GameObject:
   m_ObjectHideFlags: 0

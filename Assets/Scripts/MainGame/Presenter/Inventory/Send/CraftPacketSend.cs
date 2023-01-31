@@ -9,10 +9,10 @@ namespace MainGame.Presenter.Inventory.Send
     {
         private readonly SendCraftProtocol _sendCraftProtocol;
 
-        public CraftPacketSend(PlayerInventoryObject playerInventoryObject,SendCraftProtocol sendCraftProtocol)
+        public CraftPacketSend(CraftInventoryObjectCreator craftInventoryObjectCreator,SendCraftProtocol sendCraftProtocol)
         {
             _sendCraftProtocol = sendCraftProtocol;
-            playerInventoryObject.OnResultSlotClick += OnCraft;
+            craftInventoryObjectCreator.OnResultSlotClick += OnCraft;
         }
 
         private void OnCraft()

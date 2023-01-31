@@ -8,7 +8,10 @@ using UnityEngine;
 
 namespace MainGame.UnityView.UI.UIState.UIObject
 {
-    public class PlayerInventoryObject : MonoBehaviour
+    /// <summary>
+    /// UIブループリントシステムを使って、クラフト画面のサブインベントリを構築する
+    /// </summary>
+    public class CraftInventoryObjectCreator : MonoBehaviour
     {
         public event Action OnResultSlotClick;
         
