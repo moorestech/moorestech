@@ -19,11 +19,11 @@ namespace MainGame.Presenter.Tutorial
         private int _currentTutorialIndex;
         
         [Inject]
-        public void Inject(_0_IronMiningTutorial ironMiningTutorial,_1_SimpleMinerCraftTutorial simpleMinerCraftTutorial)
+        public void Inject(_0_IronMiningTutorial ironMiningTutorial,_1_MinerCraftTutorial minerCraftTutorial)
         {
             //TODO 今は手動で追加しているけど、将来的には動的に追加できるようにする
             _tutorials.Add(ironMiningTutorial);
-            _tutorials.Add(simpleMinerCraftTutorial);
+            _tutorials.Add(minerCraftTutorial);
             
             //TODO そのうちPlayerPrefsは脱却してサーバー側に保存したいな〜
             _currentTutorialIndex = PlayerPrefs.GetInt(TutorialIndexPlayerPrefsKey, 0);
