@@ -8,11 +8,11 @@ namespace MainGame.UnityView.UI.Builder.BluePrint
         public List<UIBluePrintItemSlotArray> ArraySlots = new();
         public List<TextElement> TextElements = new();
 
-        public List<ISubInventoryElement> Elements
+        public List<IUIBluePrintElement> Elements
         {
             get
             {
-                var list = new List<ISubInventoryElement>();
+                var list = new List<IUIBluePrintElement>();
                 list.AddRange(OneSlots);
                 list.AddRange(ArraySlots);
                 list.AddRange(TextElements);

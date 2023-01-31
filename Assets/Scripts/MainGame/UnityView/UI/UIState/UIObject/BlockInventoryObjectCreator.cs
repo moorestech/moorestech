@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace MainGame.UnityView.UI.UIState.UIObject
 {
-    public class BlockInventoryObject : MonoBehaviour
+    public class BlockInventoryObjectCreator : MonoBehaviour
     {
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
 

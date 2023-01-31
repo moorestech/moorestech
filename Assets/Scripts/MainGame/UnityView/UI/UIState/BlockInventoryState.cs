@@ -14,7 +14,7 @@ namespace MainGame.UnityView.UI.UIState
 {
     public class BlockInventoryState : IUIState
     {
-        private readonly BlockInventoryObject _blockInventory;
+        private readonly BlockInventoryObjectCreator _blockInventory;
         private readonly CraftRecipeItemListViewer _craftRecipeItemListViewer;
         
         private readonly ItemRecipePresenter _itemRecipePresenter;
@@ -25,7 +25,7 @@ namespace MainGame.UnityView.UI.UIState
         public event Action<Vector2Int> OnOpenBlockInventory;
         public event Action OnCloseBlockInventory;
 
-        public BlockInventoryState(BlockInventoryObject blockInventory,
+        public BlockInventoryState(BlockInventoryObjectCreator blockInventory,
             CraftRecipeItemListViewer craftRecipeItemListViewer,ItemRecipePresenter itemRecipePresenter,IBlockClickDetect blockClickDetect,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,SinglePlayInterface singlePlayInterface)
         {
             _craftRecipeItemListViewer = craftRecipeItemListViewer;

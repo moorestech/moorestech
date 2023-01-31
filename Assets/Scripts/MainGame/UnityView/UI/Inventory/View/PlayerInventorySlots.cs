@@ -13,7 +13,7 @@ namespace MainGame.UnityView.UI.Inventory.View
     public class PlayerInventorySlots : MonoBehaviour
     {
         [SerializeField] private List<UIBuilderItemSlotObject> mainInventorySlots;
-        [SerializeField] private UIBuilder UIBuilder;
+        [SerializeField] private UIBuilder uiBuilder;
         [SerializeField] private Transform subInventorySlotsParent;
         
         private List<UIBuilderItemSlotObject> _subInventorySlots = new();
@@ -73,7 +73,7 @@ namespace MainGame.UnityView.UI.Inventory.View
             _subInventorySlotsObjects.Clear();
             
             
-            (_subInventorySlots,_subInventorySlotsObjects) = UIBuilder.CreateSlots(subInventoryViewBluePrint,subInventorySlotsParent);
+            (_subInventorySlots,_subInventorySlotsObjects) = uiBuilder.CreateSlots(subInventoryViewBluePrint,subInventorySlotsParent);
             _subInventorySlots.
                 Select((slot,index) => new{slot,index}).ToList().
                 ForEach(slot =>

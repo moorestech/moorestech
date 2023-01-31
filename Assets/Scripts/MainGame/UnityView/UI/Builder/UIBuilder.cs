@@ -8,11 +8,21 @@ using UnityEngine.UI;
 
 namespace MainGame.UnityView.UI.Builder
 {
+    /// <summary>
+    /// サブインベントリを構築するブループリントを受け取り、実際のGameObjectのUIを構築する
+    /// </summary>
     public class UIBuilder : MonoBehaviour
     {
         [SerializeField] private UIBuilderItemSlotObject UIBuilderItemSlotObjectPrefab;
         [SerializeField] private UIBuilderItemSlotArrayObject UIBuilderItemSlotArrayObjectPrefab;
         [SerializeField] private UIBuilderTextObject UIBuilderTextObjectPrefab;
+        
+        /// <summary>
+        /// ブループリントからそのオブジェクトを生成する
+        /// </summary>
+        /// <param name="subInventoryViewBluePrint">構築するUIのブループリント</param>
+        /// <param name="parent">作成するオブジェクトの親</param>
+        /// <returns>インベントリのスロットのオブジェクト,　スロット以外のオブジェクト（テキストなど）</returns>
         public (List<UIBuilderItemSlotObject>,List<GameObject>) CreateSlots(SubInventoryViewBluePrint subInventoryViewBluePrint,Transform parent)
         {
             var slots = new List<UIBuilderItemSlotObject>();
@@ -46,6 +56,8 @@ namespace MainGame.UnityView.UI.Builder
         private UIBuilderTextObject CreateTextElement(TextElement element, Transform parent)
         {
             var text = Instantiate(UIBuilderTextObjectPrefab.gameObject, parent).GetComponent<UIBuilderTextObject>();
+            text.Initialize(element);
+            
             var rect = text.GetComponent<RectTransform>();
             rect.SetAnchor(AnchorPresets.MiddleCenter);
             rect.anchoredPosition = new Vector2(element.X, element.Y);
@@ -59,6 +71,8 @@ namespace MainGame.UnityView.UI.Builder
         private UIBuilderItemSlotObject CreateOneSlot(UIBluePrintItemSlot uiBluePrintItemSlot,Transform parent)
         {
             var slot = Instantiate(UIBuilderItemSlotObjectPrefab, parent);
+            slot.Initialize(uiBluePrintItemSlot);
+            
             var rect = slot.GetComponent<RectTransform>();
             rect.SetAnchor(AnchorPresets.MiddleCenter);
             rect.anchoredPosition = new Vector2(uiBluePrintItemSlot.X, uiBluePrintItemSlot.Y);
@@ -72,6 +86,8 @@ namespace MainGame.UnityView.UI.Builder
         private List<UIBuilderItemSlotObject> CreateArraySlot(UIBluePrintItemSlotArray uiBluePrintItemSlotArray, Transform parent)
         {
             var slot = Instantiate(UIBuilderItemSlotArrayObjectPrefab, parent);
+            slot.Initialize(uiBluePrintItemSlotArray);
+            
             var slotSize = UIBuilderItemSlotObjectPrefab.GetComponent<RectTransform>().sizeDelta;
             slot.GetComponent<GridLayoutGroup>().cellSize = slotSize;
                 

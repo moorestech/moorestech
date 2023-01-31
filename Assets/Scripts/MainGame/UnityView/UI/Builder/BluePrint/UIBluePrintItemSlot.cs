@@ -1,6 +1,6 @@
 namespace MainGame.UnityView.UI.Builder.BluePrint
 {
-    public class UIBluePrintItemSlot : ISubInventoryElement
+    public class UIBluePrintItemSlot : IUIBluePrintElement
     {
         public UIBluePrintType ElementType => UIBluePrintType.OneSlot;
         public int Priority { get; }

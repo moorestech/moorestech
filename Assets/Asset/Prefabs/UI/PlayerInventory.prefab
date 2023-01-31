@@ -168,7 +168,7 @@ MonoBehaviour:
   - {fileID: 7988319833131427117}
   - {fileID: 7988319832578898156}
   - {fileID: 7988319832242711973}
-  UIBuilder: {fileID: 762520133390832202}
+  uiBuilder: {fileID: 762520133390832202}
   subInventorySlotsParent: {fileID: 762520132811239563}
 --- !u!114 &762520133390832202
 MonoBehaviour:

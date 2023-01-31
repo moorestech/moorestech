@@ -1,6 +1,6 @@
 namespace MainGame.UnityView.UI.Builder.BluePrint
 {
-    public interface ISubInventoryElement
+    public interface IUIBluePrintElement
     {
         public UIBluePrintType ElementType { get; }
         public int Priority { get; }

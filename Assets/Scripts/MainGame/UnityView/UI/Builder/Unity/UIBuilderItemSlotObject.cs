@@ -10,7 +10,8 @@ using UnityEngine.UI;
 
 namespace MainGame.UnityView.UI.Builder.Unity
 {
-    public class UIBuilderItemSlotObject: MonoBehaviour,IPointerDownHandler,IPointerUpHandler,IPointerEnterHandler,IPointerClickHandler,IPointerExitHandler,IPointerMoveHandler
+    public class UIBuilderItemSlotObject: MonoBehaviour,IPointerDownHandler,IPointerUpHandler,IPointerEnterHandler,IPointerClickHandler,IPointerExitHandler,IPointerMoveHandler,
+        IUIBuilderObject
     {
         public event Action<UIBuilderItemSlotObject> OnRightClickDown;
         public event Action<UIBuilderItemSlotObject> OnLeftClickDown;
@@ -30,6 +31,14 @@ namespace MainGame.UnityView.UI.Builder.Unity
         private ItemViewData _itemViewData;
 
         private bool _onPointing;
+        
+        
+        public IUIBluePrintElement BluePrintElement { get; private set; }
+        
+        public void Initialize(IUIBluePrintElement bluePrintElement)
+        {
+            BluePrintElement = bluePrintElement;
+        }
 
 
         public void SetItem(ItemViewData itemView, int count)
@@ -129,5 +138,6 @@ namespace MainGame.UnityView.UI.Builder.Unity
         {
             ItemNameBar.Instance.HideItemName();
         }
+
     }
 }
