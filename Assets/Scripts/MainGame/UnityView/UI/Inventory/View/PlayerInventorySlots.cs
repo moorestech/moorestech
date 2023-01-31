@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MainGame.Basic.UI;
 using MainGame.UnityView.UI.Builder;
 using MainGame.UnityView.UI.Builder.BluePrint;
 using MainGame.UnityView.UI.Builder.Unity;
@@ -17,7 +18,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         [SerializeField] private Transform subInventorySlotsParent;
         
         private List<UIBuilderItemSlotObject> _subInventorySlots = new();
-        private List<GameObject> _subInventorySlotsObjects = new();
+        private List<GameObject> _subInventoryElementObjects = new();
 
         public event Action<int> OnRightClickDown;
         public event Action<int> OnLeftClickDown;
@@ -65,15 +66,15 @@ namespace MainGame.UnityView.UI.Inventory.View
         public void SetSubSlots(SubInventoryViewBluePrint subInventoryViewBluePrint,SubInventoryOptions subInventoryOptions)
         {
             OnSetSubInventory?.Invoke(subInventoryOptions);
-            foreach (var subSlot in _subInventorySlotsObjects)
+            foreach (var subSlot in _subInventoryElementObjects)
             {
                 Destroy(subSlot);
             }
             _subInventorySlots.Clear();
-            _subInventorySlotsObjects.Clear();
+            _subInventoryElementObjects.Clear();
             
             
-            (_subInventorySlots,_subInventorySlotsObjects) = uiBuilder.CreateSlots(subInventoryViewBluePrint,subInventorySlotsParent);
+            (_subInventorySlots,_subInventoryElementObjects) = uiBuilder.CreateSlots(subInventoryViewBluePrint,subInventorySlotsParent);
             _subInventorySlots.
                 Select((slot,index) => new{slot,index}).ToList().
                 ForEach(slot =>
@@ -88,6 +89,31 @@ namespace MainGame.UnityView.UI.Inventory.View
                     slot.slot.OnCursorMove += _ => OnCursorMove?.Invoke(slotIndex);
                     slot.slot.OnDoubleClick += _ => OnDoubleClick?.Invoke(slotIndex);
                 });
+        }
+
+        /// <summary>
+        /// ブループリントシステムで設定された名前でスロットのRectTransformを取得する
+        /// </summary>
+        /// <param name="idName">ブループリントで設定された名前</param>
+        public RectTransformReadonlyData GetSlotRect(string idName)
+        {
+            foreach (var slot in _subInventorySlots)
+            {
+                if (slot.BluePrintElement.IdName == name)
+                {
+                    return new RectTransformReadonlyData(slot.transform as RectTransform);
+                }
+            }
+
+            foreach (var elementObject in _subInventoryElementObjects)
+            {
+                if (elementObject.name == name)
+                {
+                    return new RectTransformReadonlyData(elementObject.transform as RectTransform);
+                }
+            }
+
+            return null;
         }
     }
 }
