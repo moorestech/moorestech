@@ -1,34 +1,30 @@
 [
   {
     "name": "iron_ore",
-    "miningItemId": 1,
-    "veinSize" : 1,
-    "veinFrequency" : 1,
+    "veinSize" : 2,
+    "veinFrequency" : 2,
     "priority" : 100,
     "itemName" : "iron ore",
     "itemModId": "sakastudio:moorestechBaseMod"
   },
   {
     "name": "copper_ore",
-    "miningItemId": 9,
-    "veinSize" : 1,
-    "veinFrequency" : 1,
+    "veinSize" : 2,
+    "veinFrequency" : 2,
     "priority" : 90,
     "itemName" : "copper ore",
     "itemModId": "sakastudio:moorestechBaseMod"
   },
   {
     "name": "coal_ore",
-    "miningItemId": 18,
     "veinSize" : 1,
-    "veinFrequency" : 1,
+    "veinFrequency" : 1.5,
     "priority" : 80,
     "itemName" : "coal",
     "itemModId": "sakastudio:moorestechBaseMod"
   },
   {
     "name": "gold_ore",
-    "miningItemId": 23,
     "veinSize" : 0.2,
     "veinFrequency" : 1,
     "priority" : 70,
@@ -37,8 +33,7 @@
   },
   {
     "name": "sand_stone",
-    "miningItemId": 34,
-    "veinSize" : 1,
+    "veinSize" : 0.8,
     "veinFrequency" : 1,
     "priority" : 60,
     "itemName" : "sand",
