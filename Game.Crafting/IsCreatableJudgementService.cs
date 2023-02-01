@@ -27,7 +27,18 @@ namespace Game.Crafting
             //_craftingConfigDataCacheの作成
             foreach (var c in craftingConfig.GetCraftingConfigList())
             {
-                _craftingConfigDataCache.Add(GetCraftingConfigCacheKey(c.Items),c);
+                try
+                {
+                    _craftingConfigDataCache.Add(GetCraftingConfigCacheKey(c.Items),c);
+                }
+                catch (ArgumentException e)
+                {
+                    Console.WriteLine(e);
+                    Console.WriteLine("クラフトレシピのキャッシュの構築中に失敗しました。クラフトレシピに重複がある可能性があります。");
+                    var resultItemName = _itemConfig.GetItemConfig(c.Result.ItemHash).Name;
+                    Console.WriteLine($"レシピの結果:{resultItemName}");
+                    throw;
+                }
             }
             
             //レシピがない時のデータの作成

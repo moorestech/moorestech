@@ -55,6 +55,7 @@ namespace Server.Boot
             }
             catch (Exception e)
             {
+                Console.WriteLine(e);
                 Console.WriteLine("StackTrace");
                 Console.WriteLine(e.StackTrace);
                 
