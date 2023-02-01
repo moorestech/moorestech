@@ -35,14 +35,34 @@
         "imagePath": "assets/item/plate.png"
     },
     {
-        "name": "beltconbeyor",
+        "name": "iron wiere",
         "maxStacks": 100,
-        "imagePath": "assets/item/beltconbeyor.png"
+        "imagePath": "assets/item/copper wiere.png"
+    },
+    {
+        "name": "smelter",
+        "maxStacks": 100,
+        "imagePath": "assets/item/smelter.png"
+    },
+    {
+        "name": "generator",
+        "maxStacks": 100,
+        "imagePath": "assets/item/generator.png"
     },
     {
         "name": "pole",
         "maxStacks": 100,
         "imagePath": "assets/item/pole.png"
+    },
+    {
+        "name": "beltconbeyor",
+        "maxStacks": 100,
+        "imagePath": "assets/item/beltconbeyor.png"
+    },
+    {
+        "name": "ironchest",
+        "maxStacks": 100,
+        "imagePath": "assets/item/ironchest.png"
     },
     {
         "name": "copper ore",
@@ -78,11 +98,6 @@
         "name": "compressor",
         "maxStacks": 100,
         "imagePath": "assets/item/compressor.png"
-    },
-    {
-        "name": "generator",
-        "maxStacks": 100,
-        "imagePath": "assets/item/generator.png"
     },
     {
         "name": "coal",
@@ -235,19 +250,9 @@
         "imagePath": "assets/item/10000btc.png"
     },
     {
-        "name": "smelting",
-        "maxStacks": 100,
-        "imagePath": "assets/item/smelting.png"
-    },
-    {
         "name": "precision assembler",
         "maxStacks": 100,
         "imagePath": "assets/item/precision assembler.png"
-    },
-    {
-        "name": "ironchest",
-        "maxStacks": 100,
-        "imagePath": "assets/item/ironchest.png"
     },
     {
         "name": "steel chest",

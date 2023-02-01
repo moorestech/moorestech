@@ -379,7 +379,7 @@
             "name": "smelter",
             "type": "Machine",
             "itemModId": "sakastudio:moorestechBaseMod",
-            "itemName": "smelting",
+            "itemName": "smelter",
             "param": {
                 "inputSlot": 2,
                 "outputSlot": 1,
