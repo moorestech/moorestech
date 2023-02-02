@@ -71,12 +71,12 @@ namespace Test.CombinedTest.Core
 
         public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachine machine)
         {
-            var _vanillaMachineInventory = (VanillaMachineInventory) typeof(VanillaMachine)
-                .GetField("_vanillaMachineInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
-            var _vanillaMachineInputInventory = (VanillaMachineInputInventory) typeof(VanillaMachineInventory)
+            var _vanillaMachineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachine)
+                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+            var _vanillaMachineInputInventory = (VanillaMachineInputInventory) typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(_vanillaMachineInventory);
-            var _vanillaMachineOutputInventory = (VanillaMachineOutputInventory) typeof(VanillaMachineInventory)
+            var _vanillaMachineOutputInventory = (VanillaMachineOutputInventory) typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(_vanillaMachineInventory);
 

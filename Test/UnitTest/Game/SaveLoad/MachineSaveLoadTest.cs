@@ -62,10 +62,10 @@ namespace Test.UnitTest.Game.SaveLoad
                 .SetValue(vanillaMachineRunProcess, 300);
 
             //機械のアウトプットスロットの設定
-            var _vanillaMachineInventory = (VanillaMachineInventory) typeof(VanillaMachine)
-                .GetField("_vanillaMachineInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+            var _vanillaMachineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachine)
+                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
 
-            var outputInventory = (VanillaMachineOutputInventory) typeof(VanillaMachineInventory)
+            var outputInventory = (VanillaMachineOutputInventory) typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(_vanillaMachineInventory);
 
@@ -105,18 +105,18 @@ namespace Test.UnitTest.Game.SaveLoad
             Assert.AreEqual(ProcessState.Processing, loadVanillaMachineRunProcess.State);
 
 
-            var loadMachineInventory = (VanillaMachineInventory) typeof(VanillaMachine)
-                .GetField("_vanillaMachineInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+            var loadMachineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachine)
+                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachine);
             //インプットスロットのチェック
-            var inputInventoryField = (VanillaMachineInputInventory) typeof(VanillaMachineInventory)
+            var inputInventoryField = (VanillaMachineInputInventory) typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachineInventory);
             Assert.AreEqual(itemStackFactory.Create(5, 6), inputInventoryField.InputSlot[0]);
             Assert.AreEqual(itemStackFactory.Create(2, 4), inputInventoryField.InputSlot[1]);
 
             //アウトプットスロットのチェック
-            var outputInventoryField = (VanillaMachineOutputInventory) typeof(VanillaMachineInventory)
+            var outputInventoryField = (VanillaMachineOutputInventory) typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachineInventory);
             Assert.AreEqual(itemStackFactory.CreatEmpty(), outputInventoryField.OutputSlot[0]);

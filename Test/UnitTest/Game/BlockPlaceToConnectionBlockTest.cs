@@ -117,10 +117,10 @@ namespace Test.UnitTest.Game
 
             //繋がっているコネクターを取得
 
-            var machineInventory = (VanillaMachineInventory) typeof(VanillaMachine)
-                .GetField("_vanillaMachineInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+            var machineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachine)
+                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(vanillaMachine);
-            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory) typeof(VanillaMachineInventory)
+            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory) typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(machineInventory);
             var connectInventory = (List<IBlockInventory>) typeof(VanillaMachineOutputInventory)
@@ -209,10 +209,10 @@ namespace Test.UnitTest.Game
             world.AddBlock(chest, 0, 1, BlockDirection.North);
             
             //機械のコネクターを取得
-            var machineInventory = (VanillaMachineInventory) typeof(VanillaMachine)
-                .GetField("_vanillaMachineInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+            var machineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachine)
+                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(machine);
-            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory) typeof(VanillaMachineInventory)
+            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory) typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(machineInventory);
             var machineConnectInventory = (List<IBlockInventory>) typeof(VanillaMachineOutputInventory)

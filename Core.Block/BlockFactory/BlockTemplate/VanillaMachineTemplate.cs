@@ -34,7 +34,6 @@ namespace Core.Block.BlockFactory.BlockTemplate
 
             return new VanillaMachine(param.BlockId, entityId,blockHash,
                 new VanillaMachineBlockInventory(input, output),
-                new VanillaMachineInventory(input, output),
                 new VanillaMachineSave(input, output, runProcess),
                 runProcess,
                 _itemStackFactory
@@ -51,7 +50,6 @@ namespace Core.Block.BlockFactory.BlockTemplate
 
             return new VanillaMachine(param.BlockId, entityId,blockHash,
                 new VanillaMachineBlockInventory(input, output),
-                new VanillaMachineInventory(input, output),
                 new VanillaMachineSave(input, output, runProcess),
                 runProcess,
                 _itemStackFactory
