@@ -27,8 +27,8 @@ namespace MainGame.UnityView.UI.UIState.UIObject
         {
             const int maxSlotColumns = 5;
             var arraySlot = new List<UIBluePrintItemSlotArray>();
-            arraySlot.Add(CreateArraySlot(330,272,10,input,maxSlotColumns));
-            arraySlot.Add(CreateArraySlot(-330,272,10,output,maxSlotColumns));
+            arraySlot.Add(CreateArraySlot(-330,272,10,input,maxSlotColumns));
+            arraySlot.Add(CreateArraySlot(330,272,10,output,maxSlotColumns));
             
             var text = new List<TextElement>(){new(0,436,0,blockName,30)};
             
