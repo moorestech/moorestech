@@ -1,4 +1,5 @@
 using Core.Block.Blocks.Machine.Inventory;
+using Core.Block.Blocks.Util;
 using Core.Block.RecipeConfig.Data;
 using Core.Update;
 
@@ -15,7 +16,7 @@ namespace Core.Block.Blocks.Machine
         public int RecipeDataId => _processingRecipeData.RecipeId;
 
         public readonly int RequestPower;
-        private int _nowPower = 0;
+        private int _currentPower = 0;
 
 
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
@@ -80,7 +81,7 @@ namespace Core.Block.Blocks.Machine
 
         private void Processing()
         {
-            _remainingMillSecond -= GameUpdate.UpdateMillSecondTime * (_nowPower / (double) RequestPower);
+            _remainingMillSecond -= MachineCurrentPowerToSubMillSecond.GetSubMillSecond(_currentPower, RequestPower);
             if (_remainingMillSecond <= 0)
             {
                 _state = ProcessState.Idle;
@@ -88,7 +89,7 @@ namespace Core.Block.Blocks.Machine
             }
 
             //電力を消費する
-            _nowPower = 0;
+            _currentPower = 0;
         }
 
         private bool IsAllowedToStartProcess
@@ -104,7 +105,7 @@ namespace Core.Block.Blocks.Machine
 
         public void SupplyPower(int power)
         {
-            _nowPower = power;
+            _currentPower = power;
         }
     }
 

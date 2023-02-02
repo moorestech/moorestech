@@ -7,6 +7,7 @@ namespace Core.Update
     {
         private static readonly List<IUpdate> Updates = new List<IUpdate>();
 
+        [Obsolete("いつかアップデートシステム自体をリファクタしたい")]
         public static double UpdateMillSecondTime => _updateMillSecondTime;
         private static double _updateMillSecondTime = 0;
 
