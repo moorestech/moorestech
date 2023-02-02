@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using Core.Block.Config;
 using Core.Block.RecipeConfig.Data;
 using Core.Item;
 using Newtonsoft.Json;
@@ -9,18 +10,18 @@ namespace Core.Block.RecipeConfig
 {
     internal class MachineRecipeJsonLoad
     {
-        internal List<IMachineRecipeData> LoadConfig(ItemStackFactory itemStackFactory,List<string> configJsons)
+        internal List<IMachineRecipeData> LoadConfig(IBlockConfig blockConfig,ItemStackFactory itemStackFactory,List<string> configJsons)
         {
             var recipes = new List<IMachineRecipeData>();
             foreach (var json in configJsons)
             {
-                recipes.AddRange(Load(itemStackFactory,json));
+                recipes.AddRange(Load(blockConfig,itemStackFactory,json));
             }
 
             return recipes;
         }
 
-        private List<IMachineRecipeData> Load(ItemStackFactory itemStackFactory,string json)
+        private List<IMachineRecipeData> Load(IBlockConfig blockConfig,ItemStackFactory itemStackFactory,string json)
         {
             //JSONデータの読み込み
             var data = JsonConvert.DeserializeObject<MachineRecipeJsonData[]>(json);
@@ -37,7 +38,12 @@ namespace Core.Block.RecipeConfig
                 var outputs =
                     r.ItemOutputs.Select(r => new ItemOutput(itemStackFactory.Create(r.ModId,r.ItemName, r.Count), r.Percent));
 
-                return (IMachineRecipeData) new MachineRecipeData(r.BlockId, r.Time, inputItem, outputs.ToList(),
+                var modId = r.BlockModId;
+                var blockName = r.BlockName;
+
+                var blockId = blockConfig.GetBlockConfig(modId, blockName).BlockId;
+                
+                return (IMachineRecipeData) new MachineRecipeData(blockId, r.Time, inputItem, outputs.ToList(),
                     index);
             });
 
@@ -49,7 +55,8 @@ namespace Core.Block.RecipeConfig
     [JsonObject]
     class MachineRecipeJsonData
     {
-        [JsonProperty("BlockID")] private int _blockId;
+        [JsonProperty("blockModId")] private string _blockModId;
+        [JsonProperty("blockName")] private string _blockName;
         [JsonProperty("time")] private int _time;
         [JsonProperty("input")] private MachineRecipeInput[] _itemInputs;
         [JsonProperty("output")] private MachineRecipeOutput[] _itemOutputs;
@@ -59,8 +66,8 @@ namespace Core.Block.RecipeConfig
         public MachineRecipeInput[] ItemInputs => _itemInputs;
 
         public int Time => _time;
-
-        public int BlockId => _blockId;
+        public string BlockName => _blockName;
+        public string BlockModId => _blockModId;
     }
 
     [JsonObject]

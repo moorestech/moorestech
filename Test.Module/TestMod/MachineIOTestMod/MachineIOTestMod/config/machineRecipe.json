@@ -1,6 +1,7 @@
 ﻿[
   {
-    "BlockID": 1,
+    "blockModId": "Test Author:forUniTest",
+    "blockName": "TestMachine",
     "time": 1500,
     "input": [
       {
@@ -24,7 +25,9 @@
     ]
   },
   {
-    "BlockID": 2,
+
+    "blockModId": "Test Author:forUniTest",
+    "blockName": "TestMachine1",
     "time": 1500,
     "input": [
       {
@@ -48,7 +51,8 @@
     ]
   },
   {
-    "BlockID": 3,
+    "blockModId": "Test Author:forUniTest",
+    "blockName": "TestMachine2",
     "time": 1500,
     "input": [
       {

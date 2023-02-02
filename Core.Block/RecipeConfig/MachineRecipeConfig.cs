@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Core.Block.Config;
 using Core.Block.RecipeConfig.Data;
 using Core.ConfigJson;
 using Core.Item;
@@ -14,9 +15,9 @@ namespace Core.Block.RecipeConfig
         private readonly Dictionary<string, IMachineRecipeData> _recipeDataCache;
 
         //IDからレシピデータを取得する
-        public MachineRecipeConfig(ItemStackFactory itemStackFactory,ConfigJsonList configJson)
+        public MachineRecipeConfig(IBlockConfig blockConfig,ItemStackFactory itemStackFactory,ConfigJsonList configJson)
         {
-            _recipedatas = new MachineRecipeJsonLoad().LoadConfig(itemStackFactory,configJson.SortedMachineRecipeConfigJsonList);
+            _recipedatas = new MachineRecipeJsonLoad().LoadConfig(blockConfig,itemStackFactory,configJson.SortedMachineRecipeConfigJsonList);
 
             _recipeDataCache = new Dictionary<string, IMachineRecipeData>();
             _recipedatas.ToList().ForEach(recipe =>

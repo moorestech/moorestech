@@ -1,6 +1,7 @@
 ﻿[
   {
-    "BlockID": 1,
+    "blockModId": "Test Author:forUniTest",
+    "blockName": "TestMachine",
     "time": 1500,
     "input": [
       {
@@ -24,7 +25,8 @@
     ]
   },
   {
-    "BlockID": 2,
+    "blockModId": "Test Author:forUniTest",
+    "blockName": "TestBlock",
     "time": 1500,
     "input": [
       {
@@ -48,7 +50,8 @@
     ]
   },
   {
-    "BlockID": 3,
+    "blockModId": "Test Author:forUniTest",
+    "blockName": "TestBeltConveyor",
     "time": 1500,
     "input": [
       {
