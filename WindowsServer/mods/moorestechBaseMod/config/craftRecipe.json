@@ -277,7 +277,7 @@
                 "count": 0
             },
             {
-                "itemName": "plate",
+                "itemName": "iron ingot",
                 "modId": "sakastudio:moorestechBaseMod",
                 "count": 1
             },
@@ -935,7 +935,7 @@
                 "count": 0
             },
             {
-                "itemName": "copper wiere",
+                "itemName": "iron wiere",
                 "modId": "sakastudio:moorestechBaseMod",
                 "count": 1
             },
@@ -945,7 +945,7 @@
                 "count": 1
             },
             {
-                "itemName": "copper wiere",
+                "itemName": "iron wiere",
                 "modId": "sakastudio:moorestechBaseMod",
                 "count": 1
             },
@@ -1912,24 +1912,24 @@
                 "count": 0
             },
             {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
                 "itemName": "iron ingot",
                 "modId": "sakastudio:moorestechBaseMod",
                 "count": 1
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
             },
             {
                 "itemName": null,

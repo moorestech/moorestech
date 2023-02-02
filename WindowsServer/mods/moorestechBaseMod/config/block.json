@@ -44,7 +44,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -72,7 +72,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -100,7 +100,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -133,7 +133,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -150,7 +150,7 @@
             "itemName": "miner",
             "param": {
                 "requiredPower": 0,
-                "outputSlot": 3,
+                "outputSlot": 1,
                 "oreSetting": [
                     {
                         "oreId": 1,
@@ -166,7 +166,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -199,7 +199,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -248,7 +248,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -276,7 +276,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -304,7 +304,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -337,7 +337,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -365,7 +365,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -381,9 +381,9 @@
             "itemModId": "sakastudio:moorestechBaseMod",
             "itemName": "smelter",
             "param": {
-                "inputSlot": 2,
+                "inputSlot": 1,
                 "outputSlot": 1,
-                "requiredPower": 100
+                "requiredPower": 0
             },
             "modelTransform": {
                 "position": {
@@ -393,7 +393,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -421,7 +421,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -447,7 +447,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {
@@ -473,7 +473,7 @@
                 },
                 "rotation": {
                     "x": 0,
-                    "y": 0,
+                    "y": -90,
                     "z": 0
                 },
                 "scale": {

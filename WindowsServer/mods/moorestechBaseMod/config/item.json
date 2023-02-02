@@ -1,7 +1,7 @@
 [
     {
         "name": "iron ore",
-        "maxStacks": 100,
+        "maxStacks": 10,
         "imagePath": "assets/item/iron ore.png"
     },
     {
