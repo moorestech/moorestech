@@ -61,8 +61,6 @@ namespace Server.Protocol.PacketResponse
             item = item.SubItem(1);
             _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory.SetItem(inventorySlot, item);
             
-            Console.WriteLine($"2 PlaceBlock BlockID:{block.BlockId}");
-            
             
             return new List<List<byte>>();
         }

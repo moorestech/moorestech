@@ -59,6 +59,11 @@ namespace Core.Item.Config
             return new ItemConfigData("undefined id " + id, DefaultItemMaxCount,"mod is not found");
         }
 
+        public ItemConfigData GetItemConfig(ulong itemHash)
+        {
+            return GetItemConfig(GetItemId(itemHash));
+        }
+
         public int GetItemId(ulong itemHash)
         {
             

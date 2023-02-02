@@ -90,7 +90,7 @@ namespace Core.Block.Blocks.PowerGenerator
             //燃料が在る場合は燃料残り時間をUpdate時間分減らす
             if (_fuelItemId != ItemConst.EmptyItemId)
             {
-                _remainingFuelTime -= GameUpdate.UpdateTime;
+                _remainingFuelTime -= GameUpdate.UpdateMillSecondTime;
 
                 //残り時間が0以下の時は燃料の設定をNullItemIdにする
                 if (_remainingFuelTime <= 0)

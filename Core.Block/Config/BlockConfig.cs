@@ -76,6 +76,19 @@ namespace Core.Block.Config
             throw new Exception("BlockHash not found:" + blockHash);
         }
 
+        public BlockConfigData GetBlockConfig(string modId, string blockName)
+        {
+            foreach (var blockConfig in _blockConfigList)
+            {
+                if (blockConfig.ModId == modId && blockConfig.Name == blockName)
+                {
+                    return blockConfig;
+                }
+            }
+            //TODO ログ基盤に入れる
+            throw new Exception("Mod id or block name not found:" + modId + " " + blockName);
+        }
+
         public int GetBlockConfigCount() { return _blockConfigList.Count; }
         public List<int> GetBlockIds(string modId)
         {

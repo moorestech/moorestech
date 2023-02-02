@@ -16,7 +16,6 @@ namespace Core.Block.Blocks.Machine
     public class VanillaMachine : IBlock, IBlockInventory, IBlockElectric, IOpenableInventory
     {
         private readonly VanillaMachineBlockInventory _vanillaMachineBlockInventory;
-        private readonly VanillaMachineInventory _vanillaMachineInventory;
         private readonly VanillaMachineSave _vanillaMachineSave;
         private readonly VanillaMachineRunProcess _vanillaMachineRunProcess;
         private readonly ItemStackFactory _itemStackFactory;
@@ -26,12 +25,10 @@ namespace Core.Block.Blocks.Machine
 
         public VanillaMachine(int blockId, int entityId, ulong blockHash,
             VanillaMachineBlockInventory vanillaMachineBlockInventory,
-            VanillaMachineInventory vanillaMachineInventory,
             VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess,ItemStackFactory itemStackFactory)
         {
             BlockId = blockId;
             _vanillaMachineBlockInventory = vanillaMachineBlockInventory;
-            _vanillaMachineInventory = vanillaMachineInventory;
             _vanillaMachineSave = vanillaMachineSave;
             _vanillaMachineRunProcess = vanillaMachineRunProcess;
             _itemStackFactory = itemStackFactory;
@@ -63,16 +60,16 @@ namespace Core.Block.Blocks.Machine
 
         #region IOpenableInventory implementation
         
-        public ReadOnlyCollection<IItemStack> Items => _vanillaMachineInventory.Items;
-        public IItemStack GetItem(int slot) { return _vanillaMachineInventory.GetItem(slot); }
+        public ReadOnlyCollection<IItemStack> Items => _vanillaMachineBlockInventory.Items;
+        public IItemStack GetItem(int slot) { return _vanillaMachineBlockInventory.GetItem(slot); }
         
-        public void SetItem(int slot, IItemStack itemStack) { _vanillaMachineInventory.SetItem(slot, itemStack); }
-        public void SetItem(int slot, int itemId, int count) { _vanillaMachineInventory.SetItem(slot, _itemStackFactory.Create(itemId, count)); }
+        public void SetItem(int slot, IItemStack itemStack) { _vanillaMachineBlockInventory.SetItem(slot, itemStack); }
+        public void SetItem(int slot, int itemId, int count) { _vanillaMachineBlockInventory.SetItem(slot, _itemStackFactory.Create(itemId, count)); }
 
-        public IItemStack ReplaceItem(int slot, IItemStack itemStack) { return _vanillaMachineInventory.ReplaceItem(slot, itemStack); }
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack) { return _vanillaMachineBlockInventory.ReplaceItem(slot, itemStack); }
         public IItemStack ReplaceItem(int slot, int itemId, int count) { return ReplaceItem(slot, _itemStackFactory.Create(itemId, count)); }
         
-        public int GetSlotSize() { return _vanillaMachineInventory.GetSlotSize(); }
+        public int GetSlotSize() { return _vanillaMachineBlockInventory.GetSlotSize(); }
         
         #endregion
 

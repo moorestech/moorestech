@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Service;
+using Core.Block.Blocks.Util;
 using Core.Block.Event;
 using Core.Const;
 using Core.Electric;
@@ -29,7 +30,7 @@ namespace Core.Block.Blocks.Miner
         private int _defaultMiningTime = int.MaxValue;
         private int _miningItemId = ItemConst.EmptyItemId;
         
-        private int _nowPower = 0;
+        private int _currentPower = 0;
         private int _remainingMillSecond = int.MaxValue;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
 
@@ -69,7 +70,7 @@ namespace Core.Block.Blocks.Miner
 
         public void Update()
         {
-            var subTime = (int) (GameUpdate.UpdateTime * (_nowPower / (double) RequestPower));
+            var subTime = MachineCurrentPowerToSubMillSecond.GetSubMillSecond(_currentPower, RequestPower);
             if (subTime <= 0)
             {
                 return;
@@ -85,7 +86,7 @@ namespace Core.Block.Blocks.Miner
                 _openableInventoryItemDataStoreService.InsertItem(addItem);
             }
 
-            _nowPower = 0;
+            _currentPower = 0;
             InsertConnectInventory();
         }
 
@@ -140,7 +141,7 @@ namespace Core.Block.Blocks.Miner
 
         public void SupplyPower(int power)
         {
-            _nowPower = power;
+            _currentPower = power;
         }
 
         public void SetMiningItem(int miningItemId, int miningTime)

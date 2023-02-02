@@ -2,10 +2,12 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Core.Const;
 using Core.Item;
 using Core.Item.Config;
 using Core.Update;
 using Game.Save.Interface;
+using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot.PacketHandle;
 
@@ -53,6 +55,7 @@ namespace Server.Boot
             }
             catch (Exception e)
             {
+                Console.WriteLine(e);
                 Console.WriteLine("StackTrace");
                 Console.WriteLine(e.StackTrace);
                 
