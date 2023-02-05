@@ -27,7 +27,7 @@
     {
         "name": "iron wiere",
         "maxStacks": 100,
-        "imagePath": "assets/item/copper wiere.png"
+        "imagePath": "assets/item/iron wiere.png"
     },
     {
         "name": "smelter",
