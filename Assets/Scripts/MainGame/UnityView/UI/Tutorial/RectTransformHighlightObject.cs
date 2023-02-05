@@ -12,10 +12,9 @@ namespace MainGame.UnityView.UI.Tutorial
     public class RectTransformHighlightObject : MonoBehaviour,IRectTransformHighlightObject
     {
         /// <summary>
-        /// ハイライトの画像
+        /// ハイライトの画像のTransform
         /// </summary>
-        [SerializeField] private Image highlightImage;
-        private RectTransform _highlightRectTransform; 
+        [SerializeField] private RectTransform highlightImage;
         
         /// <summary>
         /// ハイライトを置く場所である<see cref="RectTransformReadonlyData"/>
@@ -27,17 +26,21 @@ namespace MainGame.UnityView.UI.Tutorial
 
         public void Init(RectTransformReadonlyData targetHighlightRectTransform)
         {
-            _highlightRectTransform = highlightImage.rectTransform;
             _targetHighlightRectTransform = targetHighlightRectTransform;
+            _targetHighlightRectTransform.SyncRectTransform(highlightImage);
         }
         
         private void Update()
         {
-            _targetHighlightRectTransform.SyncRectTransform(_highlightRectTransform);
+            if (!_targetHighlightRectTransform.IsDestroyed)
+            {
+                _targetHighlightRectTransform.SyncRectTransform(highlightImage);
+            }
         }
 
         public void Destroy()
         {
+            Debug.Log("Destory");
             Object.Destroy(gameObject);
         }
     }

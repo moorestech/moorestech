@@ -75,11 +75,18 @@ namespace MainGame.UnityView.UI.Tutorial
         {
             foreach (var key in _rectTransformHighlightObjectKeys)
             {
-                //nullか、ハイライトのターゲットが破棄されている場合は新しく作る
-                if (_activeHighlightObjects[key] == null || 
-                    _activeHighlightObjects[key] != null && _activeHighlightObjects[key].IsTargetDestroyed)
+                //nullのときはハイライトを作ることを試みる
+                if (_activeHighlightObjects[key] == null)
                 {
                     CreateAndSetTransformHighlightObject(key);
+                    continue;
+                }
+
+                //ターゲットが破棄されている場合はハイライトを破棄する
+                if (_activeHighlightObjects[key].IsTargetDestroyed)
+                {
+                    _activeHighlightObjects[key].Destroy();
+                    _activeHighlightObjects[key] = null;
                 }
             }
             
