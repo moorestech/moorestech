@@ -15,24 +15,14 @@
         "imagePath": "assets/item/miner.png"
     },
     {
-        "name": "stick",
-        "maxStacks": 100,
-        "imagePath": "assets/item/stick.png"
-    },
-    {
         "name": "gear",
         "maxStacks": 100,
         "imagePath": "assets/item/gear.png"
     },
     {
-        "name": "iron screw",
+        "name": "beltconbeyor",
         "maxStacks": 100,
-        "imagePath": "assets/item/iron screw.png"
-    },
-    {
-        "name": "plate",
-        "maxStacks": 100,
-        "imagePath": "assets/item/plate.png"
+        "imagePath": "assets/item/beltconbeyor.png"
     },
     {
         "name": "iron wiere",
@@ -45,6 +35,31 @@
         "imagePath": "assets/item/smelter.png"
     },
     {
+        "name": "plate",
+        "maxStacks": 100,
+        "imagePath": "assets/item/plate.png"
+    },
+    {
+        "name": "basic circuit",
+        "maxStacks": 100,
+        "imagePath": "assets/item/basic circuit.png"
+    },
+    {
+        "name": "processor",
+        "maxStacks": 100,
+        "imagePath": "assets/item/compressor.png"
+    },
+    {
+        "name": "iron screw",
+        "maxStacks": 100,
+        "imagePath": "assets/item/iron screw.png"
+    },
+    {
+        "name": "stick",
+        "maxStacks": 100,
+        "imagePath": "assets/item/stick.png"
+    },
+    {
         "name": "generator",
         "maxStacks": 100,
         "imagePath": "assets/item/generator.png"
@@ -53,11 +68,6 @@
         "name": "pole",
         "maxStacks": 100,
         "imagePath": "assets/item/pole.png"
-    },
-    {
-        "name": "beltconbeyor",
-        "maxStacks": 100,
-        "imagePath": "assets/item/beltconbeyor.png"
     },
     {
         "name": "ironchest",
@@ -80,11 +90,6 @@
         "imagePath": "assets/item/copper wiere.png"
     },
     {
-        "name": "basic circuit",
-        "maxStacks": 100,
-        "imagePath": "assets/item/basic circuit.png"
-    },
-    {
         "name": "machine case",
         "maxStacks": 100,
         "imagePath": "assets/item/machine case.png"
@@ -93,11 +98,6 @@
         "name": "crasher",
         "maxStacks": 100,
         "imagePath": "assets/item/crasher.png"
-    },
-    {
-        "name": "compressor",
-        "maxStacks": 100,
-        "imagePath": "assets/item/compressor.png"
     },
     {
         "name": "coal",

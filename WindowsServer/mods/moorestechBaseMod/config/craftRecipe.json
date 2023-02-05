@@ -434,9 +434,39 @@
     {
         "items": [
             {
-                "itemName": "plate",
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "iron wiere",
                 "modId": "sakastudio:moorestechBaseMod",
                 "count": 1
+            },
+            {
+                "itemName": "iron wiere",
+                "modId": "sakastudio:moorestechBaseMod",
+                "count": 1
+            },
+            {
+                "itemName": "iron wiere",
+                "modId": "sakastudio:moorestechBaseMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
             },
             {
                 "itemName": "plate",
@@ -444,39 +474,9 @@
                 "count": 1
             },
             {
-                "itemName": "plate",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
-                "itemName": "copper wiere",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
-                "itemName": "copper wiere",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
-                "itemName": "copper wiere",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
-                "itemName": "plate",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
-                "itemName": "plate",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
-                "itemName": "plate",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
+                "itemName": null,
+                "modId": null,
+                "count": 0
             }
         ],
         "result": {
@@ -596,27 +596,12 @@
     {
         "items": [
             {
-                "itemName": "gear",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
-                "itemName": "gear",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
-                "itemName": "gear",
-                "modId": "sakastudio:moorestechBaseMod",
-                "count": 1
-            },
-            {
                 "itemName": null,
                 "modId": null,
                 "count": 0
             },
             {
-                "itemName": "machine case",
+                "itemName": "iron ingot",
                 "modId": "sakastudio:moorestechBaseMod",
                 "count": 1
             },
@@ -631,7 +616,7 @@
                 "count": 1
             },
             {
-                "itemName": "gear",
+                "itemName": "basic circuit",
                 "modId": "sakastudio:moorestechBaseMod",
                 "count": 1
             },
@@ -639,10 +624,25 @@
                 "itemName": "gear",
                 "modId": "sakastudio:moorestechBaseMod",
                 "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "iron ingot",
+                "modId": "sakastudio:moorestechBaseMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
             }
         ],
         "result": {
-            "itemName": "compressor",
+            "itemName": "processor",
             "modId": "sakastudio:moorestechBaseMod",
             "count": 1
         }
