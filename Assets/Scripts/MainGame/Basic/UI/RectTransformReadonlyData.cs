@@ -8,7 +8,8 @@ namespace MainGame.Basic.UI
     /// </summary>
     public class RectTransformReadonlyData
     {
-
+        public bool IsDestroyed => _dataTargetTransform == null;
+        
         /// <summary>
         /// RectTransformの位置が変わった時のために保持しておく
         /// </summary>
@@ -27,6 +28,11 @@ namespace MainGame.Basic.UI
         /// <param name="syncTargetTransform">変更される<see cref="RectTransform"/></param>
         public void SyncRectTransform(RectTransform syncTargetTransform)
         {
+            if (IsDestroyed)
+            {
+                throw new System.Exception("RectTransformReadonlyDataのRectTransformが破棄されています");
+            }
+            
             syncTargetTransform.gameObject.SetActive(_dataTargetTransform.gameObject.activeInHierarchy);
             
             //一旦SyncTargetをDataTargetの親に変更する

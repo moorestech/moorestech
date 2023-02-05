@@ -11,10 +11,10 @@ namespace MainGame.UnityView.UI.Tutorial
     public class HighlightRecipeViewerItem : MonoBehaviour
     {
         private IItemConfig _itemConfig;
-        private readonly Dictionary<int, RectTransformHighlightObject> _rectTransformHighlightObjects = new ();
+        private readonly Dictionary<int, IRectTransformHighlightObject> _rectTransformHighlightObjects = new ();
 
         [SerializeField] private CraftRecipeItemListViewer craftRecipeItemListViewer;
-        [SerializeField] private RectTransformHighlight rectTransformHighlight;
+        [SerializeField] private RectTransformHighlightCreator rectTransformHighlightCreator;
         
         [Inject]
         public void Inject(SinglePlayInterface singlePlayInterface)
@@ -31,7 +31,7 @@ namespace MainGame.UnityView.UI.Tutorial
             if (!isExist && enable)
             {
                 var rectData = craftRecipeItemListViewer.GetRectTransformData(itemId);
-                _rectTransformHighlightObjects[itemId] = rectTransformHighlight.CreateHighlightObject(rectData);
+                _rectTransformHighlightObjects[itemId] = rectTransformHighlightCreator.CreateHighlightObject(rectData);
                 
                 return;
             }
@@ -43,19 +43,6 @@ namespace MainGame.UnityView.UI.Tutorial
                 _rectTransformHighlightObjects.Remove(itemId);
                 return;
             }
-        }
-
-        /// <summary>
-        /// アイテム一覧は生成時と一番最初にアイテムリストを開いたときでや
-        /// スクロールなどで位置が変わるなどがあるので、毎フレームアップデートして位置を同期させる
-        /// </summary>
-        private void Update()
-        {
-            foreach (var retTransformObjects in _rectTransformHighlightObjects.Values)
-            {
-                retTransformObjects.UpdateObject();
-            }
-            
         }
 
 

@@ -11,7 +11,7 @@ namespace MainGame.UnityView.UI.Tutorial
 {
     public class GameUIHighlight : MonoBehaviour
     {
-        [SerializeField] private RectTransformHighlight rectTransformHighlight;
+        [SerializeField] private RectTransformHighlightCreator rectTransformHighlightCreator;
 
         [CanBeNull] delegate RectTransformReadonlyData RectTransformGetAction();
         
@@ -26,15 +26,16 @@ namespace MainGame.UnityView.UI.Tutorial
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
         
         /// <summary>
-        /// ハイライトのオブジェクトを実際に管理する
+        /// アクティブなハイライトのオブジェクトを保持する
+        /// TODO ないということは、ハイライトがオフになっているということ　これよくないと思うのでリファクタした方が良さそう
         /// </summary>
-        private readonly Dictionary<HighlightType, RectTransformHighlightObject> _rectTransformHighlightObjects = new Dictionary<HighlightType, RectTransformHighlightObject>();
+        private readonly Dictionary<HighlightType, IRectTransformHighlightObject> _activeHighlightObjects = new();
         /// <summary>
-        /// <see cref="_rectTransformHighlightObjects"/>のキーを保持する
+        /// <see cref="_activeHighlightObjects"/>のキーを保持する
         /// わざわざ別でリストを保持する理由は、マイフレームキーのリストを生成して破棄するのはパフォーマンス上問題が発生しそうなので、
         /// 追加、削除のタイミングのみで更新を行うようにする
         /// </summary>
-        private List<HighlightType> _rectTransformHighlightObjectKeys = new List<HighlightType>();
+        private List<HighlightType> _rectTransformHighlightObjectKeys = new();
 
         private void Start()
         {
@@ -45,25 +46,25 @@ namespace MainGame.UnityView.UI.Tutorial
 
         public void SetHighlight(HighlightType highlightType,bool isActive)
         {
-            var isExist = _rectTransformHighlightObjects.TryGetValue(highlightType, out var highlightObject);
+            var isExist = _activeHighlightObjects.TryGetValue(highlightType, out var highlightObject);
 
             switch (isExist)
             {
                 //ハイライトがない場合でオンにする場合は作成
                 case false when isActive:
                 {
-                    _rectTransformHighlightObjects.Add(highlightType, null);
+                    _activeHighlightObjects.Add(highlightType, null);
                     CreateAndSetTransformHighlightObject(highlightType);
                     break;
                 }
                 //ハイライトがあって、オフにする場合は削除
                 case true when !isActive:
                     highlightObject?.Destroy();
-                    _rectTransformHighlightObjects.Remove(highlightType);
+                    _activeHighlightObjects.Remove(highlightType);
                     break;
             }
             //Dictionaryが変更されたのでキーのリストを更新
-            _rectTransformHighlightObjectKeys = _rectTransformHighlightObjects.Keys.ToList();
+            _rectTransformHighlightObjectKeys = _activeHighlightObjects.Keys.ToList();
         }
 
         
@@ -74,21 +75,19 @@ namespace MainGame.UnityView.UI.Tutorial
         {
             foreach (var key in _rectTransformHighlightObjectKeys)
             {
-                //nullじゃ無い場合はオブジェクトの更新処理
-                if (_rectTransformHighlightObjects[key] != null)
+                //nullか、ハイライトのターゲットが破棄されている場合は新しく作る
+                if (_activeHighlightObjects[key] == null || 
+                    _activeHighlightObjects[key] != null && _activeHighlightObjects[key].IsTargetDestroyed)
                 {
-                    _rectTransformHighlightObjects[key].UpdateObject();
-                    continue;
+                    CreateAndSetTransformHighlightObject(key);
                 }
-                
-                CreateAndSetTransformHighlightObject(key);
             }
             
         }
 
         /// <summary>
         /// そのオブジェクトに対するハイライトの作成を試みる
-        /// 作成できた場合は<see cref="_rectTransformHighlightObjects"/>に格納する
+        /// 作成できた場合は<see cref="_activeHighlightObjects"/>に格納する
         /// 作成できない場合はnullを格納する
         /// </summary>
         /// <param name="highlightType"></param>
@@ -98,11 +97,11 @@ namespace MainGame.UnityView.UI.Tutorial
             var readonlyData = _rectTransformGetActions[highlightType]();
             if (readonlyData != null)
             {
-                _rectTransformHighlightObjects[highlightType] = rectTransformHighlight.CreateHighlightObject(readonlyData);
+                _activeHighlightObjects[highlightType] = rectTransformHighlightCreator.CreateHighlightObject(readonlyData);
             }
             else
             {
-                _rectTransformHighlightObjects[highlightType] = null;
+                _activeHighlightObjects[highlightType] = null;
             }
         }
     }

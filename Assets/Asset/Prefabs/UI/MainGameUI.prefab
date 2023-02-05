@@ -3797,7 +3797,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b153931b49f140c1ac059955ecb3b066, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  highlightPrefab: {fileID: 4617986229187168280, guid: b03fc74bbbfaf4da6b4a9134d7f0c3de, type: 3}
+  highlightPrefab: {fileID: 1109200018299981800, guid: b03fc74bbbfaf4da6b4a9134d7f0c3de, type: 3}
 --- !u!114 &5419721683950296639
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3811,7 +3811,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   craftRecipeItemListViewer: {fileID: 3978477083281486116}
-  rectTransformHighlight: {fileID: 8484671291784470160}
+  rectTransformHighlightCreator: {fileID: 8484671291784470160}
 --- !u!114 &7916003993725367167
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3824,7 +3824,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18564c2894ec463d8298bdd0f4b6e88b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rectTransformHighlight: {fileID: 8484671291784470160}
+  rectTransformHighlightCreator: {fileID: 8484671291784470160}
   craftItemPutButton: {fileID: 544008844171843137}
   playerInventorySlots: {fileID: 676257463073032319}
 --- !u!1 &6728829439058119555
