@@ -30,8 +30,6 @@ namespace MainGame.Network.Receive
         public void Analysis(List<byte> data)
         {
             var tag = MessagePackSerializer.Deserialize<EventProtocolMessagePackBase>(data.ToArray()).EventTag;
-
-            Debug.Log("Event Tag " + tag + " " + _eventPacket[tag].GetType().Name);
             
             _eventPacket[tag].Analysis(data);
         }
