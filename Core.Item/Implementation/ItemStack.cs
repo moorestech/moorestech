@@ -46,16 +46,19 @@ namespace Core.Item.Implementation
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
-            //加算するアイテムがnullならそのまま返す
+            //加算するアイテムがnullならそのまま追加して返す
             if (receiveItemStack.GetType() == typeof(NullItemStack))
             {
-                return new ItemProcessResult(this, _itemStackFactory.CreatEmpty());
+                // インスタンスIDが同じだとベルトコンベアなどの輸送時に問題が生じるので、新しいインスタンスを生成する
+                var newItem = _itemStackFactory.Create(Id, Count);
+                return new ItemProcessResult(newItem, _itemStackFactory.CreatEmpty());
             }
 
             //IDが違うならそれぞれで返す
             if (((ItemStack) receiveItemStack).Id != Id)
             {
-                return new ItemProcessResult(this, receiveItemStack);
+                var newItem = _itemStackFactory.Create(Id, Count);
+                return new ItemProcessResult(newItem, receiveItemStack);
             }
 
             var newCount = ((ItemStack) receiveItemStack).Count + Count;

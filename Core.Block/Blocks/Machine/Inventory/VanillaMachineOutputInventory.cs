@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Core.Block.BlockInventory;
@@ -62,7 +63,9 @@ namespace Core.Block.Blocks.Machine.Inventory
                 for (int i = 0; i < OutputSlot.Count; i++)
                 {
                     if (!OutputSlot[i].IsAllowedToAdd(output.OutputItem)) continue;
-                    _itemDataStoreService.SetItem(i,OutputSlot[i].AddItem(output.OutputItem).ProcessResultItemStack);
+
+                    var item = OutputSlot[i].AddItem(output.OutputItem).ProcessResultItemStack;
+                    _itemDataStoreService.SetItem(i,item);
                     break;
                 }
             }
