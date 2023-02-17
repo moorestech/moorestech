@@ -971,6 +971,7 @@
       "Game.World/1.0.0": {
         "dependencies": {
           "Game.World.Interface": "1.0.0",
+          "Game.WorldMap": "1.0.0",
           "Microsoft.Extensions.DependencyInjection": "6.0.0"
         },
         "runtime": {
