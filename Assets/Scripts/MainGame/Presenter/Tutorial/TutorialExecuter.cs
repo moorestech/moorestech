@@ -24,6 +24,7 @@ namespace MainGame.Presenter.Tutorial
             //TODO 今は手動で追加しているけど、将来的には動的に追加できるようにする
             _tutorials.Add(ironMiningTutorial);
             _tutorials.Add(minerCraftTutorial);
+            _tutorials.Add(new _999_FinishTutorial());
             
             //TODO そのうちPlayerPrefsは脱却してサーバー側に保存したいな〜
             _currentTutorialIndex = PlayerPrefs.GetInt(TutorialIndexPlayerPrefsKey, 0);
