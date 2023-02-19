@@ -43,9 +43,11 @@ namespace MainGame.Presenter.Tutorial
                 _tutorials[_currentTutorialIndex].EndTutorial();
                 _currentTutorialIndex++;
                 
-                //TODO デバッグで進捗をセーブしないようにする
-                //PlayerPrefs.SetInt(TutorialIndexPlayerPrefsKey, _currentTutorialIndex);
-                //PlayerPrefs.Save();
+                //TODO　チュートリアルの進捗を管理するかどうかのデバッグ機能を作ったほうがよさそう 
+#if !UNITY_EDITOR
+                PlayerPrefs.SetInt(TutorialIndexPlayerPrefsKey, _currentTutorialIndex);
+                PlayerPrefs.Save();
+#endif
                 
                 //次のチュートリアルがある場合は開始メソッドを呼ぶ
                 if (_tutorials.Count <= _currentTutorialIndex)
