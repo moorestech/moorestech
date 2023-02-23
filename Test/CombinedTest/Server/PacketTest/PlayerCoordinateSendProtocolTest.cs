@@ -248,7 +248,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
         List<byte> PlayerCoordinatePayload(int playerId, float x, float y)
         {
-            return MessagePackSerializer.Serialize(new PlayerCoordinateSendProtocolMessagePack(playerId,x,y)).ToList();
+            return MessagePackSerializer.Serialize(new PlayerUpdateSendProtocolMessagePack(playerId,x,y)).ToList();
         }
 
 
@@ -262,7 +262,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var data = MessagePackSerializer.Deserialize<ChunkDataResponseMessagePack>(payload.ToArray());
             //エンティティタグの時はnullを返す
-            if (data.Tag == PlayerCoordinateSendProtocol.EntityDataTag)
+            if (data.Tag == PlayerUpdateSendProtocol.EntityDataTag)
             {
                 return null;
             }

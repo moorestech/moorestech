@@ -94,7 +94,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
 
         List<byte> EventRequest()
         {
-            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(PlayerId)).ToList();
+            return MessagePackSerializer.Serialize(new PlayerUpdateSendProtocolMessagePack(PlayerId,0,0)).ToList();
         }
     }
 }

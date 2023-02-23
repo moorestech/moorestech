@@ -110,7 +110,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
 
         List<byte> EventRequestData(int plyaerID)
         {   
-            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID)).ToList();;
+            return MessagePackSerializer.Serialize(new PlayerUpdateSendProtocolMessagePack(plyaerID,0,0)).ToList();;
         }
 
         class TestBlockData
