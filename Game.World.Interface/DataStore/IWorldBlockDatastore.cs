@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Block;
 using Core.Block.Blocks;
@@ -15,5 +16,7 @@ namespace Game.World.Interface.DataStore
         public BlockDirection GetBlockDirection(int x, int y);
         public List<SaveBlockData> GetSaveBlockDataList();
         public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList);
+
+        public event Action<(ChangedBlockState state, IBlock block, int x, int y)> OnBlockStateChange;
     }
 }

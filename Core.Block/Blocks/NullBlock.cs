@@ -8,6 +8,7 @@ namespace Core.Block.Blocks
         public int EntityId => BlockConst.NullBlockEntityId;
         public int BlockId =>BlockConst.EmptyBlockId;
         public ulong BlockHash => 0;
+        public event Action<ChangedBlockState> OnBlockStateChange;
 
 
         public string GetSaveState()

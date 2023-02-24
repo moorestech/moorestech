@@ -26,9 +26,9 @@ namespace Test.UnitTest.Game
     /// </summary>
     public class BlockPlaceToConnectionBlockTest
     {
-        const int MachineId = UnitTestMod.MachineId;
-        const int BeltConveyorId = UnitTestMod.BeltConveyorId;
-        private const int ChestId = UnitTestMod.ChestId;
+        const int MachineId = UnitTestModBlockId.MachineId;
+        const int BeltConveyorId = UnitTestModBlockId.BeltConveyorId;
+        private const int ChestId = UnitTestModBlockId.ChestId;
 
         /// <summary>
         /// 機械にベルトコンベアが自動でつながるかをテストする

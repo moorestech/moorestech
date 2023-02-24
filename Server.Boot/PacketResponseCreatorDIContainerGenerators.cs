@@ -110,6 +110,7 @@ namespace Server.Boot
             services.AddSingleton<IQuestCompletedEvent, QuestCompletedEvent>();
 
             //イベントレシーバーを登録
+            services.AddSingleton<ChangeBlockStateEventPacket>();
             services.AddSingleton<MainInventoryUpdateToSetEventPacket>();
             services.AddSingleton<CraftingInventoryUpdateToSetEventPacket>();
             services.AddSingleton<OpenableBlockInventoryUpdateToSetEventPacket>();

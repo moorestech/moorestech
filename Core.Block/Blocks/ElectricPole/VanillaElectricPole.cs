@@ -8,6 +8,7 @@ namespace Core.Block.Blocks.ElectricPole
         public int EntityId { get; }
         public int BlockId { get; }
         public ulong BlockHash { get; }
+        public event Action<ChangedBlockState> OnBlockStateChange;
 
         public VanillaElectricPole(int blockId, int entityId, ulong blockHash)
         {

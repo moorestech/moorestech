@@ -18,7 +18,7 @@ namespace Test.UnitTest.Core.Block
 {
     public class MinerSaveLoadTest
     {
-        private const int MinerId = UnitTestMod.MinerId;
+        private const int MinerId = UnitTestModBlockId.MinerId;
         
         [Test]
         public void SaveLoadTest()

@@ -21,9 +21,9 @@ namespace Test.CombinedTest.Game
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<BlockFactory>();
 
-            var inputChest = (VanillaChest)blockFactory.Create(UnitTestMod.ChestId,1);
-            var beltConveyor = blockFactory.Create(UnitTestMod.BeltConveyorId,2);
-            var outputChest = (VanillaChest)blockFactory.Create(UnitTestMod.ChestId,3);
+            var inputChest = (VanillaChest)blockFactory.Create(UnitTestModBlockId.ChestId,1);
+            var beltConveyor = blockFactory.Create(UnitTestModBlockId.BeltConveyorId,2);
+            var outputChest = (VanillaChest)blockFactory.Create(UnitTestModBlockId.ChestId,3);
             
             //それぞれを設置
             worldBlockDatastore.AddBlock(inputChest,0,0,BlockDirection.North);

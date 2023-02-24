@@ -16,9 +16,9 @@ namespace Test.CombinedTest.Game
     public class ConnectElectricSegmentTest
     {
         //ブロックIDが変わったらここを変える
-        private const int ElectricPoleId = UnitTestMod.ElectricPoleId;
-        private const int MachineId = UnitTestMod.MachineId;
-        private const int GenerateId = UnitTestMod.GeneratorId;
+        private const int ElectricPoleId = UnitTestModBlockId.ElectricPoleId;
+        private const int MachineId = UnitTestModBlockId.MachineId;
+        private const int GenerateId = UnitTestModBlockId.GeneratorId;
 
         //電柱を設置し、電柱に接続するテスト
         [Test]

@@ -16,6 +16,8 @@ namespace Core.Block.Blocks.BeltConveyor
         public int BlockId { get; }
         public ulong BlockHash { get; }
         
+        public event Action<ChangedBlockState> OnBlockStateChange;
+        
         private readonly int _inventoryItemNum;
         
         public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
@@ -167,8 +169,9 @@ namespace Core.Block.Blocks.BeltConveyor
             state.Remove(state.Length - 1, 1);
             return state.ToString();
         }
-        
-        
+
+
+
         public int GetSlotSize() { return _inventoryItems.Count; }
         public IItemStack GetItem(int slot) { return _itemStackFactory.Create(_inventoryItems[slot].ItemId, 1); }
         public void SetItem(int slot, IItemStack itemStack)
