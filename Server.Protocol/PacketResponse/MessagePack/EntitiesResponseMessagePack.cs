@@ -16,7 +16,7 @@ namespace Server.Protocol.PacketResponse.MessagePack
 
         public EntitiesResponseMessagePack(List<IEntity> entities)
         {
-            Tag = PlayerUpdateSendProtocol.EntityDataTag;
+            Tag = PlayerCoordinateSendProtocol.EntityDataTag;
             Entities = entities.Select(e => new EntityMessagePack(e)).ToArray();
         }
         

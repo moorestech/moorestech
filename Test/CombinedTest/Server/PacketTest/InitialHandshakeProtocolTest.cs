@@ -57,7 +57,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             
             return MessagePackSerializer.Serialize(
-                new PlayerUpdateSendProtocolMessagePack(playerId,x,y)).ToList();
+                new PlayerCoordinateSendProtocolMessagePack(playerId,x,y)).ToList();
         }
 
     }

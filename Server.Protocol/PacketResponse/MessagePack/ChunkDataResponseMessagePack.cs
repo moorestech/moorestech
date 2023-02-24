@@ -12,7 +12,7 @@ namespace Server.Protocol.PacketResponse.MessagePack
 
         public ChunkDataResponseMessagePack(Coordinate chunk, int[,] blockIds, int[,] blockDirect, int[,] mapTileIds)
         {
-            Tag = PlayerUpdateSendProtocol.ChunkDataTag;
+            Tag = PlayerCoordinateSendProtocol.ChunkDataTag;
             ChunkX = chunk.X;
             ChunkY = chunk.Y;
             BlockIds = blockIds;

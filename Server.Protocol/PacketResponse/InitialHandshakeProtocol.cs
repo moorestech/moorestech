@@ -34,6 +34,9 @@ namespace Server.Protocol.PacketResponse
             return new List<List<byte>>(){MessagePackSerializer.Serialize(response).ToList()};
         }
 
+
+
+
         private Vector2MessagePack GetPlayerPosition(int playerId)
         {
             if (_entitiesDatastore.Exists(playerId))

@@ -52,9 +52,14 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             //パケットが送られていることをチェック
             //イベントパケットを取得
+            var eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
             
             //イベントパケットをチェック
-            var data = (OpenableBlockInventoryUpdateEventMessagePack)EventPacketTestUtil.GetEventPacket(packetResponse.GetPacketResponse(GetEventPacket()));
+            Assert.AreEqual(1,eventPacket.Count);
+            
+            var data =
+                MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(
+                    eventPacket[0].ToArray());
             
             Assert.AreEqual(1,data.Slot); // slot id
             Assert.AreEqual(4,data.Item.Id); // item id
@@ -71,7 +76,10 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             
             //パケットが送られていないことをチェック
-            Assert.IsFalse(EventPacketTestUtil.IsEventPacketExist(packetResponse.GetPacketResponse(GetEventPacket())));
+            //イベントパケットを取得
+            eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
+            //イベントパケットをチェック
+            Assert.AreEqual(0,eventPacket.Count);
         }
         
         
@@ -107,7 +115,9 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             
             //パケットが送られていないことをチェック
             //イベントパケットを取得
-            Assert.IsFalse(EventPacketTestUtil.IsEventPacketExist(packetResponse.GetPacketResponse(GetEventPacket())));
+            var eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
+            //イベントパケットをチェック
+            Assert.AreEqual(0,eventPacket.Count);
 
         }
         
@@ -119,13 +129,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         
         private List<byte> GetEventPacket()
         {
-            return MessagePackSerializer.Serialize(new PlayerUpdateSendProtocolMessagePack(PlayerId,0,0)).ToList();;
-        }
-        
-        private List<byte> GetHandshakePacket()
-        {
-            return MessagePackSerializer.Serialize(
-                new RequestInitialHandshakeMessagePack(PlayerId,"test player name")).ToList();
+            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(PlayerId)).ToList();;
         }
         
     }
