@@ -27,7 +27,7 @@ namespace Core.Block.Blocks.Machine.SaveLoad
             _requestPower = requestPower;
         }
 
-        public VanillaMachineRunProcess Load(string loadString)
+        public VanillaMachineRunProcess LoadVanillaMachineRunProcess(string loadString)
         {
             var split = loadString.Split(',');
 

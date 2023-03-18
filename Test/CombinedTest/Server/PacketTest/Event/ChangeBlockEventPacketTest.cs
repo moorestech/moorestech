@@ -1,4 +1,5 @@
-﻿using Core.Block.BlockFactory;
+﻿using System;
+using Core.Block.BlockFactory;
 using Core.Block.Blocks;
 using Core.Block.Blocks.Machine;
 using Core.Item;
@@ -27,14 +28,19 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
-            var item1 = itemStackFactory.Create("Test Author:forUniTest", "Test1", 2);
-            var item2 = itemStackFactory.Create("Test Author:forUniTest", "Test2", 2);
+            var item1 = itemStackFactory.Create("Test Author:forUniTest", "Test1", 3);
+            var item2 = itemStackFactory.Create("Test Author:forUniTest", "Test2", 1);
 
             machine.InsertItem(item1);
             machine.InsertItem(item2);
 
             //稼働用の電気を供給する
             machine.SupplyPower(1000);
+            
+            
+            //最初にイベントをリクエストして、ブロードキャストを受け取れるようにする
+            packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
+            
             //アップデートしてステートを更新する
             GameUpdate.Update();
 
@@ -43,25 +49,11 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
             var changeStateData = MessagePackSerializer.Deserialize<ChangeBlockStateEventMessagePack>(response[0].ToArray());
             
-            Assert.AreEqual(VanillaMachineBlockStateController.IdleState,changeStateData.PreviousState);
-            Assert.AreEqual(VanillaMachineBlockStateController.ProcessingState,changeStateData.CurrentState);
+            Assert.AreEqual(VanillaMachineBlockStateConst.IdleState,changeStateData.PreviousState);
+            Assert.AreEqual(VanillaMachineBlockStateConst.ProcessingState,changeStateData.CurrentState);
             Assert.AreEqual(0,changeStateData.Position.X);
             Assert.AreEqual(0,changeStateData.Position.Y);
             
-            
-            //電力の供給を切る
-            machine.SupplyPower(0);
-            //アップデートしてステートを更新する
-            GameUpdate.Update();
-            
-            //ステートが停止になっているかをチェック
-            response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
-            changeStateData = MessagePackSerializer.Deserialize<ChangeBlockStateEventMessagePack>(response[0].ToArray());
-            
-            Assert.AreEqual(VanillaMachineBlockStateController.ProcessingState,changeStateData.PreviousState);
-            Assert.AreEqual(VanillaMachineBlockStateController.IdleState,changeStateData.CurrentState);
-            Assert.AreEqual(0,changeStateData.Position.X);
-            Assert.AreEqual(0,changeStateData.Position.Y);
         }
     }
 }

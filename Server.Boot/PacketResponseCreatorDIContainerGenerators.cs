@@ -149,6 +149,7 @@ namespace Server.Boot
             serviceProvider.GetService<ConnectMachineToElectricSegment>();
             serviceProvider.GetService<SetMiningItemToMiner>();
             serviceProvider.GetService<QuestCompletedToSendEventPacket>();
+            serviceProvider.GetService<ChangeBlockStateEventPacket>();
 
             return (packetResponse, serviceProvider);
         }

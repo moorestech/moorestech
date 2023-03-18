@@ -45,7 +45,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
             var(input, output, machineParam) = GetData(param,entityId);
 
             var runProcess = new VanillaMachineLoad(input, output, _itemStackFactory, _machineRecipeConfig,
-                machineParam.RequiredPower).Load(state);
+                machineParam.RequiredPower).LoadVanillaMachineRunProcess(state);
 
 
             return new VanillaMachine(param.BlockId, entityId,blockHash,

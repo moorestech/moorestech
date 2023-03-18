@@ -102,7 +102,7 @@ namespace Test.UnitTest.Game.SaveLoad
             //レシピIDのチェック
             Assert.AreEqual(recipeId, loadVanillaMachineRunProcess.RecipeDataId);
             //機械のステータスのチェック
-            Assert.AreEqual(ProcessState.Processing, loadVanillaMachineRunProcess.State);
+            Assert.AreEqual(ProcessState.Processing, loadVanillaMachineRunProcess.CurrentState);
 
 
             var loadMachineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachine)

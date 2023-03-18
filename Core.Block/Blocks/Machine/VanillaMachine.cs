@@ -36,6 +36,11 @@ namespace Core.Block.Blocks.Machine
             _itemStackFactory = itemStackFactory;
             BlockHash = blockHash;
             EntityId = entityId;
+
+            _vanillaMachineRunProcess.OnChangeState += state =>
+            {
+                OnBlockStateChange?.Invoke(state);
+            };
         }
 
         
