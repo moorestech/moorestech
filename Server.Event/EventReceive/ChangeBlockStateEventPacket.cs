@@ -45,7 +45,7 @@ namespace Server.Event.EventReceive
             EventTag = ChangeBlockStateEventPacket.EventTag;
             CurrentState = state.CurrentState;
             PreviousState = state.PreviousState;
-            CurrentStateData = state.CurrentStateData;
+            CurrentStateData = MessagePackSerializer.Serialize(state.CurrentStateDetailInfo);
             Position = new Vector2MessagePack(x,y);
         }
     }

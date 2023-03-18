@@ -1,4 +1,5 @@
 ﻿using System;
+using MessagePack;
 
 namespace Core.Block.Blocks
 {
@@ -27,15 +28,21 @@ namespace Core.Block.Blocks
     {
         public readonly string CurrentState;
         public readonly string PreviousState;
-
-        public readonly byte[] CurrentStateData;
         
-        public ChangedBlockState(string currentState, string previousState, byte[] currentStateData = default)
+        /// <summary>
+        /// ブロックのステートのデータ
+        /// 各ブロックのよって必要なデータは違うため、このクラスを継承して派生させる
+        /// </summary>
+        public readonly ChangeBlockStateData CurrentStateDetailInfo;
+        
+        public ChangedBlockState(string currentState, string previousState, ChangeBlockStateData currentStateDetailInfo = null)
         {
             CurrentState = currentState;
             PreviousState = previousState;
-            CurrentStateData = currentStateData;
+            CurrentStateDetailInfo = currentStateDetailInfo;
         }
-
     }
+    
+    [MessagePackObject(keyAsPropertyName :true)]
+    public abstract class ChangeBlockStateData{}
 }
