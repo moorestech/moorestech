@@ -64,11 +64,11 @@ namespace Core.Block.Blocks.Machine
                     Processing();
                     break;
             }
-            //ステートの変化を検知したらイベントを発火させる
-            if (_lastState != _currentState)
+            //ステートの変化を検知した時か、ステートが処理中の時はイベントを発火させる
+            if (_lastState != _currentState || _currentState == ProcessState.Processing)
             {
                 OnChangeState?.Invoke(
-                    new ChangedBlockState(GetProcessStateString(_currentState),GetProcessStateString(_lastState)));
+                    new ChangedBlockState(_currentState.ToStr(),_lastState.ToStr(),));
                 _lastState = _currentState;
             }
         }
@@ -113,12 +113,21 @@ namespace Core.Block.Blocks.Machine
         {
             _currentPower = power;
         }
+    }
 
+    public enum ProcessState
+    {
+        Idle,
+        Processing
+    }
+
+    public static class ProcessStateExtension
+    {
         /// <summary>
         /// <see cref="ProcessState"/>をStringに変換します。
         /// EnumのToStringを使わない理由はアロケーションによる速度低下をなくすためです。
         /// </summary>
-        private string GetProcessStateString(ProcessState state)
+        public static string ToStr(this ProcessState state)
         {
             return state switch
             {
@@ -127,11 +136,5 @@ namespace Core.Block.Blocks.Machine
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
             };
         }
-    }
-
-    public enum ProcessState
-    {
-        Idle,
-        Processing
     }
 }
