@@ -55,6 +55,17 @@ namespace Core.Block.Blocks.Machine
 
         public void Update()
         {
+            //ステートの変化を検知した時か、ステートが処理中の時はイベントを発火させる
+            if (_lastState != _currentState || _currentState == ProcessState.Processing)
+            {
+                var powerRate = RequestPower == 0 ? 1.0f : (float)_currentPower / RequestPower;
+                var processingRate = (float)_remainingMillSecond / _processingRecipeData.Time;
+                OnChangeState?.Invoke(
+                    new ChangedBlockState(_currentState.ToStr(),_lastState.ToStr(),new ChangeMachineBlockStateChangeData(powerRate,processingRate)));
+                _lastState = _currentState;
+            }
+            
+            
             switch (_currentState)
             {
                 case ProcessState.Idle:
@@ -63,13 +74,6 @@ namespace Core.Block.Blocks.Machine
                 case ProcessState.Processing:
                     Processing();
                     break;
-            }
-            //ステートの変化を検知した時か、ステートが処理中の時はイベントを発火させる
-            if (_lastState != _currentState || _currentState == ProcessState.Processing)
-            {
-                OnChangeState?.Invoke(
-                    new ChangedBlockState(_currentState.ToStr(),_lastState.ToStr(),));
-                _lastState = _currentState;
             }
         }
 
@@ -135,6 +139,26 @@ namespace Core.Block.Blocks.Machine
                 ProcessState.Processing => VanillaMachineBlockStateConst.ProcessingState,
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
             };
+        }
+    }
+
+    public class ChangeMachineBlockStateChangeData : ChangeBlockStateData
+    {
+        /// <summary>
+        /// 必要な電力に対してどの程度電力が来ているかを表す
+        /// アニメーションを再生する速度に利用する
+        /// </summary>
+        public float PowerRate;
+
+        /// <summary>
+        /// アイテムの作成がどれくらい進んでいるかを表す
+        /// </summary>
+        public float ProcessingRate;
+
+        public ChangeMachineBlockStateChangeData(float powerRate, float processingRate)
+        {
+            PowerRate = powerRate;
+            ProcessingRate = processingRate;
         }
     }
 }
