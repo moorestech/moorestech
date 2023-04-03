@@ -48,5 +48,10 @@ namespace Server.Event.EventReceive
             CurrentStateData = MessagePackSerializer.Serialize(state.CurrentStateDetailInfo);
             Position = new Vector2MessagePack(x,y);
         }
+        
+        public ChangeBlockStateData GetStateData()
+        {
+            return MessagePackSerializer.Deserialize<ChangeBlockStateData>(CurrentStateData);
+        }
     }
 }
