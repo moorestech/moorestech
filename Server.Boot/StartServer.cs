@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Const;
@@ -9,6 +10,8 @@ using Core.Update;
 using Game.Save.Interface;
 using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
+using Mod.Base;
+using Mod.Loader;
 using Server.Boot.PacketHandle;
 
 namespace Server.Boot
@@ -44,6 +47,13 @@ namespace Server.Boot
                 
                 //マップをロードする
                 serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
+                
+                //modのOnLoadコードを実行する
+                var modsResource = serviceProvider.GetService<ModsResource>();
+                modsResource.Mods.ToList().ForEach(
+                    m => m.Value.ModEntryPoints.ForEach(
+                        e => e.OnLoad(new ServerModEntryInterface(serviceProvider,packet))));
+                
                 
                 //サーバーの起動とゲームアップデートの開始
                 new Thread(() => new PacketHandler().StartServer(packet)).Start();

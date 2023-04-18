@@ -16,7 +16,7 @@ namespace Test.UnitTest.Mod
         [Test]
         public void LoadConfigTest()
         {
-            var loaded = ModJsonStringLoader.GetConfigString(TestModDirectory.ConfigOnlyDirectory);
+            var (loaded,mod) = ModJsonStringLoader.GetConfigString(TestModDirectory.ConfigOnlyDirectory);
             
             Assert.AreEqual(loaded.Count, 2);
 

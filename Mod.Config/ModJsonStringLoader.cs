@@ -17,7 +17,7 @@ namespace Mod.Config
         private const string QuestConfigPath = "config/quest.json";
         
         
-        public static Dictionary<string,ConfigJson> GetConfigString(string modDirectory)
+        public static (Dictionary<string,ConfigJson> configJsons,ModsResource modsResource) GetConfigString(string modDirectory)
         {
             
             var modResource = new ModsResource(modDirectory);
@@ -38,7 +38,7 @@ namespace Mod.Config
                 configDict.Add(mod.Value.ModMetaJson.ModId,new ConfigJson(mod.Value.ModMetaJson.ModId,itemConfigJson,blockConfigJson,machineRecipeConfigJson,craftRecipeConfigJson,oreConfigJson,questConfigJson));
             }
 
-            return configDict;
+            return (configDict, modResource);
         }
 
         private static string LoadConfigFile(string extractedPath, string configPath)

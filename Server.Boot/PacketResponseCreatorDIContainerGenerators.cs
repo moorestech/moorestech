@@ -56,7 +56,9 @@ namespace Server.Boot
             var services = new ServiceCollection();
             
             //コンフィグ、ファクトリーのインスタンスを登録
-            services.AddSingleton(new ConfigJsonList(ModJsonStringLoader.GetConfigString(modDirectory)));
+            var (configJsons,modsResource) = ModJsonStringLoader.GetConfigString(modDirectory);
+            services.AddSingleton(new ConfigJsonList(configJsons));
+            services.AddSingleton(modsResource);
             services.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
             services.AddSingleton<IItemConfig, ItemConfig>();
             services.AddSingleton<ICraftingConfig, CraftConfig>();

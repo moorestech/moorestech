@@ -136,7 +136,6 @@ namespace Mod.Loader
             ModMetaJson = modMetaJson;
             this.ExtractedPath = extractedPath;
             ModEntryPoints = LoadEntryPoints(extractedPath);
-            ModEntryPoints.ForEach(m => m.OnLoad());
         }
         
         private static List<MoorestechServerModEntryPoint> LoadEntryPoints(string modDirectory)
