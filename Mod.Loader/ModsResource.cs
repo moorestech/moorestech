@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using Game.Paths;
+using Mod.Base;
 using Newtonsoft.Json;
 
 namespace Mod.Loader
@@ -127,10 +129,31 @@ namespace Mod.Loader
             
         public readonly ModMetaJson ModMetaJson;
 
+        public readonly List<MoorestechServerModEntryPoint> ModEntryPoints;
+
         public Mod(ModMetaJson modMetaJson, string extractedPath)
         {
             ModMetaJson = modMetaJson;
             this.ExtractedPath = extractedPath;
+            ModEntryPoints = LoadEntryPoints(extractedPath);
+            ModEntryPoints.ForEach(m => m.OnLoad());
+        }
+        
+        private static List<MoorestechServerModEntryPoint> LoadEntryPoints(string modDirectory)
+        {
+            var entryPoints = new List<MoorestechServerModEntryPoint>();
+            //modディレクトリの全てディレクトリでdllを全てロードし、ModBaseを継承しているクラスを探す
+            foreach (var dllPath in Directory.GetFiles(modDirectory, "*.dll",SearchOption.AllDirectories))
+            {
+                var assembly = Assembly.LoadFrom(dllPath);
+                var modBaseTypes = assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(MoorestechServerModEntryPoint)));
+                foreach (var modBaseType in modBaseTypes)
+                {
+                    var modBase = (MoorestechServerModEntryPoint) Activator.CreateInstance(modBaseType);
+                    entryPoints.Add(modBase);
+                }
+            }
+            return entryPoints;
         }
     }
 }
