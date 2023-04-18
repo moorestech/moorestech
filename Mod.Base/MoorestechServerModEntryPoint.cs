@@ -1,6 +1,6 @@
 namespace Mod.Base
 {
-    public abstract class ModBase
+    public abstract class MoorestechServerModEntryPoint
     {
         public abstract void OnLoad();
     }
