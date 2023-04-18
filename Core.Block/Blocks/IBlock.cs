@@ -44,5 +44,5 @@ namespace Core.Block.Blocks
     }
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public abstract class ChangeBlockStateData{}
+    public class ChangeBlockStateData{}
 }
