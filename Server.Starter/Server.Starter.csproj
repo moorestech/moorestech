@@ -5,6 +5,9 @@
         <TargetFramework>net5.0</TargetFramework>
         <RootNamespace>Server</RootNamespace>
         <AssemblyName>moorestech_server</AssemblyName>
+        
+        <PackageId>moorestech.Server</PackageId>
+        <Version>0.0.1</Version>
     </PropertyGroup>
 
     <ItemGroup>

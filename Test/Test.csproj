@@ -24,6 +24,7 @@
         <ProjectReference Include="..\Mod.Config\Mod.Config.csproj" />
         <ProjectReference Include="..\Server.Starter\Server.Starter.csproj" />
         <ProjectReference Include="..\Game.World\Game.World.csproj" />
+        <ProjectReference Include="..\SinglePlay\SinglePlay.csproj" />
         <ProjectReference Include="..\Test.Module\Test.Module.csproj" />
     </ItemGroup>
 
