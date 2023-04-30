@@ -51,7 +51,11 @@ namespace Server.Boot
                 var modsResource = serviceProvider.GetService<ModsResource>();
                 modsResource.Mods.ToList().ForEach(
                     m => m.Value.ModEntryPoints.ForEach(
-                        e => e.OnLoad(new ServerModEntryInterface(serviceProvider,packet))));
+                        e =>
+                        {
+                            Console.WriteLine("Modをロードしました modId:" + m.Value + " className:" + e.GetType().Name); 
+                            e.OnLoad(new ServerModEntryInterface(serviceProvider, packet));
+                        }));
                 
                 
                 //サーバーの起動とゲームアップデートの開始
