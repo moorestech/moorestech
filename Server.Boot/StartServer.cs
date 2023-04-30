@@ -26,7 +26,6 @@ namespace Server.Boot
             {
 #if DEBUG
                 var modsDirectory = DebugModsDirectory;
-                modsDirectory = "/Users/sato-katsumi/moorestech_client/WindowsServer/mods/";
 #else
                 var modsDirectory = ReleasesModsDirectory;
                 if (args.Length == 0)
@@ -78,15 +77,24 @@ namespace Server.Boot
         }
 
         
+        //環境変数を取得する
         private static string DebugModsDirectory
         {
             get
             {
-                DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
-                DirectoryInfo diParent = di.Parent.Parent.Parent.Parent;
-                return Path.Combine(diParent.FullName, "Server.Starter", "mods");
+                var path = Environment.GetEnvironmentVariable("MOORES_MODS_DIRECTORY");
+                if (path != null)
+                {
+                    return path;
+                }
+                
+                Console.WriteLine("環境変数にコンフィグのパスが指定されていませんでした。MOORES_MODS_DIRECTORYを設定してください。");
+                Console.WriteLine("Windowsの場合の設定コマンド > setx /M MOORES_MODS_DIRECTORY \"C:～ \"");
+                Console.WriteLine("Macの場合の設定コマンド > export MOORES_MODS_DIRECTORY=\"～\"");
+                return ReleasesModsDirectory;
             }
         }
+
         private static string ReleasesModsDirectory
         {
             get
