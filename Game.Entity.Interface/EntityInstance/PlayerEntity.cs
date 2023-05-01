@@ -1,3 +1,5 @@
+using Game.Base;
+
 namespace Game.Entity.Interface.EntityInstance
 {
     public class PlayerEntity : IEntity

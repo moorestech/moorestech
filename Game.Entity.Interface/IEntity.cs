@@ -1,3 +1,5 @@
+using Game.Base;
+
 namespace Game.Entity.Interface
 {
     public interface IEntity
