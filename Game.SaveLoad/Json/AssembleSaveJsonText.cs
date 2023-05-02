@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Inventory;
 using Game.Entity.Interface;
 using Game.MapObject.Interface;
+using Game.MapObject.Interface.Json;
 using Game.PlayerInventory.Interface;
 using Game.Quest.Interface;
 using Game.World.Interface;
@@ -62,7 +63,6 @@ namespace Game.Save.Json
         [JsonProperty("entities")] public List<SaveEntityData> Entities { get; }
         [JsonProperty("quests")] public Dictionary<int, List<SaveQuestData>> Quests { get; }
         [JsonProperty("setting")] public WorldSettingSaveData Setting { get; }
-        
         [JsonProperty("mapObjects")] public List<SaveMapObjectData> MapObjects { get; set; }
     }
 }

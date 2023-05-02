@@ -13,23 +13,30 @@ namespace Game.MapObject
         {
             _itemConfig = itemConfig;
         }
-
-        public IMapObject Create(string type, ServerVector3 position,bool isDestroyed)
+        public IMapObject Create(string type, ServerVector3 position)
         {
-            //TODO seedに対応させる
+            //TODO mapのseed値に対応させる
             var id = new Random().Next();
+            var itemId = GetItemIdFromType(type);
             
-            //TODO コンフィグに対応させる
-            var itemName = type switch
+            return new VanillaStaticMapObject(id,type,false,position,itemId); 
+        }
+
+        public IMapObject Create(int instanceId, string type, ServerVector3 position, bool isDestroyed)
+        {
+            var itemId = GetItemIdFromType(type);
+            return new VanillaStaticMapObject(instanceId,type,isDestroyed,position,itemId);
+        }
+        
+        //TODO コンフィグを参照するようにする
+        private int GetItemIdFromType(string type)
+        {
+            return type switch
             {
-                VanillaMapObjectType.VanillaTree => "",
-                VanillaMapObjectType.VanillaPebble => "",
+                VanillaMapObjectType.VanillaTree => _itemConfig.GetItemId("moorestechBaseMod", "VanillaTree"),
+                VanillaMapObjectType.VanillaPebble => _itemConfig.GetItemId("moorestechBaseMod", "VanillaPebble"),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
-
-            var itemId = _itemConfig.GetItemId("moorestechBaseMod", itemName);
-            
-            return new VanillaStaticMapObject(id,type,isDestroyed,position,itemId);
         }
     }
 }
