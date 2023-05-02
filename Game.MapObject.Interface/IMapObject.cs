@@ -11,7 +11,7 @@ namespace Game.MapObject.Interface
         /// マップオブジェクト自体の固有ID
         /// オブジェクトごとに異なる
         /// </summary>
-        public int Id { get; }
+        public int InstanceId { get; }
         /// <summary>
         /// そのオブジェクトの種類 <see cref="VanillaMapObjectType"/> などを参照
         /// </summary>

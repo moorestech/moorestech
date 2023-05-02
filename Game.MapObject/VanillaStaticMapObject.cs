@@ -5,7 +5,7 @@ namespace Game.MapObject
 {
     public class VanillaStaticMapObject : IMapObject
     {
-        public int Id { get; }
+        public int InstanceId { get; }
         public string Type { get; }
         public bool IsDestroyed { get; private set; }
         public ServerVector3 Position { get; }
@@ -13,7 +13,7 @@ namespace Game.MapObject
         
         public VanillaStaticMapObject(int id, string type, bool isDestroyed, ServerVector3 position, int itemId)
         {
-            Id = id;
+            InstanceId = id;
             Type = type;
             IsDestroyed = isDestroyed;
             Position = position;

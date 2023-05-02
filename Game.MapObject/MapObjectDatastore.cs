@@ -9,7 +9,7 @@ namespace Game.MapObject
         private readonly Dictionary<int,IMapObject> _mapObjects = new();
         public void Add(IMapObject mapObject)
         {
-            _mapObjects.Add(mapObject.Id, mapObject);
+            _mapObjects.Add(mapObject.InstanceId, mapObject);
         }
 
         public void Destroy(int id)

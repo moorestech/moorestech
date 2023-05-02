@@ -4,12 +4,12 @@ namespace Game.MapObject.Interface
 {
     public class SaveMapObjectData
     {
-        [JsonProperty("id")] public int Id;
+        [JsonProperty("instanceId")] public int InstanceId;
         [JsonProperty("isDestroyed")] public bool IsDestroyed;
 
-        public SaveMapObjectData(int id, bool idIsDestroyed)
+        public SaveMapObjectData(int instanceId, bool idIsDestroyed)
         {
-            Id = id;
+            InstanceId = instanceId;
             IsDestroyed = idIsDestroyed;
         }
     }
