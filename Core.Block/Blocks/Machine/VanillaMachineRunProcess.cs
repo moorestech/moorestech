@@ -55,17 +55,6 @@ namespace Core.Block.Blocks.Machine
 
         public void Update()
         {
-            //ステートの変化を検知した時か、ステートが処理中の時はイベントを発火させる
-            if (_lastState != _currentState || _currentState == ProcessState.Processing)
-            {
-                var powerRate = RequestPower == 0 ? 1.0f : (float)_currentPower / RequestPower;
-                var processingRate = (float)_remainingMillSecond / _processingRecipeData.Time;
-                OnChangeState?.Invoke(
-                    new ChangedBlockState(_currentState.ToStr(),_lastState.ToStr(),new ChangeMachineBlockStateChangeData(powerRate,processingRate)));
-                _lastState = _currentState;
-            }
-            
-            
             switch (_currentState)
             {
                 case ProcessState.Idle:
@@ -74,6 +63,16 @@ namespace Core.Block.Blocks.Machine
                 case ProcessState.Processing:
                     Processing();
                     break;
+            }
+            
+            //ステートの変化を検知した時か、ステートが処理中の時はイベントを発火させる
+            if (_lastState != _currentState || _currentState == ProcessState.Processing)
+            {
+                var powerRate = RequestPower == 0 ? 1.0f : (float)_currentPower / RequestPower;
+                var processingRate = (float)_remainingMillSecond / _processingRecipeData.Time;
+                OnChangeState?.Invoke(
+                    new ChangedBlockState(_currentState.ToStr(),_lastState.ToStr(),new ChangeMachineBlockStateChangeData(powerRate,processingRate)));
+                _lastState = _currentState;
             }
         }
 
