@@ -49,6 +49,7 @@ namespace Core.Block.Blocks.Machine
             _processingRecipeData = processingRecipeData;
             RequestPower = requestPower;
             _remainingMillSecond = remainingMillSecond;
+            _currentState = currentState;
 
             GameUpdate.AddUpdateObject(this);
         }
