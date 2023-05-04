@@ -1,10 +1,10 @@
 ﻿namespace Game.Save.Json
 {
-    public class MapConfigFileName
+    public class MapConfigFile
     {
         public string FullMapObjectConfigFilePath { get; }
         
-        public MapConfigFileName(string fullMapObjectConfigFilePath)
+        public MapConfigFile(string fullMapObjectConfigFilePath)
         {
             FullMapObjectConfigFilePath = fullMapObjectConfigFilePath;
         }

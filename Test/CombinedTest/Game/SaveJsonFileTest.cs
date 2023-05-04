@@ -81,12 +81,13 @@ namespace Test.CombinedTest.Game
             Assert.AreEqual(1000, block.EntityId);
             Assert.AreEqual(BlockDirection.West, loadWorldBlockDatastore.GetBlockDirection(30, -10));
         }
-
-        private void ChangeFilePath(SaveJsonFileName saveJsonFileName, string fileName)
+        private void ChangeFilePath(SaveJsonFileName instance, string fileName)
         {
-            typeof(SaveJsonFileName)
-                .GetField("_filePath", BindingFlags.NonPublic | BindingFlags.Instance)
-                .SetValue(saveJsonFileName,SystemPath.GetSaveFilePath(fileName) );
+            // バッキングフィールドを取得する
+            FieldInfo fieldInfo = typeof(SaveJsonFileName).GetField("<FullSaveFilePath>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            // バッキングフィールドの値を更新する
+            fieldInfo.SetValue(instance, fileName);
         }
         
     }

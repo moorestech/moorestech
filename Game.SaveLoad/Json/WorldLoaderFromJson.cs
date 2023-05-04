@@ -15,7 +15,7 @@ namespace Game.Save.Json
     public class WorldLoaderFromJson : IWorldSaveDataLoader
     {
         private readonly SaveJsonFileName _saveJsonFileName;
-        private readonly MapConfigFileName _mapConfigFileName;
+        private readonly MapConfigFile _mapConfigFile;
 
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
@@ -25,7 +25,7 @@ namespace Game.Save.Json
         private readonly IMapObjectDatastore _mapObjectDatastore;
 
         public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore,
-            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IQuestDataStore questDataStore, IWorldSettingsDatastore worldSettingsDatastore, IMapObjectDatastore mapObjectDatastore, MapConfigFileName mapConfigFileName)
+            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IQuestDataStore questDataStore, IWorldSettingsDatastore worldSettingsDatastore, IMapObjectDatastore mapObjectDatastore, MapConfigFile mapConfigFile)
         {
             _saveJsonFileName = saveJsonFileName;
             _worldBlockDatastore = worldBlockDatastore;
@@ -34,7 +34,7 @@ namespace Game.Save.Json
             _questDataStore = questDataStore;
             _worldSettingsDatastore = worldSettingsDatastore;
             _mapObjectDatastore = mapObjectDatastore;
-            _mapConfigFileName = mapConfigFileName;
+            _mapConfigFile = mapConfigFile;
         }
 
         public void LoadOrInitialize()
@@ -76,7 +76,7 @@ namespace Game.Save.Json
         private void WorldInitialize()
         {
             _worldSettingsDatastore.Initialize();
-            var mapObjects = JsonConvert.DeserializeObject<List<ConfigMapObjectData>>(File.ReadAllText(_mapConfigFileName.FullMapObjectConfigFilePath));
+            var mapObjects = JsonConvert.DeserializeObject<List<ConfigMapObjectData>>(File.ReadAllText(_mapConfigFile.FullMapObjectConfigFilePath));
             _mapObjectDatastore.InitializeObject(mapObjects);
         }
     }

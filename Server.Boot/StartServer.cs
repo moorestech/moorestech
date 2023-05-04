@@ -80,22 +80,40 @@ namespace Server.Boot
             }
         }
 
-        
-        //環境変数を取得する
-        private static string DebugModsDirectory
+
+        private static string DebugServerDirectory
         {
             get
             {
-                var path = Environment.GetEnvironmentVariable("MOORES_MODS_DIRECTORY");
+                var path =Environment.GetEnvironmentVariable("MOORES_SERVER_DIRECTORY");
                 if (path != null)
                 {
                     return path;
                 }
                 
-                Console.WriteLine("環境変数にコンフィグのパスが指定されていませんでした。MOORES_MODS_DIRECTORYを設定してください。");
-                Console.WriteLine("Windowsの場合の設定コマンド > setx /M MOORES_MODS_DIRECTORY \"C:～ \"");
-                Console.WriteLine("Macの場合の設定コマンド > export MOORES_MODS_DIRECTORY=\"～\"");
+                //環境変数を取得する
+                Console.WriteLine("環境変数にコンフィグのパスが指定されていませんでした。MOORES_SERVER_DIRECTORYを設定してください。");
+                Console.WriteLine("Windowsの場合の設定コマンド > setx /M MOORES_SERVER_DIRECTORY \"C:～ \"");
+                Console.WriteLine("Macの場合の設定コマンド > export MOORES_SERVER_DIRECTORY=\"～\"");
                 return ReleasesModsDirectory;
+            }
+        }
+
+        private static string DebugModsDirectory
+        {
+            get
+            {
+                DirectoryInfo di = new DirectoryInfo(DebugServerDirectory);
+                return Path.Combine(di.FullName, "mods");
+            }
+        }
+        
+        private static string DebugMapDirectory
+        {
+            get
+            {
+                DirectoryInfo di = new DirectoryInfo(DebugServerDirectory);
+                return Path.Combine(di.FullName, "map");
             }
         }
 
