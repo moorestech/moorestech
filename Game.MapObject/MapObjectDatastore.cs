@@ -15,6 +15,8 @@ namespace Game.MapObject
             _mapObjectFactory = mapObjectFactory;
         }
 
+        public IReadOnlyList<IMapObject> MapObjects => _mapObjects.Values.ToList();
+
         public void InitializeObject(List<ConfigMapObjectData> jsonMapObjectDataList)
         {
             foreach (var configMapObject in jsonMapObjectDataList)
