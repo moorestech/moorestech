@@ -10,13 +10,13 @@ namespace Server.Protocol.PacketResponse
     /// <summary>
     /// map objectの破壊状況を送信するプロトコル
     /// </summary>
-    public class MapObjectDestructionInformation : IPacketResponse
+    public class MapObjectDestructionInformationProtocol : IPacketResponse
     {
         public const string Tag = "va:mapObjectInfo";
 
         private readonly IMapObjectDatastore _mapObjectDatastore;
         
-        public MapObjectDestructionInformation(ServiceProvider serviceProvider)
+        public MapObjectDestructionInformationProtocol(ServiceProvider serviceProvider)
         {
             _mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
         }
@@ -40,7 +40,7 @@ namespace Server.Protocol.PacketResponse
     {
         public RequestMapObjectDestructionInformationMessagePack()
         {
-            Tag = MapObjectDestructionInformation.Tag;
+            Tag = MapObjectDestructionInformationProtocol.Tag;
         }
     }
     

@@ -32,6 +32,8 @@ namespace Game.MapObject.Interface
         /// </summary>
         public int ItemId { get; }
 
+        int ItemCount { get; }
+
 
         public void Destroy();
     }

@@ -11,7 +11,7 @@ namespace Game.MapObject.Interface
         public void LoadObject(List<SaveMapObjectData> jsonMapObjectDataList);
         
         public void Add(IMapObject mapObject);
-        public void Destroy(int id);
+        public IMapObject Get(int instanceId);
 
         public List<SaveMapObjectData> GetSettingsSaveData();
     }

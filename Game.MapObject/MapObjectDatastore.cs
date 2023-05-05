@@ -40,9 +40,9 @@ namespace Game.MapObject
             _mapObjects.Add(mapObject.InstanceId, mapObject);
         }
 
-        public void Destroy(int id)
+        public IMapObject Get(int instanceId)
         {
-            _mapObjects[id].Destroy();
+            return _mapObjects[instanceId];
         }
 
         public List<SaveMapObjectData> GetSettingsSaveData()

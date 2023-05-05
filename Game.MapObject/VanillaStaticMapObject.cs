@@ -10,7 +10,8 @@ namespace Game.MapObject
         public bool IsDestroyed { get; private set; }
         public ServerVector3 Position { get; }
         public int ItemId { get; }
-        
+        public int ItemCount => 1;
+
         public VanillaStaticMapObject(int id, string type, bool isDestroyed, ServerVector3 position, int itemId)
         {
             InstanceId = id;
