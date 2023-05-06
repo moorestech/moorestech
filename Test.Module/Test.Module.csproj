@@ -10,7 +10,6 @@
 
     <ItemGroup>
       <Folder Include="TestMod\ConfigOnly" />
-      <Folder Include="TestMod\ForUnitTestMod" />
     </ItemGroup>
 
 </Project>

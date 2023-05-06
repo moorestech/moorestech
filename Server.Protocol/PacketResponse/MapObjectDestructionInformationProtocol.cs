@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse
                 sendMapObjects.Add(new MapObjectDestructionInformationData(mapObject.InstanceId, mapObject.IsDestroyed));
             }
             
-            var response = new MapObjectDestructionInformationMessagePack(sendMapObjects);
+            var response = new ResponseMapObjectDestructionInformationMessagePack(sendMapObjects);
             
             return new List<List<byte>>(){MessagePackSerializer.Serialize(response).ToList()};
         }
@@ -45,14 +45,14 @@ namespace Server.Protocol.PacketResponse
     }
     
     [MessagePackObject(keyAsPropertyName:true)]
-    public class MapObjectDestructionInformationMessagePack
+    public class ResponseMapObjectDestructionInformationMessagePack
     {
         public List<MapObjectDestructionInformationData> MapObjects { get; set; }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public MapObjectDestructionInformationMessagePack() { }
+        public ResponseMapObjectDestructionInformationMessagePack() { }
         
-        public MapObjectDestructionInformationMessagePack(List<MapObjectDestructionInformationData> mapObjects)
+        public ResponseMapObjectDestructionInformationMessagePack(List<MapObjectDestructionInformationData> mapObjects)
         {
             MapObjects = mapObjects;
         }
