@@ -60,6 +60,10 @@ namespace Test.UnitTest.Game.SaveLoad
             typeof(VanillaMachineRunProcess)
                 .GetField("_remainingMillSecond", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(vanillaMachineRunProcess, 300);
+            //ステータスをセット
+            typeof(VanillaMachineRunProcess)
+                .GetField("_currentState", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(vanillaMachineRunProcess, ProcessState.Processing);
 
             //機械のアウトプットスロットの設定
             var _vanillaMachineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachine)

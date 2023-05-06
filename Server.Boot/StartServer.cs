@@ -26,7 +26,6 @@ namespace Server.Boot
             {
 #if DEBUG
                 var modsDirectory = DebugModsDirectory;
-                modsDirectory = "/Users/sato-katsumi/moorestech_client/WindowsServer/mods/";
 #else
                 var modsDirectory = ReleasesModsDirectory;
                 if (args.Length == 0)
@@ -52,7 +51,11 @@ namespace Server.Boot
                 var modsResource = serviceProvider.GetService<ModsResource>();
                 modsResource.Mods.ToList().ForEach(
                     m => m.Value.ModEntryPoints.ForEach(
-                        e => e.OnLoad(new ServerModEntryInterface(serviceProvider,packet))));
+                        e =>
+                        {
+                            Console.WriteLine("Modをロードしました modId:" + m.Value + " className:" + e.GetType().Name); 
+                            e.OnLoad(new ServerModEntryInterface(serviceProvider, packet));
+                        }));
                 
                 
                 //サーバーの起動とゲームアップデートの開始
@@ -77,16 +80,43 @@ namespace Server.Boot
             }
         }
 
-        
+
+        private static string DebugServerDirectory
+        {
+            get
+            {
+                var path =Environment.GetEnvironmentVariable("MOORES_SERVER_DIRECTORY");
+                if (path != null)
+                {
+                    return path;
+                }
+                
+                //環境変数を取得する
+                Console.WriteLine("環境変数にコンフィグのパスが指定されていませんでした。MOORES_SERVER_DIRECTORYを設定してください。");
+                Console.WriteLine("Windowsの場合の設定コマンド > setx /M MOORES_SERVER_DIRECTORY \"C:～ \"");
+                Console.WriteLine("Macの場合の設定コマンド > export MOORES_SERVER_DIRECTORY=\"～\"");
+                return ReleasesModsDirectory;
+            }
+        }
+
         private static string DebugModsDirectory
         {
             get
             {
-                DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
-                DirectoryInfo diParent = di.Parent.Parent.Parent.Parent;
-                return Path.Combine(diParent.FullName, "Server.Starter", "mods");
+                DirectoryInfo di = new DirectoryInfo(DebugServerDirectory);
+                return Path.Combine(di.FullName, "mods");
             }
         }
+        
+        private static string DebugMapDirectory
+        {
+            get
+            {
+                DirectoryInfo di = new DirectoryInfo(DebugServerDirectory);
+                return Path.Combine(di.FullName, "map");
+            }
+        }
+
         private static string ReleasesModsDirectory
         {
             get
