@@ -1,5 +1,13 @@
 ﻿[
   {
+    "name": "VanillaTree",
+    "maxStacks": 100
+  },
+  {
+    "name": "VanillaPebble",
+    "maxStacks": 100
+  },
+  {
     "name": "Test1",
     "maxStacks": 100
   },

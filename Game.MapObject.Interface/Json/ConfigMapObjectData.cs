@@ -3,6 +3,11 @@ using Newtonsoft.Json;
 
 namespace Game.MapObject.Interface.Json
 {
+    public class ConfigMapObjects
+    {
+        [JsonProperty("mapObjects")] public ConfigMapObjectData[] MapObjects;
+    }
+    
     public class ConfigMapObjectData
     {
         [JsonProperty("type")]public string Type;

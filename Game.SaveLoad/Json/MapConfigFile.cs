@@ -1,4 +1,6 @@
-﻿namespace Game.Save.Json
+﻿using System.IO;
+
+namespace Game.Save.Json
 {
     public class MapConfigFile
     {
@@ -6,7 +8,7 @@
         
         public MapConfigFile(string fullMapObjectConfigFilePath)
         {
-            FullMapObjectConfigFilePath = fullMapObjectConfigFilePath;
+            FullMapObjectConfigFilePath = Path.Combine(fullMapObjectConfigFilePath,"mapObjects.json");
         }
     }
 }

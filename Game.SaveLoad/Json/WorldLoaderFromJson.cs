@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Game.Entity.Interface;
 using Game.MapObject.Interface;
 using Game.MapObject.Interface.Json;
@@ -73,11 +74,11 @@ namespace Game.Save.Json
             _mapObjectDatastore.LoadObject(load.MapObjects);
         }
 
-        private void WorldInitialize()
+        public void WorldInitialize()
         {
             _worldSettingsDatastore.Initialize();
-            var mapObjects = JsonConvert.DeserializeObject<List<ConfigMapObjectData>>(File.ReadAllText(_mapConfigFile.FullMapObjectConfigFilePath));
-            _mapObjectDatastore.InitializeObject(mapObjects);
+            var mapObjects = JsonConvert.DeserializeObject<ConfigMapObjects>(File.ReadAllText(_mapConfigFile.FullMapObjectConfigFilePath));
+            _mapObjectDatastore.InitializeObject(mapObjects.MapObjects.ToList());
         }
     }
 }

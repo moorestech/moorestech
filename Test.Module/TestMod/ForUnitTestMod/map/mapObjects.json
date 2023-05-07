@@ -1,13 +1,13 @@
 ﻿{
   "mapObjects": [
     {
-      "type": "tree",
+      "type": "vanilla:Tree",
       "x": 0.0,
       "y": 0.0,
       "z": 0.0
     },
     {
-      "type": "tree",
+      "type": "vanilla:Tree",
       "x": 0.0,
       "y": 0.0,
       "z": 0.0
