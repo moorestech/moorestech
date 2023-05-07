@@ -2,6 +2,8 @@
 using Core.Item;
 using Game.MapObject.Interface;
 using Game.PlayerInventory.Interface;
+using Game.Save.Interface;
+using Game.Save.Json;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -24,6 +26,9 @@ namespace Test.CombinedTest.Server.PacketTest
             var worldMapObjectDataStore = serviceProvider.GetService<IMapObjectDatastore>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
+            //マップオブジェクトをjsonから取得するために初期化する
+            var worldLoader = (WorldLoaderFromJson)serviceProvider.GetService<IWorldSaveDataLoader>();
+            worldLoader.WorldInitialize();
             
             //マップオブジェクトを取得するプロトコルを送信
             var mapObject = worldMapObjectDataStore.MapObjects[0];
