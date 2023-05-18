@@ -45,13 +45,18 @@ namespace Server.Event.EventReceive
             EventTag = ChangeBlockStateEventPacket.EventTag;
             CurrentState = state.CurrentState;
             PreviousState = state.PreviousState;
-            CurrentStateData = MessagePackSerializer.Serialize(state.CurrentStateDetailInfo);
+
+            if (state.CurrentStateDetailInfo != null)
+            {
+                var stateType = state.CurrentStateDetailInfo.GetType();
+                CurrentStateData = MessagePackSerializer.Serialize(Convert.ChangeType(state.CurrentStateDetailInfo,stateType));
+            }
             Position = new Vector2MessagePack(x,y);
         }
         
-        public ChangeBlockStateData GetStateData()
+        public TBlockState GetStateDat<TBlockState>() where TBlockState : ChangeBlockStateData
         {
-            return MessagePackSerializer.Deserialize<ChangeBlockStateData>(CurrentStateData);
+            return MessagePackSerializer.Deserialize<TBlockState>(CurrentStateData);
         }
     }
 }

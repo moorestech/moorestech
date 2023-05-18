@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Block.Config;
+using Game.Base;
 using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;

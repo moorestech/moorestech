@@ -1,4 +1,5 @@
 using System;
+using Game.Base;
 using Game.Entity.Interface;
 using Game.Save.Interface;
 using Game.Save.Json;

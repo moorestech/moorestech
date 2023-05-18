@@ -1,4 +1,4 @@
-namespace Game.Entity.Interface
+﻿namespace Game.Base
 {
     public struct ServerVector3
     {

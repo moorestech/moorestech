@@ -5,11 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Server.Protocol\Server.Protocol.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="TestMod\ConfigOnly" />
+      <ProjectReference Include="..\Game.MapObject.Interface\Game.MapObject.Interface.csproj" />
     </ItemGroup>
 
 </Project>

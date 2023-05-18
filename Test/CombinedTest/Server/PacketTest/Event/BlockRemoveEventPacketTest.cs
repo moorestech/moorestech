@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Block.BlockFactory;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,13 +26,16 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             //イベントキューにIDを登録する
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(0, response.Count);
+            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            
 
 
             //ブロックを設置
-            BlockPlace(4, 0, 1, packetResponse);
-            BlockPlace(3, 1, 2, packetResponse);
-            BlockPlace(2, 3, 3, packetResponse);
-            BlockPlace(1, 4, 4, packetResponse);
+            BlockPlace(4, 0, 1, worldBlock,blockFactory);
+            BlockPlace(3, 1, 2, worldBlock,blockFactory);
+            BlockPlace(2, 3, 3, worldBlock,blockFactory);
+            BlockPlace(1, 4, 4, worldBlock,blockFactory);
 
             //イベントを取得
             response = packetResponse.GetPacketResponse(EventRequestData(0));
@@ -62,10 +66,9 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(4, y);
         }
 
-        void BlockPlace(int x, int y, int id, PacketResponseCreator packetResponseCreator)
+        void BlockPlace(int x, int y, int id, IWorldBlockDatastore worldBlock,BlockFactory blockFactory)
         {
-            packetResponseCreator.GetPacketResponse(
-                MessagePackSerializer.Serialize(new PutBlockProtocolMessagePack(id, x, y)).ToList());
+            worldBlock.AddBlock(blockFactory.Create(id,new System.Random().Next()),x,y,BlockDirection.North);
         }
 
         List<byte> EventRequestData(int plyaerID)

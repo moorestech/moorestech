@@ -35,7 +35,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             machine.InsertItem(item2);
 
             //稼働用の電気を供給する
-            machine.SupplyPower(1000);
+            machine.SupplyPower(100);
             
             
             //最初にイベントをリクエストして、ブロードキャストを受け取れるようにする
@@ -54,7 +54,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0,changeStateData.Position.X);
             Assert.AreEqual(0,changeStateData.Position.Y);
 
-            var detailChangeData = (ChangeMachineBlockStateChangeData)changeStateData.GetStateData();
+            var detailChangeData = changeStateData.GetStateDat<ChangeMachineBlockStateChangeData>();
             Assert.AreEqual(1.0f,detailChangeData.PowerRate);
 
         }
