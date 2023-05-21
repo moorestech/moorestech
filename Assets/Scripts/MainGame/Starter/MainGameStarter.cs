@@ -170,6 +170,7 @@ namespace MainGame.Starter
             builder.Register<InventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<RequestQuestProgressProtocol>(Lifetime.Singleton);
             builder.Register<SendEarnQuestRewardProtocol>(Lifetime.Singleton);
+            builder.Register<SendGetMapObjectProtocolProtocol>(Lifetime.Singleton);
             builder.Register<SendSetRecipeCraftingInventoryProtocol>(Lifetime.Singleton);
 
             //インベントリのUIコントロール
