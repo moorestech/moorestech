@@ -20,6 +20,7 @@ namespace Core.Block.Blocks.Miner
         public int EntityId { get; }
         public int BlockId { get; }
         public ulong BlockHash { get; }
+        public event Action<ChangedBlockState> OnBlockStateChange;
         
         public int RequestPower  { get; }
         private readonly ItemStackFactory _itemStackFactory;

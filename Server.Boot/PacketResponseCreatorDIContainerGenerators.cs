@@ -1,3 +1,4 @@
+using System.IO;
 using Core.Block.BlockFactory;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Miner;
@@ -17,6 +18,9 @@ using Game.Crafting.Config;
 using Game.Crafting.Interface;
 using Game.Entity;
 using Game.Entity.Interface;
+using Game.MapObject;
+using Game.MapObject.Interface;
+using Game.Paths;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest;
@@ -51,12 +55,17 @@ namespace Server.Boot
     public class PacketResponseCreatorDiContainerGenerators
     {
         //TODO セーブファイルのディレクトリもここで指定できるようにする
-        public (PacketResponseCreator, ServiceProvider) Create(string modDirectory)
+        public (PacketResponseCreator, ServiceProvider) Create(string serverDirectory)
         {
             var services = new ServiceCollection();
             
+            var modDirectory = Path.Combine(serverDirectory, "mods");
+            var mapDirectory = Path.Combine(serverDirectory, "map");
+            
             //コンフィグ、ファクトリーのインスタンスを登録
-            services.AddSingleton(new ConfigJsonList(ModJsonStringLoader.GetConfigString(modDirectory)));
+            var (configJsons,modsResource) = ModJsonStringLoader.GetConfigString(modDirectory);
+            services.AddSingleton(new ConfigJsonList(configJsons));
+            services.AddSingleton(modsResource);
             services.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
             services.AddSingleton<IItemConfig, ItemConfig>();
             services.AddSingleton<ICraftingConfig, CraftConfig>();
@@ -93,11 +102,15 @@ namespace Server.Boot
             services.AddSingleton<IQuestConfig, QuestConfig>();
             services.AddSingleton<QuestFactory, QuestFactory>();
             
+            services.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
+            services.AddSingleton<IMapObjectFactory, MapObjectFactory>();
+            
 
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(new SaveJsonFileName("save_1.json"));
+            services.AddSingleton(new MapConfigFile(mapDirectory));
 
             //イベントを登録
             services.AddSingleton<IBlockPlaceEvent, BlockPlaceEvent>();
@@ -110,6 +123,7 @@ namespace Server.Boot
             services.AddSingleton<IQuestCompletedEvent, QuestCompletedEvent>();
 
             //イベントレシーバーを登録
+            services.AddSingleton<ChangeBlockStateEventPacket>();
             services.AddSingleton<MainInventoryUpdateToSetEventPacket>();
             services.AddSingleton<CraftingInventoryUpdateToSetEventPacket>();
             services.AddSingleton<OpenableBlockInventoryUpdateToSetEventPacket>();
@@ -148,6 +162,7 @@ namespace Server.Boot
             serviceProvider.GetService<ConnectMachineToElectricSegment>();
             serviceProvider.GetService<SetMiningItemToMiner>();
             serviceProvider.GetService<QuestCompletedToSendEventPacket>();
+            serviceProvider.GetService<ChangeBlockStateEventPacket>();
 
             return (packetResponse, serviceProvider);
         }

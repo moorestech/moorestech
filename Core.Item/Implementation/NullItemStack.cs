@@ -20,7 +20,9 @@ namespace Core.Item.Implementation
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
-            return new ItemProcessResult(receiveItemStack, _itemStackFactory.CreatEmpty());
+            //そのまま足すとインスタスIDが同じになってベルトコンベアなどで運ぶときに問題が生じるので、新しいインスタンスを生成する
+            var tmpItem = _itemStackFactory.Create(receiveItemStack.Id, receiveItemStack.Count);
+            return new ItemProcessResult(tmpItem, _itemStackFactory.CreatEmpty());
         }
 
         public IItemStack SubItem(int subCount)

@@ -20,6 +20,8 @@ namespace World.DataStore
         //座標とキーの紐づけ
         private readonly Dictionary<Coordinate, int> _coordinateDictionary = new();
 
+        public event Action<(ChangedBlockState state, IBlock block, int x, int y)> OnBlockStateChange;
+
 
         readonly IBlock _nullBlock = new NullBlock();
         private readonly BlockPlaceEvent _blockPlaceEvent;
@@ -45,6 +47,11 @@ namespace World.DataStore
                 _blockMasterDictionary.Add(block.EntityId, data);
                 _coordinateDictionary.Add(c, block.EntityId);
                 _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(c, data.Block, blockDirection));
+
+                block.OnBlockStateChange += state =>
+                {
+                    OnBlockStateChange?.Invoke((state, block, x, y));
+                };
 
                 return true;
             }
@@ -135,7 +142,8 @@ namespace World.DataStore
                     (BlockDirection) block.Direction);
             }
         }
-        
+
+
         public bool Exists(int x, int y) { return GetBlock(x, y).BlockId != BlockConst.EmptyBlockId; }
         private int GetEntityId(int x, int y) { return _coordinateDictionary[new Coordinate(x, y)]; }
     }

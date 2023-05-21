@@ -17,6 +17,7 @@ namespace Core.Block.Blocks.PowerGenerator
         public int EntityId { get; }
         public int BlockId { get; }
         public ulong BlockHash { get; }
+        public event Action<ChangedBlockState> OnBlockStateChange;
         
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;

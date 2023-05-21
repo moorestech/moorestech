@@ -20,7 +20,6 @@ namespace Server.Protocol
         {
             _packetResponseDictionary.Add(DummyProtocol.Tag,new DummyProtocol());
             _packetResponseDictionary.Add(InitialHandshakeProtocol.Tag,new InitialHandshakeProtocol(serviceProvider));
-            _packetResponseDictionary.Add(PutBlockProtocol.Tag,new PutBlockProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerCoordinateSendProtocol.Tag,new PlayerCoordinateSendProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.Tag,new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
             _packetResponseDictionary.Add(EventProtocolMessagePackBase.EventProtocolTag,new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
@@ -36,6 +35,8 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(QuestProgressRequestProtocol.Tag,new QuestProgressRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(EarnQuestRewardProtocol.Tag,new EarnQuestRewardProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetRecipeCraftingInventoryProtocol.Tag,new SetRecipeCraftingInventoryProtocol(serviceProvider));
+            _packetResponseDictionary.Add(MapObjectDestructionInformationProtocol.Tag,new MapObjectDestructionInformationProtocol(serviceProvider));
+            _packetResponseDictionary.Add(GetMapObjectProtocol.Tag,new GetMapObjectProtocol(serviceProvider));
 
             serviceProvider.GetService<VeinGenerator>();
         }

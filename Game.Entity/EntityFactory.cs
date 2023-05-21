@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Base;
 using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
 

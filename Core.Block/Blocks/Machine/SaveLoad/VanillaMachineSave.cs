@@ -38,7 +38,7 @@ namespace Core.Block.Blocks.Machine.SaveLoad
             }
 
             //状態を保存
-            saveState.Append("state," + (int) _vanillaMachineRunProcess.State + ",");
+            saveState.Append("state," + (int) _vanillaMachineRunProcess.CurrentState + ",");
             //現在の残り時間を保存
             saveState.Append("remainingTime," + _vanillaMachineRunProcess.RemainingMillSecond + ",");
             //レシピIDを保存

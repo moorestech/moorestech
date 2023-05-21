@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Machine.InventoryController;
@@ -22,6 +23,7 @@ namespace Core.Block.Blocks.Machine
         public int EntityId { get; }
         public int BlockId { get; }
         public ulong BlockHash { get; }
+        public event Action<ChangedBlockState> OnBlockStateChange;
 
         public VanillaMachine(int blockId, int entityId, ulong blockHash,
             VanillaMachineBlockInventory vanillaMachineBlockInventory,
@@ -34,6 +36,11 @@ namespace Core.Block.Blocks.Machine
             _itemStackFactory = itemStackFactory;
             BlockHash = blockHash;
             EntityId = entityId;
+
+            _vanillaMachineRunProcess.OnChangeState += state =>
+            {
+                OnBlockStateChange?.Invoke(state);
+            };
         }
 
         

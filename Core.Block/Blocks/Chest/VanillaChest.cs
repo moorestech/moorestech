@@ -17,6 +17,7 @@ namespace Core.Block.Blocks.Chest
         public int EntityId { get; }
         public int BlockId { get; }
         public ulong BlockHash { get; }
+        public event Action<ChangedBlockState> OnBlockStateChange;
         
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;

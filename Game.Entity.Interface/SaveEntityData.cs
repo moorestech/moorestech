@@ -1,3 +1,4 @@
+using Game.Base;
 using Newtonsoft.Json;
 
 namespace Game.Entity.Interface

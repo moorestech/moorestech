@@ -7,6 +7,7 @@ namespace Core.Block.Blocks
         public int EntityId { get; }
         public int BlockId { get; }
         public ulong BlockHash { get; }
+        public event Action<ChangedBlockState> OnBlockStateChange;
 
         public VanillaBlock(int blockId, int entityId, ulong blockHash)
         {

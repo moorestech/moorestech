@@ -7,6 +7,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Game.Entity.Interface\Game.Entity.Interface.csproj" />
+        <ProjectReference Include="..\Game.MapObject.Interface\Game.MapObject.Interface.csproj" />
         <ProjectReference Include="..\Game.Paths\Game.Paths.csproj" />
         <ProjectReference Include="..\Game.PlayerInventory.Interface\Game.PlayerInventory.Interface.csproj" />
         <ProjectReference Include="..\Game.Quest.Interface\Game.Quest.Interface.csproj" />

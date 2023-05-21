@@ -5,6 +5,11 @@
         <TargetFramework>net5.0</TargetFramework>
         <RootNamespace>Server</RootNamespace>
         <AssemblyName>moorestech_server</AssemblyName>
+        
+        <PackageReadmeFile>../Nuget/PackageReadme.md</PackageReadmeFile>
+        
+        <PackageId>moorestech.Server</PackageId>
+        <Version>0.0.1</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -26,6 +31,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <None Include="..\Nuget\PackageReadme.md" Pack="true" PackagePath="\\"/>
+        
       <None Remove="mods\moorestechBaseMod.zip" />
       <Content Include="mods\moorestechBaseMod.zip">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>

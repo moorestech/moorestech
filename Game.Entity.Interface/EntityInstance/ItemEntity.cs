@@ -1,4 +1,5 @@
 ﻿using Core.Item;
+using Game.Base;
 
 namespace Game.Entity.Interface.EntityInstance
 {

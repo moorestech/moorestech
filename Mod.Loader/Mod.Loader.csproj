@@ -11,6 +11,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Game.Paths\Game.Paths.csproj" />
+      <ProjectReference Include="..\Mod.Base\Mod.Base.csproj" />
     </ItemGroup>
 
 </Project>
