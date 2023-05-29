@@ -11,6 +11,10 @@ using Object = UnityEngine.Object;
 
 namespace MainGame.UnityView.Block
 {
+    /// <summary>
+    /// Unityに表示されるブロックの実際のGameObjectを管理するクラス
+    /// 最初にブロックを生成しておき、必要なブロックを複製するためのクラス
+    /// </summary>
     public class BlockObjects
     {
         public event Action OnLoadFinished;
