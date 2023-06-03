@@ -4,7 +4,7 @@ using MainGame.UnityView.WorldMapTile;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace MainGame.Presenter.Chunk
+namespace MainGame.Presenter.Block
 {
     public class WorldMapTilePresenter : IInitializable
     {

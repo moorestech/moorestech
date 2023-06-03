@@ -5,7 +5,7 @@ using MainGame.UnityView.Chunk;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace MainGame.Presenter.Chunk
+namespace MainGame.Presenter.Block
 {
     /// <summary>
     /// サーバーからのパケットを受け取り、Viewにブロックの更新情報を渡す
@@ -30,14 +30,7 @@ namespace MainGame.Presenter.Chunk
         {
             var chunkPos = properties.ChunkPos;
             //チャンクの情報を追加か更新
-            if (_chunk.ContainsKey(chunkPos))
-            {
-                _chunk[chunkPos] = properties.BlockIds;
-            }
-            else
-            {
-                _chunk.Add(chunkPos, properties.BlockIds);
-            }
+            _chunk[chunkPos] = properties.BlockIds;
             
             //ブロックの更新イベントを発行
             for (int i = 0; i < ChunkConstant.ChunkSize; i++)
