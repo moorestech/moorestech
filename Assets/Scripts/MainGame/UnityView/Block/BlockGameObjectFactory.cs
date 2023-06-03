@@ -51,12 +51,16 @@ namespace MainGame.UnityView.Block
                 return nothing.GetComponent<BlockGameObject>();
             }
 
+            
             //ブロックの作成とセットアップをして返す
+            var blockType = _blockObjectList[blockConfigIndex].Type;
+            
             var block = Object.Instantiate(_blockObjectList[blockConfigIndex].BlockObject,position,rotation,parent);
             block.gameObject.SetActive(true);
-            block.SetUp(blockId,blockPosition,new NullBlockStateChangeProcessor());
+            block.SetUp(blockId,blockPosition,GetBlockStateChangeProcessor(block,blockType));
+            
             //ブロックが開けるものの場合はそのコンポーネントを付与する
-            if (IsOpenableInventory(_blockObjectList[blockConfigIndex].Type))
+            if (IsOpenableInventory(blockType))
             {
                 block.gameObject.AddComponent<OpenableInventoryBlock>();
             }
@@ -80,6 +84,19 @@ namespace MainGame.UnityView.Block
         private bool IsOpenableInventory(string type)
         {
             return type is VanillaBlockType.Chest or VanillaBlockType.Generator or VanillaBlockType.Miner or VanillaBlockType.Machine;
+        }
+
+
+        /// <summary>
+        /// どのブロックステートプロセッサーを使うかを決める
+        /// </summary>
+        private IBlockStateChangeProcessor GetBlockStateChangeProcessor(BlockGameObject block,string blockType)
+        {
+            return blockType switch
+            {
+                VanillaBlockType.Machine => block.gameObject.AddComponent<MachineBlockStateChangeProcessor>(),
+                _ => new NullBlockStateChangeProcessor()
+            };
         }
     }
     
