@@ -15,13 +15,13 @@ namespace MainGame.UnityView.Block
     /// Unityに表示されるブロックの実際のGameObjectを管理するクラス
     /// 最初にブロックを生成しておき、必要なブロックを複製するためのクラス
     /// </summary>
-    public class BlockObjects
+    public class BlockGameObjectFactory
     {
         public event Action OnLoadFinished;
         private List<BlockData> _blockObjectList;
         private readonly BlockGameObject _nothingIndexBlockObject;
 
-        public BlockObjects(ModDirectory modDirectory,BlockGameObject nothingIndexBlockObject,SinglePlayInterface singlePlayInterface)
+        public BlockGameObjectFactory(ModDirectory modDirectory,BlockGameObject nothingIndexBlockObject,SinglePlayInterface singlePlayInterface)
         {
             Init(modDirectory,singlePlayInterface).Forget();
             _nothingIndexBlockObject = nothingIndexBlockObject;

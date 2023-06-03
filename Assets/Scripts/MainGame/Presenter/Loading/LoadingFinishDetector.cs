@@ -23,7 +23,7 @@ namespace MainGame.Presenter.Loading
         private readonly Stopwatch _loadingStopwatch = new();
         
         [Inject]
-        public void Construct(ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol,IPlayerPosition playerPosition,BlockObjects blockObjects,ItemImages itemImages,WorldMapTileMaterials worldMapTileMaterials)
+        public void Construct(ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol,IPlayerPosition playerPosition,BlockGameObjectFactory blockGameObjectFactory,ItemImages itemImages,WorldMapTileMaterials worldMapTileMaterials)
         {
             _loadingStopwatch.Start();
             _playerPosition = playerPosition;
@@ -31,7 +31,7 @@ namespace MainGame.Presenter.Loading
             loadingUI.SetActive(true);
 
             receiveInitialHandshakeProtocol.OnFinishHandshake += OnFinishHandshake;
-            blockObjects.OnLoadFinished += FinishBlockModelLoading;
+            blockGameObjectFactory.OnLoadFinished += FinishBlockModelLoading;
             itemImages.OnLoadFinished += FinishItemTextureLoading;
             worldMapTileMaterials.OnLoadFinished += FinishMapTileTextureLoading;
         }

@@ -211,7 +211,7 @@ namespace MainGame.Starter
             //modからロードしてきたデータ
             builder.Register<ItemImages>(Lifetime.Singleton);
             builder.Register<WorldMapTileMaterials>(Lifetime.Singleton);
-            builder.Register<BlockObjects>(Lifetime.Singleton);
+            builder.Register<BlockGameObjectFactory>(Lifetime.Singleton);
             
             //チュートリアル関係
             builder.RegisterComponent(tutorialExecuter);

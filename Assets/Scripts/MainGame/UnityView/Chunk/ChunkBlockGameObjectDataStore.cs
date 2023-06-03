@@ -10,7 +10,7 @@ namespace MainGame.UnityView.Chunk
 {
     public class ChunkBlockGameObjectDataStore : MonoBehaviour
     {
-        private BlockObjects _blockObjects;
+        private BlockGameObjectFactory _blockGameObjectFactory;
 
         public event Action<BlockGameObject> OnPlaceBlock;
 
@@ -18,9 +18,9 @@ namespace MainGame.UnityView.Chunk
         private readonly Dictionary<Vector2Int,BlockGameObject> _blockObjectsDictionary = new();
 
         [Inject]
-        public void Construct(BlockObjects blockObjects)
+        public void Construct(BlockGameObjectFactory blockGameObjectFactory)
         {
-            _blockObjects = blockObjects;
+            _blockGameObjectFactory = blockGameObjectFactory;
         }
 
         
@@ -46,7 +46,7 @@ namespace MainGame.UnityView.Chunk
             //実際のブロックのモデルは+0.5した値が中心になる
             var pos = new Vector3(blockPosition.x, 0, blockPosition.y).AddOffset();
             var rot = BlockDirectionAngle.GetRotation(blockDirection);
-            var block = _blockObjects.CreateBlock(blockId,pos,rot,transform,blockPosition);
+            var block = _blockGameObjectFactory.CreateBlock(blockId,pos,rot,transform,blockPosition);
                 
             _blockObjectsDictionary.Add(blockPosition,block);
             OnPlaceBlock?.Invoke(block);

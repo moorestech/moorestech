@@ -12,7 +12,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
     public class ItemRecipeView : MonoBehaviour
     {
         private ItemImages _itemImages;
-        private BlockObjects _blockObjects;
+        private BlockGameObjectFactory _blockGameObjectFactory;
         
         [SerializeField] private GameObject craftingRecipeView;
         [SerializeField] private GameObject machineCraftingRecipeView;
@@ -27,9 +27,9 @@ namespace MainGame.UnityView.UI.CraftRecipe
         public event CraftRecipeItemListViewer.ItemSlotClick OnCraftSlotClick;
 
         [Inject]
-        public void Construct(ItemImages itemImages,BlockObjects blockObjects)
+        public void Construct(ItemImages itemImages,BlockGameObjectFactory blockGameObjectFactory)
         {
-            _blockObjects = blockObjects;
+            _blockGameObjectFactory = blockGameObjectFactory;
             _itemImages = itemImages;
             foreach (var slot in craftingRecipeSlots)
             {
@@ -66,7 +66,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
             craftingRecipeView.SetActive(false);
             machineCraftingRecipeView.SetActive(true);
 
-            machineNameText.text = _blockObjects.GetName(blockId);
+            machineNameText.text = _blockGameObjectFactory.GetName(blockId);
             
             for (int i = 0; i < machineCraftingRecipeSlots.Count; i++)
             {
