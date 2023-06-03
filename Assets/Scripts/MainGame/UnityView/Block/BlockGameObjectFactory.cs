@@ -5,6 +5,7 @@ using Core.Block.Config;
 using Cysharp.Threading.Tasks;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
+using MainGame.UnityView.Block.StateChange;
 using SinglePlay;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -46,14 +47,14 @@ namespace MainGame.UnityView.Block
                 //ブロックIDがないのでない時用のブロックを作る
                 Debug.LogWarning("Not Id " + blockConfigIndex);
                 var nothing = Object.Instantiate(_nothingIndexBlockObject,position,rotation,parent);
-                nothing.SetUp(blockId,blockPosition);
+                nothing.SetUp(blockId,blockPosition,new NullBlockStateChangeProcessor());
                 return nothing.GetComponent<BlockGameObject>();
             }
 
             //ブロックの作成とセットアップをして返す
             var block = Object.Instantiate(_blockObjectList[blockConfigIndex].BlockObject,position,rotation,parent);
             block.gameObject.SetActive(true);
-            block.SetUp(blockId,blockPosition);
+            block.SetUp(blockId,blockPosition,new NullBlockStateChangeProcessor());
             //ブロックが開けるものの場合はそのコンポーネントを付与する
             if (IsOpenableInventory(_blockObjectList[blockConfigIndex].Type))
             {

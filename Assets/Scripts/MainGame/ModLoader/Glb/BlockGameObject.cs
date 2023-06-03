@@ -6,11 +6,14 @@ namespace MainGame.ModLoader.Glb
     {
         public int BlockId { get; private set; } = 0;
         public Vector2Int BlockPosition { get; private set; } = Vector2Int.zero;
+        public IBlockStateChangeProcessor BlockStateChangeProcessor { get; private set; }
 
-        public void SetUp(int blockId,Vector2Int position)
+        public void SetUp(int blockId,Vector2Int position,IBlockStateChangeProcessor blockStateChangeProcessor)
         {
             BlockPosition = position;
             BlockId = blockId;
+            BlockStateChangeProcessor = blockStateChangeProcessor;
+            
             foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>())
             {
                 child.Init(this);
