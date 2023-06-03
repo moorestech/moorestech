@@ -25,9 +25,9 @@ namespace Server.Boot
             try
             {
 #if DEBUG
-                var modsDirectory = DebugModsDirectory;
+                var serverDirectory = DebugServerDirectory;
 #else
-                var modsDirectory = ReleasesModsDirectory;
+                var modsDirectory = Environment.CurrentDirectory;
                 if (args.Length == 0)
                 {
                     Console.WriteLine("コマンドライン引数にコンフィグのパスが指定されていませんでした。デフォルトコンフィグパスを使用します。");
@@ -42,7 +42,7 @@ namespace Server.Boot
                 }
 #endif
                 
-                var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(modsDirectory);
+                var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(serverDirectory);
                 
                 //マップをロードする
                 serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
@@ -95,37 +95,10 @@ namespace Server.Boot
                 Console.WriteLine("環境変数にコンフィグのパスが指定されていませんでした。MOORES_SERVER_DIRECTORYを設定してください。");
                 Console.WriteLine("Windowsの場合の設定コマンド > setx /M MOORES_SERVER_DIRECTORY \"C:～ \"");
                 Console.WriteLine("Macの場合の設定コマンド > export MOORES_SERVER_DIRECTORY=\"～\"");
-                return ReleasesModsDirectory;
+                return Environment.CurrentDirectory;
             }
         }
 
-        private static string DebugModsDirectory
-        {
-            get
-            {
-                DirectoryInfo di = new DirectoryInfo(DebugServerDirectory);
-                return Path.Combine(di.FullName, "mods");
-            }
-        }
-        
-        private static string DebugMapDirectory
-        {
-            get
-            {
-                DirectoryInfo di = new DirectoryInfo(DebugServerDirectory);
-                return Path.Combine(di.FullName, "map");
-            }
-        }
-
-        private static string ReleasesModsDirectory
-        {
-            get
-            {
-                DirectoryInfo di = new DirectoryInfo(Environment.CurrentDirectory);
-                return Path.Combine(di.FullName, "mods");
-            }
-        }
-        
         private static string StartupFromClientFolderPath
         {
             get
