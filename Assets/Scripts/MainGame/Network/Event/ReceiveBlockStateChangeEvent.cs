@@ -21,7 +21,7 @@ namespace MainGame.Network.Event
         public string CurrentState { get; }
         public string PreviousState { get;  }
         public byte[] CurrentStateData { get;  }
-        public Vector2 Position { get;  }
+        public Vector2Int Position { get;  }
         
         public BlockStateChangeProperties(string currentState, string previousState, byte[] currentStateData, Vector2MessagePack position)
         
@@ -29,7 +29,7 @@ namespace MainGame.Network.Event
             CurrentState = currentState;
             PreviousState = previousState;
             CurrentStateData = currentStateData;
-            Position = new Vector2(position.X,position.Y);
+            Position = new Vector2Int((int)position.X,(int)position.Y);
         }
 
     }

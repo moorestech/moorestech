@@ -1,6 +1,7 @@
 ﻿using System;
 using Core.Block.Blocks.Machine;
 using MainGame.ModLoader.Glb;
+using MessagePack;
 using UnityEngine;
 
 namespace MainGame.UnityView.Block.StateChange
@@ -22,7 +23,7 @@ namespace MainGame.UnityView.Block.StateChange
         }
 
 
-        public void SetState(string currentState, string previousState, byte[] currentStateData)
+        public void OnChangeState(string currentState, string previousState, byte[] currentStateData)
         {
             switch (currentState)
             {

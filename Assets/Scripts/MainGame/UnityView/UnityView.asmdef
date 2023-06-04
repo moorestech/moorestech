@@ -11,7 +11,8 @@
         "Server",
         "ModLoader",
         "UniTask",
-        "ThirdPersonController"
+        "ThirdPersonController",
+        "MessagePack"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
