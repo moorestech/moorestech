@@ -141,16 +141,24 @@ namespace Mod.Loader
         private static List<MoorestechServerModEntryPoint> LoadEntryPoints(string modDirectory)
         {
             var entryPoints = new List<MoorestechServerModEntryPoint>();
-            //modディレクトリの全てディレクトリでdllを全てロードし、ModBaseを継承しているクラスを探す
-            foreach (var dllPath in Directory.GetFiles(modDirectory, "*.dll",SearchOption.AllDirectories))
+
+            try
             {
-                var assembly = Assembly.LoadFrom(dllPath);
-                var modBaseTypes = assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(MoorestechServerModEntryPoint)));
-                foreach (var modBaseType in modBaseTypes)
+                //modディレクトリの全てディレクトリでdllを全てロードし、ModBaseを継承しているクラスを探す
+                foreach (var dllPath in Directory.GetFiles(modDirectory, "*.dll",SearchOption.AllDirectories))
                 {
-                    var modBase = (MoorestechServerModEntryPoint) Activator.CreateInstance(modBaseType);
-                    entryPoints.Add(modBase);
+                    var assembly = Assembly.LoadFrom(dllPath);
+                    var modBaseTypes = assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(MoorestechServerModEntryPoint)));
+                    foreach (var modBaseType in modBaseTypes)
+                    {
+                        var modBase = (MoorestechServerModEntryPoint) Activator.CreateInstance(modBaseType);
+                        entryPoints.Add(modBase);
+                    }
                 }
+            }
+            catch (ReflectionTypeLoadException e)
+            {
+                //クライアント側でエラーが出るので、ここでキャッチしておく
             }
             return entryPoints;
         }
