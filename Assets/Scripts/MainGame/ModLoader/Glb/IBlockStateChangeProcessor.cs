@@ -9,7 +9,6 @@
         /// <summary>
         /// ブロックのステートに基づいてアニメーションを再生する
         /// タイプに応じてアニメーションを再生する
-        /// TODO 抽象化する
         /// </summary>
         public void SetState(string currentState, string previousState, byte[] currentStateData);
     }
