@@ -130,7 +130,7 @@ namespace MainGame.Starter
         {
             var builder = new ContainerBuilder();
             //シングルプレイ用のインスタンス
-            var singlePlayInterface = new SinglePlayInterface(ServerConst.ServerModsDirectory);
+            var singlePlayInterface = new SinglePlayInterface(ServerConst.ServerDirectory);
             builder.RegisterInstance(singlePlayInterface);
             builder.RegisterInstance(singlePlayInterface.QuestConfig);
             builder.RegisterInstance(singlePlayInterface.ItemConfig);
