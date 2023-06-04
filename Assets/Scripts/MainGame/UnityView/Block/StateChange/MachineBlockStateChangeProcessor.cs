@@ -13,6 +13,7 @@ namespace MainGame.UnityView.Block.StateChange
         #endregion
         
         private AudioSource _audioSource;
+        private float _processingRate;
 
         private void Start()
         {
@@ -25,10 +26,15 @@ namespace MainGame.UnityView.Block.StateChange
 
         public void OnChangeState(string currentState, string previousState, byte[] currentStateData)
         {
+            var data = MessagePackSerializer.Deserialize<ChangeMachineBlockStateChangeData>(currentStateData);
+            _processingRate = data.ProcessingRate;
             switch (currentState)
             {
                 case VanillaMachineBlockStateConst.ProcessingState:
-                    _audioSource.Play();
+                    if (previousState == VanillaMachineBlockStateConst.IdleState)
+                    {
+                        _audioSource.Play();
+                    }
                     break;
                 case VanillaMachineBlockStateConst.IdleState:
                     _audioSource.Stop();

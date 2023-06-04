@@ -198,6 +198,7 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<QuestUIPresenter>();
             builder.RegisterEntryPoint<RecipeViewerItemPlacer>();
             builder.RegisterEntryPoint<DirectItemMovePacketSend>();
+            builder.RegisterEntryPoint<BlockStateChangePresenter>();
             
             
             //UIコントロール

@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace MainGame.UnityView.UI.UIState.UIObject
 {
+    /// <summary>
+    /// ブロックのインベントリを動的に構築するシステム
+    /// </summary>
     public class BlockInventoryObjectCreator : MonoBehaviour
     {
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
