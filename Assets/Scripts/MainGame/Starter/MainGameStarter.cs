@@ -23,6 +23,7 @@ using MainGame.Presenter.Quest;
 using MainGame.Presenter.Tutorial;
 using MainGame.Presenter.Tutorial.ExecutableTutorials;
 using MainGame.UnityView.Block;
+using MainGame.UnityView.Block.StateChange;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.Game;
@@ -153,6 +154,7 @@ namespace MainGame.Starter
             builder.Register<ReceiveInitialHandshakeProtocol>(Lifetime.Singleton); //初期接続時に受け取るプロトコル
             builder.Register<ReceiveQuestDataEvent>(Lifetime.Singleton);
             builder.Register<ReceiveEntitiesDataEvent>(Lifetime.Singleton);
+            builder.Register<ReceiveBlockStateChangeEvent>(Lifetime.Singleton);
             
             //パケット送信インスタンス
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
@@ -181,6 +183,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(playerInventoryPresenter);
             
             //プレゼンターアセンブリ
+            builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<ChunkDataPresenter>();
             builder.RegisterEntryPoint<WorldMapTilePresenter>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
