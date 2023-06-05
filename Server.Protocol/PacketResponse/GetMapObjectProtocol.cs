@@ -9,6 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Server.Protocol.PacketResponse
 {
+    /// <summary>
+    /// MapObjectを取得するときのプロトコル
+    /// </summary>
     public class GetMapObjectProtocol : IPacketResponse
     {
         
