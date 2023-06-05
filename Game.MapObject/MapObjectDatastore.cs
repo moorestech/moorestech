@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.MapObject.Interface;
 using Game.MapObject.Interface.Json;
@@ -7,6 +8,8 @@ namespace Game.MapObject
 {
     public class MapObjectDatastore : IMapObjectDatastore
     {
+        public event Action<IMapObject> OnDestroyMapObject;
+        
         private readonly Dictionary<int,IMapObject> _mapObjects = new();
         private readonly IMapObjectFactory _mapObjectFactory;
 
@@ -38,6 +41,7 @@ namespace Game.MapObject
         public void Add(IMapObject mapObject)
         {
             _mapObjects.Add(mapObject.InstanceId, mapObject);
+            mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
         }
 
         public IMapObject Get(int instanceId)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Game.MapObject.Interface.Json;
 
 namespace Game.MapObject.Interface
@@ -14,5 +15,7 @@ namespace Game.MapObject.Interface
         public IMapObject Get(int instanceId);
 
         public List<SaveMapObjectData> GetSettingsSaveData();
+
+        public event Action<IMapObject> OnDestroyMapObject;
     }
 }
