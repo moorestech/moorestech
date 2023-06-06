@@ -1,4 +1,5 @@
-﻿using Game.Base;
+﻿using System;
+using Game.Base;
 
 namespace Game.MapObject.Interface
 {
@@ -36,5 +37,7 @@ namespace Game.MapObject.Interface
 
 
         public void Destroy();
+        
+        public event Action OnDestroy;
     }
 }

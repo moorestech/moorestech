@@ -1,8 +1,12 @@
-﻿using Game.Base;
+﻿using System;
+using Game.Base;
 using Game.MapObject.Interface;
 
 namespace Game.MapObject
 {
+    /// <summary>
+    /// 木や小石など基本的に動かないマップオブジェクト
+    /// </summary>
     public class VanillaStaticMapObject : IMapObject
     {
         public int InstanceId { get; }
@@ -12,6 +16,8 @@ namespace Game.MapObject
         public int ItemId { get; }
         public int ItemCount => 1;
 
+        public event Action OnDestroy;
+        
         public VanillaStaticMapObject(int id, string type, bool isDestroyed, ServerVector3 position, int itemId)
         {
             InstanceId = id;
@@ -24,6 +30,8 @@ namespace Game.MapObject
         public void Destroy()
         {
             IsDestroyed = true;
+            OnDestroy?.Invoke();
         }
+
     }
 }
