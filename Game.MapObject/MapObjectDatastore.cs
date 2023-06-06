@@ -10,6 +10,11 @@ namespace Game.MapObject
     {
         public event Action<IMapObject> OnDestroyMapObject;
         
+        /// <summary>
+        /// このデータが空になる場合はワールドのロードか初期化ができていない状態である可能性が高いです。
+        /// 単純にmapObjectがない場合もありますが、、
+        /// <see cref="WorldLoaderFromJson"/>でロードもしくは初期化を行ってください。
+        /// </summary>
         private readonly Dictionary<int,IMapObject> _mapObjects = new();
         private readonly IMapObjectFactory _mapObjectFactory;
 
@@ -26,6 +31,7 @@ namespace Game.MapObject
             {
                 var mapObject = _mapObjectFactory.Create(configMapObject.Type, configMapObject.Position);
                 _mapObjects.Add(mapObject.InstanceId, mapObject);
+                mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
             }
         }
 
@@ -35,6 +41,7 @@ namespace Game.MapObject
             {
                 var mapObject = _mapObjectFactory.Create(data.InstanceId,data.Type, data.Position, data.IsDestroyed);
                 _mapObjects.Add(mapObject.InstanceId, mapObject);
+                mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
             }
         }
 

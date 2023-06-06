@@ -139,6 +139,7 @@ namespace Server.Boot
             services.AddSingleton<DisconnectTwoOreMoreElectricPoleFromSegmentService>();
             services.AddSingleton<DisconnectOneElectricPoleFromSegmentService>();
             services.AddSingleton<QuestCompletedToSendEventPacket>();
+            services.AddSingleton<MapObjectUpdateEventPacket>();
 
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -163,6 +164,7 @@ namespace Server.Boot
             serviceProvider.GetService<SetMiningItemToMiner>();
             serviceProvider.GetService<QuestCompletedToSendEventPacket>();
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
+            serviceProvider.GetService<MapObjectUpdateEventPacket>();
 
             return (packetResponse, serviceProvider);
         }

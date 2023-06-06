@@ -46,6 +46,7 @@ namespace Server.Event.EventReceive
 
         public MapObjectUpdateEventMessagePack(string eventType, int instanceId)
         {
+            EventTag = MapObjectUpdateEventPacket.EventTag;
             EventType = eventType;
             InstanceId = instanceId;
         }
