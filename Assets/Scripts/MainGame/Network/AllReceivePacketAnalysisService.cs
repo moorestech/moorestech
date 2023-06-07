@@ -24,7 +24,7 @@ namespace MainGame.Network
             _analysisPackets.Add(InitialHandshakeProtocol.Tag,receiveInitialHandshakeProtocol);
             _analysisPackets.Add(PlayerCoordinateSendProtocol.ChunkDataTag,new ReceiveChunkDataProtocol(receiveChunkDataEvent)); 
             _analysisPackets.Add(PlayerCoordinateSendProtocol.EntityDataTag,new ReceiveEntitiesProtocol(receiveEntitiesDataEvent)); 
-            _analysisPackets.Add(EventProtocolMessagePackBase.EventProtocolTag,new ReceiveEventProtocol(receiveChunkDataEvent,receiveMainInventoryEvent,receiveCraftingInventoryEvent,receiveBlockInventoryEvent,receiveGrabInventoryEvent,receiveBlockStateChangeEvent));
+            _analysisPackets.Add(EventProtocolMessagePackBase.EventProtocolTag,new ReceiveEventProtocol(receiveChunkDataEvent,receiveMainInventoryEvent,receiveCraftingInventoryEvent,receiveBlockInventoryEvent,receiveGrabInventoryEvent,receiveBlockStateChangeEvent,receiveUpdateMapObjectEvent));
             _analysisPackets.Add(PlayerInventoryResponseProtocol.Tag,new ReceivePlayerInventoryProtocol(receiveMainInventoryEvent,receiveCraftingInventoryEvent,receiveGrabInventoryEvent));
             _analysisPackets.Add(BlockInventoryRequestProtocol.Tag,new ReceiveBlockInventoryProtocol(receiveBlockInventoryEvent));
             _analysisPackets.Add(QuestProgressRequestProtocol.Tag,new ReceiveQuestProgressProtocol(receiveQuestDataEvent));

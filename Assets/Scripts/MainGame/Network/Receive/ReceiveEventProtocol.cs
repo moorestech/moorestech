@@ -14,7 +14,7 @@ namespace MainGame.Network.Receive
 
         //TODO ここはDIコンテナを渡すほうがいいのでは
         public ReceiveEventProtocol(ReceiveChunkDataEvent receiveChunkDataEvent, ReceiveMainInventoryEvent receiveMainInventoryEvent,
-            ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent,ReceiveBlockInventoryEvent receiveBlockInventoryEvent,ReceiveGrabInventoryEvent receiveGrabInventoryEvent,ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent)
+            ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent,ReceiveBlockInventoryEvent receiveBlockInventoryEvent,ReceiveGrabInventoryEvent receiveGrabInventoryEvent,ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent,ReceiveUpdateMapObjectEvent receiveUpdateMapObjectEvent)
         {
             _eventPacket.Add(PlaceBlockToSetEventPacket.EventTag,new BlockPlaceEventProtocol(receiveChunkDataEvent));
             _eventPacket.Add(MainInventoryUpdateToSetEventPacket.EventTag,new MainInventorySlotEventProtocol(receiveMainInventoryEvent));
@@ -23,6 +23,7 @@ namespace MainGame.Network.Receive
             _eventPacket.Add(CraftingInventoryUpdateToSetEventPacket.EventTag,new CraftingInventorySlotEventProtocol(receiveCraftingInventoryEvent));
             _eventPacket.Add(GrabInventoryUpdateToSetEventPacket.EventTag,new GrabInventoryUpdateEventProtocol(receiveGrabInventoryEvent));
             _eventPacket.Add(ChangeBlockStateEventPacket.EventTag,new BlockStateChangeEventProtocol(receiveBlockStateChangeEvent));
+            _eventPacket.Add(MapObjectUpdateEventPacket.EventTag,new MapObjectUpdateEventProtocol(receiveUpdateMapObjectEvent));
         }
         
         /// <summary>
