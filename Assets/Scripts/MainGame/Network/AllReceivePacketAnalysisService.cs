@@ -18,7 +18,7 @@ namespace MainGame.Network
         
         
         public AllReceivePacketAnalysisService(
-            ReceiveChunkDataEvent receiveChunkDataEvent, ReceiveMainInventoryEvent receiveMainInventoryEvent,ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent,ReceiveBlockInventoryEvent receiveBlockInventoryEvent,ReceiveGrabInventoryEvent receiveGrabInventoryEvent,ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol,ReceiveQuestDataEvent receiveQuestDataEvent,ReceiveEntitiesDataEvent receiveEntitiesDataEvent,ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent)
+            ReceiveChunkDataEvent receiveChunkDataEvent, ReceiveMainInventoryEvent receiveMainInventoryEvent,ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent,ReceiveBlockInventoryEvent receiveBlockInventoryEvent,ReceiveGrabInventoryEvent receiveGrabInventoryEvent,ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol,ReceiveQuestDataEvent receiveQuestDataEvent,ReceiveEntitiesDataEvent receiveEntitiesDataEvent,ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent,ReceiveUpdateMapObjectEvent receiveUpdateMapObjectEvent)
         {
             _analysisPackets.Add(DummyProtocol.Tag,new ReceiveDummyProtocol());
             _analysisPackets.Add(InitialHandshakeProtocol.Tag,receiveInitialHandshakeProtocol);
@@ -28,6 +28,7 @@ namespace MainGame.Network
             _analysisPackets.Add(PlayerInventoryResponseProtocol.Tag,new ReceivePlayerInventoryProtocol(receiveMainInventoryEvent,receiveCraftingInventoryEvent,receiveGrabInventoryEvent));
             _analysisPackets.Add(BlockInventoryRequestProtocol.Tag,new ReceiveBlockInventoryProtocol(receiveBlockInventoryEvent));
             _analysisPackets.Add(QuestProgressRequestProtocol.Tag,new ReceiveQuestProgressProtocol(receiveQuestDataEvent));
+            _analysisPackets.Add(MapObjectDestructionInformationProtocol.Tag,new ReceiveMapObjectDestructionInformationProtocol(receiveUpdateMapObjectEvent));
 
         }
 
