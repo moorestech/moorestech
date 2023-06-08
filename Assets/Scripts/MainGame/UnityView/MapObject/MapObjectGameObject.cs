@@ -18,7 +18,20 @@ namespace MainGame.UnityView.MapObject
 
         public void DestroyMapObject()
         {
-            throw new NotImplementedException();
+            //自分を含む全ての子のコライダーとレンダラーを無効化する
+            foreach (var child in GetComponentsInChildren<Transform>())
+            {
+                var collider = child.GetComponent<Collider>();
+                if (collider != null)
+                {
+                    collider.enabled = false;
+                }
+                var renderer = child.GetComponent<Renderer>();
+                if (renderer != null)
+                {
+                    renderer.enabled = false;
+                }
+            }
         }
     }
 }
