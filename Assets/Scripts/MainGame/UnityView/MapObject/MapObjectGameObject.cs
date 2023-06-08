@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace MainGame.UnityView.MapObject
 {
@@ -13,5 +14,11 @@ namespace MainGame.UnityView.MapObject
 
         [SerializeField] private string mapObjectType;
         public string MapObjectType => mapObjectType;
+
+
+        public void DestroyMapObject()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

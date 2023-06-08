@@ -18,6 +18,7 @@ using MainGame.Presenter.Inventory;
 using MainGame.Presenter.Inventory.Receive;
 using MainGame.Presenter.Inventory.Send;
 using MainGame.Presenter.Loading;
+using MainGame.Presenter.MapObject;
 using MainGame.Presenter.Player;
 using MainGame.Presenter.Quest;
 using MainGame.Presenter.Tutorial;
@@ -85,6 +86,7 @@ namespace MainGame.Starter
 
         [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
         [SerializeField] private WorldMapTileGameObjectDataStore worldMapTileGameObjectDataStore;
+        [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
         
         [SerializeField] private HotBarItemView hotBarItemView;
         [SerializeField] private BlockClickDetect blockClickDetect;
@@ -233,6 +235,7 @@ namespace MainGame.Starter
             
             builder.RegisterComponent(chunkBlockGameObjectDataStore);
             builder.RegisterComponent(worldMapTileGameObjectDataStore);
+            builder.RegisterComponent(mapObjectGameObjectDatastore);
             
             builder.RegisterComponent(oreMapTileClickDetect);
             builder.RegisterComponent(mainCamera);

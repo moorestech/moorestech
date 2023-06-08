@@ -280,6 +280,7 @@ Transform:
   - {fileID: 3084759532940359043}
   - {fileID: 968792338582425333}
   - {fileID: 7741747857552304000}
+  - {fileID: 2213244559711559564}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -305,6 +306,7 @@ MonoBehaviour:
   nothingIndexBlock: {fileID: 9132462905212096051, guid: a1d79b5509bdd461d9b93377bbd5c780, type: 3}
   chunkBlockGameObjectDataStore: {fileID: 6969544057453635935}
   worldMapTileGameObjectDataStore: {fileID: 3084759533826814015}
+  mapObjectGameObjectDatastore: {fileID: 8716739972070795721}
   hotBarItemView: {fileID: 1470009627252618006}
   blockClickDetect: {fileID: 3084759533938812182}
   commandUIInput: {fileID: 529791717075169834}
@@ -450,7 +452,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 1.7772021, y: 1}
+    m_SensorSize: {x: 1.3333334, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -813,6 +815,52 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &7851784590550335354
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2213244559711559564}
+  - component: {fileID: 8716739972070795721}
+  m_Layer: 0
+  m_Name: MapObjectDataStore
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2213244559711559564
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7851784590550335354}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3084759534298576664}
+  m_RootOrder: 11
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8716739972070795721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7851784590550335354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aaf49e0debf54768bdc588120fbe9d4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stoneMapObjects: []
+  treeMapObjects: []
 --- !u!1 &8099644377974929813
 GameObject:
   m_ObjectHideFlags: 0
