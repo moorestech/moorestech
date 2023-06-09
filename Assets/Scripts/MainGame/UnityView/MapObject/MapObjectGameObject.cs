@@ -1,5 +1,7 @@
 ﻿using System;
+using MainGame.UnityView.UI.UIState;
 using UnityEngine;
+using VContainer;
 
 namespace MainGame.UnityView.MapObject
 {
@@ -14,7 +16,21 @@ namespace MainGame.UnityView.MapObject
 
         [SerializeField] private string mapObjectType;
         public string MapObjectType => mapObjectType;
+        
+        private UIStateControl _uiStateControl;
+        
+        
+        [Inject]
+        public void Construct(UIStateControl uiStateControl)
+        {
+            _uiStateControl = uiStateControl;
+        }
 
+
+        public void OutlineEnable(bool enable)
+        {
+            
+        }
 
         public void DestroyMapObject()
         {
