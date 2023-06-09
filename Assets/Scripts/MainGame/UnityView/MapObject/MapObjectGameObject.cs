@@ -33,5 +33,21 @@ namespace MainGame.UnityView.MapObject
                 }
             }
         }
+        
+        
+
+
+#if UNITY_EDITOR
+        public void SetMapObjectData(int instanceId, string mapObjectType)
+        {
+            this.instanceId = instanceId;
+            this.mapObjectType = mapObjectType;
+        }
+        
+        public Vector3 GetPosition()
+        {
+            return transform.position;
+        }
+#endif
     }
 }

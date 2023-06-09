@@ -15,6 +15,11 @@ namespace MainGame.Presenter.MapObject
         [SerializeField] private List<MapObjectGameObject> stoneMapObjects;
         [SerializeField] private List<MapObjectGameObject> treeMapObjects;
 
+#if UNITY_EDITOR
+        public IReadOnlyList<MapObjectGameObject> StoneMapObjects => stoneMapObjects;
+        public IReadOnlyList<MapObjectGameObject> TreeMapObjects => treeMapObjects;
+#endif
+
 
         private readonly Dictionary<int, MapObjectGameObject> _allMapObjects = new();
 
