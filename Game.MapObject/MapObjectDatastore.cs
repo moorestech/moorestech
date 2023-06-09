@@ -29,7 +29,7 @@ namespace Game.MapObject
         {
             foreach (var configMapObject in jsonMapObjectDataList)
             {
-                var mapObject = _mapObjectFactory.Create(configMapObject.Type, configMapObject.Position);
+                var mapObject = _mapObjectFactory.Create(configMapObject.InstanceId,configMapObject.Type, configMapObject.Position,false);
                 _mapObjects.Add(mapObject.InstanceId, mapObject);
                 mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
             }
