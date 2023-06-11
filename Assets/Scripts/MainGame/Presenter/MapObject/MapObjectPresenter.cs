@@ -25,6 +25,7 @@ namespace MainGame.Presenter.MapObject
 
         public void Tick()
         {
+            Debug.Log("bb");
             if (_uiStateControl.CurrentState != UIStateEnum.GameScreen)
             {
                 return;
@@ -44,9 +45,10 @@ namespace MainGame.Presenter.MapObject
             else if (_lastForcesMapObjectGameObject == null && forceMapObject != null)
             {
                 //フォーカスが当たったのでアウトラインを表示する
-                _lastForcesMapObjectGameObject.OutlineEnable(true);
+                forceMapObject.OutlineEnable(true);
             }
-            else if (_lastForcesMapObjectGameObject != forceMapObject)
+            else if (_lastForcesMapObjectGameObject != null && forceMapObject != null &&
+                     _lastForcesMapObjectGameObject != forceMapObject)
             {
                 //フォーカスが切り替わったのでアウトラインを切り替える
                 _lastForcesMapObjectGameObject.OutlineEnable(false);

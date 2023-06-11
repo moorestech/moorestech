@@ -289,8 +289,6 @@ namespace MainGame.Starter
             _resolver.Resolve<LoadingFinishDetector>();
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntitiesPresenter>();
-            _resolver.Resolve<MapObjectPresenter>();
-
         }
 
         protected override void OnDestroy()

@@ -953,6 +953,7 @@ GameObject:
   - component: {fileID: 5859824434571598944}
   - component: {fileID: 6142020456904027510}
   - component: {fileID: 567331994384466197}
+  - component: {fileID: 8369921061408519128}
   m_Layer: 6
   m_Name: BirchTree01
   m_TagString: Untagged
@@ -976,7 +977,7 @@ Transform:
   - {fileID: 6898891330194754042}
   - {fileID: 5799730619816567798}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!205 &6142020456904027510
 LODGroup:
@@ -1022,6 +1023,27 @@ MonoBehaviour:
   outlineObject: {fileID: 7673798300911505495}
   instanceId: 0
   mapObjectType: 
+--- !u!65 &8369921061408519128
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6492387370560325338}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.9543843, y: 3.0361328, z: 3.318187}
+  m_Center: {x: -0.1515676, y: 4.176109, z: 0.026429169}
 --- !u!1 &7122453874156123516
 GameObject:
   m_ObjectHideFlags: 0

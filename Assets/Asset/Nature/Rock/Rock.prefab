@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 1250912159027108964}
   - component: {fileID: 2806862344779994049}
   - component: {fileID: 78545981940492043}
-  - component: {fileID: 4209003066108698275}
   m_Layer: 6
   m_Name: rock
   m_TagString: Untagged
@@ -84,28 +83,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &4209003066108698275
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1880236728614602462}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -4724730747292221029, guid: a545b9d202af5bb43a2ff742f6a45557, type: 3}
 --- !u!1 &4825600189295170736
 GameObject:
   m_ObjectHideFlags: 0
@@ -199,6 +176,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5777026644211440593}
   - component: {fileID: 1546498608131527004}
+  - component: {fileID: 2236307706325866850}
   m_Layer: 0
   m_Name: Rock
   m_TagString: Untagged
@@ -221,7 +199,7 @@ Transform:
   - {fileID: 1250912159027108964}
   - {fileID: 3570323376818338669}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1546498608131527004
 MonoBehaviour:
@@ -238,3 +216,25 @@ MonoBehaviour:
   outlineObject: {fileID: 4825600189295170736}
   instanceId: 0
   mapObjectType: 
+--- !u!64 &2236307706325866850
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6240918209027241286}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -4724730747292221029, guid: a545b9d202af5bb43a2ff742f6a45557, type: 3}

@@ -244,6 +244,7 @@ GameObject:
   - component: {fileID: 2205276598268374429}
   - component: {fileID: 4455917448450131044}
   - component: {fileID: 3364183582292818260}
+  - component: {fileID: 8288642348652189250}
   m_Layer: 6
   m_Name: PineTree01
   m_TagString: Untagged
@@ -308,6 +309,27 @@ MonoBehaviour:
   outlineObject: {fileID: 610858654532370152}
   instanceId: 0
   mapObjectType: 
+--- !u!65 &8288642348652189250
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2205276598268374428}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.84, y: 6.025615, z: 2.84}
+  m_Center: {x: 0, y: 2.5128074, z: 0}
 --- !u!1 &8185425655807632893
 GameObject:
   m_ObjectHideFlags: 0
