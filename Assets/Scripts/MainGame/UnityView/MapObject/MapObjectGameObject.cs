@@ -19,15 +19,6 @@ namespace MainGame.UnityView.MapObject
         [SerializeField] private string mapObjectType;
         public string MapObjectType => mapObjectType;
         
-        private UIStateControl _uiStateControl;
-        
-        
-        [Inject]
-        public void Construct(UIStateControl uiStateControl)
-        {
-            _uiStateControl = uiStateControl;
-        }
-
 
         public void OutlineEnable(bool enable)
         {
@@ -58,6 +49,8 @@ namespace MainGame.UnityView.MapObject
 #if UNITY_EDITOR
         public void SetMapObjectData(int instanceId, string mapObjectType)
         {
+            UnityEditor.Undo.RecordObject(this, "SetMapObjectData");
+            
             this.instanceId = instanceId;
             this.mapObjectType = mapObjectType;
         }
