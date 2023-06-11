@@ -2,6 +2,7 @@
 using System.Linq;
 using Core.Block.Config.LoadConfig;
 using Cysharp.Threading.Tasks;
+using MainGame.Basic;
 using MainGame.Basic.Util;
 using Mod.Loader;
 using Server.Event;
@@ -87,6 +88,13 @@ namespace MainGame.ModLoader.Glb
             blockObj.gameObject.transform.SetParent(blockPrefabsParent);
             
             blockObj.gameObject.SetActive(false);
+            
+            
+            //すべてのレイヤーをBlockに設定
+            foreach (var trnasform in blockObj.GetComponentsInChildren<Transform>())
+            {
+                trnasform.gameObject.layer = LayerConst.BlockLayer;
+            }
             
             return blockObj;
         }

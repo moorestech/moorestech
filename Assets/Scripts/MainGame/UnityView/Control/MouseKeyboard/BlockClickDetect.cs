@@ -1,4 +1,5 @@
 using System;
+using MainGame.Basic;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Block;
 using UnityEngine;
@@ -64,7 +65,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
 
-            if (!Physics.Raycast(ray, out var hit)) return false;
+            if (!Physics.Raycast(ray, out var hit,100,LayerConst.BlockOnlyLayerMask)) return false;
             var child = hit.collider.gameObject.GetComponent<BlockGameObjectChild>();
             if (child is null) return false;
 

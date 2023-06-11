@@ -53,7 +53,7 @@ namespace MainGame.Presenter.MapObject
                 forceMapObject.OutlineEnable(true);
             }
 
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && forceMapObject != null)
             {
                 //クリックしたら取得プロトコルを送信する
                 _sendGetMapObjectProtocolProtocol.Send(forceMapObject.InstanceId);

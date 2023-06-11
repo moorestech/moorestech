@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6596158098318782036}
   - component: {fileID: 3725767092978102179}
   - component: {fileID: 6186188969932750646}
-  m_Layer: 6
+  m_Layer: 31
   m_Name: Reaf_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 7548269450760885529}
   - component: {fileID: 8564715483476363248}
   - component: {fileID: 6121429803266165155}
-  m_Layer: 6
+  m_Layer: 31
   m_Name: Stem_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -177,7 +177,7 @@ GameObject:
   - component: {fileID: 2555401753885853477}
   - component: {fileID: 1546397048180185678}
   - component: {fileID: 431721170825566315}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Reaf
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -258,7 +258,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4148590865142306129}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: ShadowOnly
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -293,7 +293,7 @@ GameObject:
   - component: {fileID: 2808637483815275997}
   - component: {fileID: 1893853587204528618}
   - component: {fileID: 4982514176062015906}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Reaf_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -376,7 +376,7 @@ GameObject:
   - component: {fileID: 1663415669698740262}
   - component: {fileID: 5132757963882278082}
   - component: {fileID: 5291977351473639204}
-  m_Layer: 6
+  m_Layer: 31
   m_Name: Reaf_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -459,7 +459,7 @@ GameObject:
   - component: {fileID: 5306439082064794602}
   - component: {fileID: 6333434374550887281}
   - component: {fileID: 2018916869240063451}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Stem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -540,7 +540,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 686666835495485015}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: LOD0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -576,7 +576,7 @@ GameObject:
   - component: {fileID: 3001234371367502641}
   - component: {fileID: 3891759904099697296}
   - component: {fileID: 8607937563388057679}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: Stem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -682,7 +682,7 @@ GameObject:
   - component: {fileID: 6144291921567949279}
   - component: {fileID: 871701612223628508}
   - component: {fileID: 1271985931}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: Stem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -787,7 +787,7 @@ GameObject:
   - component: {fileID: 4288037919072088603}
   - component: {fileID: 7929041109352928877}
   - component: {fileID: 2775765671819152461}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: Reaf
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -870,7 +870,7 @@ GameObject:
   - component: {fileID: 5479673373805139553}
   - component: {fileID: 6633349594136851968}
   - component: {fileID: 303717906693630570}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Reaf ISO
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -953,7 +953,7 @@ GameObject:
   - component: {fileID: 5859824434571598944}
   - component: {fileID: 6142020456904027510}
   - component: {fileID: 567331994384466197}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: BirchTree01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1031,7 +1031,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6289888474485723117}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: Display
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1064,7 +1064,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5799730619816567798}
-  m_Layer: 2
+  m_Layer: 31
   m_Name: Outline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1101,7 +1101,7 @@ GameObject:
   - component: {fileID: 5183076391304297938}
   - component: {fileID: 8993723340547684564}
   - component: {fileID: 1250358727822265399}
-  m_Layer: 6
+  m_Layer: 31
   m_Name: Reaf ISO_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1182,7 +1182,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6898891330194754042}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: LOD1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1219,7 +1219,7 @@ GameObject:
   - component: {fileID: 1762736524545150341}
   - component: {fileID: 5287777266133968985}
   - component: {fileID: 7031132204574899885}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: Reaf
   m_TagString: Untagged
   m_Icon: {fileID: 0}

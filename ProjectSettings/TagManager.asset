@@ -14,7 +14,7 @@ TagManager:
   - Water
   - UI
   - MapObject
-  - 
+  - Block
   - Player
   - 
   - 
@@ -38,7 +38,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - MapObjectOutline-Obsolete
   m_SortingLayers:
   - name: Default
     uniqueID: 0

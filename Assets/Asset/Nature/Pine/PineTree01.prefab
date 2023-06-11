@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7383728538491898238}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: Outline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -41,7 +41,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 692059164386866071}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: LOD0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -76,7 +76,7 @@ GameObject:
   - component: {fileID: 1805958968190691783}
   - component: {fileID: 3368645833902843490}
   - component: {fileID: 674170778692883112}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: Tree
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -160,7 +160,7 @@ GameObject:
   - component: {fileID: 8915462244803776684}
   - component: {fileID: 4879995528305669950}
   - component: {fileID: 5303843585473419980}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: TreeLit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -244,7 +244,7 @@ GameObject:
   - component: {fileID: 2205276598268374429}
   - component: {fileID: 4455917448450131044}
   - component: {fileID: 3364183582292818260}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: PineTree01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -319,7 +319,7 @@ GameObject:
   - component: {fileID: 5847185611205187305}
   - component: {fileID: 6433691691595096536}
   - component: {fileID: 7292908586370912681}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: TreeShadowOnly
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -403,7 +403,7 @@ GameObject:
   - component: {fileID: 1994217860296780321}
   - component: {fileID: 8103938743231516409}
   - component: {fileID: 5409908279747971595}
-  m_Layer: 6
+  m_Layer: 31
   m_Name: TreeLit_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -485,7 +485,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6510622218677565758}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: LOD1
   m_TagString: Untagged
   m_Icon: {fileID: 0}

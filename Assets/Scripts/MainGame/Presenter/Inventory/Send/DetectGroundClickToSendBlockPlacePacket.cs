@@ -93,7 +93,7 @@ namespace MainGame.Presenter.Inventory.Send
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
             
             //画面からのrayが何かにヒットしているか
-            if (!Physics.Raycast(ray, out var hit)) return (false,new Vector2Int());
+            if (!Physics.Raycast(ray, out var hit,100,LayerConst.WithoutOnlyMapObjectLayerMask)) return (false,new Vector2Int());
             //そのrayが地面のオブジェクトにヒットしてるか
             if (hit.transform.GetComponent<GroundPlane>() == null) return (false,new Vector2Int());
             //UIの状態がゲーム中か

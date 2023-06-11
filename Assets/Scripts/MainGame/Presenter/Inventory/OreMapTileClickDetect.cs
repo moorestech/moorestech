@@ -1,4 +1,5 @@
 ﻿using Core.Ore;
+using MainGame.Basic;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
@@ -80,7 +81,8 @@ namespace MainGame.Presenter.Inventory
             if (!InputManager.Playable.ScreenLeftClick.GetKey) return null;
             // UIのクリックかどうかを判定
             if (EventSystem.current.IsPointerOverGameObject()) return null;
-            if (!Physics.Raycast(ray, out var hit)) return null;
+            //TODo この辺のGameObjectのrayの取得をutiにまとめたい
+            if (!Physics.Raycast(ray, out var hit,100,LayerConst.WithoutOnlyMapObjectLayerMask)) return null;
             var mapTile = hit.collider.GetComponent<MapTileObject>();
             if (mapTile == null) return null;
 
@@ -92,7 +94,7 @@ namespace MainGame.Presenter.Inventory
             var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
             
-            if (Physics.Raycast(ray, out var hit))
+            if (Physics.Raycast(ray, out var hit,100,LayerConst.WithoutOnlyMapObjectLayerMask))
             {            
                 var x = Mathf.RoundToInt(hit.point.x);
                 var y = Mathf.RoundToInt(hit.point.z);

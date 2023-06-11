@@ -203,6 +203,7 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<RecipeViewerItemPlacer>();
             builder.RegisterEntryPoint<DirectItemMovePacketSend>();
             builder.RegisterEntryPoint<BlockStateChangePresenter>();
+            builder.RegisterEntryPoint<MapObjectPresenter>();
             
             
             //UIコントロール
@@ -288,6 +289,7 @@ namespace MainGame.Starter
             _resolver.Resolve<LoadingFinishDetector>();
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntitiesPresenter>();
+            _resolver.Resolve<MapObjectPresenter>();
 
         }
 
