@@ -28,8 +28,6 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             //イベントがないことを確認する
             Assert.AreEqual(0, response.Count);
             
-            //マップオブジェクトをjsonから取得するために初期化する
-            ((WorldLoaderFromJson)serviceProvider.GetService<IWorldSaveDataLoader>()).WorldInitialize();
             
             //MapObjectを一つ破壊する
             var mapObject = mapObjectDatastore.MapObjects[0];

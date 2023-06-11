@@ -8,8 +8,11 @@ namespace Game.MapObject.Interface
     {
         public IReadOnlyList<IMapObject> MapObjects { get; }
 
-        public void InitializeObject(List<ConfigMapObjectData> jsonMapObjectDataList);
-        public void LoadObject(List<SaveMapObjectData> jsonMapObjectDataList);
+        /// <summary>
+        /// オブジェクトをロードするか生成する
+        /// 既に存在するオブジェクトはデータを適応し、存在しないオブジェクトは生成する
+        /// </summary>
+        public void LoadAndCreateObject(List<SaveMapObjectData> jsonMapObjectDataList);
         
         public void Add(IMapObject mapObject);
         public IMapObject Get(int instanceId);

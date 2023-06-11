@@ -26,9 +26,6 @@ namespace Test.CombinedTest.Server.PacketTest
             var worldMapObjectDataStore = serviceProvider.GetService<IMapObjectDatastore>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
-            //マップオブジェクトをjsonから取得するために初期化する
-            var worldLoader = (WorldLoaderFromJson)serviceProvider.GetService<IWorldSaveDataLoader>();
-            worldLoader.WorldInitialize();
             
             //マップオブジェクトを取得するプロトコルを送信
             var mapObject = worldMapObjectDataStore.MapObjects[0];

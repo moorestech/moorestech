@@ -21,9 +21,6 @@ namespace Test.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
             
-            //マップオブジェクトをjsonから取得するために初期化する
-            var worldLoader = (WorldLoaderFromJson)serviceProvider.GetService<IWorldSaveDataLoader>();
-            worldLoader.WorldInitialize();
             
             //一個だけマップオブジェクトを破壊
             mapObjectDatastore.Get(mapObjectDatastore.MapObjects[0].InstanceId).Destroy();
