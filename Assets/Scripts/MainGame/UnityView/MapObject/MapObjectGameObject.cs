@@ -11,6 +11,8 @@ namespace MainGame.UnityView.MapObject
     /// </summary>
     public class MapObjectGameObject : MonoBehaviour
     {
+        [SerializeField] private GameObject outlineObject;
+        
         [SerializeField] private int instanceId;
         public int InstanceId => instanceId;
 
@@ -29,7 +31,7 @@ namespace MainGame.UnityView.MapObject
 
         public void OutlineEnable(bool enable)
         {
-            
+            outlineObject.SetActive(enable);
         }
 
         public void DestroyMapObject()
