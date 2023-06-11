@@ -25,7 +25,6 @@ namespace MainGame.Presenter.MapObject
 
         public void Tick()
         {
-            Debug.Log("bb");
             if (_uiStateControl.CurrentState != UIStateEnum.GameScreen)
             {
                 return;
