@@ -10,6 +10,7 @@ namespace MainGame.UnityView.Block.StateChange
     {
         #region Resources
         private static AudioClip _machineSound;
+        private static ParticleSystem _machineEffect;
         #endregion
         
         private AudioSource _audioSource;
@@ -21,6 +22,12 @@ namespace MainGame.UnityView.Block.StateChange
             _audioSource = gameObject.AddComponent<AudioSource>();
             _audioSource.clip = _machineSound;
             _audioSource.Stop();
+            
+            var machineEffectPrefab = Resources.Load<GameObject>("Machine/MachineProcessEffect");
+            var machineEffectObject = Instantiate(machineEffectPrefab, transform);
+            machineEffectObject.transform.localPosition = Vector3.zero;
+            _machineEffect = machineEffectObject.GetComponent<ParticleSystem>();
+            _machineEffect.Stop();
         }
 
 
@@ -33,11 +40,13 @@ namespace MainGame.UnityView.Block.StateChange
                 case VanillaMachineBlockStateConst.ProcessingState:
                     if (previousState == VanillaMachineBlockStateConst.IdleState)
                     {
+                        _machineEffect.Play();
                         _audioSource.Play();
                     }
                     break;
                 case VanillaMachineBlockStateConst.IdleState:
                     _audioSource.Stop();
+                    _machineEffect.Stop();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(currentState), currentState, null);
