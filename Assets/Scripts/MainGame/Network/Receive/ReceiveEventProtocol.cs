@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using MainGame.Network.Event;
 using MainGame.Network.Receive.EventPacket;
-using MainGame.Network.Util;
+
 using MessagePack;
 using Server.Event.EventReceive;
 using UnityEngine;
