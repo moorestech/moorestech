@@ -25,24 +25,11 @@ namespace Server.Boot.PacketHandle
                 var parser = new PacketBufferParser();
                 while (true)
                 {
-                    int length = _client.Receive(buffer);
-                    if (length == 0)
+                    var error = ReceiveProcess(parser,buffer);
+                    if (error)
                     {
                         Console.WriteLine("切断されました");
                         break;
-                    }
-
-                    //受信データをパケットに分割
-                    var packets = parser.Parse(buffer, length);
-                    
-                    foreach (var packet in packets)
-                    {
-                        var results = _packetResponseCreator.GetPacketResponse(packet);
-                        foreach (var result in results)
-                        {
-                            result.InsertRange(0,ToByteList.Convert((short)result.Count));
-                            _client.Send(result.ToArray());
-                        }
                     }
                 }
             }
@@ -51,6 +38,30 @@ namespace Server.Boot.PacketHandle
                 Console.WriteLine("エラーによる切断");
                 Console.WriteLine(e);
             }
+        }
+
+        private bool ReceiveProcess(PacketBufferParser parser,byte[] buffer)
+        {
+            int length = _client.Receive(buffer);
+            if (length == 0)
+            {
+                return true;
+            }
+
+            //受信データをパケットに分割
+            var packets = parser.Parse(buffer, length);
+
+            foreach (var packet in packets)
+            {
+                var results = _packetResponseCreator.GetPacketResponse(packet);
+                foreach (var result in results)
+                {
+                    result.InsertRange(0, ToByteList.Convert(result.Count));
+                    _client.Send(result.ToArray());
+                }
+            }
+
+            return false;
         }
     }
 }
