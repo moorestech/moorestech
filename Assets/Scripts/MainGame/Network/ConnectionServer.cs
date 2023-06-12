@@ -94,7 +94,7 @@ namespace MainGame.Network
                         Debug.LogError("受信パケット内容 JSON:解析に失敗 bytes:" +packetsStr);
                     }
 
-                    throw new Exception("受信パケット解析失敗", e);
+                    throw;
                 }
             }
         }

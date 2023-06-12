@@ -31,7 +31,7 @@ namespace MainGame.Network.Send
             if (!_socket.Connected) return;
             
             //パケット長を設定
-            data.InsertRange(0, ToByteList.Convert((short)data.Count));
+            data.InsertRange(0, ToByteList.Convert(data.Count));
             _socket.Send(data.ToArray());
         }
 

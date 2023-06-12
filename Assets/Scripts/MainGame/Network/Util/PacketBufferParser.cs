@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace MainGame.Network.Util
 {
@@ -16,7 +17,7 @@ namespace MainGame.Network.Util
         public List<List<byte>> Parse(byte[] packet,int length)
         {
             //プロトコル長から実際のプロトコルを作る
-            var packetIndex = 0;
+            var actualStartPacketDataIndex = 0;
             var reminderLength = length;
             
             var result = new List<List<byte>>();
@@ -28,31 +29,36 @@ namespace MainGame.Network.Util
                 if (_continuationFromLastTimeBytes.Count == 0)
                 {
                     //パケット長を取得
-                    _packetLength = GetLength(packet, packetIndex);
-                    //パケット長のshort型の2バイトを取り除く
+                    _packetLength = GetLength(packet, actualStartPacketDataIndex);
+                    //パケット長のshort型の4バイトを取り除く
                     reminderLength -= _packetLength　+ 2;
-                    packetIndex += 2;
+                    actualStartPacketDataIndex += 2;
                 }
                 else
                 {
                     //前回からの続きのデータがある場合
-                    _packetLength = _packetLength - _nextPacketLengthOffset;
+                    _packetLength -= _nextPacketLengthOffset;
                     reminderLength = length - _packetLength;
+                    
                 }
 
                 //パケットが切れているので、残りのデータを一時保存
                 if (reminderLength < 0)
                 {
-                    _continuationFromLastTimeBytes.AddRange(packet.Skip(packetIndex));
+                    var addCollection = packet.Skip(actualStartPacketDataIndex).ToList();
+                    _continuationFromLastTimeBytes.AddRange(addCollection);
                     //次回の受信のためにどこからデータを保存するかのオフセットを保存
-                    _nextPacketLengthOffset = length - packetIndex;
+                    _nextPacketLengthOffset = length - actualStartPacketDataIndex;
                     break;
                 }
                         
-                for (int i = 0; i < _packetLength && packetIndex < length; packetIndex++,i++)
+                //パケットの長さ分だけデータを取得
+                for (var i = 0; i < _packetLength && actualStartPacketDataIndex < length; actualStartPacketDataIndex++,i++)
                 {
-                    _continuationFromLastTimeBytes.Add(packet[packetIndex]);
+                    _continuationFromLastTimeBytes.Add(packet[actualStartPacketDataIndex]);
                 }
+                //次のパケット解析のためにインデックスを進める
+                actualStartPacketDataIndex++;
                         
                 result.Add(_continuationFromLastTimeBytes);
                 //受信したパケットに対する応答を返す
@@ -63,15 +69,19 @@ namespace MainGame.Network.Util
         }
         
         
-        private short GetLength(byte[] bytes,int startIndex)
+        private int GetLength(byte[] bytes,int startIndex)
         {
-            var b = new List<byte>();
-            b.Add(bytes[startIndex]);
-            b.Add(bytes[startIndex + 1]);
+            var b = new List<byte>
+            {
+                bytes[startIndex],
+                bytes[startIndex + 1],
+                bytes[startIndex + 3],
+                bytes[startIndex + 4]
+            };
 
             if (BitConverter.IsLittleEndian) b.Reverse();
             
-            return BitConverter.ToInt16(b.ToArray(), 0);
+            return BitConverter.ToInt32(b.ToArray(), 0);
         }
     }
 }
