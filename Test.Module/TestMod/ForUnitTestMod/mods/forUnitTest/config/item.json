@@ -1,13 +1,5 @@
 ﻿[
   {
-    "name": "VanillaTree",
-    "maxStacks": 100
-  },
-  {
-    "name": "VanillaPebble",
-    "maxStacks": 100
-  },
-  {
     "name": "Test1",
     "maxStacks": 100
   },
@@ -34,5 +26,13 @@
   {
     "name": "Test7",
     "maxStacks":  100
+  },
+  {
+    "name": "tree",
+    "maxStacks": 100
+  },
+  {
+    "name": "stone",
+    "maxStacks": 100
   }
 ]

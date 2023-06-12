@@ -33,8 +33,8 @@ namespace Game.MapObject
         {
             return type switch
             {
-                VanillaMapObjectType.VanillaTree => _itemConfig.GetItemId("moorestechBaseMod", "VanillaTree"),
-                VanillaMapObjectType.VanillaStone => _itemConfig.GetItemId("moorestechBaseMod", "VanillaStone"),
+                VanillaMapObjectType.VanillaTree => _itemConfig.GetItemId("moorestechBaseMod", "tree"),
+                VanillaMapObjectType.VanillaStone => _itemConfig.GetItemId("moorestechBaseMod", "stone"),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }
