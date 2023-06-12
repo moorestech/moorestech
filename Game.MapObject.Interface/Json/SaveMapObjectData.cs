@@ -1,8 +1,10 @@
-﻿using Game.Base;
+﻿using System;
+using Game.Base;
 using Newtonsoft.Json;
 
 namespace Game.MapObject.Interface.Json
 {
+    [Serializable]
     public class SaveMapObjectData
     {
         [JsonProperty("instanceId")] public int InstanceId;
@@ -13,6 +15,9 @@ namespace Game.MapObject.Interface.Json
         [JsonProperty("z")] public float Z;
         
         public ServerVector3 Position => new(X,Y,Z);
+        
+        [Obsolete("Json用にのみ使用してください。")]
+        public SaveMapObjectData() { }
 
         public SaveMapObjectData(IMapObject mapObject)
         {

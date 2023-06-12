@@ -20,7 +20,9 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
-            
+            //ワールド設定情報を初期化
+            serviceProvider.GetService<IWorldSettingsDatastore>().Initialize();
+
             //最初のハンドシェイクを実行
             var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId))[0];
             var handShakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
