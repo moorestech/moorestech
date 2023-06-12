@@ -9,14 +9,14 @@ namespace Server.Util
     /// </summary>
     public class PacketBufferParser
     {
-        List<byte> _protocol = new();
+        List<byte> _continuationFromLastTimeBytes = new();
         int _packetLength = 0;
         int _nextPacketLengthOffset = 0;
         
         public List<List<byte>> Parse(byte[] packet,int length)
         {
             //プロトコル長から実際のプロトコルを作る
-            var packetIndex = 0;
+            var actualStartPacketDataIndex = 0;
             var reminderLength = length;
             
             var result = new List<List<byte>>();
@@ -25,53 +25,62 @@ namespace Server.Util
             while (0 < reminderLength)
             {
                 //前回からの続きのデータがない場合
-                if (_protocol.Count == 0)
+                if (_continuationFromLastTimeBytes.Count == 0)
                 {
                     //パケット長を取得
-                    _packetLength = GetLength(packet, packetIndex);
-                    //パケット長のshort型の2バイトを取り除く
+                    _packetLength = GetLength(packet, actualStartPacketDataIndex);
+                    //パケット長のshort型の4バイトを取り除く
                     reminderLength -= _packetLength　+ 2;
-                    packetIndex += 2;
+                    actualStartPacketDataIndex += 2;
                 }
                 else
                 {
                     //前回からの続きのデータがある場合
-                    _packetLength = _packetLength - _nextPacketLengthOffset;
+                    _packetLength -= _nextPacketLengthOffset;
                     reminderLength = length - _packetLength;
+                    
                 }
 
                 //パケットが切れているので、残りのデータを一時保存
                 if (reminderLength < 0)
                 {
-                    _protocol.AddRange(packet.Skip(packetIndex));
+                    var addCollection = packet.Skip(actualStartPacketDataIndex).ToList();
+                    _continuationFromLastTimeBytes.AddRange(addCollection);
                     //次回の受信のためにどこからデータを保存するかのオフセットを保存
-                    _nextPacketLengthOffset = length - packetIndex;
+                    _nextPacketLengthOffset = length - actualStartPacketDataIndex;
                     break;
                 }
                         
-                for (int i = 0; i < _packetLength && packetIndex < length; packetIndex++,i++)
+                //パケットの長さ分だけデータを取得
+                for (var i = 0; i < _packetLength && actualStartPacketDataIndex < length; actualStartPacketDataIndex++,i++)
                 {
-                    _protocol.Add(packet[packetIndex]);
+                    _continuationFromLastTimeBytes.Add(packet[actualStartPacketDataIndex]);
                 }
+                //次のパケット解析のためにインデックスを進める
+                actualStartPacketDataIndex++;
                         
-                result.Add(_protocol);
+                result.Add(_continuationFromLastTimeBytes);
                 //受信したパケットに対する応答を返す
-                _protocol = new();
+                _continuationFromLastTimeBytes = new();
             }
 
             return result;
         }
         
         
-        private short GetLength(byte[] bytes,int startIndex)
+        private int GetLength(byte[] bytes,int startIndex)
         {
-            var b = new List<byte>();
-            b.Add(bytes[startIndex]);
-            b.Add(bytes[startIndex + 1]);
+            var b = new List<byte>
+            {
+                bytes[startIndex],
+                bytes[startIndex + 1],
+                bytes[startIndex + 3],
+                bytes[startIndex + 4]
+            };
 
             if (BitConverter.IsLittleEndian) b.Reverse();
             
-            return BitConverter.ToInt16(b.ToArray(), 0);
+            return BitConverter.ToInt32(b.ToArray(), 0);
         }
     }
 }
