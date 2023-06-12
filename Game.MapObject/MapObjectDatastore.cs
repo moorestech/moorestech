@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Game.MapObject.Interface;
 using Game.MapObject.Interface.Json;
+using Game.Save.Interface;
+using Newtonsoft.Json;
 
 namespace Game.MapObject
 {
@@ -18,16 +21,13 @@ namespace Game.MapObject
         private readonly Dictionary<int,IMapObject> _mapObjects = new();
         private readonly IMapObjectFactory _mapObjectFactory;
 
-        public MapObjectDatastore(IMapObjectFactory mapObjectFactory)
+        public MapObjectDatastore(IMapObjectFactory mapObjectFactory,MapConfigFile mapConfigFile)
         {
             _mapObjectFactory = mapObjectFactory;
-        }
-
-        public IReadOnlyList<IMapObject> MapObjects => _mapObjects.Values.ToList();
-
-        public void InitializeObject(List<ConfigMapObjectData> jsonMapObjectDataList)
-        {
-            foreach (var configMapObject in jsonMapObjectDataList)
+            
+            //configからmap obejctを生成
+            var mapObjects = JsonConvert.DeserializeObject<ConfigMapObjects>(File.ReadAllText(mapConfigFile.FullMapObjectConfigFilePath));
+            foreach (var configMapObject in mapObjects.MapObjects)
             {
                 var mapObject = _mapObjectFactory.Create(configMapObject.InstanceId,configMapObject.Type, configMapObject.Position,false);
                 _mapObjects.Add(mapObject.InstanceId, mapObject);
@@ -35,13 +35,24 @@ namespace Game.MapObject
             }
         }
 
-        public void LoadObject(List<SaveMapObjectData> jsonMapObjectDataList)
+        public IReadOnlyList<IMapObject> MapObjects => _mapObjects.Values.ToList();
+
+        public void LoadAndCreateObject(List<SaveMapObjectData> jsonMapObjectDataList)
         {
             foreach (var data in jsonMapObjectDataList)
             {
-                var mapObject = _mapObjectFactory.Create(data.InstanceId,data.Type, data.Position, data.IsDestroyed);
-                _mapObjects.Add(mapObject.InstanceId, mapObject);
-                mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
+                if (_mapObjects.TryGetValue(data.InstanceId, out var loadedMapObject))
+                {
+                    if (data.IsDestroyed)
+                    {
+                        loadedMapObject.Destroy();
+                    }
+                }
+                else
+                {
+                    var mapObject = _mapObjectFactory.Create(data.InstanceId,data.Type, data.Position, data.IsDestroyed);
+                    mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
+                }
             }
         }
 

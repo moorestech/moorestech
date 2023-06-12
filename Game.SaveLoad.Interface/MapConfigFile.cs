@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Game.Save.Json
+namespace Game.Save.Interface
 {
     public class MapConfigFile
     {

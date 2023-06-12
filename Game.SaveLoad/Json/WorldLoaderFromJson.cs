@@ -59,7 +59,6 @@ namespace Game.Save.Json
             {
                 Console.WriteLine("セーブデータがありませんでした。新規作成します。");
             }
-            WorldInitialize();
         }
 
         public void Load(string jsonText)
@@ -71,14 +70,9 @@ namespace Game.Save.Json
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _questDataStore.LoadQuestDataDictionary(load.Quests);
             _worldSettingsDatastore.LoadSettingData(load.Setting);
-            _mapObjectDatastore.LoadObject(load.MapObjects);
+            
+            _mapObjectDatastore.LoadAndCreateObject(load.MapObjects);
         }
 
-        public void WorldInitialize()
-        {
-            _worldSettingsDatastore.Initialize();
-            var mapObjects = JsonConvert.DeserializeObject<ConfigMapObjects>(File.ReadAllText(_mapConfigFile.FullMapObjectConfigFilePath));
-            _mapObjectDatastore.InitializeObject(mapObjects.MapObjects.ToList());
-        }
     }
 }
