@@ -28,7 +28,7 @@ namespace MainGame.Editor
             var instanceId = 0;
             foreach (var stone in datastore.StoneMapObjects)
             {
-                stone.SetMapObjectData(instanceId,VanillaMapObjectType.VanillaPebble);
+                stone.SetMapObjectData(instanceId,VanillaMapObjectType.VanillaStone);
                 instanceId++;
             }
             foreach (var tree in datastore.TreeMapObjects)
