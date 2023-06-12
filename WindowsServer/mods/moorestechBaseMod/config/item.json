@@ -258,5 +258,15 @@
         "name": "steel chest",
         "maxStacks": 100,
         "imagePath": "assets/item/steel chest.png"
+    },
+    {
+        "name": "tree",
+        "maxStacks": 100,
+        "imagePath": "assets/item/steel chest.png"
+    },
+    {
+        "name": "stone",
+        "maxStacks": 100,
+        "imagePath": "assets/item/steel chest.png"
     }
 ]
