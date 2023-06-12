@@ -282,7 +282,7 @@ Transform:
   - {fileID: 2213244559711559564}
   - {fileID: 968792338582425333}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3084759534298576679
 MonoBehaviour:
@@ -4530,7 +4530,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 99155359469886964, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 128205870951191982, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -4570,7 +4570,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 170980477872819794, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 192362119653594786, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -4586,7 +4586,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 212011333111869093, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 274106936863266160, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -4594,7 +4594,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 274106936863266160, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 281443083722500358, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -4626,7 +4626,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 329321322413714532, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 330642565084619029, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -4642,7 +4642,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 331041976810045276, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 335573148772504040, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -4682,7 +4682,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 366714685421924329, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 370670192306178716, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -4690,7 +4690,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 370670192306178716, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 384977465365995073, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -4698,7 +4698,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 384977465365995073, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 398384503086205774, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -4714,7 +4714,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 410479520837873794, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 440724526525805992, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -4770,7 +4770,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 483029886097422613, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 491758221993918335, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -4778,7 +4778,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 491758221993918335, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 514370271710870582, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -4786,7 +4786,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 514370271710870582, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 537534836573560393, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -4802,7 +4802,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 604927473397698914, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 623288936641313526, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13170,7 +13170,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 637173724294752782, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 658340870674821758, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13178,7 +13178,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 658340870674821758, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 662379513076569581, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13218,7 +13218,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 744789152713915791, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 757873011343002627, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13226,7 +13226,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 757873011343002627, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 763257158830461187, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13242,7 +13242,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 769214236843363902, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 791404083023649584, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13250,7 +13250,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 791404083023649584, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 806572859041436574, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13258,7 +13258,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 806572859041436574, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 817202050219613745, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13274,7 +13274,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 833571305863514113, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 836046702018473786, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13282,7 +13282,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 836046702018473786, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 872177857265376979, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13290,7 +13290,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 872177857265376979, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 910552737173307080, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13298,7 +13298,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 910552737173307080, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 911185089380794798, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13306,7 +13306,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 911185089380794798, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 939314885117931362, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13322,7 +13322,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 956539598079380289, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 974549671729649676, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13346,7 +13346,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 989394276655883206, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1002262746262129601, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13354,7 +13354,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1002262746262129601, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1020438238348491590, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13362,7 +13362,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1020438238348491590, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1027042199401146222, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13378,7 +13378,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1073119199506355150, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1097917405891866819, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13402,7 +13402,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1159482936137621094, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1179353114018032287, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13418,7 +13418,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1228398586141957060, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1228716041668052480, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13450,7 +13450,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1282337156485942795, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1290936219764793159, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13466,7 +13466,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1292677721182369167, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1298468644438534650, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13482,7 +13482,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1311178866795647755, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1314492928170065246, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13522,7 +13522,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1365489113058288765, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1370878407655903515, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13570,7 +13570,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1418556045607118324, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1419639194866707372, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13594,7 +13594,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1438075429655700807, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1441599340899741824, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13610,7 +13610,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1455973251789550351, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1458683333193793897, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13642,7 +13642,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1516052241149940175, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1528577832959186366, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13698,7 +13698,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1562879351473168922, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1565182981628309606, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13706,7 +13706,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1565182981628309606, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1574735462891920292, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13738,7 +13738,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1624350775729215194, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1641510178746914425, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13746,7 +13746,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1641510178746914425, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1651765597137473812, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13770,7 +13770,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1653610566894239108, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1656890898527413740, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13786,7 +13786,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1691631285633218509, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1713233516625334926, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13810,7 +13810,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1742359454012822154, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1766599840496180309, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13818,7 +13818,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1766599840496180309, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1791221951703757417, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13866,7 +13866,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1820242278647812071, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1821395096907006979, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13898,7 +13898,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1866977798917951581, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1879439519002374056, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13906,7 +13906,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1879439519002374056, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1897217487731624369, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13914,7 +13914,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1897217487731624369, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1897657670162533917, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13962,7 +13962,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1956764604287724379, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 1963802889323200354, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13978,7 +13978,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1969764058019200287, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2037996450623367478, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -13986,7 +13986,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2037996450623367478, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2045889335950294182, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14034,7 +14034,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2130356373317057626, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2135129469313635562, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14042,7 +14042,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2135129469313635562, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2143690122111961903, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14074,7 +14074,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2161851244075975337, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2199238062992433901, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14090,7 +14090,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2200485386384341318, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2211968312965695558, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14162,7 +14162,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2280550103963196022, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2282405508800169349, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14194,7 +14194,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2353832093505424840, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2370544739331105983, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14226,7 +14226,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2431718508141997009, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2433895283362403253, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14242,7 +14242,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2437160138288951334, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2448533365424294459, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14250,7 +14250,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2448533365424294459, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2457829602598810379, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14258,7 +14258,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2457829602598810379, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2459071804423646972, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14298,7 +14298,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2496761880984645760, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2504059503929878255, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14314,7 +14314,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2509184680458598015, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2509983385614753889, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14338,7 +14338,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2521479880179882006, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2523653457718857372, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14362,7 +14362,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2568899575901153803, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2573296975614215788, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14378,7 +14378,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2580945563714220544, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2592513210553575510, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14394,7 +14394,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2635902538793255093, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2645375705530706764, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14418,7 +14418,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2651215800922931920, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2659155074554671487, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14426,7 +14426,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2659155074554671487, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2667322927037601943, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14434,7 +14434,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2667322927037601943, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2670358695750182107, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14458,7 +14458,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2709485773033458898, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2710612226465726673, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14466,7 +14466,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2710612226465726673, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2725058723878629017, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14538,7 +14538,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2926377103629651477, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2938779726926259213, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14562,7 +14562,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2965636358565126820, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2966025165958074242, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14570,7 +14570,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2966025165958074242, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2968933862132323231, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14586,7 +14586,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2973605496393407230, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2975889038811616398, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14594,7 +14594,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2975889038811616398, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 2994710204204163030, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14610,7 +14610,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3001399533406370500, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3006556364318269491, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14626,7 +14626,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3007363236549194784, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3021744640374361431, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14634,7 +14634,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3021744640374361431, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3047937023684604271, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14682,7 +14682,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3113475451202307912, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3125688695189811569, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14690,7 +14690,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3125688695189811569, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3145689113844970381, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14698,7 +14698,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3145689113844970381, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3155527466398835782, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14706,7 +14706,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3155527466398835782, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3162541368862820714, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14802,7 +14802,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3289583901874533336, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3312179733047110633, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14810,7 +14810,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3312179733047110633, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3335302005234588233, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14834,7 +14834,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3339659356540651128, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3344019807808563647, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14850,7 +14850,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3361080653714023004, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3364081981637046239, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14898,7 +14898,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3401929596650466852, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3405861570683680456, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14938,7 +14938,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3474310791094142086, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3509870733034488271, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14978,7 +14978,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3589101553760348758, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3594875902067854786, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14986,7 +14986,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3594875902067854786, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3600049930971858528, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -14994,7 +14994,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3600049930971858528, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3600998444607089518, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15018,7 +15018,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3619375987331885287, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3650322980046563082, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15058,7 +15058,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3779132602589098250, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3797427254660979061, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15082,7 +15082,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3832478812445081141, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3856819455638172009, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15114,7 +15114,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3910690296086237931, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3912890140501155024, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15122,7 +15122,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3912890140501155024, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3914875665212622300, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15154,7 +15154,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3993972013468331476, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 3997055559609275471, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15162,7 +15162,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3997055559609275471, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4005902220329679805, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15194,7 +15194,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4046456356708569791, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4063357647609052381, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15202,7 +15202,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4063357647609052381, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4083524966227439235, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15258,7 +15258,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4152580433807774921, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4157200669338981128, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15274,7 +15274,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4164807050605169058, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4169556624171467996, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15298,7 +15298,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4215983063052371914, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4224863344273460155, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15314,7 +15314,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4226671450621267285, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4240177418228665441, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15322,7 +15322,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4240177418228665441, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4240767139877454055, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15330,7 +15330,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4240767139877454055, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4241106488759613733, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15362,7 +15362,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4282766968837755226, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4295171123415626468, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15370,7 +15370,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4295171123415626468, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4312965153670116074, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15378,7 +15378,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4312965153670116074, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4317292567904470715, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15386,7 +15386,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4317292567904470715, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4325144742773766748, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: m_RootOrder
@@ -15438,7 +15438,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4325659539973481429, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4328961580182383782, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15446,7 +15446,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4328961580182383782, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4338200183779985608, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15454,7 +15454,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4338200183779985608, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4348256182851387451, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15478,7 +15478,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4354545911802902095, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4358806827459151507, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15486,7 +15486,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4358806827459151507, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4418733240223913540, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15518,7 +15518,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4489312014918477098, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4515885724780500668, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15526,7 +15526,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4515885724780500668, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4517459495041722996, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15534,7 +15534,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4517459495041722996, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4546775700639654551, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15582,7 +15582,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4636807839395799999, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4640839410781622037, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15598,7 +15598,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4642129209933141222, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4645683381389072077, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15606,7 +15606,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4645683381389072077, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4647392639979590487, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15638,7 +15638,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4697930349734595708, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4744146372311397902, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15654,7 +15654,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4762051251744590868, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4763861406949539595, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15678,7 +15678,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4834788677171893556, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4835277228293041497, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15694,7 +15694,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4842382817438682290, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4842715925448722673, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15710,7 +15710,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4897534065770110656, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4900791733927217477, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15718,7 +15718,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4900791733927217477, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4909771403133683385, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15726,7 +15726,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4909771403133683385, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 4910640657905906786, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15758,7 +15758,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5024157602762885590, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5025374500439900035, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15766,7 +15766,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5025374500439900035, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5045124048481880538, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15782,7 +15782,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5050086365882187706, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5051201421540874209, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15838,7 +15838,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5188946538139279805, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5200131876287518605, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15870,7 +15870,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5259016166270971058, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5262986753221421785, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15878,7 +15878,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5262986753221421785, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5268539344828629860, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15910,7 +15910,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5315599102759946156, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5316028330082572762, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15934,7 +15934,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5322481358161683082, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5332461908596802187, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15942,7 +15942,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5332461908596802187, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5339897966637674830, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15958,7 +15958,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5340274331678642725, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5377660569697777997, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -15970,7 +15970,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5380138379423977420, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5386837591125717099, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16010,7 +16010,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5478264198481382828, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5485657966699157051, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16026,7 +16026,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5493036549545912821, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5533051910697095835, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16034,7 +16034,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5533051910697095835, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5537800905551607956, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16050,7 +16050,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5539412012350854990, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5540091403354736151, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16098,7 +16098,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5587970305558994455, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5592632591572637245, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16106,7 +16106,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5592632591572637245, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5624854606943463857, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16114,7 +16114,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5624854606943463857, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5633701222509080648, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16130,7 +16130,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5638817185167113188, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5644201338962504555, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16146,7 +16146,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5655543156893934013, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5665706631679244150, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16162,7 +16162,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5672009953636502192, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5692367473083816517, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16186,7 +16186,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5730377651200646935, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5735837546726293624, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16210,7 +16210,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5752779158351180994, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5787929323316055905, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16226,7 +16226,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5805396246371588608, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5822535534065775860, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16250,7 +16250,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5834994830936404599, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5854305806362792865, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16258,7 +16258,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5854305806362792865, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5860703471983173861, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16266,7 +16266,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5860703471983173861, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5872392014726441607, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16306,7 +16306,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5920267240415249715, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5933941924363997261, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16322,7 +16322,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5935179909941752288, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 5950837406966824013, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16362,7 +16362,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6011650834959893788, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6026990514667213872, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16370,7 +16370,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6026990514667213872, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6044156014260091375, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16378,7 +16378,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6044156014260091375, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6049255641970114740, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16410,7 +16410,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6102484989426349734, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6118440553794538220, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16418,7 +16418,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6118440553794538220, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6124758167398767689, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16442,7 +16442,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6130001334031863563, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6138013725598245122, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16450,7 +16450,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6138013725598245122, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6142930186440164223, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16458,7 +16458,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6142930186440164223, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6173561951686226588, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16474,7 +16474,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6175529204839966053, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6187251154346233521, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16522,7 +16522,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6275503994813311982, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6298402962682486855, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16530,7 +16530,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6298402962682486855, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6298973247134580857, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16554,7 +16554,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6327414882096967548, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6328267158252356906, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16578,7 +16578,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6348278019268442426, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6372736157429772589, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16586,7 +16586,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6372736157429772589, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6405832528896453028, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16626,7 +16626,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6512653350828850050, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6535300237209640316, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16634,7 +16634,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6535300237209640316, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6564533224893439973, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16658,7 +16658,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6571549251268118274, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6586615157375155981, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16698,7 +16698,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6635557714111227731, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6647640302722651779, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16762,7 +16762,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6777121955963923413, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6779293231033761697, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16786,7 +16786,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6796274512020080508, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6796334224302544815, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16826,7 +16826,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6820746839201572589, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6837723553550147456, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16858,7 +16858,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6886162974452208179, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6886304208436782136, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16874,7 +16874,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6928425119085599739, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6931297331392865418, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16882,7 +16882,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6931297331392865418, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6943719914180724349, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16890,7 +16890,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6943719914180724349, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6951660572339643038, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16898,7 +16898,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6951660572339643038, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 6961656142547354022, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16930,7 +16930,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7007581174549490347, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7010017026206668131, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16962,7 +16962,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7033573623131712309, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7038476768391306804, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -16986,7 +16986,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7066943377114869733, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7076598416353749939, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17002,7 +17002,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7076818987803628045, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7077983842128574218, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17010,7 +17010,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7077983842128574218, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7080162629255312914, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: m_Name
@@ -17022,7 +17022,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7090064761534630870, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7118230831347398056, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17030,7 +17030,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7118230831347398056, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7147945428117427706, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17038,7 +17038,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7147945428117427706, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7173550149808296570, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17070,7 +17070,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7199405717762340380, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7209922540564281840, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17078,7 +17078,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7209922540564281840, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7213927610563341990, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17102,7 +17102,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7254831319362584576, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7306062630229711022, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17110,7 +17110,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7306062630229711022, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7330393659240123325, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17118,7 +17118,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7330393659240123325, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7340619525417906540, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17142,7 +17142,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7372221635464943153, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7374070938686775619, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17158,7 +17158,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7378188110301691127, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7384872576473158533, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17166,7 +17166,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7384872576473158533, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7387951058243205215, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17174,7 +17174,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7387951058243205215, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7399200122510579856, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17182,7 +17182,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7399200122510579856, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7428339981575011543, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17190,7 +17190,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7428339981575011543, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7442268761927046875, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17222,7 +17222,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7538717649281414849, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7557844055311421697, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17246,7 +17246,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7582104422600323314, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7589626279789469596, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17302,7 +17302,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7646143002262472681, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7653961522153095961, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17310,7 +17310,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7653961522153095961, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7656981641296981950, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17390,7 +17390,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7768920396475354614, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7771010622954745397, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17398,7 +17398,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7771010622954745397, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7790783973793777969, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17414,7 +17414,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7791332066101507228, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7794879536735564320, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17438,7 +17438,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7829807826213024964, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 7890968729130023078, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17486,7 +17486,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7999396440587070204, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8001330241510413920, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17518,7 +17518,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8027456243320392495, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8030095355755433683, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17526,7 +17526,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8030095355755433683, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8041161447380735002, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17534,7 +17534,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8041161447380735002, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8041793609286196119, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17542,7 +17542,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8041793609286196119, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8045746380739612460, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17582,7 +17582,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8098944180774546875, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8101884191306579501, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17598,7 +17598,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8105294598071796165, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8107565189108838545, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17630,7 +17630,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8126754339265975565, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8131988264876587735, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17638,7 +17638,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8131988264876587735, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8141698172922700142, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17678,7 +17678,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8199633251070923040, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8200630513695275586, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17686,7 +17686,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8200630513695275586, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8202355535197082747, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17694,7 +17694,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8202355535197082747, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8210444848199280154, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17726,7 +17726,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8269270100224335243, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8273258478415065293, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17742,7 +17742,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8287162973145207569, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8288872275075337214, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17774,7 +17774,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8358735405791426617, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8358894638171092756, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17790,7 +17790,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8394489860630330261, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8401117728065227755, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17814,7 +17814,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8438730381822397341, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8445712462620026706, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17830,7 +17830,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8446020620170937217, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8449520413823339124, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17854,7 +17854,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8473712702746637313, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8489010388949254693, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17870,7 +17870,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8498561175957155225, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8524145591972686606, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17894,7 +17894,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8551652878800025393, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8557076093032161049, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17910,7 +17910,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8558790288370391958, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8581790657950855998, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17918,7 +17918,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8581790657950855998, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8585952787141138959, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17926,7 +17926,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8585952787141138959, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8590868389183955508, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17934,7 +17934,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8590868389183955508, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8601720647526440609, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -17950,7 +17950,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8621713012989978450, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8634267028353612813, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -26918,7 +26918,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8664220373280438999, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8665888202452054763, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -26950,7 +26950,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8698710570622005475, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8699788676990575726, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -26958,7 +26958,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8699788676990575726, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8726494407686931548, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -26966,7 +26966,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8726494407686931548, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8730909376524540993, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -26998,7 +26998,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8864678334349723928, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8865239422438339525, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -27030,7 +27030,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8894345019699321030, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8896857754977474703, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -27054,7 +27054,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8948405936893612676, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 8951244389032785208, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -27102,7 +27102,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9023945131388295117, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 9038242655828458805, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -27118,7 +27118,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9038574361062650491, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 9069885265772743000, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -27150,7 +27150,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9085555442781779010, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 9091005469913487051, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -27166,7 +27166,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9140844593153877025, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 9152669300081804317, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -27182,7 +27182,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9161264517462962122, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 9167406074997309913, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId
@@ -27214,7 +27214,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9216854480110212557, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: mapObjectType
-      value: vanilla:Pebble
+      value: vanilla:Stone
       objectReference: {fileID: 0}
     - target: {fileID: 9218203000722309046, guid: 7cdd509ed3de135418b510969682a860, type: 3}
       propertyPath: instanceId

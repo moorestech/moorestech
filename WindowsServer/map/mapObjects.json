@@ -1,7 +1,7 @@
 {
   "mapObjects": [
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -12.8600035,
       "y": 0.0,
       "z": -51.821,
@@ -13,7 +13,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -16.6200027,
       "y": 0.0,
       "z": -36.579998,
@@ -25,7 +25,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -25.42562,
       "y": 0.0,
       "z": -50.1140327,
@@ -37,7 +37,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -32.0200043,
       "y": 0.0,
       "z": -44.7199974,
@@ -49,7 +49,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -31.2600021,
       "y": 0.0,
       "z": -19.8589973,
@@ -61,7 +61,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -46.6600037,
       "y": 0.0,
       "z": -27.9989967,
@@ -73,7 +73,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -27.5000038,
       "y": 0.0,
       "z": -35.1,
@@ -85,7 +85,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -40.06562,
       "y": 0.0,
       "z": -33.3930321,
@@ -97,7 +97,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -32.7943878,
       "y": 0.0,
       "z": -62.1659622,
@@ -109,7 +109,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -48.19439,
       "y": 0.0,
       "z": -70.30597,
@@ -121,7 +121,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -29.03439,
       "y": 0.0,
       "z": -77.40697,
@@ -133,7 +133,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -41.6000023,
       "y": 0.0,
       "z": -75.7,
@@ -145,7 +145,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -47.4343872,
       "y": 0.0,
       "z": -45.44496,
@@ -157,7 +157,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -62.83439,
       "y": 0.0,
       "z": -53.58496,
@@ -169,7 +169,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -43.67439,
       "y": 0.0,
       "z": -60.6859665,
@@ -181,7 +181,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -56.2400055,
       "y": 0.0,
       "z": -58.9789963,
@@ -193,7 +193,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -90.2139,
       "y": 0.0,
       "z": 11.3148193,
@@ -205,7 +205,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -85.72261,
       "y": 0.0,
       "z": -5.51515961,
@@ -217,7 +217,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -88.46192,
       "y": 0.0,
       "z": -20.70148,
@@ -229,7 +229,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -83.9706345,
       "y": 0.0,
       "z": -37.5314522,
@@ -241,7 +241,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -74.51807,
       "y": 0.0,
       "z": 11.5725174,
@@ -253,7 +253,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -78.9909058,
       "y": 0.0,
       "z": -0.2935028,
@@ -265,7 +265,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -109.784531,
       "y": 0.0,
       "z": 0.7833481,
@@ -277,7 +277,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -105.293259,
       "y": 0.0,
       "z": -16.0466232,
@@ -289,7 +289,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -94.0886841,
       "y": 0.0,
       "z": 1.04104614,
@@ -301,7 +301,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -98.561554,
       "y": 0.0,
       "z": -10.8249664,
@@ -313,7 +313,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -68.89131,
       "y": 0.0,
       "z": -10.1700363,
@@ -325,7 +325,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -64.4,
       "y": 0.0,
       "z": -26.9999981,
@@ -337,7 +337,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -53.1954575,
       "y": 0.0,
       "z": -9.91235352,
@@ -349,7 +349,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -57.66829,
       "y": 0.0,
       "z": -21.7783489,
@@ -361,7 +361,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -72.76608,
       "y": 0.0,
       "z": -20.4438057,
@@ -373,7 +373,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -77.23894,
       "y": 0.0,
       "z": -32.309845,
@@ -385,7 +385,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -53.3200073,
       "y": 0.0,
       "z": -83.78,
@@ -397,7 +397,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -68.72001,
       "y": 0.0,
       "z": -91.92,
@@ -409,7 +409,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -84.13439,
       "y": 0.0,
       "z": -92.6449661,
@@ -421,7 +421,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -99.53439,
       "y": 0.0,
       "z": -100.784966,
@@ -433,7 +433,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -49.56001,
       "y": 0.0,
       "z": -99.0209961,
@@ -445,7 +445,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -62.12562,
       "y": 0.0,
       "z": -97.31403,
@@ -457,7 +457,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -67.96001,
       "y": 0.0,
       "z": -67.059,
@@ -469,7 +469,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -83.36001,
       "y": 0.0,
       "z": -75.199,
@@ -481,7 +481,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -64.20001,
       "y": 0.0,
       "z": -82.3,
@@ -493,7 +493,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -76.765625,
       "y": 0.0,
       "z": -80.59303,
@@ -505,7 +505,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -69.49439,
       "y": 0.0,
       "z": -109.365967,
@@ -517,7 +517,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -84.8943939,
       "y": 0.0,
       "z": -117.505966,
@@ -529,7 +529,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -65.73439,
       "y": 0.0,
       "z": -124.606964,
@@ -541,7 +541,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -78.3,
       "y": 0.0,
       "z": -122.9,
@@ -553,7 +553,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -80.37439,
       "y": 0.0,
       "z": -107.885963,
@@ -565,7 +565,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -92.94001,
       "y": 0.0,
       "z": -106.179,
@@ -577,7 +577,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -146.484528,
       "y": 0.0,
       "z": -46.4166527,
@@ -589,7 +589,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -141.993256,
       "y": 0.0,
       "z": -63.246624,
@@ -601,7 +601,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -105.591309,
       "y": 0.0,
       "z": -57.3700371,
@@ -613,7 +613,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -101.100006,
       "y": 0.0,
       "z": -74.2,
@@ -625,7 +625,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -109.46608,
       "y": 0.0,
       "z": -67.64381,
@@ -637,7 +637,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -113.93895,
       "y": 0.0,
       "z": -79.50984,
@@ -649,7 +649,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -126.91391,
       "y": 0.0,
       "z": -35.88518,
@@ -661,7 +661,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -122.422623,
       "y": 0.0,
       "z": -52.71516,
@@ -673,7 +673,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -125.161926,
       "y": 0.0,
       "z": -67.90148,
@@ -685,7 +685,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -120.670639,
       "y": 0.0,
       "z": -84.73145,
@@ -697,7 +697,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -111.218079,
       "y": 0.0,
       "z": -35.6274834,
@@ -709,7 +709,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -115.69091,
       "y": 0.0,
       "z": -47.4935036,
@@ -721,7 +721,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -130.7887,
       "y": 0.0,
       "z": -46.1589546,
@@ -733,7 +733,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -135.261566,
       "y": 0.0,
       "z": -58.0249672,
@@ -745,7 +745,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -89.89546,
       "y": 0.0,
       "z": -57.1123543,
@@ -757,7 +757,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -94.36829,
       "y": 0.0,
       "z": -68.97835,
@@ -769,7 +769,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 50.97438,
       "y": 0.0,
       "z": 63.98597,
@@ -781,7 +781,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 35.57438,
       "y": 0.0,
       "z": 55.8459625,
@@ -793,7 +793,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 20.159996,
       "y": 0.0,
       "z": 55.1210022,
@@ -805,7 +805,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 4.75999451,
       "y": 0.0,
       "z": 46.9810028,
@@ -817,7 +817,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 54.7343826,
       "y": 0.0,
       "z": 48.7449646,
@@ -829,7 +829,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 42.1687622,
       "y": 0.0,
       "z": 50.4519272,
@@ -841,7 +841,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 36.33438,
       "y": 0.0,
       "z": 80.70696,
@@ -853,7 +853,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 20.93438,
       "y": 0.0,
       "z": 72.56696,
@@ -865,7 +865,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 40.0943832,
       "y": 0.0,
       "z": 65.4659653,
@@ -877,7 +877,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 27.5287628,
       "y": 0.0,
       "z": 67.1729355,
@@ -889,7 +889,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 34.7999954,
       "y": 0.0,
       "z": 38.4,
@@ -901,7 +901,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 19.3999939,
       "y": 0.0,
       "z": 30.2600021,
@@ -913,7 +913,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 38.5599976,
       "y": 0.0,
       "z": 23.1589966,
@@ -925,7 +925,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 25.99438,
       "y": 0.0,
       "z": 24.8659668,
@@ -937,7 +937,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 23.9199944,
       "y": 0.0,
       "z": 39.8799973,
@@ -949,7 +949,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 11.3543777,
       "y": 0.0,
       "z": 41.5869675,
@@ -961,7 +961,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -42.1901474,
       "y": 0.0,
       "z": 101.349312,
@@ -973,7 +973,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -37.6988754,
       "y": 0.0,
       "z": 84.51934,
@@ -985,7 +985,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -1.29692459,
       "y": 0.0,
       "z": 90.39593,
@@ -997,7 +997,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 3.19438171,
       "y": 0.0,
       "z": 73.56596,
@@ -1009,7 +1009,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -5.17169571,
       "y": 0.0,
       "z": 80.1221542,
@@ -1021,7 +1021,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -9.644558,
       "y": 0.0,
       "z": 68.25612,
@@ -1033,7 +1033,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -22.6195183,
       "y": 0.0,
       "z": 111.880775,
@@ -1045,7 +1045,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -18.128231,
       "y": 0.0,
       "z": 95.0508041,
@@ -1057,7 +1057,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -20.8675385,
       "y": 0.0,
       "z": 79.86448,
@@ -1069,7 +1069,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -16.3762512,
       "y": 0.0,
       "z": 63.0345078,
@@ -1081,7 +1081,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -6.923687,
       "y": 0.0,
       "z": 112.138481,
@@ -1093,7 +1093,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -11.3965225,
       "y": 0.0,
       "z": 100.272469,
@@ -1105,7 +1105,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -26.4943,
       "y": 0.0,
       "z": 101.607,
@@ -1117,7 +1117,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -30.96717,
       "y": 0.0,
       "z": 89.7410049,
@@ -1129,7 +1129,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 14.3989258,
       "y": 0.0,
       "z": 90.6536,
@@ -1141,7 +1141,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 9.926094,
       "y": 0.0,
       "z": 78.78762,
@@ -1153,7 +1153,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -0.365623474,
       "y": 0.0,
       "z": 33.5069656,
@@ -1165,7 +1165,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -15.765625,
       "y": 0.0,
       "z": 25.3669662,
@@ -1177,7 +1177,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -1.90000916,
       "y": 0.0,
       "z": -8.800003,
@@ -1189,7 +1189,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -17.30001,
       "y": 0.0,
       "z": -16.9400024,
@@ -1201,7 +1201,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -12.78001,
       "y": 0.0,
       "z": -7.31999969,
@@ -1213,7 +1213,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -25.3456268,
       "y": 0.0,
       "z": -5.613037,
@@ -1225,7 +1225,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 14.2743759,
       "y": 0.0,
       "z": 16.785965,
@@ -1237,7 +1237,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -1.12562561,
       "y": 0.0,
       "z": 8.645966,
@@ -1249,7 +1249,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -16.5400085,
       "y": 0.0,
       "z": 7.92099762,
@@ -1261,7 +1261,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -31.94001,
       "y": 0.0,
       "z": -0.21900177,
@@ -1273,7 +1273,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 18.0343742,
       "y": 0.0,
       "z": 1.54496384,
@@ -1285,7 +1285,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 5.46876144,
       "y": 0.0,
       "z": 3.25193024,
@@ -1297,7 +1297,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 3.39437485,
       "y": 0.0,
       "z": 18.2659683,
@@ -1309,7 +1309,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -9.171242,
       "y": 0.0,
       "z": 19.97293,
@@ -1321,7 +1321,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 1.85998917,
       "y": 0.0,
       "z": -24.041,
@@ -1333,7 +1333,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -10.7056236,
       "y": 0.0,
       "z": -22.3340378,
@@ -1345,7 +1345,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -78.89015,
       "y": 0.0,
       "z": 54.1493149,
@@ -1357,7 +1357,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -74.39888,
       "y": 0.0,
       "z": 37.3193436,
@@ -1369,7 +1369,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -37.9969254,
       "y": 0.0,
       "z": 43.19593,
@@ -1381,7 +1381,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -33.5056229,
       "y": 0.0,
       "z": 26.3659668,
@@ -1393,7 +1393,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -41.8716965,
       "y": 0.0,
       "z": 32.9221573,
@@ -1405,7 +1405,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -46.3445663,
       "y": 0.0,
       "z": 21.0561218,
@@ -1417,7 +1417,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -59.3195267,
       "y": 0.0,
       "z": 64.68078,
@@ -1429,7 +1429,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -54.82824,
       "y": 0.0,
       "z": 47.8508072,
@@ -1441,7 +1441,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -57.567543,
       "y": 0.0,
       "z": 32.6644821,
@@ -1453,7 +1453,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -53.0762558,
       "y": 0.0,
       "z": 15.8345108,
@@ -1465,7 +1465,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -63.1943054,
       "y": 0.0,
       "z": 54.4070053,
@@ -1477,7 +1477,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -67.6671753,
       "y": 0.0,
       "z": 42.5409927,
@@ -1489,7 +1489,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -22.3010788,
       "y": 0.0,
       "z": 43.4536057,
@@ -1501,7 +1501,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -26.77391,
       "y": 0.0,
       "z": 31.587616,
@@ -1513,7 +1513,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -43.6236954,
       "y": 0.0,
       "z": 64.9384842,
@@ -1525,7 +1525,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -48.0965271,
       "y": 0.0,
       "z": 53.0724564,
@@ -1537,7 +1537,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 16.8743744,
       "y": 0.0,
       "z": -157.752045,
@@ -1549,7 +1549,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 1.47437286,
       "y": 0.0,
       "z": -165.892029,
@@ -1561,7 +1561,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 15.3399887,
       "y": 0.0,
       "z": -200.059021,
@@ -1573,7 +1573,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -0.0600128174,
       "y": 0.0,
       "z": -208.199,
@@ -1585,7 +1585,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 4.45998764,
       "y": 0.0,
       "z": -198.57901,
@@ -1597,7 +1597,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -8.105629,
       "y": 0.0,
       "z": -196.87204,
@@ -1609,7 +1609,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 31.5143738,
       "y": 0.0,
       "z": -174.473038,
@@ -1621,7 +1621,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 16.1143723,
       "y": 0.0,
       "z": -182.613037,
@@ -1633,7 +1633,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 0.6999893,
       "y": 0.0,
       "z": -183.338013,
@@ -1645,7 +1645,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -14.7000122,
       "y": 0.0,
       "z": -191.478,
@@ -1657,7 +1657,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 20.6343727,
       "y": 0.0,
       "z": -172.993042,
@@ -1669,7 +1669,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 8.068756,
       "y": 0.0,
       "z": -171.286072,
@@ -1681,7 +1681,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -61.6501541,
       "y": 0.0,
       "z": -137.10968,
@@ -1693,7 +1693,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -57.1588821,
       "y": 0.0,
       "z": -153.939667,
@@ -1705,7 +1705,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -20.7569275,
       "y": 0.0,
       "z": -148.06308,
@@ -1717,7 +1717,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -16.265625,
       "y": 0.0,
       "z": -164.893036,
@@ -1729,7 +1729,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -24.6316986,
       "y": 0.0,
       "z": -158.336853,
@@ -1741,7 +1741,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -29.1045685,
       "y": 0.0,
       "z": -170.202881,
@@ -1753,7 +1753,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -42.07953,
       "y": 0.0,
       "z": -126.578224,
@@ -1765,7 +1765,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -37.58824,
       "y": 0.0,
       "z": -143.4082,
@@ -1777,7 +1777,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -40.3275452,
       "y": 0.0,
       "z": -158.594513,
@@ -1789,7 +1789,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -35.8362579,
       "y": 0.0,
       "z": -175.4245,
@@ -1801,7 +1801,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 53.57438,
       "y": 0.0,
       "z": -110.55204,
@@ -1813,7 +1813,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 38.1743774,
       "y": 0.0,
       "z": -118.692039,
@@ -1825,7 +1825,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 52.0399933,
       "y": 0.0,
       "z": -152.859009,
@@ -1837,7 +1837,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 36.63999,
       "y": 0.0,
       "z": -160.999,
@@ -1849,7 +1849,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 41.15999,
       "y": 0.0,
       "z": -151.379,
@@ -1861,7 +1861,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 28.5943756,
       "y": 0.0,
       "z": -149.672028,
@@ -1873,7 +1873,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 68.21438,
       "y": 0.0,
       "z": -127.273033,
@@ -1885,7 +1885,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 52.8143768,
       "y": 0.0,
       "z": -135.41304,
@@ -1897,7 +1897,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 37.3999939,
       "y": 0.0,
       "z": -136.138,
@@ -1909,7 +1909,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 21.9999924,
       "y": 0.0,
       "z": -144.278,
@@ -1921,7 +1921,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 71.97438,
       "y": 0.0,
       "z": -142.514038,
@@ -1933,7 +1933,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 59.40876,
       "y": 0.0,
       "z": -140.807068,
@@ -1945,7 +1945,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 57.33438,
       "y": 0.0,
       "z": -125.793037,
@@ -1957,7 +1957,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 44.76876,
       "y": 0.0,
       "z": -124.086067,
@@ -1969,7 +1969,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 55.7999954,
       "y": 0.0,
       "z": -168.1,
@@ -1981,7 +1981,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 43.234375,
       "y": 0.0,
       "z": -166.393036,
@@ -1993,7 +1993,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -24.95015,
       "y": 0.0,
       "z": -89.90969,
@@ -2005,7 +2005,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -20.4588776,
       "y": 0.0,
       "z": -106.739662,
@@ -2017,7 +2017,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 15.9430733,
       "y": 0.0,
       "z": -100.863075,
@@ -2029,7 +2029,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 20.43438,
       "y": 0.0,
       "z": -117.693039,
@@ -2041,7 +2041,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 12.0683022,
       "y": 0.0,
       "z": -111.136848,
@@ -2053,7 +2053,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 7.59544,
       "y": 0.0,
       "z": -123.002884,
@@ -2065,7 +2065,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -5.37952042,
       "y": 0.0,
       "z": -79.37823,
@@ -2077,7 +2077,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -0.8882332,
       "y": 0.0,
       "z": -96.2082,
@@ -2089,7 +2089,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -3.62754059,
       "y": 0.0,
       "z": -111.394524,
@@ -2101,7 +2101,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 0.863746643,
       "y": 0.0,
       "z": -128.224487,
@@ -2113,7 +2113,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -9.254303,
       "y": 0.0,
       "z": -89.652,
@@ -2125,7 +2125,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -13.7271729,
       "y": 0.0,
       "z": -101.518,
@@ -2137,7 +2137,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 31.6389236,
       "y": 0.0,
       "z": -100.6054,
@@ -2149,7 +2149,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 27.1660919,
       "y": 0.0,
       "z": -112.471382,
@@ -2161,7 +2161,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 10.3163109,
       "y": 0.0,
       "z": -79.12052,
@@ -2173,7 +2173,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 5.84347534,
       "y": 0.0,
       "z": -90.9865341,
@@ -2185,7 +2185,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 19.099987,
       "y": 0.0,
       "z": -215.300018,
@@ -2197,7 +2197,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 6.534374,
       "y": 0.0,
       "z": -213.593048,
@@ -2209,7 +2209,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 35.2743721,
       "y": 0.0,
       "z": -189.71405,
@@ -2221,7 +2221,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 22.70876,
       "y": 0.0,
       "z": -188.00708,
@@ -2233,7 +2233,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -45.9543076,
       "y": 0.0,
       "z": -136.85199,
@@ -2245,7 +2245,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -50.4271774,
       "y": 0.0,
       "z": -148.718018,
@@ -2257,7 +2257,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -5.061081,
       "y": 0.0,
       "z": -147.805389,
@@ -2269,7 +2269,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -26.3836975,
       "y": 0.0,
       "z": -126.320518,
@@ -2281,7 +2281,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -30.85653,
       "y": 0.0,
       "z": -138.186554,
@@ -2293,7 +2293,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": -9.533913,
       "y": 0.0,
       "z": -159.671387,
@@ -2305,7 +2305,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 82.91438,
       "y": 0.0,
       "z": -66.37303,
@@ -2317,7 +2317,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 67.51438,
       "y": 0.0,
       "z": -74.51303,
@@ -2329,7 +2329,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 81.38,
       "y": 0.0,
       "z": -108.680008,
@@ -2341,7 +2341,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 65.9799957,
       "y": 0.0,
       "z": -116.819992,
@@ -2353,7 +2353,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 70.5,
       "y": 0.0,
       "z": -107.2,
@@ -2365,7 +2365,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 57.93438,
       "y": 0.0,
       "z": -105.493027,
@@ -2377,7 +2377,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 97.55438,
       "y": 0.0,
       "z": -83.09403,
@@ -2389,7 +2389,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 82.15438,
       "y": 0.0,
       "z": -91.234024,
@@ -2401,7 +2401,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 66.74,
       "y": 0.0,
       "z": -91.959,
@@ -2413,7 +2413,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 51.3399963,
       "y": 0.0,
       "z": -100.099,
@@ -2425,7 +2425,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 86.67438,
       "y": 0.0,
       "z": -81.61403,
@@ -2437,7 +2437,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 74.1087646,
       "y": 0.0,
       "z": -79.90707,
@@ -2449,7 +2449,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 4.38985443,
       "y": 0.0,
       "z": -45.7306824,
@@ -2461,7 +2461,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 8.881126,
       "y": 0.0,
       "z": -62.5606537,
@@ -2473,7 +2473,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 45.28308,
       "y": 0.0,
       "z": -56.6840668,
@@ -2485,7 +2485,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 49.7743835,
       "y": 0.0,
       "z": -73.51403,
@@ -2497,7 +2497,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 41.40831,
       "y": 0.0,
       "z": -66.95784,
@@ -2509,7 +2509,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 36.93544,
       "y": 0.0,
       "z": -78.8238754,
@@ -2521,7 +2521,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 23.96048,
       "y": 0.0,
       "z": -35.19922,
@@ -2533,7 +2533,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 28.451767,
       "y": 0.0,
       "z": -52.02919,
@@ -2545,7 +2545,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 25.7124634,
       "y": 0.0,
       "z": -67.2155151,
@@ -2557,7 +2557,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 30.20375,
       "y": 0.0,
       "z": -84.04549,
@@ -2569,7 +2569,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 41.08986,
       "y": 0.0,
       "z": 1.46931458,
@@ -2581,7 +2581,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 45.58113,
       "y": 0.0,
       "z": -15.3606567,
@@ -2593,7 +2593,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 81.98308,
       "y": 0.0,
       "z": -9.48407,
@@ -2605,7 +2605,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 86.47439,
       "y": 0.0,
       "z": -26.3140335,
@@ -2617,7 +2617,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 78.10831,
       "y": 0.0,
       "z": -19.757843,
@@ -2629,7 +2629,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 73.63545,
       "y": 0.0,
       "z": -31.6238785,
@@ -2641,7 +2641,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 20.085701,
       "y": 0.0,
       "z": -45.4729919,
@@ -2653,7 +2653,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 15.6128311,
       "y": 0.0,
       "z": -57.3390045,
@@ -2665,7 +2665,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 60.9789276,
       "y": 0.0,
       "z": -56.42639,
@@ -2677,7 +2677,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 119.614395,
       "y": 0.0,
       "z": -19.1730347,
@@ -2689,7 +2689,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 104.214386,
       "y": 0.0,
       "z": -27.3130341,
@@ -2701,7 +2701,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 118.08,
       "y": 0.0,
       "z": -61.4799957,
@@ -2713,7 +2713,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 102.680008,
       "y": 0.0,
       "z": -69.6199951,
@@ -2725,7 +2725,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 107.2,
       "y": 0.0,
       "z": -60.0,
@@ -2737,7 +2737,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 94.6343842,
       "y": 0.0,
       "z": -58.29303,
@@ -2749,7 +2749,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 134.254379,
       "y": 0.0,
       "z": -35.8940277,
@@ -2761,7 +2761,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 118.854385,
       "y": 0.0,
       "z": -44.0340347,
@@ -2773,7 +2773,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 103.44,
       "y": 0.0,
       "z": -44.7589951,
@@ -2785,7 +2785,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 88.04,
       "y": 0.0,
       "z": -52.8989944,
@@ -2797,7 +2797,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 123.37439,
       "y": 0.0,
       "z": -34.414032,
@@ -2809,7 +2809,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 110.808762,
       "y": 0.0,
       "z": -32.70706,
@@ -2821,7 +2821,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 121.840012,
       "y": 0.0,
       "z": -76.72099,
@@ -2833,7 +2833,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 109.274384,
       "y": 0.0,
       "z": -75.01403,
@@ -2845,7 +2845,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 138.014389,
       "y": 0.0,
       "z": -51.1350327,
@@ -2857,7 +2857,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 125.448776,
       "y": 0.0,
       "z": -49.42807,
@@ -2869,7 +2869,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 60.6604919,
       "y": 0.0,
       "z": 12.0007782,
@@ -2881,7 +2881,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 65.15178,
       "y": 0.0,
       "z": -4.829193,
@@ -2893,7 +2893,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 62.412468,
       "y": 0.0,
       "z": -20.0155182,
@@ -2905,7 +2905,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 66.9037552,
       "y": 0.0,
       "z": -36.84549,
@@ -2917,7 +2917,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 56.7857056,
       "y": 0.0,
       "z": 1.727005,
@@ -2929,7 +2929,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 52.3128357,
       "y": 0.0,
       "z": -10.1389923,
@@ -2941,7 +2941,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 97.67893,
       "y": 0.0,
       "z": -9.226395,
@@ -2953,7 +2953,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 93.2061,
       "y": 0.0,
       "z": -21.0923767,
@@ -2965,7 +2965,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 76.35632,
       "y": 0.0,
       "z": 12.2584839,
@@ -2977,7 +2977,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 71.8834839,
       "y": 0.0,
       "z": 0.3924713,
@@ -2989,7 +2989,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 101.314377,
       "y": 0.0,
       "z": -98.33504,
@@ -3001,7 +3001,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 88.748764,
       "y": 0.0,
       "z": -96.62807,
@@ -3013,7 +3013,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 85.14,
       "y": 0.0,
       "z": -123.921005,
@@ -3025,7 +3025,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 72.57439,
       "y": 0.0,
       "z": -122.214035,
@@ -3037,7 +3037,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 39.65631,
       "y": 0.0,
       "z": -34.9415131,
@@ -3049,7 +3049,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 35.18348,
       "y": 0.0,
       "z": -46.80754,
@@ -3061,7 +3061,7 @@
       }
     },
     {
-      "type": "vanilla:Pebble",
+      "type": "vanilla:Stone",
       "x": 56.5060959,
       "y": 0.0,
       "z": -68.29238,
