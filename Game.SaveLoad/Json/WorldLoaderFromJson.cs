@@ -58,6 +58,7 @@ namespace Game.Save.Json
             else
             {
                 Console.WriteLine("セーブデータがありませんでした。新規作成します。");
+                WorldInitialize();
             }
         }
 
@@ -72,6 +73,11 @@ namespace Game.Save.Json
             _worldSettingsDatastore.LoadSettingData(load.Setting);
             
             _mapObjectDatastore.LoadAndCreateObject(load.MapObjects);
+        }
+        
+        public void WorldInitialize()
+        {
+            _worldSettingsDatastore.Initialize();
         }
 
     }

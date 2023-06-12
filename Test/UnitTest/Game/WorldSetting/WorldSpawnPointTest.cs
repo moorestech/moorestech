@@ -21,6 +21,7 @@ namespace Test.UnitTest.Game.WorldSetting
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldSettings = serviceProvider.GetService<IWorldSettingsDatastore>();
             var vineGenerator = serviceProvider.GetService<VeinGenerator>();
+            worldSettings.Initialize();
             
             var spawnPoint = worldSettings.WorldSpawnPoint;
             

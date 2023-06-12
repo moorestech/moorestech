@@ -8,8 +8,4 @@
       <ProjectReference Include="..\Server.Protocol\Server.Protocol.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="TestMod\ConfigOnly" />
-    </ItemGroup>
-
 </Project>
