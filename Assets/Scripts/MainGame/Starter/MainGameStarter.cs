@@ -98,6 +98,7 @@ namespace MainGame.Starter
         [SerializeField] private ItemRecipeView itemRecipeView;
         [SerializeField] private QuestUI QuestUI;
         [SerializeField] private RecipePlaceButton recipePlaceButton;
+        [SerializeField] private MapObjectGetPresenter mapObjectGetPresenter;
         
         [SerializeField] private GrabbedItemImagePresenter grabbedItemImagePresenter;
         [SerializeField] private EntitiesPresenter entitiesPresenter;
@@ -204,7 +205,6 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<RecipeViewerItemPlacer>();
             builder.RegisterEntryPoint<DirectItemMovePacketSend>();
             builder.RegisterEntryPoint<BlockStateChangePresenter>();
-            builder.RegisterEntryPoint<MapObjectPresenter>();
             
             
             //UIコントロール
@@ -267,6 +267,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(playerInventorySlots);
             builder.RegisterComponent(questViewerObject);
             builder.RegisterComponent(recipePlaceButton);
+            builder.RegisterComponent(mapObjectGetPresenter);
             
             builder.RegisterComponent(displayEnergizedRange);
             builder.RegisterComponent(entitiesPresenter);

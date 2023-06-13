@@ -10,12 +10,12 @@ namespace MainGame.Presenter.MapObject
     /// <summary>
     /// マップオブジェクトのUIの表示や削除の判定を担当する
     /// </summary>
-    public class MapObjectPresenter : ITickable
+    public class MapObjectGetPresenter : MonoBehaviour 
     {
         private readonly UIStateControl _uiStateControl;
         private readonly SendGetMapObjectProtocolProtocol _sendGetMapObjectProtocolProtocol;
 
-        public MapObjectPresenter(UIStateControl uiStateControl,SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol)
+        public MapObjectGetPresenter(UIStateControl uiStateControl,SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol)
         {
             _uiStateControl = uiStateControl;
             _sendGetMapObjectProtocolProtocol = sendGetMapObjectProtocolProtocol;
@@ -23,7 +23,7 @@ namespace MainGame.Presenter.MapObject
         
         private MapObjectGameObject _lastForcesMapObjectGameObject;
 
-        public void Tick()
+        private void Update()
         {
             if (_uiStateControl.CurrentState != UIStateEnum.GameScreen)
             {
