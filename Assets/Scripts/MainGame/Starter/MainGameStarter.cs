@@ -37,6 +37,7 @@ using MainGame.UnityView.UI.Quest;
 using MainGame.UnityView.UI.Tutorial;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.UI.UIState.UIObject;
+using MainGame.UnityView.Util;
 using MainGame.UnityView.WorldMapTile;
 using SinglePlay;
 using UnityEngine;
@@ -96,7 +97,7 @@ namespace MainGame.Starter
         [SerializeField] private PlayerPosition playerPosition;
         [SerializeField] private SelectHotBarView selectHotBarView;
         [SerializeField] private ItemRecipeView itemRecipeView;
-        [SerializeField] private QuestUI QuestUI;
+        [SerializeField] private QuestUI questUI;
         [SerializeField] private RecipePlaceButton recipePlaceButton;
         [SerializeField] private MapObjectGetPresenter mapObjectGetPresenter;
         
@@ -249,7 +250,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(selectHotBarControl);
             builder.RegisterComponent(selectHotBarView);
             builder.RegisterComponent(itemRecipeView);
-            builder.RegisterComponent(QuestUI);
+            builder.RegisterComponent(questUI);
             builder.RegisterComponent(highlightRecipeViewerItem);
             builder.RegisterComponent(gameUIHighlight);
             

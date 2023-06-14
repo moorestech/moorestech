@@ -1,9 +1,12 @@
-﻿using Core.Ore;
+﻿using System.Threading;
+using Core.Ore;
+using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
+using MainGame.UnityView.Util;
 using MainGame.UnityView.WorldMapTile;
 using SinglePlay;
 using UnityEngine;
@@ -17,10 +20,11 @@ namespace MainGame.Presenter.Inventory
     /// </summary>
     public class OreMapTileClickDetect : MonoBehaviour
     {
-        [SerializeField] private ProgressBarView progressBarView;
+        [SerializeField] private MiningObjectHelper miningObjectHelper;
         
         //今の所は一律3秒
         //TODO コンフィグに対応させる
+        //TODO 将来的に採掘時間をコンフィグから取得する
         private const float MiningTime = 3.0f;
         
         private Camera _mainCamera;
@@ -29,8 +33,9 @@ namespace MainGame.Presenter.Inventory
         //TODO 用語の統一が出来てないのでOreConfigをMapTileConfigに変更する
         private IOreConfig _oreConfig; 
         
-        private MapTileObject _currentMapTileObject;
-        private float _currentClickTime;
+        private MapTileObject _currentClickingMapTileObject;
+
+        private CancellationTokenSource _cancellationTokenSource;
         
         [Inject]
         public void Construct(Camera mainCamera,SendMiningProtocol sendMiningProtocol,UIStateControl uiStateControl,SinglePlayInterface singlePlayInterface)
@@ -46,31 +51,35 @@ namespace MainGame.Presenter.Inventory
         {
             if (_uiStateControl.CurrentState != UIStateEnum.DeleteBar) return;
             
-            if (_currentMapTileObject == null)
+            if (_currentClickingMapTileObject == null)
             {
-                _currentMapTileObject = GetBlockClicked();
-                _currentClickTime = 0;
+                _currentClickingMapTileObject = GetBlockClicked();
+                
+                //マイニングを開始する
+                StartMining(MiningTime).Forget();
                 return;
             }
             var clickedObject = GetBlockClicked();
-            if (clickedObject != _currentMapTileObject)
+            if (clickedObject != _currentClickingMapTileObject)
             {
-                _currentMapTileObject = clickedObject;
-                _currentClickTime = 0;
+                _currentClickingMapTileObject = clickedObject;
+                
+                //マイニングを開始する
+                StartMining(MiningTime).Forget();
                 return;
             }
-            _currentClickTime += Time.deltaTime;
-            //TODO 将来的に採掘時間をコンフィグから取得する
-            var config = _oreConfig.Get(_currentMapTileObject.TileId);
-            
-            //todo 採掘中　みたいなステートをちゃんと管理して、同時に採掘しないようにする
-            progressBarView.SetProgress(_currentClickTime / MiningTime);
+        }
 
-            if (MiningTime <= _currentClickTime)
-            {
-                _sendMiningProtocol.Send(GetClickPosition());
-                _currentClickTime = 0;
-            }
+        private async UniTask StartMining(float miningTime)
+        {
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource = new CancellationTokenSource();
+            
+            await miningObjectHelper.StartMining(miningTime,_cancellationTokenSource.Token);
+            
+            _sendMiningProtocol.Send(GetClickPosition());
+            _cancellationTokenSource.Dispose();
+            _cancellationTokenSource = null;
         }
 
         private MapTileObject GetBlockClicked()
