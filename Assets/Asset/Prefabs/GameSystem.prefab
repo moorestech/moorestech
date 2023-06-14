@@ -1,5 +1,50 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2544946426575401251
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4179618018869986478}
+  - component: {fileID: 2869524352059003073}
+  m_Layer: 0
+  m_Name: MapObjectGetPresenter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4179618018869986478
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2544946426575401251}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3084759534298576664}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2869524352059003073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2544946426575401251}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a95c0ce86d154fb096f10920706da476, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  progressBarView: {fileID: 3208112019723108600}
 --- !u!1 &3084759532686723519
 GameObject:
   m_ObjectHideFlags: 0
@@ -281,6 +326,7 @@ Transform:
   - {fileID: 7741747857552304000}
   - {fileID: 2213244559711559564}
   - {fileID: 968792338582425333}
+  - {fileID: 4179618018869986478}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -317,6 +363,7 @@ MonoBehaviour:
   itemRecipeView: {fileID: 685329946122380679}
   QuestUI: {fileID: 124090804644053847}
   recipePlaceButton: {fileID: 1376275898372170770}
+  mapObjectGetPresenter: {fileID: 2869524352059003073}
   grabbedItemImagePresenter: {fileID: 8282150261995960192}
   entitiesPresenter: {fileID: 3084759532940359042}
   uIStateControl: {fileID: 5718959970521607651}

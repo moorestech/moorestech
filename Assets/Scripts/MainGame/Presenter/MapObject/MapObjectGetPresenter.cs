@@ -1,6 +1,7 @@
 ﻿using MainGame.Network.Send;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.MapObject;
+using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
 using UnityEngine;
 using VContainer.Unity;
@@ -12,6 +13,8 @@ namespace MainGame.Presenter.MapObject
     /// </summary>
     public class MapObjectGetPresenter : MonoBehaviour 
     {
+        [SerializeField] private ProgressBarView progressBarView;
+        
         private readonly UIStateControl _uiStateControl;
         private readonly SendGetMapObjectProtocolProtocol _sendGetMapObjectProtocolProtocol;
 

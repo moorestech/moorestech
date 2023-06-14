@@ -14,6 +14,10 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
 
         private float _lastSetTime;
         
+        /// <summary>
+        /// TODO 採掘中　みたいなステートをちゃんと管理して、同時に採掘しないようにする
+        /// </summary>
+        /// <param name="progress"></param>
         public void SetProgress(float progress)
         {
             _lastSetTime = Time.time;

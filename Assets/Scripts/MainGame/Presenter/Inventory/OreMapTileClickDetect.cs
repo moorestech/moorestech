@@ -63,6 +63,7 @@ namespace MainGame.Presenter.Inventory
             //TODO 将来的に採掘時間をコンフィグから取得する
             var config = _oreConfig.Get(_currentMapTileObject.TileId);
             
+            //todo 採掘中　みたいなステートをちゃんと管理して、同時に採掘しないようにする
             progressBarView.SetProgress(_currentClickTime / MiningTime);
 
             if (MiningTime <= _currentClickTime)
