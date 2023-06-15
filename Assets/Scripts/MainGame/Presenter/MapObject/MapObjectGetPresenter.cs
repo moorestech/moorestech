@@ -4,6 +4,7 @@ using MainGame.UnityView.MapObject;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace MainGame.Presenter.MapObject
@@ -15,10 +16,11 @@ namespace MainGame.Presenter.MapObject
     {
         [SerializeField] private ProgressBarView progressBarView;
         
-        private readonly UIStateControl _uiStateControl;
-        private readonly SendGetMapObjectProtocolProtocol _sendGetMapObjectProtocolProtocol;
+        private UIStateControl _uiStateControl;
+        private SendGetMapObjectProtocolProtocol _sendGetMapObjectProtocolProtocol;
 
-        public MapObjectGetPresenter(UIStateControl uiStateControl,SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol)
+        [Inject]
+        public void Constructor(UIStateControl uiStateControl,SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol)
         {
             _uiStateControl = uiStateControl;
             _sendGetMapObjectProtocolProtocol = sendGetMapObjectProtocolProtocol;
