@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using MainGame.Network.Send.SocketUtil;
 using Server.Util;
+using UnityEngine;
 
 namespace MainGame.Network.Send
 {
@@ -18,9 +19,9 @@ namespace MainGame.Network.Send
         public SocketSender(SocketInstanceCreate socketInstanceCreate)
         {
             _socket = socketInstanceCreate.SocketInstance;
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                while (!_socket.Connected) { }
+                while (!_socket.Connected) { await Task.Delay(100);}
                 OnConnected?.Invoke();
             });
         }
