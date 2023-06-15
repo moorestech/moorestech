@@ -30,8 +30,8 @@ namespace Server.Util
                     //パケット長を取得
                     _packetLength = GetLength(packet, actualStartPacketDataIndex);
                     //パケット長のshort型の4バイトを取り除く
-                    reminderLength -= _packetLength　+ 2;
-                    actualStartPacketDataIndex += 2;
+                    reminderLength -= _packetLength　+ 4;
+                    actualStartPacketDataIndex += 4;
                 }
                 else
                 {
@@ -56,8 +56,6 @@ namespace Server.Util
                 {
                     _continuationFromLastTimeBytes.Add(packet[actualStartPacketDataIndex]);
                 }
-                //次のパケット解析のためにインデックスを進める
-                actualStartPacketDataIndex++;
                         
                 result.Add(_continuationFromLastTimeBytes);
                 //受信したパケットに対する応答を返す
@@ -74,8 +72,8 @@ namespace Server.Util
             {
                 bytes[startIndex],
                 bytes[startIndex + 1],
-                bytes[startIndex + 3],
-                bytes[startIndex + 4]
+                bytes[startIndex + 2],
+                bytes[startIndex + 3]
             };
 
             if (BitConverter.IsLittleEndian) b.Reverse();
