@@ -1,18 +1,19 @@
 ﻿using System;
 using Game.World.Interface.DataStore;
 using MessagePack;
+using Server.Protocol.Base;
 
 namespace Server.Protocol.PacketResponse.MessagePack
 {
     [MessagePackObject(keyAsPropertyName :true)]
-    public class ChunkDataResponseMessagePack : ProtocolMessagePackBase
+    public class ChunkDataResponseMessagePack : ToClientProtocolMessagePackBase 
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ChunkDataResponseMessagePack() { }
 
         public ChunkDataResponseMessagePack(Coordinate chunk, int[,] blockIds, int[,] blockDirect, int[,] mapTileIds)
         {
-            Tag = PlayerCoordinateSendProtocol.ChunkDataTag;
+            ToClientTag = PlayerCoordinateSendProtocol.ChunkDataTag;
             ChunkX = chunk.X;
             ChunkY = chunk.Y;
             BlockIds = blockIds;

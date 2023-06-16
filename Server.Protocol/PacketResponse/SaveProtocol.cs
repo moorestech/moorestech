@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Save.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.Base;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -15,22 +16,22 @@ namespace Server.Protocol.PacketResponse
         {
             _worldSaveDataSaver = serviceProvider.GetService<IWorldSaveDataSaver>();
         }
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
         {
             Console.WriteLine("セーブ開始");
             _worldSaveDataSaver.Save();
             Console.WriteLine("セーブ完了");
-            return new List<List<byte>>();
+            return new List<ToClientProtocolMessagePackBase>();
         }
     }
     
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class SaveProtocolMessagePack : ProtocolMessagePackBase
+    public class SaveProtocolMessagePack : ToServerProtocolMessagePackBase
     {
         public SaveProtocolMessagePack()
         {
-            Tag = SaveProtocol.Tag;
+            ToServerTag = SaveProtocol.Tag;
         }
     }
 }

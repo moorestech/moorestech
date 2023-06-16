@@ -7,6 +7,7 @@ using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.Base;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
@@ -28,7 +29,7 @@ namespace Server.Protocol.PacketResponse
             _blockFactory = serviceProvider.GetService<BlockFactory>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<SendPlaceHotBarBlockProtocolMessagePack>(payload.ToArray());
 
@@ -37,9 +38,9 @@ namespace Server.Protocol.PacketResponse
             var item = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory.GetItem(inventorySlot);
             
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
-            if (!_itemIdToBlockId.CanConvert(item.Id)) return new List<List<byte>>();
+            if (!_itemIdToBlockId.CanConvert(item.Id)) return new List<ToClientProtocolMessagePackBase>();
             //すでにブロックがある場合はそもまま処理を終了
-            if (_worldBlockDatastore.Exists(data.X,data.Y))  return new List<List<byte>>();
+            if (_worldBlockDatastore.Exists(data.X,data.Y))  return new List<ToClientProtocolMessagePackBase>();
 
             
             var blockDirection = data.Direction switch
@@ -62,17 +63,17 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory.SetItem(inventorySlot, item);
             
             
-            return new List<List<byte>>();
+            return new List<ToClientProtocolMessagePackBase>();
         }
     }
     
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class SendPlaceHotBarBlockProtocolMessagePack : ProtocolMessagePackBase
+    public class SendPlaceHotBarBlockProtocolMessagePack : ToServerProtocolMessagePackBase
     {
         public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int direction, int slot, int x, int y)
         {
-            Tag = SendPlaceHotBarBlockProtocol.Tag;
+            ToServerTag = SendPlaceHotBarBlockProtocol.Tag;
             PlayerId = playerId;
             Direction = direction;
             Slot = slot;

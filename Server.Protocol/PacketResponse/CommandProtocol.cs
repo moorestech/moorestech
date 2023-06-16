@@ -4,6 +4,7 @@ using Core.Item;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.Base;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
@@ -20,7 +21,7 @@ namespace Server.Protocol.PacketResponse
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<SendCommandProtocolMessagePack>(payload.ToArray());
             
@@ -35,13 +36,13 @@ namespace Server.Protocol.PacketResponse
                 inventory.MainOpenableInventory.InsertItem(item);
             }
             
-            return new List<List<byte>>();
+            return new List<ToClientProtocolMessagePackBase>();
         }
     }
     
         
     [MessagePackObject(keyAsPropertyName :true)]
-    public class SendCommandProtocolMessagePack : ProtocolMessagePackBase
+    public class SendCommandProtocolMessagePack : ToServerProtocolMessagePackBase
     {
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -49,7 +50,7 @@ namespace Server.Protocol.PacketResponse
 
         public SendCommandProtocolMessagePack(string command)
         {
-            Tag = SendCommandProtocol.Tag;
+            ToServerTag = SendCommandProtocol.Tag;
             Command = command;
         }
 

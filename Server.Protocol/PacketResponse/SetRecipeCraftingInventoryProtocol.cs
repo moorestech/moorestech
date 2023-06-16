@@ -5,6 +5,7 @@ using Core.Item.Config;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.Base;
 using Server.Protocol.PacketResponse.Util.RecipePlace;
 using Server.Util.MessagePack;
 
@@ -23,7 +24,7 @@ namespace Server.Protocol.PacketResponse
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             _itemConfig = serviceProvider.GetService<IItemConfig>();
         }
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<SetRecipeCraftingInventoryProtocolMessagePack>(payload.ToArray());
 
@@ -45,16 +46,16 @@ namespace Server.Protocol.PacketResponse
             //実際に移動する
             MoveRecipeMainInventoryToCraftInventory.Move(_itemStackFactory, mainInventory, craftingInventory, moveItem);
             
-            return new List<List<byte>>();
+            return new List<ToClientProtocolMessagePackBase>();
         }
     }
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class SetRecipeCraftingInventoryProtocolMessagePack : ProtocolMessagePackBase
+    public class SetRecipeCraftingInventoryProtocolMessagePack : ToServerProtocolMessagePackBase
     {
         public SetRecipeCraftingInventoryProtocolMessagePack(int playerId,ItemMessagePack[] recipe)
         {
-            Tag = SetRecipeCraftingInventoryProtocol.Tag;
+            ToServerTag = SetRecipeCraftingInventoryProtocol.Tag;
             PlayerId = playerId;
             Recipe = recipe;
         }

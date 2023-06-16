@@ -9,6 +9,7 @@
         <ProjectReference Include="..\Game.PlayerInventory.Interface\Game.PlayerInventory.Interface.csproj" />
         <ProjectReference Include="..\Game.Quest.Interface\Game.Quest.Interface.csproj" />
         <ProjectReference Include="..\Game.World.Interface\Game.World.Interface.csproj" />
+        <ProjectReference Include="..\Server.Protocol.Base\Server.Protocol.Base.csproj" />
         <ProjectReference Include="..\Server.Util\Server.Util.csproj" />
     </ItemGroup>
 

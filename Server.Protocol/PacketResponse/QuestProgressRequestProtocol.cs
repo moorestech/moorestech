@@ -5,6 +5,7 @@ using Game.Quest.Interface;
 using Game.Quest.Interface.Extension;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.Base;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -19,7 +20,7 @@ namespace Server.Protocol.PacketResponse
             _questDataStore = serviceProvider.GetService<IQuestDataStore>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
         {
             var playerId = MessagePackSerializer.Deserialize<QuestProgressRequestProtocolMessagePack>(payload.ToArray()).PlayerId;
 
@@ -31,18 +32,18 @@ namespace Server.Protocol.PacketResponse
 
             var responseData = new QuestProgressResponseProtocolMessagePack(responseQuest);
 
-            return new List<List<byte>> {MessagePackSerializer.Serialize(responseData).ToList()};
+            return new List<ToClientProtocolMessagePackBase> {responseData};
         }
     }
     
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class QuestProgressRequestProtocolMessagePack : ProtocolMessagePackBase
+    public class QuestProgressRequestProtocolMessagePack : ToServerProtocolMessagePackBase
     {
         public QuestProgressRequestProtocolMessagePack(int playerId)
         {
             PlayerId = playerId;
-            Tag = QuestProgressRequestProtocol.Tag;
+            ToServerTag = QuestProgressRequestProtocol.Tag;
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -56,11 +57,11 @@ namespace Server.Protocol.PacketResponse
     
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class QuestProgressResponseProtocolMessagePack : ProtocolMessagePackBase
+    public class QuestProgressResponseProtocolMessagePack : ToClientProtocolMessagePackBase
     {
         public QuestProgressResponseProtocolMessagePack(List<QuestProgressMessagePack> quests)
         {
-            Tag = QuestProgressRequestProtocol.Tag;
+            ToClientTag = QuestProgressRequestProtocol.Tag;
             Quests = quests;
         }
         

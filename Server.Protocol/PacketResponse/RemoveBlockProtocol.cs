@@ -8,6 +8,7 @@ using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.Base;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
@@ -32,7 +33,7 @@ namespace Server.Protocol.PacketResponse
             _worldBlockComponentDatastore = serviceProvider.GetService<IWorldBlockComponentDatastore<IBlockInventory>>();
         }
         
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<RemoveBlockProtocolMessagePack>(payload.ToArray());
             
@@ -81,18 +82,18 @@ namespace Server.Protocol.PacketResponse
                 _worldBlockDatastore.RemoveBlock(data.X, data.Y);
             }
 
-            return new List<List<byte>>();
+            return new List<ToClientProtocolMessagePackBase>();
         }
 
     }
     
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class RemoveBlockProtocolMessagePack : ProtocolMessagePackBase
+    public class RemoveBlockProtocolMessagePack : ToServerProtocolMessagePackBase
     {
         public RemoveBlockProtocolMessagePack(int playerId, int x, int y)
         {
-            Tag = RemoveBlockProtocol.Tag;
+            ToServerTag = RemoveBlockProtocol.Tag;
             PlayerId = playerId;
             X = x;
             Y = y;

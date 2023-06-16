@@ -4,6 +4,7 @@ using System.Linq;
 using Game.MapObject.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.Base;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -21,7 +22,7 @@ namespace Server.Protocol.PacketResponse
             _mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
         }
         
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
         {
             var sendMapObjects = new List<MapObjectDestructionInformationData>();
             foreach (var mapObject in _mapObjectDatastore.MapObjects)
@@ -31,21 +32,21 @@ namespace Server.Protocol.PacketResponse
             
             var response = new ResponseMapObjectDestructionInformationMessagePack(sendMapObjects);
             
-            return new List<List<byte>>(){MessagePackSerializer.Serialize(response).ToList()};
+            return new List<ToClientProtocolMessagePackBase>(){response};
         }
     }
     
     [MessagePackObject(keyAsPropertyName:true)]
-    public class RequestMapObjectDestructionInformationMessagePack : ProtocolMessagePackBase
+    public class RequestMapObjectDestructionInformationMessagePack : ToServerProtocolMessagePackBase
     {
         public RequestMapObjectDestructionInformationMessagePack()
         {
-            Tag = MapObjectDestructionInformationProtocol.Tag;
+            ToServerTag = MapObjectDestructionInformationProtocol.Tag;
         }
     }
     
     [MessagePackObject(keyAsPropertyName:true)]
-    public class ResponseMapObjectDestructionInformationMessagePack
+    public class ResponseMapObjectDestructionInformationMessagePack : ToClientProtocolMessagePackBase
     {
         public List<MapObjectDestructionInformationData> MapObjects { get; set; }
         
@@ -54,6 +55,7 @@ namespace Server.Protocol.PacketResponse
         
         public ResponseMapObjectDestructionInformationMessagePack(List<MapObjectDestructionInformationData> mapObjects)
         {
+            ToClientTag = MapObjectDestructionInformationProtocol.Tag;
             MapObjects = mapObjects;
         }
     }

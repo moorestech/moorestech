@@ -10,7 +10,7 @@ namespace Server.Protocol.PacketResponse.Player
 {
     public static class ChunkBlockToPayload
     {
-        public static List<byte> Convert(Coordinate chunkCoordinate,IWorldBlockDatastore worldBlockDatastore, WorldMapTile worldMapTile)
+        public static ChunkDataResponseMessagePack Convert(Coordinate chunkCoordinate,IWorldBlockDatastore worldBlockDatastore, WorldMapTile worldMapTile)
         {
             
             //ブロックのIDの取得
@@ -21,8 +21,8 @@ namespace Server.Protocol.PacketResponse.Player
             var mapTIleIds = CoordinateToChunkBlockIntArray.GetMapIdsInChunk(chunkCoordinate, worldMapTile);
 
 
-            return MessagePackSerializer.Serialize(new ChunkDataResponseMessagePack(
-                chunkCoordinate,blocksIds,blockDirections,mapTIleIds)).ToList();
+            return new ChunkDataResponseMessagePack(
+                chunkCoordinate,blocksIds,blockDirections,mapTIleIds);
         }
     }
 }

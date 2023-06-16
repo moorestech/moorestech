@@ -4,6 +4,7 @@ using Core.Item;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.Base;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
@@ -19,7 +20,7 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
         
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<CraftProtocolMessagePack>(payload.ToArray());
             
@@ -41,18 +42,18 @@ namespace Server.Protocol.PacketResponse
             }
             
 
-            return new List<List<byte>>();
+            return new List<ToClientProtocolMessagePackBase>();
         }
     }
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class CraftProtocolMessagePack : ProtocolMessagePackBase
+    public class CraftProtocolMessagePack : ToServerProtocolMessagePackBase
     {
         public CraftProtocolMessagePack(int playerId, int craftType)
         {
             PlayerId = playerId;
             CraftType = craftType;
-            Tag = CraftProtocol.Tag;
+            ToServerTag = CraftProtocol.Tag;
         }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

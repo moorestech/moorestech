@@ -6,6 +6,7 @@ using Game.MapObject.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.Base;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -29,7 +30,7 @@ namespace Server.Protocol.PacketResponse
         }
 
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<GetMapObjectProtocolProtocolMessagePack>(payload.ToArray());
 
@@ -45,20 +46,20 @@ namespace Server.Protocol.PacketResponse
                 mapObject.Destroy();
             }
 
-            return new List<List<byte>>();
+            return new List<ToClientProtocolMessagePackBase>();
         }
     }
     
         
     [MessagePackObject(keyAsPropertyName :true)]
-    public class GetMapObjectProtocolProtocolMessagePack : ProtocolMessagePackBase
+    public class GetMapObjectProtocolProtocolMessagePack : ToServerProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public GetMapObjectProtocolProtocolMessagePack() { }
 
         public GetMapObjectProtocolProtocolMessagePack(int playerId, int instanceId)
         {
-            Tag = GetMapObjectProtocol.Tag;
+            ToServerTag = GetMapObjectProtocol.Tag;
             PlayerId = playerId;
             InstanceId = instanceId;
         }

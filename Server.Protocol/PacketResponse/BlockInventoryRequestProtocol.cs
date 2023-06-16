@@ -11,6 +11,7 @@ using Core.Inventory;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.Base;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
@@ -33,12 +34,12 @@ namespace Server.Protocol.PacketResponse
             serviceProvider.GetService<IBlockConfig>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<RequestBlockInventoryRequestProtocolMessagePack>(payload.ToArray());
 
             //開けるインベントリを持つブロックが存在するかどうかをチェック
-            if (!_blockComponentDatastore.ExistsComponentBlock(data.X, data.Y)) return new List<List<byte>>();
+            if (!_blockComponentDatastore.ExistsComponentBlock(data.X, data.Y)) return new List<ToClientProtocolMessagePackBase>();
 
 
             //存在したらアイテム数とアイテムIDをまとめてレスポンスする
@@ -53,23 +54,23 @@ namespace Server.Protocol.PacketResponse
 
             var blockId = _blockDatastore.GetBlock(data.X, data.Y).BlockId;
 
-            var response = MessagePackSerializer.Serialize(new BlockInventoryResponseProtocolMessagePack(blockId,itemIds.ToArray(),itemCounts.ToArray())).ToList();
+            var response = new BlockInventoryResponseProtocolMessagePack(blockId,itemIds.ToArray(),itemCounts.ToArray());
 
-            return new List<List<byte>>(){response};
+            return new List<ToClientProtocolMessagePackBase>(){response};
         }
     }
     
     
         
     [MessagePackObject(keyAsPropertyName :true)]
-    public class RequestBlockInventoryRequestProtocolMessagePack : ProtocolMessagePackBase
+    public class RequestBlockInventoryRequestProtocolMessagePack : ToServerProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public RequestBlockInventoryRequestProtocolMessagePack() { }
 
         public RequestBlockInventoryRequestProtocolMessagePack(int x, int y)
         {
-            Tag = BlockInventoryRequestProtocol.Tag;
+            ToServerTag = BlockInventoryRequestProtocol.Tag;
             X = x;
             Y = y;
         }
@@ -78,11 +79,11 @@ namespace Server.Protocol.PacketResponse
         public int Y { get; set; }
     }
     [MessagePackObject(keyAsPropertyName :true)]
-    public class BlockInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
+    public class BlockInventoryResponseProtocolMessagePack : ToClientProtocolMessagePackBase 
     {
         public BlockInventoryResponseProtocolMessagePack(int blockId, int[] itemIds, int[] itemCounts)
         {
-            Tag = BlockInventoryRequestProtocol.Tag;
+            ToClientTag = BlockInventoryRequestProtocol.Tag;
             BlockId = blockId;
             ItemIds = itemIds;
             ItemCounts = itemCounts;

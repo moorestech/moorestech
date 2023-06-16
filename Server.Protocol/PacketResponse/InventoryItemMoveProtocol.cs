@@ -7,6 +7,7 @@ using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.Base;
 using Server.Protocol.PacketResponse.Util;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUitl;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
@@ -32,14 +33,14 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload.ToArray());
             
             var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.X, data.FromInventory.Y);
-            if (fromInventory == null)return new List<List<byte>>();
+            if (fromInventory == null)return new List<ToClientProtocolMessagePackBase>();
             var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.X, data.ToInventory.Y);
-            if (toInventory == null)return new List<List<byte>>();
+            if (toInventory == null)return new List<ToClientProtocolMessagePackBase>();
 
             var fromSlot = data.FromInventory.Slot;
 
@@ -57,7 +58,7 @@ namespace Server.Protocol.PacketResponse
                 }
             }
 
-            return new List<List<byte>>();
+            return new List<ToClientProtocolMessagePackBase>();
         }
 
         private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType,int playerId, int x, int y)
@@ -86,14 +87,14 @@ namespace Server.Protocol.PacketResponse
 
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class InventoryItemMoveProtocolMessagePack : ProtocolMessagePackBase
+    public class InventoryItemMoveProtocolMessagePack : ToServerProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public InventoryItemMoveProtocolMessagePack() { }
 
         public InventoryItemMoveProtocolMessagePack(int playerId,int count,ItemMoveType itemMoveType, FromItemMoveInventoryInfo fromInventory,ToItemMoveInventoryInfo toInventory)
         {
-            Tag = InventoryItemMoveProtocol.Tag;
+            ToServerTag = InventoryItemMoveProtocol.Tag;
             PlayerId = playerId;
             Count = count;
             

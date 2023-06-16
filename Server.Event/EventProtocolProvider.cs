@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Server.Protocol;
+using Server.Protocol.Base;
 
 namespace Server.Event
 {
@@ -9,9 +11,9 @@ namespace Server.Event
     /// </summary>
     public class EventProtocolProvider
     {
-        private Dictionary<int, List<List<byte>>> _events = new();
+        private readonly Dictionary<int, List<ToClientProtocolMessagePackBase>> _events = new();
 
-        public void AddEvent(int playerId, List<byte> eventByteArray)
+        public void AddEvent(int playerId, ToClientProtocolMessagePackBase eventByteArray)
         {
             if (_events.ContainsKey(playerId))
             {
@@ -19,11 +21,11 @@ namespace Server.Event
             }
             else
             {
-                _events.Add(playerId, new List<List<byte>>() {eventByteArray});
+                _events.Add(playerId, new List<ToClientProtocolMessagePackBase>() {eventByteArray});
             }
         }
 
-        public void AddBroadcastEvent(List<byte> eventByteArray)
+        public void AddBroadcastEvent(ToClientProtocolMessagePackBase eventByteArray)
         {
             foreach (var key in _events.Keys)
             {
@@ -31,7 +33,7 @@ namespace Server.Event
             }
         }
 
-        public List<List<byte>> GetEventBytesList(int playerId)
+        public List<ToClientProtocolMessagePackBase> GetEventBytesList(int playerId)
         {
             if (_events.ContainsKey(playerId))
             {

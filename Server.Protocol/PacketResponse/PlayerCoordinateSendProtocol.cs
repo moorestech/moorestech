@@ -8,6 +8,7 @@ using Game.World.Interface.DataStore;
 using Game.WorldMap;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.Base;
 using Server.Protocol.PacketResponse.MessagePack;
 using Server.Protocol.PacketResponse.Player;
 using Server.Protocol.PacketResponse.Util;
@@ -41,7 +42,7 @@ namespace Server.Protocol.PacketResponse
             _entityFactory = serviceProvider.GetService<IEntityFactory>();
         }
         
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<PlayerCoordinateSendProtocolMessagePack>(payload.ToArray());
             
@@ -56,7 +57,8 @@ namespace Server.Protocol.PacketResponse
 
             
             //プレイヤーの座標から返すチャンクのブロックデータを取得をする
-            var response = GetChunkBytes(data);
+            var response = new List<ToClientProtocolMessagePackBase>();
+            response.AddRange(GetChunkBytes(data));
             
             //エンティティのデータを取得する
             var entityResponse = GetEntityBytes(data);
@@ -70,9 +72,9 @@ namespace Server.Protocol.PacketResponse
         }
 
 
-        private List<List<byte>> GetChunkBytes(PlayerCoordinateSendProtocolMessagePack data)
+        private List<ChunkDataResponseMessagePack> GetChunkBytes(PlayerCoordinateSendProtocolMessagePack data)
         {
-            var responseChunk = new List<List<byte>>();
+            var responseChunk = new List<ChunkDataResponseMessagePack>();
             var responseChunkCoordinates = _responses[data.PlayerId].GetResponseChunkCoordinates(new Coordinate((int)data.X,(int) data.Y));
             foreach (var chunkCoordinate in responseChunkCoordinates)
             {
@@ -84,7 +86,7 @@ namespace Server.Protocol.PacketResponse
         }
 
 
-        private List<byte> GetEntityBytes(PlayerCoordinateSendProtocolMessagePack data)
+        private EntitiesResponseMessagePack GetEntityBytes(PlayerCoordinateSendProtocolMessagePack data)
         {
             //TODO 今はベルトコンベアのアイテムをエンティティとして返しているだけ 今後は本当のentityも返す
             var coordinate = new Coordinate((int)data.X,(int)data.Y);
@@ -97,19 +99,17 @@ namespace Server.Protocol.PacketResponse
                 return null;
             }
 
-            var response = MessagePackSerializer.Serialize(new EntitiesResponseMessagePack(items)).ToList();
-
-            return response;
+            return new EntitiesResponseMessagePack(items);
         }
     }
     
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class PlayerCoordinateSendProtocolMessagePack : ProtocolMessagePackBase
+    public class PlayerCoordinateSendProtocolMessagePack : ToServerProtocolMessagePackBase
     {
         public PlayerCoordinateSendProtocolMessagePack(int playerId, float x, float y)
         {
-            Tag = PlayerCoordinateSendProtocol.Tag;
+            ToServerTag = PlayerCoordinateSendProtocol.Tag;
             PlayerId = playerId;
             X = x;
             Y = y;
