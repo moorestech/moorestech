@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Service;
+using Core.Block.Blocks.State;
 using Core.Block.Blocks.Util;
 using Core.Block.Event;
 using Core.Const;
@@ -85,6 +86,7 @@ namespace Core.Block.Blocks.Miner
                 //空きスロットを探索し、あるならアイテムを挿入
                 var addItem = _itemStackFactory.Create(_miningItemId, 1);
                 _openableInventoryItemDataStoreService.InsertItem(addItem);
+                OnBlockStateChange?.Invoke(new ChangedBlockState());
             }
 
             _currentPower = 0;

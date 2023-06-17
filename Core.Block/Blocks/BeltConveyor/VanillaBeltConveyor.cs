@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Core.Block.BlockInventory;
+using Core.Block.Blocks.State;
 using Core.Item;
 using Core.Update;
 

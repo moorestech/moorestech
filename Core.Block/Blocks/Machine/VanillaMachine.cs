@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Machine.InventoryController;
 using Core.Block.Blocks.Machine.SaveLoad;
+using Core.Block.Blocks.State;
 using Core.Electric;
 using Core.Inventory;
 using Core.Item;

@@ -1,4 +1,5 @@
 using System;
+using Core.Block.Blocks.State;
 using Core.Electric;
 
 namespace Core.Block.Blocks.ElectricPole
