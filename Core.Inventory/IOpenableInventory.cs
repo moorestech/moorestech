@@ -18,6 +18,7 @@ namespace Core.Inventory
         public IItemStack InsertItem(int itemId,int count);
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks);
         public bool InsertionCheck(List<IItemStack> itemStacks);
+        public bool InsertionCheck(IItemStack itemStack);
         public int GetSlotSize();
     }
 }

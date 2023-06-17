@@ -30,11 +30,12 @@ namespace Core.Block.Blocks.Miner
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
 
         private int _defaultMiningTime = int.MaxValue;
-        private int _miningItemId = ItemConst.EmptyItemId;
+        private IItemStack _miningItem;
         
         private int _currentPower = 0;
         private int _remainingMillSecond = int.MaxValue;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
+        private VanillaMinerState _currentState = VanillaMinerState.Idle;
 
         public VanillaMiner(int blockId, int entityId, ulong blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
         {
@@ -42,6 +43,8 @@ namespace Core.Block.Blocks.Miner
             EntityId = entityId;
             RequestPower = requestPower;
             BlockHash = blockHash;
+
+            _miningItem = itemStackFactory.CreatEmpty();
             
             _itemStackFactory = itemStackFactory;
             _blockInventoryUpdate = openableInventoryUpdateEvent;
@@ -72,11 +75,27 @@ namespace Core.Block.Blocks.Miner
 
         public void Update()
         {
+            MinerProgressUpdate();
+        }
+
+
+        private void MinerProgressUpdate()
+        {
             var subTime = MachineCurrentPowerToSubMillSecond.GetSubMillSecond(_currentPower, RequestPower);
             if (subTime <= 0)
             {
+                //電力の都合で処理を進められないのでreturn
+                _currentState = VanillaMinerState.Idle;
                 return;
             }
+            //insertできるかチェック
+            if (_openableInventoryItemDataStoreService.InsertionCheck(mini))
+            {
+                
+            }
+            
+            
+            
             _remainingMillSecond -= subTime;
 
             if (_remainingMillSecond <= 0)
@@ -84,14 +103,15 @@ namespace Core.Block.Blocks.Miner
                 _remainingMillSecond = _defaultMiningTime;
 
                 //空きスロットを探索し、あるならアイテムを挿入
-                var addItem = _itemStackFactory.Create(_miningItemId, 1);
-                _openableInventoryItemDataStoreService.InsertItem(addItem);
+                _openableInventoryItemDataStoreService.InsertItem(_miningItem);
+                
                 OnBlockStateChange?.Invoke(new ChangedBlockState());
             }
 
             _currentPower = 0;
             InsertConnectInventory();
         }
+        
 
         void InsertConnectInventory()
         {
@@ -153,7 +173,8 @@ namespace Core.Block.Blocks.Miner
             {
                 throw new Exception("採掘機に鉱石の設定をできるのは1度だけです");
             }
-            _miningItemId = miningItemId;
+
+            _miningItem = _itemStackFactory.Create(miningItemId, 1);
             _defaultMiningTime = miningTime;
             _remainingMillSecond = _defaultMiningTime;
         }
@@ -162,5 +183,11 @@ namespace Core.Block.Blocks.Miner
 
         public void SetItem(int slot, IItemStack itemStack) { _openableInventoryItemDataStoreService.SetItem(slot, itemStack); }
         public int GetSlotSize() { return _openableInventoryItemDataStoreService.GetSlotSize(); }
+    }
+
+    public enum VanillaMinerState
+    {
+        Idle,
+        Progress
     }
 }
