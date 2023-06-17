@@ -25,10 +25,8 @@ namespace Server.Event.EventReceive
 
         private void OnDestroyMapObject(IMapObject mapObject)
         {
-            var data =  MessagePackSerializer.Serialize(new MapObjectUpdateEventMessagePack(
-                MapObjectUpdateEventMessagePack.OnDestroyEventType, mapObject.InstanceId
-            )).ToList();
-            _eventProtocolProvider.AddBroadcastEvent(data);
+            _eventProtocolProvider.AddBroadcastEvent(new MapObjectUpdateEventMessagePack(
+                MapObjectUpdateEventMessagePack.OnDestroyEventType, mapObject.InstanceId));
         }
     }
     

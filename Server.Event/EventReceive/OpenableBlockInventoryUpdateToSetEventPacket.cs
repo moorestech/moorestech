@@ -46,14 +46,11 @@ namespace Server.Event.EventReceive
         
         private DateTime now = DateTime.Now;
         
-        private List<byte> GetPayload(BlockOpenableInventoryUpdateEventProperties properties)
+        private OpenableBlockInventoryUpdateEventMessagePack GetPayload(BlockOpenableInventoryUpdateEventProperties properties)
         {
             var (x, y) = _worldBlockDatastore.GetBlockPosition(properties.EntityId);
             
-            return MessagePackSerializer.Serialize(new OpenableBlockInventoryUpdateEventMessagePack(
-                x,y,properties.Slot,properties.ItemStack
-                )).ToList();
-            
+            return new OpenableBlockInventoryUpdateEventMessagePack(x,y,properties.Slot,properties.ItemStack);
         }
     }
     

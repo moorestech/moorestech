@@ -33,11 +33,9 @@ namespace Server.Event.EventReceive
             var isCreatable = craftInventory.CraftingOpenableInventory.IsCreatable();
 
 
-            var payload = MessagePackSerializer.Serialize(new CraftingInventoryUpdateEventMessagePack(
+            _eventProtocolProvider.AddEvent(properties.PlayerId, new CraftingInventoryUpdateEventMessagePack(
                 properties.InventorySlot,properties.ItemStack,isCreatable,creatableItem
-            )).ToList();
-            
-            _eventProtocolProvider.AddEvent(properties.PlayerId, payload);
+            ));
         }
     }
     

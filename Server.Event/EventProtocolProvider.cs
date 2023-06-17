@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Server.Event.EventReceive;
 using Server.Protocol;
 using Server.Protocol.Base;
 
@@ -13,8 +14,14 @@ namespace Server.Event
     {
         private readonly Dictionary<int, List<ToClientProtocolMessagePackBase>> _events = new();
 
-        public void AddEvent(int playerId, ToClientProtocolMessagePackBase eventByteArray)
+        public void AddEvent(int playerId, EventProtocolMessagePackBase eventByteArray)
         {
+            if (string.IsNullOrEmpty(eventByteArray.EventTag))
+            {
+                //TODOログ基盤
+                throw new ArgumentException("適切なイベントタグが設定されていません。");
+            }
+            
             if (_events.ContainsKey(playerId))
             {
                 _events[playerId].Add(eventByteArray);
@@ -25,8 +32,14 @@ namespace Server.Event
             }
         }
 
-        public void AddBroadcastEvent(ToClientProtocolMessagePackBase eventByteArray)
+        public void AddBroadcastEvent(EventProtocolMessagePackBase eventByteArray)
         {
+            if (string.IsNullOrEmpty(eventByteArray.EventTag))
+            {
+                //TODOログ基盤
+                throw new ArgumentException("適切なイベントタグが設定されていません。");
+            }
+            
             foreach (var key in _events.Keys)
             {
                 _events[key].Add(eventByteArray);
@@ -44,7 +57,7 @@ namespace Server.Event
             else
             {
                 //ブロードキャストイベントの時に使うので、Dictionaryにキーを追加しておく
-                _events.Add(playerId, new List<List<byte>>());
+                _events.Add(playerId, new List<ToClientProtocolMessagePackBase>());
                 return _events[playerId];
             }
         }
