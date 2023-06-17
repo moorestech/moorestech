@@ -30,7 +30,7 @@ namespace Core.Block.Blocks.Miner
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
 
         private int _defaultMiningTime = int.MaxValue;
-        private IItemStack _miningItem;
+        private List<IItemStack> _miningItems = new();
         
         private int _currentPower = 0;
         private int _remainingMillSecond = int.MaxValue;
@@ -43,8 +43,6 @@ namespace Core.Block.Blocks.Miner
             EntityId = entityId;
             RequestPower = requestPower;
             BlockHash = blockHash;
-
-            _miningItem = itemStackFactory.CreatEmpty();
             
             _itemStackFactory = itemStackFactory;
             _blockInventoryUpdate = openableInventoryUpdateEvent;
@@ -76,6 +74,7 @@ namespace Core.Block.Blocks.Miner
         public void Update()
         {
             MinerProgressUpdate();
+            CheckStateAndInvokeEventUpdate();
         }
 
 
@@ -89,13 +88,14 @@ namespace Core.Block.Blocks.Miner
                 return;
             }
             //insertできるかチェック
-            if (_openableInventoryItemDataStoreService.InsertionCheck(mini))
+            if (!_openableInventoryItemDataStoreService.InsertionCheck(_miningItems))
             {
-                
+                //挿入できないのでreturn
+                _currentState = VanillaMinerState.Idle;
+                return;
             }
-            
-            
-            
+            _currentState = VanillaMinerState.Mining;
+
             _remainingMillSecond -= subTime;
 
             if (_remainingMillSecond <= 0)
@@ -103,13 +103,38 @@ namespace Core.Block.Blocks.Miner
                 _remainingMillSecond = _defaultMiningTime;
 
                 //空きスロットを探索し、あるならアイテムを挿入
-                _openableInventoryItemDataStoreService.InsertItem(_miningItem);
-                
-                OnBlockStateChange?.Invoke(new ChangedBlockState());
+                _openableInventoryItemDataStoreService.InsertItem(_miningItems);
             }
 
             _currentPower = 0;
             InsertConnectInventory();
+        }
+
+        private VanillaMinerState _lastMinerState;
+        private void CheckStateAndInvokeEventUpdate()
+        {
+            if (_lastMinerState == VanillaMinerState.Mining && _currentState == VanillaMinerState.Idle)
+            {
+                //Miningからidleに切り替わったのでイベントを発火
+                InvokeChangeStateEvent();
+                _lastMinerState = _currentState;
+                return;
+            }
+            if (_currentState == VanillaMinerState.Idle)
+            {
+                //Idle中は発火しない
+                return;
+            }
+            
+            //マイニング中 この時は常にイベントを発火
+            InvokeChangeStateEvent();
+        }
+
+        private void InvokeChangeStateEvent()
+        {
+            var processingRate = (float) _remainingMillSecond / _defaultMiningTime;
+            OnBlockStateChange?.Invoke(new ChangedBlockState(_currentState.ToStr(), _lastMinerState.ToStr(),
+                new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate)));
         }
         
 
@@ -174,7 +199,7 @@ namespace Core.Block.Blocks.Miner
                 throw new Exception("採掘機に鉱石の設定をできるのは1度だけです");
             }
 
-            _miningItem = _itemStackFactory.Create(miningItemId, 1);
+            _miningItems = new List<IItemStack>() {_itemStackFactory.Create(miningItemId, 1)};
             _defaultMiningTime = miningTime;
             _remainingMillSecond = _defaultMiningTime;
         }
@@ -188,6 +213,29 @@ namespace Core.Block.Blocks.Miner
     public enum VanillaMinerState
     {
         Idle,
-        Progress
+        Mining
+    }
+
+    public static class VanillaMinerBlockStateConst
+    {
+        public const string IdleState = "idle";
+        public const string MiningState = "mining";
+    }
+    
+    public static class ProcessStateExtension
+    {
+        /// <summary>
+        /// <see cref="ProcessState"/>をStringに変換します。
+        /// EnumのToStringを使わない理由はアロケーションによる速度低下をなくすためです。
+        /// </summary>
+        public static string ToStr(this VanillaMinerState state)
+        {
+            return state switch
+            {
+                VanillaMinerState.Idle => VanillaMinerBlockStateConst.IdleState,
+                VanillaMinerState.Mining => VanillaMinerBlockStateConst.MiningState,
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+            };
+        }
     }
 }

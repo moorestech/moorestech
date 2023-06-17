@@ -16,9 +16,9 @@ namespace Core.Block.Blocks.State
         /// </summary>
         public float ProcessingRate;
 
-        public CommonMachineBlockStateChangeData(float powerRate, float processingRate)
+        public CommonMachineBlockStateChangeData(float currentPower,float requestPower, float processingRate)
         {
-            PowerRate = powerRate;
+            PowerRate = requestPower == 0 ? 1.0f : currentPower / requestPower;
             ProcessingRate = processingRate;
         }
     }
