@@ -10,18 +10,13 @@ namespace Core.Block.Blocks.State
     {
         public readonly string CurrentState;
         public readonly string PreviousState;
-        
-        /// <summary>
-        /// ブロックのステートのデータ
-        /// 各ブロックのよって必要なデータは違うため、このクラスを継承して派生させる
-        /// </summary>
-        public readonly ChangeBlockStateData CurrentStateDetailInfo;
-        
-        public ChangedBlockState(string currentState, string previousState, ChangeBlockStateData currentStateDetailInfo = null)
+        public readonly string CurrentStateJsonData;
+
+        public ChangedBlockState(string currentState, string previousState, string currentStateJsonData = null)
         {
             CurrentState = currentState;
             PreviousState = previousState;
-            CurrentStateDetailInfo = currentStateDetailInfo;
+            CurrentStateJsonData = currentStateJsonData;
         }
     }
 }

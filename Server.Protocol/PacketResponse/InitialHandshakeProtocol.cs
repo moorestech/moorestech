@@ -5,7 +5,6 @@ using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Protocol.Base;
 using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
@@ -25,14 +24,14 @@ namespace Server.Protocol.PacketResponse
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
         }
 
-        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload.ToArray());
 
 
             var response = new ResponseInitialHandshakeMessagePack(GetPlayerPosition(data.PlayerId));
             
-            return new List<ToClientProtocolMessagePackBase>() { response };
+            return new List<List<byte>>(){MessagePackSerializer.Serialize(response).ToList()};
         }
 
 
@@ -60,7 +59,7 @@ namespace Server.Protocol.PacketResponse
     
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class RequestInitialHandshakeMessagePack : ToServerProtocolMessagePackBase
+    public class RequestInitialHandshakeMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public RequestInitialHandshakeMessagePack()
@@ -69,7 +68,7 @@ namespace Server.Protocol.PacketResponse
 
         public RequestInitialHandshakeMessagePack(int playerId, string playerName)
         {
-            ToServerTag = InitialHandshakeProtocol.Tag;
+            Tag = InitialHandshakeProtocol.Tag;
             PlayerId = playerId;
             PlayerName = playerName;
         }
@@ -79,7 +78,7 @@ namespace Server.Protocol.PacketResponse
     }
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class ResponseInitialHandshakeMessagePack : ToClientProtocolMessagePackBase 
+    public class ResponseInitialHandshakeMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ResponseInitialHandshakeMessagePack()
@@ -88,7 +87,7 @@ namespace Server.Protocol.PacketResponse
 
         public ResponseInitialHandshakeMessagePack(Vector2MessagePack playerPos)
         {
-            ToClientTag = InitialHandshakeProtocol.Tag;
+            Tag = InitialHandshakeProtocol.Tag;
             PlayerPos = playerPos;
         }
 

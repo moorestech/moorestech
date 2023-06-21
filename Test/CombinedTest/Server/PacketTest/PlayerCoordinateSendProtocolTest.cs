@@ -262,7 +262,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var data = MessagePackSerializer.Deserialize<ChunkDataResponseMessagePack>(payload.ToArray());
             //エンティティタグの時はnullを返す
-            if (data.ToClientTag == PlayerCoordinateSendProtocol.EntityDataTag)
+            if (data.Tag == PlayerCoordinateSendProtocol.EntityDataTag)
             {
                 return null;
             }

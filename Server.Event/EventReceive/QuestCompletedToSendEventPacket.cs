@@ -18,7 +18,8 @@ namespace Server.Event.EventReceive
 
         private void OnQuestCompleted((int playerId, string questId) args)
         {
-            _eventProtocolProvider.AddEvent(args.playerId,new QuestCompletedEventMessagePack(args.questId));
+            var packet = MessagePackSerializer.Serialize(new QuestCompletedEventMessagePack(args.questId));
+            _eventProtocolProvider.AddEvent(args.playerId,packet.ToList());
         }
     }
     

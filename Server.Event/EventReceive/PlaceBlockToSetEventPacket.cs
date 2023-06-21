@@ -23,9 +23,11 @@ namespace Server.Event.EventReceive
             var c = blockPlaceEventProperties.Coordinate;
             var blockId = blockPlaceEventProperties.Block.BlockId;
             
-            _eventProtocolProvider.AddBroadcastEvent(new PlaceBlockEventMessagePack(
+            var payload = MessagePackSerializer.Serialize(new PlaceBlockEventMessagePack(
                 c.X,c.Y,blockId,(int)blockPlaceEventProperties.BlockDirection
-            ));
+            )).ToList();;
+            
+            _eventProtocolProvider.AddBroadcastEvent(payload);
         }
     }
     

@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Game.PlayerInventory.Interface;
 using Game.WorldMap;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
 using Server.Event.EventReceive;
-using Server.Protocol.Base;
 using Server.Protocol.PacketResponse;
 using Server.Util;
 
@@ -45,30 +43,9 @@ namespace Server.Protocol
 
         public  List<List<byte>> GetPacketResponse(List<byte> payload)
         {
-            var tag = MessagePackSerializer.Deserialize<ToServerProtocolMessagePackBase>(payload.ToArray()).ToServerTag;
-            if (string.IsNullOrEmpty(tag) || !_packetResponseDictionary.ContainsKey(tag))
-            {
-                var json = MessagePackSerializer.ConvertToJson(payload.ToArray());
-                //TODO ログ出力
-                Console.WriteLine("リクエストのタグが設定されていません " + json);
-                return new List<List<byte>>();
-            }
-            
-            var toClientPacks = _packetResponseDictionary[tag].GetResponse(payload);
-            var response = new List<List<byte>>();
-            foreach (var toClient in toClientPacks)
-            {
-                if (string.IsNullOrEmpty(toClient.ToClientTag))
-                {
-                    //TODO ログ出力
-                    Console.WriteLine("レスポンスのタグが設定されていません " + tag);
-                    continue;
-                }
-                var bytes = MessagePackSerializer.Serialize(toClient);
-                response.Add(bytes.ToList());
-            }
+            var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray()).Tag;
 
-            return response;
+            return _packetResponseDictionary[tag].GetResponse(payload);
         }
     }
 }

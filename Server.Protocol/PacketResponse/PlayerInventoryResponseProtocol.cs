@@ -5,7 +5,6 @@ using System.Text;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Server.Event;
-using Server.Protocol.Base;
 using Server.Util;
 using Server.Util.MessagePack;
 
@@ -22,7 +21,7 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = playerInventoryDataStore;
         }
 
-        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<RequestPlayerInventoryProtocolMessagePack>(payload.ToArray());
             
@@ -62,11 +61,11 @@ namespace Server.Protocol.PacketResponse
             
             var isCreatable = playerInventory.CraftingOpenableInventory.IsCreatable();
 
-            var response = new PlayerInventoryResponseProtocolMessagePack(
-                data.PlayerId,mainItems.ToArray(),grabItem,craftItems.ToArray(),craftItem,isCreatable);
+            var response = MessagePackSerializer.Serialize(new PlayerInventoryResponseProtocolMessagePack(
+                data.PlayerId,mainItems.ToArray(),grabItem,craftItems.ToArray(),craftItem,isCreatable));
             
 
-            return new List<ToClientProtocolMessagePackBase>() {response};
+            return new List<List<byte>>() {response.ToList()};
         }
 
 
@@ -130,14 +129,14 @@ namespace Server.Protocol.PacketResponse
     
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class RequestPlayerInventoryProtocolMessagePack : ToServerProtocolMessagePackBase
+    public class RequestPlayerInventoryProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public RequestPlayerInventoryProtocolMessagePack() { }
 
         public RequestPlayerInventoryProtocolMessagePack(int playerId)
         {
-            ToServerTag = PlayerInventoryResponseProtocol.Tag;
+            Tag = PlayerInventoryResponseProtocol.Tag;
             PlayerId = playerId;
         }
 
@@ -146,7 +145,7 @@ namespace Server.Protocol.PacketResponse
     
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class PlayerInventoryResponseProtocolMessagePack : ToClientProtocolMessagePackBase
+    public class PlayerInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public PlayerInventoryResponseProtocolMessagePack() { }
@@ -154,7 +153,7 @@ namespace Server.Protocol.PacketResponse
 
         public PlayerInventoryResponseProtocolMessagePack(int playerId, ItemMessagePack[] main, ItemMessagePack grab, ItemMessagePack[] craft, ItemMessagePack craftResult, bool isCreatable)
         {
-            ToClientTag = PlayerInventoryResponseProtocol.Tag;
+            Tag = PlayerInventoryResponseProtocol.Tag;
             PlayerId = playerId;
             Main = main;
             Grab = grab;

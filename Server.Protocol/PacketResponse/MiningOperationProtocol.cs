@@ -8,7 +8,6 @@ using Game.PlayerInventory.Interface;
 using Game.WorldMap;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Protocol.Base;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
@@ -34,7 +33,7 @@ namespace Server.Protocol.PacketResponse
 
         }
 
-        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<MiningOperationProtocolMessagePack>(payload.ToArray());
             
@@ -51,13 +50,13 @@ namespace Server.Protocol.PacketResponse
             playerMainInventory.InsertItem(_itemStackFactory.Create(oreItemId,1));
             
             
-            return new List<ToClientProtocolMessagePackBase>();
+            return new List<List<byte>>();
         }
     }
     
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class MiningOperationProtocolMessagePack : ToServerProtocolMessagePackBase
+    public class MiningOperationProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public MiningOperationProtocolMessagePack()
@@ -66,7 +65,7 @@ namespace Server.Protocol.PacketResponse
 
         public MiningOperationProtocolMessagePack(int playerId, int x, int y)
         {
-            ToServerTag = MiningOperationProtocol.Tag;
+            Tag = MiningOperationProtocol.Tag;
             PlayerId = playerId;
             X = x;
             Y = y;

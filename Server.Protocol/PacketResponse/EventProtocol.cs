@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using MessagePack;
 using Server.Event;
 using Server.Event.EventReceive;
-using Server.Protocol.Base;
 using Server.Util;
 
 namespace Server.Protocol.PacketResponse
@@ -17,7 +16,7 @@ namespace Server.Protocol.PacketResponse
             _eventProtocolProvider = eventProtocolProvider;
         }
 
-        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<EventProtocolMessagePack>(payload.ToArray());
             
@@ -27,13 +26,13 @@ namespace Server.Protocol.PacketResponse
     }
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class EventProtocolMessagePack : ToServerProtocolMessagePackBase
+    public class EventProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public EventProtocolMessagePack() { }
         public EventProtocolMessagePack(int playerId)
         {
-            ToServerTag = EventProtocolMessagePackBase.EventProtocolTag;
+            Tag = EventProtocolMessagePackBase.EventProtocolTag;
             PlayerId = playerId;
         }
 

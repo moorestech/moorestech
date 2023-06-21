@@ -56,7 +56,6 @@ namespace Server.Util
                 {
                     _continuationFromLastTimeBytes.Add(packet[actualStartPacketDataIndex]);
                 }
-                //TODO インクリメントが必要な時とそうじゃない時があるっぽい？
                         
                 result.Add(_continuationFromLastTimeBytes);
                 //受信したパケットに対する応答を返す

@@ -4,6 +4,7 @@ using Core.Block.Blocks.State;
 using Core.Block.Blocks.Util;
 using Core.Block.RecipeConfig.Data;
 using Core.Update;
+using Newtonsoft.Json;
 
 namespace Core.Block.Blocks.Machine
 {
@@ -73,7 +74,7 @@ namespace Core.Block.Blocks.Machine
                 var processingRate = (float)_remainingMillSecond / _processingRecipeData.Time;
                 OnChangeState?.Invoke(
                     new ChangedBlockState(_currentState.ToStr(),_lastState.ToStr(),
-                        new CommonMachineBlockStateChangeData(_currentPower,RequestPower,processingRate)));
+                JsonConvert.SerializeObject(new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate))));
                 _lastState = _currentState;
             }
         }

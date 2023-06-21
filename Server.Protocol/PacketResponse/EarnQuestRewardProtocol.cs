@@ -4,7 +4,6 @@ using Game.PlayerInventory.Interface;
 using Game.Quest.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Protocol.Base;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -20,39 +19,39 @@ namespace Server.Protocol.PacketResponse
             _inventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
 
-        public List<ToClientProtocolMessagePackBase> GetResponse(List<byte> payload)
+        public List<List<byte>> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<EarnQuestRewardMessagePack>(payload.ToArray());
             //クエストデータの取得
             var quest = _questDataStore.GetQuestData(data.PlayerId, data.QuestId);
             //クエストが完了してなかったら終了
-            if (!quest.IsCompleted) return new List<ToClientProtocolMessagePackBase>();
+            if (!quest.IsCompleted) return new List<List<byte>>();
             //アイテム受け取り済みなら終了
-            if (quest.IsEarnedReward) return new List<ToClientProtocolMessagePackBase>();
+            if (quest.IsEarnedReward) return new List<List<byte>>();
             
             
             //全てのアイテムが追加可能かチェック
             var mainInventory = _inventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
             //追加できなかったら終了
-            if (!mainInventory.InsertionCheck(quest.QuestConfig.RewardItemStacks)) return new List<ToClientProtocolMessagePackBase>();
+            if (!mainInventory.InsertionCheck(quest.QuestConfig.RewardItemStacks)) return new List<List<byte>>();
             
             //アイテムを追加
             mainInventory.InsertItem(quest.QuestConfig.RewardItemStacks);
             quest.EarnReward();
 
 
-            return new List<ToClientProtocolMessagePackBase>();
+            return new List<List<byte>>();
         }
     }
     
     [MessagePackObject(keyAsPropertyName :true)]
-    public class EarnQuestRewardMessagePack : ToServerProtocolMessagePackBase
+    public class EarnQuestRewardMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public EarnQuestRewardMessagePack() { }
         public EarnQuestRewardMessagePack(int playerId, string questId)
         {
-            ToServerTag = EarnQuestRewardProtocol.Tag;
+            Tag = EarnQuestRewardProtocol.Tag;
             PlayerId = playerId;
             QuestId = questId;
         }

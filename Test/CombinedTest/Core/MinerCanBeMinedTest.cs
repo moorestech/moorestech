@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Reflection;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Miner;
+using Core.Item;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,7 +48,7 @@ namespace Test.CombinedTest.Core
             
             var miner = worldBlockDatastore.GetBlock(x, y) as VanillaMiner;
             //リフレクションでidを取得する
-            var miningItemId = (int)miner.GetType().GetField("_miningItemId",
+            var miningItems = (List<IItemStack>)miner.GetType().GetField("_miningItems",
                     BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(miner);
             
@@ -55,7 +57,7 @@ namespace Test.CombinedTest.Core
                 .GetValue(miner);
             
             
-            Assert.AreEqual(3,miningItemId);
+            Assert.AreEqual(3,miningItems[0].Id);
             Assert.AreEqual(1000,defaultMiningTime);
         }
     }

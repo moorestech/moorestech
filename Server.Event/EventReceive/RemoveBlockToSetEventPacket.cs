@@ -23,8 +23,11 @@ namespace Server.Event.EventReceive
             var c = blockPlaceEventProperties.Coordinate;
             
             
-            _eventProtocolProvider.AddBroadcastEvent(new RemoveBlockEventMessagePack(
-                c.X,c.Y));
+            var payload = MessagePackSerializer.Serialize(new RemoveBlockEventMessagePack(
+                c.X,c.Y)).ToList();;
+            
+
+            _eventProtocolProvider.AddBroadcastEvent(payload);
         }
     }
     [MessagePackObject(keyAsPropertyName :true)]

@@ -5,6 +5,7 @@ using Core.Block.Blocks.State;
 using Core.Item;
 using Game.World.Interface.DataStore;
 using MessagePack;
+using Newtonsoft.Json;
 using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
@@ -23,7 +24,10 @@ namespace Server.Event.EventReceive
 
         private void ChangeState((ChangedBlockState state,IBlock block,int x,int y) state)
         {
-            _eventProtocolProvider.AddBroadcastEvent(new ChangeBlockStateEventMessagePack(state.state,  state.x, state.y));
+            var payload = MessagePackSerializer.Serialize(
+                new ChangeBlockStateEventMessagePack(state.state,  state.x, state.y)).ToList();
+            
+            _eventProtocolProvider.AddBroadcastEvent(payload);
         }
     }
     
@@ -35,7 +39,7 @@ namespace Server.Event.EventReceive
         
         public string CurrentState { get; set; }
         public string PreviousState { get; set; }
-        public byte[] CurrentStateData { get; set; }
+        public string CurrentStateJsonData { get; set; }
         public Vector2MessagePack Position { get; set; }
         
         public ChangeBlockStateEventMessagePack(ChangedBlockState state,int x,int y)
@@ -43,18 +47,14 @@ namespace Server.Event.EventReceive
             EventTag = ChangeBlockStateEventPacket.EventTag;
             CurrentState = state.CurrentState;
             PreviousState = state.PreviousState;
-
-            if (state.CurrentStateDetailInfo != null)
-            {
-                var stateType = state.CurrentStateDetailInfo.GetType();
-                CurrentStateData = MessagePackSerializer.Serialize(Convert.ChangeType(state.CurrentStateDetailInfo,stateType));
-            }
+            
+            CurrentStateJsonData = state.CurrentStateJsonData;
             Position = new Vector2MessagePack(x,y);
         }
         
-        public TBlockState GetStateDat<TBlockState>() where TBlockState : ChangeBlockStateData
+        public TBlockState GetStateDat<TBlockState>()
         {
-            return MessagePackSerializer.Deserialize<TBlockState>(CurrentStateData);
+            return JsonConvert.DeserializeObject<TBlockState>(CurrentStateJsonData);
         }
     }
 }

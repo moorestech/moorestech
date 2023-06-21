@@ -1,9 +1,12 @@
+using System;
+
 namespace Core.Block.Blocks.State
 {
     /// <summary>
     /// 機械、採掘機など基本的な機械のステートの詳細なデータ
     /// </summary>
-    public class CommonMachineBlockStateChangeData : ChangeBlockStateData
+    [Serializable]
+    public class CommonMachineBlockStateChangeData 
     {
         /// <summary>
         /// 必要な電力に対してどの程度電力が来ているかを表す

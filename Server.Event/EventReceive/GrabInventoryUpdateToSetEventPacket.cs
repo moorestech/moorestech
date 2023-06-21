@@ -24,8 +24,11 @@ namespace Server.Event.EventReceive
 
         private void ReceivedEvent(PlayerInventoryUpdateEventProperties playerInventoryUpdateEvent)
         {
-            _eventProtocolProvider.AddEvent(playerInventoryUpdateEvent.PlayerId, new GrabInventoryUpdateEventMessagePack(
-                playerInventoryUpdateEvent.ItemStack));
+            var payload = MessagePackSerializer.Serialize(new GrabInventoryUpdateEventMessagePack(
+                playerInventoryUpdateEvent.ItemStack
+            )).ToList();
+
+            _eventProtocolProvider.AddEvent(playerInventoryUpdateEvent.PlayerId, payload);
         }
     }
     

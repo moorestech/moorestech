@@ -12,6 +12,7 @@ using Core.Inventory;
 using Core.Item;
 using Core.Item.Util;
 using Core.Update;
+using Newtonsoft.Json;
 
 namespace Core.Block.Blocks.Miner
 {
@@ -134,7 +135,7 @@ namespace Core.Block.Blocks.Miner
         {
             var processingRate = (float) _remainingMillSecond / _defaultMiningTime;
             OnBlockStateChange?.Invoke(new ChangedBlockState(_currentState.ToStr(), _lastMinerState.ToStr(),
-                new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate)));
+                JsonConvert.SerializeObject(new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate))));
         }
         
 
