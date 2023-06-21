@@ -35,7 +35,7 @@ namespace MainGame.Presenter.Inventory
         
         private MapTileObject _currentClickingMapTileObject;
 
-        private CancellationTokenSource _cancellationTokenSource;
+        private CancellationTokenSource _miningTokenSource = new();
         
         [Inject]
         public void Construct(Camera mainCamera,SendMiningProtocol sendMiningProtocol,UIStateControl uiStateControl,SinglePlayInterface singlePlayInterface)
@@ -72,14 +72,14 @@ namespace MainGame.Presenter.Inventory
 
         private async UniTask StartMining(float miningTime)
         {
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource = new CancellationTokenSource();
+            _miningTokenSource.Cancel();
+            _miningTokenSource = new CancellationTokenSource();
             
-            await miningObjectHelper.StartMining(miningTime,_cancellationTokenSource.Token);
-            
-            _sendMiningProtocol.Send(GetClickPosition());
-            _cancellationTokenSource.Dispose();
-            _cancellationTokenSource = null;
+            await miningObjectHelper.StartMining(
+                miningTime, 
+                () => _sendMiningProtocol.Send(GetClickPosition()),
+                () => _sendMiningProtocol.Send(GetClickPosition()),
+                _miningTokenSource.Token);
         }
 
         private MapTileObject GetBlockClicked()

@@ -1,8 +1,11 @@
-﻿using MainGame.Network.Send;
+﻿using System.Threading;
+using Cysharp.Threading.Tasks;
+using MainGame.Network.Send;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.MapObject;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
+using MainGame.UnityView.Util;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -14,10 +17,11 @@ namespace MainGame.Presenter.MapObject
     /// </summary>
     public class MapObjectGetPresenter : MonoBehaviour 
     {
-        [SerializeField] private ProgressBarView progressBarView;
+        [SerializeField] private MiningObjectHelper miningObjectHelper;
         
         private UIStateControl _uiStateControl;
         private SendGetMapObjectProtocolProtocol _sendGetMapObjectProtocolProtocol;
+        private CancellationTokenSource _miningCancellationTokenSource = new();
 
         [Inject]
         public void Constructor(UIStateControl uiStateControl,SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol)
@@ -45,6 +49,8 @@ namespace MainGame.Presenter.MapObject
             {
                 //フォーカスが外れたのでアウトラインを消す
                 _lastForcesMapObjectGameObject.OutlineEnable(false);
+                
+                _miningCancellationTokenSource.Cancel();
             }
             else if (_lastForcesMapObjectGameObject == null && forceMapObject != null)
             {
@@ -57,15 +63,30 @@ namespace MainGame.Presenter.MapObject
                 //フォーカスが切り替わったのでアウトラインを切り替える
                 _lastForcesMapObjectGameObject.OutlineEnable(false);
                 forceMapObject.OutlineEnable(true);
+                
+                _miningCancellationTokenSource.Cancel();
             }
 
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && forceMapObject != null)
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && forceMapObject != null && !miningObjectHelper.IsMining
             {
-                //クリックしたら取得プロトコルを送信する
-                _sendGetMapObjectProtocolProtocol.Send(forceMapObject.InstanceId);
+                StartMining(5,forceMapObject.InstanceId).Forget();
             }
             
             _lastForcesMapObjectGameObject = forceMapObject;
+        }
+        
+        
+        private async UniTask StartMining(float miningTime,int instanceId)
+        {
+            _miningCancellationTokenSource.Cancel();
+            _miningCancellationTokenSource = new CancellationTokenSource();
+            
+            if(await miningObjectHelper.StartMining(miningTime,_miningCancellationTokenSource.Token))
+            {
+                _sendGetMapObjectProtocolProtocol.Send(instanceId);
+                _miningCancellationTokenSource.Dispose();
+                _miningCancellationTokenSource = new CancellationTokenSource();
+            }
         }
     }
 }
