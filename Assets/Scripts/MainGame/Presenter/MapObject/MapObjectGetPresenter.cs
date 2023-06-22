@@ -15,78 +15,98 @@ namespace MainGame.Presenter.MapObject
     /// <summary>
     /// マップオブジェクトのUIの表示や削除の判定を担当する
     /// </summary>
-    public class MapObjectGetPresenter : MonoBehaviour 
+    public class MapObjectGetPresenter : MonoBehaviour
     {
+        private const float MiningTime = 5f;
+        
         [SerializeField] private MiningObjectHelper miningObjectHelper;
         
         private UIStateControl _uiStateControl;
         private SendGetMapObjectProtocolProtocol _sendGetMapObjectProtocolProtocol;
         private CancellationTokenSource _miningCancellationTokenSource = new();
+        
+        private CancellationToken _gameObjectCancellationToken;
 
         [Inject]
         public void Constructor(UIStateControl uiStateControl,SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol)
         {
             _uiStateControl = uiStateControl;
             _sendGetMapObjectProtocolProtocol = sendGetMapObjectProtocolProtocol;
+            _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
+            
+            WhileUpdate().Forget();
         }
         
-        private MapObjectGameObject _lastForcesMapObjectGameObject;
 
-        private void Update()
+        private async UniTask WhileUpdate()
         {
+            while (true)
+            {
+                await MiningUpdate(_gameObjectCancellationToken);
+                await UniTask.Yield(_gameObjectCancellationToken);
+            }
+        }
+
+        private async UniTask MiningUpdate(CancellationToken cancellationToken)
+        {
+
             if (_uiStateControl.CurrentState != UIStateEnum.GameScreen)
             {
                 return;
             }
-            
-            //スクリーンからマウスの位置にRayを飛ばす
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (!Physics.Raycast(ray, out var hit, 1000)) return;
-            
-            //アウトラインの制御
-            var forceMapObject = hit.collider.gameObject.GetComponent<MapObjectGameObject>();
-            if (_lastForcesMapObjectGameObject != null && forceMapObject == null)
-            {
-                //フォーカスが外れたのでアウトラインを消す
-                _lastForcesMapObjectGameObject.OutlineEnable(false);
-                
-                _miningCancellationTokenSource.Cancel();
-            }
-            else if (_lastForcesMapObjectGameObject == null && forceMapObject != null)
-            {
-                //フォーカスが当たったのでアウトラインを表示する
-                forceMapObject.OutlineEnable(true);
-            }
-            else if (_lastForcesMapObjectGameObject != null && forceMapObject != null &&
-                     _lastForcesMapObjectGameObject != forceMapObject)
-            {
-                //フォーカスが切り替わったのでアウトラインを切り替える
-                _lastForcesMapObjectGameObject.OutlineEnable(false);
-                forceMapObject.OutlineEnable(true);
-                
-                _miningCancellationTokenSource.Cancel();
-            }
 
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && forceMapObject != null && !miningObjectHelper.IsMining
+            var forcesMapObject = GetOnMouseMapObject();
+            if (forcesMapObject == null || !InputManager.Playable.ScreenLeftClick.GetKeyDown)
             {
-                StartMining(5,forceMapObject.InstanceId).Forget();
+                return;
             }
             
-            _lastForcesMapObjectGameObject = forceMapObject;
-        }
-        
-        
-        private async UniTask StartMining(float miningTime,int instanceId)
-        {
+            forcesMapObject.OutlineEnable(true);
+            
             _miningCancellationTokenSource.Cancel();
             _miningCancellationTokenSource = new CancellationTokenSource();
+            miningObjectHelper.StartMining(MiningTime,_miningCancellationTokenSource.Token).Forget();
+
+            var isMiningCanceled = false;
             
-            if(await miningObjectHelper.StartMining(miningTime,_miningCancellationTokenSource.Token))
+            //map objectがフォーカスされ、クリックされているので採掘を行う
+            //採掘中はこのループの中にいる
+            //採掘時間分ループする
+            var nowTime = 0f;
+            while (nowTime < MiningTime)
             {
-                _sendGetMapObjectProtocolProtocol.Send(instanceId);
-                _miningCancellationTokenSource.Dispose();
-                _miningCancellationTokenSource = new CancellationTokenSource();
+                await UniTask.Yield(PlayerLoopTiming.Update,cancellationToken);
+                nowTime += Time.deltaTime;
+
+
+                //クリックが離されたら採掘を終了する
+                //map objectが変わったら採掘を終了する
+                if (InputManager.Playable.ScreenLeftClick.GetKeyUp || forcesMapObject != GetOnMouseMapObject())
+                { 
+                    isMiningCanceled = true;
+                }
             }
+
+            if (isMiningCanceled)
+            {
+                forcesMapObject.OutlineEnable(false);
+                _miningCancellationTokenSource.Cancel();
+            }
+            else
+            {
+                forcesMapObject.OutlineEnable(false);
+                _sendGetMapObjectProtocolProtocol.Send(forcesMapObject.InstanceId);
+            }
+        }
+
+        private MapObjectGameObject GetOnMouseMapObject()
+        {
+            //スクリーンからマウスの位置にRayを飛ばす
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (!Physics.Raycast(ray, out var hit, 1000)) return null;
+            
+            //マップオブジェクトを取得する
+            return hit.collider.gameObject.GetComponent<MapObjectGameObject>();
         }
     }
 }
