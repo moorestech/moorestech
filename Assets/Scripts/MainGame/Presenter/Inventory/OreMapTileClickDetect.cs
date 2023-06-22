@@ -37,6 +37,8 @@ namespace MainGame.Presenter.Inventory
 
         private CancellationTokenSource _miningTokenSource = new();
         
+        private CancellationToken _gameObjectCancellationToken;
+        
         [Inject]
         public void Construct(Camera mainCamera,SendMiningProtocol sendMiningProtocol,UIStateControl uiStateControl,SinglePlayInterface singlePlayInterface)
         {
@@ -45,21 +47,88 @@ namespace MainGame.Presenter.Inventory
             _uiStateControl = uiStateControl;
             
             _oreConfig = singlePlayInterface.OreConfig;
+            
+            _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
+            WhileUpdate().Forget();
         }
 
+        
+        
+        private async UniTask WhileUpdate()
+        {
+            while (true)
+            {
+                await MiningUpdate(_gameObjectCancellationToken);
+                await UniTask.Yield(_gameObjectCancellationToken);
+            }
+        }
+
+        private async UniTask MiningUpdate(CancellationToken cancellationToken)
+        {
+            if (_uiStateControl.CurrentState != UIStateEnum.GameScreen)
+            {
+                return;
+            }
+
+            var forcesMapObject = GetForcesMapTile();
+            if (!InputManager.Playable.ScreenLeftClick.GetKeyDown || forcesMapObject == null)
+            {
+                return;
+            }
+            
+            forcesMapObject.OutlineEnable(true);
+            
+            _miningTokenSource.Cancel();
+            _miningTokenSource = new CancellationTokenSource();
+            miningObjectHelper.StartMining(MiningTime,_miningTokenSource.Token).Forget();
+
+            var isMiningCanceled = false;
+            
+            //map objectがフォーカスされ、クリックされているので採掘を行う
+            //採掘中はこのループの中にいる
+            //採掘時間分ループする
+            var nowTime = 0f;
+            while (nowTime < MiningTime)
+            {
+                await UniTask.Yield(PlayerLoopTiming.Update,cancellationToken);
+                nowTime += Time.deltaTime;
+
+
+                //クリックが離されたら採掘を終了する
+                //map objectが変わったら採掘を終了する
+                if (InputManager.Playable.ScreenLeftClick.GetKeyUp || forcesMapObject != GetOnMouseMapObject())
+                { 
+                    isMiningCanceled = true;
+                }
+            }
+
+            if (isMiningCanceled)
+            {
+                forcesMapObject.OutlineEnable(false);
+            }
+            else
+            {
+                forcesMapObject.OutlineEnable(false);
+                _sendMiningProtocol.Send(forcesMapObject.InstanceId);
+            }
+            _miningTokenSource.Cancel();
+        }
+
+        
+        
         private void Update()
         {
             if (_uiStateControl.CurrentState != UIStateEnum.DeleteBar) return;
             
             if (_currentClickingMapTileObject == null)
             {
-                _currentClickingMapTileObject = GetBlockClicked();
+                _currentClickingMapTileObject = GetForcesMapTile();
                 
                 //マイニングを開始する
                 StartMining(MiningTime).Forget();
                 return;
             }
-            var clickedObject = GetBlockClicked();
+            var clickedObject = GetForcesMapTile();
             if (clickedObject != _currentClickingMapTileObject)
             {
                 _currentClickingMapTileObject = clickedObject;
@@ -82,13 +151,11 @@ namespace MainGame.Presenter.Inventory
                 _miningTokenSource.Token);
         }
 
-        private MapTileObject GetBlockClicked()
+        private MapTileObject GetForcesMapTile()
         {
             var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = _mainCamera.ScreenPointToRay(mousePosition);
 
-            // マウスでクリックした位置にタイルマップがあるとき
-            if (!InputManager.Playable.ScreenLeftClick.GetKey) return null;
             // UIのクリックかどうかを判定
             if (EventSystem.current.IsPointerOverGameObject()) return null;
             //TODo この辺のGameObjectのrayの取得をutiにまとめたい

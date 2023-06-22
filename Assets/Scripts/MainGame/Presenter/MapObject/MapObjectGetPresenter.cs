@@ -7,6 +7,7 @@ using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.Util;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using VContainer;
 using VContainer.Unity;
 
@@ -49,14 +50,13 @@ namespace MainGame.Presenter.MapObject
 
         private async UniTask MiningUpdate(CancellationToken cancellationToken)
         {
-
             if (_uiStateControl.CurrentState != UIStateEnum.GameScreen)
             {
                 return;
             }
 
             var forcesMapObject = GetOnMouseMapObject();
-            if (forcesMapObject == null || !InputManager.Playable.ScreenLeftClick.GetKeyDown)
+            if (!InputManager.Playable.ScreenLeftClick.GetKeyDown || forcesMapObject == null)
             {
                 return;
             }
@@ -87,16 +87,13 @@ namespace MainGame.Presenter.MapObject
                 }
             }
 
-            if (isMiningCanceled)
+            if (!isMiningCanceled)
             {
-                forcesMapObject.OutlineEnable(false);
-                _miningCancellationTokenSource.Cancel();
-            }
-            else
-            {
-                forcesMapObject.OutlineEnable(false);
                 _sendGetMapObjectProtocolProtocol.Send(forcesMapObject.InstanceId);
             }
+
+            forcesMapObject.OutlineEnable(false);
+            _miningCancellationTokenSource.Cancel();
         }
 
         private MapObjectGameObject GetOnMouseMapObject()
@@ -104,6 +101,7 @@ namespace MainGame.Presenter.MapObject
             //スクリーンからマウスの位置にRayを飛ばす
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (!Physics.Raycast(ray, out var hit, 1000)) return null;
+            if (EventSystem.current.IsPointerOverGameObject()) return null;
             
             //マップオブジェクトを取得する
             return hit.collider.gameObject.GetComponent<MapObjectGameObject>();

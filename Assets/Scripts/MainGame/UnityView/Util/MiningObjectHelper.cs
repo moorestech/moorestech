@@ -16,19 +16,15 @@ namespace MainGame.UnityView.Util
         public bool IsMining { get; private set; }
         
         
-        public delegate bool IsContinueMiningDelegate();
-
         /// <summary>
         /// 採掘を開始する
         /// キャンセルさせるまで採掘し続ける
         /// キャンセルしてもexceptionは発生しません
         /// </summary>
         /// <param name="miningTime">採掘時間 秒</param>
-        /// <param name="OnMined">採掘が完了したら呼び出される</param>
-        /// <param name="isContinueMining">採掘を続けるかどうかを判定するメソッド</param>
         /// <param name="cancellationToken">キャンセラレーショントークン</param>
         /// <exception cref="InvalidOperationException">採掘中にこのメソッドを呼び出した場合、この例外がスローされます。</exception>
-        public async UniTask StartMining(float miningTime,Action OnMined,IsContinueMiningDelegate isContinueMining,CancellationToken cancellationToken)
+        public async UniTask StartMining(float miningTime,CancellationToken cancellationToken)
         {
             if (IsMining)
             {
@@ -41,8 +37,7 @@ namespace MainGame.UnityView.Util
                 //キャンセルされるまで採掘し続ける
                 while (true)
                 {
-                    await MiningProgress(miningTime,cancellationToken,isContinueMining);
-                    OnMined?.Invoke();
+                    await MiningProgress(miningTime,cancellationToken);
                 }
             }
             catch (OperationCanceledException)
@@ -54,7 +49,7 @@ namespace MainGame.UnityView.Util
             }
         }
 
-        private async UniTask MiningProgress(float miningTime, CancellationToken cancellationToken, IsContinueMiningDelegate isContinueMining)
+        private async UniTask MiningProgress(float miningTime, CancellationToken cancellationToken)
         {
             var now = DateTime.Now;
             //UIの更新のためにwhileで回す
@@ -63,12 +58,6 @@ namespace MainGame.UnityView.Util
                 var currentMineRate = (DateTime.Now - now).TotalSeconds / miningTime;
                 progressBarView.SetProgress((float) currentMineRate);
                 
-                //採掘を続けるかどうかを判定する
-                if (!isContinueMining())
-                {
-                    break;
-                }
-
                 await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
             }
         }
