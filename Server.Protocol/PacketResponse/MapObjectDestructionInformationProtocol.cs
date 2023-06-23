@@ -45,7 +45,7 @@ namespace Server.Protocol.PacketResponse
     }
     
     [MessagePackObject(keyAsPropertyName:true)]
-    public class ResponseMapObjectDestructionInformationMessagePack
+    public class ResponseMapObjectDestructionInformationMessagePack : ProtocolMessagePackBase
     {
         public List<MapObjectDestructionInformationData> MapObjects { get; set; }
         
@@ -54,6 +54,7 @@ namespace Server.Protocol.PacketResponse
         
         public ResponseMapObjectDestructionInformationMessagePack(List<MapObjectDestructionInformationData> mapObjects)
         {
+            Tag = MapObjectDestructionInformationProtocol.Tag;
             MapObjects = mapObjects;
         }
     }
