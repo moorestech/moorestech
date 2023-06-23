@@ -56,7 +56,7 @@ namespace MainGame.Presenter.MapObject
             }
 
             var forcesMapObject = GetOnMouseMapObject();
-            if (!InputManager.Playable.ScreenLeftClick.GetKeyDown || forcesMapObject == null)
+            if (miningObjectHelper.IsMining || !InputManager.Playable.ScreenLeftClick.GetKey || forcesMapObject == null)
             {
                 return;
             }
@@ -84,6 +84,7 @@ namespace MainGame.Presenter.MapObject
                 if (InputManager.Playable.ScreenLeftClick.GetKeyUp || forcesMapObject != GetOnMouseMapObject())
                 { 
                     isMiningCanceled = true;
+                    break;
                 }
             }
 

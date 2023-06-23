@@ -65,13 +65,13 @@ namespace MainGame.Presenter.Inventory
 
         private async UniTask MiningUpdate(CancellationToken cancellationToken)
         {
-            if (_uiStateControl.CurrentState != UIStateEnum.GameScreen)
+            if (miningObjectHelper.IsMining || _uiStateControl.CurrentState != UIStateEnum.GameScreen)
             {
                 return;
             }
 
             var forcesMapTile = GetForcesMapTile();
-            if (!InputManager.Playable.ScreenLeftClick.GetKeyDown || forcesMapTile == null)
+            if (!InputManager.Playable.ScreenLeftClick.GetKey || forcesMapTile == null)
             {
                 return;
             }
@@ -97,6 +97,7 @@ namespace MainGame.Presenter.Inventory
                 if (InputManager.Playable.ScreenLeftClick.GetKeyUp || forcesMapTile != GetForcesMapTile())
                 { 
                     isMiningCanceled = true;
+                    break;
                 }
             }
 
