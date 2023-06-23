@@ -43,7 +43,6 @@ namespace Server.Protocol
 
         public  List<List<byte>> GetPacketResponse(List<byte> payload)
         {
-            
             var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray()).Tag;
 
             return _packetResponseDictionary[tag].GetResponse(payload);

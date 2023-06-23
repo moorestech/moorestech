@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Block;
 using Core.Block.Blocks;
+using Core.Block.Blocks.State;
 
 namespace Game.World.Interface.DataStore
 {

@@ -1,8 +1,10 @@
 using System;
 using Core.Block.Blocks.Machine.Inventory;
+using Core.Block.Blocks.State;
 using Core.Block.Blocks.Util;
 using Core.Block.RecipeConfig.Data;
 using Core.Update;
+using Newtonsoft.Json;
 
 namespace Core.Block.Blocks.Machine
 {
@@ -69,10 +71,10 @@ namespace Core.Block.Blocks.Machine
             //ステートの変化を検知した時か、ステートが処理中の時はイベントを発火させる
             if (_lastState != _currentState || _currentState == ProcessState.Processing)
             {
-                var powerRate = RequestPower == 0 ? 1.0f : (float)_currentPower / RequestPower;
                 var processingRate = (float)_remainingMillSecond / _processingRecipeData.Time;
                 OnChangeState?.Invoke(
-                    new ChangedBlockState(_currentState.ToStr(),_lastState.ToStr(),new ChangeMachineBlockStateChangeData(powerRate,processingRate)));
+                    new ChangedBlockState(_currentState.ToStr(),_lastState.ToStr(),
+                JsonConvert.SerializeObject(new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate))));
                 _lastState = _currentState;
             }
         }
@@ -142,23 +144,5 @@ namespace Core.Block.Blocks.Machine
         }
     }
 
-    public class ChangeMachineBlockStateChangeData : ChangeBlockStateData
-    {
-        /// <summary>
-        /// 必要な電力に対してどの程度電力が来ているかを表す
-        /// アニメーションを再生する速度に利用する
-        /// </summary>
-        public float PowerRate;
 
-        /// <summary>
-        /// アイテムの作成がどれくらい進んでいるかを表す
-        /// </summary>
-        public float ProcessingRate;
-
-        public ChangeMachineBlockStateChangeData(float powerRate, float processingRate)
-        {
-            PowerRate = powerRate;
-            ProcessingRate = processingRate;
-        }
-    }
 }

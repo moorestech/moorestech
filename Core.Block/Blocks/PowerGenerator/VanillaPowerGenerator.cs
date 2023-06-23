@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Block.BlockInventory;
+using Core.Block.Blocks.State;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Block.Event;
 using Core.Const;

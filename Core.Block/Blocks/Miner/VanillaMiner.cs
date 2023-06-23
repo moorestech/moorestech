@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.Service;
+using Core.Block.Blocks.State;
 using Core.Block.Blocks.Util;
 using Core.Block.Event;
 using Core.Const;
@@ -11,6 +12,7 @@ using Core.Inventory;
 using Core.Item;
 using Core.Item.Util;
 using Core.Update;
+using Newtonsoft.Json;
 
 namespace Core.Block.Blocks.Miner
 {
@@ -29,11 +31,12 @@ namespace Core.Block.Blocks.Miner
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
 
         private int _defaultMiningTime = int.MaxValue;
-        private int _miningItemId = ItemConst.EmptyItemId;
+        private List<IItemStack> _miningItems = new();
         
         private int _currentPower = 0;
         private int _remainingMillSecond = int.MaxValue;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
+        private VanillaMinerState _currentState = VanillaMinerState.Idle;
 
         public VanillaMiner(int blockId, int entityId, ulong blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
         {
@@ -71,11 +74,29 @@ namespace Core.Block.Blocks.Miner
 
         public void Update()
         {
+            MinerProgressUpdate();
+            CheckStateAndInvokeEventUpdate();
+        }
+
+
+        private void MinerProgressUpdate()
+        {
             var subTime = MachineCurrentPowerToSubMillSecond.GetSubMillSecond(_currentPower, RequestPower);
             if (subTime <= 0)
             {
+                //電力の都合で処理を進められないのでreturn
+                _currentState = VanillaMinerState.Idle;
                 return;
             }
+            //insertできるかチェック
+            if (!_openableInventoryItemDataStoreService.InsertionCheck(_miningItems))
+            {
+                //挿入できないのでreturn
+                _currentState = VanillaMinerState.Idle;
+                return;
+            }
+            _currentState = VanillaMinerState.Mining;
+
             _remainingMillSecond -= subTime;
 
             if (_remainingMillSecond <= 0)
@@ -83,13 +104,40 @@ namespace Core.Block.Blocks.Miner
                 _remainingMillSecond = _defaultMiningTime;
 
                 //空きスロットを探索し、あるならアイテムを挿入
-                var addItem = _itemStackFactory.Create(_miningItemId, 1);
-                _openableInventoryItemDataStoreService.InsertItem(addItem);
+                _openableInventoryItemDataStoreService.InsertItem(_miningItems);
             }
 
             _currentPower = 0;
             InsertConnectInventory();
         }
+
+        private VanillaMinerState _lastMinerState;
+        private void CheckStateAndInvokeEventUpdate()
+        {
+            if (_lastMinerState == VanillaMinerState.Mining && _currentState == VanillaMinerState.Idle)
+            {
+                //Miningからidleに切り替わったのでイベントを発火
+                InvokeChangeStateEvent();
+                _lastMinerState = _currentState;
+                return;
+            }
+            if (_currentState == VanillaMinerState.Idle)
+            {
+                //Idle中は発火しない
+                return;
+            }
+            
+            //マイニング中 この時は常にイベントを発火
+            InvokeChangeStateEvent();
+        }
+
+        private void InvokeChangeStateEvent()
+        {
+            var processingRate = (float) _remainingMillSecond / _defaultMiningTime;
+            OnBlockStateChange?.Invoke(new ChangedBlockState(_currentState.ToStr(), _lastMinerState.ToStr(),
+                JsonConvert.SerializeObject(new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate))));
+        }
+        
 
         void InsertConnectInventory()
         {
@@ -151,7 +199,8 @@ namespace Core.Block.Blocks.Miner
             {
                 throw new Exception("採掘機に鉱石の設定をできるのは1度だけです");
             }
-            _miningItemId = miningItemId;
+
+            _miningItems = new List<IItemStack>() {_itemStackFactory.Create(miningItemId, 1)};
             _defaultMiningTime = miningTime;
             _remainingMillSecond = _defaultMiningTime;
         }
@@ -160,5 +209,34 @@ namespace Core.Block.Blocks.Miner
 
         public void SetItem(int slot, IItemStack itemStack) { _openableInventoryItemDataStoreService.SetItem(slot, itemStack); }
         public int GetSlotSize() { return _openableInventoryItemDataStoreService.GetSlotSize(); }
+    }
+
+    public enum VanillaMinerState
+    {
+        Idle,
+        Mining
+    }
+
+    public static class VanillaMinerBlockStateConst
+    {
+        public const string IdleState = "idle";
+        public const string MiningState = "mining";
+    }
+    
+    public static class ProcessStateExtension
+    {
+        /// <summary>
+        /// <see cref="ProcessState"/>をStringに変換します。
+        /// EnumのToStringを使わない理由はアロケーションによる速度低下をなくすためです。
+        /// </summary>
+        public static string ToStr(this VanillaMinerState state)
+        {
+            return state switch
+            {
+                VanillaMinerState.Idle => VanillaMinerBlockStateConst.IdleState,
+                VanillaMinerState.Mining => VanillaMinerBlockStateConst.MiningState,
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+            };
+        }
     }
 }
