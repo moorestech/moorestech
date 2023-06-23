@@ -10,6 +10,6 @@
         /// ブロックのステートに基づいてアニメーションを再生する
         /// タイプに応じてアニメーションを再生する
         /// </summary>
-        public void OnChangeState(string currentState, string previousState, byte[] currentStateData);
+        public void OnChangeState(string currentState, string previousState, string currentStateData);
     }
 }

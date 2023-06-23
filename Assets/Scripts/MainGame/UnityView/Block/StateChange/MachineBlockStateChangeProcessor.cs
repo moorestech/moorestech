@@ -1,7 +1,9 @@
 ﻿using System;
 using Core.Block.Blocks.Machine;
+using Core.Block.Blocks.State;
 using MainGame.ModLoader.Glb;
 using MessagePack;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace MainGame.UnityView.Block.StateChange
@@ -31,9 +33,9 @@ namespace MainGame.UnityView.Block.StateChange
         }
 
 
-        public void OnChangeState(string currentState, string previousState, byte[] currentStateData)
+        public void OnChangeState(string currentState, string previousState, string currentStateData)
         {
-            var data = MessagePackSerializer.Deserialize<ChangeMachineBlockStateChangeData>(currentStateData);
+            var data = JsonConvert.DeserializeObject<CommonMachineBlockStateChangeData>(currentStateData);
             _processingRate = data.ProcessingRate;
             switch (currentState)
             {

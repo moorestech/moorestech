@@ -27,9 +27,8 @@ namespace MainGame.Presenter.Block
             }
             else
             {
-                
-            var blockObject = _chunkBlockGameObjectDataStore.BlockGameObjectDictionary[pos];
-            blockObject.BlockStateChangeProcessor.OnChangeState(stateChangeProperties.CurrentState,stateChangeProperties.PreviousState,stateChangeProperties.CurrentStateData);
+                var blockObject = _chunkBlockGameObjectDataStore.BlockGameObjectDictionary[pos];
+                blockObject.BlockStateChangeProcessor.OnChangeState(stateChangeProperties.CurrentState,stateChangeProperties.PreviousState,stateChangeProperties.CurrentStateData);
             }
         }
 

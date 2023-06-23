@@ -7,6 +7,6 @@ namespace MainGame.UnityView.Block.StateChange
     /// </summary>
     public class NullBlockStateChangeProcessor : IBlockStateChangeProcessor
     {
-        public void OnChangeState(string currentState, string previousState, byte[] currentStateData) { }
+        public void OnChangeState(string currentState, string previousState, string currentStateData) { }
     }
 }

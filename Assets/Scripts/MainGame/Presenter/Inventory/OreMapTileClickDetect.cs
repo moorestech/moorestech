@@ -70,13 +70,11 @@ namespace MainGame.Presenter.Inventory
                 return;
             }
 
-            var forcesMapObject = GetForcesMapTile();
-            if (!InputManager.Playable.ScreenLeftClick.GetKeyDown || forcesMapObject == null)
+            var forcesMapTile = GetForcesMapTile();
+            if (!InputManager.Playable.ScreenLeftClick.GetKeyDown || forcesMapTile == null)
             {
                 return;
             }
-            
-            forcesMapObject.OutlineEnable(true);
             
             _miningTokenSource.Cancel();
             _miningTokenSource = new CancellationTokenSource();
@@ -96,60 +94,20 @@ namespace MainGame.Presenter.Inventory
 
                 //クリックが離されたら採掘を終了する
                 //map objectが変わったら採掘を終了する
-                if (InputManager.Playable.ScreenLeftClick.GetKeyUp || forcesMapObject != GetOnMouseMapObject())
+                if (InputManager.Playable.ScreenLeftClick.GetKeyUp || forcesMapTile != GetForcesMapTile())
                 { 
                     isMiningCanceled = true;
                 }
             }
 
-            if (isMiningCanceled)
+            if (!isMiningCanceled)
             {
-                forcesMapObject.OutlineEnable(false);
+                _sendMiningProtocol.Send(GetClickPosition());
             }
-            else
-            {
-                forcesMapObject.OutlineEnable(false);
-                _sendMiningProtocol.Send(forcesMapObject.InstanceId);
-            }
+
             _miningTokenSource.Cancel();
         }
 
-        
-        
-        private void Update()
-        {
-            if (_uiStateControl.CurrentState != UIStateEnum.DeleteBar) return;
-            
-            if (_currentClickingMapTileObject == null)
-            {
-                _currentClickingMapTileObject = GetForcesMapTile();
-                
-                //マイニングを開始する
-                StartMining(MiningTime).Forget();
-                return;
-            }
-            var clickedObject = GetForcesMapTile();
-            if (clickedObject != _currentClickingMapTileObject)
-            {
-                _currentClickingMapTileObject = clickedObject;
-                
-                //マイニングを開始する
-                StartMining(MiningTime).Forget();
-                return;
-            }
-        }
-
-        private async UniTask StartMining(float miningTime)
-        {
-            _miningTokenSource.Cancel();
-            _miningTokenSource = new CancellationTokenSource();
-            
-            await miningObjectHelper.StartMining(
-                miningTime, 
-                () => _sendMiningProtocol.Send(GetClickPosition()),
-                () => _sendMiningProtocol.Send(GetClickPosition()),
-                _miningTokenSource.Token);
-        }
 
         private MapTileObject GetForcesMapTile()
         {

@@ -23,7 +23,7 @@ namespace MainGame.Network.Receive.EventPacket
             
 
             _receiveBlockStateChangeEvent.InvokeReceiveBlockStateChange(new BlockStateChangeProperties(
-                data.CurrentState,data.PreviousState,data.CurrentStateData,data.Position)).Forget();
+                data.CurrentState,data.PreviousState,data.CurrentStateJsonData,data.Position)).Forget();
         }
     }
 }

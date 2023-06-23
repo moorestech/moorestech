@@ -89,7 +89,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a95c0ce86d154fb096f10920706da476, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  progressBarView: {fileID: 3208112019723108600}
+  miningObjectHelper: {fileID: 5927129586856144513}
 --- !u!1 &3084759532686723519
 GameObject:
   m_ObjectHideFlags: 0

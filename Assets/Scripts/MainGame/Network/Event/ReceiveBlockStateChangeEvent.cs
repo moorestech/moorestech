@@ -20,10 +20,10 @@ namespace MainGame.Network.Event
     {
         public string CurrentState { get; }
         public string PreviousState { get;  }
-        public byte[] CurrentStateData { get;  }
+        public string CurrentStateData { get;  }
         public Vector2Int Position { get;  }
         
-        public BlockStateChangeProperties(string currentState, string previousState, byte[] currentStateData, Vector2MessagePack position)
+        public BlockStateChangeProperties(string currentState, string previousState, string currentStateData, Vector2MessagePack position)
         
         {
             CurrentState = currentState;
