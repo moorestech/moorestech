@@ -85,7 +85,6 @@ namespace Server.Boot
         {
             get
             {
-                return "/Users/sato-katsumi/moorestech_client/WindowsServer";
                 var path =Environment.GetEnvironmentVariable("MOORES_SERVER_DIRECTORY");
                 if (path != null)
                 {
