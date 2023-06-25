@@ -3,6 +3,7 @@ using Game.Quest.Interface;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.Extension;
+using MainGame.Localization;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
 using MainGame.Network;
@@ -43,6 +44,7 @@ using SinglePlay;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
+using Debug = UnityEngine.Debug;
 
 namespace MainGame.Starter
 {
@@ -132,6 +134,9 @@ namespace MainGame.Starter
 
         void Start()
         {
+            Debug.Log(Localize.Get("start"));
+
+
             var builder = new ContainerBuilder();
             //シングルプレイ用のインスタンス
             var singlePlayInterface = new SinglePlayInterface(ServerConst.ServerDirectory);
