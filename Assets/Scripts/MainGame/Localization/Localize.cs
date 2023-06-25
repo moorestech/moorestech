@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using GameConst;
+using UniRx;
 using UnityEngine;
 
 namespace MainGame.Localization
@@ -14,6 +16,9 @@ namespace MainGame.Localization
         /// </summary>
         private static readonly Dictionary<string,Dictionary<string,string>> localizeDictionary = new();
         
+        public static IObservable<Unit> OnLanguageChanged => _onLanguageChangedSubject;
+        private static Subject<Unit> _onLanguageChangedSubject = new();
+
         private static string CurrentLanguageCode { get; set; }
         
         private const string DefaultLanguageCode = "english";
@@ -59,6 +64,22 @@ namespace MainGame.Localization
                 return value;
             }
             return $"[Localize Error] Key : {key} is not found";
+        }
+        
+        
+        public static void SetLanguage(string languageCode)
+        {
+            if (localizeDictionary.ContainsKey(languageCode))
+            {
+                CurrentLanguageCode = languageCode;
+                PlayerPrefs.SetString("LanguageCode",languageCode);
+                PlayerPrefs.Save();
+                _onLanguageChangedSubject?.OnNext(Unit.Default);
+            }
+            else
+            {
+                Debug.LogError($"[Localize Error] Language Code : {languageCode} is not found");
+            }
         }
     }
 }
