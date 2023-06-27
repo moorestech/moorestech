@@ -45,6 +45,51 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   progressBarView: {fileID: 3208112019723108600}
+--- !u!1 &1432416900455561791
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7830302752926984208}
+  - component: {fileID: 7183801247415753191}
+  m_Layer: 0
+  m_Name: MissonPresenter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7830302752926984208
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1432416900455561791}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 783.06573, y: 448.7854, z: 0.8758697}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3084759534298576664}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7183801247415753191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1432416900455561791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61006b85ca3147e694f516a6a719b4f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  missionUIController: {fileID: 5739321225222232986}
 --- !u!1 &2544946426575401251
 GameObject:
   m_ObjectHideFlags: 0
@@ -373,6 +418,7 @@ Transform:
   - {fileID: 968792338582425333}
   - {fileID: 4179618018869986478}
   - {fileID: 8942731940756944306}
+  - {fileID: 7830302752926984208}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -433,6 +479,7 @@ MonoBehaviour:
   displayEnergizedRange: {fileID: 3084759532686723504}
   playerInventorySlotsInputControl: {fileID: 2570931860095091700}
   tutorialExecuter: {fileID: 5835557314942654642}
+  missionPresenter: {fileID: 7183801247415753191}
 --- !u!1 &3084759534699882492
 GameObject:
   m_ObjectHideFlags: 0
@@ -4212,6 +4259,18 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7375639951235142272, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7375639951235142272, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7375639951235142272, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7654399775524023008, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -4478,6 +4537,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9ffecd04600843da92d113e894a03701, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5739321225222232986 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7307493145777016854, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 3084759533195561868}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 183df8e4a82841a68e8a97d57bcbabeb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &7059951361752421811 stripped

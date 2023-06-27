@@ -10,6 +10,7 @@ namespace MainGame.UnityView.UI.Mission
         private const int DisplayMissionCount = 5;
 
         [SerializeField] private MissionBarElement missionBarPrefab;
+        [SerializeField] private RectTransform missionBarParent;
         
         private readonly List<MissionBarElement> _missionBars = new();
         private readonly List<IMissionImplementation> _sortedPriorityMissionDataList = new();
@@ -18,7 +19,7 @@ namespace MainGame.UnityView.UI.Mission
         {
             foreach (var missionData in missionDataList)
             {
-                var missionBar = Instantiate(missionBarPrefab, transform);
+                var missionBar = Instantiate(missionBarPrefab, missionBarParent);
                 
                 missionBar.SetMissionNameKey(missionData.MissionNameKey);
                 missionData.OnDone.Subscribe(_ => SetDaneMissionBar(missionBar).Forget()).AddTo(this);
