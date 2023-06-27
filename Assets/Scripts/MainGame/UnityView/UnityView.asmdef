@@ -12,7 +12,9 @@
         "ModLoader",
         "UniTask",
         "ThirdPersonController",
-        "MessagePack"
+        "MessagePack",
+        "Localization",
+        "UniRx"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

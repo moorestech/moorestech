@@ -20,6 +20,7 @@ using MainGame.Presenter.Inventory.Receive;
 using MainGame.Presenter.Inventory.Send;
 using MainGame.Presenter.Loading;
 using MainGame.Presenter.MapObject;
+using MainGame.Presenter.Mission;
 using MainGame.Presenter.Player;
 using MainGame.Presenter.Quest;
 using MainGame.Presenter.Tutorial;
@@ -131,6 +132,7 @@ namespace MainGame.Starter
         [SerializeField] private PlayerInventorySlotsInputControl playerInventorySlotsInputControl;
 
         [SerializeField] private TutorialExecuter tutorialExecuter;
+        [SerializeField] private MissionPresenter missionPresenter;
 
         void Start()
         {
@@ -297,6 +299,8 @@ namespace MainGame.Starter
             _resolver.Resolve<LoadingFinishDetector>();
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntitiesPresenter>();
+            
+            missionPresenter.Initialize(builder);
         }
 
         protected override void OnDestroy()
