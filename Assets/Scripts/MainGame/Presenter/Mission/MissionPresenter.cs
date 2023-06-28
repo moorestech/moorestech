@@ -11,15 +11,32 @@ namespace MainGame.Presenter.Mission
     {
         [SerializeField] private MissionUIController missionUIController;
 
+        private readonly List<IMissionImplementation> _missionList = new();
 
         public void Initialize(ContainerBuilder containerBuilder)
         {
-            var missionList = new List<IMissionImplementation>();
-            missionList.Add(new WASDMoveMission());
+            //TODO ミッションリストを外から追加できるようにする
+            _missionList.Add(new WASDMoveMission());
+            _missionList.Add(new TestKeyPushMission(900,KeyCode.G));
+            _missionList.Add(new TestKeyPushMission(890,KeyCode.H));
+            _missionList.Add(new TestKeyPushMission(880,KeyCode.I));
+            _missionList.Add(new TestKeyPushMission(870,KeyCode.J));
+            _missionList.Add(new TestKeyPushMission(860,KeyCode.K));
+            _missionList.Add(new TestKeyPushMission(850,KeyCode.L));
+            _missionList.Add(new TestKeyPushMission(840,KeyCode.V));
+            _missionList.Add(new TestKeyPushMission(830,KeyCode.B));
             
-            missionUIController.SetMissionList(missionList);
+            missionUIController.SetMissionList(_missionList);
         }
-        
-        
+
+
+        private void Update()
+        {
+            foreach (var mission in _missionList)
+            {
+                Debug.Log(mission.MissionNameKey);
+                mission.Update();
+            }
+        }
     }
 }

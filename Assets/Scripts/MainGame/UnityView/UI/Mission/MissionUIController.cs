@@ -32,6 +32,7 @@ namespace MainGame.UnityView.UI.Mission
 
         private async UniTask SetDaneMissionBar(MissionBarElement missionBarElement)
         {
+            Debug.Log("SetDaneMissionBar");
             await missionBarElement.SetDone();
             UpdateDisplayMission();
         }

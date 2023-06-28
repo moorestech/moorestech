@@ -1,41 +1,40 @@
 using System;
-using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Mission;
 using UniRx;
 using UnityEngine;
 
 namespace MainGame.Presenter.Mission.MissionImplementations
 {
-    public class WASDMoveMission : IMissionImplementation
+    public class TestKeyPushMission : IMissionImplementation
     {
-        public int Priority => 10000;
+        private readonly KeyCode _keyCode;
+        
+        public TestKeyPushMission(int priority,KeyCode keyCode)
+        {
+            Priority = priority;
+            _keyCode = keyCode;
+            MissionNameKey = keyCode.ToString();
+        }
+
+        public int Priority { get; }
         public bool IsDone { get; private set; }
-        public string MissionNameKey => GetType().Name;
+        public string MissionNameKey { get; }
+        
         public IObservable<Unit> OnDone => _onDone;
         private readonly Subject<Unit> _onDone = new();
-
-
+        
         public void Update()
         {
-            return;
             if (IsDone)
             {
                 return;
             }
 
-            if (InputManager.Player.Move.GetKeyDown)
+            if (Input.GetKeyDown(_keyCode))
             {
                 IsDone = true;
-                PlayerPrefs.SetInt(GetType().Name, 1);
-                PlayerPrefs.Save();
                 _onDone.OnNext(Unit.Default);
             }
-        }
-
-        public WASDMoveMission()
-        {
-            //IsDone = PlayerPrefs.GetInt(GetType().Name, 0) == 1;
-            IsDone = false;
         }
     }
 }
