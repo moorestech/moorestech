@@ -1829,7 +1829,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 183df8e4a82841a68e8a97d57bcbabeb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  missionBarPrefab: {fileID: 4902978204884200036, guid: 673f2daeedef2420aa07ae6061d84a52, type: 3}
+  missionBarUIPrefab: {fileID: 4902978204884200036, guid: 673f2daeedef2420aa07ae6061d84a52, type: 3}
   missionBarParent: {fileID: 2976783452931862631}
 --- !u!1 &3034056095914596409
 GameObject:

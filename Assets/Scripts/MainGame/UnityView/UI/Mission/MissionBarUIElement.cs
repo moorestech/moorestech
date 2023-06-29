@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MainGame.UnityView.UI.Mission
 {
-    public class MissionBarElement : MonoBehaviour
+    public class MissionBarUIElement : MonoBehaviour
     {
         [SerializeField] private GameObject doneImage;
         [SerializeField] private TextMeshProLocalize missionName;
@@ -19,7 +19,7 @@ namespace MainGame.UnityView.UI.Mission
         {
             SetActive(true);
             doneImage.SetActive(true);
-            await UniTask.Delay(3000);
+            await UniTask.Delay(10000);
         }
         
         

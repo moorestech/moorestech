@@ -7,33 +7,32 @@ namespace MainGame.UnityView.UI.Mission
 {
     public class MissionUIController : MonoBehaviour
     {
-        private const int DisplayMissionCount = 5;
+        private const int DisplayMissionCount = 3;
 
-        [SerializeField] private MissionBarElement missionBarPrefab;
+        [SerializeField] private MissionBarUIElement missionBarUIPrefab;
         [SerializeField] private RectTransform missionBarParent;
         
-        private readonly List<MissionBarElement> _missionBars = new();
-        private readonly List<IMissionImplementation> _sortedPriorityMissionDataList = new();
+        private readonly List<MissionBar> _sortedPriorityMissions = new();
 
         public void SetMissionList(List<IMissionImplementation> missionDataList)
         {
             foreach (var missionData in missionDataList)
             {
-                var missionBar = Instantiate(missionBarPrefab, missionBarParent);
+                var missionBar = Instantiate(missionBarUIPrefab, missionBarParent);
                 
                 missionBar.SetMissionNameKey(missionData.MissionNameKey);
                 missionData.OnDone.Subscribe(_ => SetDaneMissionBar(missionBar).Forget()).AddTo(this);
                 
-                _missionBars.Add(missionBar);
-                _sortedPriorityMissionDataList.Add(missionData);
+                _sortedPriorityMissions.Add(new MissionBar(missionBar, missionData));
             }
-            _sortedPriorityMissionDataList.Sort((a, b) => b.Priority - a.Priority);
+            _sortedPriorityMissions.Sort((a, b) => b.MissionImplementation.Priority - a.MissionImplementation.Priority);
+            UpdateDisplayMission();
         }
 
-        private async UniTask SetDaneMissionBar(MissionBarElement missionBarElement)
+        private async UniTask SetDaneMissionBar(MissionBarUIElement missionBarUIElement)
         {
-            Debug.Log("SetDaneMissionBar");
-            await missionBarElement.SetDone();
+            missionBarUIElement.SetActive(true);
+            await missionBarUIElement.SetDone();
             UpdateDisplayMission();
         }
 
@@ -44,26 +43,41 @@ namespace MainGame.UnityView.UI.Mission
         private void UpdateDisplayMission()
         {
             //全てのミッションをオフに
-            foreach (var missionBar in _missionBars)
+            foreach (var missionBar in _sortedPriorityMissions)
             {
-                missionBar.SetActive(false);
+                missionBar.MissionBarUIElement.SetActive(false);
             }
             
-            //プライオリティの高いミッションから順に表示する
-            for (var i = 0; i < DisplayMissionCount; i++)
+            //プライオリティの高いミッションから表示する数分だけ表示する
+            //もし完了していたら表示しない
+            var displayedBarCount = 0;
+            foreach (var missionBar in _sortedPriorityMissions)
             {
-                if (i >= _sortedPriorityMissionDataList.Count) break;
-                //すでに完了してたら表示しない
-                if (_sortedPriorityMissionDataList[i].IsDone)
+                if (missionBar.MissionImplementation.IsDone)
                 {
-                    i--;
                     continue;
                 }
                 
+                displayedBarCount++;
+                if (DisplayMissionCount < displayedBarCount)
+                {
+                    break;
+                }
                 
-                var missionData = _sortedPriorityMissionDataList[i];
-                _missionBars[i].SetActive(true);
+                missionBar.MissionBarUIElement.SetActive(true);
             }
+        }
+    }
+
+    class MissionBar
+    {
+        public readonly MissionBarUIElement MissionBarUIElement;
+        public readonly IMissionImplementation MissionImplementation;
+        
+        public MissionBar(MissionBarUIElement missionBarUIElement, IMissionImplementation missionImplementation)
+        {
+            MissionBarUIElement = missionBarUIElement;
+            MissionImplementation = missionImplementation;
         }
     }
 }

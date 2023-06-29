@@ -17,7 +17,6 @@ namespace MainGame.Presenter.Mission.MissionImplementations
 
         public void Update()
         {
-            return;
             if (IsDone)
             {
                 return;

@@ -34,7 +34,6 @@ namespace MainGame.Presenter.Mission
         {
             foreach (var mission in _missionList)
             {
-                Debug.Log(mission.MissionNameKey);
                 mission.Update();
             }
         }
