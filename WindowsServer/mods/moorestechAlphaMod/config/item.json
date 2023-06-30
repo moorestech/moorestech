@@ -1,3 +1,22 @@
 [
-  
+    {
+        "name": "",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "string",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "cloth",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "simple_ax",
+        "maxStacks": 100,
+        "imagePath": ""
+    }
 ]
