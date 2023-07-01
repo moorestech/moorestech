@@ -2,20 +2,29 @@ using System.Collections.Generic;
 using System.Linq;
 using SinglePlay;
 using UnityEngine;
+using UnityEngine.UI;
 using VContainer;
 
 namespace MainGame.UnityView.UI.CraftRecipe
 {
     public class ItemRecipePresenter : MonoBehaviour
     {
+        [SerializeField] private Button nextRecipeButton;
+        [SerializeField] private Button prevRecipeButton;
+        
         private readonly Dictionary<int, List<ViewerRecipeData>> _itemIdToRecipe = new();
-
         public ViewerRecipeData CurrentViewerRecipeData { get; private set; }
-
         private  ItemRecipeView _itemRecipeView;
         
         public bool IsClicked => _isClickedCount == 0 || _isClickedCount == 1;
+        
+        /// <summary>
+        /// レシピビューワーがクリックされたかどうかを検知するためのカウント
+        /// 
+        /// TODO ここはイベント駆動とかにしてもいいかもしれん、何かいい方法を探す
+        /// </summary>
         private int _isClickedCount = -1;
+        
 
         [Inject]
         public void Construct(CraftRecipeItemListViewer craftRecipeItemListViewer,SinglePlayInterface singlePlayInterface,ItemRecipeView itemRecipeView)
@@ -54,25 +63,79 @@ namespace MainGame.UnityView.UI.CraftRecipe
             }
             
             
-            
-            //アイテムリストからアイテムをクリックした時のイベントをサブスクライブ
-            craftRecipeItemListViewer.OnItemListClick += OnItemListClick;
-            itemRecipeView.OnCraftSlotClick += OnItemListClick;
             _itemRecipeView = itemRecipeView;
+            //アイテムリストからアイテムをクリックした時にレシピを表示する
+            craftRecipeItemListViewer.OnItemListClick += item => {
+                DisplayRecipe(item,0);
+                _currentRecipeIndex = 0;
+            };
+            itemRecipeView.OnCraftSlotClick += item => {
+                DisplayRecipe(item,0);
+                _currentRecipeIndex = 0;
+            };
+            
+            //レシピの切り替え
+            nextRecipeButton.onClick.AddListener(() => {
+                if (_displayedItemId == -1)
+                {
+                    return;
+                }
+                
+                _currentRecipeIndex++;
+                if (_currentRecipeIndex >= _itemIdToRecipe[_displayedItemId].Count)
+                {
+                    _currentRecipeIndex = 0;
+                }
+                
+                DisplayRecipe(_displayedItemId,_currentRecipeIndex);
+            });
+            
+            prevRecipeButton.onClick.AddListener(() => {
+                if (_displayedItemId == -1)
+                {
+                    return;
+                }
+                
+                _currentRecipeIndex--;
+                if (_currentRecipeIndex < 0)
+                {
+                    _currentRecipeIndex = _itemIdToRecipe[_displayedItemId].Count - 1;
+                }
+                
+                DisplayRecipe(_displayedItemId,_currentRecipeIndex);
+            });
         }
 
-        private void OnItemListClick(int itemId)
+
+
+        
+        
+        
+        
+        
+        private int _currentRecipeIndex = 0;
+        private int _displayedItemId = -1;
+        
+        /// <summary>
+        /// 実際にレシピを表示する処理
+        /// </summary>
+        /// <param name="itemId"></param>
+        /// <param name="recipeIndex"></param>
+        private void DisplayRecipe(int itemId,int recipeIndex)
         {
             if (!_itemIdToRecipe.ContainsKey(itemId))
             {
                 return;
             }
 
+            _displayedItemId = itemId;
             _isClickedCount = 0;
             
-            //TODO 複数レシピに対応させる
-            var recipe = _itemIdToRecipe[itemId][0];
+            var recipe = _itemIdToRecipe[itemId][recipeIndex];
             CurrentViewerRecipeData = recipe;
+
+            nextRecipeButton.interactable = _itemIdToRecipe[itemId].Count > 1;
+            prevRecipeButton.interactable = _itemIdToRecipe[itemId].Count > 1;
             
             switch (recipe.RecipeType)
             {
