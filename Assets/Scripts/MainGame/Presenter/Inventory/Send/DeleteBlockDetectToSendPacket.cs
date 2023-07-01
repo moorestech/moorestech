@@ -1,5 +1,6 @@
 ﻿using MainGame.Network.Send;
 using MainGame.UnityView.Control.MouseKeyboard;
+using MainGame.UnityView.SoundEffect;
 using MainGame.UnityView.UI.UIState;
 using VContainer.Unity;
 
@@ -24,6 +25,7 @@ namespace MainGame.Presenter.Inventory.Send
                 _blockClickDetect.TryGetClickBlockPosition(out var position))
             {
                 _sendBlockRemoveProtocol.Send(position.x,position.y);
+                SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.DestroyBlock);
             }   
         }
     }

@@ -1,8 +1,10 @@
 ﻿using System.Threading;
 using Cysharp.Threading.Tasks;
+using Game.MapObject.Interface;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.MapObject;
+using MainGame.UnityView.SoundEffect;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.Util;
@@ -91,6 +93,14 @@ namespace MainGame.Presenter.MapObject
             if (!isMiningCanceled)
             {
                 _sendGetMapObjectProtocolProtocol.Send(forcesMapObject.InstanceId);
+                var soundEffectType = forcesMapObject.MapObjectType switch
+                {
+                    VanillaMapObjectType.VanillaStone => SoundEffectType.DestroyStone,
+                    VanillaMapObjectType.VanillaTree => SoundEffectType.DestroyTree,
+                    VanillaMapObjectType.VanillaBush => SoundEffectType.DestroyBush,
+                    _ => throw new System.ArgumentOutOfRangeException()
+                };
+                SoundEffectManager.Instance.PlaySoundEffect(soundEffectType);
             }
 
             forcesMapObject.OutlineEnable(false);

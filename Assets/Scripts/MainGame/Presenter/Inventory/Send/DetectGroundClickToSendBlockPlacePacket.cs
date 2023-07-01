@@ -1,10 +1,13 @@
+using System;
 using MainGame.Basic;
 using MainGame.Network.Send;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
+using MainGame.UnityView.SoundEffect;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
+using UniRx;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
@@ -78,6 +81,7 @@ namespace MainGame.Presenter.Inventory.Send
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
             {
                 _sendPlaceHotBarBlockProtocol.Send(hitPoint.x,hitPoint.y,(short)_hotBarControl.SelectIndex,_currentBlockDirection);
+                SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
                 return;
             }
             
@@ -104,6 +108,20 @@ namespace MainGame.Presenter.Inventory.Send
             var y = Mathf.FloorToInt(hit.point.z); //サーバー上のY軸がUnityのZ軸に相当する
 
             return (true ,new Vector2Int(x,y));
+        }
+    }
+
+    public class OnPlaceProprietors
+    {
+        public Vector2Int PlaceBlockPosition;
+        public int PlaceHotBarSlot;
+        public BlockDirection PlaceBlockDirection;
+
+        public OnPlaceProprietors(Vector2Int placeBlockPosition, int placeHotBarSlot, BlockDirection placeBlockDirection)
+        {
+            PlaceBlockPosition = placeBlockPosition;
+            PlaceHotBarSlot = placeHotBarSlot;
+            PlaceBlockDirection = placeBlockDirection;
         }
     }
 }
