@@ -8,6 +8,7 @@ using Game.MapObject.Interface.Json;
 using Game.PlayerInventory.Interface;
 using Game.Quest.Interface;
 using Game.Save.Interface;
+using Game.Save.Json.WorldVersions;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
 
@@ -64,7 +65,7 @@ namespace Game.Save.Json
 
         public void Load(string jsonText)
         {
-            var load = JsonConvert.DeserializeObject<WorldSaveAllInfo>(jsonText);
+            var load = JsonConvert.DeserializeObject<WorldSaveAllInfoV1>(jsonText);
             
             _worldBlockDatastore.LoadBlockDataList(load.World);
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);
