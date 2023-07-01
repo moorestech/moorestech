@@ -10,9 +10,9 @@ namespace MainGame.UnityView.UI.CraftRecipe
         public readonly List<ItemStack> ItemStacks = new();
         public readonly List<ItemStack> ResultItem = new();
         public readonly ViewerRecipeType RecipeType;
-        public readonly int BlockId;
+        public readonly int MachineItemId;
 
-        public ViewerRecipeData(List<IItemStack> itemStacks, List<IItemStack> resultItem, ViewerRecipeType recipeType,int blockId)
+        public ViewerRecipeData(List<IItemStack> itemStacks, List<IItemStack> resultItem, ViewerRecipeType recipeType,int machineItemId)
         {
             foreach (var item in itemStacks)
             {
@@ -23,7 +23,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 ResultItem.Add(new ItemStack(item.Id,item.Count));
             }
 
-            BlockId = blockId;
+            MachineItemId = machineItemId;
             RecipeType = recipeType;
         }
         public ViewerRecipeData(List<IItemStack> itemStacks, IItemStack resultItem, ViewerRecipeType recipeType)

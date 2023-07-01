@@ -12,7 +12,6 @@ namespace MainGame.UnityView.UI.CraftRecipe
     public class ItemRecipeView : MonoBehaviour
     {
         private ItemImages _itemImages;
-        private BlockGameObjectFactory _blockGameObjectFactory;
         
         [SerializeField] private GameObject craftingRecipeView;
         [SerializeField] private GameObject machineCraftingRecipeView;
@@ -22,6 +21,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
         
         [SerializeField] private List<UIBuilderItemSlotObject> machineCraftingRecipeSlots;
         [SerializeField] private UIBuilderItemSlotObject MachineCraftingResultSlotObject;
+        [SerializeField] private UIBuilderItemSlotObject MachineSlotObject;
         [SerializeField] private TMP_Text machineNameText;
         
         public event CraftRecipeItemListViewer.ItemSlotClick OnCraftSlotClick;
@@ -29,7 +29,6 @@ namespace MainGame.UnityView.UI.CraftRecipe
         [Inject]
         public void Construct(ItemImages itemImages,BlockGameObjectFactory blockGameObjectFactory)
         {
-            _blockGameObjectFactory = blockGameObjectFactory;
             _itemImages = itemImages;
             foreach (var slot in craftingRecipeSlots)
             {
@@ -39,10 +38,10 @@ namespace MainGame.UnityView.UI.CraftRecipe
             {
                 slot.OnLeftClickDown += OnClick;
             }
+            MachineSlotObject.OnLeftClickDown += OnClick;
         }
-        
-        
-        private List<ItemStack> _craftItemStacks = new();
+        private void OnClick(UIBuilderItemSlotObject uiBuilderItemSlotObject) { OnCraftSlotClick?.Invoke(uiBuilderItemSlotObject.ItemViewData.ItemId); }
+
 
         public void SetCraftRecipe(List<ItemStack> itemStacks,ItemStack result)
         {
@@ -55,18 +54,12 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 craftingRecipeSlots[i].SetItem(_itemImages.GetItemView(item.ID),item.Count);
             }
             CraftingResultSlotObject.SetItem(_itemImages.GetItemView(result.ID),result.Count);
-
-            _craftItemStacks = itemStacks;
         }
         
-        private List<ItemStack> _machineCraftItemStacks = new();
-
-        public void SetMachineCraftRecipe(List<ItemStack> itemStacks,ItemStack result,int blockId)
+        public void SetMachineCraftRecipe(List<ItemStack> itemStacks,ItemStack result,int machineItemId)
         {
             craftingRecipeView.SetActive(false);
             machineCraftingRecipeView.SetActive(true);
-
-            machineNameText.text = _blockGameObjectFactory.GetName(blockId);
             
             for (int i = 0; i < machineCraftingRecipeSlots.Count; i++)
             {
@@ -81,28 +74,10 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 machineCraftingRecipeSlots[i].SetItem(_itemImages.GetItemView(item.ID),item.Count);
             }
 
+            var machineItem = _itemImages.GetItemView(machineItemId);
+            machineNameText.text = machineItem.ItemName;
+            MachineSlotObject.SetItem(machineItem,0);
             MachineCraftingResultSlotObject.SetItem(_itemImages.GetItemView(result.ID),result.Count);
-            _machineCraftItemStacks = itemStacks;
-        }
-
-        private void OnClick(UIBuilderItemSlotObject uiBuilderItemSlotObject) { OnCraftSlotClick?.Invoke(GetItemStack(uiBuilderItemSlotObject).ID); }
-
-
-        private ItemStack GetItemStack(UIBuilderItemSlotObject uiBuilderItemSlotObject)
-        {
-            var craftIndex = craftingRecipeSlots.IndexOf(uiBuilderItemSlotObject);
-            var machineCraftIndex = machineCraftingRecipeSlots.IndexOf(uiBuilderItemSlotObject);
-            
-            if (craftIndex != -1)
-            {
-                return _craftItemStacks[craftIndex];
-            }
-            else if (machineCraftIndex != -1)
-            {
-                return _machineCraftItemStacks[machineCraftIndex];
-            }
-
-            return new ItemStack();
         }
     }
 }

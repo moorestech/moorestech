@@ -28,11 +28,11 @@ namespace MainGame.UnityView.UI.Builder.Unity
         [SerializeField] private TMP_Text countText;
 
         private InventorySlotElementOptions _slotOptions = new();
-        private ItemViewData _itemViewData;
 
         private bool _onPointing;
         
         
+        public ItemViewData ItemViewData { get; private set; }
         public IUIBluePrintElement BluePrintElement { get; private set; }
         
         public void Initialize(IUIBluePrintElement bluePrintElement)
@@ -43,10 +43,10 @@ namespace MainGame.UnityView.UI.Builder.Unity
 
         public void SetItem(ItemViewData itemView, int count)
         {
-            _itemViewData = itemView;
+            ItemViewData = itemView;
             image.sprite = itemView.ItemImage;
 
-            countText.text = count == 0 ? "" : count.ToString();
+            countText.text = count == 0 ? string.Empty : count.ToString();
             if (_onPointing && itemView.ItemId != ItemConst.EmptyItemId)
             {
                 ItemNameBar.Instance.ShowItemName(itemView.ItemName);
@@ -100,9 +100,9 @@ namespace MainGame.UnityView.UI.Builder.Unity
         public void OnPointerEnter(PointerEventData eventData)
         {
             _onPointing = true;
-            if (_itemViewData.ItemId != ItemConst.EmptyItemId)
+            if (ItemViewData.ItemId != ItemConst.EmptyItemId)
             {
-                ItemNameBar.Instance.ShowItemName(_itemViewData.ItemName);
+                ItemNameBar.Instance.ShowItemName(ItemViewData.ItemName);
             }
 
             if (!_slotOptions.IsEnableControllerEvent)return;

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Block.Config;
 using SinglePlay;
 using UnityEngine;
 using UnityEngine.UI;
@@ -45,6 +46,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
                 list.Add(new ViewerRecipeData(recipe.Items,recipe.Result,ViewerRecipeType.Craft));
             }
             
+            var blockConfig = singlePlayInterface.BlockConfig;
             
             //機械レシピの構築
             foreach (var recipe in machineRecipe)
@@ -58,7 +60,8 @@ namespace MainGame.UnityView.UI.CraftRecipe
                         _itemIdToRecipe[output.OutputItem.Id] = list;
                     }
                     
-                    list.Add(new ViewerRecipeData(recipe.ItemInputs,resultItem,ViewerRecipeType.Machine,recipe.BlockId));
+                    var blockItemId = blockConfig.GetBlockConfig(recipe.BlockId).ItemId;
+                    list.Add(new ViewerRecipeData(recipe.ItemInputs,resultItem,ViewerRecipeType.Machine,blockItemId));
                 }
             }
             
@@ -143,7 +146,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
                     _itemRecipeView.SetCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0]);
                     break;
                 case ViewerRecipeType.Machine:
-                    _itemRecipeView.SetMachineCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0],recipe.BlockId);
+                    _itemRecipeView.SetMachineCraftRecipe(recipe.ItemStacks,recipe.ResultItem[0],recipe.MachineItemId);
                     break;
             }
         }
