@@ -15,7 +15,52 @@
         "imagePath": ""
     },
     {
-        "name": "simple_ax",
+        "name": "simple ax",
+        "maxStacks": 1,
+        "imagePath": ""
+    },
+    {
+        "name": "stone",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "stone tool",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "primitive ax",
+        "maxStacks": 1,
+        "imagePath": ""
+    },
+    {
+        "name": "tree",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "wood",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "windmill",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "wooden axle",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "wooden gear",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "",
         "maxStacks": 100,
         "imagePath": ""
     }
