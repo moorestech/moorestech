@@ -60,19 +60,34 @@
         "imagePath": "assets/item/wooden gear.png"
     },
     {
+        "name": "wooden chest",
+        "maxStacks": 100,
+        "imagePath": "assets/item/wooden chest.png"
+    },
+    {
+        "name": "wooden ore crusher",
+        "maxStacks": 100,
+        "imagePath": "assets/item/wooden ore crusher.png"
+    },
+    {
+        "name": "wooden miner",
+        "maxStacks": 100,
+        "imagePath": "assets/item/wooden miner.png"
+    },
+    {
         "name": "automatic loom",
         "maxStacks": 100,
         "imagePath": "assets/item/automatic loom.png"
     },
     {
-        "name": "pinning machinery",
+        "name": "spinning machine",
         "maxStacks": 100,
-        "imagePath": "assets/item/pinning machinery.png"
+        "imagePath": "assets/item/spinning machine.png"
     },
     {
-        "name": "smelting road",
+        "name": "stone smelter",
         "maxStacks": 100,
-        "imagePath": "assets/item/smelting road.png"
+        "imagePath": "assets/item/stone smelter.png"
     },
     {
         "name": "iron ore",
@@ -88,6 +103,11 @@
         "name": "iron ingot",
         "maxStacks": 100,
         "imagePath": "assets/item/iron ingot.png"
+    },
+    {
+        "name": "iron chest",
+        "maxStacks": 100,
+        "imagePath": "assets/item/iron chest.png"
     },
     {
         "name": "coal",
@@ -150,11 +170,6 @@
         "imagePath": "assets/item/iron blade.png"
     },
     {
-        "name": "wooden ore crusher",
-        "maxStacks": 100,
-        "imagePath": "assets/item/wooden ore crusher.png"
-    },
-    {
         "name": "iron ax",
         "maxStacks": 100,
         "imagePath": "assets/item/iron ax.png"
@@ -168,6 +183,21 @@
         "name": "belt conveyor",
         "maxStacks": 100,
         "imagePath": "assets/item/belt conveyor.png"
+    },
+    {
+        "name": "electric miner",
+        "maxStacks": 100,
+        "imagePath": "assets/item/electric miner.png"
+    },
+    {
+        "name": "pole",
+        "maxStacks": 100,
+        "imagePath": "assets/item/pole.png"
+    },
+    {
+        "name": "generator",
+        "maxStacks": 100,
+        "imagePath": "assets/item/generator.png"
     },
     {
         "name": "vacuum tube",
@@ -195,6 +225,11 @@
         "imagePath": "assets/item/pure iron.png"
     },
     {
+        "name": "electronic component making equipment",
+        "maxStacks": 100,
+        "imagePath": "assets/item/electronic component making equipment.png"
+    },
+    {
         "name": "semiconductor manufacturing equipment",
         "maxStacks": 100,
         "imagePath": "assets/item/semiconductor manufacturing equipment.png"
@@ -208,11 +243,6 @@
         "name": "electric furnace",
         "maxStacks": 100,
         "imagePath": "assets/item/electric furnace.png"
-    },
-    {
-        "name": "electronic component making equipment",
-        "maxStacks": 100,
-        "imagePath": "assets/item/electronic component making equipment.png"
     },
     {
         "name": "electric ore crusher",

@@ -1,4 +1,364 @@
 {
     "Blocks": [
+        {
+            "name": "spinning machine",
+            "type": "Machine",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "automatic loom",
+            "type": "Machine",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "wooden ore crusher",
+            "type": "Machine",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "stone smelter",
+            "type": "Machine",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "reverberatory furnace",
+            "type": "Machine",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "belt conveyor",
+            "type": "BeltConveyor",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "electronic component making equipment",
+            "type": "Machine",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "semiconductor manufacturing equipment",
+            "type": "Machine",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "fusion reactor",
+            "type": "Generator",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "wooden miner",
+            "type": "Miner",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "electric miner",
+            "type": "Miner",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "pole",
+            "type": "ElectricPole",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "wooden chest",
+            "type": "Chest",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "iron chest",
+            "type": "Chest",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "generator",
+            "type": "Generator",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        }
     ]
 }
