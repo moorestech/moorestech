@@ -35,11 +35,6 @@
         "imagePath": "assets/item/primitive ax.png"
     },
     {
-        "name": "tree",
-        "maxStacks": 100,
-        "imagePath": "assets/item/tree.png"
-    },
-    {
         "name": "wood",
         "maxStacks": 100,
         "imagePath": "assets/item/wood.png"
