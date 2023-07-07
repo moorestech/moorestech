@@ -151,23 +151,18 @@
     },
     {
         "name": "pickaxe head",
-        "maxStacks": 100,
+        "maxStacks": 1,
         "imagePath": "assets/item/pickaxe head.png"
     },
     {
         "name": "iron pickaxe",
-        "maxStacks": 100,
+        "maxStacks": 1,
         "imagePath": "assets/item/iron pickaxe.png"
     },
     {
         "name": "iron blade",
         "maxStacks": 100,
         "imagePath": "assets/item/iron blade.png"
-    },
-    {
-        "name": "iron ax",
-        "maxStacks": 100,
-        "imagePath": "assets/item/iron ax.png"
     },
     {
         "name": "reverberatory furnace",
