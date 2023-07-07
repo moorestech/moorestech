@@ -225,6 +225,11 @@
         "imagePath": "assets/item/semiconductor manufacturing equipment.png"
     },
     {
+        "name": "silicon wafer",
+        "maxStacks": 100,
+        "imagePath": "assets/item/silicon wafer.png"
+    },
+    {
         "name": "ic circuit",
         "maxStacks": 100,
         "imagePath": "assets/item/ic circuit.png"
@@ -248,6 +253,11 @@
         "name": "fusion blanket",
         "maxStacks": 100,
         "imagePath": "assets/item/fusion blanket.png"
+    },
+    {
+        "name": "fusion computer",
+        "maxStacks": 100,
+        "imagePath": "assets/item/fusion computer.png"
     },
     {
         "name": "fusion reactor",

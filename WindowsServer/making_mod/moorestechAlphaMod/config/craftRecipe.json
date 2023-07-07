@@ -430,5 +430,923 @@
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "coal powder",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "copper ingot",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            }
+        ],
+        "result": {
+            "itemName": "copper wire",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 3
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "coal powder",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "copper ingot",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "coal powder",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            }
+        ],
+        "result": {
+            "itemName": "heating wire",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "glass",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "glass",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "copper wire",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "glass",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            }
+        ],
+        "result": {
+            "itemName": "vacuum tube",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "vacuum tube",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "copper wire",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "vacuum tube",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            }
+        ],
+        "result": {
+            "itemName": "basic circuit",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "ic circuit",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "pure copper",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "pure iron",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "pure copper",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            }
+        ],
+        "result": {
+            "itemName": "pure copper wire",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "pure iron",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "pure iron",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "pure iron",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            }
+        ],
+        "result": {
+            "itemName": "fusion blanket",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "copper wire",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "silicon wafer",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            }
+        ],
+        "result": {
+            "itemName": "ic circuit",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "pure copper wire",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "ic circuit",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            }
+        ],
+        "result": {
+            "itemName": "fusion computer",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            }
+        ],
+        "result": {
+            "itemName": "wooden chest",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "windmill",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "iron blade",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wooden axle",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wooden gear",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wooden axle",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            }
+        ],
+        "result": {
+            "itemName": "wooden ore crusher",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": "wooden gear",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "windmill",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wooden gear",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wooden axle",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "pickaxe head",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            }
+        ],
+        "result": {
+            "itemName": "wooden miner",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            }
+        ],
+        "result": {
+            "itemName": "wooden axle",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            }
+        ],
+        "result": {
+            "itemName": "wooden gear",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": "cloth",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "cloth",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "cloth",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "cloth",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            }
+        ],
+        "result": {
+            "itemName": "windmill",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "windmill",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wooden axle",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wooden gear",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 2
+            },
+            {
+                "itemName": "wooden axle",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            }
+        ],
+        "result": {
+            "itemName": "automatic loom",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "string",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wooden axle",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            }
+        ],
+        "result": {
+            "itemName": "spinning machine",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "stone",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "stone",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "stone",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "stone",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "stone",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "stone",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            }
+        ],
+        "result": {
+            "itemName": "stone smelter",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
     }
 ]
