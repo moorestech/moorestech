@@ -3,8 +3,8 @@
         {
             "name": "spinning machine",
             "type": "Machine",
-            "itemModId": "",
-            "itemName": "",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "spinning machine",
             "param": {},
             "modelTransform": {
                 "position": {
@@ -27,8 +27,8 @@
         {
             "name": "automatic loom",
             "type": "Machine",
-            "itemModId": "",
-            "itemName": "",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "automatic loom",
             "param": {},
             "modelTransform": {
                 "position": {
@@ -339,6 +339,30 @@
         {
             "name": "generator",
             "type": "Generator",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "electric ore crusher",
+            "type": "Machine",
             "itemModId": "",
             "itemName": "",
             "param": {},

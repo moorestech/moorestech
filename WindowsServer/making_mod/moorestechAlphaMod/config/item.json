@@ -120,9 +120,9 @@
         "imagePath": "assets/item/copper ore.png"
     },
     {
-        "name": "powder copper ore",
+        "name": "copper powder ore",
         "maxStacks": 100,
-        "imagePath": "assets/item/powder copper ore.png"
+        "imagePath": "assets/item/copper powder ore.png"
     },
     {
         "name": "copper ingot",
@@ -133,6 +133,11 @@
         "name": "copper wire",
         "maxStacks": 100,
         "imagePath": "assets/item/copper wire.png"
+    },
+    {
+        "name": "electric motor",
+        "maxStacks": 100,
+        "imagePath": "assets/item/electric motor.png"
     },
     {
         "name": "heating wire",
