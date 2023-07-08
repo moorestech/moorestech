@@ -130,7 +130,7 @@
         "imagePath": "assets/item/copper ingot.png"
     },
     {
-        "name": "copper wire",
+        "name": "w",
         "maxStacks": 100,
         "imagePath": "assets/item/copper wire.png"
     },
