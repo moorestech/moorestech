@@ -58,3 +58,4 @@ sysinfo.txt
 ~$*
 
 *.meta
+*.DS_Store
