@@ -393,44 +393,23 @@
       }
     ]
   },
+
+
+
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
-    "blockName": "electronic component making equipment",
+    "blockName": "semiconductor manufacturing equipment",
     "time": 3000,
     "input": [
       {
-        "itemName":"aaa",
+        "itemName":"sand",
         "modId":"sakastudio:moorestechAlphaMod",
         "count": 1
       }
     ],
     "output": [
       {
-        "itemName":"aaa",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 1,
-        "percent": 1
-      }
-    ]
-  },
-
-
-
-
-  {
-    "blockModId": "sakastudio:moorestechAlphaMod",
-    "blockName": "smelter",
-    "time": 3000,
-    "input": [
-      {
-        "itemName":"aaa",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 1
-      }
-    ],
-    "output": [
-      {
-        "itemName":"aaa",
+        "itemName":"silicon wafer",
         "modId":"sakastudio:moorestechAlphaMod",
         "count": 1,
         "percent": 1
@@ -439,78 +418,23 @@
   }, 
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
-    "blockName": "smelter",
+    "blockName": "stone smelter",
     "time": 3000,
     "input": [
       {
-        "itemName":"aaa",
+        "itemName":"sand",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"coal",
         "modId":"sakastudio:moorestechAlphaMod",
         "count": 1
       }
     ],
     "output": [
       {
-        "itemName":"aaa",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 1,
-        "percent": 1
-      }
-    ]
-  },
-  {
-    "blockModId": "sakastudio:moorestechAlphaMod",
-    "blockName": "smelter",
-    "time": 3000,
-    "input": [
-      {
-        "itemName":"aaa",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 1
-      }
-    ],
-    "output": [
-      {
-        "itemName":"aaa",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 1,
-        "percent": 1
-      }
-    ]
-  },
-  {
-    "blockModId": "sakastudio:moorestechAlphaMod",
-    "blockName": "smelter",
-    "time": 3000,
-    "input": [
-      {
-        "itemName":"aaa",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 1
-      }
-    ],
-    "output": [
-      {
-        "itemName":"aaa",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 1,
-        "percent": 1
-      }
-    ]
-  },
-  {
-    "blockModId": "sakastudio:moorestechAlphaMod",
-    "blockName": "smelter",
-    "time": 3000,
-    "input": [
-      {
-        "itemName":"aaa",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 1
-      }
-    ],
-    "output": [
-      {
-        "itemName":"aaa",
+        "itemName":"glass",
         "modId":"sakastudio:moorestechAlphaMod",
         "count": 1,
         "percent": 1
