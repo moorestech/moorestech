@@ -1,3 +1,42 @@
 ﻿[
- 
+    {
+        "blockModId": "sakastudio:moorestechAlphaMod",
+        "blockName": "smelter",
+        "time": 3000,
+        "input": [
+          {
+            "itemName":"iron ore",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1
+          }
+        ],
+        "output": [
+          {
+            "itemName":"iron ingot",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1,
+            "percent": 1
+          }
+        ]
+    },
+    {
+        "blockModId": "sakastudio:moorestechAlphaMod",
+        "blockName": "smelter",
+        "time": 3000,
+        "input": [
+          {
+            "itemName":"iron ore",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1
+          }
+        ],
+        "output": [
+          {
+            "itemName":"iron ingot",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1,
+            "percent": 1
+          }
+        ]
+    }
 ]
