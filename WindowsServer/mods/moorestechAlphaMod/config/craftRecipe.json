@@ -1907,24 +1907,9 @@
                 "count": 0
             },
             {
-                "itemName": "iron ingot",
-                "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
-            },
-            {
                 "itemName": "electric motor",
                 "modId": "sakastudio:moorestechAlphaMod",
                 "count": 1
-            },
-            {
-                "itemName": "iron ingot",
-                "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
             },
             {
                 "itemName": "iron blade",
@@ -1935,6 +1920,21 @@
                 "itemName": null,
                 "modId": null,
                 "count": 0
+            },
+            {
+                "itemName": "iron ingot",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "iron ingot",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
             }
         ],
         "result": {

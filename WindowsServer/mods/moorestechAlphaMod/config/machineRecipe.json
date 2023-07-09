@@ -129,7 +129,7 @@
     "time": 3000,
     "input": [
       {
-        "itemName":"copper  ore",
+        "itemName":"copper ore",
         "modId":"sakastudio:moorestechAlphaMod",
         "count": 1
       }

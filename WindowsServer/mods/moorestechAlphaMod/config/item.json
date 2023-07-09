@@ -120,7 +120,7 @@
         "imagePath": "assets/item/copper ore.png"
     },
     {
-        "name": "copper powder ore",
+        "name": "copper ore powder",
         "maxStacks": 100,
         "imagePath": "assets/item/copper powder ore.png"
     },
@@ -130,7 +130,7 @@
         "imagePath": "assets/item/copper ingot.png"
     },
     {
-        "name": "w",
+        "name": "copper wire",
         "maxStacks": 100,
         "imagePath": "assets/item/copper wire.png"
     },
