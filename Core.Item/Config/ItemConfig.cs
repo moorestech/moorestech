@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Core.ConfigJson;
 using Core.Const;
 
@@ -85,14 +86,15 @@ namespace Core.Item.Config
             return _modIdToItemIds.TryGetValue(modId, out var itemIds) ? itemIds : new List<int>();
         }
 
-        public int GetItemId(string modId, string itemName)
+
+        public int GetItemId(string modId, string itemName,string callerMethodName = "")
         {
             foreach (var itemId in GetItemIds(modId).Where(i => GetItemConfig(i).Name == itemName))
             {
                 return itemId;
             }
             //TODO ログ基盤に入れる
-            Console.WriteLine("itemName:" + itemName + " is not found");
+            Console.WriteLine($"itemName:{itemName} itemModId:{modId} is not found callerMethodName:{callerMethodName}");
             return ItemConst.EmptyItemId;
         }
     }

@@ -8,6 +8,7 @@ using Game.MapObject.Interface.Json;
 using Game.PlayerInventory.Interface;
 using Game.Quest.Interface;
 using Game.Save.Interface;
+using Game.Save.Json.WorldVersions;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
 
@@ -51,8 +52,8 @@ namespace Game.Save.Json
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("セーブデータが破損していたか古いバージョンでした。新しく作成します。");
-                    //throw new Exception($"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
+                    Console.WriteLine("セーブデータが破損していたか古いバージョンでした。Discordサーバー ( https://discord.gg/ekFYmY3rDP ) にて連絡をお願いします。");
+                    throw new Exception($"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
                 }
             }
             else
@@ -64,7 +65,7 @@ namespace Game.Save.Json
 
         public void Load(string jsonText)
         {
-            var load = JsonConvert.DeserializeObject<WorldSaveAllInfo>(jsonText);
+            var load = JsonConvert.DeserializeObject<WorldSaveAllInfoV1>(jsonText);
             
             _worldBlockDatastore.LoadBlockDataList(load.World);
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);

@@ -19,13 +19,14 @@ namespace Game.MapObject
             var id = new Random().Next();
             var itemId = GetItemIdFromType(type);
             
-            return new VanillaStaticMapObject(id,type,false,position,itemId); 
+            return new VanillaStaticMapObject(id,type,false,position,itemId,1); 
         }
 
         public IMapObject Create(int instanceId, string type, ServerVector3 position, bool isDestroyed)
         {
             var itemId = GetItemIdFromType(type);
-            return new VanillaStaticMapObject(instanceId,type,isDestroyed,position,itemId);
+            var itemCount = GetItemCountFromType(type);
+            return new VanillaStaticMapObject(instanceId,type,isDestroyed,position,itemId,itemCount);
         }
         
         //TODO コンフィグを参照するようにする
@@ -33,8 +34,19 @@ namespace Game.MapObject
         {
             return type switch
             {
-                VanillaMapObjectType.VanillaTree => _itemConfig.GetItemId("sakastudio:moorestechBaseMod", "tree"),
-                VanillaMapObjectType.VanillaStone => _itemConfig.GetItemId("sakastudio:moorestechBaseMod", "stone"),
+                VanillaMapObjectType.VanillaTree => _itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "wood"),
+                VanillaMapObjectType.VanillaStone => _itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "stone"),
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+        }
+        
+        
+        private int GetItemCountFromType(string type)
+        {
+            return type switch
+            {
+                VanillaMapObjectType.VanillaTree => 3,
+                VanillaMapObjectType.VanillaStone => 1,
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }
