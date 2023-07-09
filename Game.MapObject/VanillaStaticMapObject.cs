@@ -14,17 +14,18 @@ namespace Game.MapObject
         public bool IsDestroyed { get; private set; }
         public ServerVector3 Position { get; }
         public int ItemId { get; }
-        public int ItemCount => 1;
+        public int ItemCount { get; }
 
         public event Action OnDestroy;
         
-        public VanillaStaticMapObject(int id, string type, bool isDestroyed, ServerVector3 position, int itemId)
+        public VanillaStaticMapObject(int id, string type, bool isDestroyed, ServerVector3 position, int itemId,int itemCount)
         {
             InstanceId = id;
             Type = type;
             IsDestroyed = isDestroyed;
             Position = position;
             ItemId = itemId;
+            ItemCount = itemCount;
         }
 
         public void Destroy()

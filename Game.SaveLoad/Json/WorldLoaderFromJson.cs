@@ -52,8 +52,8 @@ namespace Game.Save.Json
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("セーブデータが破損していたか古いバージョンでした。新しく作成します。");
-                    //throw new Exception($"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
+                    Console.WriteLine("セーブデータが破損していたか古いバージョンでした。Discordサーバー ( https://discord.gg/ekFYmY3rDP ) にて連絡をお願いします。");
+                    throw new Exception($"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
                 }
             }
             else
