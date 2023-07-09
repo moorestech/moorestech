@@ -122,7 +122,7 @@
     {
         "name": "copper ore powder",
         "maxStacks": 100,
-        "imagePath": "assets/item/copper powder ore.png"
+        "imagePath": "assets/item/copper ore powder.png"
     },
     {
         "name": "copper ingot",
