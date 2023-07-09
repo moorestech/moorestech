@@ -27,17 +27,22 @@ namespace Game.Crafting
             //_craftingConfigDataCacheの作成
             foreach (var c in craftingConfig.GetCraftingConfigList())
             {
-                try
+                var cashKey = GetCraftingConfigCacheKey(c.Items);
+                if (_craftingConfigDataCache.ContainsKey(cashKey))
                 {
-                    _craftingConfigDataCache.Add(GetCraftingConfigCacheKey(c.Items),c);
-                }
-                catch (ArgumentException e)
-                {
-                    Console.WriteLine(e);
-                    Console.WriteLine("クラフトレシピのキャッシュの構築中に失敗しました。クラフトレシピに重複がある可能性があります。");
+                    var resultItemModId = _itemConfig.GetItemConfig(c.Result.ItemHash).ModId;
                     var resultItemName = _itemConfig.GetItemConfig(c.Result.ItemHash).Name;
-                    Console.WriteLine($"レシピの結果:{resultItemName}");
-                    throw;
+                    var existItemModId = _itemConfig.GetItemConfig(_craftingConfigDataCache[cashKey].Result.Id).ModId;
+                    var existItemName = _itemConfig.GetItemConfig(_craftingConfigDataCache[cashKey].Result.Id).Name;
+                    
+                    //TODO Modパースエラーのログを出す
+                    Console.WriteLine("クラフトレシピのキャッシュの構築中に失敗しました。クラフトレシピに重複があります。");
+                    Console.WriteLine($"ロードしようとしたレシピの結果 ModId:{resultItemModId} Name:{resultItemName} 重複したレシピの結果 ModId:{existItemModId} Name:{existItemName}");
+                    throw new ArgumentException();
+                }
+                else
+                {
+                    _craftingConfigDataCache.Add(cashKey, c);
                 }
             }
             
