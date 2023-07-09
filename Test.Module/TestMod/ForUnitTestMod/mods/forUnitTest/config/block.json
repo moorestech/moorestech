@@ -47,12 +47,14 @@
         "fuelSlot": 10,
         "fuel": [
           {
-            "id": 1,
+            "itemModId": "Test Author:forUniTest",
+            "itemName": "Test1",
             "time": 1000,
             "power": 100
           },
           {
-            "id": 2,
+            "itemModId": "Test Author:forUniTest",
+            "itemName": "Test2",
             "time": 2000,
             "power": 200
           }

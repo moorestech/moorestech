@@ -92,7 +92,7 @@ namespace Core.Item.Config
                 return itemId;
             }
             //TODO ログ基盤に入れる
-            Console.WriteLine("itemName:" + itemName + " is not found");
+            Console.WriteLine($"itemName:{itemName} itemModId:{modId} is not found");
             return ItemConst.EmptyItemId;
         }
     }

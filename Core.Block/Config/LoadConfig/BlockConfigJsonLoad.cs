@@ -25,7 +25,7 @@ namespace Core.Block.Config.LoadConfig
         public BlockConfigJsonLoad(IItemConfig itemConfig)
         {
             _itemConfig = itemConfig;
-            _generators = new VanillaBlockConfigGenerator().Generate();
+            _generators = new VanillaBlockConfigGenerator().Generate(itemConfig);
         }
 
         public List<BlockConfigData> LoadFromJsons(Dictionary<string,string> blockJsons,List<string> mods)
