@@ -41,7 +41,6 @@ namespace MainGame.ModLoader.Texture
                 if (texture == null)
                 {
                     Debug.LogError("ItemTexture Not Found  ModId:" + mod.ModMetaJson.ModId + " ItemName:" + config.Name);
-                    continue;
                 }
                 textureList.Add((texture,config.Name));
             }
