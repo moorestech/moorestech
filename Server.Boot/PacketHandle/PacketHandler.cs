@@ -17,7 +17,7 @@ namespace Server.Boot.PacketHandle
             //通信の受け入れ準備
             listener.Bind(new IPEndPoint(IPAddress.Any, Port));
             listener.Listen(10);
-            Console.WriteLine("moorestechサーバー 起動準備完了");
+            Console.WriteLine("moorestechサーバー 起動完了");
 
             while (true)
             {
