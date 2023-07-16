@@ -36,17 +36,19 @@ namespace Game.MapObject
             {
                 VanillaMapObjectType.VanillaTree => _itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "wood"),
                 VanillaMapObjectType.VanillaStone => _itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "stone"),
+                VanillaMapObjectType.VanillaBush => _itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "cotton"),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }
         
-        
+        private Random _random = new();
         private int GetItemCountFromType(string type)
         {
             return type switch
             {
-                VanillaMapObjectType.VanillaTree => 3,
-                VanillaMapObjectType.VanillaStone => 1,
+                VanillaMapObjectType.VanillaTree => _random.Next(2,4),
+                VanillaMapObjectType.VanillaStone => _random.Next(1,3),
+                VanillaMapObjectType.VanillaBush => _random.Next(2,4),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }
