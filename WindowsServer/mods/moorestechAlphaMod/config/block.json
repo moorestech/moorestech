@@ -463,6 +463,34 @@
                     "z": 1
                 }
             }
+        },
+        {
+            "name": "electric furnace",
+            "type": "Machine",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "electric furnace",
+            "param": {
+                "inputSlot": 1,
+                "outputSlot": 1,
+                "requiredPower": 500
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
         }
     ]
 }
