@@ -1,10 +1,15 @@
 ﻿using System.Threading;
+using Core.Const;
+using Core.Item.Config;
 using Cysharp.Threading.Tasks;
 using Game.MapObject.Interface;
+using MainGame.Basic;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.MapObject;
 using MainGame.UnityView.SoundEffect;
+using MainGame.UnityView.UI.Inventory;
+using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.Util;
@@ -20,10 +25,10 @@ namespace MainGame.Presenter.MapObject
     /// </summary>
     public class MapObjectGetPresenter : MonoBehaviour
     {
-        private const float MiningTime = 5f;
         
-        [SerializeField] private MiningObjectHelper miningObjectHelper;
-        
+        [SerializeField] private MiningObjectProgressbarPresenter miningObjectProgressbarPresenter;
+
+        private PlayerInventoryViewModel _playerInventoryViewModel;
         private UIStateControl _uiStateControl;
         private SendGetMapObjectProtocolProtocol _sendGetMapObjectProtocolProtocol;
         private CancellationTokenSource _miningCancellationTokenSource = new();
@@ -31,10 +36,11 @@ namespace MainGame.Presenter.MapObject
         private CancellationToken _gameObjectCancellationToken;
 
         [Inject]
-        public void Constructor(UIStateControl uiStateControl,SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol)
+        public void Constructor(UIStateControl uiStateControl,SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol,PlayerInventoryViewModel playerInventoryViewModel)
         {
             _uiStateControl = uiStateControl;
             _sendGetMapObjectProtocolProtocol = sendGetMapObjectProtocolProtocol;
+            _playerInventoryViewModel = playerInventoryViewModel;
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
             
             WhileUpdate().Forget();
@@ -58,7 +64,7 @@ namespace MainGame.Presenter.MapObject
             }
 
             var forcesMapObject = GetOnMouseMapObject();
-            if (miningObjectHelper.IsMining || !InputManager.Playable.ScreenLeftClick.GetKey || forcesMapObject == null)
+            if (miningObjectProgressbarPresenter.IsMining || !InputManager.Playable.ScreenLeftClick.GetKey || forcesMapObject == null)
             {
                 return;
             }
@@ -67,7 +73,11 @@ namespace MainGame.Presenter.MapObject
             
             _miningCancellationTokenSource.Cancel();
             _miningCancellationTokenSource = new CancellationTokenSource();
-            miningObjectHelper.StartMining(MiningTime,_miningCancellationTokenSource.Token).Forget();
+            
+            var miningTime = GetMiningTime(forcesMapObject.MapObjectType,_playerInventoryViewModel);
+            
+            //マイニングバーのUIを表示するやつを設定
+            miningObjectProgressbarPresenter.StartMining(miningTime,_miningCancellationTokenSource.Token).Forget();
 
             var isMiningCanceled = false;
             
@@ -75,7 +85,7 @@ namespace MainGame.Presenter.MapObject
             //採掘中はこのループの中にいる
             //採掘時間分ループする
             var nowTime = 0f;
-            while (nowTime < MiningTime)
+            while (nowTime < miningTime)
             {
                 await UniTask.Yield(PlayerLoopTiming.Update,cancellationToken);
                 nowTime += Time.deltaTime;
@@ -90,6 +100,7 @@ namespace MainGame.Presenter.MapObject
                 }
             }
 
+            //マイニングをキャンセルせずに終わったので、マイニング完了をサーバーに送信する
             if (!isMiningCanceled)
             {
                 _sendGetMapObjectProtocolProtocol.Send(forcesMapObject.InstanceId);
@@ -116,6 +127,55 @@ namespace MainGame.Presenter.MapObject
             
             //マップオブジェクトを取得する
             return hit.collider.gameObject.GetComponent<MapObjectGameObject>();
+        }
+
+
+        /// <summary>
+        /// 採掘時間を取得する
+        /// 採掘アイテムがインベントリにあれば早くなる
+        /// </summary>
+        private static float GetMiningTime(string mapObjectType,PlayerInventoryViewModel playerInv)
+        {
+            var isStoneTool = playerInv.IsItemExist(AlphaMod.ModId,"stone tool");
+            var isPrimitiveAxe = playerInv.IsItemExist(AlphaMod.ModId,"primitive ax");
+            var isSimpleAxe = playerInv.IsItemExist(AlphaMod.ModId,"simple ax");
+            var ironPickaxe = playerInv.IsItemExist(AlphaMod.ModId,"iron pickaxe");
+
+            switch (mapObjectType)
+            {
+                #region 木
+                case VanillaMapObjectType.VanillaTree when isStoneTool:
+                    return 4;
+                case VanillaMapObjectType.VanillaTree when isPrimitiveAxe:
+                    return 3;
+                case VanillaMapObjectType.VanillaTree when isSimpleAxe:
+                    return 2;
+                case VanillaMapObjectType.VanillaTree:
+                    return 5;
+                #endregion
+
+                #region 石 
+                case VanillaMapObjectType.VanillaStone when isStoneTool:
+                    return 3;
+                case VanillaMapObjectType.VanillaStone when ironPickaxe:
+                    return 2;
+                case VanillaMapObjectType.VanillaStone:
+                    return 4;
+                #endregion
+
+                #region ブッシュ
+                case VanillaMapObjectType.VanillaBush when isStoneTool:
+                    return 2.5f;
+                case VanillaMapObjectType.VanillaBush when isPrimitiveAxe:
+                    return 2;
+                case VanillaMapObjectType.VanillaBush when isSimpleAxe:
+                    return 1;
+                case VanillaMapObjectType.VanillaBush:
+                    return 3;
+                #endregion
+            }
+
+            return 5;
         }
     }
 }

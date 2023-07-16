@@ -10,7 +10,7 @@ namespace MainGame.UnityView.Util
     /// 何かを採掘する処理を簡単にして一つにまとめる
     /// 同時に複数の箇所で採掘したりすることを防いだり、UIへの設定を簡単にしたり、非同期で簡単に処理を書けるようにする
     /// </summary>
-    public class MiningObjectHelper : MonoBehaviour
+    public class MiningObjectProgressbarPresenter : MonoBehaviour
     {
         [SerializeField] private ProgressBarView progressBarView;
         public bool IsMining { get; private set; }

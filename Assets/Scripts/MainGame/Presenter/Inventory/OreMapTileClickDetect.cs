@@ -4,6 +4,8 @@ using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
+using MainGame.UnityView.UI.Inventory;
+using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.Util;
@@ -20,33 +22,32 @@ namespace MainGame.Presenter.Inventory
     /// </summary>
     public class OreMapTileClickDetect : MonoBehaviour
     {
-        [SerializeField] private MiningObjectHelper miningObjectHelper;
+        [SerializeField] private MiningObjectProgressbarPresenter miningObjectProgressbarPresenter;
         
-        //今の所は一律3秒
-        //TODO コンフィグに対応させる
-        //TODO 将来的に採掘時間をコンフィグから取得する
-        private const float MiningTime = 3.0f;
         
         private Camera _mainCamera;
         private SendMiningProtocol _sendMiningProtocol;
         private UIStateControl _uiStateControl; 
         //TODO 用語の統一が出来てないのでOreConfigをMapTileConfigに変更する
-        private IOreConfig _oreConfig; 
-        
+        private IOreConfig _oreConfig;
+
         private MapTileObject _currentClickingMapTileObject;
+        private PlayerInventoryViewModel _playerInventoryViewModel;
 
         private CancellationTokenSource _miningTokenSource = new();
         
         private CancellationToken _gameObjectCancellationToken;
         
         [Inject]
-        public void Construct(Camera mainCamera,SendMiningProtocol sendMiningProtocol,UIStateControl uiStateControl,SinglePlayInterface singlePlayInterface)
+        public void Construct(Camera mainCamera,SendMiningProtocol sendMiningProtocol,UIStateControl uiStateControl,SinglePlayInterface singlePlayInterface,PlayerInventoryViewModel playerInventoryViewModel)
         {
             _mainCamera = mainCamera;
             _sendMiningProtocol = sendMiningProtocol;
             _uiStateControl = uiStateControl;
             
             _oreConfig = singlePlayInterface.OreConfig;
+
+            _playerInventoryViewModel = playerInventoryViewModel;
             
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
             WhileUpdate().Forget();
@@ -65,7 +66,7 @@ namespace MainGame.Presenter.Inventory
 
         private async UniTask MiningUpdate(CancellationToken cancellationToken)
         {
-            if (miningObjectHelper.IsMining || _uiStateControl.CurrentState != UIStateEnum.GameScreen)
+            if (miningObjectProgressbarPresenter.IsMining || _uiStateControl.CurrentState != UIStateEnum.GameScreen)
             {
                 return;
             }
@@ -78,7 +79,9 @@ namespace MainGame.Presenter.Inventory
             
             _miningTokenSource.Cancel();
             _miningTokenSource = new CancellationTokenSource();
-            miningObjectHelper.StartMining(MiningTime,_miningTokenSource.Token).Forget();
+
+            var miningTime = GetMiningTime(_playerInventoryViewModel);
+            miningObjectProgressbarPresenter.StartMining(miningTime,_miningTokenSource.Token).Forget();
 
             var isMiningCanceled = false;
             
@@ -86,7 +89,7 @@ namespace MainGame.Presenter.Inventory
             //採掘中はこのループの中にいる
             //採掘時間分ループする
             var nowTime = 0f;
-            while (nowTime < MiningTime)
+            while (nowTime < miningTime)
             {
                 await UniTask.Yield(PlayerLoopTiming.Update,cancellationToken);
                 nowTime += Time.deltaTime;
@@ -140,6 +143,19 @@ namespace MainGame.Presenter.Inventory
             {
                 return Vector2Int.zero;
             }
+        }
+
+
+        /// <summary>
+        /// マイニングする時間を取得する
+        /// TODO 将来的に採掘時間をコンフィグから取得する
+        /// </summary>
+        /// <param name="playerInventoryViewModel"></param>
+        /// <returns></returns>
+        private static float GetMiningTime(PlayerInventoryViewModel playerInv)
+        {
+            var ironPickaxe = playerInv.IsItemExist(AlphaMod.ModId,"iron pickaxe");
+            return ironPickaxe ? 2.0f : 4.0f;
         }
     }
 }

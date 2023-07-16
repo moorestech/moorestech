@@ -25,7 +25,7 @@ namespace MainGame.Presenter.Tutorial.ExecutableTutorials
         {
             _uiStateControl = uiStateControl;
             _playerInventoryViewModel = playerInventoryViewModel;
-            _ironItemId = singlePlayInterface.ItemConfig.GetItemId(BaseMod.ModId, IronOreItemName);
+            _ironItemId = singlePlayInterface.ItemConfig.GetItemId(AlphaMod.ModId, IronOreItemName);
         }
 
 

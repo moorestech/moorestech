@@ -44,11 +44,11 @@ namespace MainGame.Presenter.Tutorial.ExecutableTutorials
                     break;
                 
                 case IronTutorialState.IronIngotRecipeViewer:
-                    _highlightRecipeViewerItem.SetHighLight(BaseMod.ModId,"iron ingot",true);
+                    _highlightRecipeViewerItem.SetHighLight(AlphaMod.ModId,"iron ingot",true);
                     MouseCursorDescription.Instance.SetDescription("<size=27>最初の一歩</size>\n右のレシピビューワーから、鉄インゴットを選択しよう");
                     if (_uiStateControl.CurrentState == UIStateEnum.RecipeViewer )
                     {
-                        _highlightRecipeViewerItem.SetHighLight(BaseMod.ModId,"iron ingot",false);
+                        _highlightRecipeViewerItem.SetHighLight(AlphaMod.ModId,"iron ingot",false);
                         _currentState = IronTutorialState.PlaceIronIngot;
                     }
                     break;
@@ -66,7 +66,7 @@ namespace MainGame.Presenter.Tutorial.ExecutableTutorials
                 case IronTutorialState.CraftIronIngot:
                     _gameUIHighlight.SetHighlight(HighlightType.CraftResultSlot,true);
                     MouseCursorDescription.Instance.SetDescription("<size=27>最初の一歩</size>\n鉄インゴットを3つクラフトしよう");
-                    if (_inventoryChecker.ExistItemMainInventory(BaseMod.ModId,"iron ingot",3))
+                    if (_inventoryChecker.ExistItemMainInventory(AlphaMod.ModId,"iron ingot",3))
                     {
                         _gameUIHighlight.SetHighlight(HighlightType.CraftResultSlot,false);
                         _currentState = IronTutorialState.MinerRecipeViewer;
@@ -78,11 +78,11 @@ namespace MainGame.Presenter.Tutorial.ExecutableTutorials
                 //ここ、鉄のクラフトと採掘機のクラフトのコードがほとんど同じでDRY原則に反しているが、
                 //共通化するコストの高さと、チュートリアルという一時的なコードであるため、今回は共通化しない
                 case IronTutorialState.MinerRecipeViewer:
-                    _highlightRecipeViewerItem.SetHighLight(BaseMod.ModId,"miner",true);
+                    _highlightRecipeViewerItem.SetHighLight(AlphaMod.ModId,"miner",true);
                     MouseCursorDescription.Instance.SetDescription("<size=27>最初の一歩</size>\nいいね！次は採掘機を作成しよう！\nレシピビューワーから、採掘機を選択しよう");
                     if (_uiStateControl.CurrentState == UIStateEnum.RecipeViewer )
                     {
-                        _highlightRecipeViewerItem.SetHighLight(BaseMod.ModId,"miner",false);
+                        _highlightRecipeViewerItem.SetHighLight(AlphaMod.ModId,"miner",false);
                         _currentState = IronTutorialState.PlaceMiner;
                     }
                     break;
@@ -100,7 +100,7 @@ namespace MainGame.Presenter.Tutorial.ExecutableTutorials
                 case IronTutorialState.CraftMiner:
                     _gameUIHighlight.SetHighlight(HighlightType.CraftResultSlot,true);
                     MouseCursorDescription.Instance.SetDescription("<size=27>最初の一歩</size>\n採掘機をクラフトしよう！");
-                    if (_inventoryChecker.ExistItemMainInventory(BaseMod.ModId,"miner",1))
+                    if (_inventoryChecker.ExistItemMainInventory(AlphaMod.ModId,"miner",1))
                     {
                         _gameUIHighlight.SetHighlight(HighlightType.CraftResultSlot,false);
                         _currentState = IronTutorialState.Finish;

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
+using Core.Item.Config;
 using MainGame.Basic;
 using SinglePlay;
 using UnityEngine;
@@ -27,6 +28,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
         /// </summary>
         private List<IItemStack> _subInventory = new();
         private readonly ItemStackFactory _itemStackFactory;
+        public readonly IItemConfig ItemConfig;
         public event Action OnInventoryUpdate;
         public int Count => _mainInventory.Count + _subInventory.Count;
 
@@ -34,6 +36,7 @@ namespace MainGame.UnityView.UI.Inventory.Control
         public PlayerInventoryViewModel(SinglePlayInterface single)
         {
             _itemStackFactory = single.ItemStackFactory;
+            ItemConfig = single.ItemConfig;
             
             _mainInventory = new List<IItemStack>();
             for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
