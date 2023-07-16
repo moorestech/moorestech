@@ -14,10 +14,12 @@ namespace MainGame.Presenter.MapObject
     {
         [SerializeField] private List<MapObjectGameObject> stoneMapObjects;
         [SerializeField] private List<MapObjectGameObject> treeMapObjects;
+        [SerializeField] private List<MapObjectGameObject> bushMapObjects;
 
 #if UNITY_EDITOR
         public IReadOnlyList<MapObjectGameObject> StoneMapObjects => stoneMapObjects;
         public IReadOnlyList<MapObjectGameObject> TreeMapObjects => treeMapObjects;
+        public IReadOnlyList<MapObjectGameObject> BushMapObjects => bushMapObjects;
 #endif
 
 
@@ -33,6 +35,11 @@ namespace MainGame.Presenter.MapObject
             foreach (var tree in treeMapObjects)
             {
                 _allMapObjects.Add(tree.InstanceId, tree);
+            }
+
+            foreach (var bush in bushMapObjects)
+            {
+                _allMapObjects.Add(bush.InstanceId, bush);
             }
         }
 

@@ -3,6 +3,7 @@ using System.IO;
 using Game.MapObject.Interface;
 using Game.MapObject.Interface.Json;
 using MainGame.Presenter.MapObject;
+using MainGame.UnityView.MapObject;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
@@ -36,30 +37,26 @@ namespace MainGame.Editor
                 tree.SetMapObjectData(instanceId,VanillaMapObjectType.VanillaTree);
                 instanceId++;
             }
-
-            var configDataList = new List<ConfigMapObjectData>();
-            foreach (var stone in datastore.StoneMapObjects)
+            foreach (var bush in datastore.BushMapObjects)
             {
-                var config = new ConfigMapObjectData()
-                {
-                    Type = stone.MapObjectType,
-                    InstanceId = stone.InstanceId,
-                    X = stone.GetPosition().x,
-                    Y = stone.GetPosition().y,
-                    Z = stone.GetPosition().z,
-                };
-                configDataList.Add(config);
+                bush.SetMapObjectData(instanceId,VanillaMapObjectType.VanillaBush);
+                instanceId++;
             }
 
-            foreach (var tree in datastore.TreeMapObjects)
+            var configDataList = new List<ConfigMapObjectData>();
+            var allDatastore = new List<MapObjectGameObject>();
+            allDatastore.AddRange(datastore.StoneMapObjects);
+            allDatastore.AddRange(datastore.TreeMapObjects);
+            allDatastore.AddRange(datastore.BushMapObjects);
+            foreach (var mapObject in allDatastore)
             {
                 var config = new ConfigMapObjectData()
                 {
-                    Type = tree.MapObjectType,
-                    InstanceId = tree.InstanceId,
-                    X = tree.GetPosition().x,
-                    Y = tree.GetPosition().y,
-                    Z = tree.GetPosition().z,
+                    Type = mapObject.MapObjectType,
+                    InstanceId = mapObject.InstanceId,
+                    X = mapObject.GetPosition().x,
+                    Y = mapObject.GetPosition().y,
+                    Z = mapObject.GetPosition().z,
                 };
                 configDataList.Add(config);
             }
