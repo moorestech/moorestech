@@ -150,7 +150,6 @@ namespace MainGame.UnityView.UI.Inventory.Control
             //加算できない時か最大数がスロットにある時はアイテムを入れ替える
             else
             {
-                TODO この辺のアイテムを右クリックで置いてったときに最後の一個が侵さらない不具合修正
                 OnGrabItemReplaced?.Invoke(slot,item.Count);
                 SetInventoryWithInvokeEvent(slot,_grabbedItem);
                 SetGrabbedWithInvokeEvent(true,item);
@@ -173,7 +172,6 @@ namespace MainGame.UnityView.UI.Inventory.Control
             if (newGrabbedItem.Count == 0)
             {
                 //持っているアイテムがなくなったら持ち状態を解除する
-                Debug.Log("aaaa");
                 SetGrabbedWithInvokeEvent(false);
             }
             else
@@ -181,8 +179,8 @@ namespace MainGame.UnityView.UI.Inventory.Control
                 //なくなってない時は持っているアイテムを加算する
                 ItemOneDragStart();
                 SetGrabbedWithInvokeEvent(true,newGrabbedItem);
-                OnItemSlotAdded?.Invoke(slot,1);
             }
+            OnItemSlotAdded?.Invoke(slot,1);
         }
 
         #endregion
