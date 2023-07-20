@@ -145,13 +145,13 @@ namespace MainGame.Presenter.MapObject
             {
                 #region 木
                 case VanillaMapObjectType.VanillaTree when isStoneTool:
-                    return 4;
+                    return 10;
                 case VanillaMapObjectType.VanillaTree when isPrimitiveAxe:
-                    return 3;
-                case VanillaMapObjectType.VanillaTree when isSimpleAxe:
-                    return 2;
-                case VanillaMapObjectType.VanillaTree:
                     return 5;
+                case VanillaMapObjectType.VanillaTree when isSimpleAxe:
+                    return 2.5f;
+                case VanillaMapObjectType.VanillaTree:
+                    return 100;
                 #endregion
 
                 #region 石 
