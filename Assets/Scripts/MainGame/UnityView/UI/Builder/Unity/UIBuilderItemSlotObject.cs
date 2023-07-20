@@ -3,6 +3,7 @@ using Core.Const;
 using MainGame.Basic.UI;
 using MainGame.UnityView.UI.Builder.BluePrint;
 using MainGame.UnityView.UI.Inventory.Element;
+using MainGame.UnityView.UI.Util;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -26,7 +27,7 @@ namespace MainGame.UnityView.UI.Builder.Unity
 
         [SerializeField] private Image image;
         [SerializeField] private TMP_Text countText;
-
+        [SerializeField] private UIEnterExplainerController uiEnterExplainerController;
         private InventorySlotElementOptions _slotOptions = new();
 
         private bool _onPointing;
@@ -47,9 +48,15 @@ namespace MainGame.UnityView.UI.Builder.Unity
             image.sprite = itemView.ItemImage;
 
             countText.text = count == 0 ? string.Empty : count.ToString();
-            if (_onPointing && itemView.ItemId != ItemConst.EmptyItemId)
+
+            if (itemView.ItemId == ItemConst.EmptyItemId)
             {
-                ItemNameBar.Instance.ShowItemName(itemView.ItemName);
+                uiEnterExplainerController.DisplayEnable(false);
+            }
+            else
+            {
+                uiEnterExplainerController.SetText(itemView.ItemName);
+                uiEnterExplainerController.DisplayEnable(true);
             }
         }
 
@@ -100,10 +107,6 @@ namespace MainGame.UnityView.UI.Builder.Unity
         public void OnPointerEnter(PointerEventData eventData)
         {
             _onPointing = true;
-            if (ItemViewData.ItemId != ItemConst.EmptyItemId)
-            {
-                ItemNameBar.Instance.ShowItemName(ItemViewData.ItemName);
-            }
 
             if (!_slotOptions.IsEnableControllerEvent)return;
             
@@ -121,7 +124,6 @@ namespace MainGame.UnityView.UI.Builder.Unity
         public void OnPointerExit(PointerEventData eventData)
         {
             _onPointing = false;
-            ItemNameBar.Instance.HideItemName();
             if (!_slotOptions.IsEnableControllerEvent)return;
             
             OnCursorExit?.Invoke(this);
@@ -132,11 +134,6 @@ namespace MainGame.UnityView.UI.Builder.Unity
             if (!_slotOptions.IsEnableControllerEvent)return;
             
             OnCursorMove?.Invoke(this);
-        }
-
-        private void OnDisable()
-        {
-            ItemNameBar.Instance.HideItemName();
         }
 
     }

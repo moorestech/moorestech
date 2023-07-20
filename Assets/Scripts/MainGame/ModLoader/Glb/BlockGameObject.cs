@@ -8,7 +8,7 @@ namespace MainGame.ModLoader.Glb
         public Vector2Int BlockPosition { get; private set; } = Vector2Int.zero;
         public IBlockStateChangeProcessor BlockStateChangeProcessor { get; private set; }
 
-        public void SetUp(int blockId,Vector2Int position,IBlockStateChangeProcessor blockStateChangeProcessor)
+        public void Initialize(int blockId,Vector2Int position,IBlockStateChangeProcessor blockStateChangeProcessor)
         {
             BlockPosition = position;
             BlockId = blockId;

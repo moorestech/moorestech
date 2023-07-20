@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2592401394132855011}
   - component: {fileID: 283901889117446245}
   m_Layer: 5
-  m_Name: ItemNameBar
+  m_Name: MouseCursorExplainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32,7 +32,7 @@ RectTransform:
   m_Children:
   - {fileID: 7441652792110067085}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}

@@ -47,7 +47,7 @@ namespace MainGame.UnityView.Block
                 //ブロックIDがないのでない時用のブロックを作る
                 Debug.LogWarning("Not Id " + blockConfigIndex);
                 var nothing = Object.Instantiate(_nothingIndexBlockObject,position,rotation,parent);
-                nothing.SetUp(blockId,blockPosition,new NullBlockStateChangeProcessor());
+                nothing.Initialize(blockId,blockPosition,new NullBlockStateChangeProcessor());
                 return nothing.GetComponent<BlockGameObject>();
             }
 
@@ -57,7 +57,7 @@ namespace MainGame.UnityView.Block
             
             var block = Object.Instantiate(_blockObjectList[blockConfigIndex].BlockObject,position,rotation,parent);
             block.gameObject.SetActive(true);
-            block.SetUp(blockId,blockPosition,GetBlockStateChangeProcessor(block,blockType));
+            block.Initialize(blockId,blockPosition,GetBlockStateChangeProcessor(block,blockType));
             
             //ブロックが開けるものの場合はそのコンポーネントを付与する
             if (IsOpenableInventory(blockType))
