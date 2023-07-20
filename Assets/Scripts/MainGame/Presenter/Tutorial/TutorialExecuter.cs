@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MainGame.Presenter.Tutorial.ExecutableTutorials;
 using UnityEngine;
@@ -10,6 +11,11 @@ namespace MainGame.Presenter.Tutorial
     /// </summary>
     public class TutorialExecuter : MonoBehaviour
     {
+        /* 
+         一旦チュートリアルは実装しません！！
+         将来的にまた開発するから一応残しておくだけです！！
+         
+         
         private const string TutorialIndexPlayerPrefsKey = "TutorialIndex";
         
         /// <summary>
@@ -19,7 +25,7 @@ namespace MainGame.Presenter.Tutorial
         private int _currentTutorialIndex;
         
         [Inject]
-        public void Inject(_0_IronMiningTutorial ironMiningTutorial,_1_MinerCraftTutorial minerCraftTutorial)
+        public void Construct(_0_IronMiningTutorial ironMiningTutorial,_1_MinerCraftTutorial minerCraftTutorial)
         {
             //TODO 今は手動で追加しているけど、将来的には動的に追加できるようにする
             _tutorials.Add(ironMiningTutorial);
@@ -31,7 +37,7 @@ namespace MainGame.Presenter.Tutorial
             _tutorials[_currentTutorialIndex].StartTutorial();
         }
 
-        private void Update()
+        private void _Update()
         {
             if (_tutorials.Count <= _currentTutorialIndex)
             {
@@ -61,5 +67,6 @@ namespace MainGame.Presenter.Tutorial
             
             _tutorials[_currentTutorialIndex].Update();
         }
+        */
     }
 }
