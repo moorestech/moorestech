@@ -28,6 +28,8 @@ namespace MainGame.UnityView.UI.Inventory.Control
         /// </summary>
         private List<IItemStack> _subInventory = new();
         private readonly ItemStackFactory _itemStackFactory;
+        
+        //TODO item configを外部に公開しているのちょっとどうかと思う 隣人のなんとか違反
         public readonly IItemConfig ItemConfig;
         public event Action OnInventoryUpdate;
         public int Count => _mainInventory.Count + _subInventory.Count;

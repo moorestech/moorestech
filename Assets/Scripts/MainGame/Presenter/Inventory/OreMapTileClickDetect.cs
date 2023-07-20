@@ -154,8 +154,19 @@ namespace MainGame.Presenter.Inventory
         /// <returns></returns>
         private static float GetMiningTime(PlayerInventoryViewModel playerInv)
         {
+            var stoneTool = playerInv.IsItemExist(AlphaMod.ModId,"stone tool");
             var ironPickaxe = playerInv.IsItemExist(AlphaMod.ModId,"iron pickaxe");
-            return ironPickaxe ? 2.0f : 4.0f;
+            if (ironPickaxe)
+            {
+                return 3;
+            }
+
+            if (stoneTool)
+            {
+                return 7;
+            }
+
+            return 100;
         }
     }
 }

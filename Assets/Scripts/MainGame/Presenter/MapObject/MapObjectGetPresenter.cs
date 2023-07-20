@@ -137,39 +137,34 @@ namespace MainGame.Presenter.MapObject
         private static float GetMiningTime(string mapObjectType,PlayerInventoryViewModel playerInv)
         {
             var isStoneTool = playerInv.IsItemExist(AlphaMod.ModId,"stone tool");
-            var isPrimitiveAxe = playerInv.IsItemExist(AlphaMod.ModId,"primitive ax");
             var isSimpleAxe = playerInv.IsItemExist(AlphaMod.ModId,"simple ax");
             var ironPickaxe = playerInv.IsItemExist(AlphaMod.ModId,"iron pickaxe");
 
             switch (mapObjectType)
             {
                 #region 木
-                case VanillaMapObjectType.VanillaTree when isStoneTool:
-                    return 10;
-                case VanillaMapObjectType.VanillaTree when isPrimitiveAxe:
-                    return 5;
                 case VanillaMapObjectType.VanillaTree when isSimpleAxe:
                     return 2.5f;
+                case VanillaMapObjectType.VanillaTree when isStoneTool:
+                    return 10;
                 case VanillaMapObjectType.VanillaTree:
                     return 100;
                 #endregion
 
                 #region 石 
-                case VanillaMapObjectType.VanillaStone when isStoneTool:
-                    return 3;
                 case VanillaMapObjectType.VanillaStone when ironPickaxe:
                     return 2;
+                case VanillaMapObjectType.VanillaStone when isStoneTool:
+                    return 3;
                 case VanillaMapObjectType.VanillaStone:
                     return 4;
                 #endregion
 
                 #region ブッシュ
-                case VanillaMapObjectType.VanillaBush when isStoneTool:
-                    return 2.5f;
-                case VanillaMapObjectType.VanillaBush when isPrimitiveAxe:
-                    return 2;
                 case VanillaMapObjectType.VanillaBush when isSimpleAxe:
                     return 1;
+                case VanillaMapObjectType.VanillaBush when isStoneTool:
+                    return 2.5f;
                 case VanillaMapObjectType.VanillaBush:
                     return 3;
                 #endregion
