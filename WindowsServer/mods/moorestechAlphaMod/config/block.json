@@ -90,7 +90,7 @@
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "stone smelter",
             "param": {
-                "inputSlot": 1,
+                "inputSlot": 2,
                 "outputSlot": 1,
                 "requiredPower": 0
             },

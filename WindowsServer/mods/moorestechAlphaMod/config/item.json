@@ -30,11 +30,6 @@
         "imagePath": "assets/item/stone tool.png"
     },
     {
-        "name": "primitive ax",
-        "maxStacks": 1,
-        "imagePath": "assets/item/primitive ax.png"
-    },
-    {
         "name": "wood",
         "maxStacks": 100,
         "imagePath": "assets/item/wood.png"

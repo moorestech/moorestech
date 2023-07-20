@@ -110,9 +110,9 @@
     {
         "items": [
             {
-                "itemName": null,
-                "modId": null,
-                "count": 0
+                "itemName": "cloth",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
             },
             {
                 "itemName": "stone tool",
@@ -146,60 +146,6 @@
             },
             {
                 "itemName": "wood",
-                "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            }
-        ],
-        "result": {
-            "itemName": "primitive ax",
-            "modId": "sakastudio:moorestechAlphaMod",
-            "count": 1
-        }
-    },
-    {
-        "items": [
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": "cloth",
-                "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": "primitive ax",
-                "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": null,
-                "modId": null,
-                "count": 0
-            },
-            {
-                "itemName": "cloth",
                 "modId": "sakastudio:moorestechAlphaMod",
                 "count": 1
             },
