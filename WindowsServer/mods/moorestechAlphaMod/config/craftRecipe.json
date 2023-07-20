@@ -243,9 +243,9 @@
                 "count": 1
             },
             {
-                "itemName": "iron ingot",
-                "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "itemName": null,
+                "modId": null,
+                "count": 0
             },
             {
                 "itemName": null,
@@ -920,19 +920,19 @@
     {
         "items": [
             {
-                "itemName": "wooden gear",
-                "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "itemName": null,
+                "modId": null,
+                "count": 0
             },
             {
-                "itemName": "windmill",
-                "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "itemName": null,
+                "modId": null,
+                "count": 0
             },
             {
-                "itemName": "wooden gear",
-                "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "itemName": null,
+                "modId": null,
+                "count": 0
             },
             {
                 "itemName": "wood",
@@ -955,7 +955,7 @@
                 "count": 0
             },
             {
-                "itemName": "pickaxe head",
+                "itemName": "iron blade",
                 "modId": "sakastudio:moorestechAlphaMod",
                 "count": 1
             },

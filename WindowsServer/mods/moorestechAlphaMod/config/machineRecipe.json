@@ -165,6 +165,61 @@
   },
 
 
+  
+  
+  
+  
+  
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "stone smelter",
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"copper ore",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"wood",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 3
+      }
+    ],
+    "output": [
+      {
+        "itemName":"copper ingot",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "stone smelter",
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"iron ore",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"wood",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 3
+      }
+    ],
+    "output": [
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "stone smelter",
@@ -190,59 +245,20 @@
       }
     ]
   },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "stone smelter",
     "time": 3000,
     "input": [
       {
-        "itemName":"copper ingot",
+        "itemName":"iron ore",
         "modId":"sakastudio:moorestechAlphaMod",
         "count": 1
       },
       {
-        "itemName":"wood",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 3
-      }
-    ],
-    "output": [
-      {
-        "itemName":"copper ingot",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 1,
-        "percent": 1
-      }
-    ]
-  },
-  {
-    "blockModId": "sakastudio:moorestechAlphaMod",
-    "blockName": "stone smelter",
-    "time": 3000,
-    "input": [
-      {
-        "itemName":"iron ingot",
+        "itemName":"coal",
         "modId":"sakastudio:moorestechAlphaMod",
         "count": 1
-      },
-      {
-        "itemName":"wood",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 3
       }
     ],
     "output": [
