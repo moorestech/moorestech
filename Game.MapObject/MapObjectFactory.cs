@@ -48,7 +48,7 @@ namespace Game.MapObject
             {
                 VanillaMapObjectType.VanillaTree => _random.Next(4,6),
                 VanillaMapObjectType.VanillaStone => _random.Next(1,3),
-                VanillaMapObjectType.VanillaBush => _random.Next(2,4),
+                VanillaMapObjectType.VanillaBush => _random.Next(1,2),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }
