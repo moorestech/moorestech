@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MainGame.UnityView.Control;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Util
@@ -10,29 +11,31 @@ namespace MainGame.UnityView.UI.Util
     /// </summary>
     public class AllGameObjectEnterExplainerController : MonoBehaviour
     {
-        public static AllGameObjectEnterExplainerController Instance { get; private set; }
-        private Dictionary<int, GameObjectEnterExplainer> _allGameObjectEnterExplainers = new ();
+        private int _lastOnBlockInstanceId;
+        private bool _isOnBlock;
 
         private void Awake()
         {
-            Instance = this;
         }
 
-        private bool TryGetCursorOnBlock()
+        private void Update()
         {
-            if (!Physics.Raycast(ray, out var hit,100)) return false;
-            if (hit.collider.gameObject)
+            TODO 続き
+        }
+
+        private (bool isEnter,GameObjectEnterExplainer explainer) TryGetCursorOnBlock()
+        {
+            if (Camera.main == null)
             {
-                
+                return (false, null);
             }
+            var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
+            var ray = Camera.main.ScreenPointToRay(mousePosition);
             
-            return true;
-        }
-
-        public void Register(GameObjectEnterExplainer gameObjectEnterExplainer)
-        {
-            var id = gameObjectEnterExplainer.GetInstanceID();
-            _allGameObjectEnterExplainers.Add(id,gameObjectEnterExplainer);
+            if (!Physics.Raycast(ray, out var hit,100)) return (false, null);
+            if (!hit.collider.gameObject.TryGetComponent<GameObjectEnterExplainer>(out var gameObjectEnterExplainer)) return (false, null);
+            
+            return (true, gameObjectEnterExplainer);
         }
     }
 }

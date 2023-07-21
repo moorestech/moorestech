@@ -5,9 +5,9 @@ namespace MainGame.UnityView.UI.Util
 {
     public class GameObjectEnterExplainer : MonoBehaviour
     {
-        private void Awake()
+        public void Show()
         {
-            AllGameObjectEnterExplainerController.Instance.Register(this);
+            
         }
     }
 }
