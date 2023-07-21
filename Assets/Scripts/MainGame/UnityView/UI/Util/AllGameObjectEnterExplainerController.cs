@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using MainGame.UnityView.Control;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace MainGame.UnityView.UI.Util
 {
@@ -11,8 +12,7 @@ namespace MainGame.UnityView.UI.Util
     /// </summary>
     public class AllGameObjectEnterExplainerController : MonoBehaviour
     {
-        private int _lastOnBlockInstanceId;
-        private bool _isOnBlock;
+        private GameObjectEnterExplainer _lastTargetExplainer;
 
         private void Awake()
         {
@@ -20,22 +20,37 @@ namespace MainGame.UnityView.UI.Util
 
         private void Update()
         {
-            TODO 続き
+            if (TryGetOnCursorExplainer(out var explainer))
+            {
+                if (_lastTargetExplainer != explainer)
+                {
+                    if (_lastTargetExplainer != null) _lastTargetExplainer.OnCursorExit(); 
+                    explainer.OnCursorEnter();
+                    _lastTargetExplainer = explainer;
+                }
+            }
+            else
+            {
+                if (_lastTargetExplainer != null) _lastTargetExplainer.OnCursorExit(); 
+                _lastTargetExplainer = null;
+            }
+            
         }
 
-        private (bool isEnter,GameObjectEnterExplainer explainer) TryGetCursorOnBlock()
+        private bool TryGetOnCursorExplainer(out GameObjectEnterExplainer explainer)
         {
-            if (Camera.main == null)
-            {
-                return (false, null);
-            }
+            explainer = null;
+            if (Camera.main == null) return false;
+            if (EventSystem.current.IsPointerOverGameObject()) return false;
+            
             var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = Camera.main.ScreenPointToRay(mousePosition);
+            if (!Physics.Raycast(ray, out var hit,100)) return false;
             
-            if (!Physics.Raycast(ray, out var hit,100)) return (false, null);
-            if (!hit.collider.gameObject.TryGetComponent<GameObjectEnterExplainer>(out var gameObjectEnterExplainer)) return (false, null);
-            
-            return (true, gameObjectEnterExplainer);
+            if (!hit.collider.gameObject.TryGetComponent<GameObjectEnterExplainer>(out var gameObjectEnterExplainer)) return false;
+
+            explainer = gameObjectEnterExplainer;
+            return true;
         }
     }
 }

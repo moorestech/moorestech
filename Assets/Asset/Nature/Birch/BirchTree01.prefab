@@ -954,6 +954,7 @@ GameObject:
   - component: {fileID: 6142020456904027510}
   - component: {fileID: 567331994384466197}
   - component: {fileID: 8369921061408519128}
+  - component: {fileID: 5791898063886704664}
   m_Layer: 6
   m_Name: BirchTree01
   m_TagString: Untagged
@@ -977,7 +978,7 @@ Transform:
   - {fileID: 6898891330194754042}
   - {fileID: 5799730619816567798}
   m_Father: {fileID: 0}
-  m_RootOrder: -1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!205 &6142020456904027510
 LODGroup:
@@ -1044,6 +1045,23 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.9543843, y: 3.0361328, z: 3.318187}
   m_Center: {x: -0.1515676, y: 4.176109, z: 0.026429169}
+--- !u!114 &5791898063886704664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6492387370560325338}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b976201810e240bea52f6452c10f0d0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentText: "\u5DE6\u30AF\u30EA\u30C3\u30AF\u9577\u62BC\u3057\u3067\u6728\u3092\u4F10\u63A1\n\u7D20\u624B
+    100\u79D2\n\u77F3\u5668\u304C\u30A4\u30F3\u30D9\u30F3\u30C8\u30EA\u306B\u3042\u308B 
+    10\u79D2\n\u65A7\u304C\u30A4\u30F3\u30D9\u30F3\u30C8\u30EA\u306B\u3042\u308B 
+    2.5\u79D2"
+  displayEnable: 1
 --- !u!1 &7122453874156123516
 GameObject:
   m_ObjectHideFlags: 0
