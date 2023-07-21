@@ -22,12 +22,11 @@ namespace MainGame.UnityView.UI.Util
         {
             if (TryGetOnCursorExplainer(out var explainer))
             {
-                if (_lastTargetExplainer != explainer)
-                {
-                    if (_lastTargetExplainer != null) _lastTargetExplainer.OnCursorExit(); 
-                    explainer.OnCursorEnter();
-                    _lastTargetExplainer = explainer;
-                }
+                if (_lastTargetExplainer == explainer) return;
+                
+                if (_lastTargetExplainer != null) _lastTargetExplainer.OnCursorExit(); 
+                explainer.OnCursorEnter();
+                _lastTargetExplainer = explainer;
             }
             else
             {
