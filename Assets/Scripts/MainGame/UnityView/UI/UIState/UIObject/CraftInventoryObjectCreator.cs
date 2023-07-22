@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using MainGame.Basic;
 using MainGame.UnityView.UI.Builder.BluePrint;
+using MainGame.UnityView.UI.Builder.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.UI.Inventory.View.SubInventory;
 using UnityEngine;

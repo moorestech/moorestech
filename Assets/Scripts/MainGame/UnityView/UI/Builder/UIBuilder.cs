@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MainGame.UnityView.UI.Builder.BluePrint;
+using MainGame.UnityView.UI.Builder.Element;
 using MainGame.UnityView.UI.Builder.Unity;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,37 +21,34 @@ namespace MainGame.UnityView.UI.Builder
         /// <summary>
         /// ブループリントからそのオブジェクトを生成する
         /// </summary>
-        /// <param name="subInventoryViewBluePrint">構築するUIのブループリント</param>
+        /// <param name="inventoryViewBluePrint">構築するUIのブループリント</param>
         /// <param name="parent">作成するオブジェクトの親</param>
         /// <returns>インベントリのスロットのオブジェクト,　スロット以外のオブジェクト（テキストなど）</returns>
-        public (List<UIBuilderItemSlotObject>,List<GameObject>) CreateSlots(SubInventoryViewBluePrint subInventoryViewBluePrint,Transform parent)
+        public List<IUIBuilderObject> CreateSlots(IInventoryViewBluePrint inventoryViewBluePrint,Transform parent)
         {
-            var slots = new List<UIBuilderItemSlotObject>();
-            var gameObjects = new List<GameObject>();
+            var uiObjects = new List<IUIBuilderObject>();
 
-            foreach (var element in subInventoryViewBluePrint.Elements)
+            foreach (var element in inventoryViewBluePrint.Elements)
             {
-                switch (element.ElementType)
+                switch (element.ElementElementType)
                 {
-                    case UIBluePrintType.OneSlot:
+                    case UIBluePrintElementType.OneSlot:
                         var item = CreateOneSlot(element as UIBluePrintItemSlot, parent);
-                        slots.Add(item);
-                        gameObjects.Add(item.gameObject);
+                        uiObjects.Add(item);
                         break;
-                    case UIBluePrintType.ArraySlot:
+                    case UIBluePrintElementType.ArraySlot:
                         var array = CreateArraySlot(element as UIBluePrintItemSlotArray, parent);
-                        slots.AddRange(array);
-                        gameObjects.AddRange(array.Select(x => x.gameObject));
+                        uiObjects.AddRange(array);
                         break;
-                    case UIBluePrintType.Text:
+                    case UIBluePrintElementType.Text:
                         var text = CreateTextElement(element as TextElement, parent);
-                        gameObjects.Add(text.gameObject);
+                        uiObjects.Add(text);
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException(element.ElementType + " の実装がありません");
+                        throw new ArgumentOutOfRangeException(element.ElementElementType + " の実装がありません");
                 }
             }
-            return (slots,gameObjects);
+            return uiObjects;
         }
 
         private UIBuilderTextObject CreateTextElement(TextElement element, Transform parent)

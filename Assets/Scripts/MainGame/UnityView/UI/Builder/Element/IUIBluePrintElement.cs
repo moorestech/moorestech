@@ -1,8 +1,10 @@
-namespace MainGame.UnityView.UI.Builder.BluePrint
+using MainGame.UnityView.UI.Builder.BluePrint;
+
+namespace MainGame.UnityView.UI.Builder.Element
 {
     public interface IUIBluePrintElement
     {
-        public UIBluePrintType ElementType { get; }
+        public UIBluePrintElementType ElementElementType { get; }
         public int Priority { get; }
         
         /// <summary>

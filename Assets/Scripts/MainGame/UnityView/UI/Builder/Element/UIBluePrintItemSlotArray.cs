@@ -1,9 +1,9 @@
-namespace MainGame.UnityView.UI.Builder.BluePrint
+namespace MainGame.UnityView.UI.Builder.Element
 {
     public class UIBluePrintItemSlotArray : IUIBluePrintElement
     {
 
-        public UIBluePrintType ElementType => UIBluePrintType.ArraySlot;
+        public UIBluePrintElementType ElementElementType => UIBluePrintElementType.ArraySlot;
         public int Priority { get; }
         public string IdName { get; }
         public readonly int BottomBlank;

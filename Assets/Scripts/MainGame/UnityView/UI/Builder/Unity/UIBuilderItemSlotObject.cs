@@ -2,6 +2,7 @@
 using Core.Const;
 using MainGame.Basic.UI;
 using MainGame.UnityView.UI.Builder.BluePrint;
+using MainGame.UnityView.UI.Builder.Element;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Util;
 using TMPro;

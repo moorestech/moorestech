@@ -1,8 +1,8 @@
-﻿namespace MainGame.UnityView.UI.Builder.BluePrint
+﻿namespace MainGame.UnityView.UI.Builder.Element
 {
     public class UIBluePrintProgressArrow : IUIBluePrintElement
     {
-        public UIBluePrintType ElementType => UIBluePrintType.ProgressArrow;
+        public UIBluePrintElementType ElementElementType => UIBluePrintElementType.ProgressArrow;
         public int Priority { get; }
         public string IdName { get; }
         

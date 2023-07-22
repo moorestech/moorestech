@@ -1,8 +1,8 @@
-namespace MainGame.UnityView.UI.Builder.BluePrint
+namespace MainGame.UnityView.UI.Builder.Element
 {
     public class TextElement : IUIBluePrintElement
     {
-        public UIBluePrintType ElementType => UIBluePrintType.Text;
+        public UIBluePrintElementType ElementElementType => UIBluePrintElementType.Text;
         public int Priority { get; }
         public string IdName { get; }
 

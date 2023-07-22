@@ -4,6 +4,7 @@ using System.Linq;
 using MainGame.Basic.UI;
 using MainGame.UnityView.UI.Builder;
 using MainGame.UnityView.UI.Builder.BluePrint;
+using MainGame.UnityView.UI.Builder.Element;
 using MainGame.UnityView.UI.Builder.Unity;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View.SubInventory;
@@ -18,7 +19,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         [SerializeField] private Transform subInventorySlotsParent;
         
         private List<UIBuilderItemSlotObject> _subInventorySlots = new();
-        private List<GameObject> _subInventoryElementObjects = new();
+        private List<IUIBuilderObject> _subInventoryElementObjects = new();
 
         public event Action<int> OnRightClickDown;
         public event Action<int> OnLeftClickDown;
@@ -68,13 +69,14 @@ namespace MainGame.UnityView.UI.Inventory.View
             OnSetSubInventory?.Invoke(subInventoryOptions);
             foreach (var subSlot in _subInventoryElementObjects)
             {
-                Destroy(subSlot);
+                Destroy(((MonoBehaviour)subSlot).gameObject);
             }
-            _subInventorySlots.Clear();
             _subInventoryElementObjects.Clear();
-            
-            
-            (_subInventorySlots,_subInventoryElementObjects) = uiBuilder.CreateSlots(subInventoryViewBluePrint,subInventorySlotsParent);
+            _subInventoryElementObjects = uiBuilder.CreateSlots(subInventoryViewBluePrint,subInventorySlotsParent);
+
+            _subInventorySlots = _subInventoryElementObjects.
+                Where(o => o.BluePrintElement.ElementElementType is UIBluePrintElementType.ArraySlot or UIBluePrintElementType.OneSlot).
+                Select(o => o as UIBuilderItemSlotObject).ToList();
             _subInventorySlots.
                 Select((slot,index) => new{slot,index}).ToList().
                 ForEach(slot =>

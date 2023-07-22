@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using MainGame.UnityView.UI.Builder.BluePrint;
+using MainGame.UnityView.UI.Builder.Element;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Builder.Unity
@@ -20,7 +21,9 @@ namespace MainGame.UnityView.UI.Builder.Unity
             var slots = new List<UIBuilderItemSlotObject>();
             for (int i = 0; i < height * weight - bottomBlank; i++)
             {
-                slots.Add(Instantiate(UIBuilderItemSlotObject, transform));
+                var item = Instantiate(UIBuilderItemSlotObject, transform);
+                slots.Add(item);
+                item.Initialize(BluePrintElement);
             }
 
             return slots;
