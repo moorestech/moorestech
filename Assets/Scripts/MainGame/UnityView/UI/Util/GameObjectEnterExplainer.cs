@@ -14,12 +14,15 @@ namespace MainGame.UnityView.UI.Util
         /// 表示するかどうか
         /// </summary>
         [SerializeField] private bool displayEnable = true;
+         
+        [SerializeField] private int fontSize = IMouseCursorExplainer.DefaultFontSize;
+        
 
         public void OnCursorEnter()
         {
             if (displayEnable)
             {
-                MouseCursorExplainer.Instance.Show(currentText);
+                MouseCursorExplainer.Instance.Show(currentText,fontSize);
             }
         }
 

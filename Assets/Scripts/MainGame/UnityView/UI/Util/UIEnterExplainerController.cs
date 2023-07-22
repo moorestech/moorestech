@@ -18,6 +18,8 @@ namespace MainGame.UnityView.UI.Util
         /// </summary>
         [SerializeField] private bool displayEnable;
 
+        [SerializeField] private int fontSize = IMouseCursorExplainer.DefaultFontSize;
+
         private bool _pointerStay = false;
         
         
@@ -34,7 +36,7 @@ namespace MainGame.UnityView.UI.Util
             //表示する設定で、ポインターが乗ったので表示
             if (_pointerStay && displayEnable)
             {
-                MouseCursorExplainer.Instance.Show(currentText);
+                MouseCursorExplainer.Instance.Show(currentText,fontSize);
                 return;
             }
             

@@ -6,8 +6,9 @@ namespace MainGame.UnityView.UI.Util
 {
     public interface IMouseCursorExplainer
     {
+        public const int DefaultFontSize = 36;
         public void Hide();
-        public void Show(string description);
+        public void Show(string description,int fontSize = DefaultFontSize);
 
     }
     /// <summary>
@@ -17,6 +18,8 @@ namespace MainGame.UnityView.UI.Util
     {
         [SerializeField] private GameObject itemNameBar;
         [SerializeField] private TMP_Text itemName;
+        [SerializeField] private CanvasGroup canvasGroup;
+
         
         /// <summary>
         /// 基本的には使わない
@@ -30,16 +33,17 @@ namespace MainGame.UnityView.UI.Util
             Instance = this;
         }
         
-        public void Show(string description)
+        public void Show(string description,int fontSize)
         {
-            itemNameBar.SetActive(true);
+            canvasGroup.alpha = 1;
             itemName.text = description;
+            itemName.fontSize = fontSize;
         }
 
         
         public void Hide()
         {
-            itemNameBar.SetActive(false);
+            canvasGroup.alpha = 0;
         }
     }
 }
