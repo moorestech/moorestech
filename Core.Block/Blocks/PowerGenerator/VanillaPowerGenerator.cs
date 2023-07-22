@@ -13,7 +13,7 @@ using Core.Update;
 
 namespace Core.Block.Blocks.PowerGenerator
 {
-    public class VanillaPowerGenerator : IBlock, IPowerGenerator, IBlockInventory, IUpdate,IOpenableInventory
+    public class VanillaPowerGenerator : IBlock, IPowerGenerator, IBlockInventory, IUpdatable,IOpenableInventory
     {       
         public int EntityId { get; }
         public int BlockId { get; }

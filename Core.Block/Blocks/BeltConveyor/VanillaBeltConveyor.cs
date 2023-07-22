@@ -11,7 +11,7 @@ namespace Core.Block.Blocks.BeltConveyor
     /// <summary>
     /// アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class VanillaBeltConveyor : IBlock, IUpdate, IBlockInventory
+    public class VanillaBeltConveyor : IBlock, IUpdatable, IBlockInventory
     {
         public int EntityId { get; }
         public int BlockId { get; }

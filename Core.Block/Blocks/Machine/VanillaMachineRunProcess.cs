@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Core.Block.Blocks.Machine
 {
-    public class VanillaMachineRunProcess : IUpdate
+    public class VanillaMachineRunProcess : IUpdatable
     {
         private IMachineRecipeData _processingRecipeData;
         private ProcessState _currentState = ProcessState.Idle;

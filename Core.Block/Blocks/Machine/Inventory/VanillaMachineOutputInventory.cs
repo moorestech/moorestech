@@ -13,7 +13,7 @@ using Core.Update;
 
 namespace Core.Block.Blocks.Machine.Inventory
 {
-    public class VanillaMachineOutputInventory : IUpdate
+    public class VanillaMachineOutputInventory : IUpdatable
     {
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;

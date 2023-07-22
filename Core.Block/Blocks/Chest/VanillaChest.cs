@@ -12,7 +12,7 @@ using Core.Update;
 namespace Core.Block.Blocks.Chest
 {
     
-    public class VanillaChest: IBlock, IBlockInventory, IOpenableInventory,IUpdate
+    public class VanillaChest: IBlock, IBlockInventory, IOpenableInventory,IUpdatable
     {
 
         public int EntityId { get; }

@@ -1,6 +1,6 @@
 ﻿namespace Core.Update
 {
-    public interface IUpdate
+    public interface IUpdatable
     {
         public void Update();
     }

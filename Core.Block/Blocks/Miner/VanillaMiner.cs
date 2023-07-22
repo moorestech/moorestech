@@ -16,7 +16,7 @@ using Newtonsoft.Json;
 
 namespace Core.Block.Blocks.Miner
 {
-    public class VanillaMiner : IBlock, IBlockElectric, IBlockInventory, IUpdate,IMiner,IOpenableInventory
+    public class VanillaMiner : IBlock, IBlockElectric, IBlockInventory, IUpdatable,IMiner,IOpenableInventory
     {
 
         public int EntityId { get; }
