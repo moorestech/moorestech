@@ -2,11 +2,11 @@ using Core.Update;
 
 namespace Mod.Base
 {
-    public abstract class MoorestechServerModEntryPoint : IUpdate
+    public abstract class MoorestechServerModEntryPoint : IUpdatable
     {
         public MoorestechServerModEntryPoint()
         {
-            GameUpdate.AddUpdateObject(this);
+            GameUpdater.RegisterUpdater(this);
         }
         
         /// <summary>

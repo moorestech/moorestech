@@ -12,11 +12,11 @@ namespace Core.Block.Blocks.Util
             //必要電力が0の時はそのフレームの時間を返す
             if (requiredPower == 0)
             {
-                return (int)GameUpdate.UpdateMillSecondTime;
+                return (int)GameUpdater.UpdateMillSecondTime;
             }
             //現在の電力量を必要電力で割った割合で、そのフレームの時間を返す
             //例えば、必要電力が100、現在の電力が50だったら、そのフレームの半分の時間を返すことで、機械の速度を半分にする
-            return (int) (GameUpdate.UpdateMillSecondTime * (currentPower / (double) requiredPower));
+            return (int) (GameUpdater.UpdateMillSecondTime * (currentPower / (double) requiredPower));
         }
     }
 }

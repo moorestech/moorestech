@@ -13,7 +13,7 @@ using Core.Update;
 
 namespace Core.Block.Blocks.Machine.Inventory
 {
-    public class VanillaMachineOutputInventory : IUpdate
+    public class VanillaMachineOutputInventory : IUpdatable
     {
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
@@ -34,7 +34,7 @@ namespace Core.Block.Blocks.Machine.Inventory
             _inputSlotSize = inputSlotSize;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,outputSlot);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
-            GameUpdate.AddUpdateObject(this);
+            GameUpdater.RegisterUpdater(this);
         }
 
         /// <summary>

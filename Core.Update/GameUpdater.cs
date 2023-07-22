@@ -3,17 +3,17 @@ using System.Collections.Generic;
 
 namespace Core.Update
 {
-    public static class GameUpdate
+    public static class GameUpdater
     {
-        private static readonly List<IUpdate> Updates = new List<IUpdate>();
+        private static readonly List<IUpdatable> Updates = new List<IUpdatable>();
 
         [Obsolete("いつかアップデートシステム自体をリファクタしたい")]
         public static double UpdateMillSecondTime => _updateMillSecondTime;
         private static double _updateMillSecondTime = 0;
 
-        public static void AddUpdateObject(IUpdate iUpdate)
+        public static void RegisterUpdater(IUpdatable iUpdatable)
         {
-            Updates.Add(iUpdate);
+            Updates.Add(iUpdatable);
         }
 
         private static DateTime _prevUpdateDateTime = DateTime.Now;

@@ -16,7 +16,7 @@ using Newtonsoft.Json;
 
 namespace Core.Block.Blocks.Miner
 {
-    public class VanillaMiner : IBlock, IBlockElectric, IBlockInventory, IUpdate,IMiner,IOpenableInventory
+    public class VanillaMiner : IBlock, IBlockElectric, IBlockInventory, IUpdatable,IMiner,IOpenableInventory
     {
 
         public int EntityId { get; }
@@ -51,7 +51,7 @@ namespace Core.Block.Blocks.Miner
             _openableInventoryItemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,outputSlotCount);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             
-            GameUpdate.AddUpdateObject(this);
+            GameUpdater.RegisterUpdater(this);
         }
         public VanillaMiner(string saveData,int blockId, int entityId, ulong blockHash, int requestPower,int outputSlotCount, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
             :this(blockId, entityId, blockHash, requestPower, outputSlotCount, itemStackFactory,openableInventoryUpdateEvent)

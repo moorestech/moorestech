@@ -6,7 +6,7 @@ using Core.Update;
 namespace Core.Electric
 {
     //１つの電力のセグメントの処理
-    public class ElectricSegment : IUpdate
+    public class ElectricSegment : IUpdatable
     {
         private readonly Dictionary<int, IBlockElectric> _electrics = new();
         private readonly Dictionary<int, IPowerGenerator> _generators = new();
@@ -14,7 +14,7 @@ namespace Core.Electric
 
         public ElectricSegment()
         {
-            GameUpdate.AddUpdateObject(this);
+            GameUpdater.RegisterUpdater(this);
         }
 
         public void Update()

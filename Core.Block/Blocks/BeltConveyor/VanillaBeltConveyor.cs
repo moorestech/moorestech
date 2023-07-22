@@ -11,7 +11,7 @@ namespace Core.Block.Blocks.BeltConveyor
     /// <summary>
     /// アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class VanillaBeltConveyor : IBlock, IUpdate, IBlockInventory
+    public class VanillaBeltConveyor : IBlock, IUpdatable, IBlockInventory
     {
         public int EntityId { get; }
         public int BlockId { get; }
@@ -37,7 +37,7 @@ namespace Core.Block.Blocks.BeltConveyor
             TimeOfItemEnterToExit = timeOfItemEnterToExit;
             BlockHash = blockHash;
             _connector = new NullIBlockInventory(_itemStackFactory);
-            GameUpdate.AddUpdateObject(this);
+            GameUpdater.RegisterUpdater(this);
         }
 
         public VanillaBeltConveyor(int blockId, int entityId, ulong blockHash, string state, ItemStackFactory itemStackFactory,
@@ -133,7 +133,7 @@ namespace Core.Block.Blocks.BeltConveyor
             //時間を減らす
             foreach (var t in _inventoryItems)
             {
-                t.RemainingTime -= GameUpdate.UpdateMillSecondTime;
+                t.RemainingTime -= GameUpdater.UpdateMillSecondTime;
             }
 
 
