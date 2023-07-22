@@ -12,7 +12,11 @@ namespace Server.Util
         List<byte> _continuationFromLastTimeBytes = new();
         int _packetLength = 0;
         int _nextPacketLengthOffset = 0;
-        
+
+        private bool _isGettingLength = true;
+        private int _remainingHeaderLength = 0;
+        private List<byte> _packetLengthBytes = new();
+
         public List<List<byte>> Parse(byte[] packet,int length)
         {
             //プロトコル長から実際のプロトコルを作る
@@ -28,10 +32,18 @@ namespace Server.Util
                 if (_continuationFromLastTimeBytes.Count == 0)
                 {
                     //パケット長を取得
-                    _packetLength = GetLength(packet, actualStartPacketDataIndex);
-                    //パケット長のshort型の4バイトを取り除く
-                    reminderLength -= _packetLength　+ 4;
-                    actualStartPacketDataIndex += 4;
+                    if (TryGetLength(packet, actualStartPacketDataIndex,out var lenght))
+                    {
+                        _packetLength = lenght;
+                        //パケット長のshort型の4バイトを取り除く
+                        reminderLength -= _packetLength　+ 4;
+                        actualStartPacketDataIndex += 4;
+                    }
+                    else
+                    {
+                        //残りバッファサイズ的に取得できない場合は次回の受信で取得する
+                        continue;
+                    }
                 }
                 else
                 {
@@ -66,19 +78,47 @@ namespace Server.Util
         }
         
         
-        private int GetLength(byte[] bytes,int startIndex)
+        private bool TryGetLength(byte[] bytes,int startIndex,out int lenght)
         {
-            var b = new List<byte>
+            var headerBytes = new List<byte>();
+            if (_isGettingLength)
             {
-                bytes[startIndex],
-                bytes[startIndex + 1],
-                bytes[startIndex + 2],
-                bytes[startIndex + 3]
-            };
-
-            if (BitConverter.IsLittleEndian) b.Reverse();
+                for (int i = _remainingHeaderLength; i < 4; i++)
+                {
+                    _packetLengthBytes.Add(bytes[startIndex + i]);
+                }
+                headerBytes = _packetLengthBytes;
+                _isGettingLength = false;
+            }
+            else
+            {
+                lenght = -1;
+                //パケット長が取得でききれない場合
+                if (bytes.Length <= startIndex + 4)
+                {
+                    _packetLengthBytes.Clear();
+                    for (int i = 0; i < bytes.Length + i; i++)
+                    {
+                        _remainingHeaderLength = 4 - (bytes.Length - startIndex);
+                        _packetLengthBytes.Add(bytes[startIndex + i]);
+                    }
+                    _isGettingLength = true;
+                    return false;
+                }
+                headerBytes = new List<byte>
+                {
+                    bytes[startIndex],
+                    bytes[startIndex + 1],
+                    bytes[startIndex + 2],
+                    bytes[startIndex + 3]
+                };
+            }
             
-            return BitConverter.ToInt32(b.ToArray(), 0);
+
+            if (BitConverter.IsLittleEndian) headerBytes.Reverse();
+            
+            lenght = BitConverter.ToInt32(headerBytes.ToArray(), 0);
+            return true;
         }
     }
 }
