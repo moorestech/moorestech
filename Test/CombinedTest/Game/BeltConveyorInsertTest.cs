@@ -37,7 +37,7 @@ namespace Test.CombinedTest.Game
             var now = DateTime.Now;
             while (DateTime.Now - now < TimeSpan.FromSeconds(5))
             {
-                GameUpdate.Update();
+                GameUpdater.Update();
             }
             
             //アイテムが出ているか確認

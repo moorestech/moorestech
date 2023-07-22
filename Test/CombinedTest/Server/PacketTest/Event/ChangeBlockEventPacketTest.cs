@@ -43,7 +43,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
             
             //アップデートしてステートを更新する
-            GameUpdate.Update();
+            GameUpdater.Update();
 
             
             //ステートが実行中になっているかをチェック

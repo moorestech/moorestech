@@ -46,14 +46,14 @@ namespace Test.CombinedTest.Core
                 while (DateTime.Now < endTime.AddSeconds(0.2))
                 {
                     item = beltConveyor.InsertItem(item);
-                    GameUpdate.Update();
+                    GameUpdater.Update();
                 }
 
                 Assert.AreEqual(item.Count, 1);
 
                 var dummy = new DummyBlockInventory(itemStackFactory);
                 beltConveyor.AddOutputConnector(dummy);
-                GameUpdate.Update();
+                GameUpdater.Update();
 
                 Assert.AreEqual(itemStackFactory.Create(id, 1).ToString(), dummy.InsertedItems[0].ToString());
             }
@@ -87,7 +87,7 @@ namespace Test.CombinedTest.Core
                 var outputItem = beltConveyor.InsertItem(item);
                 while (!dummy.IsItemExists)
                 {
-                    GameUpdate.Update();
+                    GameUpdater.Update();
                 }
 
                 Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.2));
@@ -123,7 +123,7 @@ namespace Test.CombinedTest.Core
                 while (!dummy.IsItemExists)
                 {
                     item = beltConveyor.InsertItem(item);
-                    GameUpdate.Update();
+                    GameUpdater.Update();
                 }
 
                 Assert.True(item.Equals(itemStackFactory.Create(id, 0)));

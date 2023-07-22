@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Core.Update
 {
-    public static class GameUpdate
+    public static class GameUpdater
     {
         private static readonly List<IUpdatable> Updates = new List<IUpdatable>();
 
@@ -11,7 +11,7 @@ namespace Core.Update
         public static double UpdateMillSecondTime => _updateMillSecondTime;
         private static double _updateMillSecondTime = 0;
 
-        public static void AddUpdateObject(IUpdatable iUpdatable)
+        public static void RegisterUpdater(IUpdatable iUpdatable)
         {
             Updates.Add(iUpdatable);
         }

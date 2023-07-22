@@ -52,7 +52,7 @@ namespace Test.CombinedTest.Core
             //最大クラフト時間を超過するまでクラフトする
             while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
             {
-                GameUpdate.Update();
+                GameUpdater.Update();
             }
 
             //検証

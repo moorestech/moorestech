@@ -14,7 +14,7 @@ namespace Core.Electric
 
         public ElectricSegment()
         {
-            GameUpdate.AddUpdateObject(this);
+            GameUpdater.RegisterUpdater(this);
         }
 
         public void Update()

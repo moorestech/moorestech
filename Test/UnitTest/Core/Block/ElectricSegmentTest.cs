@@ -17,22 +17,22 @@ namespace Test.UnitTest.Core.Block
 
             segment.AddGenerator(generate);
             segment.AddBlockElectric(electric);
-            GameUpdate.Update();
+            GameUpdater.Update();
             Assert.AreEqual(100, electric.NowPower);
 
             segment.RemoveGenerator(generate);
-            GameUpdate.Update();
+            GameUpdater.Update();
             Assert.AreEqual(0, electric.NowPower);
 
             var electric2 = new BlockElectric(300, 1);
             segment.AddGenerator(generate);
             segment.AddBlockElectric(electric2);
-            GameUpdate.Update();
+            GameUpdater.Update();
             Assert.AreEqual(25, electric.NowPower);
             Assert.AreEqual(75, electric2.NowPower);
 
             segment.RemoveBlockElectric(electric);
-            GameUpdate.Update();
+            GameUpdater.Update();
             Assert.AreEqual(25, electric.NowPower);
             Assert.AreEqual(100, electric2.NowPower);
         }

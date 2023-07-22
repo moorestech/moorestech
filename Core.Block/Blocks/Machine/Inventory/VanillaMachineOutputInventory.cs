@@ -34,7 +34,7 @@ namespace Core.Block.Blocks.Machine.Inventory
             _inputSlotSize = inputSlotSize;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,outputSlot);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
-            GameUpdate.AddUpdateObject(this);
+            GameUpdater.RegisterUpdater(this);
         }
 
         /// <summary>

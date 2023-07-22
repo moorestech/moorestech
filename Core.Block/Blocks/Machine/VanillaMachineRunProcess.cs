@@ -37,7 +37,7 @@ namespace Core.Block.Blocks.Machine
             _processingRecipeData = machineRecipeData;
             RequestPower = requestPower;
 
-            GameUpdate.AddUpdateObject(this);
+            GameUpdater.RegisterUpdater(this);
         }
 
         public VanillaMachineRunProcess(
@@ -53,7 +53,7 @@ namespace Core.Block.Blocks.Machine
             _remainingMillSecond = remainingMillSecond;
             _currentState = currentState;
 
-            GameUpdate.AddUpdateObject(this);
+            GameUpdater.RegisterUpdater(this);
         }
 
         public void Update()

@@ -44,7 +44,7 @@ namespace Test.CombinedTest.Core
             powerGenerator.InsertItem(fuelItem1);
 
             //1回目のループ
-            GameUpdate.Update();
+            GameUpdater.Update();
 
             //供給電力の確認
             Assert.AreEqual(generatorConfigParam.FuelSettings[FuelItem1Id].Power, powerGenerator.OutputPower());
@@ -52,7 +52,7 @@ namespace Test.CombinedTest.Core
             //燃料の枯渇までループ
             while (endTime1.AddSeconds(0.1).CompareTo(DateTime.Now) == 1)
             {
-                GameUpdate.Update();
+                GameUpdater.Update();
             }
 
             //燃料が枯渇しているか確認
@@ -70,7 +70,7 @@ namespace Test.CombinedTest.Core
             endTime1 = DateTime.Now.AddMilliseconds(generatorConfigParam.FuelSettings[FuelItem1Id].Time);
             while (endTime1.AddSeconds(0.1).CompareTo(DateTime.Now) == 1)
             {
-                GameUpdate.Update();
+                GameUpdater.Update();
             }
 
             //2個の燃料が入っていることを確認
@@ -83,7 +83,7 @@ namespace Test.CombinedTest.Core
             DateTime endTime2 = DateTime.Now.AddMilliseconds(generatorConfigParam.FuelSettings[FuelItem2Id].Time);
             while (endTime2.AddSeconds(0.1).CompareTo(DateTime.Now) == 1)
             {
-                GameUpdate.Update();
+                GameUpdater.Update();
             }
 
             //2個目の燃料が枯渇しているか確認

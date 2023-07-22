@@ -58,7 +58,7 @@ namespace Test.CombinedTest.Core
             //鉱石1個分の採掘時間待機
             while (MineEndTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
             {
-                GameUpdate.Update();
+                GameUpdater.Update();
             }
 
             //鉱石1個が出力されているかチェック
@@ -72,7 +72,7 @@ namespace Test.CombinedTest.Core
             MineEndTime = DateTime.Now.AddMilliseconds(miningTime * 2);
             while (MineEndTime.AddSeconds(0.02).CompareTo(DateTime.Now) == 1)
             {
-                GameUpdate.Update();
+                GameUpdater.Update();
             }
 
             miner.Update();
@@ -85,7 +85,7 @@ namespace Test.CombinedTest.Core
             ((IBlockInventory) miner).AddOutputConnector(dummyInventory);
 
             //コネクターにアイテムを入れるためのアップデート
-            GameUpdate.Update();
+            GameUpdater.Update();
             //アイテムがさらに2個入っているかチェック
             Assert.AreEqual(miningItemId, dummyInventory.InsertedItems[0].Id);
             Assert.AreEqual(3, dummyInventory.InsertedItems[0].Count);

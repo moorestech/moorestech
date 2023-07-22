@@ -34,7 +34,7 @@ namespace Core.Block.Blocks.Chest
             
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,slotNum);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
-            GameUpdate.AddUpdateObject(this);
+            GameUpdater.RegisterUpdater(this);
         }
 
         public VanillaChest(string saveData,int blockId,int entityId, ulong blockHash,int slotNum, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent blockInventoryUpdate) : this( blockId,entityId,blockHash,slotNum,  itemStackFactory,blockInventoryUpdate)

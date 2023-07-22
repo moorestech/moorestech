@@ -50,7 +50,7 @@ namespace Test.CombinedTest.Core
             var outputItem = beltConveyor.InsertItem(item);
             while (!chest.GetItem(0).Equals(item))
             {
-                GameUpdate.Update();
+                GameUpdater.Update();
             }
 
             Assert.True(chest.GetItem(0).Equals(item));
@@ -72,7 +72,7 @@ namespace Test.CombinedTest.Core
             chest.SetItem(0,1,1);
             
             chest.AddOutputConnector(beltconveyor);
-            GameUpdate.Update();
+            GameUpdater.Update();
             
             
             Assert.AreEqual(chest.GetItem(0).Count,0);

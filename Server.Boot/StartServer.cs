@@ -60,7 +60,7 @@ namespace Server.Boot
                 
                 //サーバーの起動とゲームアップデートの開始
                 new Thread(() => new PacketHandler().StartServer(packet)).Start();
-                new Thread(() => { while (true) { GameUpdate.Update(); } }).Start();
+                new Thread(() => { while (true) { GameUpdater.Update(); } }).Start();
 
                 await new AutoSaveSystem(serviceProvider.GetService<IWorldSaveDataSaver>()).AutoSave();
 

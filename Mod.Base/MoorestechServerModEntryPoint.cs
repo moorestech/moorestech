@@ -6,7 +6,7 @@ namespace Mod.Base
     {
         public MoorestechServerModEntryPoint()
         {
-            GameUpdate.AddUpdateObject(this);
+            GameUpdater.RegisterUpdater(this);
         }
         
         /// <summary>

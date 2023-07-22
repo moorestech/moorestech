@@ -159,7 +159,7 @@ namespace Test.CombinedTest.Server
             var now = DateTime.Now;
             while (DateTime.Now - now < TimeSpan.FromMilliseconds(TimeOfItemEnterToExit))
             {
-                GameUpdate.Update();
+                GameUpdater.Update();
             }
             
             //ベルトコンベアからアイテムを取得
