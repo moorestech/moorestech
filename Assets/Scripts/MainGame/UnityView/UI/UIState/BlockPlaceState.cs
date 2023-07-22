@@ -1,4 +1,6 @@
-﻿using MainGame.UnityView.Control;
+﻿using MainGame.UnityView.Block;
+using MainGame.UnityView.Control;
+using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 
 namespace MainGame.UnityView.UI.UIState
@@ -6,10 +8,12 @@ namespace MainGame.UnityView.UI.UIState
     public class BlockPlaceState : IUIState
     {
         private readonly SelectHotBarView _selectHotBarView;
+        private readonly IBlockClickDetect _blockClickDetect;
 
-        public BlockPlaceState(SelectHotBarView selectHotBarView)
+        public BlockPlaceState(SelectHotBarView selectHotBarView,IBlockClickDetect blockClickDetect)
         {
             _selectHotBarView = selectHotBarView;
+            _blockClickDetect = blockClickDetect;
         }
 
         public UIStateEnum GetNext()
@@ -30,6 +34,10 @@ namespace MainGame.UnityView.UI.UIState
             {
                 return UIStateEnum.PauseMenu;
             }
+            if (IsClickOpenableBlock())
+            {
+                return UIStateEnum.BlockInventory;
+            }
             
             return UIStateEnum.Current;
         }
@@ -42,6 +50,16 @@ namespace MainGame.UnityView.UI.UIState
         public void OnExit()
         {
             _selectHotBarView.SetActiveSelectHotBar(false);
+        }
+        
+        private bool IsClickOpenableBlock()
+        {
+            if (_blockClickDetect.TryGetClickBlock(out var block))
+            {
+                return block.GetComponent<OpenableInventoryBlock>();
+            }
+
+            return false;
         }
     }
 }
