@@ -10,7 +10,7 @@
         public readonly float X;
         public readonly float Y;
         
-        public UIBluePrintProgressArrow(int priority, string idName, float x, float y)
+        public UIBluePrintProgressArrow (float x, float y,int priority, string idName)
         {
             Priority = priority;
             IdName = idName;

@@ -35,10 +35,11 @@ namespace MainGame.UnityView.UI.UIState.UIObject
             arraySlot.Add(CreateArraySlot(330,272,10,output,maxSlotColumns));
             
             var text = new List<UIBluePrintText>(){new(0,436,0,blockName,30)};
+            var arrow = new List<UIBluePrintProgressArrow>() {new(0, 272, 1, "progressArrow")};
             
-            var blockInventory = new SubInventoryViewBluePrint(){ArraySlots = arraySlot,TextElements = text};
-            
-            playerInventorySlots.SetSubSlots(blockInventory,new SubInventoryOptions(){IsBlock = true,BlockPosition = blockPos});
+            playerInventorySlots.SetSubSlots(
+                new SubInventoryViewBluePrint(){ArraySlots = arraySlot,TextElements = text,ProgressArrows = arrow},
+                new SubInventoryOptions(){IsBlock = true,BlockPosition = blockPos});
         }
 
 

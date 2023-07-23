@@ -129,23 +129,24 @@ namespace MainGame.UnityView.UI.Inventory.View
             
             
             //⚠️ ここから下はMachineのみの処理
-            var blockState = stateChangeProperties.CurrentState;
-            if (blockState != ProcessState.Processing.ToString())
-            {
-                return;
-            }
-
             var progressArrow = _subInventoryElementObjects.Where(p =>
                 p.BluePrintElement.ElementElementType == UIBluePrintElementType.ProgressArrow).ToList();
-            if (progressArrow.Count != 0)
+            if (progressArrow.Count == 0)
             {
+                Debug.LogError("プログレスバーの矢印がない");
                 return;
             }
 
             var data = JsonConvert.DeserializeObject<CommonMachineBlockStateChangeData>(stateChangeProperties.CurrentStateData);
+            var amount = data.ProcessingRate;
+            if (stateChangeProperties.CurrentState == VanillaMachineBlockStateConst.IdleState)
+            {
+                amount = 0;
+            }
+
             foreach (var arrow in progressArrow)
             {
-                ((UIBuilderProgressArrowObject)arrow).SetFillAmount(data.ProcessingRate);
+                ((UIBuilderProgressArrowObject)arrow).SetFillAmount(amount);
             }
         }
 
