@@ -71,7 +71,7 @@ namespace Core.Block.Blocks.Machine
             //ステートの変化を検知した時か、ステートが処理中の時はイベントを発火させる
             if (_lastState != _currentState || _currentState == ProcessState.Processing)
             {
-                var processingRate = (float)_remainingMillSecond / _processingRecipeData.Time;
+                var processingRate = 1 -  (float)_remainingMillSecond / _processingRecipeData.Time;
                 OnChangeState?.Invoke(
                     new ChangedBlockState(_currentState.ToStr(),_lastState.ToStr(),
                 JsonConvert.SerializeObject(new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate))));
