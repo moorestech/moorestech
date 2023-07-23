@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory.View.SubInventory
 {
@@ -9,5 +10,11 @@ namespace MainGame.UnityView.UI.Inventory.View.SubInventory
         /// 例えばクラフトの結果スロットはアイテム収集の対象にはならない
         /// </summary>
         public List<int> WithoutCollectSlots = new();
+
+        /// <summary>
+        /// ブロックかどうかのフラグと、そのブロックの位置
+        /// </summary>
+        public bool IsBlock = false;
+        public Vector2Int BlockPosition;
     }
 }

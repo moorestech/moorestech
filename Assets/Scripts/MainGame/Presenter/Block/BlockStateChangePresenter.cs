@@ -1,5 +1,9 @@
-﻿using MainGame.Network.Event;
+﻿using Core.Block.Blocks;
+using Core.Block.Config;
+using MainGame.Network.Event;
 using MainGame.UnityView.Chunk;
+using MainGame.UnityView.UI.Inventory.View;
+using SinglePlay;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -7,12 +11,18 @@ namespace MainGame.Presenter.Block
 {
     public class BlockStateChangePresenter : IInitializable
     {
+        private readonly IBlockConfig _blockConfig;
+        
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
+        private readonly PlayerInventorySlots _playerInventorySlots;
+            
         private readonly ReceiveBlockStateChangeEvent _receiveBlockStateChangeEvent;
 
 
-        public BlockStateChangePresenter(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent)
+        public BlockStateChangePresenter(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent,PlayerInventorySlots playerInventorySlots,SinglePlayInterface singlePlayInterface)
         {
+            _blockConfig = singlePlayInterface.BlockConfig;
+            _playerInventorySlots = playerInventorySlots;
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _receiveBlockStateChangeEvent = receiveBlockStateChangeEvent;
             _receiveBlockStateChangeEvent.OnStateChange += OnStateChange;
@@ -29,6 +39,10 @@ namespace MainGame.Presenter.Block
             {
                 var blockObject = _chunkBlockGameObjectDataStore.BlockGameObjectDictionary[pos];
                 blockObject.BlockStateChangeProcessor.OnChangeState(stateChangeProperties.CurrentState,stateChangeProperties.PreviousState,stateChangeProperties.CurrentStateData);
+
+                var blockConfig = _blockConfig.GetBlockConfig(blockObject.BlockId);
+                
+                _playerInventorySlots.SetBlockState(stateChangeProperties,blockConfig.Type,pos);
             }
         }
 

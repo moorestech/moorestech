@@ -15,7 +15,7 @@ namespace MainGame.UnityView.UI.UIState.UIObject
     {
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
 
-        public void SetOneSlotInventory(string blockName,int slot)
+        public void SetOneSlotInventory(string blockName,int slot,Vector2Int blockPos)
         {
             var arraySlot = new List<UIBluePrintItemSlotArray>();
             arraySlot.Add(CreateArraySlot(0,272,10,slot,PlayerInventoryConst.MainInventoryColumns));
@@ -24,10 +24,10 @@ namespace MainGame.UnityView.UI.UIState.UIObject
             
             var blockInventory = new SubInventoryViewBluePrint(){ArraySlots = arraySlot,TextElements = text};
             
-            playerInventorySlots.SetSubSlots(blockInventory,new SubInventoryOptions());
+            playerInventorySlots.SetSubSlots(blockInventory,new SubInventoryOptions(){IsBlock = true,BlockPosition = blockPos});
         }
         
-        public void SetIOSlotInventory(string blockName,int input,int output)
+        public void SetIOSlotInventory(string blockName,int input,int output,Vector2Int blockPos)
         {
             const int maxSlotColumns = 5;
             var arraySlot = new List<UIBluePrintItemSlotArray>();
@@ -38,7 +38,7 @@ namespace MainGame.UnityView.UI.UIState.UIObject
             
             var blockInventory = new SubInventoryViewBluePrint(){ArraySlots = arraySlot,TextElements = text};
             
-            playerInventorySlots.SetSubSlots(blockInventory,new SubInventoryOptions());
+            playerInventorySlots.SetSubSlots(blockInventory,new SubInventoryOptions(){IsBlock = true,BlockPosition = blockPos});
         }
 
 

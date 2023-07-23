@@ -14,7 +14,8 @@
         "ThirdPersonController",
         "MessagePack",
         "Localization",
-        "UniRx"
+        "UniRx",
+        "Network"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,25 +1,39 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Block.Blocks.Machine;
+using Core.Block.Blocks.State;
+using Core.Block.Config;
 using MainGame.Basic.UI;
+using MainGame.Network.Event;
 using MainGame.UnityView.UI.Builder;
 using MainGame.UnityView.UI.Builder.BluePrint;
 using MainGame.UnityView.UI.Builder.Element;
 using MainGame.UnityView.UI.Builder.Unity;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View.SubInventory;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory.View
 {
+    /// <summary>
+    /// TODO これ自体のリファクタをした方がいいかもなぁ 一つのインベントリクラスが動的に構築するんじゃなくて、各ブロックやインベントリに合わせてオブジェクトを生成しておくみたいな形式
+    /// </summary>
     public class PlayerInventorySlots : MonoBehaviour
     {
         [SerializeField] private List<UIBuilderItemSlotObject> mainInventorySlots;
         [SerializeField] private UIBuilder uiBuilder;
         [SerializeField] private Transform subInventorySlotsParent;
         
-        private List<UIBuilderItemSlotObject> _subInventorySlots = new();
+        /// <summary>
+        /// サブインベントリのオブジェクトのリスト
+        /// </summary>
         private List<IUIBuilderObject> _subInventoryElementObjects = new();
+        /// <summary>
+        /// サブインベントリのスロットだけ
+        /// </summary>
+        private List<UIBuilderItemSlotObject> _subInventorySlots = new();
 
         public event Action<int> OnRightClickDown;
         public event Action<int> OnLeftClickDown;
@@ -30,8 +44,8 @@ namespace MainGame.UnityView.UI.Inventory.View
         public event Action<int> OnCursorExit;
         public event Action<int> OnCursorMove;
         public event Action<int> OnDoubleClick;
-        
         public event Action<SubInventoryOptions> OnSetSubInventory;
+
 
         private void Awake()
         {
@@ -63,10 +77,16 @@ namespace MainGame.UnityView.UI.Inventory.View
         }
 
 
+        private bool _isBlockInventoryOpening = false;
+        private Vector2Int _blockPosition;
 
         public void SetSubSlots(SubInventoryViewBluePrint subInventoryViewBluePrint,SubInventoryOptions subInventoryOptions)
         {
             OnSetSubInventory?.Invoke(subInventoryOptions);
+
+            _isBlockInventoryOpening = subInventoryOptions.IsBlock;
+            _blockPosition = subInventoryOptions.BlockPosition;
+            
             foreach (var subSlot in _subInventoryElementObjects)
             {
                 Destroy(((MonoBehaviour)subSlot).gameObject);
@@ -92,6 +112,42 @@ namespace MainGame.UnityView.UI.Inventory.View
                     slot.slot.OnDoubleClick += _ => OnDoubleClick?.Invoke(slotIndex);
                 });
         }
+        
+        /// <summary>
+        /// ブロックの状態を表示する機能(プログレスバーの矢印の表示など）
+        /// </summary>
+        public void SetBlockState(BlockStateChangeProperties stateChangeProperties,string blockType,Vector2Int blockPos)
+        {
+            //ブロックを開いてなかったらスルー
+            if (!_isBlockInventoryOpening) return;
+            //開いているブロックじゃなければスルー
+            if (_blockPosition != blockPos) return;
+            
+            //Machine以外は実装上表示することがないのでスルー
+            //TODo 今後タイプが増えたら抽象化する
+            if (blockType != VanillaBlockType.Machine) return;
+            
+            
+            //⚠️ ここから下はMachineのみの処理
+            var blockState = stateChangeProperties.CurrentState;
+            if (blockState != ProcessState.Processing.ToString())
+            {
+                return;
+            }
+
+            var progressArrow = _subInventoryElementObjects.Where(p =>
+                p.BluePrintElement.ElementElementType == UIBluePrintElementType.ProgressArrow).ToList();
+            if (progressArrow.Count != 0)
+            {
+                return;
+            }
+
+            var data = JsonConvert.DeserializeObject<CommonMachineBlockStateChangeData>(stateChangeProperties.CurrentStateData);
+            foreach (var arrow in progressArrow)
+            {
+                ((UIBuilderProgressArrowObject)arrow).SetFillAmount(data.ProcessingRate);
+            }
+        }
 
         /// <summary>
         /// ブループリントシステムで設定された名前でスロットのRectTransformを取得する
@@ -111,5 +167,6 @@ namespace MainGame.UnityView.UI.Inventory.View
 
             return null;
         }
+
     }
 }

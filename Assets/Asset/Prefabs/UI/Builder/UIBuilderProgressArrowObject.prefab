@@ -163,7 +163,7 @@ GameObject:
   - component: {fileID: 199797656134662477}
   - component: {fileID: 4614944044410549802}
   m_Layer: 5
-  m_Name: UIBuilderProgressArrayobject
+  m_Name: UIBuilderProgressArrowObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -203,3 +203,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 706dcf4c73144738804f181da7703343, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  arrowBlack: {fileID: 1797087259622459037}
