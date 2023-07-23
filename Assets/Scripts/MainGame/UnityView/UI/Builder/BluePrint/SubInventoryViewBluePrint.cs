@@ -7,7 +7,7 @@ namespace MainGame.UnityView.UI.Builder.BluePrint
     {
         public List<UIBluePrintItemSlot> OneSlots = new();
         public List<UIBluePrintItemSlotArray> ArraySlots = new();
-        public List<TextElement> TextElements = new();
+        public List<UIBluePrintText> TextElements = new();
 
         public List<IUIBluePrintElement> Elements
         {

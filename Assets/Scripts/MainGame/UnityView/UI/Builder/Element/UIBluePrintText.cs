@@ -1,6 +1,6 @@
 namespace MainGame.UnityView.UI.Builder.Element
 {
-    public class TextElement : IUIBluePrintElement
+    public class UIBluePrintText : IUIBluePrintElement
     {
         public UIBluePrintElementType ElementElementType => UIBluePrintElementType.Text;
         public int Priority { get; }
@@ -11,7 +11,7 @@ namespace MainGame.UnityView.UI.Builder.Element
         public readonly string DefaultText;
         public readonly int FontSize;
         
-        public TextElement(float x, float y,int priority, string defaultText, int fontSize, string idName = "")
+        public UIBluePrintText(float x, float y,int priority, string defaultText, int fontSize, string idName = "")
         {
             Priority = priority;
             X = x;

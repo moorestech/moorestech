@@ -7,10 +7,15 @@
         public string IdName { get; }
         
         
-        public UIBluePrintProgressArrow(int priority, string idName)
+        public readonly float X;
+        public readonly float Y;
+        
+        public UIBluePrintProgressArrow(int priority, string idName, float x, float y)
         {
             Priority = priority;
             IdName = idName;
+            X = x;
+            Y = y;
         }
     }
 }

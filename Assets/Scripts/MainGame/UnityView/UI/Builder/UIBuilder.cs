@@ -17,6 +17,7 @@ namespace MainGame.UnityView.UI.Builder
         [SerializeField] private UIBuilderItemSlotObject UIBuilderItemSlotObjectPrefab;
         [SerializeField] private UIBuilderItemSlotArrayObject UIBuilderItemSlotArrayObjectPrefab;
         [SerializeField] private UIBuilderTextObject UIBuilderTextObjectPrefab;
+        [SerializeField] private UIBuilderProgressArrowObject UIBuilderProgressArrowObjectPrefab;
         
         /// <summary>
         /// ブループリントからそのオブジェクトを生成する
@@ -41,8 +42,12 @@ namespace MainGame.UnityView.UI.Builder
                         uiObjects.AddRange(array);
                         break;
                     case UIBluePrintElementType.Text:
-                        var text = CreateTextElement(element as TextElement, parent);
+                        var text = CreateTextElement(element as UIBluePrintText, parent);
                         uiObjects.Add(text);
+                        break;
+                    case UIBluePrintElementType.ProgressArrow:
+                        var arrow = CreateProgressArrow(element as UIBluePrintProgressArrow, parent);
+                        uiObjects.Add(arrow);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(element.ElementElementType + " の実装がありません");
@@ -51,7 +56,7 @@ namespace MainGame.UnityView.UI.Builder
             return uiObjects;
         }
 
-        private UIBuilderTextObject CreateTextElement(TextElement element, Transform parent)
+        private UIBuilderTextObject CreateTextElement(UIBluePrintText element, Transform parent)
         {
             var text = Instantiate(UIBuilderTextObjectPrefab.gameObject, parent).GetComponent<UIBuilderTextObject>();
             text.Initialize(element);
@@ -96,7 +101,19 @@ namespace MainGame.UnityView.UI.Builder
 
             return slot.SetArraySlot(uiBluePrintItemSlotArray.Height, uiBluePrintItemSlotArray.Width, uiBluePrintItemSlotArray.BottomBlank);
         }
-        
+
+
+        private UIBuilderProgressArrowObject CreateProgressArrow(UIBluePrintProgressArrow uiBluePrintProgressArrow, Transform parent)
+        {
+            var arrow = Instantiate(UIBuilderProgressArrowObjectPrefab, parent);
+            arrow.Initialize(uiBluePrintProgressArrow);
+            
+            var rect = arrow.GetComponent<RectTransform>();
+            rect.SetAnchor(AnchorPresets.MiddleCenter);
+            rect.anchoredPosition = new Vector2(uiBluePrintProgressArrow.X, uiBluePrintProgressArrow.Y);
+
+            return arrow;
+        }
 
     }
 }
