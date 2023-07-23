@@ -268,7 +268,19 @@
                 "oreSetting": [
                     {
                         "oreId": 1,
-                        "time": 5000
+                        "time": 30000
+                    },
+                    {
+                        "oreId": 2,
+                        "time": 30000
+                    },
+                    {
+                        "oreId": 3,
+                        "time": 30000
+                    },
+                    {
+                        "oreId": 4,
+                        "time": 30000
                     }
                 ]
             },
@@ -301,7 +313,19 @@
                 "oreSetting": [
                     {
                         "oreId": 1,
-                        "time": 5000
+                        "time": 10000
+                    },
+                    {
+                        "oreId": 2,
+                        "time": 10000
+                    },
+                    {
+                        "oreId": 3,
+                        "time": 10000
+                    },
+                    {
+                        "oreId": 4,
+                        "time": 10000
                     }
                 ]
             },

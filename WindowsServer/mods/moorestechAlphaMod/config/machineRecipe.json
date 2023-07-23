@@ -173,7 +173,7 @@
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "stone smelter",
-    "time": 12500,
+    "time": 15000,
     "input": [
       {
         "itemName":"copper ore",
@@ -198,7 +198,7 @@
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "stone smelter",
-    "time": 12500,
+    "time": 15000,
     "input": [
       {
         "itemName":"iron ore",
@@ -223,7 +223,7 @@
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "stone smelter",
-    "time": 6000,
+    "time": 10000,
     "input": [
       {
         "itemName":"copper ore",
@@ -248,7 +248,7 @@
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "stone smelter",
-    "time": 6000,
+    "time": 10000,
     "input": [
       {
         "itemName":"iron ore",
@@ -273,7 +273,7 @@
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "stone smelter",
-    "time": 3000,
+    "time": 5000,
     "input": [
       {
         "itemName":"copper ore powder",
@@ -298,7 +298,7 @@
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "stone smelter",
-    "time": 3000,
+    "time": 5000,
     "input": [
       {
         "itemName":"iron ore powder",
