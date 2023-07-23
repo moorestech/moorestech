@@ -97,7 +97,7 @@ namespace Server.Util
                 if (bytes.Length <= startIndex + 4)
                 {
                     _packetLengthBytes.Clear();
-                    for (int i = 0; i < bytes.Length + i; i++)
+                    for (int i = 0; i < bytes.Length  + startIndex + i; i++)
                     {
                         _remainingHeaderLength = 4 - (bytes.Length - startIndex);
                         _packetLengthBytes.Add(bytes[startIndex + i]);
