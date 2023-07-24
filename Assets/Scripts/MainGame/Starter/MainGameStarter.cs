@@ -153,7 +153,7 @@ namespace MainGame.Starter
             builder.RegisterInstance(new ServerProcessSetting(isLocal,localServerProcess));
             builder.RegisterInstance(new ConnectionServerConfig(IPAddress,Port));
             builder.RegisterInstance(new PlayerConnectionSetting(PlayerId));
-            builder.RegisterEntryPoint<ConnectionServer>();
+            builder.Register<ConnectionServer>(Lifetime.Scoped);
             builder.Register<SocketInstanceCreate, SocketInstanceCreate>(Lifetime.Singleton);
             builder.Register<AllReceivePacketAnalysisService, AllReceivePacketAnalysisService>(Lifetime.Singleton);
             builder.Register<ISocketSender, SocketSender>(Lifetime.Singleton);
@@ -291,6 +291,9 @@ namespace MainGame.Starter
             
             
 
+            builder.RegisterBuildCallback(objectResolver =>
+            {
+            });
 
 
             //依存関係を解決
@@ -303,7 +306,8 @@ namespace MainGame.Starter
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntitiesPresenter>();
             _resolver.Resolve<ConnectionServer>();
-            
+            _resolver.Resolve<NetworkDisconnectPresenter>();
+
             missionPresenter.Initialize(builder);
         }
 

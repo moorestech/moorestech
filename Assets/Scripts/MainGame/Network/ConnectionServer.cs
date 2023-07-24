@@ -2,6 +2,7 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using MainGame.Network.Send.SocketUtil;
 using MessagePack;
 using Server.Util;
@@ -11,10 +12,10 @@ using VContainer.Unity;
 
 namespace MainGame.Network
 {
-    public class ConnectionServer : IPostStartable
+    public class ConnectionServer
     {
-        public IObservable<(string message,string stackTrace)> OnDisconnect => _onDisconnect;
-        private readonly Subject<(string message,string stackTrace)> _onDisconnect = new();
+        public IObservable<Unit> OnDisconnect => _onDisconnect;
+        private readonly Subject<Unit> _onDisconnect = new();
 
         private readonly AllReceivePacketAnalysisService _allReceivePacketAnalysisService;
         private readonly SocketInstanceCreate _socketInstanceCreate;
@@ -26,18 +27,16 @@ namespace MainGame.Network
         {
             _allReceivePacketAnalysisService = allReceivePacketAnalysisService;
             _socketInstanceCreate = socketInstanceCreate;
+
+            Task.Run(Connect);
         }
 
-        //MonoBehaviourのStartが終わり、全ての初期化が完了した後、サーバーに接続する
-        public void PostStart()
-        {
-            var t = new Thread(Connect);
-            t.Start();
-        }
 
-        private void Connect()
+        private async Task Connect()
         {
-
+            //サーバーに接続する前に全体の処理を待つ
+            await Task.Delay(1000);
+            
             Debug.Log("サーバーに接続します");
             //接続を試行する
             try
@@ -60,6 +59,7 @@ namespace MainGame.Network
                 var length = _socketInstanceCreate.SocketInstance.Receive(buffer);
                 if (length == 0)
                 {
+                    _onDisconnect.OnNext(Unit.Default);
                     Debug.LogError("サーバーから切断されました");
                     break;
                 }
@@ -80,7 +80,6 @@ namespace MainGame.Network
                     {
                         _socketInstanceCreate.SocketInstance.Close();
                     }
-                    _onDisconnect.OnNext((e.Message,e.StackTrace));
 
                     var packetsStr = new StringBuilder();
                     foreach (var @byte in buffer)

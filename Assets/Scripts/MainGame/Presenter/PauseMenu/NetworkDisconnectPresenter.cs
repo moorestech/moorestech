@@ -16,20 +16,12 @@ namespace MainGame.Presenter.PauseMenu
         
         [SerializeField] private Button goToMainMenuButton;
         
-        [SerializeField] private TMP_Text disconnectMessage;
-        [SerializeField] private TMP_Text disconnectStackTrace;
 
         [Inject]
         public void Construct(ConnectionServer connectionServer)
         {
-            connectionServer.OnDisconnect.Subscribe(m =>
+            connectionServer.OnDisconnect.Subscribe(_ =>
             {
-                var message = m.message;
-                var stackTrace = m.stackTrace;
-                
-                disconnectMessage.text = message;
-                disconnectStackTrace.text = stackTrace;
-                
                 disconnectPanel.SetActive(true);
             }).AddTo(this);
             goToMainMenuButton.onClick.AddListener(() =>
