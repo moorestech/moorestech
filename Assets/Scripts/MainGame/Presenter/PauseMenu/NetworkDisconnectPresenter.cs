@@ -22,7 +22,7 @@ namespace MainGame.Presenter.PauseMenu
         {
             connectionServer.OnDisconnect.Subscribe(_ =>
             {
-                disconnectPanel.SetActive(true);
+                disconnectPanel.gameObject.SetActive(true);
             }).AddTo(this);
             goToMainMenuButton.onClick.AddListener(() =>
             {

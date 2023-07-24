@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MainGame.Network.Send.SocketUtil;
 using MessagePack;
 using Server.Util;
@@ -53,54 +54,65 @@ namespace MainGame.Network
             var buffer = new byte[4096];
             
             var parser = new PacketBufferParser();
-            while (true)
+            try
             {
-                //Receiveで受信
-                var length = _socketInstanceCreate.SocketInstance.Receive(buffer);
-                if (length == 0)
+                while (true)
                 {
-                    _onDisconnect.OnNext(Unit.Default);
-                    Debug.LogError("サーバーから切断されました");
-                    break;
-                }
-                    
-                //解析をしてunity viewに送る
-                var packets = parser.Parse(buffer, length);
-                try
-                {
+                    //Receiveで受信
+                    var length = _socketInstanceCreate.SocketInstance.Receive(buffer);
+                    if (length == 0)
+                    {
+                        Debug.LogError("ストリームがゼロによる切断");
+                        break;
+                    }
+
+                    //解析をしてunity viewに送る
+                    var packets = parser.Parse(buffer, length);
                     foreach (var packet in packets)
                     {
                         _allReceivePacketAnalysisService.Analysis(packet);
                     }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogError("エラーによりサーバーから切断されました");
-                    if (_socketInstanceCreate.SocketInstance.Connected)
-                    {
-                        _socketInstanceCreate.SocketInstance.Close();
-                    }
 
-                    var packetsStr = new StringBuilder();
-                    foreach (var @byte in buffer)
-                    {
-                        packetsStr.Append($"{@byte:X2}" + " ");
-                    }
-
-
-                    try
-                    {
-                        var json = MessagePackSerializer.ConvertToJson(buffer);
-                        Debug.LogError("受信パケット内容 JSON:" + json + " bytes:" +packetsStr);
-                    }
-                    catch (Exception exception)
-                    {
-                        Debug.LogError("受信パケット内容 JSON:解析に失敗 bytes:" +packetsStr);
-                    }
-
-                    throw;
-                }
             }
+            catch (Exception e)
+            {
+                Debug.LogError("エラーによりサーバーから切断されました");
+                if (_socketInstanceCreate.SocketInstance.Connected)
+                {
+                    _socketInstanceCreate.SocketInstance.Close();
+                }
+
+                var packetsStr = new StringBuilder();
+                foreach (var @byte in buffer)
+                {
+                    packetsStr.Append($"{@byte:X2}" + " ");
+                }
+
+
+                try
+                {
+                    var json = MessagePackSerializer.ConvertToJson(buffer);
+                    Debug.LogError("受信パケット内容 JSON:" + json + " bytes:" + packetsStr);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogError("受信パケット内容 JSON:解析に失敗 bytes:" + packetsStr);
+                }
+
+                throw;
+            }
+            finally
+            {
+                Debug.Log("通信ループ終了");
+                InvokeDisconnect().Forget();
+            }
+        }
+        
+        private async UniTask InvokeDisconnect()
+        {
+            await UniTask.SwitchToMainThread();
+            _onDisconnect.OnNext(Unit.Default);
         }
     }
 }
