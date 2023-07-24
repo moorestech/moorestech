@@ -11,25 +11,26 @@ namespace MainGame.UnityView.Block.StateChange
     public class MachineBlockStateChangeProcessor : MonoBehaviour,IBlockStateChangeProcessor
     {
         #region Resources
-        private static AudioClip _machineSound;
-        private static ParticleSystem _machineEffect;
+
+        private static readonly AudioClip machineSoundClip = Resources.Load<AudioClip>("Machine/MachineProcess");
+        private static readonly GameObject machineEffectPrefab = Resources.Load<GameObject>("Machine/MachineProcessEffect");
         #endregion
         
         private AudioSource _audioSource;
+        private ParticleSystem _machineEffect;
         private float _processingRate;
 
         private void Start()
         {
-            _machineSound ??= Resources.Load<AudioClip>("Machine/MachineProcess");
-            _audioSource = gameObject.AddComponent<AudioSource>();
-            _audioSource.clip = _machineSound;
-            _audioSource.Stop();
             
-            var machineEffectPrefab = Resources.Load<GameObject>("Machine/MachineProcessEffect");
-            var machineEffectObject = Instantiate(machineEffectPrefab, transform);
-            machineEffectObject.transform.localPosition = Vector3.zero;
-            _machineEffect = machineEffectObject.GetComponent<ParticleSystem>();
-            _machineEffect.Stop();
+            
+            _audioSource = gameObject.AddComponent<AudioSource>();
+            _audioSource.clip = machineSoundClip;
+            _audioSource.Stop();
+
+            var effectObject = Instantiate(machineEffectPrefab, transform);
+            effectObject.transform.localPosition = Vector3.zero;
+            _machineEffect = effectObject.GetComponent<ParticleSystem>();
         }
 
 
