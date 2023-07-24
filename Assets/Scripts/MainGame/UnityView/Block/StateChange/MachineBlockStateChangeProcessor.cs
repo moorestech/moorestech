@@ -12,25 +12,30 @@ namespace MainGame.UnityView.Block.StateChange
     {
         #region Resources
 
-        private static readonly AudioClip machineSoundClip = Resources.Load<AudioClip>("Machine/MachineProcess");
-        private static readonly GameObject machineEffectPrefab = Resources.Load<GameObject>("Machine/MachineProcessEffect");
+        private static AudioClip _machineSoundClip;
+        private static GameObject _machineEffectPrefab;
         #endregion
         
         private AudioSource _audioSource;
         private ParticleSystem _machineEffect;
         private float _processingRate;
 
+        private void Awake()
+        {
+            _machineSoundClip ??= Resources.Load<AudioClip>("Machine/MachineProcess");
+            _machineEffectPrefab ??= Resources.Load<GameObject>("Machine/MachineProcessEffect");
+        }
+
         private void Start()
         {
-            
-            
             _audioSource = gameObject.AddComponent<AudioSource>();
-            _audioSource.clip = machineSoundClip;
+            _audioSource.clip = _machineSoundClip;
             _audioSource.Stop();
 
-            var effectObject = Instantiate(machineEffectPrefab, transform);
+            var effectObject = Instantiate(_machineEffectPrefab, transform);
             effectObject.transform.localPosition = Vector3.zero;
             _machineEffect = effectObject.GetComponent<ParticleSystem>();
+            _machineEffect.Stop();
         }
 
 
