@@ -60,7 +60,6 @@ namespace Server.Boot.PacketHandle
                 for (var i = 0; i < results.Count; i++)
                 {
                     var result = results[i];
-                    Console.WriteLine("add header " + MessagePackSerializer.ConvertToJson(result.ToArray()));
                     result.InsertRange(0, ToByteList.Convert(result.Count));
                     _client.Send(result.ToArray());
                 }

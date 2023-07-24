@@ -46,7 +46,6 @@ namespace Server.Protocol
             var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray()).Tag;
             
             var response = _packetResponseDictionary[tag].GetResponse(payload);
-            Console.WriteLine(tag + " " + response.Count);
             return response;
         }
     }
