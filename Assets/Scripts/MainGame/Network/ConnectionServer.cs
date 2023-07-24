@@ -5,6 +5,7 @@ using System.Threading;
 using MainGame.Network.Send.SocketUtil;
 using MessagePack;
 using Server.Util;
+using UniRx;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -12,6 +13,9 @@ namespace MainGame.Network
 {
     public class ConnectionServer : IPostStartable
     {
+        public IObservable<(string message,string stackTrace)> OnDisconnect => _onDisconnect;
+        private readonly Subject<(string message,string stackTrace)> _onDisconnect = new();
+
         private readonly AllReceivePacketAnalysisService _allReceivePacketAnalysisService;
         private readonly SocketInstanceCreate _socketInstanceCreate;
 
@@ -76,6 +80,7 @@ namespace MainGame.Network
                     {
                         _socketInstanceCreate.SocketInstance.Close();
                     }
+                    _onDisconnect.OnNext((e.Message,e.StackTrace));
 
                     var packetsStr = new StringBuilder();
                     foreach (var @byte in buffer)

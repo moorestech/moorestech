@@ -21,6 +21,7 @@ using MainGame.Presenter.Inventory.Send;
 using MainGame.Presenter.Loading;
 using MainGame.Presenter.MapObject;
 using MainGame.Presenter.Mission;
+using MainGame.Presenter.PauseMenu;
 using MainGame.Presenter.Player;
 using MainGame.Presenter.Quest;
 using MainGame.Presenter.Tutorial;
@@ -126,6 +127,7 @@ namespace MainGame.Starter
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
+        [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
 
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange; 
 
@@ -270,6 +272,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(recipeViewerObject);
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
+            builder.RegisterComponent(networkDisconnectPresenter);
             builder.RegisterComponent(itemRecipePresenter);
             builder.RegisterComponent(craftRecipeItemListViewer);
             builder.RegisterComponent(playerInventorySlots);
@@ -299,6 +302,7 @@ namespace MainGame.Starter
             _resolver.Resolve<LoadingFinishDetector>();
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntitiesPresenter>();
+            _resolver.Resolve<ConnectionServer>();
             
             missionPresenter.Initialize(builder);
         }
