@@ -16,7 +16,10 @@ namespace Server.Event
         {
             if (_events.TryGetValue(playerId, out var eventList))
             {
-                Console.WriteLine($"{eventList.Count}番目 {MessagePackSerializer.ConvertToJson(eventByteArray.ToArray())}");
+                if (eventList.Count <= 300)
+                {
+                    Console.WriteLine($"target {eventList.Count}番目 {MessagePackSerializer.ConvertToJson(eventByteArray.ToArray())}");
+                }
                 eventList.Add(eventByteArray);
             }
             else
@@ -30,7 +33,10 @@ namespace Server.Event
         {
             foreach (var key in _events.Keys)
             {
-                Console.WriteLine($"{_events[key].Count}番目 {MessagePackSerializer.ConvertToJson(eventByteArray.ToArray())}");
+                if (_events[key].Count <= 300)
+                {
+                    Console.WriteLine($"broad {_events[key].Count}番目 {MessagePackSerializer.ConvertToJson(eventByteArray.ToArray())}");
+                }
                 _events[key].Add(eventByteArray);
             }
         }
