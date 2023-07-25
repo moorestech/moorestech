@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net.Sockets;
+using MessagePack;
 using Server.Protocol;
 using Server.Util;
 
@@ -35,6 +37,7 @@ namespace Server.Boot.PacketHandle
             }
             catch (Exception e)
             {
+                _client.Close();
                 Console.WriteLine("エラーによる切断");
                 Console.WriteLine(e);
             }
@@ -54,8 +57,9 @@ namespace Server.Boot.PacketHandle
             foreach (var packet in packets)
             {
                 var results = _packetResponseCreator.GetPacketResponse(packet);
-                foreach (var result in results)
+                for (var i = 0; i < results.Count; i++)
                 {
+                    var result = results[i];
                     result.InsertRange(0, ToByteList.Convert(result.Count));
                     _client.Send(result.ToArray());
                 }

@@ -13,7 +13,7 @@ namespace Server.Util
         int _packetLength = 0;
         int _nextPacketLengthOffset = 0;
 
-        private bool _isGettingLength = true;
+        private bool _isGettingLength = false;
         private int _remainingHeaderLength = 0;
         private List<byte> _packetLengthBytes = new();
 
@@ -83,9 +83,9 @@ namespace Server.Util
             var headerBytes = new List<byte>();
             if (_isGettingLength)
             {
-                for (int i = _remainingHeaderLength; i < 4; i++)
+                for (int i = 0; i < _remainingHeaderLength; i++)
                 {
-                    _packetLengthBytes.Add(bytes[startIndex + i]);
+                    _packetLengthBytes.Add(bytes[i]);
                 }
                 headerBytes = _packetLengthBytes;
                 _isGettingLength = false;
@@ -94,9 +94,10 @@ namespace Server.Util
             {
                 lenght = -1;
                 //パケット長が取得でききれない場合
-                if (bytes.Length <= startIndex + 4)
+                if (bytes.Length <= startIndex + 3)
                 {
                     _packetLengthBytes.Clear();
+                    _remainingHeaderLength = 4;
                     for (int i = startIndex; i < bytes.Length; i++)
                     {
                         _remainingHeaderLength = 4 - (i - startIndex);
