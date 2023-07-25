@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MessagePack;
 
 namespace Server.Event
 {
@@ -13,12 +14,14 @@ namespace Server.Event
 
         public void AddEvent(int playerId, List<byte> eventByteArray)
         {
-            if (_events.ContainsKey(playerId))
+            if (_events.TryGetValue(playerId, out var eventList))
             {
-                _events[playerId].Add(eventByteArray);
+                Console.WriteLine($"{eventList.Count}番目 {MessagePackSerializer.ConvertToJson(eventByteArray.ToArray())}");
+                eventList.Add(eventByteArray);
             }
             else
             {
+                Console.WriteLine($"{0}番目 {MessagePackSerializer.ConvertToJson(eventByteArray.ToArray())}");
                 _events.Add(playerId, new List<List<byte>>() {eventByteArray});
             }
         }
@@ -27,6 +30,7 @@ namespace Server.Event
         {
             foreach (var key in _events.Keys)
             {
+                Console.WriteLine($"{_events[key].Count}番目 {MessagePackSerializer.ConvertToJson(eventByteArray.ToArray())}");
                 _events[key].Add(eventByteArray);
             }
         }
