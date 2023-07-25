@@ -78,6 +78,7 @@ namespace MainGame.Network
             catch (Exception e)
             {
                 Debug.LogError("エラーによりサーバーから切断されました");
+                Debug.LogError($"Message {e.Message} StackTrace {e.StackTrace}");
                 if (_socketInstanceCreate.SocketInstance.Connected)
                 {
                     _socketInstanceCreate.SocketInstance.Close();
