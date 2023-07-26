@@ -28,8 +28,8 @@ namespace Core.Update
                 Updates[i]?.Update();
             }
 
-            //次のアップデートと最低10ミリ秒間隔を開けて実行する
-            while (DateTime.Now.Subtract(_prevUpdateDateTime).TotalMilliseconds <= 10)
+            //次のアップデートと最低100ミリ秒間隔を開けて実行する
+            while (DateTime.Now.Subtract(_prevUpdateDateTime).TotalMilliseconds <= 100)
             {
             }
         }
