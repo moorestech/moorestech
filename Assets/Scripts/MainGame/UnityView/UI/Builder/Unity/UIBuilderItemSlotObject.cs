@@ -36,9 +36,11 @@ namespace MainGame.UnityView.UI.Builder.Unity
         
         public ItemViewData ItemViewData { get; private set; }
         public IUIBluePrintElement BluePrintElement { get; private set; }
-        
+        public RectTransform RectTransform { get; private set; }
+
         public void Initialize(IUIBluePrintElement bluePrintElement)
         {
+            RectTransform = GetComponent<RectTransform>();
             BluePrintElement = bluePrintElement;
         }
 

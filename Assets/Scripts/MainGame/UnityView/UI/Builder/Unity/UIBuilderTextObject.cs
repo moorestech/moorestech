@@ -10,9 +10,11 @@ namespace MainGame.UnityView.UI.Builder.Unity
         [SerializeField] private TMP_Text tmpText;
 
         public IUIBluePrintElement BluePrintElement { get; private set; }
+        public RectTransform RectTransform { get; private set; }
 
         public void Initialize(IUIBluePrintElement bluePrintElement)
         {
+            RectTransform = GetComponent<RectTransform>();
             BluePrintElement = bluePrintElement;
         }
 

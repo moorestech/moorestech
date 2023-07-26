@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace MainGame.UnityView.UI.Builder.Element
 {
     public class UIBluePrintItemSlotArray : IUIBluePrintElement
@@ -6,23 +8,41 @@ namespace MainGame.UnityView.UI.Builder.Element
         public UIBluePrintElementType ElementElementType => UIBluePrintElementType.ArraySlot;
         public int Priority { get; }
         public string IdName { get; }
+        public Vector2 RectPosition { get; }
+        public Vector3 Rotation { get; }
+        public Vector2 RectSize { get; }
+        
         public readonly int BottomBlank;
 
-        public readonly float X;
-        public readonly float Y;
 
-        public readonly int Height;
-        public readonly int Width;
+        public readonly int ArrayRow;
+        public readonly int ArrayColumn;
 
-        public UIBluePrintItemSlotArray(float x, float y, int priority, int height, int width,  int bottomBlank = 0,string idName = "")
+        public UIBluePrintItemSlotArray(int priority, int arrayRow, int arrayColumn, Vector2 rectPosition, Vector3 rotation, Vector2 size, int bottomBlank = 0,string idName = "")
         {
-            X = x;
-            Y = y;
             Priority = priority;
             BottomBlank = bottomBlank;
-            Height = height;
-            Width = width;
+            ArrayRow = arrayRow;
+            ArrayColumn = arrayColumn;
+            RectPosition = rectPosition;
+            Rotation = rotation;
+            RectSize = size;
             IdName = idName;
+        }
+
+        public UIBluePrintItemSlotArray(int priority, int arrayRow, int arrayColumn,Vector2 rectPosition)
+        {
+            
+            Priority = priority;
+            ArrayRow = arrayRow;
+            ArrayColumn = arrayColumn;
+            RectPosition = rectPosition;
+            
+            RectSize = UIBluePrintItemSlot.DefaultItemSlotRectSize * new Vector2(arrayColumn, arrayRow);
+            
+            BottomBlank = 0;
+            Rotation = Vector3.zero;
+            IdName = "";
         }
     }
 }

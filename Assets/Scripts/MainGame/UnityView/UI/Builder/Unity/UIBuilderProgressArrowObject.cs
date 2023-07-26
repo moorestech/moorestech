@@ -9,8 +9,11 @@ namespace MainGame.UnityView.UI.Builder.Unity
         [SerializeField] private Image arrowBlack;
         
         public IUIBluePrintElement BluePrintElement { get; private set; }
+        public RectTransform RectTransform { get; private set; }
+
         public void Initialize(IUIBluePrintElement bluePrintElement)
         {
+            RectTransform = GetComponent<RectTransform>();
             BluePrintElement = bluePrintElement;
         }
 

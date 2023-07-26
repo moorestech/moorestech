@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace MainGame.UnityView.UI.Builder.Element
 {
     public class UIBluePrintText : IUIBluePrintElement
@@ -5,19 +7,21 @@ namespace MainGame.UnityView.UI.Builder.Element
         public UIBluePrintElementType ElementElementType => UIBluePrintElementType.Text;
         public int Priority { get; }
         public string IdName { get; }
+        public Vector2 RectPosition { get; }
+        public Vector3 Rotation { get; }
+        public Vector2 RectSize { get; }
 
-        public readonly float X;
-        public readonly float Y;
         public readonly string DefaultText;
         public readonly int FontSize;
         
-        public UIBluePrintText(float x, float y,int priority, string defaultText, int fontSize, string idName = "")
+        public UIBluePrintText(int priority, string defaultText, int fontSize, Vector2 rectPosition, Vector3 rotation, Vector2 size, string idName = "")
         {
             Priority = priority;
-            X = x;
-            Y = y;
             DefaultText = defaultText;
             FontSize = fontSize;
+            RectPosition = rectPosition;
+            Rotation = rotation;
+            RectSize = size;
             IdName = idName;
         }
     }

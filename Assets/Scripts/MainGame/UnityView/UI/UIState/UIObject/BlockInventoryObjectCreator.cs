@@ -20,7 +20,7 @@ namespace MainGame.UnityView.UI.UIState.UIObject
             var arraySlot = new List<UIBluePrintItemSlotArray>();
             arraySlot.Add(CreateArraySlot(0,272,10,slot,PlayerInventoryConst.MainInventoryColumns));
             
-            var text = new List<UIBluePrintText>(){new(0,436,0,blockName,30)};
+            var text = new List<UIBluePrintText>(){new(0,blockName,30,new Vector2(0,436),Vector3.zero, new Vector2(100,500))};
             
             var blockInventory = new SubInventoryViewBluePrint(){ArraySlots = arraySlot,TextElements = text};
             
@@ -34,8 +34,8 @@ namespace MainGame.UnityView.UI.UIState.UIObject
             arraySlot.Add(CreateArraySlot(-330,272,10,input,maxSlotColumns));
             arraySlot.Add(CreateArraySlot(330,272,10,output,maxSlotColumns));
             
-            var text = new List<UIBluePrintText>(){new(0,436,0,blockName,30)};
-            var arrow = new List<UIBluePrintProgressArrow>() {new(0, 272, 1, "progressArrow")};
+            var text = new List<UIBluePrintText>(){new(0,blockName,30,new Vector2(0,436),Vector3.zero, new Vector2(100,500))};
+            var arrow = new List<UIBluePrintProgressArrow>() {new(1, "progressArrow",new Vector2(0,272),Vector3.zero, Vector2.one)};
             
             playerInventorySlots.SetSubSlots(
                 new SubInventoryViewBluePrint(){ArraySlots = arraySlot,TextElements = text,ProgressArrows = arrow},
@@ -43,18 +43,22 @@ namespace MainGame.UnityView.UI.UIState.UIObject
         }
 
 
-        private UIBluePrintItemSlotArray CreateArraySlot(int x,int y,int priority,int slot,int maxSlotColumns)
+        private UIBluePrintItemSlotArray CreateArraySlot(int x,int y,int priority,int slot,int column)
         {
-            if (slot < maxSlotColumns)
+            Vector2 deltaSize;
+            if (slot < column)
             {
-                return new UIBluePrintItemSlotArray(x, y, priority, 1, slot);
+                deltaSize = UIBluePrintItemSlot.DefaultItemSlotRectSize * new Vector2(slot, 1);
+                return new UIBluePrintItemSlotArray(priority, 1, slot,new Vector2(x, y), Vector3.zero, deltaSize);
             }
 
-            var height = 1 + slot / maxSlotColumns;
-            var width = maxSlotColumns;
-            var blank = maxSlotColumns - slot % maxSlotColumns;
+            var row = 1 + slot / column;
+            var width = column;
+            var blank = column - slot % column;
+            
+            deltaSize = UIBluePrintItemSlot.DefaultItemSlotRectSize * new Vector2(width, row);
                 
-            return new UIBluePrintItemSlotArray(x, y, priority, height, maxSlotColumns,blank);
+            return new UIBluePrintItemSlotArray(priority, row, column,new Vector2(x,y),Vector3.zero,deltaSize,blank);
 
         }
         

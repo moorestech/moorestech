@@ -1,4 +1,5 @@
 using MainGame.UnityView.UI.Builder.BluePrint;
+using UnityEngine;
 
 namespace MainGame.UnityView.UI.Builder.Element
 {
@@ -12,5 +13,10 @@ namespace MainGame.UnityView.UI.Builder.Element
         /// 必須ではないが、そのUI要素を特定するために使う
         /// </summary>
         public string IdName { get; }
+
+        public Vector2 RectPosition { get; }
+        public Vector3 Rotation { get; }
+        public Vector2 RectSize { get; }
+        
     }
 }

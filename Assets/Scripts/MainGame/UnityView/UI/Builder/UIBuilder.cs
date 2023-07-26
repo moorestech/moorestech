@@ -33,21 +33,18 @@ namespace MainGame.UnityView.UI.Builder
             {
                 switch (element.ElementElementType)
                 {
+                    //TODO サイズの設定方法とArrayの設定について考える必要がある
                     case UIBluePrintElementType.OneSlot:
-                        var item = CreateOneSlot(element as UIBluePrintItemSlot, parent);
-                        uiObjects.Add(item);
+                        uiObjects.Add(CreateOneSlot(element as UIBluePrintItemSlot, parent));
                         break;
                     case UIBluePrintElementType.ArraySlot:
-                        var array = CreateArraySlot(element as UIBluePrintItemSlotArray, parent);
-                        uiObjects.AddRange(array);
+                        uiObjects.AddRange(CreateArraySlot(element as UIBluePrintItemSlotArray, parent));
                         break;
                     case UIBluePrintElementType.Text:
-                        var text = CreateTextElement(element as UIBluePrintText, parent);
-                        uiObjects.Add(text);
+                        uiObjects.Add(CreateTextElement(element as UIBluePrintText, parent));
                         break;
                     case UIBluePrintElementType.ProgressArrow:
-                        var arrow = CreateProgressArrow(element as UIBluePrintProgressArrow, parent);
-                        uiObjects.Add(arrow);
+                        uiObjects.Add(CreateProgressArrow(element as UIBluePrintProgressArrow, parent));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(element.ElementElementType + " の実装がありません");
@@ -63,7 +60,9 @@ namespace MainGame.UnityView.UI.Builder
             
             var rect = text.GetComponent<RectTransform>();
             rect.SetAnchor(AnchorPresets.MiddleCenter);
-            rect.anchoredPosition = new Vector2(element.X, element.Y);
+            rect.anchoredPosition = element.RectPosition;
+            rect.rotation = Quaternion.Euler(element.Rotation);
+            rect.sizeDelta = element.RectSize;
             
             text.SetText(element.DefaultText,element.FontSize);
 
@@ -74,13 +73,16 @@ namespace MainGame.UnityView.UI.Builder
         private UIBuilderItemSlotObject CreateOneSlot(UIBluePrintItemSlot uiBluePrintItemSlot,Transform parent)
         {
             var slot = Instantiate(UIBuilderItemSlotObjectPrefab, parent);
+            //intefaceの定義の関係でこうしている
             slot.Initialize(uiBluePrintItemSlot);
+            slot.SetSlotOptions(uiBluePrintItemSlot.Options);
             
             var rect = slot.GetComponent<RectTransform>();
             rect.SetAnchor(AnchorPresets.MiddleCenter);
-            rect.anchoredPosition = new Vector2(uiBluePrintItemSlot.X, uiBluePrintItemSlot.Y);
-                    
-            slot.SetSlotOptions(uiBluePrintItemSlot.Options);
+            rect.anchoredPosition = uiBluePrintItemSlot.RectPosition;
+            rect.rotation = Quaternion.Euler(uiBluePrintItemSlot.Rotation);
+            rect.sizeDelta = uiBluePrintItemSlot.RectSize;
+            
 
             return slot;
         }
@@ -94,12 +96,16 @@ namespace MainGame.UnityView.UI.Builder
             var slotSize = UIBuilderItemSlotObjectPrefab.GetComponent<RectTransform>().sizeDelta;
             slot.GetComponent<GridLayoutGroup>().cellSize = slotSize;
                 
+            //TODO ArrayだけRectTransformの設定が特殊だからこうしている　設計を考える必要あり
+            //TODO Arrayっていう概念をなくして拡張メソッド的なので定義できるようにするのもあり
+            
             var rect = slot.GetComponent<RectTransform>();
             rect.SetAnchor(AnchorPresets.MiddleCenter);
-            rect.anchoredPosition = new Vector2(uiBluePrintItemSlotArray.X, uiBluePrintItemSlotArray.Y);
-            rect.sizeDelta = new Vector2(uiBluePrintItemSlotArray.Width * slotSize.x, uiBluePrintItemSlotArray.Height * slotSize.y);
+            rect.anchoredPosition = uiBluePrintItemSlotArray.RectPosition;
+            rect.rotation = Quaternion.Euler(uiBluePrintItemSlotArray.Rotation);
+            rect.sizeDelta = uiBluePrintItemSlotArray.RectSize;
 
-            return slot.SetArraySlot(uiBluePrintItemSlotArray.Height, uiBluePrintItemSlotArray.Width, uiBluePrintItemSlotArray.BottomBlank);
+            return slot.SetArraySlot(uiBluePrintItemSlotArray.ArrayRow, uiBluePrintItemSlotArray.ArrayColumn, uiBluePrintItemSlotArray.BottomBlank);
         }
 
 
@@ -110,7 +116,9 @@ namespace MainGame.UnityView.UI.Builder
             
             var rect = arrow.GetComponent<RectTransform>();
             rect.SetAnchor(AnchorPresets.MiddleCenter);
-            rect.anchoredPosition = new Vector2(uiBluePrintProgressArrow.X, uiBluePrintProgressArrow.Y);
+            rect.anchoredPosition = uiBluePrintProgressArrow.RectPosition;
+            rect.rotation = Quaternion.Euler(uiBluePrintProgressArrow.Rotation);
+            rect.sizeDelta = uiBluePrintProgressArrow.RectSize;
 
             return arrow;
         }
