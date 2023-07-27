@@ -125,10 +125,10 @@ namespace MainGame.UnityView.UI.Inventory.View
             
             //Machine以外は実装上表示することがないのでスルー
             //TODo 今後タイプが増えたら抽象化する
-            if (blockType != VanillaBlockType.Machine) return;
+            if (blockType != VanillaBlockType.Machine && blockType != VanillaBlockType.Miner) return;
             
             
-            //⚠️ ここから下はMachineのみの処理
+            //⚠️ ここから下はMachine、Minerのみの処理
             var progressArrow = _subInventoryElementObjects.Where(p =>
                 p.BluePrintElement.ElementElementType == UIBluePrintElementType.ProgressArrow).ToList();
             if (progressArrow.Count == 0)

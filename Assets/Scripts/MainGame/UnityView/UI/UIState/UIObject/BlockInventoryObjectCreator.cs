@@ -27,6 +27,26 @@ namespace MainGame.UnityView.UI.UIState.UIObject
             playerInventorySlots.SetSubSlots(blockInventory,new SubInventoryOptions(){IsBlock = true,BlockPosition = blockPos});
         }
         
+        public void SetMinerInventory(string blockName,int slot,Vector2Int blockPos)
+        {
+            var arraySlot = new List<UIBluePrintItemSlotArray>
+            {
+                CreateArraySlot(0,200,10,slot,PlayerInventoryConst.MainInventoryColumns)
+            };
+            var text = new List<UIBluePrintText>()
+            {
+                new(0,blockName,30,new Vector2(0,436),Vector3.zero, new Vector2(100,500))
+            };
+            var progressArrow = new List<UIBluePrintProgressArrow>()
+            {
+                new(0,"progressArrow",new Vector2(0,323),new Vector3(0,0,-90),Vector2.one)
+            };
+            
+            
+            var blockInventory = new SubInventoryViewBluePrint(){ArraySlots = arraySlot,TextElements = text,ProgressArrows = progressArrow};
+            playerInventorySlots.SetSubSlots(blockInventory,new SubInventoryOptions(){IsBlock = true,BlockPosition = blockPos});
+        }
+        
         public void SetIOSlotInventory(string blockName,int input,int output,Vector2Int blockPos)
         {
             const int maxSlotColumns = 5;

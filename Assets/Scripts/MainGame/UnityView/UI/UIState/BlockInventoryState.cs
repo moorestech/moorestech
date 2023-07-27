@@ -83,7 +83,7 @@ namespace MainGame.UnityView.UI.UIState
                 case VanillaBlockType.Miner:
                 {
                     var configParam = config.Param as MinerBlockConfigParam;
-                    _blockInventory.SetOneSlotInventory(config.Name,configParam.OutputSlot,blockPos);
+                    _blockInventory.SetMinerInventory(config.Name,configParam.OutputSlot,blockPos);
                     break;
                 }
                 case VanillaBlockType.Generator:
