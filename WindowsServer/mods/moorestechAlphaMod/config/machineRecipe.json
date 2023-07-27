@@ -43,7 +43,7 @@
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "wooden ore crusher",
-    "time": 3000,
+    "time": 6000,
     "input": [
       {
         "itemName":"iron ore",
@@ -85,7 +85,7 @@
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "wooden ore crusher",
-    "time": 3000,
+    "time": 6000,
     "input": [
       {
         "itemName":"coal",
@@ -126,7 +126,7 @@
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "wooden ore crusher",
-    "time": 3000,
+    "time": 6000,
     "input": [
       {
         "itemName":"copper ore",
