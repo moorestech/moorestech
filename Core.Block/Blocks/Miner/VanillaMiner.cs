@@ -133,7 +133,7 @@ namespace Core.Block.Blocks.Miner
 
         private void InvokeChangeStateEvent()
         {
-            var processingRate = (float) _remainingMillSecond / _defaultMiningTime;
+            var processingRate =  1 - (float) _remainingMillSecond / _defaultMiningTime;
             OnBlockStateChange?.Invoke(new ChangedBlockState(_currentState.ToStr(), _lastMinerState.ToStr(),
                 JsonConvert.SerializeObject(new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate))));
         }
