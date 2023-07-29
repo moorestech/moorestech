@@ -1,62 +1,6 @@
 {
     "Blocks": [
         {
-            "name": "spinning machine",
-            "type": "Machine",
-            "itemModId": "sakastudio:moorestechAlphaMod",
-            "itemName": "spinning machine",
-            "param": {
-                "inputSlot": 1,
-                "outputSlot": 1,
-                "requiredPower": 0
-            },
-            "modelTransform": {
-                "position": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "rotation": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "scale": {
-                    "x": 1,
-                    "y": 1,
-                    "z": 1
-                }
-            }
-        },
-        {
-            "name": "automatic loom",
-            "type": "Machine",
-            "itemModId": "sakastudio:moorestechAlphaMod",
-            "itemName": "automatic loom",
-            "param": {
-                "inputSlot": 1,
-                "outputSlot": 1,
-                "requiredPower": 0
-            },
-            "modelTransform": {
-                "position": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "rotation": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "scale": {
-                    "x": 1,
-                    "y": 1,
-                    "z": 1
-                }
-            }
-        },
-        {
             "name": "wooden ore crusher",
             "type": "Machine",
             "itemModId": "sakastudio:moorestechAlphaMod",

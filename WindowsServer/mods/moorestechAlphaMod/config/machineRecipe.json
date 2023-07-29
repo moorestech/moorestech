@@ -1,49 +1,9 @@
 ﻿[
-  {
-    "blockModId": "sakastudio:moorestechAlphaMod",
-    "blockName": "spinning machine",
-    "time": 3000,
-    "input": [
-      {
-        "itemName":"cotton",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 1
-      }
-    ],
-    "output": [
-      {
-        "itemName":"string",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 1,
-        "percent": 1
-      }
-    ]
-  },
-  {
-    "blockModId": "sakastudio:moorestechAlphaMod",
-    "blockName": "automatic loom",
-    "time": 3000,
-    "input": [
-      {
-        "itemName":"string",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 1
-      }
-    ],
-    "output": [
-      {
-        "itemName":"cloth",
-        "modId":"sakastudio:moorestechAlphaMod",
-        "count": 1,
-        "percent": 1
-      }
-    ]
-  },
 
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "wooden ore crusher",
-    "time": 6000,
+    "time": 20000,
     "input": [
       {
         "itemName":"iron ore",
@@ -85,7 +45,7 @@
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "wooden ore crusher",
-    "time": 6000,
+    "time": 20000,
     "input": [
       {
         "itemName":"coal",
@@ -126,7 +86,7 @@
   {
     "blockModId": "sakastudio:moorestechAlphaMod",
     "blockName": "wooden ore crusher",
-    "time": 6000,
+    "time": 20000,
     "input": [
       {
         "itemName":"copper ore",

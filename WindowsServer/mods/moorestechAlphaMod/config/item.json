@@ -1,5 +1,15 @@
 [
     {
+        "name": "stone",
+        "maxStacks": 100,
+        "imagePath": "assets/item/stone.png"
+    },
+    {
+        "name": "stone tool",
+        "maxStacks": 100,
+        "imagePath": "assets/item/stone tool.png"
+    },
+    {
         "name": "cotton",
         "maxStacks": 100,
         "imagePath": "assets/item/cotton.png"
@@ -20,19 +30,14 @@
         "imagePath": "assets/item/simple ax.png"
     },
     {
-        "name": "stone",
-        "maxStacks": 100,
-        "imagePath": "assets/item/stone.png"
-    },
-    {
-        "name": "stone tool",
-        "maxStacks": 100,
-        "imagePath": "assets/item/stone tool.png"
-    },
-    {
         "name": "wood",
         "maxStacks": 100,
         "imagePath": "assets/item/wood.png"
+    },
+    {
+        "name": "stone smelter",
+        "maxStacks": 100,
+        "imagePath": "assets/item/stone smelter.png"
     },
     {
         "name": "windmill",
@@ -63,21 +68,6 @@
         "name": "wooden miner",
         "maxStacks": 100,
         "imagePath": "assets/item/wooden miner.png"
-    },
-    {
-        "name": "automatic loom",
-        "maxStacks": 100,
-        "imagePath": "assets/item/automatic loom.png"
-    },
-    {
-        "name": "spinning machine",
-        "maxStacks": 100,
-        "imagePath": "assets/item/spinning machine.png"
-    },
-    {
-        "name": "stone smelter",
-        "maxStacks": 100,
-        "imagePath": "assets/item/stone smelter.png"
     },
     {
         "name": "iron ore",
@@ -133,11 +123,6 @@
         "name": "electric motor",
         "maxStacks": 100,
         "imagePath": "assets/item/electric motor.png"
-    },
-    {
-        "name": "heating wire",
-        "maxStacks": 100,
-        "imagePath": "assets/item/heating wire.png"
     },
     {
         "name": "sand",

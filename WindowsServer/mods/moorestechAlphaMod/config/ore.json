@@ -25,8 +25,8 @@
       },
       {
         "name": "sand_stone",
-        "veinSize" : 0.8,
-        "veinFrequency" : 1,
+        "veinSize" : 0.4,
+        "veinFrequency" : 1.7,
         "priority" : 60,
         "itemName" : "sand",
         "itemModId": "sakastudio:moorestechAlphaMod"
