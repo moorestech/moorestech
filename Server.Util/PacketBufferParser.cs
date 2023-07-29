@@ -32,17 +32,17 @@ namespace Server.Util
                 if (_continuationFromLastTimeBytes.Count == 0)
                 {
                     //パケット長を取得
-                    if (TryGetLength(packet, actualStartPacketDataIndex,out var lenght))
+                    if (TryGetLength(packet, actualStartPacketDataIndex,out var payloadLength,out var headerLength))
                     {
-                        _packetLength = lenght;
+                        _packetLength = payloadLength;
                         //パケット長のshort型の4バイトを取り除く
-                        reminderLength -= _packetLength　+ 4;
-                        actualStartPacketDataIndex += 4;
+                        reminderLength -= _packetLength　+ headerLength;
+                        actualStartPacketDataIndex += headerLength;
                     }
                     else
                     {
                         //残りバッファサイズ的に取得できない場合は次回の受信で取得する
-                        continue;
+                        break;
                     }
                 }
                 else
@@ -78,11 +78,12 @@ namespace Server.Util
         }
         
         
-        private bool TryGetLength(byte[] bytes,int startIndex,out int lenght)
+        private bool TryGetLength(byte[] bytes,int startIndex,out int payloadLength,out int headerLength)
         {
             var headerBytes = new List<byte>();
             if (_isGettingLength)
             {
+                headerLength = _remainingHeaderLength;
                 for (int i = 0; i < _remainingHeaderLength; i++)
                 {
                     _packetLengthBytes.Add(bytes[i]);
@@ -92,7 +93,8 @@ namespace Server.Util
             }
             else
             {
-                lenght = -1;
+                payloadLength = -1;
+                headerLength = -1;
                 //パケット長が取得でききれない場合
                 if (bytes.Length <= startIndex + 3)
                 {
@@ -100,12 +102,13 @@ namespace Server.Util
                     _remainingHeaderLength = 4;
                     for (int i = startIndex; i < bytes.Length; i++)
                     {
-                        _remainingHeaderLength = 4 - (i - startIndex);
+                        _remainingHeaderLength = 3 - (i - startIndex);
                         _packetLengthBytes.Add(bytes[i]);
                     }
                     _isGettingLength = true;
                     return false;
                 }
+                headerLength = 4;
                 headerBytes = new List<byte>
                 {
                     bytes[startIndex],
@@ -118,7 +121,7 @@ namespace Server.Util
 
             if (BitConverter.IsLittleEndian) headerBytes.Reverse();
             
-            lenght = BitConverter.ToInt32(headerBytes.ToArray(), 0);
+            payloadLength = BitConverter.ToInt32(headerBytes.ToArray(), 0);
             return true;
         }
     }
