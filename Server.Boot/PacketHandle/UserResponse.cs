@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
 using MessagePack;
@@ -57,9 +58,8 @@ namespace Server.Boot.PacketHandle
             foreach (var packet in packets)
             {
                 var results = _packetResponseCreator.GetPacketResponse(packet);
-                for (var i = 0; i < results.Count; i++)
+                foreach (var result in results)
                 {
-                    var result = results[i];
                     result.InsertRange(0, ToByteList.Convert(result.Count));
                     _client.Send(result.ToArray());
                 }

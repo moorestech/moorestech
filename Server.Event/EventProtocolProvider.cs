@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using MessagePack;
 
 namespace Server.Event
 {
     /// <summary>
     /// サーバー内で起こったイベントの中で、各プレイヤーに送る必要があるイベントを管理します。
     /// 送る必要のある各イベントはEventReceiveフォルダの中に入っています
+    /// TODO ここのロックは一時的なものなので今後はちゃんとゲーム全体としてセマフォをしっかりやる！！
     /// </summary>
     public class EventProtocolProvider
     {
@@ -13,37 +15,46 @@ namespace Server.Event
 
         public void AddEvent(int playerId, List<byte> eventByteArray)
         {
-            if (_events.ContainsKey(playerId))
+            lock (_events)
             {
-                _events[playerId].Add(eventByteArray);
-            }
-            else
-            {
-                _events.Add(playerId, new List<List<byte>>() {eventByteArray});
+                if (_events.TryGetValue(playerId, out var eventList))
+                {
+                    eventList.Add(eventByteArray);
+                }
+                else
+                {
+                    _events.Add(playerId, new List<List<byte>>() {eventByteArray});
+                }
             }
         }
 
         public void AddBroadcastEvent(List<byte> eventByteArray)
         {
-            foreach (var key in _events.Keys)
+            lock (_events)
             {
-                _events[key].Add(eventByteArray);
+                foreach (var key in _events.Keys)
+                {
+                    _events[key].Add(eventByteArray);
+                }
             }
         }
 
         public List<List<byte>> GetEventBytesList(int playerId)
         {
-            if (_events.ContainsKey(playerId))
+            lock (_events)
             {
-                var data = _events[playerId].Copy();
-                _events[playerId].Clear();
-                return data;
-            }
-            else
-            {
-                //ブロードキャストイベントの時に使うので、Dictionaryにキーを追加しておく
-                _events.Add(playerId, new List<List<byte>>());
-                return _events[playerId];
+                if (_events.ContainsKey(playerId))
+                {
+                    var data = _events[playerId].Copy();
+                    _events[playerId].Clear();
+                    return data;
+                }
+                else
+                {
+                    //ブロードキャストイベントの時に使うので、Dictionaryにキーを追加しておく
+                    _events.Add(playerId, new List<List<byte>>());
+                    return _events[playerId];
+                }
             }
         }
     }
