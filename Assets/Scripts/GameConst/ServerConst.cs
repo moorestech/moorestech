@@ -19,6 +19,8 @@ namespace GameConst
         public static readonly string ServerDirectory = GetFullPath("./WindowsServer");
 #elif UNITY_STANDALONE_WIN
         public static readonly string ServerDirectory = GetFullPath("./" + StandAloneServerDirectory);
+#elif UNITY_STANDALONE_LINUX
+        public static readonly string ServerDirectory = GetFullPath("./WindowsServer");
 #endif
         public static readonly string ServerExePath = Combine(ServerDirectory,"moorestech_server.exe");
         public static readonly string ServerModsDirectory = Combine(ServerDirectory,"mods");

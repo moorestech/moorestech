@@ -9,7 +9,20 @@ public class BuildWithWindowsServer
 {
     private const string OutputPathKey = "WindowsBuildOutputPath";
     [MenuItem("moorestech/WindowsBuild")]
-    public static void TestBuild()
+    public static void WindowsBuild()
+    {
+        Pipeline(BuildTarget.StandaloneWindows64);
+    }
+    [MenuItem("moorestech/LinuxBuild")]
+    public static void LinuxBuild()
+    {
+        Pipeline(BuildTarget.StandaloneLinux64);
+    }
+    
+
+
+
+    private static void Pipeline(BuildTarget buildTarget)
     {
         var path = EditorUtility.OpenFolderPanel("Build", PlayerPrefs.GetString(OutputPathKey,""), 
             "");
@@ -26,7 +39,7 @@ public class BuildWithWindowsServer
         DirectoryProcessor.CopyAndReplace(ServerConst.ServerDirectory, Path.Combine(path,ServerConst.StandAloneServerDirectory));
             
         var buildOptions = new BuildPlayerOptions();
-        buildOptions.target = BuildTarget.StandaloneWindows;
+        buildOptions.target = buildTarget;
         buildOptions.locationPathName = path + "/moorestech.exe";
         buildOptions.scenes = EditorBuildSettings.scenes.Select(s => s.path).ToArray();
             
