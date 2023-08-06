@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine;
 
 
-public class BuildWithWindowsServer
+public class BuildWithServer
 {
     private const string OutputPathKey = "WindowsBuildOutputPath";
     [MenuItem("moorestech/WindowsBuild")]
