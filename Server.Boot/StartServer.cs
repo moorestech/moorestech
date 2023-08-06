@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Const;
@@ -27,18 +28,18 @@ namespace Server.Boot
 #if DEBUG
                 var serverDirectory = DebugServerDirectory;
 #else
-                var modsDirectory = Environment.CurrentDirectory;
+                var serverDirectory = Assembly.GetEntryAssembly().Location;
                 if (args.Length == 0)
                 {
                     Console.WriteLine("コマンドライン引数にコンフィグのパスが指定されていませんでした。デフォルトコンフィグパスを使用します。");
                 } 
                 else if(args[0] == "startupFromClient")
                 {
-                    modsDirectory = StartupFromClientFolderPath;
+                    serverDirectory = StartupFromClientFolderPath;
                 }
                 else
                 {
-                    modsDirectory = args[0];
+                    serverDirectory = args[0];
                 }
 #endif
                 
