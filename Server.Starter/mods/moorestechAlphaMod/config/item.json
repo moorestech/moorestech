@@ -1,0 +1,252 @@
+[
+    {
+        "name": "stone",
+        "maxStacks": 100,
+        "imagePath": "assets/item/stone.png"
+    },
+    {
+        "name": "stone tool",
+        "maxStacks": 100,
+        "imagePath": "assets/item/stone tool.png"
+    },
+    {
+        "name": "cotton",
+        "maxStacks": 100,
+        "imagePath": "assets/item/cotton.png"
+    },
+    {
+        "name": "string",
+        "maxStacks": 100,
+        "imagePath": "assets/item/string.png"
+    },
+    {
+        "name": "cloth",
+        "maxStacks": 100,
+        "imagePath": "assets/item/cloth.png"
+    },
+    {
+        "name": "simple ax",
+        "maxStacks": 1,
+        "imagePath": "assets/item/simple ax.png"
+    },
+    {
+        "name": "wood",
+        "maxStacks": 100,
+        "imagePath": "assets/item/wood.png"
+    },
+    {
+        "name": "stone smelter",
+        "maxStacks": 100,
+        "imagePath": "assets/item/stone smelter.png"
+    },
+    {
+        "name": "windmill",
+        "maxStacks": 100,
+        "imagePath": "assets/item/windmill.png"
+    },
+    {
+        "name": "wooden axle",
+        "maxStacks": 100,
+        "imagePath": "assets/item/wooden axle.png"
+    },
+    {
+        "name": "wooden gear",
+        "maxStacks": 100,
+        "imagePath": "assets/item/wooden gear.png"
+    },
+    {
+        "name": "wooden chest",
+        "maxStacks": 100,
+        "imagePath": "assets/item/wooden chest.png"
+    },
+    {
+        "name": "wooden ore crusher",
+        "maxStacks": 100,
+        "imagePath": "assets/item/wooden ore crusher.png"
+    },
+    {
+        "name": "wooden miner",
+        "maxStacks": 100,
+        "imagePath": "assets/item/wooden miner.png"
+    },
+    {
+        "name": "iron ore",
+        "maxStacks": 100,
+        "imagePath": "assets/item/iron ore.png"
+    },
+    {
+        "name": "iron ore powder",
+        "maxStacks": 100,
+        "imagePath": "assets/item/iron ore powder.png"
+    },
+    {
+        "name": "iron ingot",
+        "maxStacks": 100,
+        "imagePath": "assets/item/iron ingot.png"
+    },
+    {
+        "name": "iron chest",
+        "maxStacks": 100,
+        "imagePath": "assets/item/iron chest.png"
+    },
+    {
+        "name": "coal",
+        "maxStacks": 100,
+        "imagePath": "assets/item/coal.png"
+    },
+    {
+        "name": "coal powder",
+        "maxStacks": 100,
+        "imagePath": "assets/item/coal powder.png"
+    },
+    {
+        "name": "copper ore",
+        "maxStacks": 100,
+        "imagePath": "assets/item/copper ore.png"
+    },
+    {
+        "name": "copper ore powder",
+        "maxStacks": 100,
+        "imagePath": "assets/item/copper ore powder.png"
+    },
+    {
+        "name": "copper ingot",
+        "maxStacks": 100,
+        "imagePath": "assets/item/copper ingot.png"
+    },
+    {
+        "name": "copper wire",
+        "maxStacks": 100,
+        "imagePath": "assets/item/copper wire.png"
+    },
+    {
+        "name": "electric motor",
+        "maxStacks": 100,
+        "imagePath": "assets/item/electric motor.png"
+    },
+    {
+        "name": "sand",
+        "maxStacks": 100,
+        "imagePath": "assets/item/sand.png"
+    },
+    {
+        "name": "glass",
+        "maxStacks": 100,
+        "imagePath": "assets/item/glass.png"
+    },
+    {
+        "name": "pickaxe head",
+        "maxStacks": 1,
+        "imagePath": "assets/item/pickaxe head.png"
+    },
+    {
+        "name": "iron pickaxe",
+        "maxStacks": 1,
+        "imagePath": "assets/item/iron pickaxe.png"
+    },
+    {
+        "name": "iron blade",
+        "maxStacks": 100,
+        "imagePath": "assets/item/iron blade.png"
+    },
+    {
+        "name": "reverberatory furnace",
+        "maxStacks": 100,
+        "imagePath": "assets/item/reverberatory furnace.png"
+    },
+    {
+        "name": "belt conveyor",
+        "maxStacks": 100,
+        "imagePath": "assets/item/belt conveyor.png"
+    },
+    {
+        "name": "electric miner",
+        "maxStacks": 100,
+        "imagePath": "assets/item/electric miner.png"
+    },
+    {
+        "name": "pole",
+        "maxStacks": 100,
+        "imagePath": "assets/item/pole.png"
+    },
+    {
+        "name": "generator",
+        "maxStacks": 100,
+        "imagePath": "assets/item/generator.png"
+    },
+    {
+        "name": "vacuum tube",
+        "maxStacks": 100,
+        "imagePath": "assets/item/vacuum tube.png"
+    },
+    {
+        "name": "basic circuit",
+        "maxStacks": 100,
+        "imagePath": "assets/item/basic circuit.png"
+    },
+    {
+        "name": "pure copper",
+        "maxStacks": 100,
+        "imagePath": "assets/item/pure copper.png"
+    },
+    {
+        "name": "pure copper wire",
+        "maxStacks": 100,
+        "imagePath": "assets/item/pure copper wire.png"
+    },
+    {
+        "name": "pure iron",
+        "maxStacks": 100,
+        "imagePath": "assets/item/pure iron.png"
+    },
+    {
+        "name": "electronic component making equipment",
+        "maxStacks": 100,
+        "imagePath": "assets/item/electronic component making equipment.png"
+    },
+    {
+        "name": "semiconductor manufacturing equipment",
+        "maxStacks": 100,
+        "imagePath": "assets/item/semiconductor manufacturing equipment.png"
+    },
+    {
+        "name": "silicon wafer",
+        "maxStacks": 100,
+        "imagePath": "assets/item/silicon wafer.png"
+    },
+    {
+        "name": "ic circuit",
+        "maxStacks": 100,
+        "imagePath": "assets/item/ic circuit.png"
+    },
+    {
+        "name": "electric furnace",
+        "maxStacks": 100,
+        "imagePath": "assets/item/electric furnace.png"
+    },
+    {
+        "name": "electric ore crusher",
+        "maxStacks": 100,
+        "imagePath": "assets/item/electric ore crusher.png"
+    },
+    {
+        "name": "high performance coil",
+        "maxStacks": 100,
+        "imagePath": "assets/item/high performance coil.png"
+    },
+    {
+        "name": "fusion blanket",
+        "maxStacks": 100,
+        "imagePath": "assets/item/fusion blanket.png"
+    },
+    {
+        "name": "fusion computer",
+        "maxStacks": 100,
+        "imagePath": "assets/item/fusion computer.png"
+    },
+    {
+        "name": "fusion reactor",
+        "maxStacks": 100,
+        "imagePath": "assets/item/fusion reactor.png"
+    }
+]

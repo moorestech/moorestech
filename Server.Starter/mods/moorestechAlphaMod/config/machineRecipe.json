@@ -1,0 +1,495 @@
+﻿[
+
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "wooden ore crusher",
+    "time": 20000,
+    "input": [
+      {
+        "itemName":"iron ore",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"iron ore powder",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 2,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "electric ore crusher",
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"iron ore",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"iron ore powder",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 2,
+        "percent": 1
+      }
+    ]
+  },
+
+
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "wooden ore crusher",
+    "time": 20000,
+    "input": [
+      {
+        "itemName":"coal",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"coal powder",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 2,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "electric ore crusher",
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"coal",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"coal powder",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 2,
+        "percent": 1
+      }
+    ]
+  },
+  
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "wooden ore crusher",
+    "time": 20000,
+    "input": [
+      {
+        "itemName":"copper ore",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"copper ore powder",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 2,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "electric ore crusher",
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"copper ore",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"copper ore powder",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 2,
+        "percent": 1
+      }
+    ]
+  },
+
+
+  
+  
+  
+  
+  
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "stone smelter",
+    "time": 15000,
+    "input": [
+      {
+        "itemName":"copper ore",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"wood",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 3
+      }
+    ],
+    "output": [
+      {
+        "itemName":"copper ingot",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "stone smelter",
+    "time": 15000,
+    "input": [
+      {
+        "itemName":"iron ore",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"wood",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 3
+      }
+    ],
+    "output": [
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "stone smelter",
+    "time": 10000,
+    "input": [
+      {
+        "itemName":"copper ore",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"coal",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"copper ingot",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "stone smelter",
+    "time": 10000,
+    "input": [
+      {
+        "itemName":"iron ore",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"coal",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "stone smelter",
+    "time": 5000,
+    "input": [
+      {
+        "itemName":"copper ore powder",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"coal",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"copper ingot",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "stone smelter",
+    "time": 5000,
+    "input": [
+      {
+        "itemName":"iron ore powder",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"coal",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "reverberatory furnace",
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"copper ingot",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"coal powder",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 2
+      }
+    ],
+    "output": [
+      {
+        "itemName":"pure copper",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "reverberatory furnace",
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"coal powder",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 2
+      }
+    ],
+    "output": [
+      {
+        "itemName":"pure iron",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+
+
+
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "electronic component making equipment",
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"copper ingot",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"copper wire",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "electronic component making equipment",
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"copper wire",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"iron ingot",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"electric motor",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "electronic component making equipment",
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"glass",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"copper wire",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"vacuum tube",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "electronic component making equipment",
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"vacuum tube",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 2
+      },
+      {
+        "itemName":"copper wire",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"basic circuit",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+
+
+
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "semiconductor manufacturing equipment",
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"sand",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"silicon wafer",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  }, 
+  {
+    "blockModId": "sakastudio:moorestechAlphaMod",
+    "blockName": "stone smelter",
+    "time": 3000,
+    "input": [
+      {
+        "itemName":"sand",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      },
+      {
+        "itemName":"coal",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName":"glass",
+        "modId":"sakastudio:moorestechAlphaMod",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  }
+]
