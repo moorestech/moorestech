@@ -1,12 +1,12 @@
 {
   "runtimeTarget": {
-    "name": ".NETCoreApp,Version=v5.0",
+    "name": ".NETCoreApp,Version=v6.0",
     "signature": ""
   },
   "compilationOptions": {},
   "targets": {
-    ".NETCoreApp,Version=v5.0": {
-      "moorestech_server/1.0.0": {
+    ".NETCoreApp,Version=v6.0": {
+      "moorestech_server/0.0.1": {
         "dependencies": {
           "Game.Crafting": "1.0.0",
           "Game.PlayerInventory": "1.0.0",
@@ -50,7 +50,7 @@
           "System.Runtime.CompilerServices.Unsafe": "6.0.0"
         },
         "runtime": {
-          "lib/netstandard2.1/Microsoft.Extensions.DependencyInjection.dll": {
+          "lib/net6.0/Microsoft.Extensions.DependencyInjection.dll": {
             "assemblyVersion": "6.0.0.0",
             "fileVersion": "6.0.21.52210"
           }
@@ -58,7 +58,7 @@
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions/6.0.0": {
         "runtime": {
-          "lib/netstandard2.1/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+          "lib/net6.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
             "assemblyVersion": "6.0.0.0",
             "fileVersion": "6.0.21.52210"
           }
@@ -526,14 +526,7 @@
           "Microsoft.NETCore.Targets": "1.1.0"
         }
       },
-      "System.Runtime.CompilerServices.Unsafe/6.0.0": {
-        "runtime": {
-          "lib/netcoreapp3.1/System.Runtime.CompilerServices.Unsafe.dll": {
-            "assemblyVersion": "6.0.0.0",
-            "fileVersion": "6.0.21.52210"
-          }
-        }
-      },
+      "System.Runtime.CompilerServices.Unsafe/6.0.0": {},
       "System.Runtime.Extensions/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0",
@@ -795,6 +788,8 @@
           "Core.Ore": "1.0.0",
           "Core.Update": "1.0.0",
           "Core.Util": "1.0.0",
+          "MessagePack": "2.3.85",
+          "MessagePack.Annotations": "2.3.85",
           "Microsoft.Extensions.DependencyInjection": "6.0.0",
           "Newtonsoft.Json": "13.0.1"
         },
@@ -869,6 +864,11 @@
           "Core.Util.dll": {}
         }
       },
+      "Game.Base/1.0.0": {
+        "runtime": {
+          "Game.Base.dll": {}
+        }
+      },
       "Game.Crafting/1.0.0": {
         "dependencies": {
           "Game.Crafting.Interface": "1.0.0",
@@ -897,10 +897,29 @@
       "Game.Entity.Interface/1.0.0": {
         "dependencies": {
           "Core.Item": "1.0.0",
+          "Game.Base": "1.0.0",
           "Newtonsoft.Json": "13.0.1"
         },
         "runtime": {
           "Game.Entity.Interface.dll": {}
+        }
+      },
+      "Game.MapObject/1.0.0": {
+        "dependencies": {
+          "Game.MapObject.Interface": "1.0.0",
+          "Game.SaveLoad.Interface": "1.0.0"
+        },
+        "runtime": {
+          "Game.MapObject.dll": {}
+        }
+      },
+      "Game.MapObject.Interface/1.0.0": {
+        "dependencies": {
+          "Core.Item": "1.0.0",
+          "Game.Base": "1.0.0"
+        },
+        "runtime": {
+          "Game.MapObject.Interface.dll": {}
         }
       },
       "Game.Paths/1.0.0": {
@@ -953,6 +972,7 @@
       "Game.SaveLoad/1.0.0": {
         "dependencies": {
           "Game.Entity.Interface": "1.0.0",
+          "Game.MapObject.Interface": "1.0.0",
           "Game.Paths": "1.0.0",
           "Game.PlayerInventory.Interface": "1.0.0",
           "Game.Quest.Interface": "1.0.0",
@@ -1004,6 +1024,41 @@
           "Game.WorldMap.dll": {}
         }
       },
+      "Mod.Base/1.0.0": {
+        "dependencies": {
+          "ClassLibrary": "1.0.0",
+          "Core.Block": "1.0.0",
+          "Core.ConfigJson": "1.0.0",
+          "Core.Const": "1.0.0",
+          "Core.Electric": "1.0.0",
+          "Core.Inventory": "1.0.0",
+          "Core.Item": "1.0.0",
+          "Core.Ore": "1.0.0",
+          "Core.Update": "1.0.0",
+          "Core.Util": "1.0.0",
+          "Game.Crafting": "1.0.0",
+          "Game.Crafting.Interface": "1.0.0",
+          "Game.Entity": "1.0.0",
+          "Game.Entity.Interface": "1.0.0",
+          "Game.Paths": "1.0.0",
+          "Game.PlayerInventory": "1.0.0",
+          "Game.PlayerInventory.Interface": "1.0.0",
+          "Game.Quest": "1.0.0",
+          "Game.Quest.Interface": "1.0.0",
+          "Game.SaveLoad": "1.0.0",
+          "Game.SaveLoad.Interface": "1.0.0",
+          "Game.World": "1.0.0",
+          "Game.World.EventHandler": "1.0.0",
+          "Game.World.Interface": "1.0.0",
+          "Game.WorldMap": "1.0.0",
+          "Server.Event": "1.0.0",
+          "Server.Protocol": "1.0.0",
+          "Server.Util": "1.0.0"
+        },
+        "runtime": {
+          "Mod.Base.dll": {}
+        }
+      },
       "Mod.Config/1.0.0": {
         "dependencies": {
           "Core.ConfigJson": "1.0.0",
@@ -1017,6 +1072,7 @@
       "Mod.Loader/1.0.0": {
         "dependencies": {
           "Game.Paths": "1.0.0",
+          "Mod.Base": "1.0.0",
           "Newtonsoft.Json": "13.0.1"
         },
         "runtime": {
@@ -1028,6 +1084,7 @@
           "Game.Crafting": "1.0.0",
           "Game.Crafting.Interface": "1.0.0",
           "Game.Entity": "1.0.0",
+          "Game.MapObject": "1.0.0",
           "Game.PlayerInventory": "1.0.0",
           "Game.Quest": "1.0.0",
           "Game.SaveLoad": "1.0.0",
@@ -1043,6 +1100,7 @@
       },
       "Server.Event/1.0.0": {
         "dependencies": {
+          "Game.MapObject.Interface": "1.0.0",
           "Game.PlayerInventory.Interface": "1.0.0",
           "Game.Quest.Interface": "1.0.0",
           "Game.World.Interface": "1.0.0",
@@ -1058,6 +1116,7 @@
       "Server.Protocol/1.0.0": {
         "dependencies": {
           "Game.Entity.Interface": "1.0.0",
+          "Game.MapObject.Interface": "1.0.0",
           "Game.PlayerInventory.Interface": "1.0.0",
           "Game.SaveLoad.Interface": "1.0.0",
           "Game.World.Interface": "1.0.0",
@@ -1086,7 +1145,7 @@
     }
   },
   "libraries": {
-    "moorestech_server/1.0.0": {
+    "moorestech_server/0.0.1": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -1715,6 +1774,11 @@
       "serviceable": false,
       "sha512": ""
     },
+    "Game.Base/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
     "Game.Crafting/1.0.0": {
       "type": "project",
       "serviceable": false,
@@ -1731,6 +1795,16 @@
       "sha512": ""
     },
     "Game.Entity.Interface/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Game.MapObject/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Game.MapObject.Interface/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -1786,6 +1860,11 @@
       "sha512": ""
     },
     "Game.WorldMap/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Mod.Base/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
