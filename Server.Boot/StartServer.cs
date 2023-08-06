@@ -28,7 +28,7 @@ namespace Server.Boot
 #if DEBUG
                 var serverDirectory = DebugServerDirectory;
 #else
-                var serverDirectory = Assembly.GetEntryAssembly().Location;
+                var serverDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
                 if (args.Length == 0)
                 {
                     Console.WriteLine("コマンドライン引数にコンフィグのパスが指定されていませんでした。デフォルトコンフィグパスを使用します。");
