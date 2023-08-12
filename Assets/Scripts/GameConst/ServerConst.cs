@@ -10,19 +10,22 @@ namespace GameConst
 
         public const int DefaultPlayerId = 1;
         
-        public const string StandAloneServerDirectory = "server";
         
-#if UNITY_EDITOR_WIN
         public static readonly string ServerDirectory = GetFullPath("./Server");
-#elif UNITY_EDITOR_OSX
-            //TODO:
-        public static readonly string ServerDirectory = GetFullPath("./Server");
-#elif UNITY_STANDALONE_WIN
-        public static readonly string ServerDirectory = GetFullPath("./" + StandAloneServerDirectory);
-#elif UNITY_STANDALONE_LINUX
-        public static readonly string ServerDirectory = GetFullPath("./Server");
-#endif
-        public static readonly string ServerExePath = Combine(ServerDirectory,"moorestech_server.exe");
+        
+        public static readonly string ServerDllPath = Combine(ServerDirectory,"moorestech_server.dll");
         public static readonly string ServerModsDirectory = Combine(ServerDirectory,"mods");
+        
+        
+        public static readonly string DotnetRuntimeDir = Combine(ServerDirectory,"dotnet-runtime");
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+        public static readonly string DotnetRuntimePath = Combine(DotnetRuntimeDir,"win-x64","dotnet.exe");
+#elif UNITY_EDITOR_OSX
+        public static readonly string DotnetRuntimePath = Combine(DotnetRuntimeDir,"osx-x64","dotnet");
+#elif UNITY_STANDALONE_LINUX
+        public static readonly string DotnetRuntimePath = Combine(DotnetRuntimeDir,"linux-x64","dotnet");
+#elif UNITY_STANDALONE // win、linux以外の場合はmac osと判断する
+        public static readonly string DotnetRuntimePath = Combine(DotnetRuntimeDir,"osx-x64","dotnet.exe");
+#endif
     }
 }

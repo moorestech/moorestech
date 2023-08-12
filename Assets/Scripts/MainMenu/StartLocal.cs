@@ -23,12 +23,8 @@ namespace MainMenu
         private void StartLocalServer()
         {
             _serverProcess = new Process();
-            _serverProcess.StartInfo.FileName = ServerConst.ServerExePath;
-#if UNITY_EDITOR_WIN
-            _serverProcess.StartInfo.Arguments = ServerConst.ServerModsDirectory;
-#elif UNITY_STANDALONE_WIN
-            _serverProcess.StartInfo.Arguments ="startupFromClient";
-#endif
+            _serverProcess.StartInfo.FileName = ServerConst.DotnetRuntimePath;
+            _serverProcess.StartInfo.Arguments = ServerConst.ServerDllPath;
             _serverProcess.Start();
 
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;

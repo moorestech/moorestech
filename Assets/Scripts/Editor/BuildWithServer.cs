@@ -36,7 +36,7 @@ public class BuildWithServer
         PlayerPrefs.Save();
 
 
-        DirectoryProcessor.CopyAndReplace(ServerConst.ServerDirectory, Path.Combine(path,ServerConst.StandAloneServerDirectory));
+        DirectoryProcessor.CopyAndReplace(ServerConst.ServerDirectory, Path.Combine(path,ServerConst.ServerDirectory));
             
         var buildOptions = new BuildPlayerOptions();
         buildOptions.target = buildTarget;
