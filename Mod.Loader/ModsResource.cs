@@ -110,7 +110,7 @@ namespace Mod.Loader
             
             var folderName = $"{fixModId}_ver_{fixModVersion}_sha1_{sha1Hash}";
 
-            var path = SystemPath.GetExtractedModDirectory(folderName);
+            var path = GameSystemPath.GetExtractedModDirectory(folderName);
             //ディレクトリの中身をチェック
             if (Directory.EnumerateFileSystemEntries(path).Any())
             {

@@ -1,29 +1,28 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace Game.Paths
 {
-    public class SystemPath
+    public class GameSystemPath
     {
         public static string GameFileRootDirectory
         {
             get
             {
-                switch (Environment.OSVersion.Platform)
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    case PlatformID.Win32NT:
-                    case PlatformID.Win32S:
-                    case PlatformID.Win32Windows:
-                    case PlatformID.WinCE:
-                        return DirectoryCreator("C:\\Users", Environment.UserName, "AppData", "Roaming", ".moorestech");
-                    case PlatformID.MacOSX:
-                        return DirectoryCreator("/Users", Environment.UserName, "Library", "Application Support", "moorestech");
-                    case PlatformID.Unix:
-                        return DirectoryCreator("/home", Environment.UserName, ".moorestech");
-                    case PlatformID.Xbox:
-                    default:
-                        throw new Exception("Unsupported OS");
+                    return DirectoryCreator("C:\\Users", Environment.UserName, "AppData", "Roaming", ".moorestech");
                 }
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    return DirectoryCreator("/Users", Environment.UserName, "Library", "Application Support", "moorestech");
+                }
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    return DirectoryCreator("/home", Environment.UserName, ".moorestech");
+                }
+                throw new Exception("Unsupported OS");
             }
         }
 
