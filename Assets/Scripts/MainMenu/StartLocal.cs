@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using GameConst;
 using MainGame.Basic;
 using MainGame.Starter;
@@ -24,9 +26,9 @@ namespace MainMenu
         {
             _serverProcess = new Process();
             _serverProcess.StartInfo.FileName = ServerConst.DotnetRuntimePath;
-            _serverProcess.StartInfo.Arguments = ServerConst.ServerDllPath;
+            _serverProcess.StartInfo.Arguments = $"\"{ServerConst.ServerDllPath}\"";
             _serverProcess.Start();
-
+            
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;
             SceneManager.LoadScene(SceneConstant.MainGameSceneName);
         }

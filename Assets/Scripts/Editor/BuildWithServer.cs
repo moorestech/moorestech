@@ -24,7 +24,8 @@ public class BuildWithServer
 
     private static void Pipeline(BuildTarget buildTarget)
     {
-        var path = EditorUtility.OpenFolderPanel("Build", PlayerPrefs.GetString(OutputPathKey,""), 
+        var playerPrefsKey = OutputPathKey + buildTarget;
+        var path = EditorUtility.OpenFolderPanel("Build", PlayerPrefs.GetString(playerPrefsKey,""), 
             "");
 
         if (path == string.Empty)
@@ -32,11 +33,11 @@ public class BuildWithServer
             return;
         }
         
-        PlayerPrefs.SetString(OutputPathKey, path);
+        PlayerPrefs.SetString(playerPrefsKey, path);
         PlayerPrefs.Save();
 
 
-        DirectoryProcessor.CopyAndReplace(ServerConst.ServerDirectory, Path.Combine(path,ServerConst.ServerDirectory));
+        DirectoryProcessor.CopyAndReplace(ServerConst.ServerDirectory, Path.Combine(path,ServerConst.ServerDirName));
             
         var buildOptions = new BuildPlayerOptions();
         buildOptions.target = buildTarget;
