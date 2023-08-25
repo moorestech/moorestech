@@ -14,7 +14,7 @@ on:
 
 jobs:
   build:
-    name: Build
+    name: Build Linux
     runs-on: ubuntu-latest
     setps:
       # Checkout
