@@ -14,6 +14,11 @@ public class BuildPipline
     {
         Pipeline(BuildTarget.StandaloneWindows64,false);
     }
+    [MenuItem("moorestech/MacOsBuild")]
+    public static void MacOsBuild()
+    {
+        Pipeline(BuildTarget.StandaloneOSX,false);
+    }
     [MenuItem("moorestech/LinuxBuild")]
     public static void LinuxBuild()
     {
@@ -24,6 +29,10 @@ public class BuildPipline
     public static void WindowsBuildFromGithubAction()
     {
         Pipeline(BuildTarget.StandaloneWindows64,true);
+    }
+    public static void MacOsBuildFromGithubAction()
+    {
+        Pipeline(BuildTarget.StandaloneOSX,true);
     }
     public static void LinuxBuildFromGithubAction()
     {
