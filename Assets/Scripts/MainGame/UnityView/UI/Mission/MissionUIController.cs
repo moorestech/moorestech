@@ -14,7 +14,7 @@ namespace MainGame.UnityView.UI.Mission
         
         private readonly List<MissionBar> _sortedPriorityMissions = new();
 
-        public void SetMissionList(List<IMissionImplementation> missionDataList)
+        public void SetMissionList(List<MissionBase> missionDataList)
         {
             foreach (var missionData in missionDataList)
             {
@@ -25,7 +25,7 @@ namespace MainGame.UnityView.UI.Mission
                 
                 _sortedPriorityMissions.Add(new MissionBar(missionBar, missionData));
             }
-            _sortedPriorityMissions.Sort((a, b) => b.MissionImplementation.Priority - a.MissionImplementation.Priority);
+            _sortedPriorityMissions.Sort((a, b) => b.MissionBase.Priority - a.MissionBase.Priority);
             UpdateDisplayMission();
         }
 
@@ -53,7 +53,7 @@ namespace MainGame.UnityView.UI.Mission
             var displayedBarCount = 0;
             foreach (var missionBar in _sortedPriorityMissions)
             {
-                if (missionBar.MissionImplementation.IsDone)
+                if (missionBar.MissionBase.IsDone)
                 {
                     continue;
                 }
@@ -72,12 +72,12 @@ namespace MainGame.UnityView.UI.Mission
     class MissionBar
     {
         public readonly MissionBarUIElement MissionBarUIElement;
-        public readonly IMissionImplementation MissionImplementation;
+        public readonly MissionBase MissionBase;
         
-        public MissionBar(MissionBarUIElement missionBarUIElement, IMissionImplementation missionImplementation)
+        public MissionBar(MissionBarUIElement missionBarUIElement, MissionBase missionBase)
         {
             MissionBarUIElement = missionBarUIElement;
-            MissionImplementation = missionImplementation;
+            MissionBase = missionBase;
         }
     }
 }
