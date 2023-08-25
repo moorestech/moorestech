@@ -27,6 +27,6 @@ jobs:
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
-          targetPlatform: StandaloneLinux64
+          targetPlatform: StandaloneOSX
           unityVersion: 2022.3.1f1
-          buildMethod: BuildPipline.LinuxBuildFromGithubAction
+          buildMethod: BuildPipeline.MacOsBuildFromGithubAction

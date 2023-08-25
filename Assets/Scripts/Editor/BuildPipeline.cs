@@ -6,7 +6,7 @@ using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 
-public class BuildPipline
+public class BuildPipeline
 {
     private const string OutputPathKey = "WindowsBuildOutputPath";
     [MenuItem("moorestech/WindowsBuild")]
@@ -62,7 +62,7 @@ public class BuildPipline
         buildOptions.locationPathName = path + "/moorestech.exe";
         buildOptions.scenes = EditorBuildSettings.scenes.Select(s => s.path).ToArray();
             
-        var report = BuildPipeline.BuildPlayer(buildOptions);
+        var report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);
         
         EditorUtility.RevealInFinder( path );
         
