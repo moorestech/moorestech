@@ -6,7 +6,7 @@ using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 
-public class BuildWithServer
+public class BuildPipline
 {
     private const string OutputPathKey = "WindowsBuildOutputPath";
     [MenuItem("moorestech/WindowsBuild")]
