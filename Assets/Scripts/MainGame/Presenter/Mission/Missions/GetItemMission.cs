@@ -10,7 +10,6 @@ namespace MainGame.Presenter.Mission.Missions
 
         protected override void IfNotDoneUpdate()
         {
-            TODO
         }
     }
 }
