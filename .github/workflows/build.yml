@@ -21,10 +21,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          submodules: recursive
+          submodules: Assets/Script/Server/moorestech
       - name: Update submodules
         id: update
-        run: git submodule update --remote --recursive 
+        run: git submodule update --remote --recursive
+      - name: Run git status
+        id: status
+        run: echo "::set-output name=status::$(git status -s)"
+
+        
       
       # Build
       - name: Build project
