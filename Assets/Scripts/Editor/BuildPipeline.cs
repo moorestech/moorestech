@@ -43,7 +43,7 @@ public class BuildPipeline
 
     private static void Pipeline(BuildTarget buildTarget,bool isErrorExit,bool isSelectOutputPath)
     {
-        string path = Path.GetFullPath("./" + "Build");;
+        string path = "Output";
         if (isSelectOutputPath)
         {
             var playerPrefsKey = OutputPathKey + buildTarget;
@@ -70,8 +70,11 @@ public class BuildPipeline
         };
 
         var report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);
-        
-        EditorUtility.RevealInFinder( path );
+
+        if (isSelectOutputPath)
+        {
+            EditorUtility.RevealInFinder( path );
+        }
         
         Debug.Log("Build Output Path :" + path);
         
