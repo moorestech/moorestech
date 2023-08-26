@@ -61,16 +61,19 @@ public class BuildPipeline
 
 
         DirectoryProcessor.CopyAndReplace(ServerConst.ServerDirectory, Path.Combine(path,ServerConst.ServerDirName));
-        Debug.Log("Build Output Path :"+path);
             
-        var buildOptions = new BuildPlayerOptions();
-        buildOptions.target = buildTarget;
-        buildOptions.locationPathName = path + "/moorestech.exe";
-        buildOptions.scenes = EditorBuildSettings.scenes.Select(s => s.path).ToArray();
-            
+        var buildOptions = new BuildPlayerOptions
+        {
+            target = buildTarget,
+            locationPathName = path,
+            scenes = EditorBuildSettings.scenes.Select(s => s.path).ToArray()
+        };
+
         var report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);
         
         EditorUtility.RevealInFinder( path );
+        
+        Debug.Log("Build Output Path :" + path);
         
         
         if (isErrorExit)
