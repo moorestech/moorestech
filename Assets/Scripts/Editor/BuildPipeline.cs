@@ -12,35 +12,35 @@ public class BuildPipeline
     [MenuItem("moorestech/WindowsBuild")]
     public static void WindowsBuild()
     {
-        Pipeline(BuildTarget.StandaloneWindows64,false);
+        Pipeline(BuildTarget.StandaloneWindows64,false,true);
     }
     [MenuItem("moorestech/MacOsBuild")]
     public static void MacOsBuild()
     {
-        Pipeline(BuildTarget.StandaloneOSX,false);
+        Pipeline(BuildTarget.StandaloneOSX,false,true);
     }
     [MenuItem("moorestech/LinuxBuild")]
     public static void LinuxBuild()
     {
-        Pipeline(BuildTarget.StandaloneLinux64,false);
+        Pipeline(BuildTarget.StandaloneLinux64,false,true);
     }
     
     #region from Github Action
     public static void WindowsBuildFromGithubAction()
     {
-        Pipeline(BuildTarget.StandaloneWindows64,true);
+        Pipeline(BuildTarget.StandaloneWindows64,true,false);
     }
     public static void MacOsBuildFromGithubAction()
     {
-        Pipeline(BuildTarget.StandaloneOSX,true);
+        Pipeline(BuildTarget.StandaloneOSX,true,false);
     }
     public static void LinuxBuildFromGithubAction()
     {
-        Pipeline(BuildTarget.StandaloneLinux64,true);
+        Pipeline(BuildTarget.StandaloneLinux64,true,false);
     }
     #endregion
 
-    private static void Pipeline(BuildTarget buildTarget,bool isErrorExit,bool isSelectOutputPath = true)
+    private static void Pipeline(BuildTarget buildTarget,bool isErrorExit,bool isSelectOutputPath)
     {
         var path = Application.dataPath + "/../Build";
         if (isSelectOutputPath)
