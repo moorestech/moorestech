@@ -22,6 +22,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: Assets/Script/Server/moorestech
+      # Submoduleの設定
+      - name: Init submodules
+        id: init
+        run: git submodule update --init
       - name: Update submodules
         id: update
         run: git submodule update --remote --recursive
