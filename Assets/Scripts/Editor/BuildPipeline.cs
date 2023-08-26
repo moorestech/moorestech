@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using GameConst;
@@ -42,7 +43,7 @@ public class BuildPipeline
 
     private static void Pipeline(BuildTarget buildTarget,bool isErrorExit,bool isSelectOutputPath)
     {
-        var path = Application.dataPath + "/../Build";
+        string path = Path.GetFullPath("./" + "Build");;
         if (isSelectOutputPath)
         {
             var playerPrefsKey = OutputPathKey + buildTarget;
@@ -60,6 +61,7 @@ public class BuildPipeline
 
 
         DirectoryProcessor.CopyAndReplace(ServerConst.ServerDirectory, Path.Combine(path,ServerConst.ServerDirName));
+        Debug.Log("Build Output Path :"+path);
             
         var buildOptions = new BuildPlayerOptions();
         buildOptions.target = buildTarget;
