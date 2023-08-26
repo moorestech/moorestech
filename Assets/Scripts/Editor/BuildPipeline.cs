@@ -75,7 +75,8 @@ public class BuildPipeline
             EditorUtility.RevealInFinder( path );
         }
         
-        Debug.Log("Build Output Path :" + path);
+        Debug.Log("Build Output Path :" + report.summary.outputPath);
+        Debug.Log("Build Summary TotalSize :" + report.summary.totalSize);
         
         
         if (isErrorExit)
