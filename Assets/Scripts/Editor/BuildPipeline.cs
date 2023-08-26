@@ -40,19 +40,23 @@ public class BuildPipeline
     }
     #endregion
 
-    private static void Pipeline(BuildTarget buildTarget,bool isErrorExit)
+    private static void Pipeline(BuildTarget buildTarget,bool isErrorExit,bool isSelectOutputPath = true)
     {
-        var playerPrefsKey = OutputPathKey + buildTarget;
-        var path = EditorUtility.OpenFolderPanel("Build", PlayerPrefs.GetString(playerPrefsKey,""), 
-            "");
-
-        if (path == string.Empty)
+        var path = Application.dataPath;
+        if (isSelectOutputPath)
         {
-            return;
-        }
+            var playerPrefsKey = OutputPathKey + buildTarget;
+            path = EditorUtility.OpenFolderPanel("Build", PlayerPrefs.GetString(playerPrefsKey,""), 
+                "");
+
+            if (path == string.Empty)
+            {
+                return;
+            }
         
-        PlayerPrefs.SetString(playerPrefsKey, path);
-        PlayerPrefs.Save();
+            PlayerPrefs.SetString(playerPrefsKey, path);
+            PlayerPrefs.Save();
+        }
 
 
         DirectoryProcessor.CopyAndReplace(ServerConst.ServerDirectory, Path.Combine(path,ServerConst.ServerDirName));
