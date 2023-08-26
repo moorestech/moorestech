@@ -41,3 +41,12 @@ jobs:
           targetPlatform: StandaloneOSX
           unityVersion: 2022.3.1f1
           buildMethod: BuildPipeline.MacOsBuildFromGithubAction
+
+
+      # Upload Build
+      - name: Upload Build
+        uses: actions/upload-artifact@v2
+        with:
+          name: Build-${{ matrix.targetPlatform }}
+          path: build/${{ matrix.targetPlatform }}
+      
