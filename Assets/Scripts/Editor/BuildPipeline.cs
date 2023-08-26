@@ -13,51 +13,51 @@ public class BuildPipeline
     [MenuItem("moorestech/WindowsBuild")]
     public static void WindowsBuild()
     {
-        Pipeline(BuildTarget.StandaloneWindows64,false,true);
+        Pipeline(BuildTarget.StandaloneWindows64,false);
     }
     [MenuItem("moorestech/MacOsBuild")]
     public static void MacOsBuild()
     {
-        Pipeline(BuildTarget.StandaloneOSX,false,true);
+        Pipeline(BuildTarget.StandaloneOSX,false);
     }
     [MenuItem("moorestech/LinuxBuild")]
     public static void LinuxBuild()
     {
-        Pipeline(BuildTarget.StandaloneLinux64,false,true);
+        Pipeline(BuildTarget.StandaloneLinux64,false);
     }
     
     #region from Github Action
     public static void WindowsBuildFromGithubAction()
     {
-        Pipeline(BuildTarget.StandaloneWindows64,true,false);
+        Pipeline(BuildTarget.StandaloneWindows64,true);
     }
     public static void MacOsBuildFromGithubAction()
     {
-        Pipeline(BuildTarget.StandaloneOSX,true,false);
+        Pipeline(BuildTarget.StandaloneOSX,true);
     }
     public static void LinuxBuildFromGithubAction()
     {
-        Pipeline(BuildTarget.StandaloneLinux64,true,false);
+        Pipeline(BuildTarget.StandaloneLinux64,true);
     }
     #endregion
 
-    private static void Pipeline(BuildTarget buildTarget,bool isErrorExit,bool isSelectOutputPath)
+    private static void Pipeline(BuildTarget buildTarget,bool isCiCd)
     {
-        string path = "Output";
-        if (isSelectOutputPath)
-        {
-            var playerPrefsKey = OutputPathKey + buildTarget;
-            path = EditorUtility.OpenFolderPanel("Build", PlayerPrefs.GetString(playerPrefsKey,""), 
-                "");
+        var playerPrefsKey = OutputPathKey + buildTarget;
+        var path = EditorUtility.OpenFolderPanel("Build", PlayerPrefs.GetString(playerPrefsKey, ""), "");
 
-            if (path == string.Empty)
+        if (path == string.Empty)
+        {
+            if (isCiCd)
             {
-                return;
+                Debug.LogError("Build Cancel");
+                EditorApplication.Exit(1);
             }
-        
-            PlayerPrefs.SetString(playerPrefsKey, path);
-            PlayerPrefs.Save();
+            return;
         }
+
+        PlayerPrefs.SetString(playerPrefsKey, path);
+        PlayerPrefs.Save();
 
 
         DirectoryProcessor.CopyAndReplace(ServerConst.ServerDirectory, Path.Combine(path,ServerConst.ServerDirName));
@@ -65,21 +65,18 @@ public class BuildPipeline
         var buildOptions = new BuildPlayerOptions
         {
             target = buildTarget,
-            locationPathName = path,
+            locationPathName = isCiCd ? Path.Combine(path,"Output") : path,
             scenes = EditorBuildSettings.scenes.Select(s => s.path).ToArray()
         };
 
         var report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);
 
-        if (isSelectOutputPath)
-        {
-            EditorUtility.RevealInFinder( path );
-        }
+        EditorUtility.RevealInFinder( path );
         
         Debug.Log("Build Output Path :" + path);
         
         
-        if (isErrorExit)
+        if (isCiCd)
         {
             //ビルドレポートを表示
             foreach (var buildStep in report.steps)
