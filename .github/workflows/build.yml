@@ -20,6 +20,11 @@ jobs:
       # Checkout
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Update submodules
+        id: update
+        run: git submodule update --remote --recursive 
       
       # Build
       - name: Build project
