@@ -26,9 +26,6 @@ jobs:
       - name: Init submodules
         id: init
         run: git submodule update --init
-      - name: Update submodules
-        id: update
-        run: git submodule update --remote --recursive
       - name: Run git status
         id: status
         run: echo "::set-output name=status::$(git status -s)"
