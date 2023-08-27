@@ -16,8 +16,8 @@ on:
 
 jobs:
   build:
-    name: Build Linux
-    runs-on: windows-latest
+    name: Build
+    runs-on: windows-2019
     
     steps:
       # Checkout
