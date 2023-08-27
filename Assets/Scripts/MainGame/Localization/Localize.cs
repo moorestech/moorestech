@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using CsvHelper;
 using GameConst;
 using UniRx;
@@ -19,9 +20,10 @@ namespace MainGame.Localization
         private static readonly Dictionary<string, Dictionary<string, string>> localizeDictionary = new();
 
         public static IObservable<Unit> OnLanguageChanged => _onLanguageChangedSubject;
-        private static Subject<Unit> _onLanguageChangedSubject = new();
+        private static readonly Subject<Unit> _onLanguageChangedSubject = new();
 
-        private static string CurrentLanguageCode { get; set; }
+        public static string CurrentLanguageCode { get; private set; }
+        public static List<string> LanguageCodes => localizeDictionary.Keys.ToList();
 
         private const string DefaultLanguageCode = "english";
 
@@ -44,7 +46,8 @@ namespace MainGame.Localization
                 if (isFirstRow)
                 {
                     // csvの1行目は言語コードなので、それを取得
-                    for (var i = 0; csv.TryGetField<string>(i, out var field); i++)
+                    // 1列目はキー、2列目はソース文字、3列目以降は言語コードなので2から回す
+                    for (var i = 2; csv.TryGetField<string>(i, out var field); i++)
                     {
                         languageCodes.Add(field);
                         localizeDictionary.Add(field, new Dictionary<string, string>());
