@@ -29,6 +29,10 @@ namespace MainGame.Presenter.Mission.Missions
             var itemId = itemConfig.GetItemId(AlphaMod.ModId, itemName);
             mainInventoryViewPresenter.OnUpdateInventory.Subscribe(invItem =>
             {
+                if (base.IsDone)
+                {
+                    return;
+                }
                 if (invItem.item.ID != itemId) return;
                 
                 _gotItemCount +=  invItem.item.Count;

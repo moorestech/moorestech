@@ -177,6 +177,7 @@ GameObject:
   - component: {fileID: 5777026644211440593}
   - component: {fileID: 1546498608131527004}
   - component: {fileID: 2236307706325866850}
+  - component: {fileID: 4951778295171567005}
   m_Layer: 0
   m_Name: Stone
   m_TagString: Untagged
@@ -238,3 +239,18 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -4724730747292221029, guid: a545b9d202af5bb43a2ff742f6a45557, type: 3}
+--- !u!114 &4951778295171567005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6240918209027241286}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b976201810e240bea52f6452c10f0d0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  textKey: Left click and hold to get stone
+  displayEnable: 1
+  fontSize: 25

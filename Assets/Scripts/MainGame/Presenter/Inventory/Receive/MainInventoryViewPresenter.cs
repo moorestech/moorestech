@@ -8,7 +8,7 @@ using VContainer.Unity;
 namespace MainGame.Presenter.Inventory.Receive
 {
     //IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しておく
-    public class MainInventoryViewPresenter : IInitializable
+    public class MainInventoryViewPresenter
     {
         public IObservable<(int slot, ItemStack item)> OnUpdateInventory=> _updateInventorySubject;
         private readonly Subject<(int,ItemStack)> _updateInventorySubject = new();
@@ -41,6 +41,5 @@ namespace MainGame.Presenter.Inventory.Receive
             _playerInventoryViewModelController.SetInventoryItem(properties.SlotId,properties.ItemStack.ID,properties.ItemStack.Count);
             _updateInventorySubject.OnNext((properties.SlotId,properties.ItemStack));
         }
-        public void Initialize() { }
     }
 }

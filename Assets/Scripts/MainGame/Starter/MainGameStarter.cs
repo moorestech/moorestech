@@ -203,7 +203,7 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<ChunkDataPresenter>();
             builder.RegisterEntryPoint<WorldMapTilePresenter>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
-            builder.RegisterEntryPoint<MainInventoryViewPresenter>();
+            builder.Register<MainInventoryViewPresenter>(Lifetime.Singleton);
             builder.RegisterEntryPoint<CraftingInventoryViewPresenter>();
             builder.RegisterEntryPoint<BlockInventoryViewPresenter>();
             builder.RegisterEntryPoint<BlockInventoryRequestPacketSend>();

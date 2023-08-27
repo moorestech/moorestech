@@ -12,7 +12,7 @@ namespace MainGame.UnityView.UI.Util
         /// <summary>
         /// カーソルに表示するテキスト
         /// </summary>
-        [SerializeField] private string currentText;
+        [SerializeField] private string textKey;
         /// <summary>
         /// 表示するかどうか
         /// </summary>
@@ -25,7 +25,7 @@ namespace MainGame.UnityView.UI.Util
         
         public void SetText(string text)
         {
-            currentText = text;
+            textKey = text;
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace MainGame.UnityView.UI.Util
             //表示する設定で、ポインターが乗ったので表示
             if (_pointerStay && displayEnable)
             {
-                MouseCursorExplainer.Instance.Show(currentText,fontSize);
+                MouseCursorExplainer.Instance.Show(textKey,fontSize);
                 return;
             }
             

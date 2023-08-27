@@ -4,6 +4,8 @@
 
 ### OSSに関する表記
 
+TODO この辺ちゃんとする
+
 VContainer
 https://github.com/hadashiA/VContainer
 
@@ -12,6 +14,9 @@ https://github.com/dbrizov/NaughtyCharacter
 
 Microsoft.Extensions.DependencyInjection  
 https://github.com/aspnet/DependencyInjection
+
+CsvHelper
+https://github.com/JoshClose/CsvHelper
 
 
 ### フォントラインセンスに関する表記

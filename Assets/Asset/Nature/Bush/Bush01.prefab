@@ -75,6 +75,7 @@ GameObject:
   - component: {fileID: 6564473515823375492}
   - component: {fileID: 1435835658995305938}
   - component: {fileID: 3900113971286203448}
+  - component: {fileID: 1821670513059095357}
   m_Layer: 0
   m_Name: Bush01
   m_TagString: Untagged
@@ -98,7 +99,7 @@ Transform:
   - {fileID: 5792835723364434365}
   - {fileID: 726470732134568517}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!205 &6564473515823375492
 LODGroup:
@@ -159,6 +160,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.906148, y: 1.6343032, z: 1.3485183}
   m_Center: {x: 0.06970358, y: 0.6168775, z: 0.013940752}
+--- !u!114 &1821670513059095357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3521235185364410788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b976201810e240bea52f6452c10f0d0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  textKey: Long left click to get cotton
+  displayEnable: 1
+  fontSize: 25
 --- !u!1 &5180426122304301294
 GameObject:
   m_ObjectHideFlags: 0

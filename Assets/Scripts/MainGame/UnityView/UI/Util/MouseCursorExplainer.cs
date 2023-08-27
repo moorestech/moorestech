@@ -1,4 +1,5 @@
 using System;
+using MainGame.Localization;
 using TMPro;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ namespace MainGame.UnityView.UI.Util
     {
         public const int DefaultFontSize = 36;
         public void Hide();
-        public void Show(string description,int fontSize = DefaultFontSize);
+        public void Show(string key,int fontSize = DefaultFontSize);
 
     }
     /// <summary>
@@ -33,10 +34,10 @@ namespace MainGame.UnityView.UI.Util
             Instance = this;
         }
         
-        public void Show(string description,int fontSize)
+        public void Show(string key,int fontSize)
         {
             canvasGroup.alpha = 1;
-            itemName.text = description;
+            itemName.text = Localize.Get(key); 
             itemName.fontSize = fontSize;
         }
 

@@ -16,12 +16,7 @@ MonoBehaviour:
   m_Data:
     m_SerializedData: []
   m_GUID: 00ca334169f2ed44480534a893fe0840
-  m_SerializeEntries:
-  - m_GUID: b1623e75a6f408743aba66dd7d1a7855
-    m_Address: Assets/BuildReports/Build_2023-27-8-13-42-03.buildreport
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
+  m_SerializeEntries: []
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
   m_SchemaSet:

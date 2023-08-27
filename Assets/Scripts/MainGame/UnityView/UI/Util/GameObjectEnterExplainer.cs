@@ -6,10 +6,9 @@ namespace MainGame.UnityView.UI.Util
     public class GameObjectEnterExplainer : MonoBehaviour
     {
         /// <summary>
-        /// カーソルに表示するテキスト
+        /// カーソルに表示するテキストのキー
         /// </summary>
-        [Multiline(5)]
-        [SerializeField] private string currentText;
+        [SerializeField] private string textKey;
         /// <summary>
         /// 表示するかどうか
         /// </summary>
@@ -22,7 +21,7 @@ namespace MainGame.UnityView.UI.Util
         {
             if (displayEnable)
             {
-                MouseCursorExplainer.Instance.Show(currentText,fontSize);
+                MouseCursorExplainer.Instance.Show(textKey,fontSize);
             }
         }
 

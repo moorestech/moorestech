@@ -245,6 +245,7 @@ GameObject:
   - component: {fileID: 4455917448450131044}
   - component: {fileID: 3364183582292818260}
   - component: {fileID: 8288642348652189250}
+  - component: {fileID: 1814298048221341998}
   m_Layer: 6
   m_Name: PineTree01
   m_TagString: Untagged
@@ -330,6 +331,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.84, y: 6.025615, z: 2.84}
   m_Center: {x: 0, y: 2.5128074, z: 0}
+--- !u!114 &1814298048221341998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2205276598268374428}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b976201810e240bea52f6452c10f0d0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  textKey: Left click and hold to cut down a tree
+  displayEnable: 1
+  fontSize: 25
 --- !u!1 &8185425655807632893
 GameObject:
   m_ObjectHideFlags: 0

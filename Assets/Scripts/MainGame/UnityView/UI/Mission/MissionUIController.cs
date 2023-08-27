@@ -7,7 +7,7 @@ namespace MainGame.UnityView.UI.Mission
 {
     public class MissionUIController : MonoBehaviour
     {
-        private const int DisplayMissionCount = 3;
+        private const int DisplayMissionCount = 5;
 
         [SerializeField] private MissionBarUIElement missionBarUIPrefab;
         [SerializeField] private RectTransform missionBarParent;

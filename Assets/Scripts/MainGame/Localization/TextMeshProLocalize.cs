@@ -10,15 +10,18 @@ namespace MainGame.Localization
     {
         [SerializeField] private string key;
         
+        private TMP_Text _text;
+        
         private void Awake()
         {
-            GetComponent<TextMeshProUGUI>().text = Localize.Get(key);
+            _text = GetComponent<TextMeshProUGUI>();
+            _text.text = Localize.Get(key);
+            
             Localize.OnLanguageChanged.
                 Subscribe(_ => GetComponent<TextMeshProUGUI>().text = Localize.Get(key))
                 .AddTo(this);
         }
-        
-        
+
         public void SetKey(string key,params string[] addContents)
         {
             this.key = key;
@@ -37,7 +40,8 @@ namespace MainGame.Localization
                 text = $"[Localize] Other Error : {key} : {e.Message}";
             }
             
-            GetComponent<TextMeshProUGUI>().text = text;
+            _text.text = text;
+            _text.ForceMeshUpdate();
         }
     }
 }
