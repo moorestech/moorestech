@@ -13,13 +13,12 @@ on:
   workflow_dispatch: {}
 
 # env.targetの設定
-env:
-  target: Output
 
 jobs:
   build:
     name: Build Linux
     runs-on: ubuntu-latest
+    
     steps:
       # Checkout
       - name: Checkout repository
@@ -48,21 +47,48 @@ jobs:
           key: "Library_${{ env.CURRENT_DATETIME }}"
         
       
-      # Build
-      - name: Build project
+      
+      # Windows Build
+      - name: Windows Build project
         uses: game-ci/unity-builder@v2
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
-          targetPlatform: StandaloneOSX
           unityVersion: 2022.3.1f1
-          buildMethod: BuildPipeline.MacOsBuildFromGithubAction
-
-
+          buildMethod: BuildPipeline.WindowsBuildFromGithubAction
       # Upload Build
-      - name: Upload
+      - name: Windows Upload
         uses: actions/upload-artifact@v3
         with:
-          name: Output
-          path: Output
+          name: Output_StandaloneWindows64
+          path: Output_StandaloneWindows64
       
+      # Mac Build
+      - name: Mac Build project
+        uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: 2022.3.1f1
+          buildMethod: BuildPipeline.MacOsBuildFromGithubAction
+      # Upload Build
+      - name: Mac Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_StandaloneOSX
+          path: Output_StandaloneOSX
+
+      # Linux Build
+      - name: Linux Build project
+        uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: 2022.3.1f1
+          buildMethod: BuildPipeline.LinuxBuildFromGithubAction
+      # Upload Build
+      - name: Linux Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_StandaloneLinux64
+          path: Output_StandaloneLinux64

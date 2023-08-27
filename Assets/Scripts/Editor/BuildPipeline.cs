@@ -43,7 +43,7 @@ public class BuildPipeline
 
     private static void Pipeline(BuildTarget buildTarget,bool isErrorExit,bool isSelectOutputPath)
     {
-        string path = "Output";
+        string path = "Output_" + buildTarget;
         if (isSelectOutputPath)
         {
             var playerPrefsKey = OutputPathKey + buildTarget;
