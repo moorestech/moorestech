@@ -63,6 +63,6 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.target }}
-          path: ${{ env.target }}
+          name: Output
+          path: Output
       
