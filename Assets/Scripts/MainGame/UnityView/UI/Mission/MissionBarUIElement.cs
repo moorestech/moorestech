@@ -10,9 +10,9 @@ namespace MainGame.UnityView.UI.Mission
         [SerializeField] private TextMeshProLocalize missionName;
 
 
-        public void SetMissionNameKey(string key)
+        public void SetMissionNameKey(string key,string[] addContents)
         {
-            missionName.SetKey(key);
+            missionName.SetKey(key,addContents);
         }
         
         public async UniTask SetDone()

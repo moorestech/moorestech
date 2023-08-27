@@ -308,7 +308,7 @@ namespace MainGame.Starter
             _resolver.Resolve<ConnectionServer>();
             _resolver.Resolve<NetworkDisconnectPresenter>();
 
-            missionPresenter.Initialize(builder);
+            missionPresenter.Initialize(_resolver);
         }
 
         protected override void OnDestroy()

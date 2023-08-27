@@ -63,7 +63,7 @@ namespace MainGame.Localization
             {
                 return value;
             }
-            return $"[Localize Error] Key : {key} is not found";
+            return $"[Localize] Key : {key} is not found";
         }
         
         
@@ -78,7 +78,7 @@ namespace MainGame.Localization
             }
             else
             {
-                Debug.LogError($"[Localize Error] Language Code : {languageCode} is not found");
+                Debug.LogError($"[Localize] Language Code : {languageCode} is not found");
             }
         }
     }

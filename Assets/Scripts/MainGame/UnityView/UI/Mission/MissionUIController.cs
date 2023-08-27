@@ -20,7 +20,7 @@ namespace MainGame.UnityView.UI.Mission
             {
                 var missionBar = Instantiate(missionBarUIPrefab, missionBarParent);
                 
-                missionBar.SetMissionNameKey(missionData.MissionNameKey);
+                missionBar.SetMissionNameKey(missionData.MissionNameKey,missionData.MissionNameAddContents);
                 missionData.OnDone.Subscribe(_ => SetDaneMissionBar(missionBar).Forget()).AddTo(this);
                 
                 _sortedPriorityMissions.Add(new MissionBar(missionBar, missionData));

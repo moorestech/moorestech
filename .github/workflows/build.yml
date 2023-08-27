@@ -61,10 +61,8 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Output_StandaloneWindows64
-          path: Output_StandaloneWindows64  
-      # checkout
-      - name: checkout repository
-        uses: actions/checkout@v3
+          path: Output_StandaloneWindows64
+          allowDirtyBuild: true
         
       
       # Mac Build
@@ -75,15 +73,13 @@ jobs:
         with:
           unityVersion: 2022.3.1f1
           buildMethod: BuildPipeline.MacOsBuildFromGithubAction
+          allowDirtyBuild: true
       # Upload Build
       - name: Mac Upload
         uses: actions/upload-artifact@v3
         with:
           name: Output_StandaloneOSX
           path: Output_StandaloneOSX
-      # Clear git status
-      - name: Clear git status
-        run: git status -s
 
 
       # Linux Build
@@ -94,12 +90,10 @@ jobs:
         with:
           unityVersion: 2022.3.1f1
           buildMethod: BuildPipeline.LinuxBuildFromGithubAction
+          allowDirtyBuild: true
       # Upload Build
       - name: Linux Upload
         uses: actions/upload-artifact@v3
         with:
           name: Output_StandaloneLinux64
           path: Output_StandaloneLinux64
-      # Clear git status
-      - name: Clear git status
-        run: git status -s

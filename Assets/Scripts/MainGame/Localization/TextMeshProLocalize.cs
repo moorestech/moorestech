@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -18,10 +19,25 @@ namespace MainGame.Localization
         }
         
         
-        public void SetKey(string key)
+        public void SetKey(string key,params string[] addContents)
         {
             this.key = key;
-            GetComponent<TextMeshProUGUI>().text = Localize.Get(key);
+
+            var text = string.Empty;
+            try
+            {
+                text = string.Format(Localize.Get(key), addContents);
+            }
+            catch (FormatException e)
+            {
+                text = "[Localize] Format Error : " + key;
+            }
+            catch (Exception e)
+            {
+                text = $"[Localize] Other Error : {key} : {e.Message}";
+            }
+            
+            GetComponent<TextMeshProUGUI>().text = text;
         }
     }
 }
