@@ -61,7 +61,11 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Output_StandaloneWindows64
-          path: Output_StandaloneWindows64
+          path: Output_StandaloneWindows64  
+      # checkout
+      - name: checkout repository
+        uses: actions/checkout@v3
+        
       
       # Mac Build
       - name: Mac Build project
@@ -77,6 +81,10 @@ jobs:
         with:
           name: Output_StandaloneOSX
           path: Output_StandaloneOSX
+      # Clear git status
+      - name: Clear git status
+        run: git status -s
+
 
       # Linux Build
       - name: Linux Build project
@@ -92,3 +100,6 @@ jobs:
         with:
           name: Output_StandaloneLinux64
           path: Output_StandaloneLinux64
+      # Clear git status
+      - name: Clear git status
+        run: git status -s

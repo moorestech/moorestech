@@ -74,3 +74,9 @@ crashlytics-build.properties
 
 /[Aa]ssets/PersonalAssets/
 *.DS_Store
+
+
+# Github Actionsのアウトプット
+/Output_StandaloneWindows64/
+/Output_StandaloneOSX/
+/Output_StandaloneLinux64/
