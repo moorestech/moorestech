@@ -9,7 +9,6 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    
     steps:
       # Call existing workflow
       - name: Trigger existing workflow
@@ -19,12 +18,12 @@ jobs:
           workflow: Build
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Wait for build to complete
+      - name: Wait for build workflow to finish
         uses: lewagon/wait-on-check-action@v1.1.1
         with:
-          ref: ${{ github.ref }}
-          check-name: 'Build'
-          repo-token: ${{ secrets.GH_TOKEN }}
+          ref: ${{github.ref}}
+          check-name: "Build"
+          repo-token: ${{secrets.GH_TOKEN}}
           wait-interval: 15
 
   release:
@@ -36,24 +35,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Download build artifacts
-      - name: Download Linux Build
-        uses: actions/download-artifact@v2
-        with:
-          name: Output_StandaloneLinux64
-          path: ./artifacts/
+      # Download build artifacts from latest build
+      - name: Download Latest Artifacts
+        id: download-artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          # Get latest successful build ID
+          build_id=$(gh run list --repo moorestech/moorestech_client | egrep -m 1 "completed.*Build" | awk '{print $8}')
+          echo "BUILD_ID=$build_id" >> $GITHUB_ENV
 
-      - name: Download OSX Build
-        uses: actions/download-artifact@v2
-        with:
-          name: Output_StandaloneOSX
-          path: ./artifacts/
-
-      - name: Download Windows Build
-        uses: actions/download-artifact@v2
-        with:
-          name: Output_StandaloneWindows64
-          path: ./artifacts/
+          # Use the ID to download artifacts associated with that build
+          gh run download $build_id -R moorestech/moorestech_client
+        shell: bash
 
       - name: Prepare
         run: |
