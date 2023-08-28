@@ -15,17 +15,20 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: windows-2019
+    runs-on: ${{ matrix.platform.runner }}
     
     strategy:
       matrix:
         platform:
           - name: StandaloneWindows64
             buildMethod: BuildPipeline.WindowsBuildFromGithubAction
+            runner: windows-2019
           - name: StandaloneOSX
             buildMethod: BuildPipeline.MacOsBuildFromGithubAction
+            runner: macos-latest
           - name: StandaloneLinux64
             buildMethod: BuildPipeline.LinuxBuildFromGithubAction
+            runner: ubuntu-latest
     
     steps:
       # Checkout
