@@ -8,29 +8,8 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      # Call existing workflow
-      - name: Trigger existing workflow
-        id: build
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: Build
-          token: ${{ secrets.GH_TOKEN }}
-
-      - name: Wait for build to complete
-        uses: lewagon/wait-on-check-action@v1.3.1
-        with:
-          ref: ${{ github.ref }}
-          check-name: 'Build'
-          repo-token: ${{ secrets.GH_TOKEN }}
-          wait-interval: 15
-
   release:
     name: Release
-    needs: [build]
     runs-on: ubuntu-latest
     
     steps:
