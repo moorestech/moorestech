@@ -74,26 +74,16 @@ public class BuildPipeline
         {
             EditorUtility.RevealInFinder( path );
         }
+
+        Debug.Log("Build Result :" + report.summary.result);
         
         Debug.Log("Build Output Path :" + report.summary.outputPath);
         Debug.Log("Build Summary TotalSize :" + report.summary.totalSize);
-        
-        
-        if (isErrorExit)
+
+
+        if (isErrorExit && report.summary.result == BuildResult.Failed)
         {
-            //ビルドレポートを表示
-            foreach (var buildStep in report.steps)
-            {
-                var stepName = buildStep.name;
-                foreach (var message in buildStep.messages)
-                {
-                    Debug.LogError(stepName + " : " + message.type + " : " + message.content);
-                }
-            }
-            if (report.summary.result == BuildResult.Failed)
-            {
-                EditorApplication.Exit(1);
-            }
+            EditorApplication.Exit(1);
         }
     }
 
