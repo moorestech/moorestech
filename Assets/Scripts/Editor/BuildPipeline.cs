@@ -44,6 +44,7 @@ public class BuildPipeline
     private static void Pipeline(BuildTarget buildTarget,bool isErrorExit,bool isSelectOutputPath)
     {
         Debug.Log("Build Start Time : " + DateTime.Now);
+        var buildStartTime = DateTime.Now;
         
         string path = "Output_" + buildTarget;
         if (isSelectOutputPath)
@@ -83,6 +84,8 @@ public class BuildPipeline
         Debug.Log("Build Summary TotalSize :" + report.summary.totalSize);
         
         Debug.Log("Build Finish Time : " + DateTime.Now);
+        //ビルドにかかった時間を hh:mm:ss で表示
+        Debug.Log("Build Time : " + (DateTime.Now - buildStartTime).ToString(@"hh\:mm\:ss"));
 
 
         if (isErrorExit)
