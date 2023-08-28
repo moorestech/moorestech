@@ -1,0 +1,103 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Call existing workflow
+      - name: Trigger existing workflow
+        id: build
+        uses: benc-uk/workflow-dispatch@v1.1.1
+        with:
+          workflow: Build
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Wait for build to complete
+        uses: lewagon/wait-on-check-action@v1.1.1
+        with:
+          ref: ${{ github.ref }}
+          check-name: 'Build'
+          repo-token: ${{ secrets.GH_TOKEN }}
+          wait-interval: 15
+
+  release:
+    name: Release
+    needs: [build]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Download build artifacts
+      - name: Download Linux Build
+        uses: actions/download-artifact@v2
+        with:
+          name: Output_StandaloneLinux64
+          path: ./artifacts/
+
+      - name: Download OSX Build
+        uses: actions/download-artifact@v2
+        with:
+          name: Output_StandaloneOSX
+          path: ./artifacts/
+
+      - name: Download Windows Build
+        uses: actions/download-artifact@v2
+        with:
+          name: Output_StandaloneWindows64
+          path: ./artifacts/
+
+      - name: Prepare
+        run: |
+          TAG_NAME=${GITHUB_REF:10}
+          echo "RELEASE_VERSION=${TAG_NAME}" >> $GITHUB_ENV
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          tag_name: ${{ env.RELEASE_VERSION }}
+          release_name: Release v${{ env.RELEASE_VERSION }}
+          draft: false
+          prerelease: false
+
+      # Upload release assets
+      - name: Upload Linux Build
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/Output_StandaloneLinux64.zip
+          asset_name: Output_StandaloneLinux64.zip
+          asset_content_type: application/zip
+
+      - name: Upload OSX Build
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/Output_StandaloneOSX.zip
+          asset_name: Output_StandaloneOSX.zip
+          asset_content_type: application/zip
+
+      - name: Upload Windows Build
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/Output_StandaloneWindows64.zip
+          asset_name: Output_StandaloneWindows64.zip
+          asset_content_type: application/zip
