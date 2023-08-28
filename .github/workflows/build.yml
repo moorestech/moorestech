@@ -2,12 +2,10 @@ name: Build
 
 on:
   # masterへのPRマージをトリガーとしてワークフローを開始する
-  push:
-    branches:
-      - master
   pull_request:
     branches:
       - master
+    types: [closed]
 
   # 手動実行デバッグ用
   workflow_dispatch: {}
