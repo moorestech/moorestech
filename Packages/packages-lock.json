@@ -7,12 +7,26 @@
       "dependencies": {},
       "hash": "9e2163616b9c527fa9461544e2bcc5f93fd12d83"
     },
+    "com.harumak.unitydebugsheet": {
+      "version": "https://github.com/Haruma-K/UnityDebugSheet.git?path=/Assets/UnityDebugSheet",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "010fd5df0d8a9931a70473e71d896642581405c1"
+    },
     "com.neuecc.unirx": {
       "version": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
       "depth": 0,
       "source": "git",
       "dependencies": {},
       "hash": "284d5c50d3f1ddd9fa7df3d382ea904732a9c2ff"
+    },
+    "com.tayx.graphy": {
+      "version": "https://github.com/Tayx94/graphy.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "7b634c383ae631e7f4efaf08235c2d829a7d3ecc"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
@@ -270,6 +284,13 @@
       "source": "git",
       "dependencies": {},
       "hash": "f9ee070a7bc2a4f124795103c22bac2af9f8a241"
+    },
+    "com.yasirkula.ingamedebugconsole": {
+      "version": "https://github.com/yasirkula/UnityIngameDebugConsole.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "be8bee9fb8506b4b55d9f0e4d30ae3f39313d0a4"
     },
     "jp.hadashikick.vcontainer": {
       "version": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.10.0",
