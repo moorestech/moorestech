@@ -15,9 +15,9 @@ on:
 # env.targetの設定
 
 jobs:
-  build:
-    name: Build
-    runs-on: windows-2019
+  build-win-linux:
+    name: Build Windows Linux
+    runs-on: ubuntu-latest
     
     steps:
       # Checkout
@@ -44,9 +44,8 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: Library
-          key: "Library_${{ env.CURRENT_DATETIME }}"
+          key: "Library_ubuntu_${{ env.CURRENT_DATETIME }}"
         
-      
       
       # Windows Build
       - name: Windows Build project
@@ -103,3 +102,51 @@ jobs:
         with:
           name: Output_StandaloneLinux64
           path: Output_StandaloneLinux64
+  build-mac:
+    name: Build Mac
+    runs-on: macos-latest
+    
+    steps:
+      # Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: Assets/Script/Server/moorestech
+      # Submoduleの設定
+      - name: Init submodules
+        id: init
+        run: git submodule update --init
+      - name: Run git status
+        id: status
+        run: echo "::set-output name=status::$(git status -s)"
+      
+      
+      # 年月日を取得　キャッシュのkeyに利用
+      - name: Set current datetime as env variable
+        env:
+          TZ: 'Asia/Tokyo' # タイムゾーン指定
+        run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
+      
+      # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
+      - uses: actions/cache@v3
+        with:
+          path: Library
+          key: "Library_mac_${{ env.CURRENT_DATETIME }}"
+      
+      # Mac Build
+      - name: Mac Build project
+        uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 2022.3.1f1
+          buildMethod: BuildPipeline.MacOsBuildFromGithubAction
+          allowDirtyBuild: true
+      # Upload Build
+      - name: Mac Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_StandaloneOSX
+          path: Output_StandaloneOSX
