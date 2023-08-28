@@ -15,13 +15,13 @@ jobs:
       # Call existing workflow
       - name: Trigger existing workflow
         id: build
-        uses: benc-uk/workflow-dispatch@v1.1.1
+        uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: Build
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Wait for build workflow to finish
-        uses: lewagon/wait-on-check-action@v1.1.1
+        uses: lewagon/wait-on-check-action@v1
         with:
           ref: ${{github.ref}}
           check-name: "Build"
