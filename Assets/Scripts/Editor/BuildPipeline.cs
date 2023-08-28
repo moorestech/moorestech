@@ -43,6 +43,8 @@ public class BuildPipeline
 
     private static void Pipeline(BuildTarget buildTarget,bool isErrorExit,bool isSelectOutputPath)
     {
+        Debug.Log("Build Start Time : " + DateTime.Now);
+        
         string path = "Output_" + buildTarget;
         if (isSelectOutputPath)
         {
@@ -79,11 +81,13 @@ public class BuildPipeline
         
         Debug.Log("Build Output Path :" + report.summary.outputPath);
         Debug.Log("Build Summary TotalSize :" + report.summary.totalSize);
+        
+        Debug.Log("Build Finish Time : " + DateTime.Now);
 
 
-        if (isErrorExit && report.summary.result == BuildResult.Failed)
+        if (isErrorExit)
         {
-            EditorApplication.Exit(1);
+            EditorApplication.Exit(report.summary.result == BuildResult.Succeeded ? 0 : 1);
         }
     }
 
