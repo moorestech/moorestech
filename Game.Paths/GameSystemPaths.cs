@@ -4,9 +4,9 @@ using System.Runtime.InteropServices;
 
 namespace Game.Paths
 {
-    public class GameSystemPath
+    public static class GameSystemPaths
     {
-        public static string GameFileRootDirectory
+        public static string GameSystemDirectory
         {
             get
             {
@@ -26,9 +26,9 @@ namespace Game.Paths
             }
         }
 
-        public static string TmpFileDirectory => DirectoryCreator(GameFileRootDirectory, "tmp");                                                                                                                                                             
+        public static string TmpFileDirectory => DirectoryCreator(GameSystemDirectory, "tmp");                                                                                                                                                             
         public static string ExtractedModDirectory => DirectoryCreator(TmpFileDirectory, "extracted_mods");
-        public static string SaveFileDirectory => DirectoryCreator(GameFileRootDirectory, "saves");
+        public static string SaveFileDirectory => DirectoryCreator(GameSystemDirectory, "saves");
         
         public static string GetExtractedModDirectory(string folderName) => DirectoryCreator(ExtractedModDirectory, folderName);
         public static string GetSaveFilePath(string fileName) => Path.Combine(SaveFileDirectory, fileName);

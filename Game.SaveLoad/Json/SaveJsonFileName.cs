@@ -13,7 +13,7 @@ namespace Game.Save.Json
 
         public SaveJsonFileName(string fileName)
         {
-            FullSaveFilePath = GameSystemPath.GetSaveFilePath(fileName);
+            FullSaveFilePath = GameSystemPaths.GetSaveFilePath(fileName);
         }
     }
 }
