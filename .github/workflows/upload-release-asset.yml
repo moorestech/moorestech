@@ -17,9 +17,11 @@ jobs:
         id: get_build
         run: |
           LATEST_BUILD=$(curl --request GET \
-          --url https://api.github.com/repos/${{ github.repository }}/actions/workflows/Build.yml/runs \
+          --url https://api.github.com/repos/${{ github.repository }}/actions/workflows/build.yml/runs \
           --header 'authorization: Bearer ${{ secrets.GH_TOKEN }}' | jq -r '.workflow_runs[] | select(.conclusion == "success") | .id' | head -1)
           echo "LATEST_BUILD=$LATEST_BUILD" >> $GITHUB_ENV
+          
+          これを試す https://zenn.dev/jordan/articles/b6c1e905adab31#:~:text=%E4%BD%BF%E3%81%86%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AF%E3%81%93%E3%82%93%E3%81%AA%E6%84%9F%E3%81%98%0Adownload%2Dartifact%E3%81%A7%E8%A8%AD%E5%AE%9A%E3%81%97%E3%81%9Fid%E3%82%92%22Echo%20download%20path%22%20step%E3%81%A7%E4%BD%BF%E7%94%A8%E3%81%97%E3%81%A6%E3%81%84%E3%81%BE%E3%81%99%E3%80%82
 
       - name: Download artifact - Output_StandaloneLinux64
         uses: actions/download-artifact@v2
