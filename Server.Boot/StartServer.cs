@@ -28,19 +28,7 @@ namespace Server.Boot
 #if DEBUG
                 var serverDirectory = DebugServerDirectory;
 #else
-                var serverDirectory = Assembly.GetEntryAssembly().Location;
-                if (args.Length == 0)
-                {
-                    Console.WriteLine("コマンドライン引数にコンフィグのパスが指定されていませんでした。デフォルトコンフィグパスを使用します。");
-                } 
-                else if(args[0] == "startupFromClient")
-                {
-                    serverDirectory = StartupFromClientFolderPath;
-                }
-                else
-                {
-                    serverDirectory = args[0];
-                }
+                var serverDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 #endif
                 
                 var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(serverDirectory);
