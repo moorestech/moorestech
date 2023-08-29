@@ -26,6 +26,7 @@ namespace MainGame.Localization
         public static List<string> LanguageCodes => localizeDictionary.Keys.ToList();
 
         private const string DefaultLanguageCode = "english";
+        private const int StartLocalizeTextIndex = 2;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
@@ -47,7 +48,7 @@ namespace MainGame.Localization
                 {
                     // csvの1行目は言語コードなので、それを取得
                     // 1列目はキー、2列目はソース文字、3列目以降は言語コードなので2から回す
-                    for (var i = 2; csv.TryGetField<string>(i, out var field); i++)
+                    for (var i = StartLocalizeTextIndex; csv.TryGetField<string>(i, out var field); i++)
                     {
                         languageCodes.Add(field);
                         localizeDictionary.Add(field, new Dictionary<string, string>());
@@ -63,10 +64,10 @@ namespace MainGame.Localization
                 }
 
                 var key = keyAndValues[0];
-                for (var i = 1; i < keyAndValues.Count; i++)
+                for (var i = StartLocalizeTextIndex; i < keyAndValues.Count; i++)
                 {
                     //外部ソースから取得したテキストには改行コードが\nとして入っているので、それを\nに変換
-                    localizeDictionary[languageCodes[i]].Add(key, keyAndValues[i].Replace("\\n", "\n"));
+                    localizeDictionary[languageCodes[i-2]].Add(key, keyAndValues[i].Replace("\\n", "\n"));
                 }
             }
         }
