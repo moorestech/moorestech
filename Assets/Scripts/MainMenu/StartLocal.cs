@@ -27,6 +27,7 @@ namespace MainMenu
             _serverProcess = new Process();
             _serverProcess.StartInfo.FileName = ServerConst.DotnetRuntimePath;
             _serverProcess.StartInfo.Arguments = $"\"{ServerConst.ServerDllPath}\"";
+            Debug.Log($"Start Server Runtime : {ServerConst.DotnetRuntimePath} Arguments : {ServerConst.ServerDllPath}");
             _serverProcess.Start();
             
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;
