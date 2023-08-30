@@ -9,6 +9,9 @@ namespace DebugSystem
 {
     public sealed class DebugSheetController : MonoBehaviour
     {
+        [SerializeField] private DebugSheet debugSheet;
+        [SerializeField] private DebugLogManager debugLogManager;
+        
         private void Start()
         {
             var rootPage = DebugSheet.Instance.GetOrCreateInitialPage();
