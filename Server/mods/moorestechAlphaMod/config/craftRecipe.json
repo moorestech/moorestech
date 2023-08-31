@@ -1888,5 +1888,59 @@
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 3
         }
+    },
+    {
+        "items": [
+            {
+                "itemName": "iron ingot",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "iron ingot",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "iron ingot",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "iron ingot",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0
+            },
+            {
+                "itemName": "iron ingot",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "iron ingot",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "iron ingot",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            },
+            {
+                "itemName": "iron ingot",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1
+            }
+        ],
+        "result": {
+            "itemName": "iron chest",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
     }
 ]
