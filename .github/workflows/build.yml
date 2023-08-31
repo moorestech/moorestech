@@ -66,9 +66,6 @@ jobs:
           buildMethod: ${{ matrix.platform.buildMethod }}
           allowDirtyBuild: true
       
-      # TODO mac、Linux版はパーミッションの設定を行う
-      # mac版パーミッション設定参考 https://zenn.dev/flamers/articles/fa9a921f08679d#tl%3Bdr
-
       # Upload Build for Windows, Mac
       - name: ${{ matrix.platform.name }} Upload
         if: matrix.platform.name != 'StandaloneLinux64'
@@ -77,11 +74,15 @@ jobs:
           name: Output_${{ matrix.platform.name }}
           path: Output_${{ matrix.platform.name }}
       
-      # Archive and Upload for Linux
-      - name: Archive and Upload for Linux
+      # Archive for Linux
+      - name: Archive for Linux
         if: matrix.platform.name == 'StandaloneLinux64'
         run: |
           tar -czvf output.tar.gz Output_${{ matrix.platform.name }}
+      
+      # Upload Archival for Linux
+      - name: Upload Archival for Linux
+        if: matrix.platform.name == 'StandaloneLinux64'
         uses: actions/upload-artifact@v3
         with:
           name: Output_${{ matrix.platform.name }}
