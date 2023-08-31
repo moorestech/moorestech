@@ -65,6 +65,9 @@ jobs:
           unityVersion: 2022.3.1f1
           buildMethod: ${{ matrix.platform.buildMethod }}
           allowDirtyBuild: true
+      
+      # TODO mac、Linux版はパーミッションの設定を行う
+      # mac版パーミッション設定参考 https://zenn.dev/flamers/articles/fa9a921f08679d#tl%3Bdr
 
       # Upload Build for Windows, Mac
       - name: ${{ matrix.platform.name }} Upload
