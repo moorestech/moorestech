@@ -42,19 +42,18 @@ jobs:
         id: status
         run: echo "::set-output name=status::$(git status -s)"
 
-        
       # 年月日を取得　キャッシュのkeyに利用
       - name: Set current datetime as env variable
         env:
           TZ: 'Asia/Tokyo' # タイムゾーン指定
         run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
-        
+      
       # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
       - uses: actions/cache@v3
         with:
           path: Library
           key: "Library_${{ env.CURRENT_DATETIME }}"
-        
+      
       # Build
       - name: ${{ matrix.platform.name }} Build project
         uses: game-ci/unity-builder@v2
@@ -67,9 +66,20 @@ jobs:
           buildMethod: ${{ matrix.platform.buildMethod }}
           allowDirtyBuild: true
 
-      # Upload Build
+      # Upload Build for Windows, Mac
       - name: ${{ matrix.platform.name }} Upload
+        if: matrix.platform.name != 'StandaloneLinux64'
         uses: actions/upload-artifact@v3
         with:
           name: Output_${{ matrix.platform.name }}
           path: Output_${{ matrix.platform.name }}
+      
+      # Archive and Upload for Linux
+      - name: Archive and Upload for Linux
+        if: matrix.platform.name == 'StandaloneLinux64'
+        run: |
+          tar -czvf output.tar.gz Output_${{ matrix.platform.name }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_${{ matrix.platform.name }}
+          path: ./output.tar.gz
