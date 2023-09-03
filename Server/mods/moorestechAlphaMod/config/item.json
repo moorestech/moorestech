@@ -83,10 +83,5 @@
         "name": "stone ax handle",
         "maxStacks": 100,
         "imagePath": ""
-    },
-    {
-        "name": "stone ax",
-        "maxStacks": 1,
-        "imagePath": ""
     }
 ]
