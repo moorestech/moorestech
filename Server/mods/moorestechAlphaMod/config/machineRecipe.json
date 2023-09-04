@@ -1,4 +1,98 @@
 ﻿[
-
+    {
+        "blockModId": "sakastudio:moorestechAlphaMod",
+        "blockName": "campfire",
+        "time": 10000,
+        "input": [
+          {
+            "itemName":"wood",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1
+          },
+          {
+            "itemName":"stone",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1
+          }
+        ],
+        "output": [
+          {
+            "itemName":"stone ax handle",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1,
+            "percent": 1
+          }
+        ]
+    },
+    {
+        "blockModId": "sakastudio:moorestechAlphaMod",
+        "blockName": "campfire",
+        "time": 15000,
+        "input": [
+          {
+            "itemName":"clay",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1
+          },
+          {
+            "itemName":"wood",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 4
+          }
+        ],
+        "output": [
+          {
+            "itemName":"burned brick",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1,
+            "percent": 1
+          }
+        ]
+    },
+    {
+        "blockModId": "sakastudio:moorestechAlphaMod",
+        "blockName": "campfire",
+        "time": 15000,
+        "input": [
+          {
+            "itemName":"clay",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1
+          },
+          {
+            "itemName":"charcoal",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1
+          }
+        ],
+        "output": [
+          {
+            "itemName":"burned brick",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1,
+            "percent": 1
+          }
+        ]
+    },
+    {
+        "blockModId": "sakastudio:moorestechAlphaMod",
+        "blockName": "charcoal kiln",
+        "time": 15000,
+        "input": [
+          {
+            "itemName":"wood",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 2
+          }
+        ],
+        "output": [
+          {
+            "itemName":"charcoal",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1,
+            "percent": 1
+          }
+        ]
+    }
  
 ]

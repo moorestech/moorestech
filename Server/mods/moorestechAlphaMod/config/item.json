@@ -83,5 +83,30 @@
         "name": "stone ax handle",
         "maxStacks": 100,
         "imagePath": ""
+    },
+    {
+        "name": "clay",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "burned brick",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "charcoal kiln",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "charcoal",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "smelting furnace",
+        "maxStacks": 100,
+        "imagePath": ""
     }
 ]
