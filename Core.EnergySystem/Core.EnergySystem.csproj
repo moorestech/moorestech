@@ -3,6 +3,9 @@
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <LangVersion>9</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Core.PowerSystem</RootNamespace>
     </PropertyGroup>
 
 </Project>
