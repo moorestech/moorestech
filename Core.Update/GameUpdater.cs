@@ -11,6 +11,7 @@ namespace Core.Update
         public static double UpdateMillSecondTime => _updateMillSecondTime;
         private static double _updateMillSecondTime = 0;
 
+        //TODO これをDisposableにする
         public static void RegisterUpdater(IUpdatable iUpdatable)
         {
             Updates.Add(iUpdatable);
