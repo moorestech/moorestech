@@ -264,7 +264,7 @@
             }
         ],
         "result": {
-            "itemName": "smelting furnace",
+            "itemName": "bloomery",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }

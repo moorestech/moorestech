@@ -25,6 +25,11 @@
         "imagePath": "assets/item/iron ore.png"
     },
     {
+        "name": "tiny iron ore",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
         "name": "iron ore powder",
         "maxStacks": 100,
         "imagePath": "assets/item/iron ore powder.png"
@@ -105,7 +110,72 @@
         "imagePath": ""
     },
     {
-        "name": "smelting furnace",
+        "name": "bloomery",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "cotton",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "cloth",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "bloom",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "bellows screw",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "bellows nozzle",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "bellow",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "bloomery with bellows",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "cast iron",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "chisel",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "iron ax",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "iron pickaxe",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "steel ax",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "steel pickaxe",
         "maxStacks": 100,
         "imagePath": ""
     }
