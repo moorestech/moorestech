@@ -47,7 +47,7 @@ namespace Test.CombinedTest.Core
             GameUpdater.Update();
 
             //供給電力の確認
-            Assert.AreEqual(generatorConfigParam.FuelSettings[FuelItem1Id].Power, powerGenerator.OutputPower());
+            Assert.AreEqual(generatorConfigParam.FuelSettings[FuelItem1Id].Power, powerGenerator.OutputEnergy());
 
             //燃料の枯渇までループ
             while (endTime1.AddSeconds(0.1).CompareTo(DateTime.Now) == 1)

@@ -48,7 +48,6 @@ using Server.Protocol;
 using World.DataStore;
 using World.DataStore.WorldSettings;
 using World.Event;
-using World.Service;
 
 namespace Server.Boot
 {
@@ -81,7 +80,7 @@ namespace Server.Boot
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
             services.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
-            services.AddSingleton<IWorldBlockComponentDatastore<IBlockElectric>, WorldBlockComponentDatastore<IBlockElectric>>();
+            services.AddSingleton<IWorldBlockComponentDatastore<IBlockElectricConsumer>, WorldBlockComponentDatastore<IBlockElectricConsumer>>();
             services.AddSingleton<IWorldBlockComponentDatastore<IElectricPole>, WorldBlockComponentDatastore<IElectricPole>>();
             services.AddSingleton<IWorldBlockComponentDatastore<IPowerGenerator>, WorldBlockComponentDatastore<IPowerGenerator>>();
             services.AddSingleton<IWorldBlockComponentDatastore<IBlockInventory>, WorldBlockComponentDatastore<IBlockInventory>>();
@@ -89,7 +88,7 @@ namespace Server.Boot
             services.AddSingleton<IWorldBlockComponentDatastore<IMiner>, WorldBlockComponentDatastore<IMiner>>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IBlockInventoryOpenStateDataStore, BlockInventoryOpenStateDataStore>();
-            services.AddSingleton<IWorldElectricSegmentDatastore, WorldElectricSegmentDatastore>();
+            services.AddSingleton<IWorldEnergySegmentDatastore, WorldEnergySegmentDatastore>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IOreConfig, OreConfig>();
             services.AddSingleton<VeinGenerator, VeinGenerator>();
@@ -136,7 +135,7 @@ namespace Server.Boot
             services.AddSingleton<DisconnectElectricPoleToFromElectricSegment>();
             services.AddSingleton<ConnectMachineToElectricSegment>();
             services.AddSingleton<SetMiningItemToMiner>();
-            services.AddSingleton<DisconnectTwoOreMoreElectricPoleFromSegmentService>();
+            services.AddSingleton<DisconnectTwoOrMoreElectricPoleFromSegmentService>();
             services.AddSingleton<DisconnectOneElectricPoleFromSegmentService>();
             services.AddSingleton<QuestCompletedToSendEventPacket>();
             services.AddSingleton<MapObjectUpdateEventPacket>();

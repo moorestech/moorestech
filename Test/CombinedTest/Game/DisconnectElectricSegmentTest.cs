@@ -43,39 +43,39 @@ namespace Test.CombinedTest.Game
             worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 5), 3, 1, BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 6), 6, 1, BlockDirection.North);
             
-            var worldElectricSegment = saveServiceProvider.GetService<IWorldElectricSegmentDatastore>();
+            var worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore>();
             //セグメントの数を確認
-            Assert.AreEqual(1, worldElectricSegment.GetElectricSegmentListCount());
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
             
             //右端の電柱を削除
             worldBlockDatastore.RemoveBlock(6, 0);
             //セグメントの数を確認
-            Assert.AreEqual(1, worldElectricSegment.GetElectricSegmentListCount());
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
             //電柱を再設置
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 2), 6, 0, BlockDirection.North);
             //セグメントの数を確認
-            Assert.AreEqual(1, worldElectricSegment.GetElectricSegmentListCount());
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
             
             
             //真ん中の電柱を削除
             worldBlockDatastore.RemoveBlock(3, 0);
             //セグメントが増えていることを確認する
-            Assert.AreEqual(2, worldElectricSegment.GetElectricSegmentListCount());
+            Assert.AreEqual(2, worldElectricSegment.GetEnergySegmentListCount());
     
             //真ん中の発電機が2つのセグメントにないことを確認する
-            Assert.AreEqual(false,worldElectricSegment.GetElectricSegment(0).GetGenerators().ContainsKey(5));
-            Assert.AreEqual(false,worldElectricSegment.GetElectricSegment(1).GetGenerators().ContainsKey(5));
+            Assert.AreEqual(false,worldElectricSegment.GetEnergySegment(0).GetGenerators().ContainsKey(5));
+            Assert.AreEqual(false,worldElectricSegment.GetEnergySegment(1).GetGenerators().ContainsKey(5));
             
             //両端の電柱が別のセグメントであることを確認する
-            var segment1 = worldElectricSegment.GetElectricSegment(worldBlockDatastore.GetBlock(0,0) as IElectricPole);
-            var segment2 = worldElectricSegment.GetElectricSegment(worldBlockDatastore.GetBlock(6,0) as IElectricPole);
+            var segment1 = worldElectricSegment.GetEnergySegment(worldBlockDatastore.GetBlock(0,0) as IElectricPole);
+            var segment2 = worldElectricSegment.GetEnergySegment(worldBlockDatastore.GetBlock(6,0) as IElectricPole);
             
             Assert.AreNotEqual(segment1.GetHashCode(), segment2.GetHashCode());
             
             //右端の電柱を削除する
             worldBlockDatastore.RemoveBlock(6, 0);
             //セグメントが減っていることを確認する
-            Assert.AreEqual(1, worldElectricSegment.GetElectricSegmentListCount());
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
         }
 
         //電柱を消してもループによって1つのセグメントになっている時のテスト
@@ -93,7 +93,7 @@ namespace Test.CombinedTest.Game
             
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<BlockFactory>();
-            var worldElectricSegment = saveServiceProvider.GetService<IWorldElectricSegmentDatastore>();
+            var worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore>();
             
             //電柱の設置
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0), 0, 0, BlockDirection.North);
@@ -112,15 +112,15 @@ namespace Test.CombinedTest.Game
             
             
             //セグメントの数を確認
-            Assert.AreEqual(1, worldElectricSegment.GetElectricSegmentListCount());
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
             
             //真ん中の電柱を削除
             worldBlockDatastore.RemoveBlock(3, 0);
             //セグメント数が変わってないかチェック
-            Assert.AreEqual(1, worldElectricSegment.GetElectricSegmentListCount());
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
             
             //真ん中の発電機がセグメントにないことを確認する
-            Assert.AreEqual(false,worldElectricSegment.GetElectricSegment(0).GetGenerators().ContainsKey(105));
+            Assert.AreEqual(false,worldElectricSegment.GetEnergySegment(0).GetGenerators().ContainsKey(105));
             
         }
     }

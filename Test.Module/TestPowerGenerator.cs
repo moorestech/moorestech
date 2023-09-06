@@ -16,7 +16,7 @@ namespace Test.Module
             EntityId = entityId;
         }
 
-        public int OutputPower()
+        public int OutputEnergy()
         {
             return _power;
         }

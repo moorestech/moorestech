@@ -4,16 +4,17 @@ using Core.Block.Blocks;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
+using Core.EnergySystem;
 using Game.World.Interface.DataStore;
 
 namespace Game.World.EventHandler.Service
 {
-    public class DisconnectOneElectricPoleFromSegmentService
+    public class DisconnectOneElectricPoleFromSegmentService<TSegment> where TSegment : EnergySegment, new()
     {
-        private readonly IWorldBlockComponentDatastore<IBlockElectric> _electricDatastore;
+        private readonly IWorldBlockComponentDatastore<IBlockElectricConsumer> _electricDatastore;
         private readonly IWorldBlockComponentDatastore<IPowerGenerator> _powerGeneratorDatastore;
-        private readonly IWorldBlockComponentDatastore<IElectricPole> _electricPoleDatastore;
-        private readonly IWorldElectricSegmentDatastore _worldElectricSegmentDatastore;
+        private readonly IWorldBlockComponentDatastore<IEnergyTransformer> _electricPoleDatastore;
+        private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IBlockConfig _blockConfig;
 
@@ -21,25 +22,25 @@ namespace Game.World.EventHandler.Service
             IBlockConfig blockConfig, 
             IWorldBlockDatastore worldBlockDatastore, 
             IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore, 
-            IWorldBlockComponentDatastore<IBlockElectric> electricDatastore, 
-            IWorldElectricSegmentDatastore worldElectricSegmentDatastore, 
-            IWorldBlockComponentDatastore<IElectricPole> electricPoleDatastore)
+            IWorldBlockComponentDatastore<IBlockElectricConsumer> electricDatastore, 
+            IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore, 
+            IWorldBlockComponentDatastore<IEnergyTransformer> electricPoleDatastore)
         {
             _blockConfig = blockConfig;
             _worldBlockDatastore = worldBlockDatastore;
             _powerGeneratorDatastore = powerGeneratorDatastore;
             _electricDatastore = electricDatastore;
-            _worldElectricSegmentDatastore = worldElectricSegmentDatastore;
+            _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
             _electricPoleDatastore = electricPoleDatastore;
         }
 
-        public void Disconnect(IElectricPole removedElectricPole)
+        public void Disconnect(IEnergyTransformer removedElectricPole)
         {
             //必要なデータを取得
             var (x, y) = _worldBlockDatastore.GetBlockPosition(removedElectricPole.EntityId);
             var poleConfig =
                 _blockConfig.GetBlockConfig(((IBlock)removedElectricPole).BlockId).Param as ElectricPoleConfigParam;
-            var removedSegment = _worldElectricSegmentDatastore.GetElectricSegment(removedElectricPole);
+            var removedSegment = _worldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);
             var electricPoles = new FindElectricPoleFromPeripheralService().Find(
                 x, y, poleConfig, _electricPoleDatastore);
             
@@ -50,7 +51,7 @@ namespace Game.World.EventHandler.Service
             
             
             //セグメントから電柱の接続状態を解除
-            removedSegment.RemoveElectricPole(removedElectricPole);
+            removedSegment.RemoveEnergyTransformer(removedElectricPole);
 
             //周辺の機械、発電機を取得
             var (blocks, generators) =
@@ -58,7 +59,7 @@ namespace Game.World.EventHandler.Service
                     _powerGeneratorDatastore);
 
             //周辺の機械、発電機を接続状態から解除する
-            blocks.ForEach(removedSegment.RemoveBlockElectric);
+            blocks.ForEach(removedSegment.RemoveEnergyConsumer);
             generators.ForEach(removedSegment.RemoveGenerator);
 
 
@@ -71,7 +72,7 @@ namespace Game.World.EventHandler.Service
                     connectedPoleConfig, _electricDatastore, _powerGeneratorDatastore);
 
             //セグメントに追加する
-            connectedBlocks.ForEach(removedSegment.AddBlockElectric);
+            connectedBlocks.ForEach(removedSegment.AddEnergyConsumer);
             connectedGenerators.ForEach(removedSegment.AddGenerator);
         }
     }

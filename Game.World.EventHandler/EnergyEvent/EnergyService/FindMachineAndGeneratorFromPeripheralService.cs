@@ -7,12 +7,12 @@ namespace Game.World.EventHandler.Service
 {
     public class FindMachineAndGeneratorFromPeripheralService
     {
-        public (List<IBlockElectric>,List<IPowerGenerator>) Find(
+        public (List<IBlockElectricConsumer>,List<IPowerGenerator>) Find(
             int x,int y,ElectricPoleConfigParam poleConfigParam,
-            IWorldBlockComponentDatastore<IBlockElectric> electricDatastore,
+            IWorldBlockComponentDatastore<IBlockElectricConsumer> electricDatastore,
             IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore)
         {
-            var blocks = new List<IBlockElectric>();
+            var blocks = new List<IBlockElectricConsumer>();
             var generators = new List<IPowerGenerator>();
             var machineRange = poleConfigParam.machineConnectionRange;
             

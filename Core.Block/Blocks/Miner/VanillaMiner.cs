@@ -16,7 +16,7 @@ using Newtonsoft.Json;
 
 namespace Core.Block.Blocks.Miner
 {
-    public class VanillaMiner : IBlock, IBlockElectric, IBlockInventory, IUpdatable,IMiner,IOpenableInventory
+    public class VanillaMiner : IBlock, IBlockElectricConsumer, IBlockInventory, IUpdatable,IMiner,IOpenableInventory
     {
 
         public int EntityId { get; }
@@ -24,7 +24,7 @@ namespace Core.Block.Blocks.Miner
         public ulong BlockHash { get; }
         public event Action<ChangedBlockState> OnBlockStateChange;
         
-        public int RequestPower  { get; }
+        public int RequestEnergy  { get; }
         private readonly ItemStackFactory _itemStackFactory;
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly OpenableInventoryItemDataStoreService _openableInventoryItemDataStoreService;
@@ -42,7 +42,7 @@ namespace Core.Block.Blocks.Miner
         {
             BlockId = blockId;
             EntityId = entityId;
-            RequestPower = requestPower;
+            RequestEnergy = requestPower;
             BlockHash = blockHash;
             
             _itemStackFactory = itemStackFactory;
@@ -81,7 +81,7 @@ namespace Core.Block.Blocks.Miner
 
         private void MinerProgressUpdate()
         {
-            var subTime = MachineCurrentPowerToSubMillSecond.GetSubMillSecond(_currentPower, RequestPower);
+            var subTime = MachineCurrentPowerToSubMillSecond.GetSubMillSecond(_currentPower, RequestEnergy);
             if (subTime <= 0)
             {
                 //電力の都合で処理を進められないのでreturn
@@ -135,7 +135,7 @@ namespace Core.Block.Blocks.Miner
         {
             var processingRate =  1 - (float) _remainingMillSecond / _defaultMiningTime;
             OnBlockStateChange?.Invoke(new ChangedBlockState(_currentState.ToStr(), _lastMinerState.ToStr(),
-                JsonConvert.SerializeObject(new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate))));
+                JsonConvert.SerializeObject(new CommonMachineBlockStateChangeData(_currentPower, RequestEnergy, processingRate))));
         }
         
 
@@ -188,7 +188,7 @@ namespace Core.Block.Blocks.Miner
         private void InvokeEvent(int slot, IItemStack itemStack) { _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack)); }
 
 
-        public void SupplyPower(int power)
+        public void SupplyEnergy(int power)
         {
             _currentPower = power;
         }

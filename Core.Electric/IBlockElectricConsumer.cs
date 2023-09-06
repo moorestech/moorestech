@@ -2,7 +2,7 @@
 
 namespace Core.Electric
 {
-    public interface IPowerGenerator : IEnergyGenerator
+    public interface IBlockElectricConsumer : IEnergyConsumer
     {
     }
 }

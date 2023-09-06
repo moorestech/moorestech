@@ -2,37 +2,34 @@ using System.Collections.Generic;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
+using Core.EnergySystem;
 using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
-using Game.World.Interface.Service;
 
 namespace Game.World.EventHandler
 {
-    public class ConnectElectricPoleToElectricSegment
+    public class ConnectElectricPoleToElectricSegment<TSegment> where TSegment : EnergySegment, new()
     {
-        private readonly IWorldBlockComponentDatastore<IElectricPole> _electricPoleDatastore;
-        private readonly IWorldBlockComponentDatastore<IBlockElectric> _electricDatastore;
+        private readonly IWorldBlockComponentDatastore<IEnergyTransformer> _electricPoleDatastore;
+        private readonly IWorldBlockComponentDatastore<IBlockElectricConsumer> _electricDatastore;
         private readonly IWorldBlockComponentDatastore<IPowerGenerator> _powerGeneratorDatastore;
-        private readonly IWorldElectricSegmentDatastore _worldElectricSegmentDatastore;
-        private readonly IElectricSegmentMergeService _electricSegmentMergeService;
+        private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
         private readonly IBlockConfig _blockConfig;
 
 
         public ConnectElectricPoleToElectricSegment(IBlockPlaceEvent blockPlaceEvent,
-            IWorldBlockComponentDatastore<IElectricPole> electricPoleDatastore,
+            IWorldBlockComponentDatastore<IEnergyTransformer> electricPoleDatastore,
             IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore,
-            IWorldElectricSegmentDatastore worldElectricSegmentDatastore,
+            IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
             IBlockConfig blockConfig, 
-            IWorldBlockComponentDatastore<IBlockElectric> electricDatastore, 
-            IElectricSegmentMergeService electricSegmentMergeService)
+            IWorldBlockComponentDatastore<IBlockElectricConsumer> electricDatastore)
         {
             _electricPoleDatastore = electricPoleDatastore;
             _powerGeneratorDatastore = powerGeneratorDatastore;
-            _worldElectricSegmentDatastore = worldElectricSegmentDatastore;
+            _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
             _blockConfig = blockConfig;
             _electricDatastore = electricDatastore;
-            _electricSegmentMergeService = electricSegmentMergeService;
             blockPlaceEvent.Subscribe(OnBlockPlace);
         }
 
@@ -57,8 +54,8 @@ namespace Game.World.EventHandler
         /// 範囲内の電柱をリストアップする 電柱が１つであればそれに接続、複数ならマージする
         /// 接続したセグメントを返す
         /// </summary>
-        private ElectricSegment GetAndConnectElectricSegment(
-            int x,int y,ElectricPoleConfigParam electricPoleConfigParam,IElectricPole blockElectric)
+        private EnergySegment GetAndConnectElectricSegment(
+            int x,int y,ElectricPoleConfigParam electricPoleConfigParam,IEnergyTransformer blockElectric)
         {
             //周りの電柱をリストアップする
             var electricPoles = 
@@ -68,14 +65,14 @@ namespace Game.World.EventHandler
             var electricSegment = electricPoles.Count switch
             {
                 //周りに電柱がないときは新たに電力セグメントを作成する
-                0 => _worldElectricSegmentDatastore.CreateElectricSegment(),
+                0 => _worldEnergySegmentDatastore.CreateEnergySegment(),
                 //周りの電柱が1つの時は、その電力セグメントを取得する
-                1 => _worldElectricSegmentDatastore.GetElectricSegment(electricPoles[0]),
+                1 => _worldEnergySegmentDatastore.GetEnergySegment(electricPoles[0]),
                 //電柱が2つ以上の時はマージする
-                _ => _electricSegmentMergeService.MergeAndSetDatastoreElectricSegments(electricPoles)
+                _ => ElectricSegmentMergeService.MergeAndSetDatastoreElectricSegments(_worldEnergySegmentDatastore,electricPoles)
             };
             //電柱と電力セグメントを接続する
-            electricSegment.AddElectricPole(blockElectric);
+            electricSegment.AddEnergyTransformer(blockElectric);
 
             return electricSegment;
         }
@@ -83,14 +80,14 @@ namespace Game.World.EventHandler
         /// <summary>
         /// 設置した電柱の周辺にある機械、発電機を探索して接続する
         /// </summary>
-        private void ConnectMachine(int x,int y,ElectricSegment segment,ElectricPoleConfigParam poleConfigParam)
+        private void ConnectMachine(int x,int y,EnergySegment segment,ElectricPoleConfigParam poleConfigParam)
         {
             var (blocks, generators) = 
                 new FindMachineAndGeneratorFromPeripheralService().
                     Find(x, y, poleConfigParam, _electricDatastore, _powerGeneratorDatastore);
             
             //機械と発電機を電力セグメントを接続する
-            blocks.ForEach(segment.AddBlockElectric);
+            blocks.ForEach(segment.AddEnergyConsumer);
             generators.ForEach(segment.AddGenerator);
         }
     }

@@ -12,7 +12,7 @@ namespace Test.UnitTest.Core.Block
         {
             var segment = new ElectricSegment();
 
-            var electric = new BlockElectric(100, 0);
+            var electric = new BlockElectricConsumer(100, 0);
             var generate = new TestPowerGenerator(100, 0);
 
             segment.AddGenerator(generate);
@@ -24,7 +24,7 @@ namespace Test.UnitTest.Core.Block
             GameUpdater.Update();
             Assert.AreEqual(0, electric.NowPower);
 
-            var electric2 = new BlockElectric(300, 1);
+            var electric2 = new BlockElectricConsumer(300, 1);
             segment.AddGenerator(generate);
             segment.AddBlockElectric(electric2);
             GameUpdater.Update();
@@ -38,19 +38,19 @@ namespace Test.UnitTest.Core.Block
         }
     }
 
-    class BlockElectric : IBlockElectric
+    class BlockElectricConsumer : IBlockElectricConsumer
     {
         public int EntityId { get; }
-        public int RequestPower　{ get; }
+        public int RequestEnergy　{ get; }
         public int NowPower;
         
 
-        public BlockElectric(int requestPower,int entityId)
+        public BlockElectricConsumer(int requestPower,int entityId)
         {
             EntityId = entityId;
-            RequestPower = requestPower;
+            RequestEnergy = requestPower;
         }
-        public void SupplyPower(int power)
+        public void SupplyEnergy(int power)
         {
             NowPower = power;
         }

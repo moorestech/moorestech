@@ -3,35 +3,36 @@ using Core.Block.Blocks;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
+using Core.EnergySystem;
 using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 
 namespace Game.World.EventHandler
 {
-    public class DisconnectElectricPoleToFromElectricSegment
+    public class DisconnectElectricPoleToFromElectricSegment<TSegment> where TSegment : EnergySegment, new()
     {
-        private readonly IWorldBlockComponentDatastore<IElectricPole> _electricPoleDatastore;
+        private readonly IWorldBlockComponentDatastore<IEnergyTransformer> _electricPoleDatastore;
         private readonly IBlockConfig _blockConfig;
-        private readonly IWorldElectricSegmentDatastore _worldElectricSegmentDatastore;
-        private readonly DisconnectOneElectricPoleFromSegmentService _disconnectOne;
+        private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
+        private readonly DisconnectOneElectricPoleFromSegmentService<TSegment> _disconnectOne;
 
-        private readonly DisconnectTwoOreMoreElectricPoleFromSegmentService
-            _disconnectTwoOreMore;
+        private readonly DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment>
+            _disconnectTwoOrMore;
 
         public DisconnectElectricPoleToFromElectricSegment(
             IBlockRemoveEvent blockRemoveEvent,
-            IWorldBlockComponentDatastore<IElectricPole> electricPoleDatastore,
+            IWorldBlockComponentDatastore<IEnergyTransformer> electricPoleDatastore,
             IBlockConfig blockConfig,
-            IWorldElectricSegmentDatastore worldElectricSegmentDatastore, 
-            DisconnectOneElectricPoleFromSegmentService disconnectOne, 
-            DisconnectTwoOreMoreElectricPoleFromSegmentService disconnectTwoOreMore)
+            IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore, 
+            DisconnectOneElectricPoleFromSegmentService<TSegment> disconnectOne, 
+            DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment> disconnectTwoOrMore)
         {
             _electricPoleDatastore = electricPoleDatastore;
             _blockConfig = blockConfig;
-            _worldElectricSegmentDatastore = worldElectricSegmentDatastore;
+            _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
             _disconnectOne = disconnectOne;
-            _disconnectTwoOreMore = disconnectTwoOreMore;
+            _disconnectTwoOrMore = disconnectTwoOrMore;
             blockRemoveEvent.Subscribe(OnBlockRemove);
         }
 
@@ -52,7 +53,7 @@ namespace Game.World.EventHandler
             var removedElectricPole = _electricPoleDatastore.GetBlock(x, y);
 
             //削除した電柱のセグメントを取得
-            var removedSegment = _worldElectricSegmentDatastore.GetElectricSegment(removedElectricPole);
+            var removedSegment = _worldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);
 
             
             switch (electricPoles.Count)
@@ -60,7 +61,7 @@ namespace Game.World.EventHandler
                 //周りに電柱がないとき
                 case 0:
                     //セグメントを削除する
-                    _worldElectricSegmentDatastore.RemoveElectricSegment(removedSegment);
+                    _worldEnergySegmentDatastore.RemoveEnergySegment(removedSegment);
                     return;
                 //周りの電柱が1つの時
                 case 1:
@@ -68,7 +69,7 @@ namespace Game.World.EventHandler
                     return;
                 //周りの電柱が2つ以上の時
                 case >= 2:
-                    _disconnectTwoOreMore.Disconnect(removedElectricPole);
+                    _disconnectTwoOrMore.Disconnect(removedElectricPole);
                     break;
             }
         }

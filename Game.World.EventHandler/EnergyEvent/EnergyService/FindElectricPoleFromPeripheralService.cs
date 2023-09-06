@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
+using Core.EnergySystem;
 using Game.World.Interface.DataStore;
 
 namespace Game.World.EventHandler.Service
@@ -16,12 +17,12 @@ namespace Game.World.EventHandler.Service
         /// <param name="electricPoleConfigParam"></param>
         /// <param name="electricPoleDatastore"></param>
         /// <returns></returns>
-        public List<IElectricPole> Find(
+        public List<IEnergyTransformer> Find(
             int x,int y,
             ElectricPoleConfigParam electricPoleConfigParam,
-            IWorldBlockComponentDatastore<IElectricPole> electricPoleDatastore)
+            IWorldBlockComponentDatastore<IEnergyTransformer> electricPoleDatastore)
         {
-            var electricPoles = new List<IElectricPole>();
+            var electricPoles = new List<IEnergyTransformer>();
             //for文のための設定
             var poleRange = electricPoleConfigParam.poleConnectionRange;
             electricPoleDatastore.GetBlock(x, y);

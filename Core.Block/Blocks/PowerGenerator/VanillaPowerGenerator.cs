@@ -121,7 +121,7 @@ namespace Core.Block.Blocks.PowerGenerator
             }
         }
 
-        public int OutputPower()
+        public int OutputEnergy()
         {
             if (_fuelSettings.ContainsKey(_fuelItemId))
             {

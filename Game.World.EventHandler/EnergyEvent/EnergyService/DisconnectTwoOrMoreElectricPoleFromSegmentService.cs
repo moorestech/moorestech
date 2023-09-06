@@ -3,43 +3,44 @@ using Core.Block.Blocks;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
+using Core.EnergySystem;
 using Game.World.Interface.DataStore;
 
 namespace Game.World.EventHandler.Service
 {
-    public class DisconnectTwoOreMoreElectricPoleFromSegmentService
+    public class DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment> where TSegment : EnergySegment, new()
     { 
-        private readonly IWorldBlockComponentDatastore<IElectricPole> _electricPoleDatastore;
-        private readonly IWorldBlockComponentDatastore<IBlockElectric> _electricDatastore;
+        private readonly IWorldBlockComponentDatastore<IEnergyTransformer> _electricPoleDatastore;
+        private readonly IWorldBlockComponentDatastore<IBlockElectricConsumer> _electricDatastore;
         private readonly IWorldBlockComponentDatastore<IPowerGenerator> _powerGeneratorDatastore;
-        private readonly IWorldElectricSegmentDatastore _worldElectricSegmentDatastore;
+        private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IBlockConfig _blockConfig;
 
-        public DisconnectTwoOreMoreElectricPoleFromSegmentService(IWorldBlockComponentDatastore<IElectricPole> electricPoleDatastore, IWorldBlockComponentDatastore<IBlockElectric> electricDatastore, IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore, IWorldElectricSegmentDatastore worldElectricSegmentDatastore, IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig)
+        public DisconnectTwoOrMoreElectricPoleFromSegmentService(IWorldBlockComponentDatastore<IEnergyTransformer> electricPoleDatastore, IWorldBlockComponentDatastore<IBlockElectricConsumer> electricDatastore, IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore, IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore, IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig)
         {
             _electricPoleDatastore = electricPoleDatastore;
             _electricDatastore = electricDatastore;
             _powerGeneratorDatastore = powerGeneratorDatastore;
-            _worldElectricSegmentDatastore = worldElectricSegmentDatastore;
+            _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
             _worldBlockDatastore = worldBlockDatastore;
             _blockConfig = blockConfig;
         }
 
-        public void Disconnect(IElectricPole removedElectricPole)
+        public void Disconnect(IEnergyTransformer removedElectricPole)
         {
             //データを取得
-            var removedSegment = _worldElectricSegmentDatastore.GetElectricSegment(removedElectricPole);
+            var removedSegment = _worldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);
             
             //自身が所属していたセグメントの電柱のリストを取る
-            var connectedElectricPoles = new List<IElectricPole>();
-            foreach (var onePole in removedSegment.GetElectricPoles()) connectedElectricPoles.Add(onePole.Value);
+            var connectedElectricPoles = new List<IEnergyTransformer>();
+            foreach (var onePole in removedSegment.EnergyTransformers) connectedElectricPoles.Add(onePole.Value);
             //この電柱のリストをもとに電力セグメントを再構成するため、削除した電柱はリストから削除する
             connectedElectricPoles.Remove(removedElectricPole);
             
             
             //元のセグメントを消す
-            _worldElectricSegmentDatastore.RemoveElectricSegment(removedSegment);
+            _worldEnergySegmentDatastore.RemoveEnergySegment(removedSegment);
 
 
             //電柱を全て探索し、電力セグメントを再構成する
@@ -52,32 +53,32 @@ namespace Game.World.EventHandler.Service
                     GetElectricPoles(
                         connectedElectricPoles[0],
                         removedElectricPole,
-                        new Dictionary<int, IElectricPole>(),
-                        new Dictionary<int, IBlockElectric>(),
+                        new Dictionary<int, IEnergyTransformer>(),
+                        new Dictionary<int, IBlockElectricConsumer>(),
                         new Dictionary<int, IPowerGenerator>());
 
 
                 //新しいセグメントに電柱、ブロック、発電機を追加する
-                var newElectricSegment = _worldElectricSegmentDatastore.CreateElectricSegment();
+                var newElectricSegment = _worldEnergySegmentDatastore.CreateEnergySegment();
                 foreach (var newElectric in newElectricPoles)
                 {
-                    newElectricSegment.AddElectricPole(newElectric.Value);
+                    newElectricSegment.AddEnergyTransformer(newElectric.Value);
                     //今までの電柱リストから削除する
                     connectedElectricPoles.Remove(newElectric.Value);
                 }
 
-                foreach (var newBlock in newBlocks) newElectricSegment.AddBlockElectric(newBlock.Value);
+                foreach (var newBlock in newBlocks) newElectricSegment.AddEnergyConsumer(newBlock.Value);
                 foreach (var newGenerator in newGenerators) newElectricSegment.AddGenerator(newGenerator.Value);
             }
         }
 
         //再帰的に電柱を探索する 
-        private (Dictionary<int, IElectricPole>, Dictionary<int, IBlockElectric>, Dictionary<int, IPowerGenerator>)
+        private (Dictionary<int, IEnergyTransformer>, Dictionary<int, IBlockElectricConsumer>, Dictionary<int, IPowerGenerator>)
             GetElectricPoles(
-                IElectricPole electricPole,
-                IElectricPole removedElectricPole,
-                Dictionary<int, IElectricPole> electricPoles,
-                Dictionary<int, IBlockElectric> blockElectrics,
+                IEnergyTransformer electricPole,
+                IEnergyTransformer removedElectricPole,
+                Dictionary<int, IEnergyTransformer> electricPoles,
+                Dictionary<int, IBlockElectricConsumer> blockElectrics,
                 Dictionary<int, IPowerGenerator> powerGenerators)
         {
             var (x, y) = _worldBlockDatastore.GetBlockPosition(electricPole.EntityId);

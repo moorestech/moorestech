@@ -1,7 +1,8 @@
+using Core.EnergySystem;
+
 namespace Core.Electric
 {
-    public interface IElectricPole
+    public interface IElectricPole : IEnergyTransformer
     {
-        public int EntityId { get; }
     }
 }

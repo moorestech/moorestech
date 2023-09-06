@@ -36,7 +36,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             machine.InsertItem(item2);
 
             //稼働用の電気を供給する
-            machine.SupplyPower(100);
+            machine.SupplyEnergy(100);
             
             
             //最初にイベントをリクエストして、ブロードキャストを受け取れるようにする

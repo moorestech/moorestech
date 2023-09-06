@@ -2,18 +2,19 @@ using Core.Block.Blocks;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
+using Core.EnergySystem;
 using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 
 namespace Game.World.EventHandler
 {
-    public class ConnectMachineToElectricSegment
+    public class ConnectMachineToElectricSegment<TSegment> where TSegment : EnergySegment, new()
     {
         private readonly IWorldBlockComponentDatastore<IPowerGenerator> _powerGeneratorDatastore;
-        private readonly IWorldBlockComponentDatastore<IBlockElectric> _electricDatastore;
+        private readonly IWorldBlockComponentDatastore<IBlockElectricConsumer> _electricDatastore;
         private readonly IWorldBlockComponentDatastore<IElectricPole> _electricPoleDatastore;
-        private readonly IWorldElectricSegmentDatastore _worldElectricSegmentDatastore;
+        private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
         private readonly IBlockConfig _blockConfig;
         private readonly int _maxMachineConnectionRange;
 
@@ -21,14 +22,14 @@ namespace Game.World.EventHandler
         public ConnectMachineToElectricSegment(IBlockPlaceEvent blockPlaceEvent,
             IWorldBlockComponentDatastore<IElectricPole> electricPoleDatastore,
             IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore,
-            IWorldElectricSegmentDatastore worldElectricSegmentDatastore,
+            IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
             IBlockConfig blockConfig,
             MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange,
-            IWorldBlockComponentDatastore<IBlockElectric> electricDatastore)
+            IWorldBlockComponentDatastore<IBlockElectricConsumer> electricDatastore)
         {
             _electricPoleDatastore = electricPoleDatastore;
             _powerGeneratorDatastore = powerGeneratorDatastore;
-            _worldElectricSegmentDatastore = worldElectricSegmentDatastore;
+            _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
             _blockConfig = blockConfig;
             _electricDatastore = electricDatastore;
             _maxMachineConnectionRange = maxElectricPoleMachineConnectionRange.Get();
@@ -82,14 +83,14 @@ namespace Game.World.EventHandler
 
             //在る場合は発電機か機械かを判定して接続
             //発電機を電力セグメントに追加
-            var segment = _worldElectricSegmentDatastore.GetElectricSegment(pole);
+            var segment = _worldEnergySegmentDatastore.GetEnergySegment(pole);
             if (_powerGeneratorDatastore.ExistsComponentBlock(machineX, machineY))
             {
                 segment.AddGenerator(_powerGeneratorDatastore.GetBlock(machineX, machineY));
             }
             else if (_electricDatastore.ExistsComponentBlock(machineX, machineY))
             {
-                segment.AddBlockElectric(_electricDatastore.GetBlock(machineX, machineY));
+                segment.AddEnergyConsumer(_electricDatastore.GetBlock(machineX, machineY));
             }
         }
     }

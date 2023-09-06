@@ -15,7 +15,7 @@ namespace Core.Block.Blocks.Machine
     /// 機械を表すクラス
     /// 具体的な処理は各コンポーネントに任せて、このクラスはInterfaceの実装だけを行う
     /// </summary>
-    public class VanillaMachine : IBlock, IBlockInventory, IBlockElectric, IOpenableInventory
+    public class VanillaMachine : IBlock, IBlockInventory, IBlockElectricConsumer, IOpenableInventory
     {
         private readonly VanillaMachineBlockInventory _vanillaMachineBlockInventory;
         private readonly VanillaMachineSave _vanillaMachineSave;
@@ -86,8 +86,8 @@ namespace Core.Block.Blocks.Machine
         
         
         #region IBlockElectric implementation
-        public int RequestPower => _vanillaMachineRunProcess.RequestPower;
-        public void SupplyPower(int power) { _vanillaMachineRunProcess.SupplyPower(power); }
+        public int RequestEnergy => _vanillaMachineRunProcess.RequestPower;
+        public void SupplyEnergy(int power) { _vanillaMachineRunProcess.SupplyPower(power); }
 
         #endregion
 
