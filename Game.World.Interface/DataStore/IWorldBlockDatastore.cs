@@ -18,6 +18,10 @@ namespace Game.World.Interface.DataStore
         public List<SaveBlockData> GetSaveBlockDataList();
         public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList);
 
+        public bool ExistsComponentBlock<TComponent>(int x, int y);
+        public TComponent GetBlock<TComponent>(int x, int y);
+        public bool TryGetBlock<TComponent>(int x, int y, out TComponent component);
+
         public event Action<(ChangedBlockState state, IBlock block, int x, int y)> OnBlockStateChange;
     }
 }

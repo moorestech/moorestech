@@ -10,16 +10,13 @@ namespace PlayerInventory
 {
     public class BlockInventoryOpenStateDataStore : IBlockInventoryOpenStateDataStore
     {
-        private readonly IWorldBlockComponentDatastore<IOpenableInventory> _worldBlockComponent;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         
         //key playerId, value block entity id
         private readonly Dictionary<int, int> _openCoordinates = new();
 
-        public BlockInventoryOpenStateDataStore(
-            IWorldBlockComponentDatastore<IOpenableInventory> worldBlockComponent, IWorldBlockDatastore worldBlockDatastore)
+        public BlockInventoryOpenStateDataStore(IWorldBlockDatastore worldBlockDatastore)
         {
-            _worldBlockComponent = worldBlockComponent;
             _worldBlockDatastore = worldBlockDatastore;
         }
 
@@ -33,17 +30,10 @@ namespace PlayerInventory
         public void Open(int playerId, int x,int y)
         {
             //開けるインベントリのブロックが存在していなかったらそのまま終了
-            if (!_worldBlockComponent.ExistsComponentBlock(x,y))return;
+            if (!_worldBlockDatastore.TryGetBlock<IOpenableInventory>(x,y,out _))return;
 
             var entityId = _worldBlockDatastore.GetBlock(x, y).EntityId;
-            if (_openCoordinates.ContainsKey(playerId))
-            {
-                 _openCoordinates[playerId] = entityId;
-            }
-            else
-            {
-                _openCoordinates.Add(playerId, entityId);
-            }
+            _openCoordinates[playerId] = entityId;
         }
 
         public void Close(int playerId)

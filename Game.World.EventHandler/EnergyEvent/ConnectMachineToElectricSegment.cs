@@ -11,10 +11,8 @@ namespace Game.World.EventHandler
 {
     public class ConnectMachineToElectricSegment<TSegment> where TSegment : EnergySegment, new()
     {
-        private readonly IWorldBlockComponentDatastore<IPowerGenerator> _powerGeneratorDatastore;
-        private readonly IWorldBlockComponentDatastore<IBlockElectricConsumer> _electricDatastore;
-        private readonly IWorldBlockComponentDatastore<IElectricPole> _electricPoleDatastore;
         private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IBlockConfig _blockConfig;
         private readonly int _maxMachineConnectionRange;
 
@@ -25,13 +23,11 @@ namespace Game.World.EventHandler
             IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
             IBlockConfig blockConfig,
             MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange,
-            IWorldBlockComponentDatastore<IBlockElectricConsumer> electricDatastore)
+            IWorldBlockComponentDatastore<IBlockElectricConsumer> electricDatastore, IWorldBlockDatastore worldBlockDatastore)
         {
-            _electricPoleDatastore = electricPoleDatastore;
-            _powerGeneratorDatastore = powerGeneratorDatastore;
             _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
             _blockConfig = blockConfig;
-            _electricDatastore = electricDatastore;
+            _worldBlockDatastore = worldBlockDatastore;
             _maxMachineConnectionRange = maxElectricPoleMachineConnectionRange.Get();
             blockPlaceEvent.Subscribe(OnBlockPlace);
         }
@@ -52,7 +48,7 @@ namespace Game.World.EventHandler
             {
                 for (int j = startMachineY; j < startMachineY + _maxMachineConnectionRange; j++)
                 {
-                    if (!_electricPoleDatastore.ExistsComponentBlock(i, j)) continue;
+                    if (!_worldBlockDatastore.ExistsComponentBlock<IElectricPole>(i, j)) continue;
                     //範囲内に電柱がある場合
                     
                     //電柱に接続

@@ -10,29 +10,30 @@ using Game.World.Interface.Event;
 
 namespace Game.World.EventHandler
 {
-    public class DisconnectElectricPoleToFromElectricSegment<TSegment> where TSegment : EnergySegment, new()
+    public class DisconnectElectricPoleToFromElectricSegment<TSegment,TTransformer>
+        where TSegment : EnergySegment, new()
+        where TTransformer : IEnergyTransformer
     {
-        private readonly IWorldBlockComponentDatastore<IEnergyTransformer> _electricPoleDatastore;
         private readonly IBlockConfig _blockConfig;
         private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
         private readonly DisconnectOneElectricPoleFromSegmentService<TSegment> _disconnectOne;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
 
-        private readonly DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment>
-            _disconnectTwoOrMore;
+        private readonly DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment> _disconnectTwoOrMore;
 
         public DisconnectElectricPoleToFromElectricSegment(
             IBlockRemoveEvent blockRemoveEvent,
-            IWorldBlockComponentDatastore<IEnergyTransformer> electricPoleDatastore,
             IBlockConfig blockConfig,
             IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore, 
             DisconnectOneElectricPoleFromSegmentService<TSegment> disconnectOne, 
-            DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment> disconnectTwoOrMore)
+            DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment> disconnectTwoOrMore,
+            IWorldBlockDatastore worldBlockDatastore)
         {
-            _electricPoleDatastore = electricPoleDatastore;
             _blockConfig = blockConfig;
             _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
             _disconnectOne = disconnectOne;
             _disconnectTwoOrMore = disconnectTwoOrMore;
+            _worldBlockDatastore = worldBlockDatastore;
             blockRemoveEvent.Subscribe(OnBlockRemove);
         }
 
@@ -43,14 +44,13 @@ namespace Game.World.EventHandler
 
             //電柱かどうか判定
             //電柱だったら接続範囲内周りにある電柱を取得する
-            if (!_electricPoleDatastore.ExistsComponentBlock(x, y)) return;
+            if (!_worldBlockDatastore.TryGetBlock<TTransformer>(x, y,out var removedElectricPole)) return;
             
 
 
             //接続範囲内の電柱を取得
-            var electricPoles = new FindElectricPoleFromPeripheralService().Find(
-                    x, y, _blockConfig.GetBlockConfig(blockRemoveEvent.Block.BlockId).Param as ElectricPoleConfigParam, _electricPoleDatastore);
-            var removedElectricPole = _electricPoleDatastore.GetBlock(x, y);
+            var electricPoles = FindElectricPoleFromPeripheralService.Find(
+                    x, y, _blockConfig.GetBlockConfig(blockRemoveEvent.Block.BlockId).Param as ElectricPoleConfigParam, _worldBlockDatastore);
 
             //削除した電柱のセグメントを取得
             var removedSegment = _worldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);

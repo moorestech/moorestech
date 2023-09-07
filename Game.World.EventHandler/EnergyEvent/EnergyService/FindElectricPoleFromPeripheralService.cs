@@ -15,17 +15,17 @@ namespace Game.World.EventHandler.Service
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="electricPoleConfigParam"></param>
-        /// <param name="electricPoleDatastore"></param>
+        /// <param name="blockDatastore"></param>
         /// <returns></returns>
-        public List<IEnergyTransformer> Find(
+        public static List<IEnergyTransformer> Find(
             int x,int y,
             ElectricPoleConfigParam electricPoleConfigParam,
-            IWorldBlockComponentDatastore<IEnergyTransformer> electricPoleDatastore)
+            IWorldBlockDatastore blockDatastore)
         {
             var electricPoles = new List<IEnergyTransformer>();
             //for文のための設定
             var poleRange = electricPoleConfigParam.poleConnectionRange;
-            electricPoleDatastore.GetBlock(x, y);
+            blockDatastore.GetBlock(x, y);
             var startElectricX = x - poleRange / 2;
             var startElectricY = y - poleRange / 2;
             
@@ -35,10 +35,10 @@ namespace Game.World.EventHandler.Service
                 for (int j = startElectricY; j < startElectricY + poleRange; j++)
                 {
                     //範囲内に電柱がある場合 ただし自身のブロックは除く
-                    if (!electricPoleDatastore.ExistsComponentBlock(i, j) || i == x && j == y) continue;
+                    if (!blockDatastore.ExistsComponentBlock<IEnergyTransformer>(i, j) || i == x && j == y) continue;
 
                     //電柱を追加
-                    electricPoles.Add(electricPoleDatastore.GetBlock(i, j));
+                    electricPoles.Add(blockDatastore.GetBlock(i, j));
                 }
             }
             

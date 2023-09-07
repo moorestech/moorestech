@@ -114,6 +114,34 @@ namespace World.DataStore
                 return _blockMasterDictionary[_coordinateDictionary[c]].BlockDirection;
             return BlockDirection.North;
         }
+        
+        
+        public bool ExistsComponentBlock<TComponent>(int x, int y)
+        {
+            return GetBlock(x, y) is TComponent;
+        }
+
+        public TComponent GetBlock<TComponent>(int x, int y)
+        {
+            var block = GetBlock(x, y);
+            if (block is TComponent component)
+            {
+                return component;
+            }
+
+            throw new Exception("Block is not " + typeof(TComponent));
+        }
+        
+        public bool TryGetBlock<TComponent>(int x, int y, out TComponent component)
+        {
+            if (ExistsComponentBlock<TComponent>(x,y))
+            {
+                component = GetBlock<TComponent>(x, y);
+                return true;
+            }
+            component = default;
+            return false;
+        }
 
         public List<SaveBlockData> GetSaveBlockDataList()
         {
