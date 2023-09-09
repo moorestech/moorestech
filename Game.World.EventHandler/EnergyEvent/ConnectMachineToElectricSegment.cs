@@ -7,16 +7,15 @@ using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 
-namespace Game.World.EventHandler
+namespace Game.World.EventHandler.EnergyEvent
 {
     /// <summary>
     /// 電力を生産もしくは消費するブロックが設置されたときに、そのブロックを電柱に接続する
     /// </summary>
-    /// <typeparam name="TSegment"></typeparam>
     public class ConnectMachineToElectricSegment<TSegment,TConsumer,TGenerator,TTransformer> 
         where TSegment : EnergySegment, new()
-        where TConsumer : IBlockElectricConsumer
-        where TGenerator : IPowerGenerator
+        where TConsumer : IEnergyConsumer
+        where TGenerator : IEnergyGenerator
         where TTransformer : IEnergyTransformer
     {
         private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;

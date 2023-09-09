@@ -5,7 +5,7 @@ using Core.Block.Config;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 
-namespace Game.World.EventHandler
+namespace Game.World.EventHandler.InventoryEvent
 {
     /// <summary>
     /// ブロックが設置された時、そのブロックの周囲にあるインベントリブロックと接続を行います

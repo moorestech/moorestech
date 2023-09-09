@@ -9,8 +9,8 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
     public static class DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment,TConsumer,TGenerator,TTransformer> 
         where TSegment : EnergySegment, new()
-        where TConsumer : IBlockElectricConsumer
-        where TGenerator : IPowerGenerator
+        where TConsumer : IEnergyConsumer
+        where TGenerator : IEnergyGenerator
         where TTransformer : IEnergyTransformer
     { 
         public static void Disconnect(IEnergyTransformer removedElectricPole,EnergyServiceDependencyContainer<TSegment> container)

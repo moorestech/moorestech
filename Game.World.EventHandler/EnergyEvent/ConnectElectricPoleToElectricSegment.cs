@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
@@ -7,16 +6,15 @@ using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 
-namespace Game.World.EventHandler
+namespace Game.World.EventHandler.EnergyEvent
 {
     /// <summary>
     /// 電柱やそれに類する動力伝達ブロックが設置されたときに、そのブロックを中心にセグメントを探索して接続する
     /// </summary>
-    /// <typeparam name="TSegment"></typeparam>
     public class ConnectElectricPoleToElectricSegment<TSegment,TConsumer,TGenerator,TTransformer> 
         where TSegment : EnergySegment, new()
-        where TConsumer : IBlockElectricConsumer
-        where TGenerator : IPowerGenerator
+        where TConsumer : IEnergyConsumer
+        where TGenerator : IEnergyGenerator
         where TTransformer : IEnergyTransformer
     
     {

@@ -32,6 +32,8 @@ using Game.Quest.Interface.Event;
 using Game.Save.Interface;
 using Game.Save.Json;
 using Game.World.EventHandler;
+using Game.World.EventHandler.EnergyEvent;
+using Game.World.EventHandler.InventoryEvent;
 using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
@@ -124,9 +126,7 @@ namespace Server.Boot
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect>();
             services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect>();
             
-            services.AddSingleton<ConnectElectricPoleToElectricSegment<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IEnergyTransformer>>();
-            services.AddSingleton<DisconnectElectricPoleToFromElectricSegment<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IEnergyTransformer>>();
-            services.AddSingleton<ConnectMachineToElectricSegment<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IEnergyTransformer>>();
+            services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IElectricPole>>();
             
             services.AddSingleton<SetMiningItemToMiner>();
             services.AddSingleton<QuestCompletedToSendEventPacket>();
@@ -150,9 +150,7 @@ namespace Server.Boot
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();
             
-            serviceProvider.GetService<ConnectElectricPoleToElectricSegment<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IEnergyTransformer>>();
-            serviceProvider.GetService<DisconnectElectricPoleToFromElectricSegment<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IEnergyTransformer>>();
-            serviceProvider.GetService<ConnectMachineToElectricSegment<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IEnergyTransformer>>();
+            serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IElectricPole>>();
             
             serviceProvider.GetService<SetMiningItemToMiner>();
             serviceProvider.GetService<QuestCompletedToSendEventPacket>();

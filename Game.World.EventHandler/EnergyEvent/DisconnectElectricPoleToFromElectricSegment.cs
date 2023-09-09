@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using Core.Block.Blocks;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
@@ -9,17 +7,15 @@ using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 
-namespace Game.World.EventHandler
+namespace Game.World.EventHandler.EnergyEvent
 {
     /// <summary>
     /// 電柱などのエネルギー伝達ブロックが破壊されたときに、セグメントを新しく作成するか、既存のセグメントから切り離すかを判断し、実行するクラス
     /// </summary>
-    /// <typeparam name="TSegment"></typeparam>
-    /// <typeparam name="TTransformer"></typeparam>
     public class DisconnectElectricPoleToFromElectricSegment<TSegment,TConsumer,TGenerator,TTransformer> 
         where TSegment : EnergySegment, new()
-        where TConsumer : IBlockElectricConsumer
-        where TGenerator : IPowerGenerator
+        where TConsumer : IEnergyConsumer
+        where TGenerator : IEnergyGenerator
         where TTransformer : IEnergyTransformer
     {
         private readonly IBlockConfig _blockConfig;

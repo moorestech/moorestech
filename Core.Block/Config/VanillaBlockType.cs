@@ -9,5 +9,11 @@ namespace Core.Block.Config
         public const string Generator = "Generator";
         public const string ElectricPole = "ElectricPole";
         public const string Chest = "Chest";
+        
+        
+        public const string GearMachine = "GearMachine";
+        public const string GearBeltConveyor = "GearBeltConveyor";
+        public const string GearGenerator = "GearGenerator";
+        public const string GearBox = "GearBox";
     }
 }

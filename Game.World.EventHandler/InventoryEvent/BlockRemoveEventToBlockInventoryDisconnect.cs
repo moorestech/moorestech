@@ -3,7 +3,7 @@ using Core.Block.BlockInventory;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 
-namespace Game.World.EventHandler
+namespace Game.World.EventHandler.InventoryEvent
 {
     /// <summary>
     /// ブロックが削除されたとき、そのブロックと接続しているブロックを削除する

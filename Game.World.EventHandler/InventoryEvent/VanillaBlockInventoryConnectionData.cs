@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Core.Block.Blocks.Machine;
 using Core.Block.Config;
 
-namespace Game.World.EventHandler
+namespace Game.World.EventHandler.InventoryEvent
 {
     /// <summary>
     /// ベルトコンベアや機械などのインベントリのあるブロックが、どの方角にあるブロックとつながるかを指定するクラス
