@@ -68,7 +68,7 @@ namespace Test.CombinedTest.Core
 
             //燃料の1個目の枯渇までループ
             endTime1 = DateTime.Now.AddMilliseconds(generatorConfigParam.FuelSettings[FuelItem1Id].Time);
-            while (endTime1.AddSeconds(0.1).CompareTo(DateTime.Now) == 1)
+            while (endTime1.AddSeconds(0.3).CompareTo(DateTime.Now) == 1)
             {
                 GameUpdater.Update();
             }

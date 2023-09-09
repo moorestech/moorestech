@@ -5,15 +5,16 @@ using Game.World.Interface.Event;
 
 namespace Game.World.EventHandler
 {
+    /// <summary>
+    /// ブロックが削除されたとき、そのブロックと接続しているブロックを削除する
+    /// </summary>
     public class BlockRemoveEventToBlockInventoryDisconnect
     {
-        private readonly IWorldBlockComponentDatastore<IBlockInventory> _worldBlockInventoryDatastore;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
 
-        public BlockRemoveEventToBlockInventoryDisconnect(
-            IWorldBlockComponentDatastore<IBlockInventory> worldBlockInventoryDatastore,
-            IBlockRemoveEvent blockRemoveEvent)
+        public BlockRemoveEventToBlockInventoryDisconnect(IBlockRemoveEvent blockRemoveEvent, IWorldBlockDatastore worldBlockDatastore)
         {
-            _worldBlockInventoryDatastore = worldBlockInventoryDatastore;
+            _worldBlockDatastore = worldBlockDatastore;
             blockRemoveEvent.Subscribe(OnRemoveBlock);
         }
 
@@ -31,9 +32,9 @@ namespace Game.World.EventHandler
 
             foreach (var (offsetX, offsetY) in connectOffsetBlockPositions)
                 //削除されたブロックの周りのブロックがIBlockInventoryを持っている時
-                if (_worldBlockInventoryDatastore.ExistsComponentBlock(x + offsetX, y + offsetY))
+                if (_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(x + offsetX, y + offsetY))
                     //そのブロックの接続を削除する
-                    _worldBlockInventoryDatastore.GetBlock(x + offsetX, y + offsetY)
+                    _worldBlockDatastore.GetBlock<IBlockInventory>(x + offsetX, y + offsetY)
                         .RemoveOutputConnector((IBlockInventory) blockRemoveEvent.Block);
         }
     }

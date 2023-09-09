@@ -1,36 +1,22 @@
 using System.Collections.Generic;
 using Core.Block.Blocks;
-using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
 using Core.EnergySystem;
-using Game.World.Interface.DataStore;
+using Game.World.EventHandler.Service;
 
-namespace Game.World.EventHandler.Service
+namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
-    public class DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment> where TSegment : EnergySegment, new()
+    public static class DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment,TConsumer,TGenerator,TTransformer> 
+        where TSegment : EnergySegment, new()
+        where TConsumer : IBlockElectricConsumer
+        where TGenerator : IPowerGenerator
+        where TTransformer : IEnergyTransformer
     { 
-        private readonly IWorldBlockComponentDatastore<IEnergyTransformer> _electricPoleDatastore;
-        private readonly IWorldBlockComponentDatastore<IBlockElectricConsumer> _electricDatastore;
-        private readonly IWorldBlockComponentDatastore<IPowerGenerator> _powerGeneratorDatastore;
-        private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
-        private readonly IBlockConfig _blockConfig;
-
-        public DisconnectTwoOrMoreElectricPoleFromSegmentService(IWorldBlockComponentDatastore<IEnergyTransformer> electricPoleDatastore, IWorldBlockComponentDatastore<IBlockElectricConsumer> electricDatastore, IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore, IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore, IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig)
-        {
-            _electricPoleDatastore = electricPoleDatastore;
-            _electricDatastore = electricDatastore;
-            _powerGeneratorDatastore = powerGeneratorDatastore;
-            _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
-            _worldBlockDatastore = worldBlockDatastore;
-            _blockConfig = blockConfig;
-        }
-
-        public void Disconnect(IEnergyTransformer removedElectricPole)
+        public static void Disconnect(IEnergyTransformer removedElectricPole,EnergyServiceDependencyContainer<TSegment> container)
         {
             //データを取得
-            var removedSegment = _worldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);
+            var removedSegment = container.WorldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);
             
             //自身が所属していたセグメントの電柱のリストを取る
             var connectedElectricPoles = new List<IEnergyTransformer>();
@@ -40,7 +26,7 @@ namespace Game.World.EventHandler.Service
             
             
             //元のセグメントを消す
-            _worldEnergySegmentDatastore.RemoveEnergySegment(removedSegment);
+            container.WorldEnergySegmentDatastore.RemoveEnergySegment(removedSegment);
 
 
             //電柱を全て探索し、電力セグメントを再構成する
@@ -55,11 +41,11 @@ namespace Game.World.EventHandler.Service
                         removedElectricPole,
                         new Dictionary<int, IEnergyTransformer>(),
                         new Dictionary<int, IBlockElectricConsumer>(),
-                        new Dictionary<int, IPowerGenerator>());
+                        new Dictionary<int, IPowerGenerator>(),container);
 
 
                 //新しいセグメントに電柱、ブロック、発電機を追加する
-                var newElectricSegment = _worldEnergySegmentDatastore.CreateEnergySegment();
+                var newElectricSegment = container.WorldEnergySegmentDatastore.CreateEnergySegment();
                 foreach (var newElectric in newElectricPoles)
                 {
                     newElectricSegment.AddEnergyTransformer(newElectric.Value);
@@ -73,23 +59,22 @@ namespace Game.World.EventHandler.Service
         }
 
         //再帰的に電柱を探索する 
-        private (Dictionary<int, IEnergyTransformer>, Dictionary<int, IBlockElectricConsumer>, Dictionary<int, IPowerGenerator>)
+        private static (Dictionary<int, IEnergyTransformer>, Dictionary<int, IBlockElectricConsumer>, Dictionary<int, IPowerGenerator>)
             GetElectricPoles(
                 IEnergyTransformer electricPole,
                 IEnergyTransformer removedElectricPole,
                 Dictionary<int, IEnergyTransformer> electricPoles,
                 Dictionary<int, IBlockElectricConsumer> blockElectrics,
-                Dictionary<int, IPowerGenerator> powerGenerators)
+                Dictionary<int, IPowerGenerator> powerGenerators,EnergyServiceDependencyContainer<TSegment> container)
         {
-            var (x, y) = _worldBlockDatastore.GetBlockPosition(electricPole.EntityId);
+            var (x, y) = container.WorldBlockDatastore.GetBlockPosition(electricPole.EntityId);
             var poleConfig =
-                _blockConfig.GetBlockConfig(((IBlock) electricPole).BlockId).Param as ElectricPoleConfigParam;
+                container.BlockConfig.GetBlockConfig(((IBlock) electricPole).BlockId).Param as ElectricPoleConfigParam;
 
 
             //周辺の機械、発電機を取得
             var (newBlocks, newGenerators) =
-                new FindMachineAndGeneratorFromPeripheralService().Find(x, y, poleConfig, _electricDatastore,
-                    _powerGeneratorDatastore);
+                FindMachineAndGeneratorFromPeripheralService.Find(x, y, poleConfig, container.WorldBlockDatastore);
             //ブロックと発電機を追加
             foreach (var block in newBlocks)
             {
@@ -106,8 +91,7 @@ namespace Game.World.EventHandler.Service
             
 
             //周辺の電柱を取得
-            var peripheralElectricPoles =
-                new FindElectricPoleFromPeripheralService().Find(x, y, poleConfig, _electricPoleDatastore);
+            var peripheralElectricPoles = FindElectricPoleFromPeripheralService.Find(x, y, poleConfig, container.WorldBlockDatastore);
             //削除された電柱は除く
             peripheralElectricPoles.Remove(removedElectricPole);
             //自身の電柱は追加する
@@ -126,7 +110,7 @@ namespace Game.World.EventHandler.Service
                 //追加されていない電柱なら追加
                 (electricPoles, blockElectrics, powerGenerators) =
                     GetElectricPoles(peripheralElectricPole, removedElectricPole, electricPoles, blockElectrics,
-                        powerGenerators);
+                        powerGenerators,container);
             }
 
             return (electricPoles, blockElectrics, powerGenerators);

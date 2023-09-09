@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Block.BlockFactory;
 using Core.Electric;
+using Core.EnergySystem;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -42,26 +43,26 @@ namespace Test.CombinedTest.Game
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 12), 0, 7, BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 13), 0, -7, BlockDirection.North);
 
-            var worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore>();
+            var worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
             //セグメントの数を確認
             Assert.AreEqual(5, worldElectricSegment.GetEnergySegmentListCount());
 
             var segment = worldElectricSegment.GetEnergySegment(0);
             //電柱を取得する
-            var electricPole = segment.GetElectricPoles();
+            var electricPoles = segment.EnergyTransformers;
 
             //存在する電柱の数の確認
-            Assert.AreEqual(6, electricPole.Count);
+            Assert.AreEqual(6, electricPoles.Count);
             //存在している電柱のIDの確認
             for (int i = 0; i < 6; i++)
             {
-                Assert.AreEqual(i, electricPole[i].EntityId);
+                Assert.AreEqual(i, electricPoles[i].EntityId);
             }
 
             //存在しない電柱のIDの確認
             for (int i = 10; i < 13; i++)
             {
-                Assert.AreEqual(false, electricPole.ContainsKey(i));
+                Assert.AreEqual(false, electricPoles.ContainsKey(i));
             }
 
             //範囲外同士の接続確認
@@ -71,12 +72,12 @@ namespace Test.CombinedTest.Game
             Assert.AreEqual(4, worldElectricSegment.GetEnergySegmentListCount());
             //マージ後のセグメント、電柱を取得
             segment = worldElectricSegment.GetEnergySegment(3);
-            electricPole = segment.GetElectricPoles();
+            electricPoles = segment.EnergyTransformers;
             //存在する電柱の数の確認
-            Assert.AreEqual(8, electricPole.Count);
+            Assert.AreEqual(8, electricPoles.Count);
             //マージされた電柱のIDの確認
-            Assert.AreEqual(10, electricPole[10].EntityId);
-            Assert.AreEqual(15, electricPole[15].EntityId);
+            Assert.AreEqual(10, electricPoles[10].EntityId);
+            Assert.AreEqual(15, electricPoles[15].EntityId);
         }
 
         //電柱を設置した後に機械、発電機を設置するテスト
@@ -104,12 +105,12 @@ namespace Test.CombinedTest.Game
             worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 12), 0, 3, BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 13), 0, -3, BlockDirection.North);
 
-            var segmentDatastore = saveServiceProvider.GetService<IWorldEnergySegmentDatastore>();
+            var segmentDatastore = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
             //範囲内の設置
             var segment = segmentDatastore.GetEnergySegment(0);
             //機械、発電機を取得する
-            var electricBlocks = segment.GetElectrics();
-            var powerGeneratorBlocks = segment.GetGenerators();
+            var electricBlocks = segment.Consumers;
+            var powerGeneratorBlocks = segment.Generators;
 
 
             //存在する機械の数の確認
@@ -126,8 +127,8 @@ namespace Test.CombinedTest.Game
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 21), 1, 3, BlockDirection.North);
 
             segment = segmentDatastore.GetEnergySegment(0);
-            electricBlocks = segment.GetElectrics();
-            powerGeneratorBlocks = segment.GetGenerators();
+            electricBlocks = segment.Consumers;
+            powerGeneratorBlocks = segment.Generators;
             //存在する機械の数の確認
             Assert.AreEqual(1, segmentDatastore.GetEnergySegmentListCount());
             Assert.AreEqual(3, electricBlocks.Count);
@@ -166,14 +167,10 @@ namespace Test.CombinedTest.Game
 
 
             //範囲内の設置
-            var segment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore>().GetEnergySegment(0);
+            var segment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>().GetEnergySegment(0);
             //リフレクションで機械を取得する
-            var electricBlocks = (Dictionary<int, IBlockElectricConsumer>) typeof(ElectricSegment).GetField("_electrics",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(segment);
-            var powerGeneratorBlocks = (Dictionary<int, IPowerGenerator>) typeof(ElectricSegment)
-                .GetField("_generators",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                .GetValue(segment);
+            var electricBlocks = segment.Consumers;
+            var powerGeneratorBlocks = segment.Generators;
 
 
             //存在する機械の数の確認
@@ -206,7 +203,7 @@ namespace Test.CombinedTest.Game
             worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 3), 7, 0, BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 4), 7, 1, BlockDirection.North);
 
-            var segmentDatastore = saveServiceProvider.GetService<IWorldEnergySegmentDatastore>();
+            var segmentDatastore = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
             //セグメントの数を確認
             Assert.AreEqual(2, segmentDatastore.GetEnergySegmentListCount());
 
@@ -217,8 +214,8 @@ namespace Test.CombinedTest.Game
             //セグメントを取得
             var segment = segmentDatastore.GetEnergySegment(0);
             //機械、発電機の数を確認
-            Assert.AreEqual(2, segment.GetElectrics().Count);
-            Assert.AreEqual(2, segment.GetGenerators().Count);
+            Assert.AreEqual(2, segment.Consumers.Count);
+            Assert.AreEqual(2, segment.Generators.Count);
         }
     }
 }

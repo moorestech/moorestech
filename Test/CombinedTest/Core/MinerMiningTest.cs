@@ -6,6 +6,7 @@ using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Block.Event;
 using Core.Electric;
+using Core.EnergySystem;
 using Core.Item;
 using Core.Ore;
 using Core.Update;
@@ -47,8 +48,8 @@ namespace Test.CombinedTest.Core
             //接続先ブロックの設定
             ((IBlockInventory) miner).AddOutputConnector(dummyInventory);
             //電力の設定
-            var segment = new ElectricSegment();
-            segment.AddBlockElectric(miner);
+            var segment = new EnergySegment();
+            segment.AddEnergyConsumer(miner);
             segment.AddGenerator(new TestPowerGenerator(10000, 10));
 
             DateTime MineEndTime = DateTime.Now.AddMilliseconds(miningTime);

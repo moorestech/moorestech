@@ -20,7 +20,6 @@ namespace Server.Protocol.PacketResponse
         private readonly ItemStackFactory _itemStackFactory;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IBlockConfig _blockConfig;
-        private readonly IWorldBlockComponentDatastore<IBlockInventory> _worldBlockComponentDatastore;
 
 
         public  RemoveBlockProtocol(ServiceProvider serviceProvider)
@@ -29,7 +28,6 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             _blockConfig = serviceProvider.GetService<IBlockConfig>();
-            _worldBlockComponentDatastore = serviceProvider.GetService<IWorldBlockComponentDatastore<IBlockInventory>>();
         }
         
         public List<List<byte>> GetResponse(List<byte> payload)
@@ -44,10 +42,9 @@ namespace Server.Protocol.PacketResponse
             var isNotRemainItem = true;
             
             //インベントリがある時は
-            if (_worldBlockComponentDatastore.ExistsComponentBlock(data.X, data.Y) == true)
+            if (_worldBlockDatastore.TryGetBlock<IBlockInventory>(data.X, data.Y,out var blockInventory))
             {
                 //プレイヤーインベントリにブロック内のアイテムを挿入
-                var blockInventory = _worldBlockComponentDatastore.GetBlock(data.X, data.Y);
                 for (int i = 0; i < blockInventory.GetSlotSize(); i++)
                 {
                     //プレイヤーインベントリにアイテムを挿入

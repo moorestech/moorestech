@@ -6,7 +6,7 @@ using Game.World.Interface.DataStore;
 
 namespace Game.World.EventHandler.Service
 {
-    public class FindElectricPoleFromPeripheralService
+    public static class FindElectricPoleFromPeripheralService
     {
         /// <summary>
         /// 周辺ブロックから電柱を探索します
@@ -38,7 +38,7 @@ namespace Game.World.EventHandler.Service
                     if (!blockDatastore.ExistsComponentBlock<IEnergyTransformer>(i, j) || i == x && j == y) continue;
 
                     //電柱を追加
-                    electricPoles.Add(blockDatastore.GetBlock(i, j));
+                    electricPoles.Add(blockDatastore.GetBlock<IEnergyTransformer>(i, j));
                 }
             }
             

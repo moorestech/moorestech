@@ -12,16 +12,12 @@ namespace Game.World.EventHandler
     /// </summary>
     public class BlockPlaceEventToBlockInventoryConnect
     {
-        private readonly IWorldBlockComponentDatastore<IBlockInventory> _worldBlockInventoryDatastore;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IBlockConfig _blockConfig;
         private readonly Dictionary<string, IoConnectionData> _ioConnectionDataDictionary = VanillaBlockInventoryConnectionData.IoConnectionData;
 
-        public BlockPlaceEventToBlockInventoryConnect(
-            IWorldBlockComponentDatastore<IBlockInventory> worldBlockInventoryDatastore,
-            IBlockPlaceEvent blockPlaceEvent, IBlockConfig blockConfig, IWorldBlockDatastore worldBlockDatastore)
+        public BlockPlaceEventToBlockInventoryConnect(IBlockPlaceEvent blockPlaceEvent, IBlockConfig blockConfig, IWorldBlockDatastore worldBlockDatastore)
         {
-            _worldBlockInventoryDatastore = worldBlockInventoryDatastore;
             _blockConfig = blockConfig;
             _worldBlockDatastore = worldBlockDatastore;
             blockPlaceEvent.Subscribe(OnBlockPlace);
@@ -56,8 +52,8 @@ namespace Game.World.EventHandler
         private void ConnectBlock(int sourceX, int sourceY, int destinationX, int destinationY)
         {
             //接続元、接続先にBlockInventoryがなければ処理を終了
-            if (!_worldBlockInventoryDatastore.ExistsComponentBlock(sourceX, sourceY) ||
-                !_worldBlockInventoryDatastore.ExistsComponentBlock(destinationX, destinationY)) return;
+            if (!_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(sourceX, sourceY) ||
+                !_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(destinationX, destinationY)) return;
 
 
             //接続元のブロックデータを取得
@@ -100,8 +96,8 @@ namespace Game.World.EventHandler
 
 
             //接続元ブロックと接続先ブロックを接続
-            _worldBlockInventoryDatastore.GetBlock(sourceX, sourceY).AddOutputConnector(
-                _worldBlockInventoryDatastore.GetBlock(destinationX, destinationY));
+            _worldBlockDatastore.GetBlock<IBlockInventory>(sourceX, sourceY).AddOutputConnector(
+                _worldBlockDatastore.GetBlock<IBlockInventory>(destinationX, destinationY));
         }
 
         /// <summary>

@@ -22,13 +22,13 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:invItemMove";
         
-        private readonly IWorldBlockComponentDatastore<IOpenableInventory> _openableBlockDatastore;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ItemStackFactory _itemStackFactory;
 
         public InventoryItemMoveProtocol(ServiceProvider serviceProvider)
         {
-            _openableBlockDatastore = serviceProvider.GetService<IWorldBlockComponentDatastore<IOpenableInventory>>();
+            _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
@@ -75,7 +75,7 @@ namespace Server.Protocol.PacketResponse
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
                     break;
                 case ItemMoveInventoryType.BlockInventory:
-                    inventory = _openableBlockDatastore.ExistsComponentBlock(x,y) ? _openableBlockDatastore.GetBlock(x, y) : null;; 
+                    inventory = _worldBlockDatastore.ExistsComponentBlock<IOpenableInventory>(x,y) ? _worldBlockDatastore.GetBlock<IOpenableInventory>(x, y) : null;; 
                     break;
             }
             return inventory;

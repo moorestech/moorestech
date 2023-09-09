@@ -4,37 +4,42 @@ using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Electric;
 using Core.EnergySystem;
+using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 
 namespace Game.World.EventHandler
 {
-    public class DisconnectElectricPoleToFromElectricSegment<TSegment,TTransformer>
+    /// <summary>
+    /// 電柱などのエネルギー伝達ブロックが破壊されたときに、セグメントを新しく作成するか、既存のセグメントから切り離すかを判断し、実行するクラス
+    /// </summary>
+    /// <typeparam name="TSegment"></typeparam>
+    /// <typeparam name="TTransformer"></typeparam>
+    public class DisconnectElectricPoleToFromElectricSegment<TSegment,TConsumer,TGenerator,TTransformer> 
         where TSegment : EnergySegment, new()
+        where TConsumer : IBlockElectricConsumer
+        where TGenerator : IPowerGenerator
         where TTransformer : IEnergyTransformer
     {
         private readonly IBlockConfig _blockConfig;
         private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
-        private readonly DisconnectOneElectricPoleFromSegmentService<TSegment> _disconnectOne;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly EnergyServiceDependencyContainer<TSegment> _dependencyContainer;
 
-        private readonly DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment> _disconnectTwoOrMore;
 
         public DisconnectElectricPoleToFromElectricSegment(
             IBlockRemoveEvent blockRemoveEvent,
             IBlockConfig blockConfig,
             IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore, 
-            DisconnectOneElectricPoleFromSegmentService<TSegment> disconnectOne, 
-            DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment> disconnectTwoOrMore,
             IWorldBlockDatastore worldBlockDatastore)
         {
             _blockConfig = blockConfig;
             _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
-            _disconnectOne = disconnectOne;
-            _disconnectTwoOrMore = disconnectTwoOrMore;
             _worldBlockDatastore = worldBlockDatastore;
             blockRemoveEvent.Subscribe(OnBlockRemove);
+            
+            _dependencyContainer = new EnergyServiceDependencyContainer<TSegment>(worldEnergySegmentDatastore, worldBlockDatastore, blockConfig);
         }
 
         private void OnBlockRemove(BlockRemoveEventProperties blockRemoveEvent)
@@ -65,11 +70,11 @@ namespace Game.World.EventHandler
                     return;
                 //周りの電柱が1つの時
                 case 1:
-                    _disconnectOne.Disconnect(removedElectricPole);
+                    DisconnectOneElectricPoleFromSegmentService<TSegment,TConsumer,TGenerator,TTransformer>.Disconnect(removedElectricPole,_dependencyContainer);
                     return;
                 //周りの電柱が2つ以上の時
                 case >= 2:
-                    _disconnectTwoOrMore.Disconnect(removedElectricPole);
+                    DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment,TConsumer,TGenerator,TTransformer>.Disconnect(removedElectricPole,_dependencyContainer);
                     break;
             }
         }

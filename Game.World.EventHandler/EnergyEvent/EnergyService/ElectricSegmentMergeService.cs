@@ -5,7 +5,7 @@ using Game.World.Interface.DataStore;
 
 namespace Game.World.EventHandler.Service
 {
-    public class ElectricSegmentMergeService {
+    public static class ElectricSegmentMergeService {
         /// <summary>
         /// 電柱に所属するセグメント同士をマージし、データストアにセットするシステム
         /// </summary>

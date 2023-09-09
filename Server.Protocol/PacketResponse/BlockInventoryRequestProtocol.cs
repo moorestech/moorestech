@@ -19,8 +19,7 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:blockInvReq";
 
-        private IWorldBlockComponentDatastore<IOpenableInventory> _blockComponentDatastore;
-        private IWorldBlockDatastore _blockDatastore;
+        private readonly IWorldBlockDatastore _blockDatastore;
 
         //データのレスポンスを実行するdelegateを設定する
         private delegate byte[] InventoryResponse(int x, int y,IBlockConfigParam config);
@@ -28,7 +27,6 @@ namespace Server.Protocol.PacketResponse
         public BlockInventoryRequestProtocol(ServiceProvider serviceProvider)
         {
             serviceProvider.GetService<IWorldBlockDatastore>();
-            _blockComponentDatastore = serviceProvider.GetService<IWorldBlockComponentDatastore<IOpenableInventory>>();
             _blockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             serviceProvider.GetService<IBlockConfig>();
         }
@@ -38,14 +36,14 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<RequestBlockInventoryRequestProtocolMessagePack>(payload.ToArray());
 
             //開けるインベントリを持つブロックが存在するかどうかをチェック
-            if (!_blockComponentDatastore.ExistsComponentBlock(data.X, data.Y)) return new List<List<byte>>();
+            if (!_blockDatastore.ExistsComponentBlock<IOpenableInventory>(data.X, data.Y)) return new List<List<byte>>();
 
 
             //存在したらアイテム数とアイテムIDをまとめてレスポンスする
             var itemIds = new List<int>();
             var itemCounts = new List<int>();
 
-            foreach (var item in _blockComponentDatastore.GetBlock(data.X,data.Y).Items)
+            foreach (var item in _blockDatastore.GetBlock<IOpenableInventory>(data.X,data.Y).Items)
             {
                 itemIds.Add(item.Id);
                 itemCounts.Add(item.Count);

@@ -8,6 +8,7 @@ using Core.Block.Event;
 using Core.Block.RecipeConfig;
 using Core.ConfigJson;
 using Core.Electric;
+using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item;
 using Core.Item.Config;
@@ -80,7 +81,7 @@ namespace Server.Boot
             services.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IBlockInventoryOpenStateDataStore, BlockInventoryOpenStateDataStore>();
-            //services.AddSingleton<IWorldEnergySegmentDatastore, WorldEnergySegmentDatastore>();
+            services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IOreConfig, OreConfig>();
             services.AddSingleton<VeinGenerator, VeinGenerator>();
@@ -122,12 +123,12 @@ namespace Server.Boot
             services.AddSingleton<RemoveBlockToSetEventPacket>();
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect>();
             services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect>();
-            services.AddSingleton<ConnectElectricPoleToElectricSegment>();
-            services.AddSingleton<DisconnectElectricPoleToFromElectricSegment>();
-            services.AddSingleton<ConnectMachineToElectricSegment>();
+            
+            services.AddSingleton<ConnectElectricPoleToElectricSegment<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IEnergyTransformer>>();
+            services.AddSingleton<DisconnectElectricPoleToFromElectricSegment<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IEnergyTransformer>>();
+            services.AddSingleton<ConnectMachineToElectricSegment<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IEnergyTransformer>>();
+            
             services.AddSingleton<SetMiningItemToMiner>();
-            services.AddSingleton<DisconnectTwoOrMoreElectricPoleFromSegmentService>();
-            services.AddSingleton<DisconnectOneElectricPoleFromSegmentService>();
             services.AddSingleton<QuestCompletedToSendEventPacket>();
             services.AddSingleton<MapObjectUpdateEventPacket>();
 
@@ -148,9 +149,11 @@ namespace Server.Boot
             serviceProvider.GetService<RemoveBlockToSetEventPacket>();
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();
-            serviceProvider.GetService<ConnectElectricPoleToElectricSegment>();
-            serviceProvider.GetService<DisconnectElectricPoleToFromElectricSegment>();
-            serviceProvider.GetService<ConnectMachineToElectricSegment>();
+            
+            serviceProvider.GetService<ConnectElectricPoleToElectricSegment<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IEnergyTransformer>>();
+            serviceProvider.GetService<DisconnectElectricPoleToFromElectricSegment<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IEnergyTransformer>>();
+            serviceProvider.GetService<ConnectMachineToElectricSegment<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IEnergyTransformer>>();
+            
             serviceProvider.GetService<SetMiningItemToMiner>();
             serviceProvider.GetService<QuestCompletedToSendEventPacket>();
             serviceProvider.GetService<ChangeBlockStateEventPacket>();

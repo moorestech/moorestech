@@ -1,4 +1,5 @@
 ﻿using Core.Electric;
+using Core.EnergySystem;
 using Core.Update;
 using NUnit.Framework;
 using Test.Module;
@@ -10,13 +11,13 @@ namespace Test.UnitTest.Core.Block
         [Test]
         public void ElectricEnergyTest()
         {
-            var segment = new ElectricSegment();
+            var segment = new EnergySegment();
 
             var electric = new BlockElectricConsumer(100, 0);
             var generate = new TestPowerGenerator(100, 0);
 
             segment.AddGenerator(generate);
-            segment.AddBlockElectric(electric);
+            segment.AddEnergyConsumer(electric);
             GameUpdater.Update();
             Assert.AreEqual(100, electric.NowPower);
 
@@ -26,12 +27,12 @@ namespace Test.UnitTest.Core.Block
 
             var electric2 = new BlockElectricConsumer(300, 1);
             segment.AddGenerator(generate);
-            segment.AddBlockElectric(electric2);
+            segment.AddEnergyConsumer(electric2);
             GameUpdater.Update();
             Assert.AreEqual(25, electric.NowPower);
             Assert.AreEqual(75, electric2.NowPower);
 
-            segment.RemoveBlockElectric(electric);
+            segment.RemoveEnergyConsumer(electric);
             GameUpdater.Update();
             Assert.AreEqual(25, electric.NowPower);
             Assert.AreEqual(100, electric2.NowPower);

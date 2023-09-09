@@ -13,29 +13,28 @@ namespace Game.WorldMap.EventListener
     /// </summary>
     public class SetMiningItemToMiner
     {
-        private readonly IWorldBlockComponentDatastore<IMiner> _minerDatastore;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly VeinGenerator _veinGenerator;
         private readonly IOreConfig _oreConfig;
         private readonly IBlockConfig _blockConfig;
 
         public SetMiningItemToMiner(
-            IWorldBlockComponentDatastore<IMiner> minerDatastore,
             VeinGenerator veinGenerator,
             IOreConfig oreConfig,
             IBlockPlaceEvent blockPlaceEvent,
-            IBlockConfig blockConfig)
+            IBlockConfig blockConfig, IWorldBlockDatastore worldBlockDatastore)
         {
-            _minerDatastore = minerDatastore;
             _veinGenerator = veinGenerator;
             _oreConfig = oreConfig;
             _blockConfig = blockConfig;
+            _worldBlockDatastore = worldBlockDatastore;
             blockPlaceEvent.Subscribe(OnBlockPlace);
         }
         public void OnBlockPlace(BlockPlaceEventProperties blockPlaceEventProperties)
         {
             var x = blockPlaceEventProperties.Coordinate.X;
             var y = blockPlaceEventProperties.Coordinate.Y;
-            if (!_minerDatastore.ExistsComponentBlock(x, y)) return;
+            if (!_worldBlockDatastore.ExistsComponentBlock<IMiner>(x, y)) return;
             
             //鉱石コンフィグを取得
             var oreId = _veinGenerator.GetOreId(x, y);
@@ -43,7 +42,7 @@ namespace Game.WorldMap.EventListener
             
             
             var oreConfig = _oreConfig.Get(oreId);
-            var miner = _minerDatastore.GetBlock(x, y);
+            var miner = _worldBlockDatastore.GetBlock<IMiner>(x, y);
             var minerConfig = _blockConfig.GetBlockConfig(((IBlock) miner).BlockId).Param as MinerBlockConfigParam;
             
             //マイナー自体の設定からその採掘機が鉱石を採掘するのに必要な時間を取得し、設定する

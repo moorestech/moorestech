@@ -5,12 +5,11 @@ using Game.World.Interface.DataStore;
 
 namespace Game.World.EventHandler.Service
 {
-    public class FindMachineAndGeneratorFromPeripheralService
+    public static class FindMachineAndGeneratorFromPeripheralService
     {
-        public (List<IBlockElectricConsumer>,List<IPowerGenerator>) Find(
+        public static (List<IBlockElectricConsumer>,List<IPowerGenerator>) Find(
             int x,int y,ElectricPoleConfigParam poleConfigParam,
-            IWorldBlockComponentDatastore<IBlockElectricConsumer> electricDatastore,
-            IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore)
+            IWorldBlockDatastore worldBlockDatastore)
         {
             var blocks = new List<IBlockElectricConsumer>();
             var generators = new List<IPowerGenerator>();
@@ -23,17 +22,17 @@ namespace Game.World.EventHandler.Service
                 for (int j = startMachineY; j < startMachineY + machineRange; j++)
                 {
                     //範囲内に機械がある場合
-                    if (electricDatastore.ExistsComponentBlock(i, j))
+                    if (worldBlockDatastore.TryGetBlock<IBlockElectricConsumer>(i, j,out var consumer))
                     {
                         //機械を電力セグメントに追加
-                        blocks.Add(electricDatastore.GetBlock(i, j));
+                        blocks.Add(consumer);
                     }
 
                     //範囲内に発電機がある場合
-                    if (powerGeneratorDatastore.ExistsComponentBlock(i, j))
+                    if (worldBlockDatastore.TryGetBlock<IPowerGenerator>(i, j,out var generator))
                     {
                         //機械を電力セグメントに追加
-                        generators.Add(powerGeneratorDatastore.GetBlock(i, j));
+                        generators.Add(generator);
                     }
                 }
             }

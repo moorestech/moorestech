@@ -1,5 +1,6 @@
 using Core.Block.BlockFactory;
 using Core.Electric;
+using Core.EnergySystem;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -43,7 +44,7 @@ namespace Test.CombinedTest.Game
             worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 5), 3, 1, BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 6), 6, 1, BlockDirection.North);
             
-            var worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore>();
+            var worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
             //セグメントの数を確認
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
             
@@ -63,8 +64,8 @@ namespace Test.CombinedTest.Game
             Assert.AreEqual(2, worldElectricSegment.GetEnergySegmentListCount());
     
             //真ん中の発電機が2つのセグメントにないことを確認する
-            Assert.AreEqual(false,worldElectricSegment.GetEnergySegment(0).GetGenerators().ContainsKey(5));
-            Assert.AreEqual(false,worldElectricSegment.GetEnergySegment(1).GetGenerators().ContainsKey(5));
+            Assert.AreEqual(false,worldElectricSegment.GetEnergySegment(0).Generators.ContainsKey(5));
+            Assert.AreEqual(false,worldElectricSegment.GetEnergySegment(1).Generators.ContainsKey(5));
             
             //両端の電柱が別のセグメントであることを確認する
             var segment1 = worldElectricSegment.GetEnergySegment(worldBlockDatastore.GetBlock(0,0) as IElectricPole);
@@ -93,7 +94,7 @@ namespace Test.CombinedTest.Game
             
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<BlockFactory>();
-            var worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore>();
+            var worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
             
             //電柱の設置
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0), 0, 0, BlockDirection.North);
@@ -120,7 +121,7 @@ namespace Test.CombinedTest.Game
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
             
             //真ん中の発電機がセグメントにないことを確認する
-            Assert.AreEqual(false,worldElectricSegment.GetEnergySegment(0).GetGenerators().ContainsKey(105));
+            Assert.AreEqual(false,worldElectricSegment.GetEnergySegment(0).Generators.ContainsKey(105));
             
         }
     }

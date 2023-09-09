@@ -9,27 +9,29 @@ using Game.World.Interface.Event;
 
 namespace Game.World.EventHandler
 {
-    public class ConnectElectricPoleToElectricSegment<TSegment> where TSegment : EnergySegment, new()
+    /// <summary>
+    /// 電柱やそれに類する動力伝達ブロックが設置されたときに、そのブロックを中心にセグメントを探索して接続する
+    /// </summary>
+    /// <typeparam name="TSegment"></typeparam>
+    public class ConnectElectricPoleToElectricSegment<TSegment,TConsumer,TGenerator,TTransformer> 
+        where TSegment : EnergySegment, new()
+        where TConsumer : IBlockElectricConsumer
+        where TGenerator : IPowerGenerator
+        where TTransformer : IEnergyTransformer
+    
     {
-        private readonly IWorldBlockComponentDatastore<IEnergyTransformer> _electricPoleDatastore;
-        private readonly IWorldBlockComponentDatastore<IBlockElectricConsumer> _electricDatastore;
-        private readonly IWorldBlockComponentDatastore<IPowerGenerator> _powerGeneratorDatastore;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
         private readonly IBlockConfig _blockConfig;
 
 
         public ConnectElectricPoleToElectricSegment(IBlockPlaceEvent blockPlaceEvent,
-            IWorldBlockComponentDatastore<IEnergyTransformer> electricPoleDatastore,
-            IWorldBlockComponentDatastore<IPowerGenerator> powerGeneratorDatastore,
             IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
-            IBlockConfig blockConfig, 
-            IWorldBlockComponentDatastore<IBlockElectricConsumer> electricDatastore)
+            IBlockConfig blockConfig, IWorldBlockDatastore worldBlockDatastore)
         {
-            _electricPoleDatastore = electricPoleDatastore;
-            _powerGeneratorDatastore = powerGeneratorDatastore;
             _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
             _blockConfig = blockConfig;
-            _electricDatastore = electricDatastore;
+            _worldBlockDatastore = worldBlockDatastore;
             blockPlaceEvent.Subscribe(OnBlockPlace);
         }
 
@@ -38,12 +40,12 @@ namespace Game.World.EventHandler
             //設置されたブロックが電柱だった時の処理
             var x = blockPlaceEvent.Coordinate.X;
             var y = blockPlaceEvent.Coordinate.Y;
-            if (!_electricPoleDatastore.ExistsComponentBlock(x, y)) return;
+            if (!_worldBlockDatastore.ExistsComponentBlock<IEnergyTransformer>(x, y)) return;
             
             var electricPoleConfigParam = _blockConfig.GetBlockConfig(blockPlaceEvent.Block.BlockId).Param as ElectricPoleConfigParam;
 
             //電柱と電気セグメントを接続する
-            var electricSegment = GetAndConnectElectricSegment(x,y,electricPoleConfigParam,_electricPoleDatastore.GetBlock(x, y));
+            var electricSegment = GetAndConnectElectricSegment(x,y,electricPoleConfigParam,_worldBlockDatastore.GetBlock<IEnergyTransformer>(x, y));
 
             //他の機械、発電機を探索して接続する
             ConnectMachine(x, y, electricSegment, electricPoleConfigParam);
@@ -58,8 +60,7 @@ namespace Game.World.EventHandler
             int x,int y,ElectricPoleConfigParam electricPoleConfigParam,IEnergyTransformer blockElectric)
         {
             //周りの電柱をリストアップする
-            var electricPoles = 
-                new FindElectricPoleFromPeripheralService().Find(x,y,electricPoleConfigParam,_electricPoleDatastore);
+            var electricPoles = FindElectricPoleFromPeripheralService.Find(x,y,electricPoleConfigParam,_worldBlockDatastore);
 
             //接続したセグメントを取得
             var electricSegment = electricPoles.Count switch
@@ -83,8 +84,7 @@ namespace Game.World.EventHandler
         private void ConnectMachine(int x,int y,EnergySegment segment,ElectricPoleConfigParam poleConfigParam)
         {
             var (blocks, generators) = 
-                new FindMachineAndGeneratorFromPeripheralService().
-                    Find(x, y, poleConfigParam, _electricDatastore, _powerGeneratorDatastore);
+                FindMachineAndGeneratorFromPeripheralService.Find(x, y, poleConfigParam, _worldBlockDatastore);
             
             //機械と発電機を電力セグメントを接続する
             blocks.ForEach(segment.AddEnergyConsumer);
