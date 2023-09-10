@@ -47,6 +47,150 @@
                     "z": 1
                 }
             }
+        },
+        {
+            "name": "bloomery",
+            "type": "Machine",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "smelting furnace with bellows",
+            "type": "GearMachine",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "wooden belt conveyor",
+            "type": "BeltConveyor",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "gear ore crusher",
+            "type": "GearMachine",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "gear miner",
+            "type": "GearMiner",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "water wheel",
+            "type": "GearGenerator",
+            "itemModId": "",
+            "itemName": "",
+            "param": {},
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
         }
     ]
 }
