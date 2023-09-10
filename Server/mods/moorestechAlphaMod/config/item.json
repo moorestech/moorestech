@@ -83,5 +83,40 @@
         "name": "stone ax handle",
         "maxStacks": 100,
         "imagePath": ""
+    },
+    {
+        "name": "water wheel",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "wooden gears",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "wooden axle",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "wooden gearbox",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "wooden belt conveyor",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "gear ore crusher",
+        "maxStacks": 100,
+        "imagePath": ""
+    },
+    {
+        "name": "gear miner",
+        "maxStacks": 100,
+        "imagePath": ""
     }
 ]
