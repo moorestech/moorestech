@@ -82,12 +82,12 @@
     {
         "name": "campfier",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/campfier.png"
     },
     {
         "name": "stone ax handle",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/stone ax handle.png"
     },
     {
         "name": "clay",
@@ -182,22 +182,22 @@
     {
         "name": "water wheel",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/water wheel.png"
     },
     {
         "name": "wooden gears",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/wooden gears.png"
     },
     {
         "name": "wooden axle",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/wooden axle.png"
     },
     {
         "name": "wooden gearbox",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/wooden gearbox.png"
     },
     {
         "name": "wooden belt conveyor",
@@ -207,11 +207,11 @@
     {
         "name": "gear ore crusher",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/gear ore crusher.png"
     },
     {
         "name": "gear miner",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/gear miner.png"
     }
 ]
