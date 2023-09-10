@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Block.BlockInventory;
+using Core.Block.Blocks.Machine;
 using Core.Block.Blocks.Service;
 using Core.Block.Blocks.State;
 using Core.Block.Blocks.Util;
 using Core.Block.Event;
 using Core.Const;
-using Core.Electric;
+using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item;
 using Core.Item.Util;
@@ -16,7 +17,7 @@ using Newtonsoft.Json;
 
 namespace Core.Block.Blocks.Miner
 {
-    public class VanillaMiner : IBlock, IBlockElectricConsumer, IBlockInventory, IUpdatable,IMiner,IOpenableInventory
+    public abstract class VanillaMinerBase : IBlock, IEnergyConsumer, IBlockInventory, IUpdatable,IMiner,IOpenableInventory
     {
 
         public int EntityId { get; }
@@ -38,7 +39,7 @@ namespace Core.Block.Blocks.Miner
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private VanillaMinerState _currentState = VanillaMinerState.Idle;
 
-        public VanillaMiner(int blockId, int entityId, ulong blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
+        protected VanillaMinerBase(int blockId, int entityId, ulong blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -53,7 +54,8 @@ namespace Core.Block.Blocks.Miner
             
             GameUpdater.RegisterUpdater(this);
         }
-        public VanillaMiner(string saveData,int blockId, int entityId, ulong blockHash, int requestPower,int outputSlotCount, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
+
+        protected VanillaMinerBase(string saveData,int blockId, int entityId, ulong blockHash, int requestPower,int outputSlotCount, ItemStackFactory itemStackFactory,BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
             :this(blockId, entityId, blockHash, requestPower, outputSlotCount, itemStackFactory,openableInventoryUpdateEvent)
         {
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...

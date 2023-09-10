@@ -41,7 +41,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
                         removedElectricPole,
                         new Dictionary<int, IEnergyTransformer>(),
                         new Dictionary<int, IBlockElectricConsumer>(),
-                        new Dictionary<int, IPowerGenerator>(),container);
+                        new Dictionary<int, IElectricGenerator>(),container);
 
 
                 //新しいセグメントに電柱、ブロック、発電機を追加する
@@ -59,13 +59,13 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         }
 
         //再帰的に電柱を探索する 
-        private static (Dictionary<int, IEnergyTransformer>, Dictionary<int, IBlockElectricConsumer>, Dictionary<int, IPowerGenerator>)
+        private static (Dictionary<int, IEnergyTransformer>, Dictionary<int, IBlockElectricConsumer>, Dictionary<int, IElectricGenerator>)
             GetElectricPoles(
                 IEnergyTransformer electricPole,
                 IEnergyTransformer removedElectricPole,
                 Dictionary<int, IEnergyTransformer> electricPoles,
                 Dictionary<int, IBlockElectricConsumer> blockElectrics,
-                Dictionary<int, IPowerGenerator> powerGenerators,EnergyServiceDependencyContainer<TSegment> container)
+                Dictionary<int, IElectricGenerator> powerGenerators,EnergyServiceDependencyContainer<TSegment> container)
         {
             var (x, y) = container.WorldBlockDatastore.GetBlockPosition(electricPole.EntityId);
             var poleConfig =

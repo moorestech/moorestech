@@ -12,8 +12,8 @@ namespace Core.Block.Config
         
         
         public const string GearMachine = "GearMachine";
-        public const string GearBeltConveyor = "GearBeltConveyor";
+        public const string GearMiner = "GearMiner";
         public const string GearGenerator = "GearGenerator";
-        public const string GearBox = "GearBox";
+        public const string GearEnergyTransformer = "GearEnergyTransformer";
     }
 }

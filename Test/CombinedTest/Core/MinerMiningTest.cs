@@ -40,7 +40,7 @@ namespace Test.CombinedTest.Core
             var miningTime = minerBlockConfigParam.OreSettings[0].MiningTime;
             var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.OreSettings[0].OreId);
 
-            var miner = new VanillaMinerBase(MinerId, CreateBlockEntityId.Create(),1, 100, outputCount, itemStackFactory,new BlockOpenableInventoryUpdateEvent());
+            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(),1, 100, outputCount, itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
             miner.SetMiningItem(miningItemId, miningTime);
 
             var dummyInventory = new DummyBlockInventory(itemStackFactory);
@@ -49,7 +49,7 @@ namespace Test.CombinedTest.Core
             //電力の設定
             var segment = new EnergySegment();
             segment.AddEnergyConsumer(miner);
-            segment.AddGenerator(new TestPowerGenerator(10000, 10));
+            segment.AddGenerator(new TestElectricGenerator(10000, 10));
 
             DateTime MineEndTime = DateTime.Now.AddMilliseconds(miningTime);
 

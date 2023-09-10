@@ -5,7 +5,7 @@ using Core.Block.BlockInventory;
 using Core.Block.Blocks.Machine.InventoryController;
 using Core.Block.Blocks.Machine.SaveLoad;
 using Core.Block.Blocks.State;
-using Core.Electric;
+using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item;
 
@@ -15,7 +15,7 @@ namespace Core.Block.Blocks.Machine
     /// 機械を表すクラス
     /// 具体的な処理は各コンポーネントに任せて、このクラスはInterfaceの実装だけを行う
     /// </summary>
-    public class VanillaMachine : IBlock, IBlockInventory, IBlockElectricConsumer, IOpenableInventory
+    public abstract class VanillaMachineBase : IBlock, IBlockInventory, IEnergyConsumer, IOpenableInventory
     {
         private readonly VanillaMachineBlockInventory _vanillaMachineBlockInventory;
         private readonly VanillaMachineSave _vanillaMachineSave;
@@ -26,7 +26,7 @@ namespace Core.Block.Blocks.Machine
         public ulong BlockHash { get; }
         public event Action<ChangedBlockState> OnBlockStateChange;
 
-        public VanillaMachine(int blockId, int entityId, ulong blockHash,
+        protected VanillaMachineBase(int blockId, int entityId, ulong blockHash,
             VanillaMachineBlockInventory vanillaMachineBlockInventory,
             VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess,ItemStackFactory itemStackFactory)
         {

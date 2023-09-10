@@ -126,7 +126,7 @@ namespace Server.Boot
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect>();
             services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect>();
             
-            services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IElectricPole>>();
+            services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment,IBlockElectricConsumer,IElectricGenerator,IElectricPole>>();
             
             services.AddSingleton<SetMiningItemToMiner>();
             services.AddSingleton<QuestCompletedToSendEventPacket>();
@@ -150,7 +150,7 @@ namespace Server.Boot
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();
             
-            serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment,IBlockElectricConsumer,IPowerGenerator,IElectricPole>>();
+            serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment,IBlockElectricConsumer,IElectricGenerator,IElectricPole>>();
             
             serviceProvider.GetService<SetMiningItemToMiner>();
             serviceProvider.GetService<QuestCompletedToSendEventPacket>();

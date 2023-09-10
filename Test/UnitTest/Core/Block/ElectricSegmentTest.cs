@@ -14,7 +14,7 @@ namespace Test.UnitTest.Core.Block
             var segment = new EnergySegment();
 
             var electric = new BlockElectricConsumer(100, 0);
-            var generate = new TestPowerGenerator(100, 0);
+            var generate = new TestElectricGenerator(100, 0);
 
             segment.AddGenerator(generate);
             segment.AddEnergyConsumer(electric);

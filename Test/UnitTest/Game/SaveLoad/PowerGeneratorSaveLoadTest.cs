@@ -36,7 +36,7 @@ namespace Test.UnitTest.Game.SaveLoad
             const int remainingFuelTime = 567;
 
             //検証元の発電機を作成
-            var type = powerGenerator.GetType();
+            var type = typeof(VanillaPowerGeneratorBase);
             type.GetField("_fuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(powerGenerator, fuelItemId);
             type.GetField("_remainingFuelTime", BindingFlags.NonPublic | BindingFlags.Instance)

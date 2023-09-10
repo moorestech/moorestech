@@ -1,3 +1,4 @@
+using System;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks;
 using Core.Block.Blocks.Machine;
@@ -14,15 +15,23 @@ namespace Core.Block.BlockFactory.BlockTemplate
 {
     public class VanillaMachineTemplate : IBlockTemplate
     {
+        public delegate VanillaMachineBase CreateMachine(
+            (int blockId, int entityId, ulong blockHash, VanillaMachineBlockInventory vanillaMachineBlockInventory, VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess, ItemStackFactory itemStackFactory) data);
+        private readonly CreateMachine _createMachine;
+        
+        
         private readonly IMachineRecipeConfig _machineRecipeConfig;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
 
-        public VanillaMachineTemplate(IMachineRecipeConfig machineRecipeConfig, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
+
+        public VanillaMachineTemplate(IMachineRecipeConfig machineRecipeConfig, ItemStackFactory itemStackFactory, 
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent,CreateMachine createMachine)
         {
             _machineRecipeConfig = machineRecipeConfig;
             _itemStackFactory = itemStackFactory;
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
+            _createMachine = createMachine;
         }
 
         public IBlock New(BlockConfigData param, int entityId, ulong blockHash)
@@ -32,12 +41,12 @@ namespace Core.Block.BlockFactory.BlockTemplate
             var runProcess = new VanillaMachineRunProcess(input, output, _machineRecipeConfig.GetNullRecipeData(),
                 machineParam.RequiredPower);
 
-            return new VanillaMachine(param.BlockId, entityId,blockHash,
+            return _createMachine((param.BlockId, entityId,blockHash,
                 new VanillaMachineBlockInventory(input, output),
                 new VanillaMachineSave(input, output, runProcess),
                 runProcess,
                 _itemStackFactory
-            );
+            ));
         }
 
         public IBlock Load(BlockConfigData param, int entityId, ulong blockHash, string state)
@@ -48,12 +57,12 @@ namespace Core.Block.BlockFactory.BlockTemplate
                 machineParam.RequiredPower).LoadVanillaMachineRunProcess(state);
 
 
-            return new VanillaMachine(param.BlockId, entityId,blockHash,
+            return _createMachine((param.BlockId, entityId,blockHash,
                 new VanillaMachineBlockInventory(input, output),
                 new VanillaMachineSave(input, output, runProcess),
                 runProcess,
                 _itemStackFactory
-            );
+            ));
         }
 
         private (VanillaMachineInputInventory, VanillaMachineOutputInventory,MachineBlockConfigParam) GetData(BlockConfigData param,int entityId)

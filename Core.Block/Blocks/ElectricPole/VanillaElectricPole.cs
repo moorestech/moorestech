@@ -1,25 +1,11 @@
-using System;
-using Core.Block.Blocks.State;
-using Core.Electric;
+﻿using Core.EnergySystem.Electric;
 
 namespace Core.Block.Blocks.ElectricPole
 {
-    public class VanillaElectricPole : IElectricPole, IBlock
+    public class VanillaElectricPole : VanillaEnergyTransformerBase, IElectricPole
     {
-        public int EntityId { get; }
-        public int BlockId { get; }
-        public ulong BlockHash { get; }
-        public event Action<ChangedBlockState> OnBlockStateChange;
-
-        public VanillaElectricPole(int blockId, int entityId, ulong blockHash)
+        public VanillaElectricPole(int blockId, int entityId, ulong blockHash) : base(blockId, entityId, blockHash)
         {
-            BlockId = blockId;
-            EntityId = entityId;
-            BlockHash = blockHash;
-        }
-        public string GetSaveState()
-        {
-            return String.Empty;
         }
     }
 }

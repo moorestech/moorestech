@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Miner;
+using Core.Block.Event;
 using Core.Item;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
@@ -17,7 +19,8 @@ namespace Test.CombinedTest.Core
 {
     public class MinerCanBeMinedTest
     {
-        private int MinerId = UnitTestModBlockId.MinerId;
+        private const int MinerId = UnitTestModBlockId.MinerId;
+
         [Test]
         public void MinerTest()
         {
@@ -48,12 +51,11 @@ namespace Test.CombinedTest.Core
             
             var miner = worldBlockDatastore.GetBlock(x, y) as VanillaMinerBase;
             //リフレクションでidを取得する
-            var miningItems = (List<IItemStack>)miner.GetType().GetField("_miningItems",
-                    BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(miner);
+            var miningItems = (List<IItemStack>)typeof(VanillaMinerBase).
+                GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(miner);
             
-            var defaultMiningTime = (int)miner.GetType().GetField("_defaultMiningTime",
-                    BindingFlags.NonPublic | BindingFlags.Instance)
+            var defaultMiningTime = (int)typeof(VanillaMinerBase).
+                GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(miner);
             
             

@@ -7,12 +7,12 @@ namespace Game.World.EventHandler.Service
 {
     public static class FindMachineAndGeneratorFromPeripheralService
     {
-        public static (List<IBlockElectricConsumer>,List<IPowerGenerator>) Find(
+        public static (List<IBlockElectricConsumer>,List<IElectricGenerator>) Find(
             int x,int y,ElectricPoleConfigParam poleConfigParam,
             IWorldBlockDatastore worldBlockDatastore)
         {
             var blocks = new List<IBlockElectricConsumer>();
-            var generators = new List<IPowerGenerator>();
+            var generators = new List<IElectricGenerator>();
             var machineRange = poleConfigParam.machineConnectionRange;
             
             var startMachineX = x - machineRange / 2;
@@ -29,7 +29,7 @@ namespace Game.World.EventHandler.Service
                     }
 
                     //範囲内に発電機がある場合
-                    if (worldBlockDatastore.TryGetBlock<IPowerGenerator>(i, j,out var generator))
+                    if (worldBlockDatastore.TryGetBlock<IElectricGenerator>(i, j,out var generator))
                     {
                         //機械を電力セグメントに追加
                         generators.Add(generator);

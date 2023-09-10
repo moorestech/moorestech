@@ -6,14 +6,14 @@ using Core.Block.Blocks.State;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Block.Event;
 using Core.Const;
-using Core.Electric;
+using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item;
 using Core.Update;
 
 namespace Core.Block.Blocks.PowerGenerator
 {
-    public class VanillaPowerGenerator : IBlock, IPowerGenerator, IBlockInventory, IUpdatable,IOpenableInventory
+    public abstract class VanillaPowerGeneratorBase : IBlock, IEnergyGenerator, IBlockInventory, IUpdatable,IOpenableInventory
     {       
         public int EntityId { get; }
         public int BlockId { get; }
@@ -27,7 +27,7 @@ namespace Core.Block.Blocks.PowerGenerator
         private int _fuelItemId = ItemConst.EmptyItemId;
         private double _remainingFuelTime = 0;
 
-        public VanillaPowerGenerator(int blockId, int entityId, ulong blockHash, int fuelItemSlot, ItemStackFactory itemStackFactory,
+        protected VanillaPowerGeneratorBase(int blockId, int entityId, ulong blockHash, int fuelItemSlot, ItemStackFactory itemStackFactory,
             Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate)
         {
             BlockId = blockId;
@@ -39,8 +39,9 @@ namespace Core.Block.Blocks.PowerGenerator
             GameUpdater.RegisterUpdater(this);
         }
 
-        public VanillaPowerGenerator(int blockId, int entityId, ulong blockHash, string loadString, int fuelItemSlot,
-            ItemStackFactory itemStackFactory, Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate)
+        protected VanillaPowerGeneratorBase(string state, int blockId, int entityId, ulong blockHash, int fuelItemSlot,
+            ItemStackFactory itemStackFactory, Dictionary<int, FuelSetting> fuelSettings,
+            IBlockOpenableInventoryUpdateEvent blockInventoryUpdate)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -50,7 +51,7 @@ namespace Core.Block.Blocks.PowerGenerator
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,fuelItemSlot);
             GameUpdater.RegisterUpdater(this);
 
-            var split = loadString.Split(',');
+            var split = state.Split(',');
             _fuelItemId = int.Parse(split[0]);
             _remainingFuelTime = double.Parse(split[1]);
 
