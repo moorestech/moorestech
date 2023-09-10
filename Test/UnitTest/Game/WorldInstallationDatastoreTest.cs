@@ -73,7 +73,7 @@ namespace Test.UnitTest.Game
 
         private BlockFactory _blockFactory;
 
-        private VanillaMachine CreateMachine(int id, int entityId)
+        private VanillaMachineBase CreateMachine(int id, int entityId)
         {
             if (_blockFactory == null)
             {
@@ -81,7 +81,7 @@ namespace Test.UnitTest.Game
                 _blockFactory = serviceProvider.GetService<BlockFactory>();
             }
 
-            var machine = _blockFactory.Create(id, entityId) as VanillaMachine;
+            var machine = _blockFactory.Create(id, entityId) as VanillaMachineBase;
             return machine;
         }
     }

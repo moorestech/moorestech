@@ -1,6 +1,5 @@
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
-using Core.Electric;
 using Core.EnergySystem;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.EventHandler.Service;

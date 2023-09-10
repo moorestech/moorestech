@@ -1,5 +1,5 @@
-﻿using Core.Electric;
-using Core.EnergySystem;
+﻿using Core.EnergySystem;
+using Core.EnergySystem.Electric;
 using Core.Update;
 using NUnit.Framework;
 using Test.Module;

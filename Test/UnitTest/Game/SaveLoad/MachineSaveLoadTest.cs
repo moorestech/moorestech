@@ -39,7 +39,7 @@ namespace Test.UnitTest.Game.SaveLoad
             //機械の追加
             var (itemStackFactory, blockFactory, worldBlockDatastore, _, assembleSaveJsonText,_) =
                 CreateBlockTestModule();
-            var machine = (VanillaMachine) blockFactory.Create(1, 10);
+            var machine = (VanillaMachineBase) blockFactory.Create(1, 10);
             worldBlockDatastore.AddBlock(machine, 0, 0, BlockDirection.North);
 
 
@@ -54,7 +54,7 @@ namespace Test.UnitTest.Game.SaveLoad
 
             //リフレクションで機械の状態を設定
             //機械のレシピの残り時間設定
-            var vanillaMachineRunProcess = (VanillaMachineRunProcess) typeof(VanillaMachine)
+            var vanillaMachineRunProcess = (VanillaMachineRunProcess) typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineRunProcess", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(machine);
             typeof(VanillaMachineRunProcess)
@@ -66,7 +66,7 @@ namespace Test.UnitTest.Game.SaveLoad
                 .SetValue(vanillaMachineRunProcess, ProcessState.Processing);
 
             //機械のアウトプットスロットの設定
-            var _vanillaMachineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachine)
+            var _vanillaMachineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
 
             var outputInventory = (VanillaMachineOutputInventory) typeof(VanillaMachineBlockInventory)
@@ -90,7 +90,7 @@ namespace Test.UnitTest.Game.SaveLoad
             
             loadJsonFile.Load(json);
 
-            var loadMachine = (VanillaMachine) loadWorldBlockDatastore.GetBlock(0, 0);
+            var loadMachine = (VanillaMachineBase) loadWorldBlockDatastore.GetBlock(0, 0);
             Console.WriteLine(machine.GetHashCode());
             Console.WriteLine(loadMachine.GetHashCode());
             //ブロックID、intIDが同じであることを確認
@@ -99,7 +99,7 @@ namespace Test.UnitTest.Game.SaveLoad
 
 
             //機械のレシピの残り時間のチェック
-            var loadVanillaMachineRunProcess = (VanillaMachineRunProcess) typeof(VanillaMachine)
+            var loadVanillaMachineRunProcess = (VanillaMachineRunProcess) typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineRunProcess", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachine);
             Assert.AreEqual((double) 300, (double) loadVanillaMachineRunProcess.RemainingMillSecond);
@@ -109,7 +109,7 @@ namespace Test.UnitTest.Game.SaveLoad
             Assert.AreEqual(ProcessState.Processing, loadVanillaMachineRunProcess.CurrentState);
 
 
-            var loadMachineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachine)
+            var loadMachineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachine);
             //インプットスロットのチェック

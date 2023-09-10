@@ -46,7 +46,7 @@ namespace Test.CombinedTest.Core
             
             worldBlockDatastore.AddBlock(blockFactory.Create(MinerId,1), x, y,BlockDirection.North);
             
-            var miner = worldBlockDatastore.GetBlock(x, y) as VanillaMiner;
+            var miner = worldBlockDatastore.GetBlock(x, y) as VanillaMinerBase;
             //リフレクションでidを取得する
             var miningItems = (List<IItemStack>)miner.GetType().GetField("_miningItems",
                     BindingFlags.NonPublic | BindingFlags.Instance)

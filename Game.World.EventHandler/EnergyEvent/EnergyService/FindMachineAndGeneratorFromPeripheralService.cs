@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Core.Block.Config.LoadConfig.Param;
-using Core.Electric;
+using Core.EnergySystem.Electric;
 using Game.World.Interface.DataStore;
 
 namespace Game.World.EventHandler.Service

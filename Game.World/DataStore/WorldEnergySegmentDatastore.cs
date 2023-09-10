@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Core.Electric;
 using Core.EnergySystem;
 using Game.World.Interface.DataStore;
 using World.Event;

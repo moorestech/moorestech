@@ -11,7 +11,6 @@ using Core.Block.Event;
 using Core.Block.RecipeConfig;
 using Core.ConfigJson;
 using Core.Const;
-using Core.Electric;
 using Core.Item;
 using Core.Item.Config;
 using Core.Update;
@@ -41,7 +40,7 @@ namespace Test.CombinedTest.Core
             var recipe = machineRecipeConfig.GetAllRecipeData()[0];
 
 
-            var block = (VanillaMachine)blockFactory.Create(recipe.BlockId, 1);
+            var block = (VanillaMachineBase)blockFactory.Create(recipe.BlockId, 1);
             foreach (var inputItem in recipe.ItemInputs)
             {
                 block.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
@@ -69,10 +68,10 @@ namespace Test.CombinedTest.Core
             }
         }
 
-        public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachine machine)
+        public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBase machineBase)
         {
-            var _vanillaMachineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachine)
-                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+            var _vanillaMachineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachineBase)
+                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machineBase);
             var _vanillaMachineInputInventory = (VanillaMachineInputInventory) typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(_vanillaMachineInventory);

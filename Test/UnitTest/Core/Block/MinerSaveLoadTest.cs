@@ -31,12 +31,12 @@ namespace Test.UnitTest.Core.Block
             int originalRemainingMillSecond = 350;
             
             var inventory = 
-                (OpenableInventoryItemDataStoreService)typeof(VanillaMiner).
+                (OpenableInventoryItemDataStoreService)typeof(VanillaMinerBase).
                     GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic).
                     GetValue(originalMiner);
             inventory.SetItem(0,1,1);
             inventory.SetItem(2,4,1);
-            typeof(VanillaMiner).
+            typeof(VanillaMinerBase).
                 GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic).
                 SetValue(originalMiner,originalRemainingMillSecond);
 
@@ -48,11 +48,11 @@ namespace Test.UnitTest.Core.Block
             
             var loadedMiner = blockFactory.Load(minerHash, 1,json);
             var loadedInventory = 
-                (OpenableInventoryItemDataStoreService)typeof(VanillaMiner).
+                (OpenableInventoryItemDataStoreService)typeof(VanillaMinerBase).
                     GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic).
                     GetValue(originalMiner);
             var loadedRemainingMillSecond = 
-                (int)typeof(VanillaMiner).
+                (int)typeof(VanillaMinerBase).
                     GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic).
                     GetValue(loadedMiner);
             

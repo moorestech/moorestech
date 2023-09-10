@@ -1,6 +1,4 @@
-﻿using Core.EnergySystem;
-
-namespace Core.Electric
+﻿namespace Core.EnergySystem.Electric
 {
     public interface IBlockElectricConsumer : IEnergyConsumer
     {

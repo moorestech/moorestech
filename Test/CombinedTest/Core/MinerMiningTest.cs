@@ -5,7 +5,6 @@ using Core.Block.Blocks.Miner;
 using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Block.Event;
-using Core.Electric;
 using Core.EnergySystem;
 using Core.Item;
 using Core.Ore;
@@ -41,7 +40,7 @@ namespace Test.CombinedTest.Core
             var miningTime = minerBlockConfigParam.OreSettings[0].MiningTime;
             var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.OreSettings[0].OreId);
 
-            var miner = new VanillaMiner(MinerId, CreateBlockEntityId.Create(),1, 100, outputCount, itemStackFactory,new BlockOpenableInventoryUpdateEvent());
+            var miner = new VanillaMinerBase(MinerId, CreateBlockEntityId.Create(),1, 100, outputCount, itemStackFactory,new BlockOpenableInventoryUpdateEvent());
             miner.SetMiningItem(miningItemId, miningTime);
 
             var dummyInventory = new DummyBlockInventory(itemStackFactory);

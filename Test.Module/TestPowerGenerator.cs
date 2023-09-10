@@ -1,5 +1,5 @@
 ﻿using System;
-using Core.Electric;
+using Core.EnergySystem.Electric;
 
 namespace Test.Module
 {

@@ -33,7 +33,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             
-            var machine = serviceProvider.GetService<BlockFactory>().Create(MachineBlockId,5) as VanillaMachine;
+            var machine = serviceProvider.GetService<BlockFactory>().Create(MachineBlockId,5) as VanillaMachineBase;
             machine.SetItem(0,itemStackFactory.Create(1,2));
             machine.SetItem(2,itemStackFactory.Create(4,5));
             

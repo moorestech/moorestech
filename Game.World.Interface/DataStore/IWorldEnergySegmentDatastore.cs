@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Core.Electric;
 using Core.EnergySystem;
 
 namespace Game.World.Interface.DataStore

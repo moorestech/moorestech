@@ -79,7 +79,7 @@ namespace Test.UnitTest.Game
             world.AddBlock(beltConveyor, conveyorX, conveyorY, direction);
 
             //繋がっているコネクターを取得
-            var _connector = (VanillaMachine) typeof(VanillaBeltConveyor)
+            var _connector = (VanillaMachineBase) typeof(VanillaBeltConveyor)
                 .GetField("_connector", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(beltConveyor);
 
             //それぞれのentityIdを返却
@@ -99,7 +99,7 @@ namespace Test.UnitTest.Game
             var blockFactory = serviceProvider.GetService<BlockFactory>();
 
             //機械の設置
-            var vanillaMachine = (VanillaMachine) blockFactory.Create(MachineId, CreateBlockEntityId.Create());
+            var vanillaMachine = (VanillaMachineBase) blockFactory.Create(MachineId, CreateBlockEntityId.Create());
             world.AddBlock(vanillaMachine, 0, 0, BlockDirection.North);
 
             //機械から4方向にベルトコンベアが出るように配置
@@ -117,7 +117,7 @@ namespace Test.UnitTest.Game
 
             //繋がっているコネクターを取得
 
-            var machineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachine)
+            var machineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(vanillaMachine);
             var vanillaMachineOutputInventory = (VanillaMachineOutputInventory) typeof(VanillaMachineBlockInventory)
@@ -201,7 +201,7 @@ namespace Test.UnitTest.Game
             var blockFactory = serviceProvider.GetService<BlockFactory>();
             
             
-            var machine = (VanillaMachine) blockFactory.Create(MachineId, CreateBlockEntityId.Create());
+            var machine = (VanillaMachineBase) blockFactory.Create(MachineId, CreateBlockEntityId.Create());
             var chest = (VanillaChest) blockFactory.Create(ChestId, CreateBlockEntityId.Create());
             
             //機械とチェストを設置
@@ -209,7 +209,7 @@ namespace Test.UnitTest.Game
             world.AddBlock(chest, 0, 1, BlockDirection.North);
             
             //機械のコネクターを取得
-            var machineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachine)
+            var machineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(machine);
             var vanillaMachineOutputInventory = (VanillaMachineOutputInventory) typeof(VanillaMachineBlockInventory)

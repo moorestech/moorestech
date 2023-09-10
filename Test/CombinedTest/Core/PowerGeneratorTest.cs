@@ -28,7 +28,7 @@ namespace Test.CombinedTest.Core
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = serviceProvider.GetService<BlockFactory>();
-            var powerGenerator = blockFactory.Create(PowerGeneratorId, 10) as VanillaPowerGenerator;
+            var powerGenerator = blockFactory.Create(PowerGeneratorId, 10) as VanillaPowerGeneratorBase;
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var generatorConfigParam = blockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam;
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
@@ -57,7 +57,7 @@ namespace Test.CombinedTest.Core
 
             //燃料が枯渇しているか確認
             //リフレクションで現在の燃料を取得
-            var fuelItemId = (int) typeof(VanillaPowerGenerator).GetField("_fuelItemId",
+            var fuelItemId = (int) typeof(VanillaPowerGeneratorBase).GetField("_fuelItemId",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 .GetValue(powerGenerator);
             Assert.AreEqual(ItemConst.EmptyItemId, fuelItemId);
@@ -74,7 +74,7 @@ namespace Test.CombinedTest.Core
             }
 
             //2個の燃料が入っていることを確認
-            fuelItemId = (int) typeof(VanillaPowerGenerator).GetField("_fuelItemId",
+            fuelItemId = (int) typeof(VanillaPowerGeneratorBase).GetField("_fuelItemId",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 .GetValue(powerGenerator);
             Assert.AreEqual(generatorConfigParam.FuelSettings[FuelItem2Id].ItemId, fuelItemId);
@@ -87,7 +87,7 @@ namespace Test.CombinedTest.Core
             }
 
             //2個目の燃料が枯渇しているか確認
-            fuelItemId = (int) typeof(VanillaPowerGenerator).GetField("_fuelItemId",
+            fuelItemId = (int) typeof(VanillaPowerGeneratorBase).GetField("_fuelItemId",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 .GetValue(powerGenerator);
             Assert.AreEqual(ItemConst.EmptyItemId, fuelItemId);

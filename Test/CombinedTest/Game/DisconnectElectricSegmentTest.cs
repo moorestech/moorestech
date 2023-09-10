@@ -1,6 +1,6 @@
 using Core.Block.BlockFactory;
-using Core.Electric;
 using Core.EnergySystem;
+using Core.EnergySystem.Electric;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
