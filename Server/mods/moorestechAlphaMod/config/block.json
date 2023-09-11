@@ -5,7 +5,11 @@
             "type": "Machine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "campfier",
-            "param": {},
+            "param": {
+                "inputSlot": 2,
+                "outputSlot": 1,
+                "requiredPower": 0
+            },
             "modelTransform": {
                 "position": {
                     "x": 0,
@@ -29,7 +33,11 @@
             "type": "Machine",
             "itemModId": "",
             "itemName": "",
-            "param": {},
+            "param": {
+                "inputSlot": 2,
+                "outputSlot": 1,
+                "requiredPower": 0
+            },
             "modelTransform": {
                 "position": {
                     "x": 0,
@@ -53,7 +61,11 @@
             "type": "Machine",
             "itemModId": "",
             "itemName": "",
-            "param": {},
+            "param": {
+                "inputSlot": 2,
+                "outputSlot": 1,
+                "requiredPower": 0
+            },
             "modelTransform": {
                 "position": {
                     "x": 0,
@@ -77,7 +89,11 @@
             "type": "GearMachine",
             "itemModId": "",
             "itemName": "",
-            "param": {},
+            "param": {
+                "inputSlot": 2,
+                "outputSlot": 1,
+                "requiredPower": 100
+            },
             "modelTransform": {
                 "position": {
                     "x": 0,
@@ -101,7 +117,10 @@
             "type": "BeltConveyor",
             "itemModId": "",
             "itemName": "",
-            "param": {},
+            "param": {
+                "slot": 3,
+                "time": 10000
+            },
             "modelTransform": {
                 "position": {
                     "x": 0,
@@ -125,7 +144,11 @@
             "type": "GearMachine",
             "itemModId": "",
             "itemName": "",
-            "param": {},
+            "param": {
+                "inputSlot": 1,
+                "outputSlot": 1,
+                "requiredPower": 100
+            },
             "modelTransform": {
                 "position": {
                     "x": 0,
@@ -149,7 +172,11 @@
             "type": "GearMiner",
             "itemModId": "",
             "itemName": "",
-            "param": {},
+            "param": {
+                "inputSlot": 1,
+                "outputSlot": 1,
+                "requiredPower": 100
+            },
             "modelTransform": {
                 "position": {
                     "x": 0,
@@ -173,7 +200,12 @@
             "type": "GearGenerator",
             "itemModId": "",
             "itemName": "",
-            "param": {},
+            "param": {
+                "fuelSlot": 0,
+                "isInfinityPower": true,
+                "infinityPower": 50,
+                "fuel": [ ]
+            },
             "modelTransform": {
                 "position": {
                     "x": 0,
@@ -197,7 +229,10 @@
             "type": "GearEnergyTransformer",
             "itemModId": "",
             "itemName": "",
-            "param": {},
+            "param": {
+                "poleConnectionRange": 2,
+                "machineConnectionRange": 2
+            },
             "modelTransform": {
                 "position": {
                     "x": 0,
