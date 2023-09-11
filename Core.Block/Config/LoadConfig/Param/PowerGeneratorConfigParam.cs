@@ -4,13 +4,17 @@ namespace Core.Block.Config.LoadConfig.Param
 {
     public class PowerGeneratorConfigParam : IBlockConfigParam
     {
+        public readonly bool IsInfinityPower;
+        public readonly int InfinityPower;
         public readonly Dictionary<int, FuelSetting> FuelSettings;
         public readonly int FuelSlot;
 
-        public PowerGeneratorConfigParam(Dictionary<int, FuelSetting> fuelSettings, int fuelSlot)
+        public PowerGeneratorConfigParam(Dictionary<int, FuelSetting> fuelSettings, int fuelSlot, bool isInfinityPower, int infinityPower)
         {
             FuelSettings = fuelSettings;
             FuelSlot = fuelSlot;
+            IsInfinityPower = isInfinityPower;
+            InfinityPower = infinityPower;
         }
     }
 

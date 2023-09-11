@@ -31,8 +31,10 @@ namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
             }
 
             int fuelSlot = blockParam.fuelSlot;
+            bool isInfinityPower = blockParam.isInfinityPower;
+            int infinityPower = blockParam.infinityPower;
 
-            return new PowerGeneratorConfigParam(fuelSettings, fuelSlot);
+            return new PowerGeneratorConfigParam(fuelSettings, fuelSlot, isInfinityPower, infinityPower);
         }
     }
 }
