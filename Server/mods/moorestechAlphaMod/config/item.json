@@ -27,7 +27,7 @@
     {
         "name": "tiny iron ore",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/tiny iron ore.png"
     },
     {
         "name": "iron ore powder",
@@ -92,12 +92,12 @@
     {
         "name": "clay",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/clay.png"
     },
     {
         "name": "burned brick",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/burned brick.png"
     },
     {
         "name": "charcoal kiln",
@@ -107,7 +107,7 @@
     {
         "name": "charcoal",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/charcoal.png"
     },
     {
         "name": "bloomery",
@@ -117,12 +117,12 @@
     {
         "name": "cotton",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/cotton.png"
     },
     {
         "name": "cloth",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/cloth.png"
     },
     {
         "name": "bloom",
@@ -130,9 +130,9 @@
         "imagePath": ""
     },
     {
-        "name": "bellows screw",
+        "name": "bellows rivet",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/bellows rivet.png"
     },
     {
         "name": "bellows nozzle",
@@ -202,7 +202,7 @@
     {
         "name": "wooden belt conveyor",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/wooden belt conveyor.png"
     },
     {
         "name": "gear ore crusher",
