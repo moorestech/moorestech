@@ -93,6 +93,108 @@
             "percent": 1
           }
         ]
-    }
+    },
+    {
+        "blockModId": "sakastudio:moorestechAlphaMod",
+        "blockName": "bloomery",
+        "time": 15000,
+        "input": [
+          {
+            "itemName":"charcoal",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 5
+          },
+          {
+            "itemName":"iron ore",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 2
+          }
+        ],
+        "output": [
+          {
+            "itemName":"bloom",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1,
+            "percent": 1
+          }
+        ]
+    },
+    {
+        "blockModId": "sakastudio:moorestechAlphaMod",
+        "blockName": "bloomery",
+        "time": 15000,
+        "input": [
+          {
+            "itemName":"coal",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 3
+          },
+          {
+            "itemName":"iron ore",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 2
+          }
+        ],
+        "output": [
+          {
+            "itemName":"bloom",
+            "modId":"sakastudio:moorestechAlphaMod",
+            "count": 1,
+            "percent": 1
+          }
+        ]
+    },
+
+
+    {
+      "blockModId": "sakastudio:moorestechAlphaMod",
+      "blockName": "bloomery with bellows",
+      "time": 15000,
+      "input": [
+        {
+          "itemName":"charcoal",
+          "modId":"sakastudio:moorestechAlphaMod",
+          "count": 3
+        },
+        {
+          "itemName":"iron ore",
+          "modId":"sakastudio:moorestechAlphaMod",
+          "count": 1
+        }
+      ],
+      "output": [
+        {
+          "itemName":"cast iron",
+          "modId":"sakastudio:moorestechAlphaMod",
+          "count": 1,
+          "percent": 1
+        }
+      ]
+  },
+  {
+      "blockModId": "sakastudio:moorestechAlphaMod",
+      "blockName": "bloomery with bellows",
+      "time": 15000,
+      "input": [
+        {
+          "itemName":"coal",
+          "modId":"sakastudio:moorestechAlphaMod",
+          "count": 1
+        },
+        {
+          "itemName":"iron ore",
+          "modId":"sakastudio:moorestechAlphaMod",
+          "count": 1
+        }
+      ],
+      "output": [
+        {
+          "itemName":"cast iron",
+          "modId":"sakastudio:moorestechAlphaMod",
+          "count": 1,
+          "percent": 1
+        }
+      ]
+  }
  
 ]
