@@ -12,7 +12,7 @@
     {
         "name": "stone ax",
         "maxStacks": 1,
-        "imagePath": "assets/item/simple ax.png"
+        "imagePath": "assets/item/stone ax.png"
     },
     {
         "name": "wood",
@@ -33,11 +33,6 @@
         "name": "iron ore powder",
         "maxStacks": 100,
         "imagePath": "assets/item/iron ore powder.png"
-    },
-    {
-        "name": "iron ingot",
-        "maxStacks": 100,
-        "imagePath": "assets/item/iron ingot.png"
     },
     {
         "name": "coal",
@@ -102,7 +97,7 @@
     {
         "name": "charcoal kiln",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/charcoal kiln.png"
     },
     {
         "name": "charcoal",
@@ -127,7 +122,7 @@
     {
         "name": "bloom",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/bloom.png"
     },
     {
         "name": "bellows rivet",
@@ -137,12 +132,12 @@
     {
         "name": "bellows nozzle",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/bellows nozzle.png"
     },
     {
         "name": "bellow",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/bellow.png"
     },
     {
         "name": "bloomery with bellows",
@@ -152,22 +147,32 @@
     {
         "name": "cast iron",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/cast iron.png"
     },
     {
         "name": "chisel",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/chisel.png"
+    },
+    {
+        "name": "iron ax head",
+        "maxStacks": 100,
+        "imagePath": "assets/item/iron ax head.png"
     },
     {
         "name": "iron ax",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/iron ax.png"
+    },
+    {
+        "name": "iron pickaxe head",
+        "maxStacks": 100,
+        "imagePath": "assets/item/iron pickaxe head.png"
     },
     {
         "name": "iron pickaxe",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/iron pickaxe.png"
     },
     {
         "name": "steel ax",
