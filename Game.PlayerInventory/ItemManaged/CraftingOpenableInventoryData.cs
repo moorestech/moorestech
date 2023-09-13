@@ -108,8 +108,11 @@ namespace PlayerInventory.ItemManaged
                 var craftConfig = _isCreatableJudgementService.GetCraftingConfigData(craftingItems);
                 for (int j = 0; j < PlayerInventoryConst.CraftingSlotSize; j++)
                 {
+                    //インベントリにアイテムが残る場合はスキップ
+                    if (craftConfig.CraftItemInfos[j].IsRemain) continue;
+                    
                     //クラフトしたアイテムを消費する
-                    var subItem = _openableInventoryService.Inventory[j].SubItem(craftConfig.Items[j].Count);
+                    var subItem = _openableInventoryService.Inventory[j].SubItem(craftConfig.CraftItemInfos[j].ItemStack.Count);
                     //インベントリにセット
                     _openableInventoryService.SetItem(j, subItem);
                 }

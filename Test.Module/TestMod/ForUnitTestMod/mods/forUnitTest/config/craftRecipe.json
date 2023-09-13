@@ -2,49 +2,58 @@
   {
     "items": [
       {
-        "count": 1,
         "itemName": "Test1",
-        "modId": "Test Author:forUniTest"
+        "modId": "Test Author:forUniTest",
+        "count": 1,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "Test1",
         "modId": "Test Author:forUniTest",
-        "count": 1
+        "count": 1,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "Test2",
         "modId": "Test Author:forUniTest",
-        "count": 3
+        "count": 3,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "Test3",
         "modId": "Test Author:forUniTest",
-        "count": 2
+        "count": 2,
+        "isRemain" : false
       },
       {
         "itemName": "Test3",
         "modId": "Test Author:forUniTest",
-        "count": 3
+        "count": 3,
+        "isRemain" : false
       },
       {
         "itemName": "Test3",
         "modId": "Test Author:forUniTest",
-        "count": 2
+        "count": 2,
+        "isRemain" : false
       }
     ],
     "result": {
@@ -58,47 +67,56 @@
       {
         "itemName": "Test1",
         "modId": "Test Author:forUniTest",
-        "count": 1
+        "count": 1,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       }
     ],
     "result": {
@@ -112,53 +130,125 @@
       {
         "itemName": "Test6",
         "modId": "Test Author:forUniTest",
-        "count": 1
+        "count": 1,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       },
       {
         "itemName": "",
         "modId": "",
-        "count": 0
+        "count": 0,
+        "isRemain" : false
       }
     ],
     "result": {
       "itemName": "Test6",
       "modId": "Test Author:forUniTest",
       "count": 80
+    }
+  },
+  {
+    "items": [
+      {
+        "itemName": "Test1",
+        "modId": "Test Author:forUniTest",
+        "count": 1,
+        "isRemain" : true
+      },
+      {
+        "itemName": "",
+        "modId": "",
+        "count": 0,
+        "isRemain" : false
+      },
+      {
+        "itemName": "Test1",
+        "modId": "Test Author:forUniTest",
+        "count": 1,
+        "isRemain" : true
+      },
+      {
+        "itemName": "",
+        "modId": "",
+        "count": 0,
+        "isRemain" : false
+      },
+      {
+        "itemName": "",
+        "modId": "",
+        "count": 0,
+        "isRemain" : false
+      },
+      {
+        "itemName": "",
+        "modId": "",
+        "count": 0,
+        "isRemain" : false
+      },
+      {
+        "itemName": "",
+        "modId": "",
+        "count": 0,
+        "isRemain" : false
+      },
+      {
+        "itemName": "Test3",
+        "modId": "Test Author:forUniTest",
+        "count": 3,
+        "isRemain" : false
+      },
+      {
+        "itemName": "Test3",
+        "modId": "Test Author:forUniTest",
+        "count": 2,
+        "isRemain" : false
+      }
+    ],
+    "result": {
+      "itemName": "Test3",
+      "modId": "Test Author:forUniTest",
+      "count": 1
     }
   }
 ]

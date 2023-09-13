@@ -8,7 +8,7 @@
       "param": {
         "inputSlot": 2,
         "outputSlot": 3,
-        "requiredPower": 100
+        "requiredPower": 100,
       }
     },
     {
@@ -44,6 +44,8 @@
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test5",
       "param": {
+        "isInfinityPower": false,
+        "infinityPower": 0,
         "fuelSlot": 10,
         "fuel": [
           {

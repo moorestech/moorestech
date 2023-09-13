@@ -21,10 +21,13 @@ namespace Game.Crafting.Config
         [JsonProperty("modId")] private string _modId;
         [JsonProperty("itemName")] private string _itemName;
         [JsonProperty("count")] private int _count;
+        [JsonProperty("isRemain")] private bool _isRemain;
 
         public string ItemName => _itemName;
         public string ModId => _modId;
         
         public int Count => _count;
+        
+        public bool IsRemain => _isRemain;
     }
 }

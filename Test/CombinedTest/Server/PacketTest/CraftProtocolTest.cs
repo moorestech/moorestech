@@ -39,9 +39,9 @@ namespace Test.CombinedTest.Server.PacketTest
             var craftingEvent = serviceProvider.GetService<ICraftingEvent>();
             
             //craftingInventoryにアイテムを入れる
-            for (int i = 0; i < craftConfig.Items.Count; i++)
+            for (int i = 0; i < craftConfig.CraftItemInfos.Count; i++)
             {
-                craftInventory.SetItem(i,craftConfig.Items[i]);
+                craftInventory.SetItem(i,craftConfig.CraftItemInfos[i].ItemStack);
             }
             
             

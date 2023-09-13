@@ -72,12 +72,12 @@ namespace Test.CombinedTest.Server.PacketTest
             
             //クラフトに必要なアイテムの二倍の量を入れる
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[0];
-            for (int i = 0; i < craftConfig.Items.Count; i++)
+            for (int i = 0; i < craftConfig.CraftItemInfos.Count; i++)
             {
-                var id = craftConfig.Items[i].Id;
-                var count = craftConfig.Items[i].Count;
-                Console.WriteLine(craftConfig.Items[i].Id);
-                Console.WriteLine(craftConfig.Items[i].Count);
+                var id = craftConfig.CraftItemInfos[i].ItemStack.Id;
+                var count = craftConfig.CraftItemInfos[i].ItemStack.Count;
+                Console.WriteLine(craftConfig.CraftItemInfos[i].ItemStack.Id);
+                Console.WriteLine(craftConfig.CraftItemInfos[i].ItemStack.Count);
                 playerInventoryData.CraftingOpenableInventory.SetItem(i,id,count * 2);
             };
             
@@ -124,8 +124,8 @@ namespace Test.CombinedTest.Server.PacketTest
             //クラフトスロットの検証
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
-                Assert.AreEqual(craftConfig.Items[i].Id, data.Craft[i].Id);
-                Assert.AreEqual(craftConfig.Items[i].Count, data.Craft[i].Count);
+                Assert.AreEqual(craftConfig.CraftItemInfos[i].ItemStack.Id, data.Craft[i].Id);
+                Assert.AreEqual(craftConfig.CraftItemInfos[i].ItemStack.Count, data.Craft[i].Count);
             }
             //まだクラフトスロットにアイテムがあるため、クラフト可能である事の検証
             Assert.AreEqual(true, data.IsCreatable);

@@ -27,7 +27,7 @@ namespace Game.Crafting
             //_craftingConfigDataCacheの作成
             foreach (var c in craftingConfig.GetCraftingConfigList())
             {
-                var cashKey = GetCraftingConfigCacheKey(c.Items);
+                var cashKey = GetCraftingConfigCacheKey(c.CraftItems);
                 if (_craftingConfigDataCache.ContainsKey(cashKey))
                 {
                     var resultItemModId = _itemConfig.GetItemConfig(c.Result.ItemHash).ModId;
@@ -47,10 +47,10 @@ namespace Game.Crafting
             }
             
             //レシピがない時のデータの作成
-            var nullItem = new List<IItemStack>();
+            var nullItem = new List<CraftingItemData>();
             for (int i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
-                nullItem.Add(itemStackFactory.CreatEmpty());
+                nullItem.Add(new CraftingItemData(itemStackFactory.CreatEmpty(),false));
             }
             _nullCraftingConfigData = new CraftingConfigData(nullItem, itemStackFactory.CreatEmpty());
         }
@@ -73,7 +73,7 @@ namespace Game.Crafting
             var craftingConfigData = _craftingConfigDataCache[key];
             for (int i = 0; i < craftingItems.Count; i++)
             {
-                if (craftingItems[i].Count < craftingConfigData.Items[i].Count)
+                if (craftingItems[i].Count < craftingConfigData.CraftItemInfos[i].ItemStack.Count)
                 {
                     return false;
                 }
@@ -183,11 +183,11 @@ namespace Game.Crafting
             var config = GetCraftingConfigData(craftingItems);
             var craftCount = 0;
 
-            for (int i = 0; i < config.Items.Count; i++)
+            for (int i = 0; i < config.CraftItemInfos.Count; i++)
             {
-                if (config.Items[i].Count == 0) continue;
+                if (config.CraftItemInfos[i].ItemStack.Count == 0) continue;
                 
-                var count = craftingItems[i].Count / config.Items[i].Count;
+                var count = craftingItems[i].Count / config.CraftItemInfos[i].ItemStack.Count;
 
                 if (craftCount < count)
                 {
@@ -198,9 +198,9 @@ namespace Game.Crafting
             return craftCount;
         }
 
-        private string GetCraftingConfigCacheKey(IReadOnlyList<IItemStack> itemId)
+        private string GetCraftingConfigCacheKey(IReadOnlyList<IItemStack> items)
         {
-            return itemId.Aggregate("", (current, i) => current + "_" + i.Id);
+            return items.Aggregate("", (current, i) => current + "_" + i.Id);
         }
     }
 }

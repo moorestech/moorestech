@@ -27,9 +27,9 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             //craftingInventoryにアイテムを入れる
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[0];
             var craftingInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
-            for (int i = 0; i < craftConfig.Items.Count; i++)
+            for (int i = 0; i < craftConfig.CraftItemInfos.Count; i++)
             {
-                craftingInventory.SetItem(i,craftConfig.Items[i]);
+                craftingInventory.SetItem(i,craftConfig.CraftItemInfos[i].ItemStack);
             }
                    
             //イベントを取得
@@ -47,8 +47,8 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var data = MessagePackSerializer.Deserialize<CraftingInventoryUpdateEventMessagePack>(response[checkSlot].ToArray());
             
             Assert.AreEqual(7,data.Slot); //インベントリスロット レシピによって変わるので固定値
-            Assert.AreEqual(craftConfig.Items[7].Id,data.Item.Id); //更新アイテムID
-            Assert.AreEqual(craftConfig.Items[7].Count,data.Item.Count); //更新アイテム数
+            Assert.AreEqual(craftConfig.CraftItemInfos[7].ItemStack.Id,data.Item.Id); //更新アイテムID
+            Assert.AreEqual(craftConfig.CraftItemInfos[7].ItemStack.Count,data.Item.Count); //更新アイテム数
             
             Assert.AreEqual(ItemConst.EmptyItemId,data.CreatableItem.Id); //結果のアイテムID
             Assert.AreEqual(0,data.CreatableItem.Count); //結果のアイテム数
@@ -60,8 +60,8 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             checkSlot = craftEventCount - 1;
             data = MessagePackSerializer.Deserialize<CraftingInventoryUpdateEventMessagePack>(response[checkSlot].ToArray());
             Assert.AreEqual(8,data.Slot); //インベントリスロット レシピによって変わるので固定値
-            Assert.AreEqual(craftConfig.Items[8].Id,data.Item.Id); //更新アイテムID
-            Assert.AreEqual(craftConfig.Items[8].Count,data.Item.Count); //更新アイテム数
+            Assert.AreEqual(craftConfig.CraftItemInfos[8].ItemStack.Id,data.Item.Id); //更新アイテムID
+            Assert.AreEqual(craftConfig.CraftItemInfos[8].ItemStack.Count,data.Item.Count); //更新アイテム数
             
             Assert.AreEqual(craftConfig.Result.Id,data.CreatableItem.Id); //結果のアイテムID
             Assert.AreEqual(craftConfig.Result.Count,data.CreatableItem.Count); //結果のアイテム数

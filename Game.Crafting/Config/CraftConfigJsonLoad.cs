@@ -30,16 +30,16 @@ namespace Game.Crafting.Config
             for (var i = 0; i < loadedData.Count; i++)
             {
                 var config = loadedData[i];
-                var items = new List<IItemStack>();
+                var items = new List<CraftingItemData>();
                 foreach (var craftItem in config.Items)
                 {
                     if (string.IsNullOrEmpty(craftItem.ItemName) || string.IsNullOrEmpty(craftItem.ModId))
                     {
-                        items.Add(_itemStackFactory.CreatEmpty());
+                        items.Add(new CraftingItemData(_itemStackFactory.CreatEmpty(),false));
                         continue;
                     }
 
-                    items.Add(_itemStackFactory.Create(craftItem.ModId, craftItem.ItemName, craftItem.Count));
+                    items.Add(new CraftingItemData(_itemStackFactory.Create(craftItem.ModId, craftItem.ItemName, craftItem.Count), craftItem.IsRemain));
                 }
 
                 //TODO ロードした時にあるべきものがなくnullだったらエラーを出す
