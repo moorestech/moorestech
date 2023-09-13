@@ -942,5 +942,320 @@
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": "chisel",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            }
+        ],
+        "result": {
+            "itemName": "wooden gears",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": "chisel",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            }
+        ],
+        "result": {
+            "itemName": "wooden axle",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": "wooden gears",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "wooden axle",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "wooden gears",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            }
+        ],
+        "result": {
+            "itemName": "wooden gearbox",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "wooden axle",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "wooden gearbox",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            }
+        ],
+        "result": {
+            "itemName": "water wheel",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
+    },
+    {
+        "items": [
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": "cast iron",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": "cast iron",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "cast iron",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "cast iron",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": "cast iron",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            }
+        ],
+        "result": {
+            "itemName": "iron blade",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
     }
 ]

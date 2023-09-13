@@ -218,5 +218,10 @@
         "name": "gear miner",
         "maxStacks": 100,
         "imagePath": "assets/item/gear miner.png"
+    },
+    {
+        "name": "iron blade",
+        "maxStacks": 100,
+        "imagePath": "assets/item/iron blade.png"
     }
 ]
