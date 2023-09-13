@@ -4,47 +4,56 @@
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "wood",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "wood",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "wood",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "stone",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "stone",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "stone",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -58,47 +67,56 @@
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "stone",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "stone",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "stone",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -112,47 +130,56 @@
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "stone tool",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "stone ax handle",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -166,47 +193,56 @@
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "burned brick",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "burned brick",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "burned brick",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "stone",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "stone",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "stone",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -220,47 +256,56 @@
             {
                 "itemName": "burned brick",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "burned brick",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "burned brick",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "burned brick",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "burned brick",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "burned brick",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 2
+                "count": 2,
+                "isRemain" : false
             },
             {
                 "itemName": "burned brick",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 2
+                "count": 2,
+                "isRemain" : false
             },
             {
                 "itemName": "burned brick",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 2
+                "count": 2,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -274,47 +319,56 @@
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "bloom",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -328,47 +382,56 @@
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "bloom",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "bloom",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "bloom",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -382,47 +445,56 @@
             {
                 "itemName": "bellows rivet",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "wood",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "bellows rivet",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "bellows rivet",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "cloth",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 3
+                "count": 3,
+                "isRemain" : false
             },
             {
                 "itemName": "bellows rivet",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "bellows rivet",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "bellows nozzle",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "bellows rivet",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -436,22 +508,26 @@
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "cotton",
@@ -461,22 +537,26 @@
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -490,47 +570,56 @@
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "wooden axle",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "bellow",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "bloomery",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "bellow",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "wooden gears",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -544,47 +633,56 @@
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -598,47 +696,56 @@
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -652,47 +759,56 @@
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "wood",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -706,47 +822,56 @@
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "stone ax handle",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             }
         ],
         "result": {
@@ -760,47 +885,56 @@
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": "cast iron",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": "stone ax handle",
                 "modId": "sakastudio:moorestechAlphaMod",
-                "count": 1
+                "count": 1,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             },
             {
                 "itemName": null,
                 "modId": null,
-                "count": 0
+                "count": 0,
+                "isRemain" : false
             }
         ],
         "result": {
