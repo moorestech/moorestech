@@ -195,6 +195,46 @@
           "percent": 1
         }
       ]
+  },
+  {
+      "blockModId": "sakastudio:moorestechAlphaMod",
+      "blockName": "gear ore crusher",
+      "time": 15000,
+      "input": [
+        {
+          "itemName":"iron ore",
+          "modId":"sakastudio:moorestechAlphaMod",
+          "count": 2
+        }
+      ],
+      "output": [
+        {
+          "itemName":"tiny iron ore",
+          "modId":"sakastudio:moorestechAlphaMod",
+          "count": 3,
+          "percent": 1
+        }
+      ]
+  },
+  {
+      "blockModId": "sakastudio:moorestechAlphaMod",
+      "blockName": "gear ore crusher",
+      "time": 15000,
+      "input": [
+        {
+          "itemName":"tiny iron ore",
+          "modId":"sakastudio:moorestechAlphaMod",
+          "count": 1
+        }
+      ],
+      "output": [
+        {
+          "itemName":"iron ore powder",
+          "modId":"sakastudio:moorestechAlphaMod",
+          "count": 2,
+          "percent": 1
+        }
+      ]
   }
  
 ]

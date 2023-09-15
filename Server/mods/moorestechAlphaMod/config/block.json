@@ -173,9 +173,18 @@
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "gear miner",
             "param": {
-                "inputSlot": 1,
+                "requiredPower": 100,
                 "outputSlot": 1,
-                "requiredPower": 100
+                "oreSetting": [
+                    {
+                        "oreId": 1,
+                        "time": 20000
+                    },
+                    {
+                        "oreId": 2,
+                        "time": 20000
+                    }
+                ]
             },
             "modelTransform": {
                 "position": {

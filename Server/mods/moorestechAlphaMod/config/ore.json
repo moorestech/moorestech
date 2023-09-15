@@ -8,27 +8,11 @@
         "itemModId": "sakastudio:moorestechAlphaMod"
       },
       {
-        "name": "copper_ore",
-        "veinSize" : 2,
-        "veinFrequency" : 2,
-        "priority" : 90,
-        "itemName" : "copper ore",
-        "itemModId": "sakastudio:moorestechAlphaMod"
-      },
-      {
         "name": "coal_ore",
         "veinSize" : 1,
         "veinFrequency" : 1.5,
         "priority" : 80,
         "itemName" : "coal",
-        "itemModId": "sakastudio:moorestechAlphaMod"
-      },
-      {
-        "name": "sand_stone",
-        "veinSize" : 0.4,
-        "veinFrequency" : 1.7,
-        "priority" : 60,
-        "itemName" : "sand",
         "itemModId": "sakastudio:moorestechAlphaMod"
       }
 ]
