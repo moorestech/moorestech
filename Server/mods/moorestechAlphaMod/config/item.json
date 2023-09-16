@@ -107,7 +107,7 @@
     {
         "name": "bloomery",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/bloomery.png"
     },
     {
         "name": "cotton",
@@ -142,7 +142,7 @@
     {
         "name": "bloomery with bellows",
         "maxStacks": 100,
-        "imagePath": ""
+        "imagePath": "assets/item/bloomery with bellows.png"
     },
     {
         "name": "cast iron",
@@ -173,16 +173,6 @@
         "name": "iron pickaxe",
         "maxStacks": 100,
         "imagePath": "assets/item/iron pickaxe.png"
-    },
-    {
-        "name": "steel ax",
-        "maxStacks": 100,
-        "imagePath": ""
-    },
-    {
-        "name": "steel pickaxe",
-        "maxStacks": 100,
-        "imagePath": ""
     },
     {
         "name": "water wheel",
