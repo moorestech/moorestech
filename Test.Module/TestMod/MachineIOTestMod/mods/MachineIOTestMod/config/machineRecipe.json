@@ -1,0 +1,89 @@
+﻿[
+  {
+    "blockModId": "Test Author 2:testMod2",
+    "blockName": "TestMachine",
+    "time": 1500,
+    "input": [
+      {
+        "itemName": "Test1",
+        "modId": "Test Author 2:testMod2",
+        "count": 3
+      },
+      {
+        "itemName": "Test2",
+        "modId": "Test Author 2:testMod2",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName": "Test3",
+        "modId": "Test Author 2:testMod2",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+
+    "blockModId": "Test Author 2:testMod2",
+    "blockName": "TestMachine1",
+    "time": 1500,
+    "input": [
+      {
+        "itemName": "Test1",
+        "modId": "Test Author 2:testMod2",
+        "count": 3
+      },
+      {
+        "itemName": "Test2",
+        "modId": "Test Author 2:testMod2",
+        "count": 1
+      }
+    ],
+    "output": [
+      {
+        "itemName": "Test3",
+        "modId": "Test Author 2:testMod2",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  },
+  {
+    "blockModId": "Test Author 2:testMod2",
+    "blockName": "TestMachine2",
+    "time": 1500,
+    "input": [
+      {
+        "itemName": "Test1",
+        "modId": "Test Author 2:testMod2",
+        "count": 2
+      },
+      {
+        "itemName": "Test2",
+        "modId": "Test Author 2:testMod2",
+        "count": 3
+      },
+      {
+        "itemName": "Test3",
+        "modId": "Test Author 2:testMod2",
+        "count": 4
+      }
+    ],
+    "output": [
+      {
+        "itemName": "Test5",
+        "modId": "Test Author 2:testMod2",
+        "count": 1,
+        "percent": 1
+      },
+      {
+        "itemName": "Test2",
+        "modId": "Test Author 2:testMod2",
+        "count": 1,
+        "percent": 1
+      }
+    ]
+  }
+]

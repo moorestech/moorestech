@@ -1,0 +1,77 @@
+[
+  {
+    "Id" : "Test1",
+    "Prerequisite" : [],
+    "PrerequisiteType" : "And",
+    "Category" : "Test Category",
+    "Type" : "ItemCraft",
+    "Name": "Test Quest",
+    "Description" : "Test Quest Description",
+    "UIPosX" : 3,
+    "UIPosY" : 5,
+    "RewardItem" : [],
+    "Param" : "{'modId':'Test Author:forUniTest','name':'Test1'}"
+  },
+  {
+    "Id" : "Test2",
+    "Prerequisite" : ["QuestAuthor:forQuestTest:Test1"],
+    "PrerequisiteType" : "And",
+    "Category" : "Test Category",
+    "Type" : "ItemCraft",
+    "Name": "Test Quest",
+    "Description" : "Test Quest Description",
+    "UIPosX" : 0,
+    "UIPosY" : 0,
+    "RewardItem" : [
+      {
+        "modId": "Test Author:forUniTest",
+        "name": "Test1",
+        "cnt": 1
+      }
+    ],
+    "Param" : "{'modId':'Test Author:forUniTest','name':'Test2'}"
+  },
+  {
+    "Id" : "Test3",
+    "Prerequisite" : ["QuestAuthor:forQuestTest:Test1","QuestAuthor:forQuestTest:Test2"],
+    "PrerequisiteType" : "And",
+    "Category" : "Test Category",
+    "Type" : "ItemCraft",
+    "Name": "Test Quest",
+    "Description" : "Test Quest Description",
+    "UIPosX" : 0,
+    "UIPosY" : 0,
+    "RewardItem" : [
+      {
+        "modId": "Test Author:forUniTest",
+        "name": "Test1",
+        "cnt": 1
+      }
+    ],
+    "Param" : "{'modId':'Test Author:forUniTest','name':'Test3'}"
+  },
+  {
+    "Id" : "Test4",
+    "Prerequisite" : ["QuestAuthor:forQuestTest:Test1","QuestAuthor:forQuestTest:Test2"],
+    "PrerequisiteType" : "Or",
+    "Category" : "Test Category",
+    "Type" : "ItemCraft",
+    "Name": "Test Quest",
+    "Description" : "Test Quest Description",
+    "UIPosX" : 0,
+    "UIPosY" : 0,
+    "RewardItem" : [
+      {
+        "modId": "Test Author:forUniTest",
+        "name": "Test1",
+        "cnt": 1
+      },
+      {
+        "modId": "Test Author:forUniTest",
+        "name": "Test2",
+        "cnt": 1
+      }
+    ],
+    "Param" : "{'modId':'Test Author:forUniTest','name':'Test4'}"
+  }
+]
