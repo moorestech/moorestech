@@ -10,8 +10,8 @@ namespace Core.Block.BlockFactory.BlockTemplate
 {
     public class VanillaPowerGeneratorTemplate : IBlockTemplate
     {
-        public delegate VanillaPowerGeneratorBase NewGenerator((int blockId, int entityId, ulong blockHash, int fuelItemSlot, ItemStackFactory itemStackFactory, Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate) data);
-        public delegate VanillaPowerGeneratorBase LoadGenerator((string state, int blockId, int entityId, ulong blockHash, int fuelItemSlot, ItemStackFactory itemStackFactory, Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate) data);
+        public delegate VanillaPowerGeneratorBase NewGenerator(VanillaPowerGeneratorProperties data);
+        public delegate VanillaPowerGeneratorBase LoadGenerator(VanillaPowerGeneratorProperties data,string state);
         
         private readonly NewGenerator _newGenerator;
         private readonly LoadGenerator _loadGenerator;
@@ -31,15 +31,43 @@ namespace Core.Block.BlockFactory.BlockTemplate
         public IBlock New(BlockConfigData param, int entityId, ulong blockHash)
         {
             var generatorParam = param.Param as PowerGeneratorConfigParam;
-            return _newGenerator((param.BlockId, entityId,blockHash, generatorParam.FuelSlot, _itemStackFactory,
+            return _newGenerator(new VanillaPowerGeneratorProperties(
+                param.BlockId, entityId,blockHash, generatorParam.FuelSlot,generatorParam.IsInfinityPower,generatorParam.InfinityPower, _itemStackFactory,
                 generatorParam.FuelSettings,_blockInventoryUpdateEven));
         }
 
         public IBlock Load(BlockConfigData param, int entityId, ulong blockHash, string state)
         {
             var generatorParam = param.Param as PowerGeneratorConfigParam;
-            return _loadGenerator((state,param.BlockId, entityId,blockHash, generatorParam.FuelSlot, _itemStackFactory,
-                generatorParam.FuelSettings,_blockInventoryUpdateEven));
+            return _loadGenerator(new VanillaPowerGeneratorProperties(
+                param.BlockId, entityId,blockHash, generatorParam.FuelSlot,generatorParam.IsInfinityPower,generatorParam.InfinityPower, _itemStackFactory,
+                generatorParam.FuelSettings,_blockInventoryUpdateEven),state);
+        }
+    }
+
+    public class VanillaPowerGeneratorProperties
+    {
+        public readonly int BlockId; 
+        public readonly int EntityId; 
+        public readonly ulong BlockHash; 
+        public readonly int FuelItemSlot;
+        public readonly bool IsInfinityPower;
+        public readonly int InfinityPower;
+        public readonly ItemStackFactory ItemStackFactory;
+        public readonly Dictionary<int, FuelSetting> FuelSettings;
+        public readonly IBlockOpenableInventoryUpdateEvent BlockInventoryUpdate;
+
+        public VanillaPowerGeneratorProperties(int blockId, int entityId, ulong blockHash, int fuelItemSlot, bool isInfinityPower, int infinityPower, ItemStackFactory itemStackFactory, Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate)
+        {
+            BlockId = blockId;
+            EntityId = entityId;
+            BlockHash = blockHash;
+            FuelItemSlot = fuelItemSlot;
+            IsInfinityPower = isInfinityPower;
+            InfinityPower = infinityPower;
+            ItemStackFactory = itemStackFactory;
+            FuelSettings = fuelSettings;
+            BlockInventoryUpdate = blockInventoryUpdate;
         }
     }
 }

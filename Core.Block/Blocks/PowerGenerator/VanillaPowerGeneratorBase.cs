@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Core.Block.BlockFactory.BlockTemplate;
 using Core.Block.BlockInventory;
 using Core.Block.Blocks.State;
 using Core.Block.Config.LoadConfig.Param;
@@ -26,31 +27,26 @@ namespace Core.Block.Blocks.PowerGenerator
 
         private int _fuelItemId = ItemConst.EmptyItemId;
         private double _remainingFuelTime = 0;
+        
+        private readonly bool _isInfinityPower;
+        private readonly int _infinityPower;
 
-        protected VanillaPowerGeneratorBase(int blockId, int entityId, ulong blockHash, int fuelItemSlot, ItemStackFactory itemStackFactory,
-            Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate)
+        protected VanillaPowerGeneratorBase(VanillaPowerGeneratorProperties data)
         {
-            BlockId = blockId;
-            EntityId = entityId;
-            _fuelSettings = fuelSettings;
-            BlockHash = blockHash;
-            _blockInventoryUpdate = blockInventoryUpdate as BlockOpenableInventoryUpdateEvent;
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,fuelItemSlot);
+            BlockId = data.BlockId;
+            EntityId = data.EntityId;
+            _fuelSettings = data.FuelSettings;
+            _isInfinityPower = data.IsInfinityPower;
+            _infinityPower = data.InfinityPower;
+            
+            BlockHash = data.BlockHash;
+            _blockInventoryUpdate = data.BlockInventoryUpdate as BlockOpenableInventoryUpdateEvent;
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,data.ItemStackFactory,data.FuelItemSlot);
             GameUpdater.RegisterUpdater(this);
         }
 
-        protected VanillaPowerGeneratorBase(string state, int blockId, int entityId, ulong blockHash, int fuelItemSlot,
-            ItemStackFactory itemStackFactory, Dictionary<int, FuelSetting> fuelSettings,
-            IBlockOpenableInventoryUpdateEvent blockInventoryUpdate)
+        protected VanillaPowerGeneratorBase(VanillaPowerGeneratorProperties data,string state) : this(data)
         {
-            BlockId = blockId;
-            EntityId = entityId;
-            _fuelSettings = fuelSettings;
-            BlockHash = blockHash;
-            _blockInventoryUpdate = blockInventoryUpdate as BlockOpenableInventoryUpdateEvent;
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent,itemStackFactory,fuelItemSlot);
-            GameUpdater.RegisterUpdater(this);
-
             var split = state.Split(',');
             _fuelItemId = int.Parse(split[0]);
             _remainingFuelTime = double.Parse(split[1]);
@@ -58,7 +54,7 @@ namespace Core.Block.Blocks.PowerGenerator
             var slot = 0;
             for (var i = 2; i < split.Length; i += 2)
             {
-                _itemDataStoreService.SetItem(slot,itemStackFactory.Create(ulong.Parse(split[i]), int.Parse(split[i + 1])));
+                _itemDataStoreService.SetItem(slot,data.ItemStackFactory.Create(ulong.Parse(split[i]), int.Parse(split[i + 1])));
                 slot++;
             }
         }
@@ -124,9 +120,13 @@ namespace Core.Block.Blocks.PowerGenerator
 
         public int OutputEnergy()
         {
-            if (_fuelSettings.ContainsKey(_fuelItemId))
+            if (_isInfinityPower)
             {
-                return _fuelSettings[_fuelItemId].Power;
+                return _infinityPower;
+            }
+            if (_fuelSettings.TryGetValue(_fuelItemId, out var fuelSetting))
+            {
+                return fuelSetting.Power;
             }
 
             return 0;
