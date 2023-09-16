@@ -47,12 +47,11 @@ namespace MainGame.UnityView.MapObject
 
 
 #if UNITY_EDITOR
-        public void SetMapObjectData(int instanceId, string mapObjectType)
+        public void SetMapObjectData(int instanceId)
         {
             UnityEditor.Undo.RecordObject(this, "SetMapObjectData");
             
             this.instanceId = instanceId;
-            this.mapObjectType = mapObjectType;
         }
         
         public Vector3 GetPosition()

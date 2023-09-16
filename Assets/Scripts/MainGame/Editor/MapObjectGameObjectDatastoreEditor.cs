@@ -27,29 +27,13 @@ namespace MainGame.Editor
             var datastore = target as MapObjectGameObjectDatastore;
 
             var instanceId = 0;
-            foreach (var stone in datastore.StoneMapObjects)
-            {
-                stone.SetMapObjectData(instanceId,VanillaMapObjectType.VanillaStone);
-                instanceId++;
-            }
-            foreach (var tree in datastore.TreeMapObjects)
-            {
-                tree.SetMapObjectData(instanceId,VanillaMapObjectType.VanillaTree);
-                instanceId++;
-            }
-            foreach (var bush in datastore.BushMapObjects)
-            {
-                bush.SetMapObjectData(instanceId,VanillaMapObjectType.VanillaBush);
-                instanceId++;
-            }
-
             var configDataList = new List<ConfigMapObjectData>();
-            var allDatastore = new List<MapObjectGameObject>();
-            allDatastore.AddRange(datastore.StoneMapObjects);
-            allDatastore.AddRange(datastore.TreeMapObjects);
-            allDatastore.AddRange(datastore.BushMapObjects);
-            foreach (var mapObject in allDatastore)
+            
+            foreach (var mapObject in datastore.MapObjects)
             {
+                mapObject.SetMapObjectData(instanceId);
+                instanceId++;
+                
                 var config = new ConfigMapObjectData()
                 {
                     Type = mapObject.MapObjectType,

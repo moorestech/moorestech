@@ -12,14 +12,10 @@ namespace MainGame.Presenter.MapObject
     /// </summary>
     public class MapObjectGameObjectDatastore : MonoBehaviour
     {
-        [SerializeField] private List<MapObjectGameObject> stoneMapObjects;
-        [SerializeField] private List<MapObjectGameObject> treeMapObjects;
-        [SerializeField] private List<MapObjectGameObject> bushMapObjects;
+        [SerializeField] private List<MapObjectGameObject> mapObjects;
 
 #if UNITY_EDITOR
-        public IReadOnlyList<MapObjectGameObject> StoneMapObjects => stoneMapObjects;
-        public IReadOnlyList<MapObjectGameObject> TreeMapObjects => treeMapObjects;
-        public IReadOnlyList<MapObjectGameObject> BushMapObjects => bushMapObjects;
+        public IReadOnlyList<MapObjectGameObject> MapObjects => mapObjects;
 #endif
 
 
@@ -27,19 +23,9 @@ namespace MainGame.Presenter.MapObject
 
         private void Awake()
         {
-            foreach (var stone in stoneMapObjects)
+            foreach (var mapObject in mapObjects)
             {
-                _allMapObjects.Add(stone.InstanceId, stone);
-            }
-
-            foreach (var tree in treeMapObjects)
-            {
-                _allMapObjects.Add(tree.InstanceId, tree);
-            }
-
-            foreach (var bush in bushMapObjects)
-            {
-                _allMapObjects.Add(bush.InstanceId, bush);
+                _allMapObjects.Add(mapObject.InstanceId, mapObject);
             }
         }
 
