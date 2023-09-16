@@ -104,13 +104,28 @@ namespace MainGame.Presenter.MapObject
             if (!isMiningCanceled)
             {
                 _sendGetMapObjectProtocolProtocol.Send(forcesMapObject.InstanceId);
-                var soundEffectType = forcesMapObject.MapObjectType switch
+                SoundEffectType soundEffectType;
+                switch (forcesMapObject.MapObjectType)
                 {
-                    VanillaMapObjectType.VanillaStone => SoundEffectType.DestroyStone,
-                    VanillaMapObjectType.VanillaTree => SoundEffectType.DestroyTree,
-                    VanillaMapObjectType.VanillaBush => SoundEffectType.DestroyBush,
-                    _ => throw new System.ArgumentOutOfRangeException()
-                };
+                    case VanillaMapObjectType.VanillaStone:
+                    case VanillaMapObjectType.VanillaCray:
+                    case VanillaMapObjectType.VanillaCoal:
+                    case VanillaMapObjectType.VanillaIronOre:
+                        soundEffectType = SoundEffectType.DestroyStone;
+                        break;
+                    case VanillaMapObjectType.VanillaTree:
+                    case VanillaMapObjectType.VanillaBigTree:
+                        soundEffectType = SoundEffectType.DestroyTree;
+                        break;
+                    case VanillaMapObjectType.VanillaBush:
+                        soundEffectType = SoundEffectType.DestroyBush;
+                        break;
+                    default:
+                        soundEffectType = SoundEffectType.DestroyStone;
+                        Debug.LogError("採掘音が設定されていません");
+                        break;
+                }
+
                 SoundEffectManager.Instance.PlaySoundEffect(soundEffectType);
             }
 
@@ -137,34 +152,49 @@ namespace MainGame.Presenter.MapObject
         private static float GetMiningTime(string mapObjectType,PlayerInventoryViewModel playerInv)
         {
             var isStoneTool = playerInv.IsItemExist(AlphaMod.ModId,"stone tool");
-            var isSimpleAxe = playerInv.IsItemExist(AlphaMod.ModId,"simple ax");
-            var ironPickaxe = playerInv.IsItemExist(AlphaMod.ModId,"iron pickaxe");
+            var isStoneAx = playerInv.IsItemExist(AlphaMod.ModId,"stone ax");
+            var isIronAx = playerInv.IsItemExist(AlphaMod.ModId,"iron ax");
+            var isIronPickaxe = playerInv.IsItemExist(AlphaMod.ModId,"iron pickaxe");
 
             switch (mapObjectType)
             {
                 #region 木
-                case VanillaMapObjectType.VanillaTree when isSimpleAxe:
-                    return 2.5f;
+                case VanillaMapObjectType.VanillaTree when isIronAx:
+                    return 4;
+                case VanillaMapObjectType.VanillaTree when isStoneAx:
+                    return 6;
                 case VanillaMapObjectType.VanillaTree when isStoneTool:
                     return 10;
                 case VanillaMapObjectType.VanillaTree:
-                    return 100;
+                    return 10000;
+                
+                case VanillaMapObjectType.VanillaBigTree when isIronAx:
+                    return 10;
+                case VanillaMapObjectType.VanillaBigTree:
+                    return 10000;
                 #endregion
 
-                #region 石 
-                case VanillaMapObjectType.VanillaStone when ironPickaxe:
-                    return 2;
-                case VanillaMapObjectType.VanillaStone when isStoneTool:
-                    return 3;
+                #region 石
                 case VanillaMapObjectType.VanillaStone:
-                    return 4;
+                    return 5;
+
+
+                case VanillaMapObjectType.VanillaCoal when isIronPickaxe:
+                    return 5;
+                case VanillaMapObjectType.VanillaCoal:
+                    return 10000;
+                case VanillaMapObjectType.VanillaIronOre when isIronPickaxe:
+                    return 10;
+                case VanillaMapObjectType.VanillaIronOre:
+                    return 10000;
+
+                case VanillaMapObjectType.VanillaCray when isStoneAx:
+                    return 6;
+                case VanillaMapObjectType.VanillaCray:
+                    return 10000;
                 #endregion
 
                 #region ブッシュ
-                case VanillaMapObjectType.VanillaBush when isSimpleAxe:
-                    return 1;
-                case VanillaMapObjectType.VanillaBush when isStoneTool:
-                    return 2.5f;
                 case VanillaMapObjectType.VanillaBush:
                     return 3;
                 #endregion
