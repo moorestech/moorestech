@@ -9,5 +9,6 @@
         public const int GeneratorId = 5;
         public const int MinerId = 6;
         public const int ChestId = 7;
+        public const int InfinityGeneratorId = 8;
     }
 }

@@ -8,7 +8,7 @@
       "param": {
         "inputSlot": 2,
         "outputSlot": 3,
-        "requiredPower": 100,
+        "requiredPower": 100
       }
     },
     {
@@ -86,6 +86,18 @@
       "itemName": "Test7",
       "param": {
         "slot": 5
+      }
+    },
+    {
+      "name": "TestInfinityGenerator",
+      "type": "Generator",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test8",
+      "param": {
+        "isInfinityPower": true,
+        "infinityPower": 10,
+        "fuelSlot": 0,
+        "fuel": []
       }
     }
   ]

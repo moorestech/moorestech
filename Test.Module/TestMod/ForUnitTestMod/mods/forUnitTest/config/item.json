@@ -28,6 +28,10 @@
     "maxStacks":  100
   },
   {
+    "name": "Test8",
+    "maxStacks":  100
+  },
+  {
     "name": "tree",
     "maxStacks": 100
   },

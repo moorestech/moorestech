@@ -92,5 +92,21 @@ namespace Test.CombinedTest.Core
                 .GetValue(powerGenerator);
             Assert.AreEqual(ItemConst.EmptyItemId, fuelItemId);
         }
+
+        [Test]
+        public void InfinityGeneratorTet()
+        {
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var powerGenerator = blockFactory.Create(UnitTestModBlockId.InfinityGeneratorId, 10) as VanillaPowerGeneratorBase;
+            var blockConfig = serviceProvider.GetService<IBlockConfig>();
+            var generatorConfigParam = blockConfig.GetBlockConfig(UnitTestModBlockId.InfinityGeneratorId).Param as PowerGeneratorConfigParam;
+
+            //1回目のループ
+            GameUpdater.Update();
+
+            //供給電力の確認
+            Assert.AreEqual(generatorConfigParam.InfinityPower, powerGenerator.OutputEnergy());
+        }
     }
 }
