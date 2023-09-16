@@ -7,7 +7,7 @@ namespace MainGame.UnityView.UI.Util
     /// <summary>
     /// UIにアタッチして、そのUI要素にマウスカーソルが乗ったら文字列を表示するシステム
     /// </summary>
-    public class UIEnterExplainerController : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
+    public class UIEnterExplainerController : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler,IPointerMoveHandler
     {
         /// <summary>
         /// カーソルに表示するテキスト
@@ -82,5 +82,11 @@ namespace MainGame.UnityView.UI.Util
         }
         
         #endregion
+
+        public void OnPointerMove(PointerEventData eventData)
+        {
+            _pointerStay = true;
+            UpdateMouseCursorExplainer();
+        }
     }
 }
