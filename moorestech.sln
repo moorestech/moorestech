@@ -4,8 +4,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.World", "Game.World\Ga
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Starter", "Server.Starter\Server.Starter.csproj", "{9AFE0665-CC93-483E-A81E-869F00423F69}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{69DC2CB7-562A-4890-B0D3-DDF99D72AA9A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Event", "Server.Event\Server.Event.csproj", "{D80C5C98-22B2-4E30-9EB4-35F44EEE9B17}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Util", "Server.Util\Server.Util.csproj", "{4AF1C99F-C294-44B5-9F01-4E6719DE0DAA}"
@@ -39,8 +37,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Protocol", "Server.Protocol\Server.Protocol.csproj", "{82026C55-E801-4547-9899-E3CBAE9D1CA0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.PlayerInventory.Interface", "Game.PlayerInventory.Interface\Game.PlayerInventory.Interface.csproj", "{D3720EF1-5F73-4769-8CF4-1DBA0BA09D9C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Module", "Test.Module\Test.Module.csproj", "{1B91EC85-A5F2-4853-84DB-57F3FF14DC21}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.WorldMap", "Game.WorldMap\Game.WorldMap.csproj", "{2261CD9C-62B1-490C-A53E-720260463CFC}"
 EndProject
@@ -102,10 +98,6 @@ Global
 		{9AFE0665-CC93-483E-A81E-869F00423F69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9AFE0665-CC93-483E-A81E-869F00423F69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9AFE0665-CC93-483E-A81E-869F00423F69}.Release|Any CPU.Build.0 = Release|Any CPU
-		{69DC2CB7-562A-4890-B0D3-DDF99D72AA9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{69DC2CB7-562A-4890-B0D3-DDF99D72AA9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{69DC2CB7-562A-4890-B0D3-DDF99D72AA9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{69DC2CB7-562A-4890-B0D3-DDF99D72AA9A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D80C5C98-22B2-4E30-9EB4-35F44EEE9B17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D80C5C98-22B2-4E30-9EB4-35F44EEE9B17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D80C5C98-22B2-4E30-9EB4-35F44EEE9B17}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -162,10 +154,6 @@ Global
 		{D3720EF1-5F73-4769-8CF4-1DBA0BA09D9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3720EF1-5F73-4769-8CF4-1DBA0BA09D9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3720EF1-5F73-4769-8CF4-1DBA0BA09D9C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1B91EC85-A5F2-4853-84DB-57F3FF14DC21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1B91EC85-A5F2-4853-84DB-57F3FF14DC21}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1B91EC85-A5F2-4853-84DB-57F3FF14DC21}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1B91EC85-A5F2-4853-84DB-57F3FF14DC21}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2261CD9C-62B1-490C-A53E-720260463CFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2261CD9C-62B1-490C-A53E-720260463CFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2261CD9C-62B1-490C-A53E-720260463CFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
