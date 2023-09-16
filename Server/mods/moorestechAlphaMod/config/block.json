@@ -1,7 +1,7 @@
 {
     "Blocks": [
         {
-            "name": "campfire",
+            "name": "campfier",
             "type": "Machine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "campfier",
