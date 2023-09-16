@@ -31,6 +31,8 @@ namespace Server.Boot
                 var serverDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 #endif
                 
+                Console.WriteLine("データをロードします　パス:" + serverDirectory);
+                
                 var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(serverDirectory);
                 
                 //マップをロードする

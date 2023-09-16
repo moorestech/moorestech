@@ -21,6 +21,11 @@ namespace Core.Block.Config.LoadConfig
             config.Add(VanillaBlockType.Generator, new PowerGeneratorConfigParamGenerator(itemConfig));
             config.Add(VanillaBlockType.Miner, new MinerConfigParamGenerator());
             config.Add(VanillaBlockType.Chest, new ChestConfigParamGenerator());
+            
+            config.Add(VanillaBlockType.GearMachine, new MachineConfigParamGenerator());
+            config.Add(VanillaBlockType.GearGenerator, new PowerGeneratorConfigParamGenerator(itemConfig));
+            config.Add(VanillaBlockType.GearMiner, new MinerConfigParamGenerator());
+            config.Add(VanillaBlockType.GearEnergyTransformer, new ElectricPoleConfigParamGenerator());
 
             return config;
         }
