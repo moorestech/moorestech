@@ -43,7 +43,7 @@ namespace MainGame.UnityView.UI.CraftRecipe
                     _itemIdToRecipe[recipe.Result.Id] = list;
                 }
                 
-                list.Add(new ViewerRecipeData(recipe.Items,recipe.Result,ViewerRecipeType.Craft));
+                list.Add(new ViewerRecipeData(recipe.CraftItems,recipe.Result,ViewerRecipeType.Craft));
             }
             
             var blockConfig = singlePlayInterface.BlockConfig;
