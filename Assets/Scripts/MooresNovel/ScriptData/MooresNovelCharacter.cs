@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MainGame.MooresNovel.ScriptData
+namespace MooresNovel.ScriptData
 {
-    [CreateAssetMenu(fileName = "NovelCharacter", menuName = "NovelCharacter", order = 0)]
+    [CreateAssetMenu(fileName = "NovelCharacter", menuName = "MooresNovel/NovelCharacter", order = 0)]
     public class MooresNovelCharacter : ScriptableObject
     {
         [SerializeField] private List<ScriptCharacterData> characters;

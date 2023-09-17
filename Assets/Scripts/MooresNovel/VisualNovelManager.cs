@@ -1,11 +1,10 @@
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using MainGame.MooresNovel.ScriptData;
+using MooresNovel.ScriptData;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MainGame.MooresNovel
+namespace MooresNovel
 {
     public class VisualNovelManager : MonoBehaviour
     {
@@ -16,10 +15,14 @@ namespace MainGame.MooresNovel
         [SerializeField] private TMP_Text mainText;
         [SerializeField] private Image characterImage;
 
+        public void SetActive(bool enable)
+        {
+            gameObject.SetActive(enable);
+        }
         public async UniTask ExecuteVisualNovel(string key)
         {
             var script = scriptData.GetScript(key);
-            foreach (var line in script.Scripts)
+            foreach (var line in script.CreateScripts())
             {
                 var character = characterData.GetCharacter(line.CharacterKey);
 

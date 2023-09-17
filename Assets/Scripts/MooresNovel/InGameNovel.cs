@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MainGame.MooresNovel
+namespace MooresNovel
 {
     public class InGameNovel : MonoBehaviour
     {
