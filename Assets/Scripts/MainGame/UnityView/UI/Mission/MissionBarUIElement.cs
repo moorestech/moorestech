@@ -1,5 +1,5 @@
 using Cysharp.Threading.Tasks;
-using MainGame.Localization;
+using Localization;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Mission

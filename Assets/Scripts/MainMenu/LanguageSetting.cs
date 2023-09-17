@@ -1,5 +1,5 @@
 ﻿using System;
-using MainGame.Localization;
+using Localization;
 using TMPro;
 using UnityEngine;
 

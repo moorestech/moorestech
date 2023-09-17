@@ -8,7 +8,7 @@ using GameConst;
 using UniRx;
 using UnityEngine;
 
-namespace MainGame.Localization
+namespace Localization
 {
     public static class Localize
     {

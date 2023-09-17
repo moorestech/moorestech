@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using Game.Quest.Interface;
 using GameConst;
+using Localization;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.Extension;
-using MainGame.Localization;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
 using MainGame.Network;

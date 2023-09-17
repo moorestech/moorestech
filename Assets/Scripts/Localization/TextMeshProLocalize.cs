@@ -3,7 +3,7 @@ using TMPro;
 using UniRx;
 using UnityEngine;
 
-namespace MainGame.Localization
+namespace Localization
 {
     [RequireComponent(typeof(TextMeshProUGUI))]
     public class TextMeshProLocalize : MonoBehaviour
