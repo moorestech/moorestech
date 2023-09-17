@@ -162,7 +162,7 @@ namespace MainGame.Presenter.MapObject
                 case VanillaMapObjectType.VanillaTree when isIronAx:
                     return 4;
                 case VanillaMapObjectType.VanillaTree when isStoneAx:
-                    return 6;
+                    return 4;
                 case VanillaMapObjectType.VanillaTree when isStoneTool:
                     return 10;
                 case VanillaMapObjectType.VanillaTree:
@@ -189,7 +189,7 @@ namespace MainGame.Presenter.MapObject
                     return 10000;
 
                 case VanillaMapObjectType.VanillaCray when isStoneAx:
-                    return 6;
+                    return 3;
                 case VanillaMapObjectType.VanillaCray:
                     return 10000;
                 #endregion
