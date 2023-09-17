@@ -1,5 +1,4 @@
 using Cysharp.Threading.Tasks;
-using MooresNovel.ScriptData;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,8 +7,7 @@ namespace MooresNovel
 {
     public class VisualNovelManager : MonoBehaviour
     {
-        [SerializeField] private MooresNovelScript scriptData;
-        [SerializeField] private MooresNovelCharacter characterData;
+        [SerializeField] private MooresNovelAssets assetsData;
         
         [SerializeField] private TMP_Text nameText;
         [SerializeField] private TMP_Text mainText;
@@ -21,10 +19,10 @@ namespace MooresNovel
         }
         public async UniTask ExecuteVisualNovel(string key)
         {
-            var script = scriptData.GetScript(key);
+            var script = assetsData.GetScript(key);
             foreach (var line in script.CreateScripts())
             {
-                var character = characterData.GetCharacter(line.CharacterKey);
+                var character = assetsData.GetCharacter(line.CharacterKey);
 
                 nameText.text = character.Name;
                 mainText.text = line.CharacterKey;
