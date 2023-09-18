@@ -19,13 +19,13 @@ namespace MooresNovel
         }
         public async UniTask ExecuteVisualNovel(string key)
         {
-            var script = assetsData.GetScript(key);
-            foreach (var line in script.CreateScripts())
+            var script = assetsData.GetScenario(key);
+            foreach (var line in script.CreateScenario())
             {
                 var character = assetsData.GetCharacter(line.CharacterKey);
 
                 nameText.text = character.Name;
-                mainText.text = line.CharacterKey;
+                mainText.text = line.Text;
                 characterImage.sprite = character.CharacterSprite;
                 
                 //Enterが押されるまで待つ

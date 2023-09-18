@@ -10,7 +10,7 @@ namespace MooresNovel
     [CreateAssetMenu(fileName = "MooresNovelAssets", menuName = "MooresNovel/MooresNovelAssets", order = 0)]
     public class MooresNovelAssets : ScriptableObject
     {
-        [SerializeField] private List<MooresNovelEventScripts> eventScripts;
+        [SerializeField] private List<MooresNovelScenario> eventScripts;
         [SerializeField] private List<NovelSpriteData> characters;
         [SerializeField] private List<NovelSpriteData> backgrounds;
 
@@ -42,7 +42,7 @@ namespace MooresNovel
         }
 
 
-        public MooresNovelEventScripts GetScript(string key)
+        public MooresNovelScenario GetScenario(string key)
         {
             foreach (var eventScript in eventScripts)
             {
@@ -57,21 +57,22 @@ namespace MooresNovel
     }
 
     [Serializable]
-    public class MooresNovelEventScripts
+    public class MooresNovelScenario
     {
         [SerializeField] private string key;
         public string Key => key;
-        [SerializeField] private TextAsset scriptCsv;
+        [SerializeField] private TextAsset scenarioCsv;
 
-        public List<MooresNovelLine> CreateScripts()
+        public List<MooresNovelLine> CreateScenario()
         {
-            using var csv = new CsvReader(new StringReader(scriptCsv.text), CultureInfo.InvariantCulture);
+            using var csv = new CsvReader(new StringReader(scenarioCsv.text), CultureInfo.InvariantCulture);
             var result = new List<MooresNovelLine>();
             while (csv.Read())
             {
                 var characterKey = csv.GetField<string>(0);
-                var text = csv.GetField<string>(1);
-                result.Add(new MooresNovelLine(characterKey, text));
+                var backgroundKey = csv.GetField<string>(1);
+                var text = csv.GetField<string>(2);
+                result.Add(new MooresNovelLine(characterKey, text,backgroundKey));
             }
 
             return result;
@@ -81,12 +82,14 @@ namespace MooresNovel
     public class MooresNovelLine
     {
         public readonly string CharacterKey;
+        public readonly string BackgroundKey;
         public readonly string Text;
 
-        public MooresNovelLine(string characterKey, string text)
+        public MooresNovelLine(string characterKey, string text, string backgroundKey)
         {
             CharacterKey = characterKey;
             Text = text;
+            BackgroundKey = backgroundKey;
         }
     }
     

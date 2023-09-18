@@ -12,4 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b0e404fc8f14c448847de24716be200, type: 3}
   m_Name: StoryScript
   m_EditorClassIdentifier: 
-  eventScripts: []
+  eventScripts:
+  - key: Intro
+    scenarioCsv: {fileID: 4900000, guid: a9336fe5c0f911d4692b1c665612afb3, type: 3}
+  characters:
+  - name: "\u4E3B\u4EBA\u516C"
+    key: Main
+    characterSprite: {fileID: 0}
+  - name: "\u53CB\u4EBA"
+    key: Friend
+    characterSprite: {fileID: 0}
+  - name: "\u30B5\u30DD\u30FC\u30C8AI"
+    key: SupportAI
+    characterSprite: {fileID: 0}
+  backgrounds:
+  - name: 
+    key: None
+    characterSprite: {fileID: 0}
+  - name: 
+    key: Home
+    characterSprite: {fileID: 0}

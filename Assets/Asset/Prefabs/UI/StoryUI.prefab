@@ -975,8 +975,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e30d7c673e543de95d8ca79d2b6f607, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scriptData: {fileID: 11400000, guid: a1627aa20f97d1b43b42b508269b3d17, type: 2}
-  characterData: {fileID: 11400000, guid: 7e23cc7cf4f531e4ba23a0ce86006c24, type: 2}
+  assetsData: {fileID: 11400000, guid: a1627aa20f97d1b43b42b508269b3d17, type: 2}
   nameText: {fileID: 6212378617622877348}
   mainText: {fileID: 3981026926412991190}
   characterImage: {fileID: 4303795956088881045}
