@@ -25,7 +25,7 @@ namespace MooresNovel
                 var character = assetsData.GetCharacter(line.CharacterKey);
 
                 nameText.text = character.Name;
-                mainText.text = line.Text;
+                mainText.text = line.Text.Replace("\\n", "\n");
                 characterImage.sprite = character.CharacterSprite;
                 
                 //Enterが押されるまで待つ
