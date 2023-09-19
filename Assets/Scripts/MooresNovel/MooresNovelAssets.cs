@@ -63,24 +63,43 @@ namespace MooresNovel
         public string Key => key;
         [SerializeField] private TextAsset scenarioCsv;
 
-        public List<MooresNovelLine> CreateScenario()
+        public List<IMooresNovelEvent> CreateScenario()
         {
             using var csv = new CsvReader(new StringReader(scenarioCsv.text), CultureInfo.InvariantCulture);
-            var result = new List<MooresNovelLine>();
+            var result = new List<IMooresNovelEvent>();
             while (csv.Read())
             {
-                var characterKey = csv.GetField<string>(0);
-                var backgroundKey = csv.GetField<string>(1);
-                var text = csv.GetField<string>(2);
-                result.Add(new MooresNovelLine(characterKey, text,backgroundKey));
+                var type = csv.GetField<string>(0);
+                if (type == MooresNovelEventType.Line.ToString())
+                {
+                    var characterKey = csv.GetField<string>(1);
+                    var backgroundKey = csv.GetField<string>(2);
+                    var text = csv.GetField<string>(3);
+                    result.Add(new MooresNovelLine(characterKey, text,backgroundKey));
+                }
+                else if (type == MooresNovelEventType.Transition.ToString())
+                {
+                    result.Add(new MoresNovelTranslation());
+                }
+                else
+                {
+                    Debug.LogError("csvの1列目が不正です type:" + type);
+                }
+                
             }
 
             return result;
         }
     }
-    
-    public class MooresNovelLine
+
+    public interface IMooresNovelEvent
     {
+        public MooresNovelEventType EventType { get; }
+    }
+    
+    public class MooresNovelLine : IMooresNovelEvent
+    {
+        public MooresNovelEventType EventType => MooresNovelEventType.Line;
         public readonly string CharacterKey;
         public readonly string BackgroundKey;
         public readonly string Text;
@@ -91,6 +110,17 @@ namespace MooresNovel
             Text = text;
             BackgroundKey = backgroundKey;
         }
+    }
+
+    public class MoresNovelTranslation : IMooresNovelEvent
+    {
+        public MooresNovelEventType EventType => MooresNovelEventType.Transition;
+    }
+
+    public enum MooresNovelEventType
+    {
+        Line,
+        Transition,
     }
     
         
