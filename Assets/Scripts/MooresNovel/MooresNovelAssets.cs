@@ -11,11 +11,11 @@ namespace MooresNovel
     public class MooresNovelAssets : ScriptableObject
     {
         [SerializeField] private List<MooresNovelScenario> eventScripts;
-        [SerializeField] private List<NovelSpriteData> characters;
-        [SerializeField] private List<NovelSpriteData> backgrounds;
+        [SerializeField] private List<NovelCharacterSpriteData> characters;
+        [SerializeField] private List<NovelBackgroundSpriteData> backgrounds;
 
 
-        public NovelSpriteData GetCharacter(string characterKey)
+        public NovelCharacterSpriteData GetCharacter(string characterKey)
         {
             foreach (var character in characters)
             {
@@ -28,7 +28,7 @@ namespace MooresNovel
             return null;
         }
         
-        public NovelSpriteData GetBackground(string backgroundKey)
+        public NovelBackgroundSpriteData GetBackground(string backgroundKey)
         {
             foreach (var background in backgrounds)
             {
@@ -40,6 +40,7 @@ namespace MooresNovel
             Debug.LogError("背景のKeyがありません key:" + backgroundKey);
             return null;
         }
+        
 
 
         public MooresNovelScenario GetScenario(string key)
@@ -125,10 +126,19 @@ namespace MooresNovel
     
         
     [Serializable]
-    public class NovelSpriteData
+    public class NovelCharacterSpriteData
     {
         [SerializeField] private string name;
         public string Name => name;
+        [SerializeField] private string key;
+        public string Key => key;
+        [SerializeField] private Sprite characterSprite;
+        public Sprite CharacterSprite => characterSprite;
+    }
+
+    [Serializable]
+    public class NovelBackgroundSpriteData
+    {
         [SerializeField] private string key;
         public string Key => key;
         [SerializeField] private Sprite characterSprite;

@@ -10,6 +10,7 @@ namespace MooresNovel
         [SerializeField] private MooresNovelAssets assetsData;
         
         [SerializeField] private Image transitionImage;
+        [SerializeField] private Image backgroundImage;
         
         [SerializeField] private TMP_Text nameText;
         [SerializeField] private TMP_Text mainText;
@@ -33,6 +34,7 @@ namespace MooresNovel
                         nameText.text = character.Name;
                         mainText.text = line.Text.Replace("\\n", "\n");
                         characterImage.sprite = character.CharacterSprite;
+                        backgroundImage.sprite = assetsData.GetBackground(line.BackgroundKey).CharacterSprite;
 
                         //Enterが押されるまで待つ
                         await UniTask.WaitUntil(() => Input.GetKeyDown(KeyCode.Return));
