@@ -32,12 +32,10 @@ MonoBehaviour:
   - key: None
     characterSprite: {fileID: 0}
   - key: Home
-    characterSprite: {fileID: 0}
+    characterSprite: {fileID: 21300000, guid: f2926eed818b0784f85aeec3a315851c, type: 3}
   - key: Spaceship
-    characterSprite: {fileID: 0}
-  - key: Spaceship
-    characterSprite: {fileID: 0}
+    characterSprite: {fileID: 21300000, guid: 1667942090a4ad84fb5ebe265a2fdebd, type: 3}
   - key: SpaceshipWithDroppod
-    characterSprite: {fileID: 0}
+    characterSprite: {fileID: 21300000, guid: 71700f3f74e89724ebeea52d98a2e6eb, type: 3}
   - key: Droppod
-    characterSprite: {fileID: 0}
+    characterSprite: {fileID: 21300000, guid: d8d9dace646e0464c9c98e9a8ced3ba8, type: 3}
