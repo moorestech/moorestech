@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Block.Config;
+using Game.Block.Config;
 using Game.Base;
+using Game.Block.Interface.BlockConfig;
 using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;

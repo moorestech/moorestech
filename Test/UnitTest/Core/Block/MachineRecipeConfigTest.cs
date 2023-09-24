@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Core.Block.RecipeConfig;
+using Game.Block.RecipeConfig;
 using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
 using Core.Item.Implementation;
 using Core.Item.Util;
+using Game.Block.Interface.RecipeConfig;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -13,7 +14,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
-namespace Test.UnitTest.Core.Block
+namespace Test.UnitTest.Game.Block
 {
     public class MachineRecipeConfigTest
     {

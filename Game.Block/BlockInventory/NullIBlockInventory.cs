@@ -1,6 +1,6 @@
 ﻿using Core.Item;
 
-namespace Core.Block.BlockInventory
+namespace Game.Block.BlockInventory
 {
     public class NullIBlockInventory : IBlockInventory
     {

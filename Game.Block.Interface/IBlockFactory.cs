@@ -1,6 +1,4 @@
-﻿using Core.Block.Blocks;
-
-namespace Game.Block.Interface.Factory
+﻿namespace Game.Block.Interface
 {
     public interface IBlockFactory
     {

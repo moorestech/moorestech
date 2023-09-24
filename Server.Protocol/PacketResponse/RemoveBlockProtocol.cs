@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Core.Block.BlockInventory;
-using Core.Block.Config;
+using Game.Block.BlockInventory;
+using Game.Block.Config;
 using Core.Item;
 using Core.Item.Config;
+using Game.Block.Interface.BlockConfig;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;

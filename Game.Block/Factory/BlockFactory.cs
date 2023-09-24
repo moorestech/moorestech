@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Core.Block.BlockFactory.BlockTemplate;
-using Core.Block.Blocks;
-using Core.Block.Config;
-using Game.Block.Interface.Factory;
+using Game.Block.Factory.BlockTemplate;
+using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 
-namespace Core.Block.BlockFactory
+namespace Game.Block.Factory
 {
     public class BlockFactory : IBlockFactory
     {

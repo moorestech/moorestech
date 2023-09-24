@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
-using Core.Block.Config.LoadConfig;
-using Core.Block.Config.LoadConfig.Param;
+using Game.Block.Config.LoadConfig;
+using Game.Block.Config.LoadConfig.Param;
 using Core.ConfigJson;
 using Core.Const;
 using Core.Item.Config;
 using Core.Item.Util;
+using Game.Block.Interface.BlockConfig;
 
-namespace Core.Block.Config
+namespace Game.Block.Config
 {
     //todo クライアントのためにそのブロックタイプがopneableInventoryを持っているかをチェックするクラスを作成する
     public class BlockConfig : IBlockConfig

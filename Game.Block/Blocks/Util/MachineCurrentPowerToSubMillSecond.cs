@@ -1,6 +1,6 @@
 using Core.Update;
 
-namespace Core.Block.Blocks.Util
+namespace Game.Block.Blocks.Util
 {
     /// <summary>
     /// 機械の現在の電力量から、機械のプロセス（例えば採掘やアイテムの加工など）をどれくらい進めるかを計算する

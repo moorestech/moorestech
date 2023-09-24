@@ -1,12 +1,12 @@
 using System;
-using Core.Block.Blocks.Machine.Inventory;
-using Core.Block.Blocks.State;
-using Core.Block.Blocks.Util;
-using Core.Block.RecipeConfig.Data;
+using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Util;
 using Core.Update;
+using Game.Block.Interface.RecipeConfig;
+using Game.Block.Interface.State;
 using Newtonsoft.Json;
 
-namespace Core.Block.Blocks.Machine
+namespace Game.Block.Blocks.Machine
 {
     public class VanillaMachineRunProcess : IUpdatable
     {

@@ -1,4 +1,4 @@
-namespace Core.Block.Blocks.Miner
+namespace Game.Block.Blocks.Miner
 {
     public interface IMiner
     {

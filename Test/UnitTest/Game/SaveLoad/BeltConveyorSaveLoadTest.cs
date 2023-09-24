@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Core.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.BeltConveyor;
 using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;

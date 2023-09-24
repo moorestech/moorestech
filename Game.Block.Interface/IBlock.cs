@@ -1,8 +1,7 @@
 ﻿using System;
-using Core.Block.Blocks.State;
-using MessagePack;
+using Game.Block.Interface.State;
 
-namespace Core.Block.Blocks
+namespace Game.Block.Interface
 {
     public interface IBlock
     {

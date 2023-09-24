@@ -1,7 +1,8 @@
 using System;
-using Core.Block.Blocks;
-using Core.Block.Config.LoadConfig.Param;
+using Game.Block.Blocks;
+using Game.Block.Config.LoadConfig.Param;
 using Core.EnergySystem;
+using Game.Block.Interface;
 using Game.World.EventHandler.Service;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService

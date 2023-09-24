@@ -1,8 +1,9 @@
 using System;
-using Core.Block.BlockFactory;
-using Core.Block.Blocks;
-using Core.Block.Config;
-using Game.Block.Interface.Factory;
+using Game.Block.BlockFactory;
+using Game.Block.Blocks;
+using Game.Block.Config;
+using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Save.Interface;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;

@@ -1,6 +1,8 @@
 using System;
-using Core.Block.Config;
-using Core.Block.Config.LoadConfig.Param;
+using Game.Block;
+using Game.Block.Config;
+using Game.Block.Config.LoadConfig.Param;
+using Game.Block.Interface.BlockConfig;
 
 namespace Game.World.EventHandler.Service
 {

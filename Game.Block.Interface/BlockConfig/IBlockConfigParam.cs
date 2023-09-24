@@ -1,4 +1,4 @@
-namespace Core.Block.Config.LoadConfig.Param
+namespace Game.Block.Interface.BlockConfig
 {
     public interface IBlockConfigParam
     {

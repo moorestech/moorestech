@@ -1,21 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Core.Block.BlockInventory;
-using Core.Block.Blocks.Machine;
-using Core.Block.Blocks.Service;
-using Core.Block.Blocks.State;
-using Core.Block.Blocks.Util;
-using Core.Block.Event;
+using Game.Block.BlockInventory;
+using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Service;
+using Game.Block.Blocks.Util;
+using Game.Block.Event;
 using Core.Const;
 using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item;
 using Core.Item.Util;
 using Core.Update;
+using Game.Block.Interface;
+using Game.Block.Interface.Event;
+using Game.Block.Interface.State;
 using Newtonsoft.Json;
 
-namespace Core.Block.Blocks.Miner
+namespace Game.Block.Blocks.Miner
 {
     public abstract class VanillaMinerBase : IBlock, IEnergyConsumer, IBlockInventory, IUpdatable,IMiner,IOpenableInventory
     {

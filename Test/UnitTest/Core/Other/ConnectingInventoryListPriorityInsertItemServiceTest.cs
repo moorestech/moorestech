@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Core.Block.BlockInventory;
-using Core.Block.Blocks.Service;
+using Game.Block.BlockInventory;
+using Game.Block.Blocks.Service;
 using Core.Item;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;

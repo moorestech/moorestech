@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
-using Core.Block.BlockFactory;
-using Core.Block.Blocks.Machine;
+using Game.Block.BlockFactory;
+using Game.Block.Blocks.Machine;
 using Core.Item;
-using Game.Block.Interface.Factory;
+using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Core.Block.BlockInventory;
-using Core.Block.Blocks.Machine.InventoryController;
-using Core.Block.Blocks.Machine.SaveLoad;
-using Core.Block.Blocks.State;
+using Game.Block.BlockInventory;
+using Game.Block.Blocks.Machine.InventoryController;
+using Game.Block.Blocks.Machine.SaveLoad;
 using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item;
+using Game.Block.Interface;
+using Game.Block.Interface.State;
 
-namespace Core.Block.Blocks.Machine
+namespace Game.Block.Blocks.Machine
 {
     /// <summary>
     /// 機械を表すクラス

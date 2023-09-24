@@ -1,8 +1,10 @@
-using Core.Block.Blocks;
-using Core.Block.Config;
-using Core.Block.Config.LoadConfig.Param;
+using Game.Block.Blocks;
+using Game.Block.Config;
+using Game.Block.Config.LoadConfig.Param;
 using Core.EnergySystem;
 using Core.EnergySystem.Electric;
+using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;

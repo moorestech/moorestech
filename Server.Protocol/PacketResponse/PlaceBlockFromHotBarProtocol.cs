@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Core.Block.BlockFactory;
-using Core.Block.Config.Service;
-using Game.Block.Interface.Factory;
+using Game.Block.BlockFactory;
+using Game.Block.Config.Service;
+using Game.Block.Interface;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;

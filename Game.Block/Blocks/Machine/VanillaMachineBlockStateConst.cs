@@ -1,4 +1,4 @@
-namespace Core.Block.Blocks.Machine
+namespace Game.Block.Blocks.Machine
 {
     public abstract class VanillaMachineBlockStateConst
     {

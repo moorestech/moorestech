@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Core.Block.Event;
-using Core.Block.RecipeConfig;
-using Core.Block.RecipeConfig.Data;
+using Game.Block.Event;
+using Game.Block.RecipeConfig;
 using Core.Inventory;
 using Core.Item;
 using Core.Item.Util;
+using Game.Block.Interface.Event;
+using Game.Block.Interface.RecipeConfig;
 
-namespace Core.Block.Blocks.Machine.Inventory
+namespace Game.Block.Blocks.Machine.Inventory
 {
     /// <summary>
     /// インプットのインベントリとアウトプットのインベントリを同じように扱う

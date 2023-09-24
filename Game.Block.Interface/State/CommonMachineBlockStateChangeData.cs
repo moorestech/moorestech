@@ -1,6 +1,6 @@
 using System;
 
-namespace Core.Block.Blocks.State
+namespace Game.Block.Interface.State
 {
     /// <summary>
     /// 機械、採掘機など基本的な機械のステートの詳細なデータ

@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Core.Block.BlockFactory;
-using Core.Block.Blocks.Miner;
-using Core.Block.Config;
+using Game.Block.BlockFactory;
+using Game.Block.Blocks.Miner;
+using Game.Block.Config;
 using Core.Inventory;
 using Core.Item;
-using Game.Block.Interface.Factory;
+using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
@@ -15,7 +16,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
-namespace Test.UnitTest.Core.Block
+namespace Test.UnitTest.Game.Block
 {
     public class MinerSaveLoadTest
     {

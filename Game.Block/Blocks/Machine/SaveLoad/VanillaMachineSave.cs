@@ -1,7 +1,7 @@
 using System.Text;
-using Core.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Inventory;
 
-namespace Core.Block.Blocks.Machine.SaveLoad
+namespace Game.Block.Blocks.Machine.SaveLoad
 {
     public class VanillaMachineSave
     {

@@ -1,8 +1,6 @@
-using System.Numerics;
-using Core.Block.Config.LoadConfig.Param;
 using Core.Util;
 
-namespace Core.Block.Config.LoadConfig
+namespace Game.Block.Interface.BlockConfig
 {
     public class BlockConfigData
     {

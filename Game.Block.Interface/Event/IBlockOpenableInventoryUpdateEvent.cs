@@ -1,6 +1,6 @@
 ﻿using Core.Item;
 
-namespace Core.Block.Event
+namespace Game.Block.Interface.Event
 {
     /// <summary>
     /// Subscribeだけができるイベントインタフェース

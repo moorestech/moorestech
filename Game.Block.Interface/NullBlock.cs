@@ -1,8 +1,8 @@
 ﻿using System;
-using Core.Block.Blocks.State;
 using Core.Const;
+using Game.Block.Interface.State;
 
-namespace Core.Block.Blocks
+namespace Game.Block.Interface
 {
     public class NullBlock : IBlock
     {

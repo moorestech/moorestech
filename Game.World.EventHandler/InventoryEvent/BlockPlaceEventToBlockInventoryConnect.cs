@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Block.BlockInventory;
-using Core.Block.Config;
+using Game.Block.BlockInventory;
+using Game.Block.Config;
+using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 

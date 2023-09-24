@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Core.Block.Config.LoadConfig;
 
-namespace Core.Block.Config
+namespace Game.Block.Interface.BlockConfig
 {
     public interface IBlockConfig
     {

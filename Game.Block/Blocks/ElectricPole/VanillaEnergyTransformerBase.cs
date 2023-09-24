@@ -1,8 +1,9 @@
 using System;
-using Core.Block.Blocks.State;
 using Core.EnergySystem;
+using Game.Block.Interface;
+using Game.Block.Interface.State;
 
-namespace Core.Block.Blocks.ElectricPole
+namespace Game.Block.Blocks.ElectricPole
 {
     public abstract class VanillaEnergyTransformerBase : IEnergyTransformer, IBlock
     {

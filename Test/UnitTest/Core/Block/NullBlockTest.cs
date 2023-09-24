@@ -1,9 +1,10 @@
-using Core.Block;
-using Core.Block.Blocks;
+using Game.Block;
+using Game.Block.Blocks;
 using Core.Const;
+using Game.Block.Interface;
 using NUnit.Framework;
 
-namespace Test.UnitTest.Core.Block
+namespace Test.UnitTest.Game.Block
 {
     public class NullBlockTest
     {

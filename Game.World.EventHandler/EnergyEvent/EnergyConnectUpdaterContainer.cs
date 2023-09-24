@@ -1,5 +1,6 @@
-﻿using Core.Block.Config;
+﻿using Game.Block.Config;
 using Core.EnergySystem;
+using Game.Block.Interface.BlockConfig;
 using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;

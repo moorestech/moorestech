@@ -1,13 +1,12 @@
-using Core.Block.Blocks;
-using Core.Block.Blocks.Miner;
-using Core.Block.Config.LoadConfig;
-using Core.Block.Config.LoadConfig.Param;
-using Core.Block.Event;
 using Core.Const;
 using Core.Item;
-using Core.Item.Util;
+using Game.Block.Blocks.Miner;
+using Game.Block.Config.LoadConfig.Param;
+using Game.Block.Event;
+using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 
-namespace Core.Block.BlockFactory.BlockTemplate
+namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaMinerTemplate : IBlockTemplate
     {

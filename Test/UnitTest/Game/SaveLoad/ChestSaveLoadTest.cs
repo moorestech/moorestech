@@ -1,8 +1,9 @@
 ﻿using System;
-using Core.Block.BlockFactory;
-using Core.Block.Blocks.Chest;
-using Core.Block.Config;
-using Game.Block.Interface.Factory;
+using Game.Block.BlockFactory;
+using Game.Block.Blocks.Chest;
+using Game.Block.Config;
+using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;

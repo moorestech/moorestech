@@ -1,6 +1,4 @@
-using Core.Block.Config.LoadConfig.Param;
-
-namespace Core.Block.Config.LoadConfig.ConfigParamGenerator
+namespace Game.Block.Interface.BlockConfig
 {
     public interface IBlockConfigParamGenerator
     {

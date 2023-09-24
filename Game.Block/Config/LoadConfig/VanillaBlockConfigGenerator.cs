@@ -1,9 +1,10 @@
 using System.Collections.Generic;
-using Core.Block.Config.LoadConfig.ConfigParamGenerator;
+using Game.Block.Config.LoadConfig.ConfigParamGenerator;
 using Core.Item;
 using Core.Item.Config;
+using Game.Block.Interface.BlockConfig;
 
-namespace Core.Block.Config.LoadConfig
+namespace Game.Block.Config.LoadConfig
 {
     public class VanillaBlockConfigGenerator
     {

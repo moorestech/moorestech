@@ -1,7 +1,7 @@
 ﻿using Core.EnergySystem.Electric;
 using Core.EnergySystem.Gear;
 
-namespace Core.Block.Blocks.ElectricPole
+namespace Game.Block.Blocks.ElectricPole
 {
     public class VanillaGearEnergyTransformer : VanillaEnergyTransformerBase, IGearEnergyTransformer
     {

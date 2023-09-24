@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Core.Const;
+using Game.Block.Interface.BlockConfig;
 
-namespace Core.Block.Config.Service
+namespace Game.Block.Config.Service
 {
     public class ItemIdToBlockId
     {

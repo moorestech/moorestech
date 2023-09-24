@@ -1,7 +1,8 @@
 using System;
-using Core.Block.Blocks.State;
+using Game.Block.Interface;
+using Game.Block.Interface.State;
 
-namespace Core.Block.Blocks
+namespace Game.Block.Blocks
 {
     public class VanillaBlock : IBlock
     {

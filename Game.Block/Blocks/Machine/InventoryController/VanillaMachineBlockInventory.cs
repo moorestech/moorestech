@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Core.Block.BlockInventory;
-using Core.Block.Blocks.Machine.Inventory;
+using Game.Block.BlockInventory;
+using Game.Block.Blocks.Machine.Inventory;
 using Core.Item;
 using Core.Item.Util;
 
-namespace Core.Block.Blocks.Machine.InventoryController
+namespace Game.Block.Blocks.Machine.InventoryController
 {
     public class VanillaMachineBlockInventory
     {

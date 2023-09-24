@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Block.Event;
 using Core.Item;
+using Game.Block.Interface.Event;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;

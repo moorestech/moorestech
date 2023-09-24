@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Core.Block.BlockInventory;
+using Game.Block.BlockInventory;
 using Core.Const;
 using Core.Item;
 
-namespace Core.Block.Blocks.Service
+namespace Game.Block.Blocks.Service
 {
     /// <summary>
     /// 優先度を持ってアイテムを挿入する

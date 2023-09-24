@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Block.BlockFactory;
-using Game.Block.Interface.Factory;
+using Game.Block.BlockFactory;
+using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using Game.Block.Interface.BlockConfig;
 
-namespace Core.Block.Config.LoadConfig.Param
+namespace Game.Block.Config.LoadConfig.Param
 {
     public class MinerBlockConfigParam : IBlockConfigParam
     {

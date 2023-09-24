@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Core.Block.Blocks;
-using Core.Block.Blocks.State;
+using Game.Block.Blocks;
 using Core.Const;
-using Game.Block.Interface.Factory;
+using Game.Block.Interface;
+using Game.Block.Interface.State;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 using World.Event;

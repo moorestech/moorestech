@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core.Block.BlockInventory;
+using Game.Block.BlockInventory;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 

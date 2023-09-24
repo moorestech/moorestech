@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
-using Core.Block.BlockFactory;
-using Game.Block.Interface.Factory;
+using Game.Block.BlockFactory;
+using Game.Block.Interface;
 using Game.Paths;
 using Game.Save.Interface;
 using Game.Save.Json;

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
-using Core.Block.Blocks;
-using Core.Block.Blocks.State;
 using Core.Item;
+using Game.Block.Interface;
+using Game.Block.Interface.State;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Newtonsoft.Json;

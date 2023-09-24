@@ -1,16 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
-using Core.Block.BlockFactory;
-using Core.Block.Blocks.PowerGenerator;
-using Core.Block.Config;
-using Core.Block.Config.LoadConfig.Param;
+using Game.Block.Blocks.PowerGenerator;
+using Game.Block.Config.LoadConfig.Param;
 using Core.Inventory;
 using Core.Item;
-using Game.Block.Interface.Factory;
+using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Server;
 using Server.Boot;
 
 

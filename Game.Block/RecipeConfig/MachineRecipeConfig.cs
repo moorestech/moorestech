@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Core.Block.Config;
-using Core.Block.RecipeConfig.Data;
+using Game.Block.Config;
 using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Util;
+using Game.Block.Interface.BlockConfig;
+using Game.Block.Interface.RecipeConfig;
 
-namespace Core.Block.RecipeConfig
+namespace Game.Block.RecipeConfig
 {
     public class MachineRecipeConfig : IMachineRecipeConfig
     {

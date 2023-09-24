@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using Core.Item;
-using Core.Item.Implementation;
+﻿using Core.Item;
 
-namespace Core.Block.RecipeConfig.Data
+namespace Game.Block.Interface.RecipeConfig
 {
 
     public class ItemOutput

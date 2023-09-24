@@ -1,6 +1,7 @@
-﻿using static Core.Block.Event.IBlockOpenableInventoryUpdateEvent;
+﻿using Game.Block.Interface.Event;
+using static Game.Block.Interface.Event.IBlockOpenableInventoryUpdateEvent;
 
-namespace Core.Block.Event
+namespace Game.Block.Event
 {
     public class BlockOpenableInventoryUpdateEvent : IBlockOpenableInventoryUpdateEvent
     {

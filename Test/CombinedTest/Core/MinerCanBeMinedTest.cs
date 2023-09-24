@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Core.Block.BlockFactory;
-using Core.Block.Blocks.Miner;
-using Core.Block.Event;
+using Game.Block.BlockFactory;
+using Game.Block.Blocks.Miner;
+using Game.Block.Event;
 using Core.Item;
-using Game.Block.Interface.Factory;
+using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;

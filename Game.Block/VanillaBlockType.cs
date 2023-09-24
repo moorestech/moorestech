@@ -1,4 +1,4 @@
-namespace Core.Block.Config
+namespace Game.Block
 {
     public static class VanillaBlockType
     {

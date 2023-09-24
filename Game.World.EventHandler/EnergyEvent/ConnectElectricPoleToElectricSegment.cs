@@ -1,6 +1,7 @@
-using Core.Block.Config;
-using Core.Block.Config.LoadConfig.Param;
+using Game.Block.Config;
+using Game.Block.Config.LoadConfig.Param;
 using Core.EnergySystem;
+using Game.Block.Interface.BlockConfig;
 using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;

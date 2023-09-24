@@ -6,14 +6,15 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.Serialization;
-using Core.Block.Config.LoadConfig.ConfigParamGenerator;
-using Core.Block.Config.LoadConfig.Param;
+using Game.Block.Config.LoadConfig.ConfigParamGenerator;
+using Game.Block.Config.LoadConfig.Param;
 using Core.Const;
 using Core.Item.Config;
 using Core.Util;
+using Game.Block.Interface.BlockConfig;
 using Newtonsoft.Json.Linq;
 
-namespace Core.Block.Config.LoadConfig
+namespace Game.Block.Config.LoadConfig
 {
     public class BlockConfigJsonLoad
     {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Core.Block.BlockInventory;
+using Game.Block.BlockInventory;
 using Core.ConfigJson;
 using Core.Const;
 using Core.Item;

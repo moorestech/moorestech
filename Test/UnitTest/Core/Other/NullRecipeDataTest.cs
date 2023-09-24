@@ -1,8 +1,8 @@
-﻿using Core.Block.RecipeConfig;
-using Core.Block.RecipeConfig.Data;
+﻿using Game.Block.RecipeConfig;
 using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
+using Game.Block.Interface.RecipeConfig;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;

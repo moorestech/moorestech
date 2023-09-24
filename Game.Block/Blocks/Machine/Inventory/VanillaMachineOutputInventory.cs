@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Core.Block.BlockInventory;
-using Core.Block.Blocks.Service;
-using Core.Block.Event;
-using Core.Block.RecipeConfig.Data;
+using Game.Block.BlockInventory;
+using Game.Block.Blocks.Service;
+using Game.Block.Event;
 using Core.Inventory;
 using Core.Item;
 using Core.Item.Util;
 using Core.Update;
+using Game.Block.Interface.Event;
+using Game.Block.Interface.RecipeConfig;
 
-namespace Core.Block.Blocks.Machine.Inventory
+namespace Game.Block.Blocks.Machine.Inventory
 {
     public class VanillaMachineOutputInventory : IUpdatable
     {

@@ -4,7 +4,7 @@ using Core.Update;
 using NUnit.Framework;
 using Test.Module;
 
-namespace Test.UnitTest.Core.Block
+namespace Test.UnitTest.Game.Block
 {
     public class ElectricSegmentTest
     {

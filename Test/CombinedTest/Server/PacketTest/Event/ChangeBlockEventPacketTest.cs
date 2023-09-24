@@ -1,11 +1,11 @@
 ﻿using System;
-using Core.Block.BlockFactory;
-using Core.Block.Blocks;
-using Core.Block.Blocks.Machine;
-using Core.Block.Blocks.State;
+using Game.Block.BlockFactory;
+using Game.Block.Blocks;
+using Game.Block.Blocks.Machine;
 using Core.Item;
 using Core.Update;
-using Game.Block.Interface.Factory;
+using Game.Block.Interface;
+using Game.Block.Interface.State;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;

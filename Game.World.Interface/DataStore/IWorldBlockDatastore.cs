@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Core.Block;
-using Core.Block.Blocks;
-using Core.Block.Blocks.State;
+using Game.Block;
+using Game.Block.Interface;
+using Game.Block.Interface.State;
 
 namespace Game.World.Interface.DataStore
 {

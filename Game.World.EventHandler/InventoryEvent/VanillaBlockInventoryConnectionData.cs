@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Core.Block.Config;
+using Game.Block;
+using Game.Block.Config;
 
 namespace Game.World.EventHandler.InventoryEvent
 {

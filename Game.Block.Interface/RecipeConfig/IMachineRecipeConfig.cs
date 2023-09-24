@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using Core.Block.RecipeConfig.Data;
 using Core.Item;
 
-namespace Core.Block.RecipeConfig
+namespace Game.Block.Interface.RecipeConfig
 {
     public interface IMachineRecipeConfig
     {

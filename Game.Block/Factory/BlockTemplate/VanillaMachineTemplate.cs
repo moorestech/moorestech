@@ -1,17 +1,15 @@
-using System;
-using Core.Block.BlockInventory;
-using Core.Block.Blocks;
-using Core.Block.Blocks.Machine;
-using Core.Block.Blocks.Machine.Inventory;
-using Core.Block.Blocks.Machine.InventoryController;
-using Core.Block.Blocks.Machine.SaveLoad;
-using Core.Block.Config.LoadConfig;
-using Core.Block.Config.LoadConfig.Param;
-using Core.Block.Event;
-using Core.Block.RecipeConfig;
 using Core.Item;
+using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.InventoryController;
+using Game.Block.Blocks.Machine.SaveLoad;
+using Game.Block.Config.LoadConfig.Param;
+using Game.Block.Event;
+using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
+using Game.Block.Interface.RecipeConfig;
 
-namespace Core.Block.BlockFactory.BlockTemplate
+namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaMachineTemplate : IBlockTemplate
     {

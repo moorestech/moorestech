@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Core.Block.BlockInventory;
-using Core.Block.Blocks.State;
+using Game.Block.BlockInventory;
 using Core.Item;
 using Core.Update;
+using Game.Block.Interface;
+using Game.Block.Interface.State;
 
-namespace Core.Block.Blocks.BeltConveyor
+namespace Game.Block.Blocks.BeltConveyor
 {
     /// <summary>
     /// アイテムの搬出入とインベントリの管理を行う

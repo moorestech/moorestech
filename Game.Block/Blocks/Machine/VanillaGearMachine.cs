@@ -1,9 +1,9 @@
-﻿using Core.Block.Blocks.Machine.InventoryController;
-using Core.Block.Blocks.Machine.SaveLoad;
+﻿using Game.Block.Blocks.Machine.InventoryController;
+using Game.Block.Blocks.Machine.SaveLoad;
 using Core.EnergySystem.Gear;
 using Core.Item;
 
-namespace Core.Block.Blocks.Machine
+namespace Game.Block.Blocks.Machine
 {
     public class VanillaGearMachine : VanillaMachineBase, IGearConsumer 
     {

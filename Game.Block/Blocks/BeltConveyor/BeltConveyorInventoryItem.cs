@@ -1,4 +1,4 @@
-﻿namespace Core.Block.Blocks.BeltConveyor
+﻿namespace Game.Block.Blocks.BeltConveyor
 {
     /// <summary>
     /// ベルトコンベア内でアイテムがどれくらい進んだか？を表すのに残り時間 <see cref="RemainingTime"/> を使用している

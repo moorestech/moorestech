@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
-using Core.Block.BlockFactory.BlockTemplate;
-using Core.Block.Config.LoadConfig.Param;
-using Core.Block.Event;
+using Game.Block.Config.LoadConfig.Param;
+using Game.Block.Event;
 using Core.EnergySystem.Electric;
 using Core.Item;
+using Game.Block.Factory.BlockTemplate;
 
-namespace Core.Block.Blocks.PowerGenerator
+namespace Game.Block.Blocks.PowerGenerator
 {
     public class VanillaElectricGenerator : VanillaPowerGeneratorBase,IElectricGenerator
     {

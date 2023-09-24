@@ -1,8 +1,8 @@
-﻿using Core.Block.Event;
+﻿using Game.Block.Event;
 using Core.EnergySystem.Electric;
 using Core.Item;
 
-namespace Core.Block.Blocks.Miner
+namespace Game.Block.Blocks.Miner
 {
     public class VanillaElectricMiner : VanillaMinerBase,IBlockElectricConsumer
     {

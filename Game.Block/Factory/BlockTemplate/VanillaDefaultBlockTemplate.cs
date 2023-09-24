@@ -1,7 +1,8 @@
-using Core.Block.Blocks;
-using Core.Block.Config.LoadConfig;
+using Game.Block.Blocks;
+using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 
-namespace Core.Block.BlockFactory.BlockTemplate
+namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaDefaultBlock : IBlockTemplate
     {

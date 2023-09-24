@@ -1,11 +1,9 @@
-using Core.Block.BlockFactory;
-using Core.Block.Config;
-using Core.Block.Config.Service;
-using Core.Block.RecipeConfig;
-using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
 using Core.Ore;
+using Game.Block.Factory;
+using Game.Block.Interface.BlockConfig;
+using Game.Block.Interface.RecipeConfig;
 using Game.Crafting.Interface;
 using Game.Quest.Interface;
 using Game.World.Interface.DataStore;

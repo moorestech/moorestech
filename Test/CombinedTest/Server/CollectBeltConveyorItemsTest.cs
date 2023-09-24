@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Core.Block.Blocks.BeltConveyor;
-using Core.Block.Config;
+using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Config;
 using Core.Item;
 using Core.Update;
+using Game.Block.Interface.BlockConfig;
 using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;

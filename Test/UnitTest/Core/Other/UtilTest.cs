@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using ProbabilityCalculator = Core.Block.ProbabilityCalculator;
+using ProbabilityCalculator = Game.Block.ProbabilityCalculator;
 
 namespace Test.UnitTest.Core.Other
 {

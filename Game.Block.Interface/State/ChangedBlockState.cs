@@ -1,4 +1,4 @@
-namespace Core.Block.Blocks.State
+namespace Game.Block.Interface.State
 {
     /// <summary>
     /// 変化したステートを通知するクラスです

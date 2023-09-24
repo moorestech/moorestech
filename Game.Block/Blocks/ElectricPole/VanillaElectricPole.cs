@@ -1,6 +1,6 @@
 ﻿using Core.EnergySystem.Electric;
 
-namespace Core.Block.Blocks.ElectricPole
+namespace Game.Block.Blocks.ElectricPole
 {
     public class VanillaElectricPole : VanillaEnergyTransformerBase, IElectricPole
     {

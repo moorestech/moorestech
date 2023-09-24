@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using Core.Block.Config;
-using Core.Block.RecipeConfig.Data;
+using Game.Block.Config;
 using Core.Item;
+using Game.Block.Interface.BlockConfig;
+using Game.Block.Interface.RecipeConfig;
 using Newtonsoft.Json;
 
-namespace Core.Block.RecipeConfig
+namespace Game.Block.RecipeConfig
 {
     internal class MachineRecipeJsonLoad
     {

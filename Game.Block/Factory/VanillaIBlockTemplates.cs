@@ -1,14 +1,14 @@
 using System.Collections.Generic;
-using Core.Block.BlockFactory.BlockTemplate;
-using Core.Block.Blocks.Machine;
-using Core.Block.Blocks.Miner;
-using Core.Block.Blocks.PowerGenerator;
-using Core.Block.Config;
-using Core.Block.Event;
-using Core.Block.RecipeConfig;
 using Core.Item;
+using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Miner;
+using Game.Block.Blocks.PowerGenerator;
+using Game.Block.Event;
+using Game.Block.Factory.BlockTemplate;
+using Game.Block.Interface.Event;
+using Game.Block.Interface.RecipeConfig;
 
-namespace Core.Block.BlockFactory
+namespace Game.Block.Factory
 {
     /// <summary>
     /// バニラのブロックの全てのテンプレートを作るクラス
