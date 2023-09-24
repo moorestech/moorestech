@@ -8,6 +8,7 @@ using Core.Block.Blocks.Chest;
 using Core.Block.Blocks.Machine;
 using Core.Block.Blocks.Machine.Inventory;
 using Core.Block.Blocks.Machine.InventoryController;
+using Game.Block.Interface.Factory;
 using Game.World.EventHandler;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
@@ -39,7 +40,7 @@ namespace Test.UnitTest.Game
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
 
             //北向きにベルトコンベアを設置した時、機械とつながるかをテスト
@@ -68,7 +69,7 @@ namespace Test.UnitTest.Game
         }
 
         private (int, int) BlockPlaceToGetMachineIdAndConnectorId(int machineX, int machineY, int conveyorX,
-            int conveyorY, BlockDirection direction, BlockFactory blockFactory, IWorldBlockDatastore world)
+            int conveyorY, BlockDirection direction, IBlockFactory blockFactory, IWorldBlockDatastore world)
         {
             //機械の設置
             var vanillaMachine = blockFactory.Create(MachineId, CreateBlockEntityId.Create());
@@ -96,7 +97,7 @@ namespace Test.UnitTest.Game
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
             //機械の設置
             var vanillaMachine = (VanillaMachineBase) blockFactory.Create(MachineId, CreateBlockEntityId.Create());
@@ -160,7 +161,7 @@ namespace Test.UnitTest.Game
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             
             //チェストの設置
             var vanillaChest = (VanillaChest) blockFactory.Create(ChestId, CreateBlockEntityId.Create());
@@ -180,7 +181,7 @@ namespace Test.UnitTest.Game
             BeltConveyorPlaceAndCheckConnector(1,0,BlockDirection.West,vanillaChest,blockFactory,world);
         }
 
-        private void BeltConveyorPlaceAndCheckConnector(int beltConveyorX,int beltConveyorY,BlockDirection direction,VanillaChest targetChest,BlockFactory blockFactory,IWorldBlockDatastore world)
+        private void BeltConveyorPlaceAndCheckConnector(int beltConveyorX,int beltConveyorY,BlockDirection direction,VanillaChest targetChest,IBlockFactory blockFactory,IWorldBlockDatastore world)
         {
             var northBeltConveyor = (VanillaBeltConveyor) blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create());
             world.AddBlock(northBeltConveyor, beltConveyorX, beltConveyorY, direction);
@@ -198,7 +199,7 @@ namespace Test.UnitTest.Game
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             
             
             var machine = (VanillaMachineBase) blockFactory.Create(MachineId, CreateBlockEntityId.Create());

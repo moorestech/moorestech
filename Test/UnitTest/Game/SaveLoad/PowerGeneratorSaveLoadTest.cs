@@ -7,6 +7,7 @@ using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Inventory;
 using Core.Item;
+using Game.Block.Interface.Factory;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
@@ -25,7 +26,7 @@ namespace Test.UnitTest.Game.SaveLoad
         public void PowerGeneratorTest()
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var fuelSlotCount =
                 (serviceProvider.GetService<IBlockConfig>().GetBlockConfig(PowerGeneratorId).Param as

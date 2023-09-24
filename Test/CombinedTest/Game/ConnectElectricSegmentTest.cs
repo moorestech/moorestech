@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Block.BlockFactory;
 using Core.EnergySystem;
+using Game.Block.Interface.Factory;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -26,7 +27,7 @@ namespace Test.CombinedTest.Game
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<BlockFactory>();
+            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
             //範囲内の電柱
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0), 0, 0, BlockDirection.North);
@@ -85,7 +86,7 @@ namespace Test.CombinedTest.Game
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<BlockFactory>();
+            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
             //起点となる電柱の設置
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0), 0, 0, BlockDirection.North);
@@ -143,7 +144,7 @@ namespace Test.CombinedTest.Game
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<BlockFactory>();
+            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
 
             //周りに機械を設置
@@ -188,7 +189,7 @@ namespace Test.CombinedTest.Game
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<BlockFactory>();
+            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
             //一つ目のセグメントを設置
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0), 0, 0, BlockDirection.North);

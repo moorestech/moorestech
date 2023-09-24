@@ -7,6 +7,7 @@ using Core.Block.Config;
 using Core.Block.Config.LoadConfig.Param;
 using Core.Item;
 using Core.Update;
+using Game.Block.Interface.Factory;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -34,7 +35,7 @@ namespace Test.CombinedTest.Core
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var config = (BeltConveyorConfigParam) blockConfig.GetBlockConfig(3).Param;
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
             var random = new Random(4123);
 
@@ -63,7 +64,7 @@ namespace Test.CombinedTest.Core
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
             var chest = (VanillaChest)blockFactory.Create(7, 0);
             var beltconveyor = (VanillaBeltConveyor)blockFactory.Create(3, 0);

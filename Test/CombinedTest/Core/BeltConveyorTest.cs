@@ -7,6 +7,7 @@ using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
 using Core.Update;
+using Game.Block.Interface.Factory;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
@@ -31,7 +32,7 @@ namespace Test.CombinedTest.Core
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var config = (BeltConveyorConfigParam) blockConfig.GetBlockConfig(3).Param;
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var random = new Random(4123);
@@ -67,7 +68,7 @@ namespace Test.CombinedTest.Core
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var config = (BeltConveyorConfigParam) blockConfig.GetBlockConfig(3).Param;
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
 
@@ -108,7 +109,7 @@ namespace Test.CombinedTest.Core
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var config = (BeltConveyorConfigParam) blockConfig.GetBlockConfig(3).Param;
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var random = new Random(4123);
@@ -137,7 +138,7 @@ namespace Test.CombinedTest.Core
         public void Insert2ItemBeltConveyorTest()
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var random = new Random(4123);

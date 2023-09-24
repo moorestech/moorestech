@@ -10,6 +10,7 @@ using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
 using Core.Update;
+using Game.Block.Interface.Factory;
 using Game.Crafting;
 using Game.Crafting.Config;
 using Game.PlayerInventory.Interface;
@@ -128,14 +129,14 @@ namespace Test.UnitTest.Game.SaveLoad
             Assert.AreEqual(itemStackFactory.Create(3, 2), outputInventoryField.OutputSlot[2]);
         }
 
-        private (ItemStackFactory, BlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,WorldLoaderFromJson)
+        private (ItemStackFactory, IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,WorldLoaderFromJson)
             CreateBlockTestModule()
         {
             
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var playerInventoryDataStore = serviceProvider.GetService<PlayerInventoryDataStore>();

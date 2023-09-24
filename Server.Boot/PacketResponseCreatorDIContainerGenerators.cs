@@ -14,6 +14,7 @@ using Core.Item;
 using Core.Item.Config;
 using Core.Ore;
 using Core.Ore.Config;
+using Game.Block.Interface.Factory;
 using Game.Crafting;
 using Game.Crafting.Config;
 using Game.Crafting.Interface;
@@ -72,7 +73,7 @@ namespace Server.Boot
             services.AddSingleton<ItemStackFactory, ItemStackFactory>();
             services.AddSingleton<IBlockConfig, BlockConfig>();
             services.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
-            services.AddSingleton<BlockFactory, BlockFactory>();
+            services.AddSingleton<IBlockFactory, BlockFactory>();
             services.AddSingleton<ItemIdToBlockId, ItemIdToBlockId>();
 
 

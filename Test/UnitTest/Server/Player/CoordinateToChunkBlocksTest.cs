@@ -8,6 +8,7 @@ using Core.ConfigJson;
 using Core.Const;
 using Core.Item;
 using Core.Item.Config;
+using Game.Block.Interface.Factory;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
@@ -78,14 +79,14 @@ namespace Test.UnitTest.Server.Player
         }
 
 
-        private BlockFactory _blockFactory;
+        private IBlockFactory _blockFactory;
 
         private IBlock CreateMachine(int id)
         {
             if (_blockFactory == null)
             {
                 var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-                _blockFactory = serviceProvider.GetService<BlockFactory>();
+                _blockFactory = serviceProvider.GetService<IBlockFactory>();
             }
 
             return _blockFactory.Create(id, CreateBlockEntityId.Create());

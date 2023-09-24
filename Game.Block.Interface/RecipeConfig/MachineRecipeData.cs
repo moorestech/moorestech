@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Core.Const;
 using Core.Item;
 
 namespace Core.Block.RecipeConfig.Data
@@ -20,7 +21,7 @@ namespace Core.Block.RecipeConfig.Data
 
         public static MachineRecipeData CreateEmptyRecipe()
         {
-            return new MachineRecipeData(-1, 0, new List<IItemStack>(), new List<ItemOutput>(), -1);
+            return new MachineRecipeData(BlockConst.EmptyBlockId, 0, new List<IItemStack>(), new List<ItemOutput>(), -1);
         }
 
         public List<IItemStack> ItemInputs { get; }
@@ -30,8 +31,10 @@ namespace Core.Block.RecipeConfig.Data
         public int Time { get; }
         public int RecipeId { get; }
 
-        public bool RecipeConfirmation(IReadOnlyList<IItemStack> inputSlot)
+        public bool RecipeConfirmation(IReadOnlyList<IItemStack> inputSlot,int blockId)
         {
+            if (blockId != BlockId) return false;
+            
             int cnt = 0;
             foreach (var slot in inputSlot)
             {

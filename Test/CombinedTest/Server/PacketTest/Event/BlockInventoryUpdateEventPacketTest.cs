@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Block.BlockFactory;
 using Core.Inventory;
 using Core.Item;
+using Game.Block.Interface.Factory;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,7 +36,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             //ブロックをセットアップ
@@ -90,7 +91,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             //ブロック1をセットアップ

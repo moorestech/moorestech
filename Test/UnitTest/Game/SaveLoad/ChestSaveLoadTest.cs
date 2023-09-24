@@ -2,6 +2,7 @@
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Chest;
 using Core.Block.Config;
+using Game.Block.Interface.Factory;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
@@ -21,7 +22,7 @@ namespace Test.UnitTest.Game.SaveLoad
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var blockHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(ChestBlockId).BlockHash;
 
             var chest = (VanillaChest) blockFactory.Create(ChestBlockId,1);

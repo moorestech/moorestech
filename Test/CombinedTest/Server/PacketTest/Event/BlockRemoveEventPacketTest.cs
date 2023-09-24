@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Block.BlockFactory;
+using Game.Block.Interface.Factory;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +28,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(0, response.Count);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             
 
 
@@ -66,7 +67,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(4, y);
         }
 
-        void BlockPlace(int x, int y, int id, IWorldBlockDatastore worldBlock,BlockFactory blockFactory)
+        void BlockPlace(int x, int y, int id, IWorldBlockDatastore worldBlock,IBlockFactory blockFactory)
         {
             worldBlock.AddBlock(blockFactory.Create(id,new System.Random().Next()),x,y,BlockDirection.North);
         }

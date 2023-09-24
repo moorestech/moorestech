@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Block.BlockFactory;
 using Core.Block.Config.Service;
+using Game.Block.Interface.Factory;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
@@ -18,14 +19,14 @@ namespace Server.Protocol.PacketResponse
         private readonly ItemIdToBlockId _itemIdToBlockId;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
-        private readonly BlockFactory _blockFactory;
+        private readonly IBlockFactory _blockFactory;
 
         public SendPlaceHotBarBlockProtocol(ServiceProvider serviceProvider)
         {
             _itemIdToBlockId = serviceProvider.GetService<ItemIdToBlockId>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
-            _blockFactory = serviceProvider.GetService<BlockFactory>();
+            _blockFactory = serviceProvider.GetService<IBlockFactory>();
         }
 
         public List<List<byte>> GetResponse(List<byte> payload)

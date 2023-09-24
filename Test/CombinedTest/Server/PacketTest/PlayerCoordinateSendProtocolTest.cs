@@ -10,6 +10,7 @@ using Core.Const;
 using Core.Item;
 using Core.Item.Config;
 using Core.Ore;
+using Game.Block.Interface.Factory;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
 using Game.WorldMap;
@@ -88,7 +89,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
             var random = new Random(13944156);
             //ブロックの設置
@@ -139,7 +140,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
             var random = new Random(13944156);
             //ブロックの設置

@@ -1,6 +1,7 @@
 using Core.Block.BlockFactory;
 using Core.EnergySystem;
 using Core.EnergySystem.Electric;
+using Game.Block.Interface.Factory;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -30,7 +31,7 @@ namespace Test.CombinedTest.Game
              */
             
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<BlockFactory>();
+            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
             
             //電柱の設置
             worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0), 0, 0, BlockDirection.North);
@@ -93,7 +94,7 @@ namespace Test.CombinedTest.Game
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<BlockFactory>();
+            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
             var worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
             
             //電柱の設置

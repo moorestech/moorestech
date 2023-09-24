@@ -38,7 +38,7 @@ namespace Core.Block.BlockFactory.BlockTemplate
         {
             var(input, output, machineParam) = GetData(param,entityId);
 
-            var runProcess = new VanillaMachineRunProcess(input, output, _machineRecipeConfig.GetNullRecipeData(),
+            var runProcess = new VanillaMachineRunProcess(input, output, _machineRecipeConfig.GetEmptyRecipeData(),
                 machineParam.RequiredPower);
 
             return _createMachine((param.BlockId, entityId,blockHash,

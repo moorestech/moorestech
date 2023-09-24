@@ -44,7 +44,7 @@ namespace Core.Block.Blocks.Machine.Inventory
                 //建物IDと現在のインプットスロットからレシピを検索する
                 var recipe = _machineRecipeConfig.GetRecipeData(_blockId, InputSlot);
                 //実行できるレシピかどうか
-                return recipe.RecipeConfirmation(InputSlot);
+                return recipe.RecipeConfirmation(InputSlot,_blockId);
             }
         }
 

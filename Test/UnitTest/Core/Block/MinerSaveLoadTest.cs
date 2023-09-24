@@ -6,6 +6,7 @@ using Core.Block.Blocks.Miner;
 using Core.Block.Config;
 using Core.Inventory;
 using Core.Item;
+using Game.Block.Interface.Factory;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
@@ -24,7 +25,7 @@ namespace Test.UnitTest.Core.Block
         public void SaveLoadTest()
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             ulong minerHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(MinerId).BlockHash;
             
             var originalMiner = blockFactory.Create(MinerId, 1);

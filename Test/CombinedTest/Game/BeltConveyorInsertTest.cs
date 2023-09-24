@@ -2,6 +2,7 @@
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Chest;
 using Core.Update;
+using Game.Block.Interface.Factory;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -19,7 +20,7 @@ namespace Test.CombinedTest.Game
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<BlockFactory>();
+            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
             var inputChest = (VanillaChest)blockFactory.Create(UnitTestModBlockId.ChestId,1);
             var beltConveyor = blockFactory.Create(UnitTestModBlockId.BeltConveyorId,2);

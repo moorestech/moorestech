@@ -6,6 +6,7 @@ using Core.Block.Config;
 using Core.Block.Config.LoadConfig;
 using Core.Item;
 using Core.Item.Config;
+using Game.Block.Interface.Factory;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -32,7 +33,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
@@ -78,7 +79,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
@@ -140,7 +141,7 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             

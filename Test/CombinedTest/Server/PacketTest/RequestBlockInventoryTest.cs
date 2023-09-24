@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Machine;
 using Core.Item;
+using Game.Block.Interface.Factory;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +34,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
             
-            var machine = serviceProvider.GetService<BlockFactory>().Create(MachineBlockId,5) as VanillaMachineBase;
+            var machine = serviceProvider.GetService<IBlockFactory>().Create(MachineBlockId,5) as VanillaMachineBase;
             machine.SetItem(0,itemStackFactory.Create(1,2));
             machine.SetItem(2,itemStackFactory.Create(4,5));
             

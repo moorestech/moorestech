@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using Core.Block.BlockFactory;
+using Game.Block.Interface.Factory;
 using Game.Paths;
 using Game.Save.Interface;
 using Game.Save.Json;
@@ -25,7 +26,7 @@ namespace Test.CombinedTest.Game
         {
             var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = saveServiceProvider.GetService<BlockFactory>();
+            var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
             
             
             //リフレクションでテスト用のファイル名を変更

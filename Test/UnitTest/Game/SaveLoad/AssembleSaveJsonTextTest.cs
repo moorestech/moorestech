@@ -2,6 +2,7 @@ using System;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks;
 using Core.Block.Config;
+using Game.Block.Interface.Factory;
 using Game.Save.Interface;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;
@@ -25,7 +26,7 @@ namespace Test.UnitTest.Game.SaveLoad
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
 
             var blockHash1 = blockConfig.GetBlockConfig(1).BlockHash;

@@ -7,6 +7,7 @@ using Core.Const;
 using Core.Item;
 using Core.Item.Util;
 using Core.Update;
+using Game.Block.Interface.Factory;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server;
@@ -27,7 +28,7 @@ namespace Test.CombinedTest.Core
         public void UseFuelTest()
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var powerGenerator = blockFactory.Create(PowerGeneratorId, 10) as VanillaPowerGeneratorBase;
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var generatorConfigParam = blockConfig.GetBlockConfig(PowerGeneratorId).Param as PowerGeneratorConfigParam;
@@ -97,7 +98,7 @@ namespace Test.CombinedTest.Core
         public void InfinityGeneratorTet()
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var powerGenerator = blockFactory.Create(UnitTestModBlockId.InfinityGeneratorId, 10) as VanillaPowerGeneratorBase;
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var generatorConfigParam = blockConfig.GetBlockConfig(UnitTestModBlockId.InfinityGeneratorId).Param as PowerGeneratorConfigParam;

@@ -5,6 +5,7 @@ using Core.Block.BlockFactory;
 using Core.Block.Blocks.Miner;
 using Core.Block.Event;
 using Core.Item;
+using Game.Block.Interface.Factory;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,7 +27,7 @@ namespace Test.CombinedTest.Core
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var oreId = 0;

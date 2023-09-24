@@ -31,8 +31,8 @@ namespace Core.Block.RecipeConfig
 
         public IReadOnlyList<MachineRecipeData> GetAllRecipeData() { return _recipedatas; }
 
-        public MachineRecipeData GetNullRecipeData() { return MachineRecipeData.CreateEmptyRecipe(); }
-        public MachineRecipeData GetRecipeData(int id) { return _recipedatas[id]; }
+        public MachineRecipeData GetEmptyRecipeData() { return MachineRecipeData.CreateEmptyRecipe(); }
+        public MachineRecipeData GetRecipeData(int id) { return id == -1 ? MachineRecipeData.CreateEmptyRecipe() : _recipedatas[id]; }
 
 
         /// <summary>

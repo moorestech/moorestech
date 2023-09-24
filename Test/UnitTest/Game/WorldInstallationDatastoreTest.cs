@@ -6,6 +6,7 @@ using Core.Block.RecipeConfig;
 using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
+using Game.Block.Interface.Factory;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
@@ -71,14 +72,14 @@ namespace Test.UnitTest.Game
             Assert.False(worldData.AddBlock(i2, 1, 1, BlockDirection.North));
         }
 
-        private BlockFactory _blockFactory;
+        private IBlockFactory _blockFactory;
 
         private VanillaMachineBase CreateMachine(int id, int entityId)
         {
             if (_blockFactory == null)
             {
                 var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-                _blockFactory = serviceProvider.GetService<BlockFactory>();
+                _blockFactory = serviceProvider.GetService<IBlockFactory>();
             }
 
             var machine = _blockFactory.Create(id, entityId) as VanillaMachineBase;

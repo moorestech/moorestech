@@ -14,6 +14,7 @@ using Core.Const;
 using Core.Item;
 using Core.Item.Config;
 using Core.Update;
+using Game.Block.Interface.Factory;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -34,7 +35,7 @@ namespace Test.CombinedTest.Core
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.MachineIoTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
 
             var recipe = machineRecipeConfig.GetAllRecipeData()[0];

@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Block.BlockFactory;
 using Core.Block.Blocks.Chest;
 using Core.Item;
+using Game.Block.Interface.Factory;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -95,7 +96,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
-            var blockFactory = serviceProvider.GetService<BlockFactory>();
+            var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
