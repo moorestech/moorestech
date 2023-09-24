@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>9</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Core.EnergySystem\Core.EnergySystem.csproj" />
+      <ProjectReference Include="..\Core.Inventory\Core.Inventory.csproj" />
+      <ProjectReference Include="..\Core.Item\Core.Item.csproj" />
+      <ProjectReference Include="..\Core.Update\Core.Update.csproj" />
+      <ProjectReference Include="..\Game.Block.Interface\Game.Block.Interface.csproj" />
+    </ItemGroup>
+
+</Project>

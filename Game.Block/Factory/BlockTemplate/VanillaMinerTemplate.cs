@@ -6,7 +6,6 @@ using Core.Block.Event;
 using Core.Const;
 using Core.Item;
 using Core.Item.Util;
-using Core.Ore;
 
 namespace Core.Block.BlockFactory.BlockTemplate
 {

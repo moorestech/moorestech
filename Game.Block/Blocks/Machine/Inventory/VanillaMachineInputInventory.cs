@@ -48,9 +48,9 @@ namespace Core.Block.Blocks.Machine.Inventory
             }
         }
 
-        public IMachineRecipeData GetRecipeData() { return _machineRecipeConfig.GetRecipeData(_blockId, InputSlot); }
+        public MachineRecipeData GetRecipeData() { return _machineRecipeConfig.GetRecipeData(_blockId, InputSlot); }
 
-        public void ReduceInputSlot(IMachineRecipeData recipe)
+        public void ReduceInputSlot(MachineRecipeData recipe)
         {
             //inputスロットからアイテムを減らす
             foreach (var item in recipe.ItemInputs)

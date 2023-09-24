@@ -10,9 +10,9 @@ namespace Core.Block.RecipeConfig
 {
     internal class MachineRecipeJsonLoad
     {
-        internal List<IMachineRecipeData> LoadConfig(IBlockConfig blockConfig,ItemStackFactory itemStackFactory,List<string> configJsons)
+        internal List<MachineRecipeData> LoadConfig(IBlockConfig blockConfig,ItemStackFactory itemStackFactory,List<string> configJsons)
         {
-            var recipes = new List<IMachineRecipeData>();
+            var recipes = new List<MachineRecipeData>();
             foreach (var json in configJsons)
             {
                 recipes.AddRange(Load(blockConfig,itemStackFactory,json));
@@ -21,7 +21,7 @@ namespace Core.Block.RecipeConfig
             return recipes;
         }
 
-        private List<IMachineRecipeData> Load(IBlockConfig blockConfig,ItemStackFactory itemStackFactory,string json)
+        private List<MachineRecipeData> Load(IBlockConfig blockConfig,ItemStackFactory itemStackFactory,string json)
         {
             //JSONデータの読み込み
             var data = JsonConvert.DeserializeObject<MachineRecipeJsonData[]>(json);
@@ -43,7 +43,7 @@ namespace Core.Block.RecipeConfig
 
                 var blockId = blockConfig.GetBlockConfig(modId, blockName).BlockId;
                 
-                return (IMachineRecipeData) new MachineRecipeData(blockId, r.Time, inputItem, outputs.ToList(),
+                return new MachineRecipeData(blockId, r.Time, inputItem, outputs.ToList(),
                     index);
             });
 

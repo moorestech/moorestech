@@ -6,6 +6,13 @@ using Game.World.EventHandler.Service;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
+    /// <summary>
+    /// TODo ここのイベントハンドラを全部削除する
+    /// </summary>
+    /// <typeparam name="TSegment"></typeparam>
+    /// <typeparam name="TConsumer"></typeparam>
+    /// <typeparam name="TGenerator"></typeparam>
+    /// <typeparam name="TTransformer"></typeparam>
     public static class DisconnectOneElectricPoleFromSegmentService<TSegment,TConsumer,TGenerator,TTransformer> 
         where TSegment : EnergySegment, new()
         where TConsumer : IEnergyConsumer

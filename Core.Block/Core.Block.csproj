@@ -21,4 +21,9 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="BlockFactory\" />
+      <Folder Include="Config\" />
+    </ItemGroup>
+
 </Project>

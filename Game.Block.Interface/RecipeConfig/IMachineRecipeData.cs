@@ -4,15 +4,6 @@ using Core.Item.Implementation;
 
 namespace Core.Block.RecipeConfig.Data
 {
-    public interface IMachineRecipeData
-    {
-        List<IItemStack> ItemInputs { get; }
-        List<ItemOutput> ItemOutputs { get; }
-        int BlockId { get; }
-        int Time { get; }
-        int RecipeId { get; }
-        bool RecipeConfirmation(IReadOnlyList<IItemStack> inputSlot);
-    }
 
     public class ItemOutput
     {

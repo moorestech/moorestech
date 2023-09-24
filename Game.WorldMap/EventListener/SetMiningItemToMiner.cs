@@ -10,6 +10,7 @@ namespace Game.WorldMap.EventListener
 {
     /// <summary>
     /// 採掘機が設置されたらその採掘機に下にある鉱石の種類を設定する
+    /// TODO 削除する
     /// </summary>
     public class SetMiningItemToMiner
     {

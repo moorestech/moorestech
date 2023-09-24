@@ -4,10 +4,11 @@ using System.Linq;
 using Core.Block.BlockFactory.BlockTemplate;
 using Core.Block.Blocks;
 using Core.Block.Config;
+using Game.Block.Interface.Factory;
 
 namespace Core.Block.BlockFactory
 {
-    public class BlockFactory
+    public class BlockFactory : IBlockFactory
     {
         private readonly Dictionary<string, IBlockTemplate> _blockTypesDictionary;
         private readonly IBlockConfig _blockConfig;

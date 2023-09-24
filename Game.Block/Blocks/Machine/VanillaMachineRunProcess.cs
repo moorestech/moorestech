@@ -10,7 +10,7 @@ namespace Core.Block.Blocks.Machine
 {
     public class VanillaMachineRunProcess : IUpdatable
     {
-        private IMachineRecipeData _processingRecipeData;
+        private MachineRecipeData _processingRecipeData;
         private ProcessState _currentState = ProcessState.Idle;
         private ProcessState _lastState = ProcessState.Idle;
 
@@ -30,7 +30,7 @@ namespace Core.Block.Blocks.Machine
         public VanillaMachineRunProcess(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            IMachineRecipeData machineRecipeData, int requestPower)
+            MachineRecipeData machineRecipeData, int requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
@@ -43,7 +43,7 @@ namespace Core.Block.Blocks.Machine
         public VanillaMachineRunProcess(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            ProcessState currentState, double remainingMillSecond, IMachineRecipeData processingRecipeData, int requestPower)
+            ProcessState currentState, double remainingMillSecond, MachineRecipeData processingRecipeData, int requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;

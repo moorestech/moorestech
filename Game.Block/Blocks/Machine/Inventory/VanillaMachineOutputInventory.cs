@@ -42,7 +42,7 @@ namespace Core.Block.Blocks.Machine.Inventory
         /// </summary>
         /// <param name="machineRecipeData"></param>
         /// <returns>スロットに空きがあったらtrue</returns>
-        public bool IsAllowedToOutputItem(IMachineRecipeData machineRecipeData)
+        public bool IsAllowedToOutputItem(MachineRecipeData machineRecipeData)
         {
             foreach (var itemOutput in machineRecipeData.ItemOutputs)
             {
@@ -55,7 +55,7 @@ namespace Core.Block.Blocks.Machine.Inventory
             return true;
         }
 
-        public void InsertOutputSlot(IMachineRecipeData machineRecipeData)
+        public void InsertOutputSlot(MachineRecipeData machineRecipeData)
         {
             //アウトプットスロットにアイテムを格納する
             foreach (var output in machineRecipeData.ItemOutputs)

@@ -4,7 +4,7 @@ using Core.Item;
 
 namespace Core.Block.RecipeConfig.Data
 {
-    internal class MachineRecipeData : IMachineRecipeData
+    public class MachineRecipeData
     {
         public int BlockId { get; }
 
@@ -16,6 +16,11 @@ namespace Core.Block.RecipeConfig.Data
             ItemOutputs = itemOutputs;
             RecipeId = recipeId;
             Time = time;
+        }
+
+        public static MachineRecipeData CreateEmptyRecipe()
+        {
+            return new MachineRecipeData(-1, 0, new List<IItemStack>(), new List<ItemOutput>(), -1);
         }
 
         public List<IItemStack> ItemInputs { get; }

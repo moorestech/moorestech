@@ -28,14 +28,6 @@ namespace Test.UnitTest.Core.Block
             _machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
         }
 
-        [TestCase(0, 1500)]
-        [TestCase(1, 1500)]
-        public void RecipeTimeTest(int id, int ans)
-        {
-            var time = _machineRecipeConfig.GetRecipeData(id).Time;
-            Assert.AreEqual(ans, time);
-        }
-
         /// <summary>
         /// レシピがある時のテスト
         /// </summary>

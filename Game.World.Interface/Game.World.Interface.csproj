@@ -7,6 +7,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Core.Block\Core.Block.csproj" />
+        <ProjectReference Include="..\Game.Block.Interface\Game.Block.Interface.csproj" />
     </ItemGroup>
 
 </Project>
