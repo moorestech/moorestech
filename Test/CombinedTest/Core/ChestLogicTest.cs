@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using Game.Block.BlockFactory;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Chest;
 using Game.Block.Config;

@@ -1,5 +1,4 @@
 ﻿using System;
-using Game.Block.BlockFactory;
 using Game.Block.Blocks.Chest;
 using Game.Block.Config;
 using Game.Block.Interface;

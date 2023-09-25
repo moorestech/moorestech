@@ -1,4 +1,3 @@
-using Game.Block.BlockFactory;
 using Core.EnergySystem;
 using Core.EnergySystem.Electric;
 using Game.Block.Interface;

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Game.Block.BlockFactory;
 using Game.Block.BlockInventory;
 using Game.Block.Config;
 using Game.Block.Config.LoadConfig;
