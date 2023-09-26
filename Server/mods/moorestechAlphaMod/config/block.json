@@ -1,10 +1,10 @@
 {
     "Blocks": [
         {
-            "name": "campfier",
+            "name": "campfire",
             "type": "Machine",
             "itemModId": "sakastudio:moorestechAlphaMod",
-            "itemName": "campfier",
+            "itemName": "campfire",
             "param": {
                 "inputSlot": 2,
                 "outputSlot": 1,

@@ -57,7 +57,7 @@
             }
         ],
         "result": {
-            "itemName": "campfier",
+            "itemName": "campfire",
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
@@ -215,7 +215,7 @@
                 "isRemain": false
             },
             {
-                "itemName": "campfier",
+                "itemName": "campfire",
                 "modId": "sakastudio:moorestechAlphaMod",
                 "count": 1,
                 "isRemain": false

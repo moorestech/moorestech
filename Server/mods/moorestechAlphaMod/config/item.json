@@ -75,7 +75,7 @@
         "imagePath": "assets/item/copper wire.png"
     },
     {
-        "name": "campfier",
+        "name": "campfire",
         "maxStacks": 100,
         "imagePath": "assets/item/campfier.png"
     },
