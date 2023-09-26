@@ -2455,7 +2455,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5576552473576925774
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3778,7 +3778,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: How_To_Controll
+  key: How To Controll
 --- !u!1 &5008337743839078900
 GameObject:
   m_ObjectHideFlags: 0
@@ -4084,6 +4084,7 @@ GameObject:
   - component: {fileID: 8577806248570098297}
   - component: {fileID: 7871135958592637602}
   - component: {fileID: 2518620451917727625}
+  - component: {fileID: 9126460680396040762}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -4208,6 +4209,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &9126460680396040762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5956068414056481954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: Save this game
 --- !u!1 &6054985869774576746
 GameObject:
   m_ObjectHideFlags: 0
@@ -5861,6 +5875,7 @@ GameObject:
   - component: {fileID: 4999736464828048369}
   - component: {fileID: 8337061733504372976}
   - component: {fileID: 5240947631283310551}
+  - component: {fileID: 2452581320550496332}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -5987,6 +6002,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2452581320550496332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8608073063610566735}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: Save and Back to MainMenu
 --- !u!1 &8674790006515608839
 GameObject:
   m_ObjectHideFlags: 0
@@ -9024,6 +9052,10 @@ PrefabInstance:
     - target: {fileID: 507912693684638278, guid: e5a88903162db974eb342156cfe75e13, type: 3}
       propertyPath: m_Name
       value: StoryUI
+      objectReference: {fileID: 0}
+    - target: {fileID: 507912693684638278, guid: e5a88903162db974eb342156cfe75e13, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3396371649713461623, guid: e5a88903162db974eb342156cfe75e13, type: 3}
       propertyPath: m_Pivot.x

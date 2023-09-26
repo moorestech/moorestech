@@ -251,6 +251,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b976201810e240bea52f6452c10f0d0b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textKey: Left click and hold to get stone
+  textKey: Press and hold left-click to get
   displayEnable: 1
   fontSize: 25
