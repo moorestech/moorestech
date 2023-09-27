@@ -1,5 +1,4 @@
-﻿using Core.Block.Blocks;
-using Core.Block.Config;
+﻿using Game.Block.Interface.BlockConfig;
 using MainGame.Network.Event;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.UI.Inventory.View;

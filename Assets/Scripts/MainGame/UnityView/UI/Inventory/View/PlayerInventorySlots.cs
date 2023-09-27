@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Block.Blocks.Machine;
-using Core.Block.Blocks.State;
-using Core.Block.Config;
+using Game.Block;
+using Game.Block.Blocks.Machine;
+using Game.Block.Interface.State;
 using MainGame.Basic.UI;
 using MainGame.Network.Event;
 using MainGame.UnityView.UI.Builder;
