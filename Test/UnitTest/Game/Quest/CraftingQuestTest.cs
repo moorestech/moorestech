@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+#if NET6_0
+using System.Reflection;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest.Interface;
 using Game.Quest.Interface.Extension;
@@ -9,7 +10,7 @@ using PlayerInventory.Event;
 using Server.Boot;
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Game.Quest
 {
     public class CraftingQuestTest

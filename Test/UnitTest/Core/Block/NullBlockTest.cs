@@ -1,10 +1,11 @@
+#if NET6_0
 using Game.Block;
 using Game.Block.Blocks;
 using Core.Const;
 using Game.Block.Interface;
 using NUnit.Framework;
 
-#if NET6_0
+
 namespace Test.UnitTest.Game.Block
 {
     public class NullBlockTest

@@ -1,11 +1,12 @@
-﻿using System;
+#if NET6_0
+using System;
 using System.Collections.Generic;
 using Game.World.Interface.DataStore;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Player;
 
-#if NET6_0
+
 namespace Test.UnitTest.Server.Player
 {
     public class PlayerCoordinateToResponseTest

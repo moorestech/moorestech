@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+#if NET6_0
+using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
 using Game.Block.Blocks.Machine;
@@ -16,7 +17,7 @@ using Server.Util;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Server.PacketTest
 {
     public class RequestBlockInventoryTest

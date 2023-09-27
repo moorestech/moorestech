@@ -1,4 +1,5 @@
-﻿using System;
+#if NET6_0
+using System;
 using System.Threading;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Chest;
@@ -18,7 +19,7 @@ using Test.Module;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Core
 {
     public class ChestLogicTest

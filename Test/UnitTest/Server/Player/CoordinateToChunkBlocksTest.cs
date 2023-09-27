@@ -1,4 +1,5 @@
-﻿using System;
+#if NET6_0
+using System;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Machine;
 using Game.Block.Event;
@@ -20,7 +21,7 @@ using Server.Protocol.PacketResponse.Player;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Server.Player
 {
     public class CoordinateToChunkBlocksTest

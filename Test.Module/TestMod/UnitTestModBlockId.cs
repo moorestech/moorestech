@@ -1,4 +1,5 @@
-﻿#if NET6_0
+#if NET6_0
+
 namespace Test.Module.TestMod
 {
     public class UnitTestModBlockId

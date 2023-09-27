@@ -1,4 +1,5 @@
-﻿using System.Linq;
+#if NET6_0
+using System.Linq;
 using Core.Item;
 using Game.MapObject.Interface;
 using Game.PlayerInventory.Interface;
@@ -11,7 +12,7 @@ using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Server.PacketTest
 {
     public class GetMapObjectProtocolTest

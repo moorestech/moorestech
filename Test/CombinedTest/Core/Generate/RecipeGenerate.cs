@@ -1,8 +1,9 @@
-﻿using System;
+#if NET6_0
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Core.Generate
 {
     public static class RecipeGenerate

@@ -1,3 +1,4 @@
+#if NET6_0
 using System;
 using System.Reflection;
 using Game.Block.Blocks.Machine;
@@ -27,7 +28,7 @@ using Test.Module.TestMod;
 using World.DataStore;
 using World.Event;
 
-#if NET6_0
+
 namespace Test.UnitTest.Game.SaveLoad
 {
     public class MachineSaveLoadTest

@@ -1,3 +1,4 @@
+#if NET6_0
 using Core.ConfigJson;
 using Core.Ore;
 using Core.Ore.Config;
@@ -8,7 +9,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Core.Other
 {
     /// <summary>

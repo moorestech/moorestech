@@ -1,9 +1,10 @@
+#if NET6_0
 using System;
 using System.IO;
 using System.Runtime.Serialization.Json;
 using NUnit.Framework;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Core.Generate
 {
     /// <summary>

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+#if NET6_0
+using System.Collections.Generic;
 using System.Linq;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -9,7 +10,7 @@ using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Server.PacketTest
 {
     public class SetRecipeCraftingInventoryProtocolTest

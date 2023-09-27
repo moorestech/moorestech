@@ -1,3 +1,4 @@
+#if NET6_0
 using System;
 using Core.ConfigJson;
 using Core.Item;
@@ -17,7 +18,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Game
 {
     /// <summary>

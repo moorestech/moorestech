@@ -1,4 +1,5 @@
-﻿using System;
+#if NET6_0
+using System;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Config;
 using Game.Block.Config.LoadConfig.Param;
@@ -17,7 +18,7 @@ using Test.Module;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Core
 {
     /// <summary>

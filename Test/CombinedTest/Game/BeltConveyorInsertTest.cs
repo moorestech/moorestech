@@ -1,4 +1,5 @@
-﻿using System;
+#if NET6_0
+using System;
 using Game.Block.Blocks.Chest;
 using Core.Update;
 using Game.Block.Interface;
@@ -8,7 +9,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Game
 {
     public class BeltConveyorInsertTest

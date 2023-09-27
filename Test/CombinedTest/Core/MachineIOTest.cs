@@ -1,4 +1,5 @@
-﻿using System;
+#if NET6_0
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -25,7 +26,7 @@ using Test.Module;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Core
 {
     public class MachineIoTest

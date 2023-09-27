@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+#if NET6_0
+using System.Collections.Generic;
 using NUnit.Framework;
 using Server.Util;
 
-#if NET6_0
+
 namespace Test.UnitTest.Server
 {
     public class ByteArrayBitArrayConverterTest

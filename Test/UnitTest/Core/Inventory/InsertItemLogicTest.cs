@@ -1,3 +1,4 @@
+#if NET6_0
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item;
@@ -6,7 +7,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Core.Inventory
 {
     /// <summary>

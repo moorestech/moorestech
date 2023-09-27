@@ -1,10 +1,11 @@
-﻿using Core.EnergySystem;
+#if NET6_0
+using Core.EnergySystem;
 using Core.EnergySystem.Electric;
 using Core.Update;
 using NUnit.Framework;
 using Test.Module;
 
-#if NET6_0
+
 namespace Test.UnitTest.Game.Block
 {
     public class ElectricSegmentTest

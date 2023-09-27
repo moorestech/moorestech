@@ -1,7 +1,8 @@
+#if NET6_0
 using System;
 using System.IO;
 
-#if NET6_0
+
 namespace Test.Module.TestMod
 {
     public class TestModDirectory

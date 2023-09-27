@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+#if NET6_0
+using System.Collections.Generic;
 using System.Linq;
 using Game.MapObject.Interface;
 using Game.Save.Interface;
@@ -11,7 +12,7 @@ using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Server.PacketTest
 {
     public class MapObjectDestructionInformationTest

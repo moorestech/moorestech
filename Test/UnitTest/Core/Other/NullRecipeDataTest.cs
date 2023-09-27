@@ -1,4 +1,5 @@
-﻿using Game.Block.RecipeConfig;
+#if NET6_0
+using Game.Block.RecipeConfig;
 using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
@@ -10,7 +11,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Core.Other
 {
     public class NullRecipeDataTest

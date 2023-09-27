@@ -1,10 +1,11 @@
+#if NET6_0
 using Game.Quest.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Game.Quest
 {
     public class QuestConfigTest

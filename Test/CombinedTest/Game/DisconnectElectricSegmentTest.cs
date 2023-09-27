@@ -1,3 +1,4 @@
+#if NET6_0
 using Core.EnergySystem;
 using Core.EnergySystem.Electric;
 using Game.Block.Interface;
@@ -10,7 +11,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Game
 {
     //電柱が無くなったときにセグメントが切断されるテスト

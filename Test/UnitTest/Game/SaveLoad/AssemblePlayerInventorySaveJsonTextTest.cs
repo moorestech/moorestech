@@ -1,3 +1,4 @@
+#if NET6_0
 using System;
 using System.Collections.Generic;
 using Core.Item;
@@ -12,7 +13,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Game.SaveLoad
 {
     public class AssemblePlayerInventorySaveJsonTextTest

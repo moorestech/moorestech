@@ -1,3 +1,4 @@
+#if NET6_0
 using System.Reflection;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest.Interface;
@@ -8,7 +9,7 @@ using PlayerInventory.Event;
 using Server.Boot;
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Game
 {
     /// <summary>

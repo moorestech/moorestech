@@ -1,4 +1,5 @@
-﻿using Core.Config.Item;
+#if NET6_0
+using Core.Config.Item;
 using Core.ConfigJson;
 using Core.Item.Config;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +9,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Core.Other
 {
     public class ItemConfigTest

@@ -1,4 +1,5 @@
-﻿using System;
+#if NET6_0
+using System;
 using Core.ConfigJson;
 using Core.Const;
 using Core.Item;
@@ -13,7 +14,7 @@ using Test.Module;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Core.Other
 {
     public class ItemStackTest

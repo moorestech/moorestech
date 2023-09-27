@@ -1,3 +1,4 @@
+#if NET6_0
 using System.Collections.Generic;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
@@ -11,7 +12,7 @@ using Test.Module;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Core.Other
 {
     public class ConnectingInventoryListPriorityInsertItemServiceTest

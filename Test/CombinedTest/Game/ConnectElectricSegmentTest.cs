@@ -1,3 +1,4 @@
+#if NET6_0
 using System.Collections.Generic;
 using Core.EnergySystem;
 using Game.Block.Interface;
@@ -11,7 +12,7 @@ using Server.Boot;
 using Test.Module.TestMod;
 using World.DataStore;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Game
 {
     public class ConnectElectricSegmentTest

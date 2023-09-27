@@ -1,10 +1,11 @@
-﻿using System;
+#if NET6_0
+using System;
 using System.Collections.Generic;
 using Game.World.Interface.Util;
 using NUnit.Framework;
 using Server.Util;
 
-#if NET6_0
+
 namespace Test.UnitTest.Server
 {
     //バイト配列と各種オブジェクトとの変換のテスト

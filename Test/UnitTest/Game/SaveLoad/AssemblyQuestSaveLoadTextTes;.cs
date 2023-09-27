@@ -1,4 +1,5 @@
-﻿using System;
+#if NET6_0
+using System;
 using System.Reflection;
 using Game.Quest;
 using Game.Quest.Interface;
@@ -10,7 +11,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Game.SaveLoad
 {
     public class AssemblyQuestSaveLoadTextTest

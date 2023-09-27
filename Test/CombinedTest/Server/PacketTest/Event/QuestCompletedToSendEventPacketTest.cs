@@ -1,3 +1,4 @@
+#if NET6_0
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -13,7 +14,7 @@ using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
     public class QuestCompletedToSendEventPacketTest

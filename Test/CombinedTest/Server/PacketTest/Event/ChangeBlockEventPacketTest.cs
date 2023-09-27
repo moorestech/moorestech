@@ -1,4 +1,5 @@
-﻿using System;
+#if NET6_0
+using System;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Machine;
 using Core.Item;
@@ -13,7 +14,7 @@ using Server.Boot;
 using Server.Event.EventReceive;
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
     public class ChangeBlockEventPacketTest

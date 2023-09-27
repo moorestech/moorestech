@@ -1,3 +1,4 @@
+#if NET6_0
 using System.Linq;
 using Game.Quest.Factory;
 using Game.Quest.Interface;
@@ -6,7 +7,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Game.Quest
 {
     [TestFixture]

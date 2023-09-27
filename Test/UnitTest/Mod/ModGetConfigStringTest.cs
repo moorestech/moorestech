@@ -1,3 +1,4 @@
+#if NET6_0
 using System;
 using System.IO;
 using Mod.Config;
@@ -5,7 +6,7 @@ using NUnit.Framework;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Mod
 {
     /// <summary>

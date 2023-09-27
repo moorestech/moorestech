@@ -1,3 +1,4 @@
+#if NET6_0
 using System;
 using System.Collections.Generic;
 using Game.Block.BlockInventory;
@@ -20,7 +21,7 @@ using Test.Module;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Core
 {
     public class MinerMiningTest

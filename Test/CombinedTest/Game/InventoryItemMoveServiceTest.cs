@@ -1,3 +1,4 @@
+#if NET6_0
 using Core.Item;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +9,7 @@ using Server.Protocol.PacketResponse.Util;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.CombinedTest.Game
 {
     public class InventoryItemMoveServiceTest

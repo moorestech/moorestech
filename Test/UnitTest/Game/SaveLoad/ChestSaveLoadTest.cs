@@ -1,4 +1,5 @@
-﻿using System;
+#if NET6_0
+using System;
 using Game.Block.Blocks.Chest;
 using Game.Block.Config;
 using Game.Block.Interface;
@@ -11,7 +12,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
-#if NET6_0
+
 namespace Test.UnitTest.Game.SaveLoad
 {
     public class ChestSaveLoadTest
