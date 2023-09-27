@@ -17,6 +17,7 @@ using Server.Util;
 using Test.Module.TestMod;
 using World.Event;
 
+#if NET6_0
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
     public class BlockPlaceEventPacketTest
@@ -140,3 +141,4 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         }
     }
 }
+#endif

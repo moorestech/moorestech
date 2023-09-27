@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 
+#if NET6_0
 namespace Test.Module.TestMod
 {
     public class TestModDirectory
@@ -20,3 +21,4 @@ namespace Test.Module.TestMod
         public static string MachineIoTestModDirectory => Path.Combine(FolderDirectory, "MachineIOTestMod");
     }
 }
+#endif

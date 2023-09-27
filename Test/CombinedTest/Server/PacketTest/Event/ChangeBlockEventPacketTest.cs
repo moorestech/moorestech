@@ -13,6 +13,7 @@ using Server.Boot;
 using Server.Event.EventReceive;
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
     public class ChangeBlockEventPacketTest
@@ -61,3 +62,4 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         }
     }
 }
+#endif

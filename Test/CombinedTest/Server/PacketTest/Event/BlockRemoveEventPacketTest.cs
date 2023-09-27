@@ -12,6 +12,7 @@ using Server.Protocol.PacketResponse;
 
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
     /// <summary>
@@ -85,3 +86,4 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         }
     }
 }
+#endif

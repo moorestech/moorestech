@@ -8,6 +8,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.UnitTest.Core.Other
 {
     public class ItemConfigTest
@@ -50,3 +51,4 @@ namespace Test.UnitTest.Core.Other
         }
     }
 }
+#endif

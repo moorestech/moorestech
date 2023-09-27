@@ -1,6 +1,7 @@
 using Game.PlayerInventory.Interface;
 using NUnit.Framework;
 
+#if NET6_0
 namespace Test.UnitTest.Game
 {
     public class HotBarSlotToInventorySlotTest
@@ -14,3 +15,4 @@ namespace Test.UnitTest.Game
         }
     }
 }
+#endif

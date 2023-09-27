@@ -13,6 +13,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.UnitTest.Game.SaveLoad
 {
     public class PowerGeneratorSaveLoadTest
@@ -73,3 +74,4 @@ namespace Test.UnitTest.Game.SaveLoad
         }
     }
 }
+#endif

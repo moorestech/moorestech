@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.UnitTest.Mod
 {
     /// <summary>
@@ -37,3 +38,4 @@ namespace Test.UnitTest.Mod
         
     }
 }
+#endif

@@ -1,6 +1,7 @@
 ﻿using System;
 using Core.EnergySystem.Electric;
 
+#if NET6_0
 namespace Test.Module
 {
     //デバック用で無限に電力を供給できる
@@ -22,3 +23,4 @@ namespace Test.Module
         }
     }
 }
+#endif

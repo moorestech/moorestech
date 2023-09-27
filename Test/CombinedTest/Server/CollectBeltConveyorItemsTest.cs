@@ -15,6 +15,7 @@ using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Util;
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.CombinedTest.Server
 {
     public class CollectBeltConveyorItemsTest
@@ -196,3 +197,4 @@ namespace Test.CombinedTest.Server
         }
     }
 }
+#endif

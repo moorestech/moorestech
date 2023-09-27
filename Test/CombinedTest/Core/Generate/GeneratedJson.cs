@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.Serialization.Json;
 using NUnit.Framework;
 
+#if NET6_0
 namespace Test.CombinedTest.Core.Generate
 {
     /// <summary>
@@ -32,3 +33,4 @@ namespace Test.CombinedTest.Core.Generate
         }
     }
 }
+#endif

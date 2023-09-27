@@ -7,6 +7,7 @@ using Server.Protocol.PacketResponse.Util;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.CombinedTest.Game
 {
     public class InventoryItemInsertServiceTest
@@ -84,3 +85,4 @@ namespace Test.CombinedTest.Game
         }
     }
 }
+#endif

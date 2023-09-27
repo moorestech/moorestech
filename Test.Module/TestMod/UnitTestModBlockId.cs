@@ -1,4 +1,5 @@
-﻿namespace Test.Module.TestMod
+﻿#if NET6_0
+namespace Test.Module.TestMod
 {
     public class UnitTestModBlockId
     {
@@ -12,3 +13,4 @@
         public const int InfinityGeneratorId = 8;
     }
 }
+#endif

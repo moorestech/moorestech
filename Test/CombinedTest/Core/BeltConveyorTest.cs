@@ -17,6 +17,7 @@ using Test.Module;
 
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.CombinedTest.Core
 {
     /// <summary>
@@ -159,3 +160,4 @@ namespace Test.CombinedTest.Core
         }
     }
 }
+#endif

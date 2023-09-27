@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using Server.Util;
 
+#if NET6_0
 namespace Test.UnitTest.Server
 {
     public class ByteArrayBitArrayConverterTest
@@ -133,3 +134,4 @@ namespace Test.UnitTest.Server
         }
     }
 }
+#endif

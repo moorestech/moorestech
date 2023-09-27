@@ -13,6 +13,7 @@ using Server.Protocol.PacketResponse.Util.InventoryMoveUitl;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
     public class PlayerMainInventoryUpdateTest
@@ -144,3 +145,4 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         }
     }
 }
+#endif

@@ -11,6 +11,7 @@ using Server.Boot;
 using Test.Module.TestMod;
 using World.DataStore;
 
+#if NET6_0
 namespace Test.CombinedTest.Game
 {
     public class ConnectElectricSegmentTest
@@ -218,3 +219,4 @@ namespace Test.CombinedTest.Game
         }
     }
 }
+#endif

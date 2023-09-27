@@ -9,6 +9,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.CombinedTest.Game
 {
     public class VeinGeneratorTest
@@ -38,3 +39,4 @@ namespace Test.CombinedTest.Game
         
     }
 }
+#endif

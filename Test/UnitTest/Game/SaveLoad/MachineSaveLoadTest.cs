@@ -27,6 +27,7 @@ using Test.Module.TestMod;
 using World.DataStore;
 using World.Event;
 
+#if NET6_0
 namespace Test.UnitTest.Game.SaveLoad
 {
     public class MachineSaveLoadTest
@@ -145,3 +146,4 @@ namespace Test.UnitTest.Game.SaveLoad
         }
     }
 }
+#endif

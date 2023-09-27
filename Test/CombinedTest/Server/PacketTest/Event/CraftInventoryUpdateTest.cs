@@ -12,6 +12,7 @@ using Server.Protocol.PacketResponse;
 
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
     public class CraftInventoryUpdateTest
@@ -98,3 +99,4 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         }
     }
 }
+#endif

@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using ProbabilityCalculator = Game.Block.ProbabilityCalculator;
 
+#if NET6_0
 namespace Test.UnitTest.Core.Other
 {
     public class UtilTest
@@ -35,3 +36,4 @@ namespace Test.UnitTest.Core.Other
         }
     }
 }
+#endif

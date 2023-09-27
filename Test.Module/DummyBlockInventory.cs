@@ -8,6 +8,7 @@ using Core.Item.Config;
 using Core.Item.Util;
 
 
+#if NET6_0
 namespace Test.Module
 {
     public class DummyBlockInventory : IBlockInventory
@@ -79,3 +80,4 @@ namespace Test.Module
         }
     }
 }
+#endif

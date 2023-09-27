@@ -25,6 +25,7 @@ using Test.Module;
 
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.CombinedTest.Core
 {
     public class MachineIoTest
@@ -90,3 +91,4 @@ namespace Test.CombinedTest.Core
         }
     }
 }
+#endif

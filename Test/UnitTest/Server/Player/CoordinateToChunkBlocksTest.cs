@@ -20,6 +20,7 @@ using Server.Protocol.PacketResponse.Player;
 
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.UnitTest.Server.Player
 {
     public class CoordinateToChunkBlocksTest
@@ -92,3 +93,4 @@ namespace Test.UnitTest.Server.Player
         }
     }
 }
+#endif

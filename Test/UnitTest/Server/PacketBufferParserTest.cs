@@ -5,6 +5,7 @@ using MessagePack;
 using NUnit.Framework;
 using Server.Util;
 
+#if NET6_0
 namespace Test.UnitTest.Server
 {
     /// <summary>
@@ -115,5 +116,5 @@ namespace Test.UnitTest.Server
     {
         public string t;
     }
-    
 }
+#endif

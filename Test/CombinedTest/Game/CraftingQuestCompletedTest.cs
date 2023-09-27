@@ -8,6 +8,7 @@ using PlayerInventory.Event;
 using Server.Boot;
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.CombinedTest.Game
 {
     /// <summary>
@@ -70,3 +71,4 @@ namespace Test.CombinedTest.Game
         private void OnQuestCompleted(QuestConfigData obj) { _eventInvokeCount++; }
     }
 }
+#endif

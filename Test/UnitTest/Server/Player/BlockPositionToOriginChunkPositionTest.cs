@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Util;
 
+#if NET6_0
 namespace Test.UnitTest.Server.Player
 {
     public class BlockPositionToOriginChunkPositionTest
@@ -35,3 +36,4 @@ namespace Test.UnitTest.Server.Player
         }
     }
 }
+#endif

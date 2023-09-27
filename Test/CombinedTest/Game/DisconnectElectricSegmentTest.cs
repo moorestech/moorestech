@@ -10,6 +10,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.CombinedTest.Game
 {
     //電柱が無くなったときにセグメントが切断されるテスト
@@ -126,3 +127,4 @@ namespace Test.CombinedTest.Game
         }
     }
 }
+#endif

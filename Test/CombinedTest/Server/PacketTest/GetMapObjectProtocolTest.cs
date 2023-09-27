@@ -11,6 +11,7 @@ using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.CombinedTest.Server.PacketTest
 {
     public class GetMapObjectProtocolTest
@@ -40,3 +41,4 @@ namespace Test.CombinedTest.Server.PacketTest
         }
     }
 }
+#endif

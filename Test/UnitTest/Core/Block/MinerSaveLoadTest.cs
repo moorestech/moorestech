@@ -15,6 +15,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.UnitTest.Game.Block
 {
     public class MinerSaveLoadTest
@@ -64,3 +65,4 @@ namespace Test.UnitTest.Game.Block
         }
     }
 }
+#endif

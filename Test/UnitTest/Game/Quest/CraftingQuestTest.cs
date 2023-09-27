@@ -9,6 +9,7 @@ using PlayerInventory.Event;
 using Server.Boot;
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.UnitTest.Game.Quest
 {
     public class CraftingQuestTest
@@ -143,3 +144,4 @@ namespace Test.UnitTest.Game.Quest
         }
     }
 }
+#endif

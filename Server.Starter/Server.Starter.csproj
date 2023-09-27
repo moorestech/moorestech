@@ -35,12 +35,6 @@
         <None Include="..\Nuget\PackageReadme.md" Pack="true" PackagePath="\\" />
         
       <None Remove="mods\moorestechAlphaMod.zip" />
-      <Content Include="mods\moorestechAlphaMod.zip">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-        <Content Include="map\mapObjects.json">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Content>
     </ItemGroup>
 
 </Project>

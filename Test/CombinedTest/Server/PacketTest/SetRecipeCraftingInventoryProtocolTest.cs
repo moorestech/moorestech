@@ -9,6 +9,7 @@ using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.CombinedTest.Server.PacketTest
 {
     public class SetRecipeCraftingInventoryProtocolTest
@@ -95,3 +96,4 @@ namespace Test.CombinedTest.Server.PacketTest
         }
     }
 }
+#endif

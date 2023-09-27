@@ -5,6 +5,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.UnitTest.Game.WorldSetting
 {
     /// <summary>
@@ -33,3 +34,4 @@ namespace Test.UnitTest.Game.WorldSetting
         }
     }
 }
+#endif

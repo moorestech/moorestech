@@ -4,6 +4,7 @@ using Core.Const;
 using Game.Block.Interface;
 using NUnit.Framework;
 
+#if NET6_0
 namespace Test.UnitTest.Game.Block
 {
     public class NullBlockTest
@@ -17,3 +18,4 @@ namespace Test.UnitTest.Game.Block
         }
     }
 }
+#endif

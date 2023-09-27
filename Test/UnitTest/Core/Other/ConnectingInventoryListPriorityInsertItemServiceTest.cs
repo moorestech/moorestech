@@ -11,6 +11,7 @@ using Test.Module;
 
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.UnitTest.Core.Other
 {
     public class ConnectingInventoryListPriorityInsertItemServiceTest
@@ -49,3 +50,4 @@ namespace Test.UnitTest.Core.Other
         }
     }
 }
+#endif

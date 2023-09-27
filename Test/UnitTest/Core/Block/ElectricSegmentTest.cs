@@ -4,6 +4,7 @@ using Core.Update;
 using NUnit.Framework;
 using Test.Module;
 
+#if NET6_0
 namespace Test.UnitTest.Game.Block
 {
     public class ElectricSegmentTest
@@ -57,3 +58,4 @@ namespace Test.UnitTest.Game.Block
         }
     }
 }
+#endif

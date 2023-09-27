@@ -16,6 +16,7 @@ using Server.Boot;
 
 using Test.Module.TestMod;
 
+#if NET6_0
 namespace Test.UnitTest.Game
 {
     public class WorldBlockDatastoreTest
@@ -86,3 +87,4 @@ namespace Test.UnitTest.Game
         }
     }
 }
+#endif
