@@ -121,8 +121,10 @@ jobs:
           ITCH_GAME: ${{ secrets.ITCH_IO_GAME_NAME }}
           ITCH_USER: ${{ secrets.ITCH_IO_USER_NAME }}
           PACKAGE: Output_${{ matrix.platform.name }}
+  
+  
     
-    # Steamへのデプロイ
+  # Steamへのデプロイ
   steamDeploy:
     name: Steam Deploy
     needs: build
@@ -156,4 +158,75 @@ jobs:
           depot2Path: StandaloneOSX
           depot3Path: StandaloneLinux64
           releaseBranch: github-action
+  
+  
+  # Github Releaseへのデプロイ
+  createRelease:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # 各プラットフォーム向けにビルドしたデータをダウンロード
+      - name: Download windows artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_StandaloneWindows64
+          path: build/StandaloneWindows64
+      - name: Download osx artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_StandaloneOSX
+          path: build/StandaloneOSX
+      - name: Download linux artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_StandaloneLinux64
+          path: build/StandaloneLinux64
+          
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Changes in this Release
+            - First Change
+            - Second Change
+          draft: false
+          prerelease: false
 
+        # Upload Release Asset
+      - name: Upload Release Asset
+        id: upload-release-asset-linux
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/StandaloneWindows64
+          asset_name: StandaloneWindows64
+          asset_content_type: application/zip
+      - name: Upload Release Asset
+        id: upload-release-asset-linux
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/StandaloneOSX
+          asset_name: StandaloneOSX
+          asset_content_type: application/zip
+      - name: Upload Release Asset
+        id: upload-release-asset-linux
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/StandaloneLinux64
+          asset_name: StandaloneLinux64
+          asset_content_type: application/zip
+          
