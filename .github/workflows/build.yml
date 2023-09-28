@@ -89,10 +89,71 @@ jobs:
           path: ./output.tar.gz
 
 
+
+  # itch.ioへのデプロイ
+  idchDeploy:
+    name: itch.io Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        platform:
+          - name: StandaloneWindows64
+            itchioChannel: windows
+          - name: StandaloneOSX
+            itchioChannel: osx 
+          - name: StandaloneLinux64
+            itchioChannel: linux
+    
+    steps:
+      # ビルドしたデータをダウンロード
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_${{ matrix.platform.name }}
+          path: Output_${{ matrix.platform.name }}
+      # itch ioにデプロイ
       - uses: manleydev/butler-publish-itchio-action@master
         env:
           BUTLER_CREDENTIALS: ${{ secrets.ITCH_IO_APY_KEY }}
-          CHANNEL: windows
+          CHANNEL: ${{ matrix.platform.itchioChannel }}
           ITCH_GAME: ${{ secrets.ITCH_IO_GAME_NAME }}
           ITCH_USER: ${{ secrets.ITCH_IO_USER_NAME }}
           PACKAGE: Output_${{ matrix.platform.name }}
+    
+    # Steamへのデプロイ
+  steamDeploy:
+    name: Steam Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # 各プラットフォーム向けにビルドしたデータをダウンロード
+      - name: Download windows artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_StandaloneWindows64
+          path: build/StandaloneWindows64
+      - name: Download osx artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_StandaloneOSX
+          path: build/StandaloneOSX
+      - name: Download linux artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_StandaloneLinux64
+          path: build/StandaloneLinux64
+          
+      - uses: game-ci/steam-deploy@v3
+        with:
+          username: ${{ secrets.STEAM_USERNAME }}
+          configVdf: ${{ secrets.STEAM_CONFIG_VDF}}
+          appId: 1958160
+          buildDescription: upload from github action
+          rootPath: build
+          depot1Path: StandaloneWindows64
+          depot2Path: StandaloneOSX
+          depot3Path: StandaloneLinux64
+          releaseBranch: github-action
+
