@@ -16,8 +16,7 @@
         "System.Runtime.CompilerServices.Unsafe.dll",
         "System.Data.HashFunction.Core.dll",
         "System.Data.HashFunction.xxHash.dll",
-        "System.Data.HashFunction.Interfaces.dll",
-        "nunit.framework.dll"
+        "System.Data.HashFunction.Interfaces.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Core.Block.Config;
+
 using Cysharp.Threading.Tasks;
+using Game.Block;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Block.StateChange;

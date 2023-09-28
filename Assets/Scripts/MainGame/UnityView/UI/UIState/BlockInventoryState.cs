@@ -1,6 +1,6 @@
 using System;
-using Core.Block.Config;
-using Core.Block.Config.LoadConfig.Param;
+using Game.Block;
+using Game.Block.Config.LoadConfig.Param;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.Control.MouseKeyboard;

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using Core.Block.Config;
-using Core.Block.Config.LoadConfig.Param;
-using Core.Block.Config.Service;
+﻿using System.Collections.Generic;
 using Core.Const;
+using Game.Block;
+using Game.Block.Config.LoadConfig.Param;
+using Game.Block.Config.Service;
+using Game.Block.Interface.BlockConfig;
 using Game.PlayerInventory.Interface;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Chunk;

@@ -87,3 +87,12 @@ jobs:
         with:
           name: Output_${{ matrix.platform.name }}
           path: ./output.tar.gz
+
+
+      - uses: manleydev/butler-publish-itchio-action@master
+        env:
+          BUTLER_CREDENTIALS: ${{ secrets.ITCH_IO_APY_KEY }}
+          CHANNEL: windows
+          ITCH_GAME: ${{ secrets.ITCH_IO_GAME_NAME }}
+          ITCH_USER: ${{ secrets.ITCH_IO_USER_NAME }}
+          PACKAGE: Output_${{ matrix.platform.name }}

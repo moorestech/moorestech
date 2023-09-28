@@ -1,8 +1,7 @@
 ﻿using System;
-using Core.Block.Blocks.Machine;
-using Core.Block.Blocks.State;
+using Game.Block.Blocks.Machine;
+using Game.Block.Interface.State;
 using MainGame.ModLoader.Glb;
-using MessagePack;
 using Newtonsoft.Json;
 using UnityEngine;
 

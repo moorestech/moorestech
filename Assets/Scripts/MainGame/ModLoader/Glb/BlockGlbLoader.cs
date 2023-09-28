@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Core.Block.Config.LoadConfig;
 using Cysharp.Threading.Tasks;
+using Game.Block.Interface.BlockConfig;
 using MainGame.Basic;
 using MainGame.Basic.Util;
 using Mod.Loader;
