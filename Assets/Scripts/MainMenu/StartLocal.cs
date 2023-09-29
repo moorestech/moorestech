@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using Cysharp.Threading.Tasks;
 using GameConst;
 using MainGame.Basic;
 using MainGame.Starter;
@@ -18,18 +19,32 @@ namespace MainMenu
 
         private void Start()
         {
-            startLocalButton.onClick.AddListener(StartLocalServer);
+            startLocalButton.onClick.AddListener(() => StartLocalServer().Forget());
         }
 
         private Process _serverProcess;
-        private void StartLocalServer()
+        private async UniTask StartLocalServer()
         {
             _serverProcess = new Process();
             _serverProcess.StartInfo.FileName = ServerConst.DotnetRuntimePath;
             _serverProcess.StartInfo.Arguments = $"\"{ServerConst.ServerDllPath}\"";
+            _serverProcess.StartInfo.UseShellExecute = true;
+            _serverProcess.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
+            
             Debug.Log($"Start Server Runtime : {ServerConst.DotnetRuntimePath} Arguments : {ServerConst.ServerDllPath}");
             _serverProcess.Start();
-            
+            await UniTask.Delay(1000);
+            if (_serverProcess.HasExited)
+            {
+                Debug.LogError("Server did not start");
+                Debug.LogError($"ExitCode : {_serverProcess.ExitCode}");
+                Debug.LogError("Log : " + _serverProcess.StandardOutput.ReadToEnd());
+                Debug.LogError("Message : " + _serverProcess.StandardError.ReadToEnd());
+                return;
+            }
+
+            Debug.LogError("Server started");
+
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;
             SceneManager.LoadScene(SceneConstant.MainGameSceneName);
         }

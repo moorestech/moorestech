@@ -36,7 +36,7 @@ namespace MainGame.Network
         private async Task Connect()
         {
             //サーバーに接続する前に全体の処理を待つ
-            await Task.Delay(1000);
+            await Task.Delay(4000);
             
             Debug.Log("サーバーに接続します");
             //接続を試行する
@@ -47,6 +47,7 @@ namespace MainGame.Network
             catch (SocketException e)
             {
                 Debug.LogError("サーバーへの接続に失敗しました");
+                Debug.LogError($"Message {e.Message} StackTrace {e.StackTrace}");
                 return;
             }
             

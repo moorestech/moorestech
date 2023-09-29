@@ -39,7 +39,11 @@ namespace Localization
             {
                 text = $"[Localize] Other Error : {key} : {e.Message}";
             }
-            
+
+            if (_text == null)
+            {
+                _text = GetComponent<TextMeshProUGUI>();
+            }
             _text.text = text;
             _text.ForceMeshUpdate();
         }
