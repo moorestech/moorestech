@@ -43,7 +43,7 @@ namespace MainMenu
                 return;
             }
 
-            Debug.LogError("Server started");
+            Debug.Log("Server started");
 
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;
             SceneManager.LoadScene(SceneConstant.MainGameSceneName);

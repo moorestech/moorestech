@@ -36,7 +36,7 @@ namespace MainGame.Network
         private async Task Connect()
         {
             //サーバーに接続する前に全体の処理を待つ
-            await Task.Delay(4000);
+            await Task.Delay(2000);
             
             Debug.Log("サーバーに接続します");
             //接続を試行する

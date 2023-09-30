@@ -39,6 +39,7 @@ namespace MainGame.Control.UI.PauseMenu
         }
 
         private void OnDestroy() { Disconnect(); }
+        private void OnApplicationQuit() { Disconnect(); }
 
 
         private void Disconnect()
@@ -51,5 +52,6 @@ namespace MainGame.Control.UI.PauseMenu
             }
             _socketSender.Close();
         }
+
     }
 }
