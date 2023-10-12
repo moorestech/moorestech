@@ -5,55 +5,55 @@
         "itemName": "Test1",
         "modId": "Test Author:forUniTest",
         "count": 1,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "Test1",
         "modId": "Test Author:forUniTest",
         "count": 1,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "Test2",
         "modId": "Test Author:forUniTest",
         "count": 3,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "Test3",
         "modId": "Test Author:forUniTest",
         "count": 2,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "Test3",
         "modId": "Test Author:forUniTest",
         "count": 3,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "Test3",
         "modId": "Test Author:forUniTest",
         "count": 2,
-        "isRemain" : false
+        "isRemain": false
       }
     ],
     "result": {
@@ -68,55 +68,55 @@
         "itemName": "Test1",
         "modId": "Test Author:forUniTest",
         "count": 1,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       }
     ],
     "result": {
@@ -131,55 +131,55 @@
         "itemName": "Test6",
         "modId": "Test Author:forUniTest",
         "count": 1,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       }
     ],
     "result": {
@@ -194,55 +194,55 @@
         "itemName": "Test1",
         "modId": "Test Author:forUniTest",
         "count": 1,
-        "isRemain" : true
+        "isRemain": true
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "Test1",
         "modId": "Test Author:forUniTest",
         "count": 1,
-        "isRemain" : true
+        "isRemain": true
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "",
         "modId": "",
         "count": 0,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "Test3",
         "modId": "Test Author:forUniTest",
         "count": 3,
-        "isRemain" : false
+        "isRemain": false
       },
       {
         "itemName": "Test3",
         "modId": "Test Author:forUniTest",
         "count": 2,
-        "isRemain" : false
+        "isRemain": false
       }
     ],
     "result": {

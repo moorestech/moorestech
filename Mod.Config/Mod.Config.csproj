@@ -6,12 +6,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Core.ConfigJson\Core.ConfigJson.csproj" />
-      <ProjectReference Include="..\Mod.Loader\Mod.Loader.csproj" />
+        <ProjectReference Include="..\Core.ConfigJson\Core.ConfigJson.csproj"/>
+        <ProjectReference Include="..\Mod.Loader\Mod.Loader.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
     </ItemGroup>
 
 </Project>

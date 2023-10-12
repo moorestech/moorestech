@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Game.Block;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
 
@@ -13,7 +12,7 @@ namespace Game.World.Interface.DataStore
         public IBlock GetBlock(int x, int y);
         public bool Exists(int x, int y);
         public bool TryGetBlock(int x, int y, out IBlock block);
-        public (int,int) GetBlockPosition(int entityId);
+        public (int, int) GetBlockPosition(int entityId);
         public BlockDirection GetBlockDirection(int x, int y);
         public List<SaveBlockData> GetSaveBlockDataList();
         public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList);

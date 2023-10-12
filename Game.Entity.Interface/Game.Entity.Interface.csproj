@@ -7,12 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Core.Item\Core.Item.csproj" />
-      <ProjectReference Include="..\Game.Base\Game.Base.csproj" />
+        <ProjectReference Include="..\Core.Item\Core.Item.csproj"/>
+        <ProjectReference Include="..\Game.Base\Game.Base.csproj"/>
     </ItemGroup>
 
 </Project>

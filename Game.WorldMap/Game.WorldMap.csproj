@@ -6,10 +6,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\ClassLibrary\ClassLibrary.csproj" />
-        <ProjectReference Include="..\Core.Ore\Core.Ore.csproj" />
-        <ProjectReference Include="..\Game.Block\Game.Block.csproj" />
-        <ProjectReference Include="..\Game.World.Interface\Game.World.Interface.csproj" />
+        <ProjectReference Include="..\ClassLibrary\ClassLibrary.csproj"/>
+        <ProjectReference Include="..\Core.Ore\Core.Ore.csproj"/>
+        <ProjectReference Include="..\Game.Block\Game.Block.csproj"/>
+        <ProjectReference Include="..\Game.World.Interface\Game.World.Interface.csproj"/>
     </ItemGroup>
 
 </Project>

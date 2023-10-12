@@ -7,14 +7,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Core.Item\Core.Item.csproj" />
-        <ProjectReference Include="..\Core.Inventory\Core.Inventory.csproj" />
-        <ProjectReference Include="..\Game.Crafting.Interface\Game.Crafting.Interface.csproj" />
-        <ProjectReference Include="..\Game.PlayerInventory.Interface\Game.PlayerInventory.Interface.csproj" />
+        <ProjectReference Include="..\Core.Item\Core.Item.csproj"/>
+        <ProjectReference Include="..\Core.Inventory\Core.Inventory.csproj"/>
+        <ProjectReference Include="..\Game.Crafting.Interface\Game.Crafting.Interface.csproj"/>
+        <ProjectReference Include="..\Game.PlayerInventory.Interface\Game.PlayerInventory.Interface.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0"/>
     </ItemGroup>
 
 </Project>

@@ -6,12 +6,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Core.Inventory\Core.Inventory.csproj" />
-        <ProjectReference Include="..\Game.World.Interface\Game.World.Interface.csproj" />
+        <ProjectReference Include="..\Core.Inventory\Core.Inventory.csproj"/>
+        <ProjectReference Include="..\Game.World.Interface\Game.World.Interface.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
     </ItemGroup>
 
 </Project>

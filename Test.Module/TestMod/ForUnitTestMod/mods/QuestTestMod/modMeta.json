@@ -1,8 +1,7 @@
 {
-    "id":"forQuestTest",
-    "name":"Test Mod 2",
-    "version":"2.0",
-    "author":"QuestAuthor",
-    "description":"This is a test mod."
-
+  "id": "forQuestTest",
+  "name": "Test Mod 2",
+  "version": "2.0",
+  "author": "QuestAuthor",
+  "description": "This is a test mod."
 }

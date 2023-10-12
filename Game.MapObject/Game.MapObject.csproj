@@ -6,8 +6,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Game.MapObject.Interface\Game.MapObject.Interface.csproj" />
-      <ProjectReference Include="..\Game.SaveLoad.Interface\Game.SaveLoad.Interface.csproj" />
+        <ProjectReference Include="..\Game.MapObject.Interface\Game.MapObject.Interface.csproj"/>
+        <ProjectReference Include="..\Game.SaveLoad.Interface\Game.SaveLoad.Interface.csproj"/>
     </ItemGroup>
 
 </Project>

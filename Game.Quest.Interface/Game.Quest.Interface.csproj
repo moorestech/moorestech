@@ -6,9 +6,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Core.Item\Core.Item.csproj" />
-      <ProjectReference Include="..\Core.Util\Core.Util.csproj" />
-      <ProjectReference Include="..\Game.PlayerInventory.Interface\Game.PlayerInventory.Interface.csproj" />
+        <ProjectReference Include="..\Core.Item\Core.Item.csproj"/>
+        <ProjectReference Include="..\Core.Util\Core.Util.csproj"/>
+        <ProjectReference Include="..\Game.PlayerInventory.Interface\Game.PlayerInventory.Interface.csproj"/>
     </ItemGroup>
 
 </Project>

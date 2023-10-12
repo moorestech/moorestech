@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Game.Block.Blocks;
 using Core.Const;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
@@ -11,31 +10,32 @@ using World.Event;
 namespace World.DataStore
 {
     /// <summary>
-    /// ワールドに存在するブロックとその座標の対応づけを行います。
+    ///     ワールドに存在するブロックとその座標の対応づけを行います。
     /// </summary>
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
+        private readonly IBlockFactory _blockFactory;
+
         //メインのデータストア
         private readonly Dictionary<int, WorldBlockData> _blockMasterDictionary = new();
+        private readonly BlockPlaceEvent _blockPlaceEvent;
+        private readonly BlockRemoveEvent _blockRemoveEvent;
 
         //座標とキーの紐づけ
         private readonly Dictionary<Coordinate, int> _coordinateDictionary = new();
 
-        public event Action<(ChangedBlockState state, IBlock block, int x, int y)> OnBlockStateChange;
 
-
-        readonly IBlock _nullBlock = new NullBlock();
-        private readonly BlockPlaceEvent _blockPlaceEvent;
-        private readonly BlockRemoveEvent _blockRemoveEvent;
-        private readonly IBlockFactory _blockFactory;
+        private readonly IBlock _nullBlock = new NullBlock();
 
         public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, IBlockFactory blockFactory,
             IBlockRemoveEvent blockRemoveEvent)
         {
             _blockFactory = blockFactory;
-            _blockRemoveEvent = (BlockRemoveEvent) blockRemoveEvent;
-            _blockPlaceEvent = (BlockPlaceEvent) blockPlaceEvent;
+            _blockRemoveEvent = (BlockRemoveEvent)blockRemoveEvent;
+            _blockPlaceEvent = (BlockPlaceEvent)blockPlaceEvent;
         }
+
+        public event Action<(ChangedBlockState state, IBlock block, int x, int y)> OnBlockStateChange;
 
         public bool AddBlock(IBlock block, int x, int y, BlockDirection blockDirection)
         {
@@ -49,10 +49,7 @@ namespace World.DataStore
                 _coordinateDictionary.Add(c, block.EntityId);
                 _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(c, data.Block, blockDirection));
 
-                block.OnBlockStateChange += state =>
-                {
-                    OnBlockStateChange?.Invoke((state, block, x, y));
-                };
+                block.OnBlockStateChange += state => { OnBlockStateChange?.Invoke((state, block, x, y)); };
 
                 return true;
             }
@@ -63,7 +60,7 @@ namespace World.DataStore
         public bool RemoveBlock(int x, int y)
         {
             if (!Exists(x, y)) return false;
-            
+
             var entityId = GetEntityId(x, y);
             if (!_blockMasterDictionary.ContainsKey(entityId)) return false;
 
@@ -87,11 +84,12 @@ namespace World.DataStore
 
         public bool TryGetBlock(int x, int y, out IBlock block)
         {
-            if (Exists(x,y))
+            if (Exists(x, y))
             {
                 block = GetBlock(x, y);
                 return true;
             }
+
             block = _nullBlock;
             return false;
         }
@@ -114,8 +112,8 @@ namespace World.DataStore
                 return _blockMasterDictionary[_coordinateDictionary[c]].BlockDirection;
             return BlockDirection.North;
         }
-        
-        
+
+
         public bool ExistsComponentBlock<TComponent>(int x, int y)
         {
             return GetBlock(x, y) is TComponent;
@@ -124,21 +122,19 @@ namespace World.DataStore
         public TComponent GetBlock<TComponent>(int x, int y)
         {
             var block = GetBlock(x, y);
-            if (block is TComponent component)
-            {
-                return component;
-            }
+            if (block is TComponent component) return component;
 
             throw new Exception("Block is not " + typeof(TComponent));
         }
-        
+
         public bool TryGetBlock<TComponent>(int x, int y, out TComponent component)
         {
-            if (ExistsComponentBlock<TComponent>(x,y))
+            if (ExistsComponentBlock<TComponent>(x, y))
             {
                 component = GetBlock<TComponent>(x, y);
                 return true;
             }
+
             component = default;
             return false;
         }
@@ -147,15 +143,13 @@ namespace World.DataStore
         {
             var list = new List<SaveBlockData>();
             foreach (var block in _blockMasterDictionary)
-            {
                 list.Add(new SaveBlockData(
                     block.Value.X,
                     block.Value.Y,
                     block.Value.Block.BlockHash,
                     block.Value.Block.EntityId,
                     block.Value.Block.GetSaveState(),
-                    (int) block.Value.BlockDirection));
-            }
+                    (int)block.Value.BlockDirection));
 
             return list;
         }
@@ -163,17 +157,22 @@ namespace World.DataStore
         public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList)
         {
             foreach (var block in saveBlockDataList)
-            {
                 AddBlock(
                     _blockFactory.Load(block.BlockHash, block.EntityId, block.State),
                     block.X,
                     block.Y,
-                    (BlockDirection) block.Direction);
-            }
+                    (BlockDirection)block.Direction);
         }
 
 
-        public bool Exists(int x, int y) { return GetBlock(x, y).BlockId != BlockConst.EmptyBlockId; }
-        private int GetEntityId(int x, int y) { return _coordinateDictionary[new Coordinate(x, y)]; }
+        public bool Exists(int x, int y)
+        {
+            return GetBlock(x, y).BlockId != BlockConst.EmptyBlockId;
+        }
+
+        private int GetEntityId(int x, int y)
+        {
+            return _coordinateDictionary[new Coordinate(x, y)];
+        }
     }
 }

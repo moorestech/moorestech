@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Game.Entity.Interface\Game.Entity.Interface.csproj" />
+        <ProjectReference Include="..\Game.Entity.Interface\Game.Entity.Interface.csproj"/>
     </ItemGroup>
 
 </Project>
