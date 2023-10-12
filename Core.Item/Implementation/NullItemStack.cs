@@ -5,7 +5,7 @@ namespace Core.Item.Implementation
 {
     internal class NullItemStack : IItemStack
     {
-        readonly ItemStackFactory _itemStackFactory;
+        private readonly ItemStackFactory _itemStackFactory;
 
         public NullItemStack(ItemStackFactory itemStackFactory)
         {
@@ -48,7 +48,7 @@ namespace Core.Item.Implementation
         public override bool Equals(object? obj)
         {
             if (typeof(NullItemStack) != obj.GetType()) return false;
-            return ((NullItemStack) obj).Id == Id && ((NullItemStack) obj).Count == Count;
+            return ((NullItemStack)obj).Id == Id && ((NullItemStack)obj).Count == Count;
         }
 
         public override string ToString()

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Server.Util
@@ -8,7 +7,7 @@ namespace Server.Util
     public class ByteListEnumerator
     {
         private readonly List<byte> _payload;
-        private int index = 0;
+        private int index;
 
         public ByteListEnumerator(List<byte> payload)
         {
@@ -23,10 +22,7 @@ namespace Server.Util
         public int MoveNextToGetInt()
         {
             var b = new List<byte>();
-            for (int i = 0; i < 4; i++)
-            {
-                b.Add(_payload[index++]);
-            }
+            for (var i = 0; i < 4; i++) b.Add(_payload[index++]);
 
             if (BitConverter.IsLittleEndian) b.Reverse();
 
@@ -38,10 +34,7 @@ namespace Server.Util
         public short MoveNextToGetShort()
         {
             var b = new List<byte>();
-            for (int i = 0; i < 2; i++)
-            {
-                b.Add(_payload[index++]);
-            }
+            for (var i = 0; i < 2; i++) b.Add(_payload[index++]);
 
             if (BitConverter.IsLittleEndian) b.Reverse();
 
@@ -53,10 +46,7 @@ namespace Server.Util
         public float MoveNextToGetFloat()
         {
             var b = new List<byte>();
-            for (int i = 0; i < 4; i++)
-            {
-                b.Add(_payload[index++]);
-            }
+            for (var i = 0; i < 4; i++) b.Add(_payload[index++]);
 
             if (BitConverter.IsLittleEndian) b.Reverse();
 
@@ -66,33 +56,22 @@ namespace Server.Util
         }
 
         /// <summary>
-        /// バイト数を指定してそのバイト数の文字列を取得します
+        ///     バイト数を指定してそのバイト数の文字列を取得します
         /// </summary>
         /// <param name="byteNum">バイト数 指定しないor0の時最後まで取得する</param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public string MoveNextToGetString(int byteNum)
         {
-            if (byteNum < 0)
-            {
-                throw new ArgumentOutOfRangeException($"指定バイト数:{byteNum} バイト数は0以上にしてください");
-            }
+            if (byteNum < 0) throw new ArgumentOutOfRangeException($"指定バイト数:{byteNum} バイト数は0以上にしてください");
 
             var b = new List<byte>();
             if (byteNum == 0)
-            {
                 while (index < b.Count)
-                {
                     b.Add(_payload[index++]);
-                }
-            }
             else
-            {
-                for (int i = 0; i < byteNum; i++)
-                {
+                for (var i = 0; i < byteNum; i++)
                     b.Add(_payload[index++]);
-                }
-            }
 
             return Encoding.UTF8.GetString(b.ToArray());
         }

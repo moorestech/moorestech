@@ -30,11 +30,9 @@ namespace Server.Protocol.PacketResponse
 
 
             var response = new ResponseInitialHandshakeMessagePack(GetPlayerPosition(data.PlayerId));
-            
-            return new List<List<byte>>(){MessagePackSerializer.Serialize(response).ToList()};
+
+            return new List<List<byte>> { MessagePackSerializer.Serialize(response).ToList() };
         }
-
-
 
 
         private Vector2MessagePack GetPlayerPosition(int playerId)
@@ -45,20 +43,20 @@ namespace Server.Protocol.PacketResponse
                 var pos = _entitiesDatastore.GetPosition(playerId);
                 return new Vector2MessagePack(pos.X, pos.Z);
             }
+
             var playerEntity = _entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, playerId);
             _entitiesDatastore.Add(playerEntity);
 
-            
+
             //プレイヤーのデータがなかったのでスポーン地点を取得する
             var x = _worldSettingsDatastore.WorldSpawnPoint.X;
             var y = _worldSettingsDatastore.WorldSpawnPoint.Y;
             return new Vector2MessagePack(x, y);
         }
     }
-    
-    
-    
-    [MessagePackObject(keyAsPropertyName :true)]
+
+
+    [MessagePackObject(true)]
     public class RequestInitialHandshakeMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -76,8 +74,8 @@ namespace Server.Protocol.PacketResponse
         public int PlayerId { get; set; }
         public string PlayerName { get; set; }
     }
-    
-    [MessagePackObject(keyAsPropertyName :true)]
+
+    [MessagePackObject(true)]
     public class ResponseInitialHandshakeMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

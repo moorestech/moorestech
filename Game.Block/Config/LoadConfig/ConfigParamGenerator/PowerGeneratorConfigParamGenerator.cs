@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Game.Block.Config.LoadConfig.Param;
 using Core.Item.Config;
+using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
 
 namespace Game.Block.Config.LoadConfig.ConfigParamGenerator
@@ -20,15 +20,15 @@ namespace Game.Block.Config.LoadConfig.ConfigParamGenerator
             foreach (var fuel in blockParam.fuel)
             {
                 // TODO modパースのエラー
-                
+
                 string itemModId = fuel.itemModId;
                 string idItemName = fuel.itemName;
                 int time = fuel.time;
                 int power = fuel.power;
-                
+
                 var itemId = _itemConfig.GetItemId(itemModId, idItemName);
-                
-                fuelSettings.Add(itemId, new FuelSetting(itemId,time, power));
+
+                fuelSettings.Add(itemId, new FuelSetting(itemId, time, power));
             }
 
             int fuelSlot = blockParam.fuelSlot;

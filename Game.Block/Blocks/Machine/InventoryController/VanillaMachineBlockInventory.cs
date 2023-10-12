@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Game.Block.BlockInventory;
-using Game.Block.Blocks.Machine.Inventory;
 using Core.Item;
 using Core.Item.Util;
+using Game.Block.BlockInventory;
+using Game.Block.Blocks.Machine.Inventory;
 
 namespace Game.Block.Blocks.Machine.InventoryController
 {
@@ -19,6 +19,17 @@ namespace Game.Block.Blocks.Machine.InventoryController
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
         }
 
+        public ReadOnlyCollection<IItemStack> Items
+        {
+            get
+            {
+                var items = new List<IItemStack>();
+                items.AddRange(_vanillaMachineInputInventory.InputSlot);
+                items.AddRange(_vanillaMachineOutputInventory.OutputSlot);
+                return new ReadOnlyCollection<IItemStack>(items);
+            }
+        }
+
         public IItemStack InsertItem(IItemStack itemStack)
         {
             //アイテムをインプットスロットに入れた後、プロセス開始できるなら開始
@@ -32,7 +43,10 @@ namespace Game.Block.Blocks.Machine.InventoryController
             return _vanillaMachineInputInventory.InsertItem(itemStacks);
         }
 
-        public bool InsertionCheck(List<IItemStack> itemStacks) { return _vanillaMachineInputInventory.InsertionCheck(itemStacks); }
+        public bool InsertionCheck(List<IItemStack> itemStacks)
+        {
+            return _vanillaMachineInputInventory.InsertionCheck(itemStacks);
+        }
 
         public void AddConnector(IBlockInventory blockInventory)
         {
@@ -43,24 +57,10 @@ namespace Game.Block.Blocks.Machine.InventoryController
         {
             _vanillaMachineOutputInventory.RemoveConnectInventory(blockInventory);
         }
-        
-        public ReadOnlyCollection<IItemStack> Items
-        {
-            get
-            {
-                var items = new List<IItemStack>();
-                items.AddRange(_vanillaMachineInputInventory.InputSlot);
-                items.AddRange(_vanillaMachineOutputInventory.OutputSlot);
-                return new ReadOnlyCollection<IItemStack>(items);
-            }
-        }
 
         public IItemStack GetItem(int slot)
         {
-            if (slot < _vanillaMachineInputInventory.InputSlot.Count)
-            {
-                return _vanillaMachineInputInventory.InputSlot[slot];
-            }
+            if (slot < _vanillaMachineInputInventory.InputSlot.Count) return _vanillaMachineInputInventory.InputSlot[slot];
 
             slot -= _vanillaMachineInputInventory.InputSlot.Count;
             return _vanillaMachineOutputInventory.OutputSlot[slot];
@@ -85,7 +85,7 @@ namespace Game.Block.Blocks.Machine.InventoryController
         }
 
         /// <summary>
-        /// アイテムの置き換えを実行しますが、同じアイテムIDの場合はそのまま現在のアイテムにスタックされ、スタックしきらなかったらその分を返します。
+        ///     アイテムの置き換えを実行しますが、同じアイテムIDの場合はそのまま現在のアイテムにスタックされ、スタックしきらなかったらその分を返します。
         /// </summary>
         /// <param name="slot"></param>
         /// <param name="itemStack"></param>

@@ -4,11 +4,11 @@ namespace Game.World.Interface.Util
 {
     public static class CreateBlockEntityId
     {
-        private static readonly Random Random = new Random();
+        private static readonly Random Random = new();
 
         public static int Create()
         {
-            return Random.Next(Int32.MinValue, Int32.MaxValue);
+            return Random.Next(int.MinValue, int.MaxValue);
         }
     }
 }

@@ -4,11 +4,14 @@ using MessagePack;
 
 namespace Server.Util.MessagePack
 {
-    [MessagePackObject(false)]
+    [MessagePackObject()]
     public class Vector2MessagePack
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public Vector2MessagePack() { }
+        public Vector2MessagePack()
+        {
+        }
+
         public Vector2MessagePack(float x, float y)
         {
             X = x;
@@ -20,12 +23,10 @@ namespace Server.Util.MessagePack
             X = coordinate.X;
             Y = coordinate.Y;
         }
-        
 
-        [Key(0)]
-        public float X { get; set; }
-        [Key(1)]
-        public float Y { get; set; }
-        
+
+        [Key(0)] public float X { get; set; }
+
+        [Key(1)] public float Y { get; set; }
     }
 }

@@ -7,6 +7,6 @@ namespace Game.WorldMap
             SeedValue = seedValue;
         }
 
-        public int SeedValue { get;}
+        public int SeedValue { get; }
     }
 }

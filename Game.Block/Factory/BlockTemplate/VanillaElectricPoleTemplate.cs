@@ -8,12 +8,12 @@ namespace Game.Block.Factory.BlockTemplate
     {
         public IBlock New(BlockConfigData param, int entityId, ulong blockHash)
         {
-            return new VanillaElectricPole(param.BlockId, entityId,blockHash);
+            return new VanillaElectricPole(param.BlockId, entityId, blockHash);
         }
 
         public IBlock Load(BlockConfigData param, int entityId, ulong blockHash, string state)
         {
-            return new VanillaElectricPole(param.BlockId, entityId,blockHash);
+            return new VanillaElectricPole(param.BlockId, entityId, blockHash);
         }
     }
 }

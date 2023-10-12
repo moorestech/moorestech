@@ -5,14 +5,14 @@ namespace Game.Entity.Interface
 {
     public class SaveEntityData
     {
-        [JsonProperty("Type")] public string Type;
         [JsonProperty("InstanceId")] public long InstanceId;
-        
+        [JsonProperty("Type")] public string Type;
+
         [JsonProperty("X")] public float X;
         [JsonProperty("Y")] public float Y;
         [JsonProperty("Z")] public float Z;
 
-        public SaveEntityData(string type, long instanceId,ServerVector3 serverVector3)
+        public SaveEntityData(string type, long instanceId, ServerVector3 serverVector3)
         {
             Type = type;
             InstanceId = instanceId;

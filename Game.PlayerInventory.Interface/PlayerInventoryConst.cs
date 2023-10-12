@@ -8,10 +8,14 @@ namespace Game.PlayerInventory.Interface
         public const int MainInventoryRows = 5;
         public const int MainInventorySize = MainInventoryColumns * MainInventoryRows;
 
+        public const int CraftingInventoryColumns = 3;
+        public const int CraftingInventoryRows = 3;
+        public const int CraftingSlotSize = CraftingInventoryColumns * CraftingInventoryRows;
+
         /// <summary>
-        /// ホットバーとなるインベントリのスロット
+        ///     ホットバーとなるインベントリのスロット
         /// </summary>
-        public static readonly int[] HotBarSlots = new[]
+        public static readonly int[] HotBarSlots =
         {
             HotBarSlotToInventorySlot(0),
             HotBarSlotToInventorySlot(1),
@@ -21,16 +25,12 @@ namespace Game.PlayerInventory.Interface
             HotBarSlotToInventorySlot(5),
             HotBarSlotToInventorySlot(6),
             HotBarSlotToInventorySlot(7),
-            HotBarSlotToInventorySlot(8),
+            HotBarSlotToInventorySlot(8)
         };
-        
-        public const int CraftingInventoryColumns = 3;
-        public const int CraftingInventoryRows = 3;
-        public const int CraftingSlotSize = CraftingInventoryColumns * CraftingInventoryRows;
-        
-        
+
+
         /// <summary>
-        /// 0〜8までのホットバーのIDをインベントリのスロットに変換します
+        ///     0〜8までのホットバーのIDをインベントリのスロットに変換します
         /// </summary>
         /// <exception cref="Exception">0〜8以外だとスローします</exception>
         public static int HotBarSlotToInventorySlot(int slot)
@@ -38,7 +38,7 @@ namespace Game.PlayerInventory.Interface
             if (slot < 0 || MainInventoryColumns <= slot)
                 throw new Exception("ホットバーは0～8までです");
             //インベントリの一番したがホットバーとなる
-            return (MainInventoryRows-1) * MainInventoryColumns + slot;
+            return (MainInventoryRows - 1) * MainInventoryColumns + slot;
         }
     }
 }

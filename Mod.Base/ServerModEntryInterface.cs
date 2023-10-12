@@ -14,37 +14,39 @@ namespace Mod.Base
 {
     public class ServerModEntryInterface
     {
+        public readonly IBlockConfig BlockConfig;
+
+        public readonly BlockFactory BlockFactory;
+
+        public readonly ICraftingConfig CraftingConfig;
+        public readonly IItemConfig ItemConfig;
+        public readonly ItemStackFactory ItemStackFactory;
+        public readonly IMachineRecipeConfig MachineRecipeConfig;
+        public readonly IOreConfig OreConfig;
+
         /// <summary>
-        /// パケットを送信することができるインスタンス
+        ///     パケットを送信することができるインスタンス
         /// </summary>
         public readonly PacketResponseCreator PacketResponseCreator;
+
+        public readonly IQuestConfig QuestConfig;
+
         /// <summary>
-        /// 各種サービスを取得できるDIコンテナ
+        ///     各種サービスを取得できるDIコンテナ
         /// </summary>
         public readonly ServiceProvider ServiceProvider;
 
-        
-        
+
         public readonly IWorldBlockDatastore WorldBlockDatastore;
-        
-        public readonly ICraftingConfig CraftingConfig;
-        public readonly IMachineRecipeConfig MachineRecipeConfig;
-        public readonly IItemConfig ItemConfig;
-        public readonly IBlockConfig BlockConfig;
-        public readonly IOreConfig OreConfig;
-        public readonly IQuestConfig QuestConfig;
-        
-        public readonly BlockFactory BlockFactory;
-        public readonly ItemStackFactory ItemStackFactory;
 
 
         public ServerModEntryInterface(ServiceProvider serviceProvider, PacketResponseCreator packetResponseCreator)
         {
             ServiceProvider = serviceProvider;
             PacketResponseCreator = packetResponseCreator;
-            
+
             WorldBlockDatastore = serviceProvider.GetRequiredService<IWorldBlockDatastore>();
-            
+
             CraftingConfig = serviceProvider.GetRequiredService<ICraftingConfig>();
             MachineRecipeConfig = serviceProvider.GetRequiredService<IMachineRecipeConfig>();
             ItemConfig = serviceProvider.GetRequiredService<IItemConfig>();

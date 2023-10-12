@@ -1,18 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using Game.Block.Blocks;
-using Game.Block.Blocks.Machine;
-using Game.Block.Config;
-using Game.Block.Config.LoadConfig.ConfigParamGenerator;
-using Game.Block.Config.LoadConfig.Param;
 using Core.Inventory;
 using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Util;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -21,9 +14,6 @@ namespace Server.Protocol.PacketResponse
         public const string Tag = "va:blockInvReq";
 
         private readonly IWorldBlockDatastore _blockDatastore;
-
-        //データのレスポンスを実行するdelegateを設定する
-        private delegate byte[] InventoryResponse(int x, int y,IBlockConfigParam config);
 
         public BlockInventoryRequestProtocol(ServiceProvider serviceProvider)
         {
@@ -44,7 +34,7 @@ namespace Server.Protocol.PacketResponse
             var itemIds = new List<int>();
             var itemCounts = new List<int>();
 
-            foreach (var item in _blockDatastore.GetBlock<IOpenableInventory>(data.X,data.Y).Items)
+            foreach (var item in _blockDatastore.GetBlock<IOpenableInventory>(data.X, data.Y).Items)
             {
                 itemIds.Add(item.Id);
                 itemCounts.Add(item.Count);
@@ -52,19 +42,23 @@ namespace Server.Protocol.PacketResponse
 
             var blockId = _blockDatastore.GetBlock(data.X, data.Y).BlockId;
 
-            var response = MessagePackSerializer.Serialize(new BlockInventoryResponseProtocolMessagePack(blockId,itemIds.ToArray(),itemCounts.ToArray())).ToList();
+            var response = MessagePackSerializer.Serialize(new BlockInventoryResponseProtocolMessagePack(blockId, itemIds.ToArray(), itemCounts.ToArray())).ToList();
 
-            return new List<List<byte>>(){response};
+            return new List<List<byte>> { response };
         }
+
+        //データのレスポンスを実行するdelegateを設定する
+        private delegate byte[] InventoryResponse(int x, int y, IBlockConfigParam config);
     }
-    
-    
-        
-    [MessagePackObject(keyAsPropertyName :true)]
+
+
+    [MessagePackObject(true)]
     public class RequestBlockInventoryRequestProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RequestBlockInventoryRequestProtocolMessagePack() { }
+        public RequestBlockInventoryRequestProtocolMessagePack()
+        {
+        }
 
         public RequestBlockInventoryRequestProtocolMessagePack(int x, int y)
         {
@@ -76,7 +70,8 @@ namespace Server.Protocol.PacketResponse
         public int X { get; set; }
         public int Y { get; set; }
     }
-    [MessagePackObject(keyAsPropertyName :true)]
+
+    [MessagePackObject(true)]
     public class BlockInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
     {
         public BlockInventoryResponseProtocolMessagePack(int blockId, int[] itemIds, int[] itemCounts)
@@ -88,7 +83,9 @@ namespace Server.Protocol.PacketResponse
         }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public BlockInventoryResponseProtocolMessagePack() { }
+        public BlockInventoryResponseProtocolMessagePack()
+        {
+        }
 
 
         public int BlockId { get; set; }

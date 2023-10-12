@@ -4,14 +4,15 @@ using Game.World.Interface.DataStore;
 
 namespace Game.World.EventHandler.Service
 {
-    public static class ElectricSegmentMergeService {
+    public static class ElectricSegmentMergeService
+    {
         /// <summary>
-        /// 電柱に所属するセグメント同士をマージし、データストアにセットするシステム
+        ///     電柱に所属するセグメント同士をマージし、データストアにセットするシステム
         /// </summary>
         /// <param name="segmentDatastore"></param>
         /// <param name="poles">マージしたい電柱</param>
         /// <returns></returns>
-        public static EnergySegment MergeAndSetDatastoreElectricSegments<TSegment>(IWorldEnergySegmentDatastore<TSegment> segmentDatastore,List<IEnergyTransformer> poles) where TSegment : EnergySegment,new()
+        public static EnergySegment MergeAndSetDatastoreElectricSegments<TSegment>(IWorldEnergySegmentDatastore<TSegment> segmentDatastore, List<IEnergyTransformer> poles) where TSegment : EnergySegment, new()
         {
             //電力セグメントをリストアップ
             var electricSegments = new List<TSegment>();
@@ -24,7 +25,7 @@ namespace Game.World.EventHandler.Service
             //電力セグメントをマージする
             var mergedElectricSegment = EnergySegmentExtension.Merge(electricSegments);
             //マージ前のセグメントを削除する
-            for (int i = 0; i < electricSegments.Count; i++)
+            for (var i = 0; i < electricSegments.Count; i++)
             {
                 segmentDatastore.RemoveEnergySegment(electricSegments[i]);
                 electricSegments[i] = null;

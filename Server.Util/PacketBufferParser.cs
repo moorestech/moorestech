@@ -5,26 +5,26 @@ using System.Linq;
 namespace Server.Util
 {
     /// <summary>
-    /// 複数のパケットがバッファーに入っていた場合にそれらのパケットを別々のパケットに分割するクラス
+    ///     複数のパケットがバッファーに入っていた場合にそれらのパケットを別々のパケットに分割するクラス
     /// </summary>
     public class PacketBufferParser
     {
-        List<byte> _continuationFromLastTimeBytes = new();
-        int _packetLength = 0;
-        int _nextPacketLengthOffset = 0;
+        private List<byte> _continuationFromLastTimeBytes = new();
 
-        private bool _isGettingLength = false;
-        private int _remainingHeaderLength = 0;
-        private List<byte> _packetLengthBytes = new();
+        private bool _isGettingLength;
+        private int _nextPacketLengthOffset;
+        private int _packetLength;
+        private readonly List<byte> _packetLengthBytes = new();
+        private int _remainingHeaderLength;
 
-        public List<List<byte>> Parse(byte[] packet,int length)
+        public List<List<byte>> Parse(byte[] packet, int length)
         {
             //プロトコル長から実際のプロトコルを作る
             var actualStartPacketDataIndex = 0;
             var reminderLength = length;
-            
+
             var result = new List<List<byte>>();
-            
+
             //受信したパケットの最後までループ
             while (0 < reminderLength)
             {
@@ -32,7 +32,7 @@ namespace Server.Util
                 if (_continuationFromLastTimeBytes.Count == 0)
                 {
                     //パケット長を取得
-                    if (TryGetLength(packet, actualStartPacketDataIndex,out var payloadLength,out var headerLength))
+                    if (TryGetLength(packet, actualStartPacketDataIndex, out var payloadLength, out var headerLength))
                     {
                         _packetLength = payloadLength;
                         //パケット長のshort型の4バイトを取り除く
@@ -50,7 +50,6 @@ namespace Server.Util
                     //前回からの続きのデータがある場合
                     _packetLength -= _nextPacketLengthOffset;
                     reminderLength = length - _packetLength;
-                    
                 }
 
                 //パケットが切れているので、残りのデータを一時保存
@@ -62,32 +61,26 @@ namespace Server.Util
                     _nextPacketLengthOffset = length - actualStartPacketDataIndex;
                     break;
                 }
-                        
+
                 //パケットの長さ分だけデータを取得
-                for (var i = 0; i < _packetLength && actualStartPacketDataIndex < length; actualStartPacketDataIndex++,i++)
-                {
-                    _continuationFromLastTimeBytes.Add(packet[actualStartPacketDataIndex]);
-                }
-                        
+                for (var i = 0; i < _packetLength && actualStartPacketDataIndex < length; actualStartPacketDataIndex++, i++) _continuationFromLastTimeBytes.Add(packet[actualStartPacketDataIndex]);
+
                 result.Add(_continuationFromLastTimeBytes);
                 //受信したパケットに対する応答を返す
-                _continuationFromLastTimeBytes = new();
+                _continuationFromLastTimeBytes = new List<byte>();
             }
 
             return result;
         }
-        
-        
-        private bool TryGetLength(byte[] bytes,int startIndex,out int payloadLength,out int headerLength)
+
+
+        private bool TryGetLength(byte[] bytes, int startIndex, out int payloadLength, out int headerLength)
         {
             var headerBytes = new List<byte>();
             if (_isGettingLength)
             {
                 headerLength = _remainingHeaderLength;
-                for (int i = 0; i < _remainingHeaderLength; i++)
-                {
-                    _packetLengthBytes.Add(bytes[i]);
-                }
+                for (var i = 0; i < _remainingHeaderLength; i++) _packetLengthBytes.Add(bytes[i]);
                 headerBytes = _packetLengthBytes;
                 _isGettingLength = false;
             }
@@ -100,14 +93,16 @@ namespace Server.Util
                 {
                     _packetLengthBytes.Clear();
                     _remainingHeaderLength = 4;
-                    for (int i = startIndex; i < bytes.Length; i++)
+                    for (var i = startIndex; i < bytes.Length; i++)
                     {
                         _remainingHeaderLength = 3 - (i - startIndex);
                         _packetLengthBytes.Add(bytes[i]);
                     }
+
                     _isGettingLength = true;
                     return false;
                 }
+
                 headerLength = 4;
                 headerBytes = new List<byte>
                 {
@@ -117,10 +112,10 @@ namespace Server.Util
                     bytes[startIndex + 3]
                 };
             }
-            
+
 
             if (BitConverter.IsLittleEndian) headerBytes.Reverse();
-            
+
             payloadLength = BitConverter.ToInt32(headerBytes.ToArray(), 0);
             return true;
         }

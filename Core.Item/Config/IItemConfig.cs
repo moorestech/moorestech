@@ -9,6 +9,6 @@ namespace Core.Item.Config
         public ItemConfigData GetItemConfig(ulong itemHash);
         public int GetItemId(ulong itemHash);
         public List<int> GetItemIds(string modId);
-        int GetItemId(string modId, string itemName,[CallerMemberName] string callerMethodName = "");
+        int GetItemId(string modId, string itemName, [CallerMemberName] string callerMethodName = "");
     }
 }

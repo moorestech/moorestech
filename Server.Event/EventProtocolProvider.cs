@@ -1,30 +1,24 @@
-using System;
 using System.Collections.Generic;
-using MessagePack;
 
 namespace Server.Event
 {
     /// <summary>
-    /// サーバー内で起こったイベントの中で、各プレイヤーに送る必要があるイベントを管理します。
-    /// 送る必要のある各イベントはEventReceiveフォルダの中に入っています
-    /// TODO ここのロックは一時的なものなので今後はちゃんとゲーム全体としてセマフォをしっかりやる！！
+    ///     サーバー内で起こったイベントの中で、各プレイヤーに送る必要があるイベントを管理します。
+    ///     送る必要のある各イベントはEventReceiveフォルダの中に入っています
+    ///     TODO ここのロックは一時的なものなので今後はちゃんとゲーム全体としてセマフォをしっかりやる！！
     /// </summary>
     public class EventProtocolProvider
     {
-        private Dictionary<int, List<List<byte>>> _events = new();
+        private readonly Dictionary<int, List<List<byte>>> _events = new();
 
         public void AddEvent(int playerId, List<byte> eventByteArray)
         {
             lock (_events)
             {
                 if (_events.TryGetValue(playerId, out var eventList))
-                {
                     eventList.Add(eventByteArray);
-                }
                 else
-                {
-                    _events.Add(playerId, new List<List<byte>>() {eventByteArray});
-                }
+                    _events.Add(playerId, new List<List<byte>> { eventByteArray });
             }
         }
 
@@ -32,10 +26,7 @@ namespace Server.Event
         {
             lock (_events)
             {
-                foreach (var key in _events.Keys)
-                {
-                    _events[key].Add(eventByteArray);
-                }
+                foreach (var key in _events.Keys) _events[key].Add(eventByteArray);
             }
         }
 
@@ -49,12 +40,10 @@ namespace Server.Event
                     _events[playerId].Clear();
                     return data;
                 }
-                else
-                {
-                    //ブロードキャストイベントの時に使うので、Dictionaryにキーを追加しておく
-                    _events.Add(playerId, new List<List<byte>>());
-                    return _events[playerId];
-                }
+
+                //ブロードキャストイベントの時に使うので、Dictionaryにキーを追加しておく
+                _events.Add(playerId, new List<List<byte>>());
+                return _events[playerId];
             }
         }
     }

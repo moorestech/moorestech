@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-
 namespace Test.CombinedTest.Core.Generate
 {
     public static class RecipeGenerate
@@ -12,10 +11,7 @@ namespace Test.CombinedTest.Core.Generate
         {
             var random = new Random(seed);
             var recipes = new List<recipes>();
-            for (int i = 0; i < recipeNum; i++)
-            {
-                recipes.Add(new recipes(random));
-            }
+            for (var i = 0; i < recipeNum; i++) recipes.Add(new recipes(random));
 
             return new recipe(recipes.ToArray());
         }
@@ -36,15 +32,15 @@ namespace Test.CombinedTest.Core.Generate
     public class recipes
     {
         [DataMember(Name = "BlockID")] public int BlockID;
-        [DataMember(Name = "time")] public int time;
         [DataMember(Name = "input")] public inputitem[] input;
         [DataMember(Name = "output")] public outputitem[] output;
+        [DataMember(Name = "time")] public int time;
 
         public recipes(Random r)
         {
-            int inputnum = r.Next(1, 11);
+            var inputnum = r.Next(1, 11);
             var tmpInput = new List<inputitem>();
-            for (int i = 0; i < inputnum; i++)
+            for (var i = 0; i < inputnum; i++)
             {
                 //IDが重複するときはIDを変更
                 var id = 0;
@@ -59,16 +55,13 @@ namespace Test.CombinedTest.Core.Generate
             input = tmpInput.ToArray();
 
 
-            int outputnum = r.Next(1, 11);
+            var outputnum = r.Next(1, 11);
             var tmpOutput = new List<outputitem>();
-            for (int i = 0; i < outputnum; i++)
+            for (var i = 0; i < outputnum; i++)
             {
                 //IDが重複するときはIDを変更
                 var id = r.Next(1, 1001);
-                while (tmpOutput.Find(x => x.id == id) != null)
-                {
-                    id = r.Next(1, 1001);
-                }
+                while (tmpOutput.Find(x => x.id == id) != null) id = r.Next(1, 1001);
 
                 tmpOutput.Add(new outputitem(id, r.Next(1, 101), 1));
             }
@@ -84,8 +77,8 @@ namespace Test.CombinedTest.Core.Generate
     [DataContract]
     public class inputitem
     {
-        [DataMember(Name = "id")] public int id;
         [DataMember(Name = "count")] public int count;
+        [DataMember(Name = "id")] public int id;
 
         public inputitem(int id, int count)
         {
@@ -97,8 +90,8 @@ namespace Test.CombinedTest.Core.Generate
     [DataContract]
     public class outputitem
     {
-        [DataMember(Name = "id")] public int id;
         [DataMember(Name = "count")] public int count;
+        [DataMember(Name = "id")] public int id;
         [DataMember(Name = "percent")] public double percent;
 
         public outputitem(int id, int count, double percent)

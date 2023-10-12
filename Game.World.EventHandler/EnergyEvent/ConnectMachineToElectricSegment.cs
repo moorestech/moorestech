@@ -1,8 +1,6 @@
-using Game.Block.Blocks;
-using Game.Block.Config;
-using Game.Block.Config.LoadConfig.Param;
 using Core.EnergySystem;
 using Core.EnergySystem.Electric;
+using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.World.EventHandler.Service;
@@ -12,18 +10,18 @@ using Game.World.Interface.Event;
 namespace Game.World.EventHandler.EnergyEvent
 {
     /// <summary>
-    /// 電力を生産もしくは消費するブロックが設置されたときに、そのブロックを電柱に接続する
+    ///     電力を生産もしくは消費するブロックが設置されたときに、そのブロックを電柱に接続する
     /// </summary>
-    public class ConnectMachineToElectricSegment<TSegment,TConsumer,TGenerator,TTransformer> 
+    public class ConnectMachineToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>
         where TSegment : EnergySegment, new()
         where TConsumer : IEnergyConsumer
         where TGenerator : IEnergyGenerator
         where TTransformer : IEnergyTransformer
     {
-        private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IBlockConfig _blockConfig;
         private readonly int _maxMachineConnectionRange;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
 
 
         public ConnectMachineToElectricSegment(IBlockPlaceEvent blockPlaceEvent,
@@ -50,25 +48,26 @@ namespace Game.World.EventHandler.EnergyEvent
             //最大の電柱の接続範囲を取得探索して接続する
             var startMachineX = x - _maxMachineConnectionRange / 2;
             var startMachineY = y - _maxMachineConnectionRange / 2;
-            for (int i = startMachineX; i < startMachineX + _maxMachineConnectionRange; i++)
+            for (var i = startMachineX; i < startMachineX + _maxMachineConnectionRange; i++)
+            for (var j = startMachineY; j < startMachineY + _maxMachineConnectionRange; j++)
             {
-                for (int j = startMachineY; j < startMachineY + _maxMachineConnectionRange; j++)
-                {
-                    if (!_worldBlockDatastore.ExistsComponentBlock<IElectricPole>(i, j)) continue;
-                    //範囲内に電柱がある場合
-                    
-                    //電柱に接続
-                    ConnectToElectricPole(i, j, x, y);
-                }
+                if (!_worldBlockDatastore.ExistsComponentBlock<IElectricPole>(i, j)) continue;
+
+                //範囲内に電柱がある場合
+                //電柱に接続
+                ConnectToElectricPole(i, j, x, y);
             }
         }
 
-        private bool IsElectricMachine(int x, int y) => _worldBlockDatastore.ExistsComponentBlock<TGenerator>(x, y) ||
-                                                        _worldBlockDatastore.ExistsComponentBlock<TConsumer>(x, y);
+        private bool IsElectricMachine(int x, int y)
+        {
+            return _worldBlockDatastore.ExistsComponentBlock<TGenerator>(x, y) ||
+                   _worldBlockDatastore.ExistsComponentBlock<TConsumer>(x, y);
+        }
 
 
         /// <summary>
-        /// 電柱のセグメントに機械を接続する
+        ///     電柱のセグメントに機械を接続する
         /// </summary>
         private void ConnectToElectricPole(int poleX, int poleY, int machineX, int machineY)
         {
@@ -76,7 +75,7 @@ namespace Game.World.EventHandler.EnergyEvent
             var pole = _worldBlockDatastore.GetBlock<TTransformer>(poleX, poleY);
             //その電柱のコンフィグを取得
             var configParam =
-                _blockConfig.GetBlockConfig(((IBlock) pole).BlockId).Param as ElectricPoleConfigParam;
+                _blockConfig.GetBlockConfig(((IBlock)pole).BlockId).Param as ElectricPoleConfigParam;
             var range = configParam.machineConnectionRange;
 
             //その電柱から見て機械が範囲内に存在するか確認
@@ -87,13 +86,8 @@ namespace Game.World.EventHandler.EnergyEvent
             //発電機を電力セグメントに追加
             var segment = _worldEnergySegmentDatastore.GetEnergySegment(pole);
             if (_worldBlockDatastore.ExistsComponentBlock<TGenerator>(machineX, machineY))
-            {
                 segment.AddGenerator(_worldBlockDatastore.GetBlock<TGenerator>(machineX, machineY));
-            }
-            else if (_worldBlockDatastore.ExistsComponentBlock<TConsumer>(machineX, machineY))
-            {
-                segment.AddEnergyConsumer(_worldBlockDatastore.GetBlock<TConsumer>(machineX, machineY));
-            }
+            else if (_worldBlockDatastore.ExistsComponentBlock<TConsumer>(machineX, machineY)) segment.AddEnergyConsumer(_worldBlockDatastore.GetBlock<TConsumer>(machineX, machineY));
         }
     }
 }

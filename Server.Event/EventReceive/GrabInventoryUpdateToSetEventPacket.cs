@@ -1,18 +1,16 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
 using Game.PlayerInventory.Interface.Event;
 using MessagePack;
-using Server.Util;
 using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
 {
     public class GrabInventoryUpdateToSetEventPacket
     {
-        private readonly EventProtocolProvider _eventProtocolProvider;
         public const string EventTag = "va:event:grabInvUpdate";
+        private readonly EventProtocolProvider _eventProtocolProvider;
 
         public GrabInventoryUpdateToSetEventPacket(IGrabInventoryUpdateEvent grabInventoryUpdateEvent,
             EventProtocolProvider eventProtocolProvider)
@@ -31,13 +29,15 @@ namespace Server.Event.EventReceive
             _eventProtocolProvider.AddEvent(playerInventoryUpdateEvent.PlayerId, payload);
         }
     }
-    
-        
-    [MessagePackObject(keyAsPropertyName :true)]
+
+
+    [MessagePackObject(true)]
     public class GrabInventoryUpdateEventMessagePack : EventProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public GrabInventoryUpdateEventMessagePack() { }
+        public GrabInventoryUpdateEventMessagePack()
+        {
+        }
 
         public GrabInventoryUpdateEventMessagePack(IItemStack item)
         {

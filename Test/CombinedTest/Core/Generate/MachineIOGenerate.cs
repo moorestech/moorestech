@@ -2,17 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.ConfigJson;
 using Core.Const;
 using Core.Item;
-using Core.Item.Config;
 using Core.Item.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot;
-
-
 using Test.Module.TestMod;
-
 
 namespace Test.CombinedTest.Core.Generate
 {
@@ -21,11 +16,11 @@ namespace Test.CombinedTest.Core.Generate
         public static MachineIOTest[] MachineIoTestCase(recipe recipe, int seed)
         {
             var testCase = new List<MachineIOTest>();
-            
+
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            
-            recipes[] recipes = recipe.recipes;
+
+            var recipes = recipe.recipes;
             foreach (var r in recipes)
             {
                 //必要量だけ入れる
@@ -54,21 +49,16 @@ namespace Test.CombinedTest.Core.Generate
                 //余りを算出する
                 while (continue_)
                 {
-                    for (int j = 0; j < remainder.Count; j++)
-                    {
+                    for (var j = 0; j < remainder.Count; j++)
                         if (remainder[j].count < r.input[j].count)
                         {
                             continue_ = false;
                             break;
                         }
-                    }
 
                     if (!continue_) break;
 
-                    for (int j = 0; j < remainder.Count; j++)
-                    {
-                        remainder[j].count -= r.input[j].count;
-                    }
+                    for (var j = 0; j < remainder.Count; j++) remainder[j].count -= r.input[j].count;
 
                     if (continue_) cnt++;
                 }
@@ -87,16 +77,16 @@ namespace Test.CombinedTest.Core.Generate
         public class MachineIOTest
         {
             public int BlockId;
-            public List<IItemStack> input;
-            public List<IItemStack> output;
-            public List<IItemStack> inputRemainder;
-            public int time;
             public int CraftCnt;
+            public List<IItemStack> input;
+            public List<IItemStack> inputRemainder;
+            public List<IItemStack> output;
+            public int time;
 
             public MachineIOTest(ItemStackFactory itemStackFactory, inputitem[] input, outputitem[] output,
                 List<IItemStack> inputRemainder, int blockId, int time, int craftCnt)
             {
-                this.BlockId = blockId;
+                BlockId = blockId;
                 this.input = Convart(input, itemStackFactory);
                 this.output = Convart(output, itemStackFactory);
                 this.inputRemainder = inputRemainder;
@@ -107,7 +97,7 @@ namespace Test.CombinedTest.Core.Generate
             public MachineIOTest(ItemStackFactory itemStackFactory, inputitem[] input, List<IItemStack> output,
                 inputitem[] inputRemainder, int blockId, int time, int craftCnt)
             {
-                this.BlockId = blockId;
+                BlockId = blockId;
                 this.input = Convart(input, itemStackFactory);
                 this.output = output;
                 this.inputRemainder = Convart(inputRemainder, itemStackFactory);
@@ -118,10 +108,7 @@ namespace Test.CombinedTest.Core.Generate
             public static List<IItemStack> Convart(inputitem[] input, ItemStackFactory itemStackFactory)
             {
                 var r = new List<IItemStack>();
-                foreach (var i in input)
-                {
-                    r.Add(itemStackFactory.Create(i.id, i.count));
-                }
+                foreach (var i in input) r.Add(itemStackFactory.Create(i.id, i.count));
 
                 var a = r.Where(i => i.Count != 0).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
@@ -131,10 +118,7 @@ namespace Test.CombinedTest.Core.Generate
             public static List<IItemStack> Convart(outputitem[] output, ItemStackFactory itemStackFactory)
             {
                 var r = new List<IItemStack>();
-                foreach (var o in output)
-                {
-                    r.Add(itemStackFactory.Create(o.id, o.count));
-                }
+                foreach (var o in output) r.Add(itemStackFactory.Create(o.id, o.count));
 
                 var a = r.Where(i => i.Id != BlockConst.EmptyBlockId).ToList();
                 a.Sort((a, b) => a.Id - b.Id);

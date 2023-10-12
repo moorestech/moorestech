@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Server.Util;
 
-
 namespace Test.UnitTest.Server
 {
     public class ByteArrayBitArrayConverterTest
@@ -66,7 +65,7 @@ namespace Test.UnitTest.Server
                 true,
                 true,
                 true,
-                true,
+                true
             };
             enumerator = new ByteListEnumerator(BitListToByteList.Convert(bitArray));
             Assert.AreEqual(15, enumerator.MoveNextToGetShort());
@@ -82,7 +81,7 @@ namespace Test.UnitTest.Server
                 false,
                 false,
                 false,
-                false,
+                false
             };
             enumerator = new ByteListEnumerator(BitListToByteList.Convert(bitArray));
             Assert.AreEqual(240, enumerator.MoveNextToGetShort());
@@ -98,7 +97,7 @@ namespace Test.UnitTest.Server
                 false,
                 false,
                 true,
-                true,
+                true
             };
             enumerator = new ByteListEnumerator(BitListToByteList.Convert(bitArray));
             Assert.AreEqual(163, enumerator.MoveNextToGetShort());
@@ -114,7 +113,7 @@ namespace Test.UnitTest.Server
                 true,
                 true,
                 true,
-                true,
+                true
             };
             enumerator = new ByteListEnumerator(BitListToByteList.Convert(bitArray));
             Assert.AreEqual(15, enumerator.MoveNextToGetByte());
@@ -123,7 +122,7 @@ namespace Test.UnitTest.Server
         [Test]
         public void ByteArrayToBitArrayTest()
         {
-            var byteList = new List<byte> {0, 10, 100};
+            var byteList = new List<byte> { 0, 10, 100 };
             byteList.AddRange(ToByteList.Convert(1234546));
             byteList.AddRange(ToByteList.Convert(506.35f));
             var bitEnum = new BitListEnumerator(BitListToByteList.Convert(ToBitList.Convert(byteList)));

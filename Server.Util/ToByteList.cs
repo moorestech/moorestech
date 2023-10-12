@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Server.Util
 {
@@ -32,7 +33,7 @@ namespace Server.Util
 
         public static List<byte> Convert(string sendData)
         {
-            return System.Text.Encoding.UTF8.GetBytes(sendData).ToList();
+            return Encoding.UTF8.GetBytes(sendData).ToList();
         }
     }
 }

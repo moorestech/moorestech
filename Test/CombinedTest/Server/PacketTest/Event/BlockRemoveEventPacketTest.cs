@@ -1,4 +1,5 @@
 #if NET6_0
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
@@ -8,16 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
-using Server.Protocol;
 using Server.Protocol.PacketResponse;
-
 using Test.Module.TestMod;
-
 
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
     /// <summary>
-    /// ブロックを消したらその情報がイベントで飛んでくるテスト
+    ///     ブロックを消したらその情報がイベントで飛んでくるテスト
     /// </summary>
     public class BlockRemoveEventPacketTest
     {
@@ -30,14 +28,13 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, response.Count);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            
 
 
             //ブロックを設置
-            BlockPlace(4, 0, 1, worldBlock,blockFactory);
-            BlockPlace(3, 1, 2, worldBlock,blockFactory);
-            BlockPlace(2, 3, 3, worldBlock,blockFactory);
-            BlockPlace(1, 4, 4, worldBlock,blockFactory);
+            BlockPlace(4, 0, 1, worldBlock, blockFactory);
+            BlockPlace(3, 1, 2, worldBlock, blockFactory);
+            BlockPlace(2, 3, 3, worldBlock, blockFactory);
+            BlockPlace(1, 4, 4, worldBlock, blockFactory);
 
             //イベントを取得
             response = packetResponse.GetPacketResponse(EventRequestData(0));
@@ -68,21 +65,20 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(4, y);
         }
 
-        void BlockPlace(int x, int y, int id, IWorldBlockDatastore worldBlock,IBlockFactory blockFactory)
+        private void BlockPlace(int x, int y, int id, IWorldBlockDatastore worldBlock, IBlockFactory blockFactory)
         {
-            worldBlock.AddBlock(blockFactory.Create(id,new System.Random().Next()),x,y,BlockDirection.North);
+            worldBlock.AddBlock(blockFactory.Create(id, new Random().Next()), x, y, BlockDirection.North);
         }
 
-        List<byte> EventRequestData(int plyaerID)
+        private List<byte> EventRequestData(int plyaerID)
         {
             return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID)).ToList();
         }
 
-        (int, int) AnalysisResponsePacket(List<byte> payload)
+        private (int, int) AnalysisResponsePacket(List<byte> payload)
         {
-
             var data = MessagePackSerializer.Deserialize<RemoveBlockEventMessagePack>(payload.ToArray());
-            
+
             return (data.X, data.Y);
         }
     }

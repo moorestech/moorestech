@@ -6,9 +6,9 @@ using Game.Quest.Interface;
 
 namespace Game.Quest.Config
 {
-    static class QuestLoadExtension
+    internal static class QuestLoadExtension
     {
-        public static QuestConfigData ToQuestConfigData(this QuestConfigJsonData questConfigJsonData,List<QuestConfigData> prerequisiteQuests,ItemStackFactory itemStackFactory)
+        public static QuestConfigData ToQuestConfigData(this QuestConfigJsonData questConfigJsonData, List<QuestConfigData> prerequisiteQuests, ItemStackFactory itemStackFactory)
         {
             var rewardItems = questConfigJsonData.RewardItem.Select(i => itemStackFactory.Create(i.ModId, i.Name, i.Count)).ToList();
 

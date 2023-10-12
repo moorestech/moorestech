@@ -1,17 +1,11 @@
 #if NET6_0
-using System.Collections.Generic;
 using Core.EnergySystem;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Server;
 using Server.Boot;
-
-
 using Test.Module.TestMod;
-using World.DataStore;
-
 
 namespace Test.CombinedTest.Game
 {
@@ -55,16 +49,10 @@ namespace Test.CombinedTest.Game
             //存在する電柱の数の確認
             Assert.AreEqual(6, electricPoles.Count);
             //存在している電柱のIDの確認
-            for (int i = 0; i < 6; i++)
-            {
-                Assert.AreEqual(i, electricPoles[i].EntityId);
-            }
+            for (var i = 0; i < 6; i++) Assert.AreEqual(i, electricPoles[i].EntityId);
 
             //存在しない電柱のIDの確認
-            for (int i = 10; i < 13; i++)
-            {
-                Assert.AreEqual(false, electricPoles.ContainsKey(i));
-            }
+            for (var i = 10; i < 13; i++) Assert.AreEqual(false, electricPoles.ContainsKey(i));
 
             //範囲外同士の接続確認
             //セグメント繋がる位置に電柱を設置

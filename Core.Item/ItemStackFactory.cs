@@ -1,7 +1,6 @@
 ﻿using Core.Const;
 using Core.Item.Config;
 using Core.Item.Implementation;
-using Core.Item.Util;
 
 namespace Core.Item
 {
@@ -18,44 +17,28 @@ namespace Core.Item
 
         public IItemStack Create(int id, int count)
         {
-            if (id == ItemConst.EmptyItemId)
-            {
-                return CreatEmpty();
-            }
+            if (id == ItemConst.EmptyItemId) return CreatEmpty();
 
-            if (count < 1)
-            {
-                return CreatEmpty();
-            }
+            if (count < 1) return CreatEmpty();
 
             return new ItemStack(id, count, _itemConfig, this);
         }
-        public IItemStack Create(int id, int count,long instanceId)
+
+        public IItemStack Create(int id, int count, long instanceId)
         {
-            if (id == ItemConst.EmptyItemId)
-            {
-                return CreatEmpty();
-            }
+            if (id == ItemConst.EmptyItemId) return CreatEmpty();
 
-            if (count < 1)
-            {
-                return CreatEmpty();
-            }
+            if (count < 1) return CreatEmpty();
 
-            return new ItemStack(id, count, _itemConfig, this,instanceId);
+            return new ItemStack(id, count, _itemConfig, this, instanceId);
         }
+
         public IItemStack Create(ulong itemHash, int count)
         {
-            if (count < 1)
-            {
-                return CreatEmpty();
-            }
+            if (count < 1) return CreatEmpty();
 
             var id = _itemConfig.GetItemId(itemHash);
-            if (id == ItemConst.EmptyItemId)
-            {
-                return CreatEmpty();
-            }
+            if (id == ItemConst.EmptyItemId) return CreatEmpty();
 
             return new ItemStack(id, count, _itemConfig, this);
         }

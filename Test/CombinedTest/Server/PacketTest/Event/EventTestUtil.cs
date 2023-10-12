@@ -4,7 +4,6 @@ using System.Linq;
 using MessagePack;
 using Server.Protocol.PacketResponse;
 
-
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
     public class EventTestUtil

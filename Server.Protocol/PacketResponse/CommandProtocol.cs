@@ -4,16 +4,16 @@ using Core.Item;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Util;
 
 namespace Server.Protocol.PacketResponse
 {
     public class SendCommandProtocol : IPacketResponse
     {
         public const string Tag = "va:sendCommand";
-        
-        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ItemStackFactory _itemStackFactory;
+
+        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+
         public SendCommandProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
@@ -23,10 +23,10 @@ namespace Server.Protocol.PacketResponse
         public List<List<byte>> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<SendCommandProtocolMessagePack>(payload.ToArray());
-            
-            
-            var command = data.Command.Split(' ');//command text
-            
+
+
+            var command = data.Command.Split(' '); //command text
+
             //他のコマンドを実装する場合、この実装方法をやめる
             if (command[0] == "give")
             {
@@ -34,18 +34,19 @@ namespace Server.Protocol.PacketResponse
                 var item = _itemStackFactory.Create(int.Parse(command[2]), int.Parse(command[3]));
                 inventory.MainOpenableInventory.InsertItem(item);
             }
-            
+
             return new List<List<byte>>();
         }
     }
-    
-        
-    [MessagePackObject(keyAsPropertyName :true)]
+
+
+    [MessagePackObject(true)]
     public class SendCommandProtocolMessagePack : ProtocolMessagePackBase
     {
-        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public SendCommandProtocolMessagePack() { }
+        public SendCommandProtocolMessagePack()
+        {
+        }
 
         public SendCommandProtocolMessagePack(string command)
         {

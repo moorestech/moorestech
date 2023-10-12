@@ -1,19 +1,11 @@
 #if NET6_0
 using System;
-using Core.ConfigJson;
 using Core.Const;
 using Core.Item;
-using Core.Item.Config;
-using Core.Item.Implementation;
-using Core.Item.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-
-using Test.Module;
-
 using Test.Module.TestMod;
-
 
 namespace Test.UnitTest.Core.Other
 {
@@ -43,23 +35,15 @@ namespace Test.UnitTest.Core.Other
         {
             IItemStack mineItemStack;
             if (mid == ItemConst.EmptyItemId)
-            {
                 mineItemStack = _itemStackFactory.CreatEmpty();
-            }
             else
-            {
                 mineItemStack = _itemStackFactory.Create(mid, mamo);
-            }
 
             IItemStack receivedItemStack;
             if (rid == ItemConst.EmptyItemId)
-            {
                 receivedItemStack = _itemStackFactory.CreatEmpty();
-            }
             else
-            {
                 receivedItemStack = _itemStackFactory.Create(rid, ramo);
-            }
 
             var result = mineItemStack.AddItem(receivedItemStack);
             Assert.AreEqual(result.ProcessResultItemStack.Count, ansMAmo);
@@ -77,13 +61,9 @@ namespace Test.UnitTest.Core.Other
         {
             IItemStack mineItemStack;
             if (mid == ItemConst.EmptyItemId)
-            {
                 mineItemStack = _itemStackFactory.CreatEmpty();
-            }
             else
-            {
                 mineItemStack = _itemStackFactory.Create(mid, mamo);
-            }
 
             var result = mineItemStack.SubItem(subamo);
             Assert.AreEqual(ansamo, result.Count);
@@ -129,16 +109,16 @@ namespace Test.UnitTest.Core.Other
         [TestCase("aaa")]
         public void NotRelatedObjectPassFalseHaveTest(object obj)
         {
-            IItemStack nullItem = _itemStackFactory.CreatEmpty();
+            var nullItem = _itemStackFactory.CreatEmpty();
             Assert.False(nullItem.Equals(obj));
-            IItemStack item = _itemStackFactory.Create(5, 1);
+            var item = _itemStackFactory.Create(5, 1);
             Assert.False(item.Equals(obj));
         }
 
         [Test]
         public void ToStringTest()
         {
-            IItemStack item = _itemStackFactory.CreatEmpty();
+            var item = _itemStackFactory.CreatEmpty();
             Assert.True(item.ToString() == "ID:0 Count:0");
             item = _itemStackFactory.Create(1, 5);
             Assert.True(item.ToString() == "ID:1 Count:5");

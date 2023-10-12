@@ -1,19 +1,17 @@
-
 using System;
-using Core.Util;
 
 namespace Core.Item
 {
     public static class ItemInstanceIdGenerator
     {
         //TODO randomを全て一つのシードから生成するようにする
-        private static readonly Random Random = new Random(1);
+        private static readonly Random Random = new(1);
 
         public static long Generate()
         {
-            long result = Random.Next(int.MinValue,int.MaxValue);
+            long result = Random.Next(int.MinValue, int.MaxValue);
             result <<= 32;
-            result |= (uint) Random.Next(int.MinValue, int.MaxValue);
+            result |= (uint)Random.Next(int.MinValue, int.MaxValue);
             return result;
         }
     }

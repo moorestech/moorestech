@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Core.Inventory;
 
 namespace Game.PlayerInventory.Interface
 {

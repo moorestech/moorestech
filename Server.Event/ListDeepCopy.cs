@@ -1,17 +1,19 @@
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+
 namespace Server.Event
 {
     public static class ListDeepCopy
     {
         public static T Copy<T>(this T src)
         {
-            using (var memoryStream = new System.IO.MemoryStream())
+            using (var memoryStream = new MemoryStream())
             {
                 var binaryFormatter
-                    = new System.Runtime.Serialization
-                        .Formatters.Binary.BinaryFormatter();
+                    = new BinaryFormatter();
                 binaryFormatter.Serialize(memoryStream, src); // シリアライズ
-                memoryStream.Seek(0, System.IO.SeekOrigin.Begin);
-                return (T) binaryFormatter.Deserialize(memoryStream); // デシリアライズ
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                return (T)binaryFormatter.Deserialize(memoryStream); // デシリアライズ
             }
         }
     }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
 namespace Game.Crafting.Config
@@ -18,16 +17,16 @@ namespace Game.Crafting.Config
     [JsonObject]
     public class CraftItem
     {
-        [JsonProperty("modId")] private string _modId;
-        [JsonProperty("itemName")] private string _itemName;
         [JsonProperty("count")] private int _count;
         [JsonProperty("isRemain")] private bool _isRemain;
+        [JsonProperty("itemName")] private string _itemName;
+        [JsonProperty("modId")] private string _modId;
 
         public string ItemName => _itemName;
         public string ModId => _modId;
-        
+
         public int Count => _count;
-        
+
         public bool IsRemain => _isRemain;
     }
 }

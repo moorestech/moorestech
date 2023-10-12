@@ -1,27 +1,25 @@
 using System;
-using Game.Block.Blocks;
-using Game.Block.Config.LoadConfig.Param;
 using Core.EnergySystem;
+using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.World.EventHandler.Service;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
     /// <summary>
-    /// TODo ここのイベントハンドラを全部削除する
+    ///     TODo ここのイベントハンドラを全部削除する
     /// </summary>
     /// <typeparam name="TSegment"></typeparam>
     /// <typeparam name="TConsumer"></typeparam>
     /// <typeparam name="TGenerator"></typeparam>
     /// <typeparam name="TTransformer"></typeparam>
-    public static class DisconnectOneElectricPoleFromSegmentService<TSegment,TConsumer,TGenerator,TTransformer> 
+    public static class DisconnectOneElectricPoleFromSegmentService<TSegment, TConsumer, TGenerator, TTransformer>
         where TSegment : EnergySegment, new()
         where TConsumer : IEnergyConsumer
         where TGenerator : IEnergyGenerator
         where TTransformer : IEnergyTransformer
     {
-
-        public static void Disconnect(IEnergyTransformer removedElectricPole,EnergyServiceDependencyContainer<TSegment> container)
+        public static void Disconnect(IEnergyTransformer removedElectricPole, EnergyServiceDependencyContainer<TSegment> container)
         {
             //必要なデータを取得
             var (x, y) = container.WorldBlockDatastore.GetBlockPosition(removedElectricPole.EntityId);
@@ -30,13 +28,10 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             var removedSegment = container.WorldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);
             var electricPoles = FindElectricPoleFromPeripheralService.Find(
                 x, y, poleConfig, container.WorldBlockDatastore);
-            
-            if (electricPoles.Count != 1)
-            {
-                throw new Exception("周辺の電柱が1つではありません");
-            }
-            
-            
+
+            if (electricPoles.Count != 1) throw new Exception("周辺の電柱が1つではありません");
+
+
             //セグメントから電柱の接続状態を解除
             removedSegment.RemoveEnergyTransformer(removedElectricPole);
 
@@ -52,7 +47,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             //繋がっていた1つの電柱の周辺の機械と発電機を探索
             var (connectedX, connectedY) = container.WorldBlockDatastore.GetBlockPosition(electricPoles[0].EntityId);
             var connectedPoleConfig =
-                container.BlockConfig.GetBlockConfig(((IBlock) electricPoles[0]).BlockId).Param as ElectricPoleConfigParam;
+                container.BlockConfig.GetBlockConfig(((IBlock)electricPoles[0]).BlockId).Param as ElectricPoleConfigParam;
             var (connectedBlocks, connectedGenerators) =
                 FindMachineAndGeneratorFromPeripheralService.Find(connectedX, connectedY, connectedPoleConfig, container.WorldBlockDatastore);
 

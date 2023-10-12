@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using Core.EnergySystem;
 using Game.World.Interface.DataStore;
-using World.Event;
 
 namespace World.DataStore
 {
-    public class WorldEnergySegmentDatastore<TSegment> : IWorldEnergySegmentDatastore<TSegment>  where TSegment : EnergySegment,new ()
+    public class WorldEnergySegmentDatastore<TSegment> : IWorldEnergySegmentDatastore<TSegment> where TSegment : EnergySegment, new()
     {
         private readonly List<TSegment> _segmentDictionary = new();
-        
+
         //電柱オブジェクトから所属している電力セグメントを取得する
         public TSegment GetEnergySegment(IEnergyTransformer transformer)
         {

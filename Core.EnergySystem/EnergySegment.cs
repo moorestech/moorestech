@@ -1,53 +1,44 @@
 ﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Core.Update;
 
 namespace Core.EnergySystem
 {
     /// <summary>
-    /// そのエネルギーの供給、配分を行うシステム
+    ///     そのエネルギーの供給、配分を行うシステム
     /// </summary>
     public class EnergySegment : IUpdatable
     {
-        public IReadOnlyDictionary<int, IEnergyConsumer> Consumers => _consumers;
         private readonly Dictionary<int, IEnergyConsumer> _consumers = new();
-        
-        public IReadOnlyDictionary<int, IEnergyGenerator> Generators => _generators;
-        private readonly Dictionary<int, IEnergyGenerator> _generators = new();
-        
-        public IReadOnlyDictionary<int, IEnergyTransformer> EnergyTransformers => _energyTransformers;
         private readonly Dictionary<int, IEnergyTransformer> _energyTransformers = new();
+        private readonly Dictionary<int, IEnergyGenerator> _generators = new();
 
         public EnergySegment()
         {
             GameUpdater.RegisterUpdater(this);
         }
 
+        public IReadOnlyDictionary<int, IEnergyConsumer> Consumers => _consumers;
+
+        public IReadOnlyDictionary<int, IEnergyGenerator> Generators => _generators;
+
+        public IReadOnlyDictionary<int, IEnergyTransformer> EnergyTransformers => _energyTransformers;
+
         public void Update()
         {
             //供給されてる合計エネルギー量の算出
             var powers = 0;
-            foreach (var key in _generators.Keys)
-            {
-                powers += _generators[key].OutputEnergy();
-            }
+            foreach (var key in _generators.Keys) powers += _generators[key].OutputEnergy();
 
             //エネルギーの需要量の算出
             var requester = 0;
-            foreach (var key in _consumers.Keys)
-            {
-                requester += _consumers[key].RequestEnergy;
-            }
+            foreach (var key in _consumers.Keys) requester += _consumers[key].RequestEnergy;
 
             //エネルギー供給の割合の算出
-            var powerRate = (double) powers / (double) requester;
+            var powerRate = powers / (double)requester;
             if (1 < powerRate) powerRate = 1;
 
             //エネルギーを供給
-            foreach (var key in _consumers.Keys)
-            {
-                _consumers[key].SupplyEnergy((int) (_consumers[key].RequestEnergy * powerRate));
-            }
+            foreach (var key in _consumers.Keys) _consumers[key].SupplyEnergy((int)(_consumers[key].RequestEnergy * powerRate));
         }
 
         public void AddEnergyConsumer(IEnergyConsumer energyConsumer)

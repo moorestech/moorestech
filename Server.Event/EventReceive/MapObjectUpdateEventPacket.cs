@@ -6,43 +6,41 @@ using MessagePack;
 namespace Server.Event.EventReceive
 {
     /// <summary>
-    /// Mapオブジェクトが破壊など、更新されたらその情報を伝えるためのパケット
+    ///     Mapオブジェクトが破壊など、更新されたらその情報を伝えるためのパケット
     /// </summary>
     public class MapObjectUpdateEventPacket
     {
+        public const string EventTag = "va:event:mapObjectUpdate";
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IMapObjectDatastore _mapObjectDatastore;
 
-        public const string EventTag = "va:event:mapObjectUpdate";
-        
         public MapObjectUpdateEventPacket(IMapObjectDatastore mapObjectDatastore, EventProtocolProvider eventProtocolProvider)
         {
             _mapObjectDatastore = mapObjectDatastore;
             _eventProtocolProvider = eventProtocolProvider;
-            
+
             _mapObjectDatastore.OnDestroyMapObject += OnDestroyMapObject;
         }
 
         private void OnDestroyMapObject(IMapObject mapObject)
         {
-            var data =  MessagePackSerializer.Serialize(new MapObjectUpdateEventMessagePack(
+            var data = MessagePackSerializer.Serialize(new MapObjectUpdateEventMessagePack(
                 MapObjectUpdateEventMessagePack.OnDestroyEventType, mapObject.InstanceId
             )).ToList();
             _eventProtocolProvider.AddBroadcastEvent(data);
         }
     }
-    
-    [MessagePackObject(keyAsPropertyName :true)]
+
+    [MessagePackObject(true)]
     public class MapObjectUpdateEventMessagePack : EventProtocolMessagePackBase
     {
         public const string OnDestroyEventType = "destroy";
 
-        public string EventType { get; set; }
-        public int InstanceId { get; set; }
-        
-        
+
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public MapObjectUpdateEventMessagePack() { }
+        public MapObjectUpdateEventMessagePack()
+        {
+        }
 
         public MapObjectUpdateEventMessagePack(string eventType, int instanceId)
         {
@@ -51,5 +49,7 @@ namespace Server.Event.EventReceive
             InstanceId = instanceId;
         }
 
+        public string EventType { get; set; }
+        public int InstanceId { get; set; }
     }
 }

@@ -1,10 +1,7 @@
 #if NET6_0
-using Game.Block;
-using Game.Block.Blocks;
 using Core.Const;
 using Game.Block.Interface;
 using NUnit.Framework;
-
 
 namespace Test.UnitTest.Game.Block
 {

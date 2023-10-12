@@ -1,7 +1,6 @@
 ﻿namespace Core.EnergySystem.Gear
 {
-    public interface IGearGenerator  : IEnergyGenerator
+    public interface IGearGenerator : IEnergyGenerator
     {
-        
     }
 }

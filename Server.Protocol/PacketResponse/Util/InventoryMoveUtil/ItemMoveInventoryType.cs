@@ -5,6 +5,6 @@
         MainInventory,
         CraftInventory,
         GrabInventory,
-        BlockInventory,
+        BlockInventory
     }
 }

@@ -1,7 +1,5 @@
 #if NET6_0
 using System;
-using Game.Block.Blocks;
-using Game.Block.Config;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Save.Interface;
@@ -9,18 +7,13 @@ using Game.Save.Json;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Server;
 using Server.Boot;
-
-
 using Test.Module.TestMod;
-
 
 namespace Test.UnitTest.Game.SaveLoad
 {
     public class AssembleSaveJsonTextTest
     {
-
         //ブロックを追加した時のテスト
         [Test]
         public void SimpleBlockPlacedTest()
@@ -34,16 +27,16 @@ namespace Test.UnitTest.Game.SaveLoad
             var blockHash1 = blockConfig.GetBlockConfig(1).BlockHash;
             var blockHash2 = blockConfig.GetBlockConfig(2).BlockHash;
 
-            worldBlockDatastore.AddBlock(blockFactory.Create(1,10), 0, 0, BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(2,100), 10, -15, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(1, 10), 0, 0, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(2, 100), 10, -15, BlockDirection.North);
 
             var json = assembleSaveJsonText.AssembleSaveJson();
-            
+
             Console.WriteLine(json);
 
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
-            
+
             var worldLoadBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
 
             var block1 = worldLoadBlockDatastore.GetBlock(0, 0);

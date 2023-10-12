@@ -1,5 +1,4 @@
 ﻿using System;
-using Core.Config.Item;
 using Core.Const;
 using Core.Item.Config;
 using Core.Item.Util;
@@ -8,10 +7,6 @@ namespace Core.Item.Implementation
 {
     internal class ItemStack : IItemStack
     {
-        public int Id { get; }
-        public int Count { get; }
-        public ulong ItemHash { get; }
-        public long ItemInstanceId { get; }
         private readonly IItemConfig _itemConfig;
         private readonly ItemStackFactory _itemStackFactory;
 
@@ -21,28 +16,25 @@ namespace Core.Item.Implementation
             _itemStackFactory = itemStackFactory;
             ItemInstanceId = ItemInstanceIdGenerator.Generate();
             ItemHash = itemConfig.GetItemConfig(id).ItemHash;
-            if (id == ItemConst.EmptyItemId)
-            {
-                throw new ArgumentException("Item id cannot be null");
-            }
+            if (id == ItemConst.EmptyItemId) throw new ArgumentException("Item id cannot be null");
 
-            if (count < 1)
-            {
-                throw new ArgumentOutOfRangeException();
-            }
+            if (count < 1) throw new ArgumentOutOfRangeException();
 
-            if (itemConfig.GetItemConfig(id).MaxStack < count)
-            {
-                throw new ArgumentOutOfRangeException("アイテムスタック数の最大値を超えています ID:" + id + " Count:" + count + " MaxStack:" + itemConfig.GetItemConfig(id).MaxStack);
-            }
+            if (itemConfig.GetItemConfig(id).MaxStack < count) throw new ArgumentOutOfRangeException("アイテムスタック数の最大値を超えています ID:" + id + " Count:" + count + " MaxStack:" + itemConfig.GetItemConfig(id).MaxStack);
 
             Id = id;
             Count = count;
         }
-        public ItemStack(int id, int count, IItemConfig itemConfig, ItemStackFactory itemStackFactory,long instanceId) : this(id,count,itemConfig,itemStackFactory)
+
+        public ItemStack(int id, int count, IItemConfig itemConfig, ItemStackFactory itemStackFactory, long instanceId) : this(id, count, itemConfig, itemStackFactory)
         {
             ItemInstanceId = instanceId;
         }
+
+        public int Id { get; }
+        public int Count { get; }
+        public ulong ItemHash { get; }
+        public long ItemInstanceId { get; }
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
@@ -55,13 +47,13 @@ namespace Core.Item.Implementation
             }
 
             //IDが違うならそれぞれで返す
-            if (((ItemStack) receiveItemStack).Id != Id)
+            if (((ItemStack)receiveItemStack).Id != Id)
             {
                 var newItem = _itemStackFactory.Create(Id, Count);
                 return new ItemProcessResult(newItem, receiveItemStack);
             }
 
-            var newCount = ((ItemStack) receiveItemStack).Count + Count;
+            var newCount = ((ItemStack)receiveItemStack).Count + Count;
             var tmpStack = _itemConfig.GetItemConfig(Id).MaxStack;
 
             //量が指定数より多かったらはみ出した分を返す
@@ -78,10 +70,7 @@ namespace Core.Item.Implementation
 
         public IItemStack SubItem(int subCount)
         {
-            if (0 < Count - subCount)
-            {
-                return _itemStackFactory.Create(Id, Count - subCount);
-            }
+            if (0 < Count - subCount) return _itemStackFactory.Create(Id, Count - subCount);
 
             return _itemStackFactory.CreatEmpty();
         }
@@ -100,11 +89,10 @@ namespace Core.Item.Implementation
         }
 
 
-
         public override bool Equals(object? obj)
         {
             if (typeof(ItemStack) != obj.GetType()) return false;
-            return ((ItemStack) obj).Id == Id && ((ItemStack) obj).Count == Count;
+            return ((ItemStack)obj).Id == Id && ((ItemStack)obj).Count == Count;
         }
 
         public override string ToString()

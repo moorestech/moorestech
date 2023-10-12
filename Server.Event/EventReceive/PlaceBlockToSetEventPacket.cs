@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Game.World.Interface.Event;
 using MessagePack;
-using Server.Util;
 
 namespace Server.Event.EventReceive
 {
@@ -22,23 +20,26 @@ namespace Server.Event.EventReceive
         {
             var c = blockPlaceEventProperties.Coordinate;
             var blockId = blockPlaceEventProperties.Block.BlockId;
-            
+
             var payload = MessagePackSerializer.Serialize(new PlaceBlockEventMessagePack(
-                c.X,c.Y,blockId,(int)blockPlaceEventProperties.BlockDirection
-            )).ToList();;
-            
+                c.X, c.Y, blockId, (int)blockPlaceEventProperties.BlockDirection
+            )).ToList();
+            ;
+
             _eventProtocolProvider.AddBroadcastEvent(payload);
         }
     }
-    
-        
-    [MessagePackObject(keyAsPropertyName :true)]
+
+
+    [MessagePackObject(true)]
     public class PlaceBlockEventMessagePack : EventProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public PlaceBlockEventMessagePack() { }
+        public PlaceBlockEventMessagePack()
+        {
+        }
 
-        public PlaceBlockEventMessagePack(int x, int y, int blockId,int direction)
+        public PlaceBlockEventMessagePack(int x, int y, int blockId, int direction)
         {
             EventTag = PlaceBlockToSetEventPacket.EventTag;
             X = x;

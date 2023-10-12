@@ -15,16 +15,17 @@ namespace Game.Block.Factory.BlockTemplate
     {
         public delegate VanillaMachineBase CreateMachine(
             (int blockId, int entityId, ulong blockHash, VanillaMachineBlockInventory vanillaMachineBlockInventory, VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess, ItemStackFactory itemStackFactory) data);
-        private readonly CreateMachine _createMachine;
-        
-        
-        private readonly IMachineRecipeConfig _machineRecipeConfig;
-        private readonly ItemStackFactory _itemStackFactory;
+
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
+        private readonly CreateMachine _createMachine;
+        private readonly ItemStackFactory _itemStackFactory;
 
 
-        public VanillaMachineTemplate(IMachineRecipeConfig machineRecipeConfig, ItemStackFactory itemStackFactory, 
-            BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent,CreateMachine createMachine)
+        private readonly IMachineRecipeConfig _machineRecipeConfig;
+
+
+        public VanillaMachineTemplate(IMachineRecipeConfig machineRecipeConfig, ItemStackFactory itemStackFactory,
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, CreateMachine createMachine)
         {
             _machineRecipeConfig = machineRecipeConfig;
             _itemStackFactory = itemStackFactory;
@@ -34,45 +35,45 @@ namespace Game.Block.Factory.BlockTemplate
 
         public IBlock New(BlockConfigData param, int entityId, ulong blockHash)
         {
-            var(input, output, machineParam) = GetData(param,entityId);
+            var (input, output, machineParam) = GetData(param, entityId);
 
             var runProcess = new VanillaMachineRunProcess(input, output, _machineRecipeConfig.GetEmptyRecipeData(),
                 machineParam.RequiredPower);
 
-            return _createMachine((param.BlockId, entityId,blockHash,
-                new VanillaMachineBlockInventory(input, output),
-                new VanillaMachineSave(input, output, runProcess),
-                runProcess,
-                _itemStackFactory
-            ));
+            return _createMachine((param.BlockId, entityId, blockHash,
+                    new VanillaMachineBlockInventory(input, output),
+                    new VanillaMachineSave(input, output, runProcess),
+                    runProcess,
+                    _itemStackFactory
+                ));
         }
 
         public IBlock Load(BlockConfigData param, int entityId, ulong blockHash, string state)
         {
-            var(input, output, machineParam) = GetData(param,entityId);
+            var (input, output, machineParam) = GetData(param, entityId);
 
             var runProcess = new VanillaMachineLoad(input, output, _itemStackFactory, _machineRecipeConfig,
                 machineParam.RequiredPower).LoadVanillaMachineRunProcess(state);
 
 
-            return _createMachine((param.BlockId, entityId,blockHash,
-                new VanillaMachineBlockInventory(input, output),
-                new VanillaMachineSave(input, output, runProcess),
-                runProcess,
-                _itemStackFactory
-            ));
+            return _createMachine((param.BlockId, entityId, blockHash,
+                    new VanillaMachineBlockInventory(input, output),
+                    new VanillaMachineSave(input, output, runProcess),
+                    runProcess,
+                    _itemStackFactory
+                ));
         }
 
-        private (VanillaMachineInputInventory, VanillaMachineOutputInventory,MachineBlockConfigParam) GetData(BlockConfigData param,int entityId)
+        private (VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetData(BlockConfigData param, int entityId)
         {
             var machineParam = param.Param as MachineBlockConfigParam;
-            
+
             var input = new VanillaMachineInputInventory(
-                param.BlockId, machineParam.InputSlot, _machineRecipeConfig, _itemStackFactory, _blockInventoryUpdateEvent,entityId);
+                param.BlockId, machineParam.InputSlot, _machineRecipeConfig, _itemStackFactory, _blockInventoryUpdateEvent, entityId);
 
             var output = new VanillaMachineOutputInventory(
-                machineParam.OutputSlot, _itemStackFactory, _blockInventoryUpdateEvent,entityId,machineParam.InputSlot);
-            
+                machineParam.OutputSlot, _itemStackFactory, _blockInventoryUpdateEvent, entityId, machineParam.InputSlot);
+
             return (input, output, machineParam);
         }
     }

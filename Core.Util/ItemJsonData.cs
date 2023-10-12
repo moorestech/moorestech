@@ -5,11 +5,10 @@ namespace Core.Util
     [JsonObject("ItemJsonData")]
     public class ItemJsonData
     {
-        [JsonProperty("modId")]
-        public string ModId;
-        [JsonProperty("name")]
-        public string Name;
-        [JsonProperty("cnt")]
-        public int Count;
+        [JsonProperty("cnt")] public int Count;
+
+        [JsonProperty("modId")] public string ModId;
+
+        [JsonProperty("name")] public string Name;
     }
 }

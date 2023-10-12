@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Server.Util;
 
-
 namespace Test.UnitTest.Server
 {
     public class BitObjectConvertTest
@@ -17,7 +16,7 @@ namespace Test.UnitTest.Server
             byteArray.Add(15);
             byteArray.AddRange(ToByteList.Convert(10));
             byteArray.AddRange(ToByteList.Convert(int.MaxValue));
-            byteArray.AddRange(ToByteList.Convert((short) 50));
+            byteArray.AddRange(ToByteList.Convert((short)50));
             byteArray.AddRange(ToByteList.Convert(30.54f));
 
             var bitArray = new BitListEnumerator(byteArray);
@@ -36,7 +35,7 @@ namespace Test.UnitTest.Server
 
             Assert.AreEqual(10, bitArray.MoveNextToInt());
             Assert.AreEqual(int.MaxValue, bitArray.MoveNextToInt());
-            Assert.AreEqual((short) 50, bitArray.MoveNextToShort());
+            Assert.AreEqual((short)50, bitArray.MoveNextToShort());
             Assert.AreEqual(30.54f, bitArray.MoveNextToFloat());
         }
 
@@ -45,16 +44,16 @@ namespace Test.UnitTest.Server
         public void BitArrayToBitArrayEnumeratorTest()
         {
             var boolArray = new List<bool>();
-            boolArray.AddRange(ToBitList.Convert((byte) 0));
-            boolArray.AddRange(ToBitList.Convert((byte) 14));
+            boolArray.AddRange(ToBitList.Convert((byte)0));
+            boolArray.AddRange(ToBitList.Convert((byte)14));
             boolArray.Add(true);
             boolArray.Add(false);
-            boolArray.AddRange(ToBitList.Convert((byte) 60));
+            boolArray.AddRange(ToBitList.Convert((byte)60));
             boolArray.Add(true);
             boolArray.Add(false);
             boolArray.Add(true);
             boolArray.AddRange(ToBitList.Convert(5426));
-            boolArray.AddRange(ToBitList.Convert((byte) 8));
+            boolArray.AddRange(ToBitList.Convert((byte)8));
 
             var bytes = BitListToByteList.Convert(boolArray);
             var bitArray = new BitListEnumerator(bytes);

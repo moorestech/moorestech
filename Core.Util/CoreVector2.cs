@@ -2,7 +2,6 @@ namespace Core.Util
 {
     public struct CoreVector2
     {
-        
         public float X;
         public float Y;
 

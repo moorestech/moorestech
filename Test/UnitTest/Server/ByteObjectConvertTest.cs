@@ -5,7 +5,6 @@ using Game.World.Interface.Util;
 using NUnit.Framework;
 using Server.Util;
 
-
 namespace Test.UnitTest.Server
 {
     //バイト配列と各種オブジェクトとの変換のテスト
@@ -15,7 +14,7 @@ namespace Test.UnitTest.Server
         //intを相互変化しても問題ないかテスト
         public void OneIntConvertTest()
         {
-            var Int = new Random(1000).Next(Int32.MaxValue, Int32.MaxValue);
+            var Int = new Random(1000).Next(int.MaxValue, int.MaxValue);
             var byteData = new ByteListEnumerator(ToByteList.Convert(Int));
 
             Assert.AreEqual(Int, byteData.MoveNextToGetInt());
@@ -25,7 +24,7 @@ namespace Test.UnitTest.Server
         //shortを相互変化しても問題ないかテスト
         public void OneShortConvertTest()
         {
-            var Short = (short) new Random(1000).Next(short.MinValue, short.MaxValue);
+            var Short = (short)new Random(1000).Next(short.MinValue, short.MaxValue);
             var byteData = new ByteListEnumerator(ToByteList.Convert(Short));
 
             Assert.AreEqual(Short, byteData.MoveNextToGetShort());
@@ -35,7 +34,7 @@ namespace Test.UnitTest.Server
         //floatを相互変化しても問題ないかテスト
         public void OneFloatConvertTest()
         {
-            var Float = (float) new Random(1000).NextDouble();
+            var Float = (float)new Random(1000).NextDouble();
             var byteData = new ByteListEnumerator(ToByteList.Convert(Float));
 
             Assert.AreEqual(Float, byteData.MoveNextToGetFloat());
@@ -66,7 +65,7 @@ namespace Test.UnitTest.Server
         public void MoreConvertTest()
         {
             var random = new Random();
-            var id = (short) random.Next(short.MinValue, short.MaxValue);
+            var id = (short)random.Next(short.MinValue, short.MaxValue);
             var entityId1 = CreateBlockEntityId.Create();
             var entityId2 = CreateBlockEntityId.Create();
             var ans = new List<byte>();
@@ -90,7 +89,7 @@ namespace Test.UnitTest.Server
         public void ConvertTest(int ans, byte b1, byte b2, byte b3, byte b4)
         {
             var actual = ToByteList.Convert(ans);
-            var expect = new byte[4] {b1, b2, b3, b4};
+            var expect = new byte[4] { b1, b2, b3, b4 };
 
             Assert.AreEqual(expect[0], actual[0]);
             Assert.AreEqual(expect[1], actual[1]);
@@ -101,7 +100,7 @@ namespace Test.UnitTest.Server
         [Test]
         public void ByteArrayToStringTest()
         {
-            var bytes = new List<byte> {0x61, 0x41, 0x72, 0x36, 0x23};
+            var bytes = new List<byte> { 0x61, 0x41, 0x72, 0x36, 0x23 };
 
             var byteData = new ByteListEnumerator(bytes);
             Assert.AreEqual("aAr6#", byteData.MoveNextToGetString(5));

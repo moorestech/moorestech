@@ -1,11 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
-using System.Text;
-using Core.ConfigJson;
 using Core.Item;
 using Game.Crafting.Interface;
 using Newtonsoft.Json;
@@ -24,7 +19,7 @@ namespace Game.Crafting.Config
         public List<CraftingConfigData> Load(List<string> jsons)
         {
             var loadedData = jsons.SelectMany(JsonConvert.DeserializeObject<CraftConfigDataElement[]>).ToList();
-            
+
             var result = new List<CraftingConfigData>();
 
             for (var i = 0; i < loadedData.Count; i++)
@@ -35,7 +30,7 @@ namespace Game.Crafting.Config
                 {
                     if (string.IsNullOrEmpty(craftItem.ItemName) || string.IsNullOrEmpty(craftItem.ModId))
                     {
-                        items.Add(new CraftingItemData(_itemStackFactory.CreatEmpty(),false));
+                        items.Add(new CraftingItemData(_itemStackFactory.CreatEmpty(), false));
                         continue;
                     }
 
@@ -43,10 +38,7 @@ namespace Game.Crafting.Config
                 }
 
                 //TODO ロードした時にあるべきものがなくnullだったらエラーを出す
-                if (config.Result.ModId == null)
-                {
-                    Console.WriteLine(i + " : Result item is null");
-                }
+                if (config.Result.ModId == null) Console.WriteLine(i + " : Result item is null");
 
                 var resultItem =
                     _itemStackFactory.Create(config.Result.ModId, config.Result.ItemName, config.Result.Count);

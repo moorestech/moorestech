@@ -4,11 +4,11 @@ namespace Game.PlayerInventory.Interface.Event
 {
     public class PlayerInventoryUpdateEventProperties
     {
-        public readonly int PlayerId;
-        public readonly int InventorySlot;
-        public readonly IItemStack ItemStack;
-        public readonly int ItemId;
         public readonly int Count;
+        public readonly int InventorySlot;
+        public readonly int ItemId;
+        public readonly IItemStack ItemStack;
+        public readonly int PlayerId;
 
 
         public PlayerInventoryUpdateEventProperties(int playerId, int inventorySlot, IItemStack itemStack)

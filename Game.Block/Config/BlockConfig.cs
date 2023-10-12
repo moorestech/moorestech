@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Game.Block.Config.LoadConfig;
-using Game.Block.Config.LoadConfig.Param;
 using Core.ConfigJson;
 using Core.Const;
 using Core.Item.Config;
-using Core.Item.Util;
+using Game.Block.Config.LoadConfig;
+using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
 
 namespace Game.Block.Config
@@ -15,29 +14,22 @@ namespace Game.Block.Config
     {
         private readonly List<BlockConfigData> _blockConfigList;
         private readonly Dictionary<ulong, BlockConfigData> _bockHashToConfig = new();
-        private readonly Dictionary<string,List<int>> _modIdToBlockIds = new();
+        private readonly Dictionary<string, List<int>> _modIdToBlockIds = new();
 
-        public BlockConfig(ConfigJsonList configJson,IItemConfig itemConfig)
+        public BlockConfig(ConfigJsonList configJson, IItemConfig itemConfig)
         {
-            _blockConfigList = new BlockConfigJsonLoad(itemConfig).LoadFromJsons(configJson.BlockConfigs,configJson.SortedModIds);            
+            _blockConfigList = new BlockConfigJsonLoad(itemConfig).LoadFromJsons(configJson.BlockConfigs, configJson.SortedModIds);
             foreach (var blockConfig in _blockConfigList)
             {
-                if (_bockHashToConfig.ContainsKey(blockConfig.BlockHash))
-                {
-                    throw new Exception("ブロック名 " + blockConfig.Name + " は重複しています。");
-                }
-                
+                if (_bockHashToConfig.ContainsKey(blockConfig.BlockHash)) throw new Exception("ブロック名 " + blockConfig.Name + " は重複しています。");
+
                 _bockHashToConfig.Add(blockConfig.BlockHash, blockConfig);
-                
+
                 var blockId = blockConfig.BlockId;
                 if (_modIdToBlockIds.TryGetValue(blockConfig.ModId, out var blockIds))
-                {
                     blockIds.Add(blockId);
-                }
                 else
-                {
-                    _modIdToBlockIds.Add(blockConfig.ModId, new List<int> {blockId});
-                }
+                    _modIdToBlockIds.Add(blockConfig.ModId, new List<int> { blockId });
             }
         }
 
@@ -45,34 +37,24 @@ namespace Game.Block.Config
         {
             //0は空気ブロックなので1を引いておくs
             id -= 1;
-            if (id < 0)
-            {
-                throw new ArgumentException("id must be greater than 0 ID:" + id);
-            }
-            if (id < _blockConfigList.Count)
-            {
-                return _blockConfigList[id];
-            }
+            if (id < 0) throw new ArgumentException("id must be greater than 0 ID:" + id);
+            if (id < _blockConfigList.Count) return _blockConfigList[id];
 
-            
-            
+
             //未定義の時はNullBlockConfigを返す
             //idを元に戻す
             id++;
-            return new BlockConfigData("mod is not found",id,
+            return new BlockConfigData("mod is not found", id,
                 "ID " + id + " is undefined",
                 0,
                 VanillaBlockType.Block,
                 new NullBlockConfigParam(),
-                ItemConst.EmptyItemId,new ModelTransform());
+                ItemConst.EmptyItemId, new ModelTransform());
         }
 
         public BlockConfigData GetBlockConfig(ulong blockHash)
         {
-            if (_bockHashToConfig.TryGetValue(blockHash, out var blockConfig))
-            {
-                return blockConfig;
-            }
+            if (_bockHashToConfig.TryGetValue(blockHash, out var blockConfig)) return blockConfig;
 
             throw new Exception("BlockHash not found:" + blockHash);
         }
@@ -80,17 +62,17 @@ namespace Game.Block.Config
         public BlockConfigData GetBlockConfig(string modId, string blockName)
         {
             foreach (var blockConfig in _blockConfigList)
-            {
                 if (blockConfig.ModId == modId && blockConfig.Name == blockName)
-                {
                     return blockConfig;
-                }
-            }
             //TODO ログ基盤に入れる
             throw new Exception("Mod id or block name not found:" + modId + " " + blockName);
         }
 
-        public int GetBlockConfigCount() { return _blockConfigList.Count; }
+        public int GetBlockConfigCount()
+        {
+            return _blockConfigList.Count;
+        }
+
         public List<int> GetBlockIds(string modId)
         {
             return _modIdToBlockIds.TryGetValue(modId, out var blockIds) ? blockIds : new List<int>();

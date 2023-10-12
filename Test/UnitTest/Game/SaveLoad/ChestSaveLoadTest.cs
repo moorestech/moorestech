@@ -1,17 +1,12 @@
 #if NET6_0
 using System;
 using Game.Block.Blocks.Chest;
-using Game.Block.Config;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Server;
 using Server.Boot;
-
-
 using Test.Module.TestMod;
-
 
 namespace Test.UnitTest.Game.SaveLoad
 {
@@ -27,21 +22,21 @@ namespace Test.UnitTest.Game.SaveLoad
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var blockHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(ChestBlockId).BlockHash;
 
-            var chest = (VanillaChest) blockFactory.Create(ChestBlockId,1);
-            
-            
-            chest.SetItem(0,1,7);
-            chest.SetItem(2,2,45);
-            chest.SetItem(4,3,3);
+            var chest = (VanillaChest)blockFactory.Create(ChestBlockId, 1);
+
+
+            chest.SetItem(0, 1, 7);
+            chest.SetItem(2, 2, 45);
+            chest.SetItem(4, 3, 3);
 
             var save = chest.GetSaveState();
             Console.WriteLine(save);
-            
-            var chest2 = (VanillaChest) blockFactory.Load(blockHash,1,save);
-            
-            Assert.AreEqual(chest.GetItem(0),chest2.GetItem(0));
-            Assert.AreEqual(chest.GetItem(2),chest2.GetItem(2));
-            Assert.AreEqual(chest.GetItem(4),chest2.GetItem(4));
+
+            var chest2 = (VanillaChest)blockFactory.Load(blockHash, 1, save);
+
+            Assert.AreEqual(chest.GetItem(0), chest2.GetItem(0));
+            Assert.AreEqual(chest.GetItem(2), chest2.GetItem(2));
+            Assert.AreEqual(chest.GetItem(4), chest2.GetItem(4));
         }
     }
 }

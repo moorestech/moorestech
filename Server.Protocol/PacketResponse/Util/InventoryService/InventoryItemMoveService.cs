@@ -15,8 +15,8 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             catch (ArgumentOutOfRangeException e)
             {
                 //TODO ログ基盤に入れる
-                string fromInventoryName = fromInventory.GetType().Name;
-                string toInventoryName = toInventory.GetType().Name;
+                var fromInventoryName = fromInventory.GetType().Name;
+                var toInventoryName = toInventory.GetType().Name;
                 Console.WriteLine($"InventoryItemMoveService.Move: \n {e.Message} \n fromInventory={fromInventoryName} fromSlot={fromSlot} toInventory={toInventoryName} toSlot={toSlot} itemCount={itemCount}  \n {e.StackTrace}");
             }
             catch (Exception e)
@@ -28,19 +28,13 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
         private static void ExecuteMove(ItemStackFactory itemStackFactory, IOpenableInventory fromInventory, int fromSlot, IOpenableInventory toInventory, int toSlot, int itemCount)
         {
             //移動元と移動先のスロットが同じ場合は移動しない
-            if (fromInventory.GetHashCode() == toInventory.GetHashCode() && fromSlot == toSlot)
-            {
-                return;
-            }
-            
-            
+            if (fromInventory.GetHashCode() == toInventory.GetHashCode() && fromSlot == toSlot) return;
+
+
             //移動元からアイテムを取得
             var originItem = fromInventory.GetItem(fromSlot);
             //移動アイテム数が本来のアイテムより多い時は、本来のアイテム数に修正する
-            if (originItem.Count < itemCount)
-            {
-                itemCount = originItem.Count;
-            }
+            if (originItem.Count < itemCount) itemCount = originItem.Count;
 
             //実際に移動するアイテムインスタンスの作成
             var moveItem = itemStackFactory.Create(originItem.Id, itemCount);
@@ -70,7 +64,6 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
                 toInventory.SetItem(toSlot, originItem);
                 fromInventory.SetItem(fromSlot, destinationInventoryItem);
             }
-            
         }
     }
 }

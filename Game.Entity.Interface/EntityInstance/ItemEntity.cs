@@ -16,6 +16,12 @@ namespace Game.Entity.Interface.EntityInstance
         public ServerVector3 Position { get; private set; }
         public string State { get; private set; }
 
+
+        public void SetPosition(ServerVector3 serverVector3)
+        {
+            Position = serverVector3;
+        }
+
         public void SetState(IItemStack itemStack)
         {
             State = itemStack.Id + "," + itemStack.Count;
@@ -24,12 +30,6 @@ namespace Game.Entity.Interface.EntityInstance
         public void SetState(int id, int count)
         {
             State = id + "," + count;
-        }
-        
-        
-        public void SetPosition(ServerVector3 serverVector3)
-        {
-            Position = serverVector3;
         }
     }
 }

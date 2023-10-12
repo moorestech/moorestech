@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Game.World.Interface.Event;
 using MessagePack;
-using Server.Util;
 
 namespace Server.Event.EventReceive
 {
@@ -21,20 +19,24 @@ namespace Server.Event.EventReceive
         private void ReceivedEvent(BlockRemoveEventProperties blockPlaceEventProperties)
         {
             var c = blockPlaceEventProperties.Coordinate;
-            
-            
+
+
             var payload = MessagePackSerializer.Serialize(new RemoveBlockEventMessagePack(
-                c.X,c.Y)).ToList();;
-            
+                c.X, c.Y)).ToList();
+            ;
+
 
             _eventProtocolProvider.AddBroadcastEvent(payload);
         }
     }
-    [MessagePackObject(keyAsPropertyName :true)]
+
+    [MessagePackObject(true)]
     public class RemoveBlockEventMessagePack : EventProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RemoveBlockEventMessagePack() { }
+        public RemoveBlockEventMessagePack()
+        {
+        }
 
         public RemoveBlockEventMessagePack(int x, int y)
         {

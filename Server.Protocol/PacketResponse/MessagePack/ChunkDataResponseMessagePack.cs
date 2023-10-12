@@ -4,11 +4,13 @@ using MessagePack;
 
 namespace Server.Protocol.PacketResponse.MessagePack
 {
-    [MessagePackObject(keyAsPropertyName :true)]
+    [MessagePackObject(true)]
     public class ChunkDataResponseMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ChunkDataResponseMessagePack() { }
+        public ChunkDataResponseMessagePack()
+        {
+        }
 
         public ChunkDataResponseMessagePack(Coordinate chunk, int[,] blockIds, int[,] blockDirect, int[,] mapTileIds)
         {

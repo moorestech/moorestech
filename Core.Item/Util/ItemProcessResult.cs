@@ -9,12 +9,12 @@
         }
 
         /// <summary>
-        /// 処理した結果余ったアイテムスタック
+        ///     処理した結果余ったアイテムスタック
         /// </summary>
         public IItemStack RemainderItemStack { get; }
 
         /// <summary>
-        /// 元のアイテムスタックに対する処理結果のアイテムスタック
+        ///     元のアイテムスタックに対する処理結果のアイテムスタック
         /// </summary>
         public IItemStack ProcessResultItemStack { get; }
     }

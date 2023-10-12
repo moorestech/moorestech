@@ -1,14 +1,9 @@
 #if NET6_0
-using Core.Config.Item;
-using Core.ConfigJson;
 using Core.Item.Config;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-
-
 using Test.Module.TestMod;
-
 
 namespace Test.UnitTest.Core.Other
 {
@@ -46,8 +41,8 @@ namespace Test.UnitTest.Core.Other
         {
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemConfig = serviceProvider.GetService<IItemConfig>();
-            
-            
+
+
             Assert.AreEqual(10, itemConfig.GetItemIds("Test Author:forUniTest").Count);
         }
     }

@@ -4,12 +4,13 @@ using MessagePack;
 
 namespace Server.Util.MessagePack
 {
-
-    [MessagePackObject(false)]
+    [MessagePackObject()]
     public class ItemMessagePack
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ItemMessagePack() { }
+        public ItemMessagePack()
+        {
+        }
 
         public ItemMessagePack(int id, int count)
         {
@@ -23,10 +24,8 @@ namespace Server.Util.MessagePack
             Count = itemStack.Count;
         }
 
-        [Key(0)]
-        public int Id { get; set; }
-        [Key(1)]
-        public int Count { get; set; }
-        
+        [Key(0)] public int Id { get; set; }
+
+        [Key(1)] public int Count { get; set; }
     }
 }

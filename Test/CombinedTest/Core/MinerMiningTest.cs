@@ -1,32 +1,26 @@
 #if NET6_0
 using System;
-using System.Collections.Generic;
-using Game.Block.BlockInventory;
-using Game.Block.Blocks.Miner;
-using Game.Block.Config;
-using Game.Block.Config.LoadConfig.Param;
-using Game.Block.Event;
 using Core.EnergySystem;
 using Core.Item;
 using Core.Ore;
 using Core.Update;
+using Game.Block.BlockInventory;
+using Game.Block.Blocks.Miner;
+using Game.Block.Config.LoadConfig.Param;
+using Game.Block.Event;
 using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Server;
 using Server.Boot;
-
 using Test.Module;
-
 using Test.Module.TestMod;
-
 
 namespace Test.CombinedTest.Core
 {
     public class MinerMiningTest
     {
-        private int MinerId = UnitTestModBlockId.MinerId;
+        private readonly int MinerId = UnitTestModBlockId.MinerId;
 
         //一定時間たったら鉱石が出るテスト
         [Test]
@@ -43,40 +37,34 @@ namespace Test.CombinedTest.Core
             var miningTime = minerBlockConfigParam.OreSettings[0].MiningTime;
             var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.OreSettings[0].OreId);
 
-            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(),1, 100, outputCount, itemStackFactory,new BlockOpenableInventoryUpdateEvent()));
+            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, itemStackFactory, new BlockOpenableInventoryUpdateEvent()));
             miner.SetMiningItem(miningItemId, miningTime);
 
             var dummyInventory = new DummyBlockInventory(itemStackFactory);
             //接続先ブロックの設定
-            ((IBlockInventory) miner).AddOutputConnector(dummyInventory);
+            ((IBlockInventory)miner).AddOutputConnector(dummyInventory);
             //電力の設定
             var segment = new EnergySegment();
             segment.AddEnergyConsumer(miner);
             segment.AddGenerator(new TestElectricGenerator(10000, 10));
 
-            DateTime MineEndTime = DateTime.Now.AddMilliseconds(miningTime);
+            var MineEndTime = DateTime.Now.AddMilliseconds(miningTime);
 
 
             //テストコードの準備完了
             //鉱石1個分の採掘時間待機
-            while (MineEndTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
-            {
-                GameUpdater.Update();
-            }
+            while (MineEndTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
 
             //鉱石1個が出力されているかチェック
             Assert.AreEqual(miningItemId, dummyInventory.InsertedItems[0].Id);
             Assert.AreEqual(1, dummyInventory.InsertedItems[0].Count);
 
             //コネクターを外す
-            ((IBlockInventory) miner).RemoveOutputConnector(dummyInventory);
+            ((IBlockInventory)miner).RemoveOutputConnector(dummyInventory);
 
             //鉱石2個分の採掘時間待機
             MineEndTime = DateTime.Now.AddMilliseconds(miningTime * 2);
-            while (MineEndTime.AddSeconds(0.02).CompareTo(DateTime.Now) == 1)
-            {
-                GameUpdater.Update();
-            }
+            while (MineEndTime.AddSeconds(0.02).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
 
             miner.Update();
             //鉱石2個が残っているかチェック
@@ -85,7 +73,7 @@ namespace Test.CombinedTest.Core
             Assert.AreEqual(2, outputSlot.Count);
 
             //またコネクターをつなげる
-            ((IBlockInventory) miner).AddOutputConnector(dummyInventory);
+            ((IBlockInventory)miner).AddOutputConnector(dummyInventory);
 
             //コネクターにアイテムを入れるためのアップデート
             GameUpdater.Update();

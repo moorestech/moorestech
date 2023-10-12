@@ -1,8 +1,4 @@
 using System.IO;
-using Game.Block.Config;
-using Game.Block.Config.Service;
-using Game.Block.Event;
-using Game.Block.RecipeConfig;
 using Core.ConfigJson;
 using Core.EnergySystem;
 using Core.EnergySystem.Electric;
@@ -10,11 +6,15 @@ using Core.Item;
 using Core.Item.Config;
 using Core.Ore;
 using Core.Ore.Config;
+using Game.Block.Config;
+using Game.Block.Config.Service;
+using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
+using Game.Block.RecipeConfig;
 using Game.Crafting;
 using Game.Crafting.Config;
 using Game.Crafting.Interface;
@@ -58,12 +58,12 @@ namespace Server.Boot
         public (PacketResponseCreator, ServiceProvider) Create(string serverDirectory)
         {
             var services = new ServiceCollection();
-            
+
             var modDirectory = Path.Combine(serverDirectory, "mods");
             var mapDirectory = Path.Combine(serverDirectory, "map");
-            
+
             //コンフィグ、ファクトリーのインスタンスを登録
-            var (configJsons,modsResource) = ModJsonStringLoader.GetConfigString(modDirectory);
+            var (configJsons, modsResource) = ModJsonStringLoader.GetConfigString(modDirectory);
             services.AddSingleton(new ConfigJsonList(configJsons));
             services.AddSingleton(modsResource);
             services.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
@@ -94,10 +94,10 @@ namespace Server.Boot
             services.AddSingleton<IQuestDataStore, QuestDatastore>();
             services.AddSingleton<IQuestConfig, QuestConfig>();
             services.AddSingleton<QuestFactory, QuestFactory>();
-            
+
             services.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
             services.AddSingleton<IMapObjectFactory, MapObjectFactory>();
-            
+
 
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
@@ -125,9 +125,9 @@ namespace Server.Boot
             services.AddSingleton<RemoveBlockToSetEventPacket>();
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect>();
             services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect>();
-            
-            services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment,IBlockElectricConsumer,IElectricGenerator,IElectricPole>>();
-            
+
+            services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
+
             services.AddSingleton<SetMiningItemToMiner>();
             services.AddSingleton<QuestCompletedToSendEventPacket>();
             services.AddSingleton<MapObjectUpdateEventPacket>();
@@ -149,9 +149,9 @@ namespace Server.Boot
             serviceProvider.GetService<RemoveBlockToSetEventPacket>();
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();
-            
-            serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment,IBlockElectricConsumer,IElectricGenerator,IElectricPole>>();
-            
+
+            serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
+
             serviceProvider.GetService<SetMiningItemToMiner>();
             serviceProvider.GetService<QuestCompletedToSendEventPacket>();
             serviceProvider.GetService<ChangeBlockStateEventPacket>();

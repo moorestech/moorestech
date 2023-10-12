@@ -8,15 +8,15 @@ namespace Game.Block
         {
             percent *= 100;
             //小数点以下の桁数
-            int digitNum = 0;
+            var digitNum = 0;
 
             //小数点以下を無くすように乱数の上限と判定の境界を上げる
-            int rate = (int) Math.Pow(10, digitNum);
+            var rate = (int)Math.Pow(10, digitNum);
 
             //乱数の上限と真と判定するボーダーを設定
-            int randomValueLimit = 100 * rate;
-            int border = (int) (rate * percent);
-            Random r = new System.Random();
+            var randomValueLimit = 100 * rate;
+            var border = (int)(rate * percent);
+            var r = new Random();
             return r.Next(0, randomValueLimit) < border;
         }
     }

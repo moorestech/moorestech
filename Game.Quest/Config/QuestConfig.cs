@@ -11,9 +11,10 @@ namespace Game.Quest.Config
     {
         private readonly Dictionary<string, List<string>> _modIdToQuests;
         private readonly Dictionary<string, QuestConfigData> _questIdToQuestConfigs;
-        public QuestConfig(ConfigJsonList configJson,ItemStackFactory itemStackFactory)
+
+        public QuestConfig(ConfigJsonList configJson, ItemStackFactory itemStackFactory)
         {
-            (_modIdToQuests, _questIdToQuestConfigs) = QuestLoadConfig.LoadConfig(itemStackFactory,configJson.QuestConfigs);
+            (_modIdToQuests, _questIdToQuestConfigs) = QuestLoadConfig.LoadConfig(itemStackFactory, configJson.QuestConfigs);
         }
 
         public IReadOnlyList<QuestConfigData> GetAllQuestConfig()
@@ -23,10 +24,7 @@ namespace Game.Quest.Config
 
         public QuestConfigData GetQuestConfig(string id)
         {
-            if (_questIdToQuestConfigs.TryGetValue(id,out var quest))
-            {
-                return quest;
-            }
+            if (_questIdToQuestConfigs.TryGetValue(id, out var quest)) return quest;
 
             //TODO ログ取得基盤に入れるようにする
             throw new ArgumentException("[QuestConfig]指定された クエストID:" + id + "は存在しません。");
@@ -34,13 +32,10 @@ namespace Game.Quest.Config
 
         public List<string> GetQuestIds(string modId)
         {
-            if (_modIdToQuests.TryGetValue(modId,out var quests))
-            {
-                return quests;
-            }
+            if (_modIdToQuests.TryGetValue(modId, out var quests)) return quests;
 
             //TODO ログ取得基盤に入れるようにする
-            Console.WriteLine("[QuestConfig]指定された ModId:"+modId + "にクエストは存在しません。");
+            Console.WriteLine("[QuestConfig]指定された ModId:" + modId + "にクエストは存在しません。");
             return new List<string>();
         }
 
@@ -54,8 +49,10 @@ namespace Game.Quest.Config
                     questList = new List<QuestConfigData>();
                     questListEachCategory.Add(quest.QuestCategory, questList);
                 }
+
                 questList.Add(quest);
             }
+
             return questListEachCategory;
         }
     }

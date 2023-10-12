@@ -1,33 +1,20 @@
 #if NET6_0
 using System;
 using System.Reflection;
+using Core.Item;
+using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
-using Game.Block.Event;
-using Game.Block.RecipeConfig;
-using Core.ConfigJson;
-using Core.Item;
-using Core.Item.Config;
-using Core.Update;
 using Game.Block.Interface;
-using Game.Crafting;
-using Game.Crafting.Config;
-using Game.PlayerInventory.Interface;
 using Game.Save.Interface;
 using Game.Save.Json;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using PlayerInventory;
-using PlayerInventory.Event;
 using Server.Boot;
-
-
 using Test.Module.TestMod;
-using World.DataStore;
-using World.Event;
-
 
 namespace Test.UnitTest.Game.SaveLoad
 {
@@ -39,9 +26,9 @@ namespace Test.UnitTest.Game.SaveLoad
         public void InventoryBlockTest()
         {
             //機械の追加
-            var (itemStackFactory, blockFactory, worldBlockDatastore, _, assembleSaveJsonText,_) =
+            var (itemStackFactory, blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) =
                 CreateBlockTestModule();
-            var machine = (VanillaMachineBase) blockFactory.Create(1, 10);
+            var machine = (VanillaMachineBase)blockFactory.Create(1, 10);
             worldBlockDatastore.AddBlock(machine, 0, 0, BlockDirection.North);
 
 
@@ -56,7 +43,7 @@ namespace Test.UnitTest.Game.SaveLoad
 
             //リフレクションで機械の状態を設定
             //機械のレシピの残り時間設定
-            var vanillaMachineRunProcess = (VanillaMachineRunProcess) typeof(VanillaMachineBase)
+            var vanillaMachineRunProcess = (VanillaMachineRunProcess)typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineRunProcess", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(machine);
             typeof(VanillaMachineRunProcess)
@@ -68,10 +55,10 @@ namespace Test.UnitTest.Game.SaveLoad
                 .SetValue(vanillaMachineRunProcess, ProcessState.Processing);
 
             //機械のアウトプットスロットの設定
-            var _vanillaMachineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachineBase)
+            var _vanillaMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
 
-            var outputInventory = (VanillaMachineOutputInventory) typeof(VanillaMachineBlockInventory)
+            var outputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(_vanillaMachineInventory);
 
@@ -84,15 +71,15 @@ namespace Test.UnitTest.Game.SaveLoad
             var json = assembleSaveJsonText.AssembleSaveJson();
             Console.WriteLine(json);
             //配置したブロックを削除
-            worldBlockDatastore.RemoveBlock( 0, 0);
+            worldBlockDatastore.RemoveBlock(0, 0);
 
 
             //ロードした時に機械の状態が正しいことを確認
-            var (_, _, loadWorldBlockDatastore, _, _,loadJsonFile) = CreateBlockTestModule();
-            
+            var (_, _, loadWorldBlockDatastore, _, _, loadJsonFile) = CreateBlockTestModule();
+
             loadJsonFile.Load(json);
 
-            var loadMachine = (VanillaMachineBase) loadWorldBlockDatastore.GetBlock(0, 0);
+            var loadMachine = (VanillaMachineBase)loadWorldBlockDatastore.GetBlock(0, 0);
             Console.WriteLine(machine.GetHashCode());
             Console.WriteLine(loadMachine.GetHashCode());
             //ブロックID、intIDが同じであることを確認
@@ -101,28 +88,28 @@ namespace Test.UnitTest.Game.SaveLoad
 
 
             //機械のレシピの残り時間のチェック
-            var loadVanillaMachineRunProcess = (VanillaMachineRunProcess) typeof(VanillaMachineBase)
+            var loadVanillaMachineRunProcess = (VanillaMachineRunProcess)typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineRunProcess", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachine);
-            Assert.AreEqual((double) 300, (double) loadVanillaMachineRunProcess.RemainingMillSecond);
+            Assert.AreEqual((double)300, loadVanillaMachineRunProcess.RemainingMillSecond);
             //レシピIDのチェック
             Assert.AreEqual(recipeId, loadVanillaMachineRunProcess.RecipeDataId);
             //機械のステータスのチェック
             Assert.AreEqual(ProcessState.Processing, loadVanillaMachineRunProcess.CurrentState);
 
 
-            var loadMachineInventory = (VanillaMachineBlockInventory) typeof(VanillaMachineBase)
+            var loadMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachine);
             //インプットスロットのチェック
-            var inputInventoryField = (VanillaMachineInputInventory) typeof(VanillaMachineBlockInventory)
+            var inputInventoryField = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachineInventory);
             Assert.AreEqual(itemStackFactory.Create(5, 6), inputInventoryField.InputSlot[0]);
             Assert.AreEqual(itemStackFactory.Create(2, 4), inputInventoryField.InputSlot[1]);
 
             //アウトプットスロットのチェック
-            var outputInventoryField = (VanillaMachineOutputInventory) typeof(VanillaMachineBlockInventory)
+            var outputInventoryField = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachineInventory);
             Assert.AreEqual(itemStackFactory.CreatEmpty(), outputInventoryField.OutputSlot[0]);
@@ -130,12 +117,11 @@ namespace Test.UnitTest.Game.SaveLoad
             Assert.AreEqual(itemStackFactory.Create(3, 2), outputInventoryField.OutputSlot[2]);
         }
 
-        private (ItemStackFactory, IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,WorldLoaderFromJson)
+        private (ItemStackFactory, IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText, WorldLoaderFromJson)
             CreateBlockTestModule()
         {
-            
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            
+
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
@@ -143,7 +129,7 @@ namespace Test.UnitTest.Game.SaveLoad
             var playerInventoryDataStore = serviceProvider.GetService<PlayerInventoryDataStore>();
             var loadJsonFile = serviceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
 
-            return (itemStackFactory, blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText,loadJsonFile);
+            return (itemStackFactory, blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText, loadJsonFile);
         }
     }
 }

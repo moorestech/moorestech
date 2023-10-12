@@ -4,11 +4,13 @@ using MessagePack;
 
 namespace Server.Util.MessagePack
 {
-    [MessagePackObject(false)]
+    [MessagePackObject()]
     public class EntityMessagePack
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public EntityMessagePack() { }
+        public EntityMessagePack()
+        {
+        }
 
         public EntityMessagePack(IEntity entity)
         {
@@ -17,13 +19,13 @@ namespace Server.Util.MessagePack
             State = entity.State;
             Position = new Vector3MessagePack(entity.Position);
         }
-        [Key(0)]
-        public long InstanceId { get; set; }
-        [Key(1)]
-        public string Type { get; set; }
-        [Key(2)]
-        public Vector3MessagePack Position { get; set; }
-        [Key(3)]
-        public string State { get; set; }
+
+        [Key(0)] public long InstanceId { get; set; }
+
+        [Key(1)] public string Type { get; set; }
+
+        [Key(2)] public Vector3MessagePack Position { get; set; }
+
+        [Key(3)] public string State { get; set; }
     }
 }

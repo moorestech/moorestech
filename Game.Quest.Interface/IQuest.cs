@@ -6,7 +6,7 @@ namespace Game.Quest.Interface
     public interface IQuest
     {
         QuestConfigData QuestConfig { get; }
-        
+
         bool IsCompleted { get; }
         bool IsEarnedReward { get; }
         IReadOnlyList<IQuest> PreRequestQuests { get; }

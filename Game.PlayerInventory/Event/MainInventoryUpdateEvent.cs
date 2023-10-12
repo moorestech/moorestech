@@ -5,13 +5,12 @@ namespace PlayerInventory.Event
 {
     public class MainInventoryUpdateEvent : IMainInventoryUpdateEvent
     {
-        public event UpdateInventoryEvent OnPlayerInventoryUpdate;
-
-
         public void Subscribe(UpdateInventoryEvent updateInventoryEvent)
         {
             OnPlayerInventoryUpdate += updateInventoryEvent;
         }
+
+        public event UpdateInventoryEvent OnPlayerInventoryUpdate;
 
         public void OnInventoryUpdateInvoke(
             PlayerInventoryUpdateEventProperties properties)

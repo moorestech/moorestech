@@ -8,8 +8,9 @@ namespace Server.Event.EventReceive
     public class QuestCompletedToSendEventPacket
     {
         public const string EventTag = "va:event:questCompleted";
-        
+
         private readonly EventProtocolProvider _eventProtocolProvider;
+
         public QuestCompletedToSendEventPacket(IQuestCompletedEvent questCompletedEvent, EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
@@ -19,15 +20,17 @@ namespace Server.Event.EventReceive
         private void OnQuestCompleted((int playerId, string questId) args)
         {
             var packet = MessagePackSerializer.Serialize(new QuestCompletedEventMessagePack(args.questId));
-            _eventProtocolProvider.AddEvent(args.playerId,packet.ToList());
+            _eventProtocolProvider.AddEvent(args.playerId, packet.ToList());
         }
     }
-    
-    [MessagePackObject(keyAsPropertyName :true)]
+
+    [MessagePackObject(true)]
     public class QuestCompletedEventMessagePack : EventProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public QuestCompletedEventMessagePack() { }
+        public QuestCompletedEventMessagePack()
+        {
+        }
 
         public QuestCompletedEventMessagePack(string questId)
         {

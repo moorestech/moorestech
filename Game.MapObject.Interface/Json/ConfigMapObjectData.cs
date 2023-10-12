@@ -7,16 +7,15 @@ namespace Game.MapObject.Interface.Json
     {
         [JsonProperty("mapObjects")] public ConfigMapObjectData[] MapObjects;
     }
-    
+
     public class ConfigMapObjectData
     {
-        [JsonProperty("type")]public string Type;
+        [JsonProperty("instanceId")] public int InstanceId;
+        [JsonProperty("type")] public string Type;
         [JsonProperty("x")] public float X;
         [JsonProperty("y")] public float Y;
         [JsonProperty("z")] public float Z;
-        
-        [JsonProperty("instanceId")] public int InstanceId;
-        
-        public ServerVector3 Position => new(X,Y,Z);
+
+        public ServerVector3 Position => new(X, Y, Z);
     }
 }

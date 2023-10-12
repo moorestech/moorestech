@@ -7,15 +7,15 @@ namespace Core.Inventory
     public interface IOpenableInventory
     {
         public ReadOnlyCollection<IItemStack> Items { get; }
-            
+
         public IItemStack GetItem(int slot);
         void SetItem(int slot, IItemStack itemStack);
-        void SetItem(int slot, int itemId,int count);
+        void SetItem(int slot, int itemId, int count);
         public IItemStack ReplaceItem(int slot, IItemStack itemStack);
-        public IItemStack ReplaceItem(int slot, int itemId,int count);
-        
+        public IItemStack ReplaceItem(int slot, int itemId, int count);
+
         public IItemStack InsertItem(IItemStack itemStack);
-        public IItemStack InsertItem(int itemId,int count);
+        public IItemStack InsertItem(int itemId, int count);
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks);
         public bool InsertionCheck(List<IItemStack> itemStacks);
         public int GetSlotSize();

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.BlockInventory;
-using Game.Block.Config;
 using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
@@ -9,13 +8,13 @@ using Game.World.Interface.Event;
 namespace Game.World.EventHandler.InventoryEvent
 {
     /// <summary>
-    /// ブロックが設置された時、そのブロックの周囲にあるインベントリブロックと接続を行います
+    ///     ブロックが設置された時、そのブロックの周囲にあるインベントリブロックと接続を行います
     /// </summary>
     public class BlockPlaceEventToBlockInventoryConnect
     {
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IBlockConfig _blockConfig;
         private readonly Dictionary<string, IoConnectionData> _ioConnectionDataDictionary = VanillaBlockInventoryConnectionData.IoConnectionData;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
 
         public BlockPlaceEventToBlockInventoryConnect(IBlockPlaceEvent blockPlaceEvent, IBlockConfig blockConfig, IWorldBlockDatastore worldBlockDatastore)
         {
@@ -25,14 +24,14 @@ namespace Game.World.EventHandler.InventoryEvent
         }
 
         /// <summary>
-        /// 置かれたブロックの東西南北にあるブロックと接続を試みる
+        ///     置かれたブロックの東西南北にあるブロックと接続を試みる
         /// </summary>
         /// <param name="blockPlaceEvent"></param>
         private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
         {
-            var connectOffsetBlockPositions = new List<(int, int)>() {(1, 0), (-1, 0), (0, 1), (0, -1)};
-            int x = blockPlaceEvent.Coordinate.X;
-            int y = blockPlaceEvent.Coordinate.Y;
+            var connectOffsetBlockPositions = new List<(int, int)> { (1, 0), (-1, 0), (0, 1), (0, -1) };
+            var x = blockPlaceEvent.Coordinate.X;
+            var y = blockPlaceEvent.Coordinate.Y;
 
             foreach (var (offsetX, offsetY) in connectOffsetBlockPositions)
             {
@@ -42,13 +41,12 @@ namespace Game.World.EventHandler.InventoryEvent
             }
         }
 
-        
-        
+
         /// <summary>
-        /// ブロックを接続元から接続先に接続できるなら接続する
-        /// その場所にブロックがあるか、
-        /// そのブロックのタイプはioConnectionDataDictionaryにあるか、
-        /// それぞれインプットとアウトプットの向きはあっているかを確認し、接続する
+        ///     ブロックを接続元から接続先に接続できるなら接続する
+        ///     その場所にブロックがあるか、
+        ///     そのブロックのタイプはioConnectionDataDictionaryにあるか、
+        ///     それぞれインプットとアウトプットの向きはあっているかを確認し、接続する
         /// </summary>
         private void ConnectBlock(int sourceX, int sourceY, int destinationX, int destinationY)
         {
@@ -79,21 +77,20 @@ namespace Game.World.EventHandler.InventoryEvent
                 GetConnectionPositions(
                     destinationBlockType,
                     _worldBlockDatastore.GetBlockDirection(destinationX, destinationY));
-            
-            
+
+
             //接続元の接続可能リストに接続先がなかったら終了
             if (!_ioConnectionDataDictionary[sourceBlockType].ConnectableBlockType.Contains(destinationBlockType)) return;
 
 
-
-                //接続元から接続先へのブロックの距離を取得
+            //接続元から接続先へのブロックの距離を取得
             var distanceX = destinationX - sourceX;
             var distanceY = destinationY - sourceY;
 
             //接続元ブロックに対応するアウトプット座標があるかチェック
             if (!sourceBlockOutputConnector.Contains(new ConnectDirection(distanceY, distanceX))) return;
             //接続先ブロックに対応するインプット座標があるかチェック
-            if (!destinationBlockInputConnector.Contains(new ConnectDirection(-distanceY,-distanceX))) return;
+            if (!destinationBlockInputConnector.Contains(new ConnectDirection(-distanceY, -distanceX))) return;
 
 
             //接続元ブロックと接続先ブロックを接続
@@ -102,7 +99,7 @@ namespace Game.World.EventHandler.InventoryEvent
         }
 
         /// <summary>
-        /// 接続先のブロックの接続可能な位置を取得する
+        ///     接続先のブロックの接続可能な位置を取得する
         /// </summary>
         /// <param name="blockType"></param>
         /// <param name="blockDirection"></param>

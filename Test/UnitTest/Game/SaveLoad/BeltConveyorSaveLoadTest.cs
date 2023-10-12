@@ -2,17 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Game.Block.Blocks.BeltConveyor;
-using Core.ConfigJson;
 using Core.Item;
-using Core.Item.Config;
+using Game.Block.Blocks.BeltConveyor;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-
-
 using Test.Module.TestMod;
-
 
 namespace Test.UnitTest.Game.SaveLoad
 {
@@ -23,23 +18,23 @@ namespace Test.UnitTest.Game.SaveLoad
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemsStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            
-            var belt = new VanillaBeltConveyor(1, 10,1, itemsStackFactory, 4, 4000);
+
+            var belt = new VanillaBeltConveyor(1, 10, 1, itemsStackFactory, 4, 4000);
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField =
                 typeof(VanillaBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventoryItems = (List<BeltConveyorInventoryItem>) inventoryItemsField.GetValue(belt);
+            var inventoryItems = (List<BeltConveyorInventoryItem>)inventoryItemsField.GetValue(belt);
             //アイテムを設定
-            inventoryItems.Add(new BeltConveyorInventoryItem(1, 10, 0,1));
-            inventoryItems.Add(new BeltConveyorInventoryItem(2, 100, 1000,2));
-            inventoryItems.Add(new BeltConveyorInventoryItem(5, 2500, 2000,3));
+            inventoryItems.Add(new BeltConveyorInventoryItem(1, 10, 0, 1));
+            inventoryItems.Add(new BeltConveyorInventoryItem(2, 100, 1000, 2));
+            inventoryItems.Add(new BeltConveyorInventoryItem(5, 2500, 2000, 3));
 
             //セーブデータ取得
             var str = belt.GetSaveState();
             Console.WriteLine(str);
             //セーブデータをロード
-            var newBelt = new VanillaBeltConveyor(1, 10,1, str, itemsStackFactory, 4, 4000);
-            var newInventoryItems = (List<BeltConveyorInventoryItem>) inventoryItemsField.GetValue(newBelt);
+            var newBelt = new VanillaBeltConveyor(1, 10, 1, str, itemsStackFactory, 4, 4000);
+            var newInventoryItems = (List<BeltConveyorInventoryItem>)inventoryItemsField.GetValue(newBelt);
 
             //アイテムが一致するかチェック
             Assert.AreEqual(3, newInventoryItems.Count);

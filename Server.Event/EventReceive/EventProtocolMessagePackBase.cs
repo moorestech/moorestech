@@ -1,9 +1,8 @@
-using System;
 using MessagePack;
 
 namespace Server.Event.EventReceive
 {
-    [MessagePackObject(keyAsPropertyName:true)]
+    [MessagePackObject(true)]
     public class EventProtocolMessagePackBase
     {
         public const string EventProtocolTag = "va:event";

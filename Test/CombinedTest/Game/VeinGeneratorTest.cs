@@ -1,15 +1,10 @@
 #if NET6_0
-using Core.ConfigJson;
 using Core.Ore;
-using Core.Ore.Config;
 using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-
-
 using Test.Module.TestMod;
-
 
 namespace Test.CombinedTest.Game
 {
@@ -23,21 +18,15 @@ namespace Test.CombinedTest.Game
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
 
             var count = 0;
-            for (int i = 0; i < 500; i++)
+            for (var i = 0; i < 500; i++)
+            for (var j = 0; j < 500; j++)
             {
-                for (int j = 0; j < 500; j++)
-                {
-                    var oreId = veinGenerator.GetOreId(i, j);
-                    if (oreId != OreConst.NoneOreId)
-                    {
-                        count++;
-                    }
-                }
+                var oreId = veinGenerator.GetOreId(i, j);
+                if (oreId != OreConst.NoneOreId) count++;
             }
-            
+
             Assert.True(100 < count);
         }
-        
     }
 }
 #endif

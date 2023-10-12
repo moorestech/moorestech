@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
 using Game.PlayerInventory.Interface;
@@ -10,10 +8,9 @@ namespace PlayerInventory
 {
     public class BlockInventoryOpenStateDataStore : IBlockInventoryOpenStateDataStore
     {
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
-        
         //key playerId, value block entity id
         private readonly Dictionary<int, int> _openCoordinates = new();
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
 
         public BlockInventoryOpenStateDataStore(IWorldBlockDatastore worldBlockDatastore)
         {
@@ -22,15 +19,13 @@ namespace PlayerInventory
 
         public List<int> GetBlockInventoryOpenPlayers(int blockEntityId)
         {
-            return _openCoordinates.
-                Where(x => x.Value == blockEntityId).
-                Select(x => x.Key).ToList();
+            return _openCoordinates.Where(x => x.Value == blockEntityId).Select(x => x.Key).ToList();
         }
 
-        public void Open(int playerId, int x,int y)
+        public void Open(int playerId, int x, int y)
         {
             //開けるインベントリのブロックが存在していなかったらそのまま終了
-            if (!_worldBlockDatastore.TryGetBlock<IOpenableInventory>(x,y,out _))return;
+            if (!_worldBlockDatastore.TryGetBlock<IOpenableInventory>(x, y, out _)) return;
 
             var entityId = _worldBlockDatastore.GetBlock(x, y).EntityId;
             _openCoordinates[playerId] = entityId;
@@ -38,10 +33,7 @@ namespace PlayerInventory
 
         public void Close(int playerId)
         {
-            if (_openCoordinates.ContainsKey(playerId))
-            {
-                _openCoordinates.Remove(playerId);
-            }
+            if (_openCoordinates.ContainsKey(playerId)) _openCoordinates.Remove(playerId);
         }
     }
 }

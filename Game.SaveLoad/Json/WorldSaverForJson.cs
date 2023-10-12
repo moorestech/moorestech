@@ -1,15 +1,12 @@
-using System;
 using System.IO;
-using Game.PlayerInventory.Interface;
 using Game.Save.Interface;
-using Game.World.Interface;
 
 namespace Game.Save.Json
 {
     public class WorldSaverForJson : IWorldSaveDataSaver
     {
-        private readonly SaveJsonFileName _fileName;
         private readonly AssembleSaveJsonText _assembleSaveJsonText;
+        private readonly SaveJsonFileName _fileName;
 
         public WorldSaverForJson(SaveJsonFileName fileName, AssembleSaveJsonText assembleSaveJsonText)
         {

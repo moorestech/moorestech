@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
-using Game.Block.Config;
 using Core.Item;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.RecipeConfig;
@@ -11,18 +9,15 @@ namespace Game.Block.RecipeConfig
 {
     internal class MachineRecipeJsonLoad
     {
-        internal List<MachineRecipeData> LoadConfig(IBlockConfig blockConfig,ItemStackFactory itemStackFactory,List<string> configJsons)
+        internal List<MachineRecipeData> LoadConfig(IBlockConfig blockConfig, ItemStackFactory itemStackFactory, List<string> configJsons)
         {
             var recipes = new List<MachineRecipeData>();
-            foreach (var json in configJsons)
-            {
-                recipes.AddRange(Load(blockConfig,itemStackFactory,json));
-            }
+            foreach (var json in configJsons) recipes.AddRange(Load(blockConfig, itemStackFactory, json));
 
             return recipes;
         }
 
-        private List<MachineRecipeData> Load(IBlockConfig blockConfig,ItemStackFactory itemStackFactory,string json)
+        private List<MachineRecipeData> Load(IBlockConfig blockConfig, ItemStackFactory itemStackFactory, string json)
         {
             //JSONデータの読み込み
             var data = JsonConvert.DeserializeObject<MachineRecipeJsonData[]>(json);
@@ -31,19 +26,19 @@ namespace Game.Block.RecipeConfig
             var r = data.ToList().Select((r, index) =>
             {
                 var inputItem =
-                    r.ItemInputs.ToList().Select(item => itemStackFactory.Create(item.ModId,item.ItemName, item.Count)).ToList();
+                    r.ItemInputs.ToList().Select(item => itemStackFactory.Create(item.ModId, item.ItemName, item.Count)).ToList();
 
 
                 inputItem = inputItem.OrderBy(i => i.Id).ToList();
 
                 var outputs =
-                    r.ItemOutputs.Select(r => new ItemOutput(itemStackFactory.Create(r.ModId,r.ItemName, r.Count), r.Percent));
+                    r.ItemOutputs.Select(r => new ItemOutput(itemStackFactory.Create(r.ModId, r.ItemName, r.Count), r.Percent));
 
                 var modId = r.BlockModId;
                 var blockName = r.BlockName;
 
                 var blockId = blockConfig.GetBlockConfig(modId, blockName).BlockId;
-                
+
                 return new MachineRecipeData(blockId, r.Time, inputItem, outputs.ToList(),
                     index);
             });
@@ -54,13 +49,13 @@ namespace Game.Block.RecipeConfig
 
     //JSONからのデータを格納するためのクラス
     [JsonObject]
-    class MachineRecipeJsonData
+    internal class MachineRecipeJsonData
     {
         [JsonProperty("blockModId")] private string _blockModId;
         [JsonProperty("blockName")] private string _blockName;
-        [JsonProperty("time")] private int _time;
         [JsonProperty("input")] private MachineRecipeInput[] _itemInputs;
         [JsonProperty("output")] private MachineRecipeOutput[] _itemOutputs;
+        [JsonProperty("time")] private int _time;
 
         public MachineRecipeOutput[] ItemOutputs => _itemOutputs;
 
@@ -74,9 +69,9 @@ namespace Game.Block.RecipeConfig
     [JsonObject]
     internal class MachineRecipeInput
     {
-        [JsonProperty("modId")] private string _modId;
-        [JsonProperty("itemName")] private string _itemName;
         [JsonProperty("count")] private int _count;
+        [JsonProperty("itemName")] private string _itemName;
+        [JsonProperty("modId")] private string _modId;
 
         public int Count => _count;
 
@@ -88,9 +83,9 @@ namespace Game.Block.RecipeConfig
     [JsonObject]
     internal class MachineRecipeOutput
     {
-        [JsonProperty("modId")] private string _modId;
-        [JsonProperty("itemName")] private string _itemName;
         [JsonProperty("count")] private int _count;
+        [JsonProperty("itemName")] private string _itemName;
+        [JsonProperty("modId")] private string _modId;
         [JsonProperty("percent")] private double _percent;
 
         public double Percent => _percent;

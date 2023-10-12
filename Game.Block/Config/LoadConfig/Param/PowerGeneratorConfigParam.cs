@@ -5,10 +5,10 @@ namespace Game.Block.Config.LoadConfig.Param
 {
     public class PowerGeneratorConfigParam : IBlockConfigParam
     {
-        public readonly bool IsInfinityPower;
-        public readonly int InfinityPower;
         public readonly Dictionary<int, FuelSetting> FuelSettings;
         public readonly int FuelSlot;
+        public readonly int InfinityPower;
+        public readonly bool IsInfinityPower;
 
         public PowerGeneratorConfigParam(Dictionary<int, FuelSetting> fuelSettings, int fuelSlot, bool isInfinityPower, int infinityPower)
         {
@@ -22,8 +22,8 @@ namespace Game.Block.Config.LoadConfig.Param
     public class FuelSetting
     {
         public readonly int ItemId;
-        public readonly int Time;
         public readonly int Power;
+        public readonly int Time;
 
         public FuelSetting(int itemId, int time, int power)
         {

@@ -1,7 +1,6 @@
 #if NET6_0
+using Game.Block;
 using NUnit.Framework;
-using ProbabilityCalculator = Game.Block.ProbabilityCalculator;
-
 
 namespace Test.UnitTest.Core.Other
 {
@@ -22,16 +21,12 @@ namespace Test.UnitTest.Core.Other
         [TestCase(1)]
         public void DetectFromPercentTest(double percent)
         {
-            int trueCnt = 0;
-            for (int i = 0; i < 10000; i++)
-            {
+            var trueCnt = 0;
+            for (var i = 0; i < 10000; i++)
                 if (ProbabilityCalculator.DetectFromPercent(percent))
-                {
                     trueCnt++;
-                }
-            }
 
-            double truePercent = trueCnt / 10000.0;
+            var truePercent = trueCnt / 10000.0;
             Assert.True(percent - 0.5 < truePercent);
             Assert.True(truePercent < percent + 0.5);
         }

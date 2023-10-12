@@ -10,17 +10,16 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    /// MapObjectを取得するときのプロトコル
+    ///     MapObjectを取得するときのプロトコル
     /// </summary>
     public class GetMapObjectProtocol : IPacketResponse
     {
-        
         public const string Tag = "va:getMapObjectInfo";
+        private readonly ItemStackFactory _itemStackFactory;
 
         private readonly IMapObjectDatastore _mapObjectDatastore;
-        private readonly ItemStackFactory _itemStackFactory;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        
+
         public GetMapObjectProtocol(ServiceProvider serviceProvider)
         {
             _mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
@@ -40,21 +39,20 @@ namespace Server.Protocol.PacketResponse
             var insertedItem = playerMainInventory.InsertItem(itemStack);
 
             //アイテムの挿入に成功したらマップオブジェクトを削除
-            if (insertedItem.Id == ItemConst.EmptyItemId)
-            {
-                mapObject.Destroy();
-            }
+            if (insertedItem.Id == ItemConst.EmptyItemId) mapObject.Destroy();
 
             return new List<List<byte>>();
         }
     }
-    
-        
-    [MessagePackObject(keyAsPropertyName :true)]
+
+
+    [MessagePackObject(true)]
     public class GetMapObjectProtocolProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public GetMapObjectProtocolProtocolMessagePack() { }
+        public GetMapObjectProtocolProtocolMessagePack()
+        {
+        }
 
         public GetMapObjectProtocolProtocolMessagePack(int playerId, int instanceId)
         {

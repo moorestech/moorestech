@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net.Sockets;
-using MessagePack;
 using Server.Protocol;
 using Server.Util;
 
@@ -13,7 +10,7 @@ namespace Server.Boot.PacketHandle
         private readonly Socket _client;
         private readonly PacketResponseCreator _packetResponseCreator;
 
-        public UserResponse(Socket client,PacketResponseCreator packetResponseCreator)
+        public UserResponse(Socket client, PacketResponseCreator packetResponseCreator)
         {
             _packetResponseCreator = packetResponseCreator;
             _client = client;
@@ -28,7 +25,7 @@ namespace Server.Boot.PacketHandle
                 var parser = new PacketBufferParser();
                 while (true)
                 {
-                    var error = ReceiveProcess(parser,buffer);
+                    var error = ReceiveProcess(parser, buffer);
                     if (error)
                     {
                         Console.WriteLine("切断されました");
@@ -44,13 +41,10 @@ namespace Server.Boot.PacketHandle
             }
         }
 
-        private bool ReceiveProcess(PacketBufferParser parser,byte[] buffer)
+        private bool ReceiveProcess(PacketBufferParser parser, byte[] buffer)
         {
-            int length = _client.Receive(buffer);
-            if (length == 0)
-            {
-                return true;
-            }
+            var length = _client.Receive(buffer);
+            if (length == 0) return true;
 
             //受信データをパケットに分割
             var packets = parser.Parse(buffer, length);

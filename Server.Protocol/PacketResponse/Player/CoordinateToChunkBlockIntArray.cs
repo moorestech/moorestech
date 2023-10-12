@@ -7,7 +7,7 @@ namespace Server.Protocol.PacketResponse.Player
     public static class CoordinateToChunkBlockIntArray
     {
         /// <summary>
-        /// チャンクの原点からそこにあるブロックのID一覧を返す
+        ///     チャンクの原点からそこにあるブロックのID一覧を返す
         /// </summary>
         /// <param name="coordinate"></param>
         /// <param name="worldBlockDatastore"></param>
@@ -19,15 +19,11 @@ namespace Server.Protocol.PacketResponse.Player
 
             var blocks = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
 
-            for (int i = 0; i < blocks.GetLength(0); i++)
-            {
-                for (int j = 0; j < blocks.GetLength(1); j++)
-                {
-                    blocks[i, j] = worldBlockDatastore.GetBlock(
-                        x + i,
-                        y + j).BlockId;
-                }
-            }
+            for (var i = 0; i < blocks.GetLength(0); i++)
+            for (var j = 0; j < blocks.GetLength(1); j++)
+                blocks[i, j] = worldBlockDatastore.GetBlock(
+                    x + i,
+                    y + j).BlockId;
 
             return blocks;
         }
@@ -36,25 +32,20 @@ namespace Server.Protocol.PacketResponse.Player
             IWorldBlockDatastore worldBlockDatastore)
         {
             var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coordinate.X, coordinate.Y);
-            
+
             var blockDirections = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
 
-            for (int i = 0; i < blockDirections.GetLength(0); i++)
-            {
-                for (int j = 0; j < blockDirections.GetLength(1); j++)
-                {
-                    blockDirections[i, j] = (int)worldBlockDatastore.GetBlockDirection(
-                        x + i,
-                        y + j);
-                }
-            }
+            for (var i = 0; i < blockDirections.GetLength(0); i++)
+            for (var j = 0; j < blockDirections.GetLength(1); j++)
+                blockDirections[i, j] = (int)worldBlockDatastore.GetBlockDirection(
+                    x + i,
+                    y + j);
 
             return blockDirections;
-            
         }
-        
+
         /// <summary>
-        /// チャンクの原点からマップタイルのID一覧を返す
+        ///     チャンクの原点からマップタイルのID一覧を返す
         /// </summary>
         /// <param name="coordinate"></param>
         /// <param name="worldMapTile"></param>
@@ -66,15 +57,11 @@ namespace Server.Protocol.PacketResponse.Player
 
             var blocks = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
 
-            for (int i = 0; i < blocks.GetLength(0); i++)
-            {
-                for (int j = 0; j < blocks.GetLength(1); j++)
-                {
-                    blocks[i, j] = worldMapTile.GetMapTile(
-                        x + i,
-                        y + j);
-                }
-            }
+            for (var i = 0; i < blocks.GetLength(0); i++)
+            for (var j = 0; j < blocks.GetLength(1); j++)
+                blocks[i, j] = worldMapTile.GetMapTile(
+                    x + i,
+                    y + j);
 
             return blocks;
         }

@@ -9,15 +9,15 @@ namespace Game.MapObject.Interface.Json
     {
         [JsonProperty("instanceId")] public int InstanceId;
         [JsonProperty("isDestroyed")] public bool IsDestroyed;
-        [JsonProperty("type")]public string Type;
+        [JsonProperty("type")] public string Type;
         [JsonProperty("x")] public float X;
         [JsonProperty("y")] public float Y;
         [JsonProperty("z")] public float Z;
-        
-        public ServerVector3 Position => new(X,Y,Z);
-        
+
         [Obsolete("Json用にのみ使用してください。")]
-        public SaveMapObjectData() { }
+        public SaveMapObjectData()
+        {
+        }
 
         public SaveMapObjectData(IMapObject mapObject)
         {
@@ -28,5 +28,7 @@ namespace Game.MapObject.Interface.Json
             Y = mapObject.Position.Y;
             Z = mapObject.Position.Z;
         }
+
+        public ServerVector3 Position => new(X, Y, Z);
     }
 }

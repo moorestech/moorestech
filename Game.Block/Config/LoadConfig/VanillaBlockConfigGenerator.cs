@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Game.Block.Config.LoadConfig.ConfigParamGenerator;
-using Core.Item;
 using Core.Item.Config;
+using Game.Block.Config.LoadConfig.ConfigParamGenerator;
 using Game.Block.Interface.BlockConfig;
 
 namespace Game.Block.Config.LoadConfig
@@ -9,7 +8,7 @@ namespace Game.Block.Config.LoadConfig
     public class VanillaBlockConfigGenerator
     {
         /// <summary>
-        ///  各ブロックのコンフィグを生成する
+        ///     各ブロックのコンフィグを生成する
         /// </summary>
         /// <returns></returns>
         public Dictionary<string, IBlockConfigParamGenerator> Generate(IItemConfig itemConfig)
@@ -22,7 +21,7 @@ namespace Game.Block.Config.LoadConfig
             config.Add(VanillaBlockType.Generator, new PowerGeneratorConfigParamGenerator(itemConfig));
             config.Add(VanillaBlockType.Miner, new MinerConfigParamGenerator());
             config.Add(VanillaBlockType.Chest, new ChestConfigParamGenerator());
-            
+
             config.Add(VanillaBlockType.GearMachine, new MachineConfigParamGenerator());
             config.Add(VanillaBlockType.GearGenerator, new PowerGeneratorConfigParamGenerator(itemConfig));
             config.Add(VanillaBlockType.GearMiner, new MinerConfigParamGenerator());

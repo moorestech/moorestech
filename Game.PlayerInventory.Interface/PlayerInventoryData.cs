@@ -1,13 +1,12 @@
 using Core.Inventory;
-using Core.Item;
 
 namespace Game.PlayerInventory.Interface
 {
     public class PlayerInventoryData
     {
-        public readonly IOpenableInventory MainOpenableInventory;
         public readonly ICraftingOpenableInventory CraftingOpenableInventory;
         public readonly IOpenableInventory GrabInventory;
+        public readonly IOpenableInventory MainOpenableInventory;
 
         public PlayerInventoryData(IOpenableInventory mainOpenableInventory, ICraftingOpenableInventory craftingOpenableInventory, IOpenableInventory grabInventory)
         {

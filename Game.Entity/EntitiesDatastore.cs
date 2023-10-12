@@ -7,10 +7,9 @@ namespace Game.Entity
 {
     public class EntitiesDatastore : IEntitiesDatastore
     {
+        private readonly Dictionary<long, IEntity> _entities = new();
 
         private readonly IEntityFactory _entityFactory;
-        
-        private readonly Dictionary<long,IEntity> _entities = new();
 
         public EntitiesDatastore(IEntityFactory entityFactory)
         {
@@ -39,15 +38,13 @@ namespace Game.Entity
                 entity.SetPosition(position);
                 return;
             }
+
             throw new Exception("Entity not found " + instanceId);
         }
 
         public ServerVector3 GetPosition(long instanceId)
         {
-            if (_entities.TryGetValue(instanceId, out var entity))
-            {
-                return entity.Position;
-            }
+            if (_entities.TryGetValue(instanceId, out var entity)) return entity.Position;
             throw new Exception("Entity not found " + instanceId);
         }
 
@@ -57,7 +54,7 @@ namespace Game.Entity
             foreach (var entity in _entities)
             {
                 var e = entity.Value;
-                saveData.Add(new SaveEntityData(e.EntityType,e.InstanceId,e.Position));
+                saveData.Add(new SaveEntityData(e.EntityType, e.InstanceId, e.Position));
             }
 
             return saveData;
@@ -67,11 +64,11 @@ namespace Game.Entity
         {
             foreach (var save in saveBlockDataList)
             {
-                var entity = _entityFactory.CreateEntity(save.Type,save.InstanceId);
-                _entities.Add(entity.InstanceId,entity);
+                var entity = _entityFactory.CreateEntity(save.Type, save.InstanceId);
+                _entities.Add(entity.InstanceId, entity);
 
-                var pos = new ServerVector3(save.X,save.Y,save.Z);
-                SetPosition(save.InstanceId,pos);
+                var pos = new ServerVector3(save.X, save.Y, save.Z);
+                SetPosition(save.InstanceId, pos);
             }
         }
     }

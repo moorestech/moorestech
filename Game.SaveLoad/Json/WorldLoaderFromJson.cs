@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Game.Entity.Interface;
 using Game.MapObject.Interface;
-using Game.MapObject.Interface.Json;
 using Game.PlayerInventory.Interface;
 using Game.Quest.Interface;
 using Game.Save.Interface;
@@ -16,15 +13,15 @@ namespace Game.Save.Json
 {
     public class WorldLoaderFromJson : IWorldSaveDataLoader
     {
-        private readonly SaveJsonFileName _saveJsonFileName;
+        private readonly IEntitiesDatastore _entitiesDatastore;
+        private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly MapConfigFile _mapConfigFile;
+        private readonly IMapObjectDatastore _mapObjectDatastore;
+        private readonly IQuestDataStore _questDataStore;
+        private readonly SaveJsonFileName _saveJsonFileName;
 
         private readonly IWorldBlockDatastore _worldBlockDatastore;
-        private readonly IPlayerInventoryDataStore _inventoryDataStore;
-        private readonly IEntitiesDatastore _entitiesDatastore;
-        private readonly IQuestDataStore _questDataStore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
-        private readonly IMapObjectDatastore _mapObjectDatastore;
 
         public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IQuestDataStore questDataStore, IWorldSettingsDatastore worldSettingsDatastore, IMapObjectDatastore mapObjectDatastore, MapConfigFile mapConfigFile)
@@ -58,30 +55,27 @@ namespace Game.Save.Json
                     throw new Exception($"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
                 }
             }
-            else
-            {
-                Console.WriteLine("セーブデータがありませんでした。新規作成します。");
-                WorldInitialize();
-            }
+
+            Console.WriteLine("セーブデータがありませんでした。新規作成します。");
+            WorldInitialize();
         }
 
         public void Load(string jsonText)
         {
             var load = JsonConvert.DeserializeObject<WorldSaveAllInfoV1>(jsonText);
-            
+
             _worldBlockDatastore.LoadBlockDataList(load.World);
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _questDataStore.LoadQuestDataDictionary(load.Quests);
             _worldSettingsDatastore.LoadSettingData(load.Setting);
-            
+
             _mapObjectDatastore.LoadAndCreateObject(load.MapObjects);
         }
-        
+
         public void WorldInitialize()
         {
             _worldSettingsDatastore.Initialize();
         }
-
     }
 }

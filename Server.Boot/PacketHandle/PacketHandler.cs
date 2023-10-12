@@ -8,12 +8,12 @@ namespace Server.Boot.PacketHandle
 {
     public class PacketHandler
     {
-        const int Port = 11564;
+        private const int Port = 11564;
 
         public void StartServer(PacketResponseCreator packetResponseCreator)
         {
             //ソケットの作成
-            Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             //通信の受け入れ準備
             listener.Bind(new IPEndPoint(IPAddress.Any, Port));
             listener.Listen(10);

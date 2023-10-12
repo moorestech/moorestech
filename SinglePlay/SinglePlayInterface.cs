@@ -24,14 +24,13 @@ namespace SinglePlay
         public readonly IBlockConfig BlockConfig;
         public readonly IOreConfig OreConfig;
         public readonly IQuestConfig QuestConfig;
-        
+
         public readonly ConfigJsonList ConfigJsonList;
 
         public readonly ItemIdToBlockId ItemIdToBlockId;
-        
+
         public readonly ItemStackFactory ItemStackFactory;
-        
-        
+
 
         public SinglePlayInterface(string configPath)
         {

@@ -1,5 +1,4 @@
-﻿using Core.EnergySystem.Electric;
-using Core.EnergySystem.Gear;
+﻿using Core.EnergySystem.Gear;
 
 namespace Game.Block.Blocks.ElectricPole
 {

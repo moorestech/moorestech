@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
-using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Util;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -21,28 +19,25 @@ namespace Server.Protocol.PacketResponse
         public List<List<byte>> GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<BlockInventoryOpenCloseProtocolMessagePack>(payload.ToArray());
-            
+
             //開く、閉じるのセット
             if (data.IsOpen)
-            {
-                _inventoryOpenState.Open(data.PlayerId,data.X,data.Y);
-            }
+                _inventoryOpenState.Open(data.PlayerId, data.X, data.Y);
             else
-            {
                 _inventoryOpenState.Close(data.PlayerId);
-            }
-            
+
             return new List<List<byte>>();
         }
-        
     }
-    
-        
-    [MessagePackObject(keyAsPropertyName :true)]
+
+
+    [MessagePackObject(true)]
     public class BlockInventoryOpenCloseProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public BlockInventoryOpenCloseProtocolMessagePack() { }
+        public BlockInventoryOpenCloseProtocolMessagePack()
+        {
+        }
 
         public BlockInventoryOpenCloseProtocolMessagePack(int playerId, int x, int y, bool isOpen)
         {

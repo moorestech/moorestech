@@ -1,34 +1,32 @@
-using System;
 using System.Collections.Generic;
-using Game.Block.BlockInventory;
 using Core.Const;
 using Core.Item;
+using Game.Block.BlockInventory;
 
 namespace Game.Block.Blocks.Service
 {
     /// <summary>
-    /// 優先度を持ってアイテムを挿入する
+    ///     優先度を持ってアイテムを挿入する
     /// </summary>
     public class ConnectingInventoryListPriorityInsertItemService
     {
         private readonly List<IBlockInventory> _blockInventories;
+
+        private int _index = -1;
 
         public ConnectingInventoryListPriorityInsertItemService(List<IBlockInventory> blockInventories)
         {
             _blockInventories = blockInventories;
         }
 
-        private int _index = -1;
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            for (int i = 0; i < _blockInventories.Count && itemStack.Id != ItemConst.EmptyItemId; i++)
-            {
+            for (var i = 0; i < _blockInventories.Count && itemStack.Id != ItemConst.EmptyItemId; i++)
                 lock (_blockInventories)
                 {
                     AddIndex();
                     itemStack = _blockInventories[_index].InsertItem(itemStack);
                 }
-            }
 
             return itemStack;
         }
@@ -36,10 +34,7 @@ namespace Game.Block.Blocks.Service
         private void AddIndex()
         {
             _index++;
-            if (_blockInventories.Count <= _index)
-            {
-                _index = 0;
-            }
+            if (_blockInventories.Count <= _index) _index = 0;
         }
     }
 }

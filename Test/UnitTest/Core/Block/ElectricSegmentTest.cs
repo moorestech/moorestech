@@ -5,7 +5,6 @@ using Core.Update;
 using NUnit.Framework;
 using Test.Module;
 
-
 namespace Test.UnitTest.Game.Block
 {
     public class ElectricSegmentTest
@@ -41,18 +40,20 @@ namespace Test.UnitTest.Game.Block
         }
     }
 
-    class BlockElectricConsumer : IBlockElectricConsumer
+    internal class BlockElectricConsumer : IBlockElectricConsumer
     {
-        public int EntityId { get; }
-        public int RequestEnergy　{ get; }
         public int NowPower;
-        
 
-        public BlockElectricConsumer(int requestPower,int entityId)
+
+        public BlockElectricConsumer(int requestPower, int entityId)
         {
             EntityId = entityId;
             RequestEnergy = requestPower;
         }
+
+        public int EntityId { get; }
+        public int RequestEnergy　{ get; }
+
         public void SupplyEnergy(int power)
         {
             NowPower = power;

@@ -1,5 +1,4 @@
 #if NET6_0
-using System.Linq;
 using Game.Quest.Factory;
 using Game.Quest.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,13 +6,11 @@ using NUnit.Framework;
 using Server.Boot;
 using Test.Module.TestMod;
 
-
 namespace Test.UnitTest.Game.Quest
 {
     [TestFixture]
     public class ItemAcquisitionQuestTest
     {
-
         [Test]
         public void ItemAcquisitionCompleteTest()
         {
@@ -24,7 +21,6 @@ namespace Test.UnitTest.Game.Quest
             var itemAcquisitionQuest = quests.Find(q => q.QuestConfig.QuestType == VanillaQuestTypes.ItemAcquisitionQuestType);
 
             //リフレクションで取得すべきアイテムを取得
-            
         }
     }
 }

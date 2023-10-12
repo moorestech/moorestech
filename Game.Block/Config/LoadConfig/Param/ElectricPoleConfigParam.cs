@@ -4,8 +4,8 @@ namespace Game.Block.Config.LoadConfig.Param
 {
     public class ElectricPoleConfigParam : IBlockConfigParam
     {
-        public readonly int poleConnectionRange;
         public readonly int machineConnectionRange;
+        public readonly int poleConnectionRange;
 
         public ElectricPoleConfigParam(int poleConnectionRange, int machineConnectionRange)
         {
