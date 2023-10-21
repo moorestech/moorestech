@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Update;
@@ -24,10 +26,10 @@ namespace Server.Boot
                 var path = Environment.GetEnvironmentVariable("MOORES_SERVER_DIRECTORY");
                 if (path != null) return path;
 
-                //環境変数を取得する
-                Console.WriteLine("環境変数にコンフィグのパスが指定されていませんでした。MOORES_SERVER_DIRECTORYを設定してください。");
-                Console.WriteLine("Windowsの場合の設定コマンド > setx /M MOORES_SERVER_DIRECTORY \"C:～ \"");
-                Console.WriteLine("Macの場合の設定コマンド > export MOORES_SERVER_DIRECTORY=\"～\"");
+                
+                Console.WriteLine("。MOORES_SERVER_DIRECTORY。");
+                Console.WriteLine("Windows > setx /M MOORES_SERVER_DIRECTORY \"C:～ \"");
+                Console.WriteLine("Mac > export MOORES_SERVER_DIRECTORY=\"～\"");
                 return Environment.CurrentDirectory;
             }
         }
@@ -51,25 +53,25 @@ namespace Server.Boot
                 var serverDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 #endif
 
-                Console.WriteLine("データをロードします　パス:" + serverDirectory);
+                Console.WriteLine("　:" + serverDirectory);
 
                 var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(serverDirectory);
 
-                //マップをロードする
+                
                 serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
 
-                //modのOnLoadコードを実行する
+                //modOnLoad
                 var modsResource = serviceProvider.GetService<ModsResource>();
                 modsResource.Mods.ToList().ForEach(
                     m => m.Value.ModEntryPoints.ForEach(
                         e =>
                         {
-                            Console.WriteLine("Modをロードしました modId:" + m.Value + " className:" + e.GetType().Name);
+                            Console.WriteLine("Mod modId:" + m.Value + " className:" + e.GetType().Name);
                             e.OnLoad(new ServerModEntryInterface(serviceProvider, packet));
                         }));
 
 
-                //サーバーの起動とゲームアップデートの開始
+                
                 new Thread(() => new PacketHandler().StartServer(packet)).Start();
                 new Thread(() =>
                 {

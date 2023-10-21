@@ -4,8 +4,8 @@ using Game.WorldMap;
 namespace World.DataStore.WorldSettings
 {
     /// <summary>
-    ///     ワールドの基本的な設定を保持します
-    ///     TODO ロード、セーブに対応させる
+    ///     
+    ///     TODO 
     /// </summary>
     public class WorldSettingsDatastore : IWorldSettingsDatastore
     {

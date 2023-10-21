@@ -23,9 +23,9 @@ namespace Test.UnitTest.Game.Block
             _machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
         }
 
-        /// <summary>
-        ///     レシピがある時のテスト
-        /// </summary>
+
+        ///     
+
         [TestCase(1, new int[2] { 1, 2 }, 3, 1)]
         [TestCase(1, new int[2] { 2, 1 }, 3, 1)]
         [TestCase(3, new int[3] { 1, 2, 3 }, 5, 1)]
@@ -41,13 +41,13 @@ namespace Test.UnitTest.Game.Block
             Assert.AreEqual(output0Percent, ans.ItemOutputs[0].Percent);
         }
 
-        [TestCase(3, new int[4] { 2, 1, 0, 5 }, 0)] //nullの時のテスト
+        [TestCase(3, new int[4] { 2, 1, 0, 5 }, 0)] //null
         [TestCase(0, new int[3] { 2, 1, 0 }, 0)]
         [TestCase(3, new int[3] { 4, 1, 0 }, 0)]
         [TestCase(3, new int[2] { 2, 1 }, 0)]
         [TestCase(10, new int[1] { 2 }, 0)]
         [TestCase(3, new int[3] { 2, 1, 0 }, 0)]
-        [TestCase(1, new int[2] { 2, 1 }, 1)] //存在するときのテストケース
+        [TestCase(1, new int[2] { 2, 1 }, 1)] 
         [TestCase(0, new int[0], 0)]
         public void NullRecipeTest(int BlocksId, int[] items, int outputLength)
         {

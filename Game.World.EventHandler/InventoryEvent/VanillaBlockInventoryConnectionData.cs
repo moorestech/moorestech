@@ -5,8 +5,8 @@ using Game.Block;
 namespace Game.World.EventHandler.InventoryEvent
 {
     /// <summary>
-    ///     ベルトコンベアや機械などのインベントリのあるブロックが、どの方角にあるブロックとつながるかを指定するクラス
-    ///     北向きを基準として、つながる方向を指定する
+    ///     
+    ///     
     /// </summary>
     public static class VanillaBlockInventoryConnectionData
     {
@@ -42,9 +42,9 @@ namespace Game.World.EventHandler.InventoryEvent
             },
             {
                 VanillaBlockType.BeltConveyor, new IoConnectionData(
-                    // 南、西、東をからの接続を受け、アイテムをインプットする
+                    // 
                     new ConnectDirection[] { new(-1, 0), new(0, 1), new(0, -1) },
-                    //北向きに出力する
+                    
                     new ConnectDirection[] { new(1, 0) },
                     new[] { VanillaBlockType.Machine, VanillaBlockType.Chest, VanillaBlockType.Generator, VanillaBlockType.Miner, VanillaBlockType.BeltConveyor })
             }
@@ -53,8 +53,8 @@ namespace Game.World.EventHandler.InventoryEvent
 
 
     /// <summary>
-    ///     入力位置と出力位置を指定するクラス
-    ///     北向きを基準として、入出力方向を指定する
+    ///     
+    ///     
     /// </summary>
     public class IoConnectionData
     {

@@ -13,7 +13,7 @@ namespace Test.CombinedTest.Game
         [Test]
         public void GenerateTest()
         {
-            //直接生成してテストできないので、500x500の範囲で生成して100個以上鉱石があればOKとする
+            //500x500100OK
             var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
 

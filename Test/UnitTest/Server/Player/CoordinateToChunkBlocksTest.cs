@@ -38,14 +38,14 @@ namespace Test.UnitTest.Server.Player
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
             var random = new Random(3944156);
-            //ブロックの設置
+            
             for (var i = 0; i < 10000; i++)
             {
                 var b = CreateMachine(random.Next(1, 500));
                 worldData.AddBlock(b, random.Next(-300, 300), random.Next(-300, 300), BlockDirection.North);
             }
 
-            //レスポンスのチェック
+            
             for (var l = 0; l < 100; l++)
             {
                 var c = new Coordinate(
@@ -53,7 +53,7 @@ namespace Test.UnitTest.Server.Player
                     random.Next(-5, 5) * ChunkResponseConst.ChunkSize);
                 var b = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(c, worldData);
 
-                //ブロックの確認
+                
                 for (var i = 0; i < b.GetLength(0); i++)
                 for (var j = 0; j < b.GetLength(1); j++)
                     Assert.AreEqual(

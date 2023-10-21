@@ -60,23 +60,23 @@ namespace PlayerInventory.ItemManaged
 
         public void NormalCraft()
         {
-            //クラフトが可能なアイテムの配置かチェック
-            //クラフト結果のアイテムを持ちスロットに追加可能か判定
+            
+            
             if (!IsCreatable()) return;
 
-            //クラフト結果のアイテムを取得しておく
+            
             var result = _isCreatableJudgementService.GetResult(CraftingItems);
             if (!_grabInventoryData.GetItem(0).IsAllowedToAdd(result)) return;
 
-            //クラフトしたアイテムを消費する
+            
             ConsumptionCraftItem(1, CraftingItems);
 
-            //元のクラフト結果のアイテムを足したアイテムを持ちインベントリに追加
+            
             var outputSlotItem = _grabInventoryData.GetItem(0);
             var addedOutputSlot = outputSlotItem.AddItem(result).ProcessResultItemStack;
             _grabInventoryData.SetItem(0, addedOutputSlot);
 
-            //イベントを実行
+            
             _craftingEvent.InvokeEvent(addedOutputSlot.Id, addedOutputSlot.Count);
         }
 
@@ -88,7 +88,7 @@ namespace PlayerInventory.ItemManaged
             ConsumptionCraftItem(craftNum, CraftingItems);
 
 
-            //クラフトしたアイテムの数を計算してイベント実行
+            
             _craftingEvent.InvokeEvent(result.Id, result.Count * craftNum);
         }
 
@@ -100,7 +100,7 @@ namespace PlayerInventory.ItemManaged
             ConsumptionCraftItem(craftNum, CraftingItems);
 
 
-            //クラフトしたアイテムの数を計算してイベント実行
+            
             _craftingEvent.InvokeEvent(result.Id, result.Count * craftNum);
         }
 
@@ -112,12 +112,12 @@ namespace PlayerInventory.ItemManaged
                 var craftConfig = _isCreatableJudgementService.GetCraftingConfigData(craftingItems);
                 for (var j = 0; j < PlayerInventoryConst.CraftingSlotSize; j++)
                 {
-                    //インベントリにアイテムが残る場合はスキップ
+                    
                     if (craftConfig.CraftItemInfos[j].IsRemain) continue;
 
-                    //クラフトしたアイテムを消費する
+                    
                     var subItem = _openableInventoryService.Inventory[j].SubItem(craftConfig.CraftItemInfos[j].ItemStack.Count);
-                    //インベントリにセット
+                    
                     _openableInventoryService.SetItem(j, subItem);
                 }
             }

@@ -65,7 +65,7 @@ namespace Game.Block.Blocks.Machine
                     break;
             }
 
-            //ステートの変化を検知した時か、ステートが処理中の時はイベントを発火させる
+            
             if (_lastState != CurrentState || CurrentState == ProcessState.Processing)
             {
                 var processingRate = 1 - (float)RemainingMillSecond / _processingRecipeData.Time;
@@ -100,7 +100,7 @@ namespace Game.Block.Blocks.Machine
                 _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipeData);
             }
 
-            //電力を消費する
+            
             _currentPower = 0;
         }
 
@@ -126,10 +126,10 @@ namespace Game.Block.Blocks.Machine
 
     public static class ProcessStateExtension
     {
-        /// <summary>
-        ///     <see cref="ProcessState" />をStringに変換します。
-        ///     EnumのToStringを使わない理由はアロケーションによる速度低下をなくすためです。
-        /// </summary>
+
+        ///     <see cref="ProcessState" />String。
+        ///     EnumToString。
+
         public static string ToStr(this ProcessState state)
         {
             return state switch

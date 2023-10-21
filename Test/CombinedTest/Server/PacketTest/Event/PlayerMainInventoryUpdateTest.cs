@@ -28,23 +28,23 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, response.Count);
 
 
-            //インベントリにアイテムを追加
+            
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0);
             playerInventoryData.MainOpenableInventory.SetItem(5, serviceProvider.GetService<ItemStackFactory>().Create(1, 5));
 
-            //追加時のイベントのキャッチ
+            
             response = packetResponse.GetPacketResponse(EventRequestData(PlayerId));
             Assert.AreEqual(1, response.Count);
 
-            //チェック
+            
             var data = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[0].ToArray());
             Assert.AreEqual(5, data.Slot);
             Assert.AreEqual(1, data.Item.Id);
             Assert.AreEqual(5, data.Item.Count);
 
 
-            //インベントリ内のアイテムの移動を実際に移動のプロトコルを用いてテストする
-            //分割のイベントのテスト
+            
+            
             packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 5, 3));
             packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 4, 3));
 
@@ -57,28 +57,28 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var outMainInventory = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[2].ToArray());
             var grabDown = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[3].ToArray());
 
-            Assert.AreEqual(GrabInventoryUpdateToSetEventPacket.EventTag, grabUp.EventTag); //イベントタグの確認 アイテムを持ち上げる
-            Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag, setMainInventory.EventTag); //インベントリのアイテムがへる
-            Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag, outMainInventory.EventTag); //インベントリにアイテムがセットされる
-            Assert.AreEqual(GrabInventoryUpdateToSetEventPacket.EventTag, grabDown.EventTag); //アイテムが置かれる
+            Assert.AreEqual(GrabInventoryUpdateToSetEventPacket.EventTag, grabUp.EventTag); // 
+            Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag, setMainInventory.EventTag); 
+            Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag, outMainInventory.EventTag); 
+            Assert.AreEqual(GrabInventoryUpdateToSetEventPacket.EventTag, grabDown.EventTag); 
 
-            Assert.AreEqual(0, grabUp.Slot); //移動時のスロット確認
+            Assert.AreEqual(0, grabUp.Slot); 
             Assert.AreEqual(5, setMainInventory.Slot);
             Assert.AreEqual(4, outMainInventory.Slot);
             Assert.AreEqual(0, grabDown.Slot);
 
-            Assert.AreEqual(1, grabUp.Item.Id); //アイテムIDの確認
+            Assert.AreEqual(1, grabUp.Item.Id); //ID
             Assert.AreEqual(1, setMainInventory.Item.Id);
             Assert.AreEqual(1, outMainInventory.Item.Id);
             Assert.AreEqual(0, grabDown.Item.Id);
 
-            Assert.AreEqual(3, grabUp.Item.Count); //アイテム数の確認
+            Assert.AreEqual(3, grabUp.Item.Count); 
             Assert.AreEqual(2, setMainInventory.Item.Count);
             Assert.AreEqual(3, outMainInventory.Item.Count);
             Assert.AreEqual(0, grabDown.Item.Count);
 
 
-            //合成のテスト
+            
             packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 4, 3));
             packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 5, 3));
 
@@ -91,22 +91,22 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             grabDown = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[3].ToArray());
 
 
-            Assert.AreEqual(GrabInventoryUpdateToSetEventPacket.EventTag, grabUp.EventTag); //イベントタグの確認 アイテムを持ち上げる
-            Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag, setMainInventory.EventTag); //インベントリのアイテムがへる
-            Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag, outMainInventory.EventTag); //インベントリにアイテムがセットされる
-            Assert.AreEqual(GrabInventoryUpdateToSetEventPacket.EventTag, grabDown.EventTag); //アイテムが置かれる
+            Assert.AreEqual(GrabInventoryUpdateToSetEventPacket.EventTag, grabUp.EventTag); // 
+            Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag, setMainInventory.EventTag); 
+            Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag, outMainInventory.EventTag); 
+            Assert.AreEqual(GrabInventoryUpdateToSetEventPacket.EventTag, grabDown.EventTag); 
 
-            Assert.AreEqual(0, grabUp.Slot); //移動時のスロット確認
+            Assert.AreEqual(0, grabUp.Slot); 
             Assert.AreEqual(4, setMainInventory.Slot);
             Assert.AreEqual(5, outMainInventory.Slot);
             Assert.AreEqual(0, grabDown.Slot);
 
-            Assert.AreEqual(1, grabUp.Item.Id); //アイテムIDの確認
+            Assert.AreEqual(1, grabUp.Item.Id); //ID
             Assert.AreEqual(0, setMainInventory.Item.Id);
             Assert.AreEqual(1, outMainInventory.Item.Id);
             Assert.AreEqual(0, grabDown.Item.Id);
 
-            Assert.AreEqual(3, grabUp.Item.Count); //アイテム数の確認
+            Assert.AreEqual(3, grabUp.Item.Count); 
             Assert.AreEqual(0, setMainInventory.Item.Count);
             Assert.AreEqual(5, outMainInventory.Item.Count);
             Assert.AreEqual(0, grabDown.Item.Count);

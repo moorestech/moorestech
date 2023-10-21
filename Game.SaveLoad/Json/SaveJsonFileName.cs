@@ -3,7 +3,7 @@ using Game.Paths;
 namespace Game.Save.Json
 {
     /// <summary>
-    ///     JSONでセーブするさいのファイル名を指定するクラス
+    ///     JSON
     /// </summary>
     public class SaveJsonFileName
     {

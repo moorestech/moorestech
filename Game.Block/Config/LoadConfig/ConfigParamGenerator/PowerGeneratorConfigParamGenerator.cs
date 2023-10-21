@@ -19,7 +19,7 @@ namespace Game.Block.Config.LoadConfig.ConfigParamGenerator
             var fuelSettings = new Dictionary<int, FuelSetting>();
             foreach (var fuel in blockParam.fuel)
             {
-                // TODO modパースのエラー
+                // TODO mod
 
                 string itemModId = fuel.itemModId;
                 string idItemName = fuel.itemName;

@@ -34,8 +34,8 @@ namespace Game.Quest.QuestEntity
         public void LoadQuestData(SaveQuestData saveQuestData)
         {
             if (saveQuestData.QuestId != QuestConfig.QuestId)
-                //TODO ログ基盤に入れる
-                throw new ArgumentException("ロードすべきクエストIDが一致しません");
+                //TODO 
+                throw new ArgumentException("ID");
             IsCompleted = saveQuestData.IsCompleted;
             IsEarnedReward = saveQuestData.IsRewarded;
         }
@@ -48,7 +48,7 @@ namespace Game.Quest.QuestEntity
                 return;
             }
 
-            //TODO ログ基盤に入れる
+            //TODO 
             Console.WriteLine("You haven't completed this quest yet");
         }
 

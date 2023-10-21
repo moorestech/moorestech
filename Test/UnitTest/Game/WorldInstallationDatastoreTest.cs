@@ -47,7 +47,7 @@ namespace Test.UnitTest.Game
             var i = CreateMachine(1, entityId);
             worldData.AddBlock(i, 1, 1, BlockDirection.North);
 
-            //座標だけ変えてintIDは同じ
+            //intID
             var i2 = CreateMachine(1, entityId);
             Assert.False(worldData.AddBlock(i2, 10, 10, BlockDirection.North));
         }
@@ -61,7 +61,7 @@ namespace Test.UnitTest.Game
             var i = CreateMachine(1, CreateBlockEntityId.Create());
             worldData.AddBlock(i, 1, 1, BlockDirection.North);
 
-            //座標だけ変えてintIDは同じ
+            //intID
             var i2 = CreateMachine(1, CreateBlockEntityId.Create());
             Assert.False(worldData.AddBlock(i2, 1, 1, BlockDirection.North));
         }

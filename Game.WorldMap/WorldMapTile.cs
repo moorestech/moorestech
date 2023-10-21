@@ -1,9 +1,9 @@
 ﻿namespace Game.WorldMap
 {
     /// <summary>
-    ///     マップタイルを取得します
-    ///     鉱石がある場合は鉱石をかえし、ない場合は空のマップタイルを返します
-    ///     今後はバイオームに応じたIDを返します
+    ///     
+    ///     
+    ///     ID
     /// </summary>
     public class WorldMapTile
     {

@@ -13,7 +13,7 @@ using Test.Module.TestMod;
 namespace Test.CombinedTest.Game
 {
     /// <summary>
-    ///     実際にファイルに保存、ロードをして正しく動作するかテストする
+    ///     
     /// </summary>
     public class SaveJsonFileTest
     {
@@ -25,12 +25,12 @@ namespace Test.CombinedTest.Game
             var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
 
-            //リフレクションでテスト用のファイル名を変更
+            
             ChangeFilePath(saveServiceProvider.GetService<SaveJsonFileName>(), "SaveJsonAndLoadTest.json");
             Console.WriteLine(saveServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
 
 
-            //ブロックの追加
+            
             worldBlockDatastore.AddBlock(blockFactory.Create(1, 10), 0, 0, BlockDirection.North);
             worldBlockDatastore.AddBlock(blockFactory.Create(2, 5), 0, 1, BlockDirection.East);
             worldBlockDatastore.AddBlock(blockFactory.Create(3, 1000), 30, -10, BlockDirection.West);
@@ -41,8 +41,8 @@ namespace Test.CombinedTest.Game
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
 
-            //テスト用にファイル名を変更
-            //リフレクションでテスト用のファイル名を変更
+            
+            
             ChangeFilePath(loadServiceProvider.GetService<SaveJsonFileName>(), "SaveJsonAndLoadTest.json");
             Console.WriteLine(loadServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
 
@@ -50,7 +50,7 @@ namespace Test.CombinedTest.Game
             var loadWorldBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();
 
 
-            //追加したブロックのチェック
+            
             var block = loadWorldBlockDatastore.GetBlock(0, 0);
             Assert.AreEqual(1, block.BlockId);
             Assert.AreEqual(10, block.EntityId);
@@ -69,10 +69,10 @@ namespace Test.CombinedTest.Game
 
         private void ChangeFilePath(SaveJsonFileName instance, string fileName)
         {
-            // バッキングフィールドを取得する
+            // 
             var fieldInfo = typeof(SaveJsonFileName).GetField("<FullSaveFilePath>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
 
-            // バッキングフィールドの値を更新する
+            // 
             fieldInfo.SetValue(instance, fileName);
         }
     }

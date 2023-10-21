@@ -4,7 +4,7 @@ using Core.Ore.Config;
 namespace Core.Ore
 {
     /// <summary>
-    ///     鉱石のコンフィグ
+    ///     
     /// </summary>
     public interface IOreConfig
     {

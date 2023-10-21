@@ -20,7 +20,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
 
 
-            //一個だけマップオブジェクトを破壊
+            
             mapObjectDatastore.Get(mapObjectDatastore.MapObjects[0].InstanceId).Destroy();
 
 

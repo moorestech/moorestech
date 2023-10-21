@@ -10,9 +10,9 @@ namespace Core.Update
 
         private static DateTime _prevUpdateDateTime = DateTime.Now;
 
-        [Obsolete("いつかアップデートシステム自体をリファクタしたい")] public static double UpdateMillSecondTime => _updateMillSecondTime;
+        [Obsolete("")] public static double UpdateMillSecondTime => _updateMillSecondTime;
 
-        //TODO これをDisposableにする
+        //TODO Disposable
         public static void RegisterUpdater(IUpdatable iUpdatable)
         {
             Updates.Add(iUpdatable);
@@ -22,10 +22,10 @@ namespace Core.Update
         {
             _updateMillSecondTime = DateTime.Now.Subtract(_prevUpdateDateTime).TotalMilliseconds;
             _prevUpdateDateTime = DateTime.Now;
-            //アップデートの実行
+            
             for (var i = Updates.Count - 1; 0 <= i; i--) Updates[i]?.Update();
 
-            //次のアップデートと最低100ミリ秒間隔を開けて実行する
+            //100
             while (DateTime.Now.Subtract(_prevUpdateDateTime).TotalMilliseconds <= 100)
             {
             }

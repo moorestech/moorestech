@@ -24,7 +24,7 @@ namespace Game.Quest.Config
                 questConfigJsonData.Description,
                 new CoreVector2(questConfigJsonData.UiPosX, questConfigJsonData.UiPosY),
                 rewardItems,
-                // パラメーターは " を ' にしたjsonデータなのでReplaceする
+                //  "  ' jsonReplace
                 questConfigJsonData.Param.Replace("'", "\""));
         }
     }

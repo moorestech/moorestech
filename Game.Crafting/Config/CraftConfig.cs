@@ -11,7 +11,7 @@ namespace Game.Crafting.Config
 
         public CraftConfig(ItemStackFactory itemStackFactory, ConfigJsonList configJson)
         {
-            //ロードしたコンフィグのデータを元に、CraftingConfigDataを作成
+            //CraftingConfigData
             _configDataList = new CraftConfigJsonLoad(itemStackFactory).Load(configJson.SortedCraftRecipeConfigJsonList);
         }
 

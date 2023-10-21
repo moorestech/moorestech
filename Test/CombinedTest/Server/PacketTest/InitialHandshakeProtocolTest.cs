@@ -20,23 +20,23 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            //ワールド設定情報を初期化
+            
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize();
 
-            //最初のハンドシェイクを実行
+            
             var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId))[0];
             var handShakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
-            //スポーンポイントは0,0近くの鉄鉱石になるので、今のところはマジックナンバーでテストする
-            //SEEDが変わると変換するので、その設定が追加されたら変更する
+            //0,0
+            //SEED
             Assert.AreEqual(2, handShakeResponse.PlayerPos.X);
             Assert.AreEqual(-88, handShakeResponse.PlayerPos.Y);
 
 
-            //プレイヤーの座標を変更
+            
             packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, 100, -100));
 
 
-            //再度ハンドシェイクを実行して座標が変更されていることを確認
+            
             response = packet.GetPacketResponse(GetHandshakePacket(PlayerId))[0];
             handShakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
             Assert.AreEqual(100, handShakeResponse.PlayerPos.X);

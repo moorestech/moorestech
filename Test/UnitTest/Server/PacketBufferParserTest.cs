@@ -9,54 +9,54 @@ using Server.Util;
 namespace Test.UnitTest.Server
 {
     /// <summary>
-    ///     <see cref="PacketBufferParser" />が正しくパースで来ているかのテスト
+    ///     <see cref="PacketBufferParser" />
     /// </summary>
     public class PacketBufferParserTest
     {
-        /// <summary>
-        ///     オーバーフローして、ヘッダーが分離されたときに正しくパースできるかのテスト
-        ///     1回目と2回目を複合して正しくパースできるかのテスト
-        /// </summary>
+
+        ///     
+        ///     12
+
         [Test]
         public void PacketBufferPasserNoOverflowTest()
         {
-            //これは確定で5バイトになる
+            //5
             var testMessageBytes = MessagePackSerializer.Serialize(new PasserTestMessagePack { t = "t" });
 
 
-            //すべてがぴったりと入っているパターン
-            // 4Bのヘッダ + 2Bのダミー + 4Bのヘッダ + 5Bのメインデータ
+            
+            // 4B + 2B + 4B + 5B
             var parser = new PacketBufferParser();
             var sendBytes = new List<byte>();
-            sendBytes.AddRange(BitConverter.GetBytes(2).Reverse()); //4Bのヘッダ
-            sendBytes.Add(0); //2Bのダミー
+            sendBytes.AddRange(BitConverter.GetBytes(2).Reverse()); //4B
+            sendBytes.Add(0); //2B
             sendBytes.Add(0);
-            sendBytes.AddRange(BitConverter.GetBytes(5).Reverse()); //4Bのヘッダ
-            sendBytes.AddRange(testMessageBytes); //5Bのメインデータ
+            sendBytes.AddRange(BitConverter.GetBytes(5).Reverse()); //4B
+            sendBytes.AddRange(testMessageBytes); //5B
 
             var result = parser.Parse(sendBytes.ToArray(), sendBytes.Count);
-            //結果のデータの二番目が正しくパースできていることを確認する
+            
             Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result[1].ToArray()).t);
 
 
-            //ヘッダーが1バイトオーバーフローしているパターン
-            //1回目のパケットを送る
+            //1
+            //1
             parser = new PacketBufferParser();
             sendBytes.Clear();
             var header = BitConverter.GetBytes(5).Reverse().ToList();
             sendBytes.Add(header[0]);
             sendBytes.Add(header[1]);
             sendBytes.Add(header[2]);
-            //1回目パース
+            //1
             result = parser.Parse(sendBytes.ToArray(), sendBytes.Count);
-            Assert.AreEqual(0, result.Count); //まだ2個目はパースできない
+            Assert.AreEqual(0, result.Count); //2
 
-            //2回目のパケットを送る
-            //結果のデータの二番目が正しくパースできていることを確認する
+            //2
+            
             sendBytes.Clear();
-            sendBytes.Add(header[3]); //最後のヘッダ
-            sendBytes.AddRange(testMessageBytes); //5Bのメインデータ
-            //2回目パース
+            sendBytes.Add(header[3]); 
+            sendBytes.AddRange(testMessageBytes); //5B
+            //2
             result = parser.Parse(sendBytes.ToArray(), sendBytes.Count);
             Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result[0].ToArray()).t);
 
@@ -67,29 +67,29 @@ namespace Test.UnitTest.Server
         }
 
 
-        /// <summary>
-        ///     <see cref="PacketBufferPasserNoOverflowTest" />の送信、検証だけを行う
-        ///     引数に示された
-        /// </summary>
+
+        ///     <see cref="PacketBufferPasserNoOverflowTest" />
+        ///     
+
         private void PacketBufferPasserNoOverflowTestSendOnly(int overflowCountByte)
         {
-            //これは確定で5バイトになる
+            //5
             var testMessageBytes = MessagePackSerializer.Serialize(new PasserTestMessagePack { t = "t" });
 
             var parser = new PacketBufferParser();
             var sendBytes = new List<byte>();
             var header = BitConverter.GetBytes(5).Reverse().ToList();
             for (var i = 0; i < 4 - overflowCountByte; i++) sendBytes.Add(header[i]);
-            //1回目パース
+            //1
             var result = parser.Parse(sendBytes.ToArray(), sendBytes.Count);
-            Assert.AreEqual(0, result.Count); //まだ2個目はパースできない
+            Assert.AreEqual(0, result.Count); //2
 
-            //2回目のパケットを送る
-            //結果のデータの二番目が正しくパースできていることを確認する
+            //2
+            
             sendBytes.Clear();
             for (var i = 4 - overflowCountByte; i < 4; i++) sendBytes.Add(header[i]);
-            sendBytes.AddRange(testMessageBytes); //5Bのメインデータ
-            //2回目パース
+            sendBytes.AddRange(testMessageBytes); //5B
+            //2
             result = parser.Parse(sendBytes.ToArray(), sendBytes.Count);
             Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result[0].ToArray()).t);
         }

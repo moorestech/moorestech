@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    ///     map objectの破壊状況を送信するプロトコル
+    ///     map object
     /// </summary>
     public class MapObjectDestructionInformationProtocol : IPacketResponse
     {
@@ -44,7 +44,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class ResponseMapObjectDestructionInformationMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public ResponseMapObjectDestructionInformationMessagePack()
         {
         }
@@ -61,7 +61,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class MapObjectDestructionInformationData
     {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public MapObjectDestructionInformationData()
         {
         }

@@ -15,23 +15,23 @@ namespace Mod.Loader
         private const string ModMetaFilePath = "modMeta.json";
         public readonly Dictionary<string, Mod> Mods;
 
-        /// <summary>
-        ///     Mod内に格納されているリソースをロードする
-        /// </summary>
+
+        ///     Mod
+
         public ModsResource(string modDirectory)
         {
             Mods = LoadModFromZip(modDirectory);
             foreach (var mod in LoadModFromFolder(modDirectory)) Mods.Add(mod.Key, mod.Value);
         }
 
-        /// <summary>
-        ///     Zipファイル形式のmodをロードする
-        ///     Zipを展開して展開済みフォルダに入れ、そこからデータをロードする
-        /// </summary>
+
+        ///     Zipmod
+        ///     Zip
+
         private static Dictionary<string, Mod> LoadModFromZip(string modDirectory)
         {
             var loadedMods = new Dictionary<string, Mod>();
-            // zipファイルのmodをロードする
+            // zipmod
             foreach (var zipFile in Directory.GetFiles(modDirectory, "*.zip").ToList())
             {
                 var zip = ZipFile.Open(zipFile, ZipArchiveMode.Read);
@@ -53,20 +53,20 @@ namespace Mod.Loader
             return loadedMods;
         }
 
-        /// <summary>
-        ///     フォルダーのmodをロードする
-        /// </summary>
+
+        ///     mod
+
         private static Dictionary<string, Mod> LoadModFromFolder(string modDirectory)
         {
             var loadedMods = new Dictionary<string, Mod>();
-            // 通常のディレクトリのmodをロードする
+            // mod
             foreach (var modDir in Directory.GetDirectories(modDirectory))
             {
-                //mod metaファイルがあるかどうかをチェック
+                //mod meta
                 var modMetaFile = Path.Combine(modDir, ModMetaFilePath);
                 if (!File.Exists(modMetaFile))
                 {
-                    //TODO ログ基盤に入れる
+                    //TODO 
                     Console.WriteLine("Mod meta file not found in " + modDir);
                     continue;
                 }
@@ -79,12 +79,12 @@ namespace Mod.Loader
             return loadedMods;
         }
 
-        /// <summary>
-        ///     Zipを展開せず中身のコンフィグファイルを読み込む
-        /// </summary>
-        /// <param name="zip">Zipファイル</param>
-        /// <param name="configPath">Zipファイル内のコンフィグのパス</param>
-        /// <returns>ロードされたJSONのデータ</returns>
+
+        ///     Zip
+
+        /// <param name="zip">Zip</param>
+        /// <param name="configPath">Zip</param>
+        /// <returns>JSON</returns>
         private static string LoadConfigFromZip(ZipArchive zip, string configPath)
         {
             var config = zip.GetEntry(configPath);
@@ -95,10 +95,10 @@ namespace Mod.Loader
             return itemJsonString.ReadToEnd();
         }
 
-        /// <summary>
-        ///     Zipフォルダを展開し、指定されたフォルダにデータを移す
-        /// </summary>
-        /// <returns>展開後のmodのパス</returns>
+
+        ///     Zip
+
+        /// <returns>mod</returns>
         private static string ExtractModZip(string zipPath, ModMetaJson modMetaJson)
         {
             var fixModId = modMetaJson.ModId.ReplaceFileNotAvailableCharacter("-");
@@ -108,11 +108,11 @@ namespace Mod.Loader
             var folderName = $"{fixModId}_ver_{fixModVersion}_sha1_{sha1Hash}";
 
             var path = GameSystemPaths.GetExtractedModDirectory(folderName);
-            //ディレクトリの中身をチェック
+            
             if (Directory.EnumerateFileSystemEntries(path).Any())
-                //すでに解凍済み
+                
                 return path;
-            //解凍を実行
+            
             ZipFile.ExtractToDirectory(zipPath, path);
             return path;
         }
@@ -139,7 +139,7 @@ namespace Mod.Loader
 
             try
             {
-                //modディレクトリの全てディレクトリでdllを全てロードし、ModBaseを継承しているクラスを探す
+                //moddllModBase
                 foreach (var dllPath in Directory.GetFiles(modDirectory, "*.dll", SearchOption.AllDirectories))
                 {
                     var assembly = Assembly.LoadFrom(dllPath);
@@ -153,7 +153,7 @@ namespace Mod.Loader
             }
             catch (ReflectionTypeLoadException e)
             {
-                //クライアント側でエラーが出るので、ここでキャッチしておく
+                
             }
 
             return entryPoints;

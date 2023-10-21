@@ -23,16 +23,16 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
 
             var response = packetResponse.GetPacketResponse(EventRequestData());
-            //イベントがないことを確認する
+            
             Assert.AreEqual(0, response.Count);
 
 
-            //MapObjectを一つ破壊する
+            //MapObject
             var mapObject = mapObjectDatastore.MapObjects[0];
             mapObject.Destroy();
 
 
-            //map objectが破壊されたことを確かめる
+            //map object
             response = packetResponse.GetPacketResponse(EventRequestData());
             Assert.AreEqual(1, response.Count);
             var data = MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(response[0].ToArray());

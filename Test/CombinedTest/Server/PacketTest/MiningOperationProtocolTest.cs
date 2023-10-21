@@ -29,7 +29,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var playerInventoryData =
                 serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
 
-            //500×500マス内にある鉱石を探知
+            //500×500
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
 
 
@@ -52,14 +52,14 @@ namespace Test.CombinedTest.Server.PacketTest
             var oreItemId = oreConfig.OreIdToItemId(oreId);
             Console.WriteLine(oreItemId);
 
-            //プロトコルを使って鉱石を採掘
+            
             packet.GetPacketResponse(MiningOperation(x, y, PlayerId));
 
-            //インベントリーに鉱石がはいっているか
+            
             var playerSlotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
             Assert.AreEqual(oreItemId, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Id);
             Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);
-        } //パケット
+        } 
 
         private List<byte> MiningOperation(int x, int y, int playerId)
         {

@@ -3,7 +3,7 @@ using Core.EnergySystem.Electric;
 
 namespace Test.Module
 {
-    //デバック用で無限に電力を供給できる
+    
     public class TestElectricGenerator : IElectricGenerator
     {
         private readonly int _power;

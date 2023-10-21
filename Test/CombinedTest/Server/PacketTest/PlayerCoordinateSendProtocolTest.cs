@@ -26,7 +26,7 @@ namespace Test.CombinedTest.Server.PacketTest
         public void SimpleChunkResponseTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            //1回のレスポンスのテスト
+            //1
             packetResponse.GetPacketResponse(GetHandshakePacket(10));
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).Where(p => p is not null).ToList();
@@ -39,28 +39,28 @@ namespace Test.CombinedTest.Server.PacketTest
 
             foreach (var r in response)
             {
-                //座標の確認
+                
                 Assert.True(ans.Contains(r.Coordinate));
-                //ブロックの確認
+                
                 for (var i = 0; i < r.Blocks.GetLength(0); i++)
                 for (var j = 0; j < r.Blocks.GetLength(1); j++)
                     Assert.AreEqual(BlockConst.EmptyBlockId, r.Blocks[i, j]);
             }
 
-            //2回目は何も返ってこないテスト
+            //2
             packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0));
             response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).Where(p => p is not null).ToList();
             Assert.AreEqual(response.Count, 0);
 
 
-            //場所をずらしたら返ってくるテスト
+            
             packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0));
             response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 25, 25))
                 .Select(PayloadToBlock).Where(p => p is not null).ToList();
             Assert.AreEqual(response.Count, 9);
 
-            //他の名前は普通に取得できるテスト
+            
             packetResponse.GetPacketResponse(GetHandshakePacket(15));
             response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(15, 0, 0))
                 .Select(PayloadToBlock).Where(p => p is not null).ToList();
@@ -69,7 +69,7 @@ namespace Test.CombinedTest.Server.PacketTest
         }
 
 
-        //ブロックを設置するテスト
+        
         [Test]
         [Order(2)]
         public void PlaceBlockToChunkResponseTest()
@@ -79,7 +79,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
             var random = new Random(13944156);
-            //ブロックの設置
+            
             var b = blockFactory.Create(5, 1);
             worldBlock.AddBlock(b, 0, 0, BlockDirection.North);
 
@@ -98,10 +98,10 @@ namespace Test.CombinedTest.Server.PacketTest
 
             foreach (var r in response)
             {
-                //座標の確認
+                
                 var c = r.Coordinate;
                 Assert.True(ans.Contains(c));
-                //ブロックの確認
+                
                 for (var i = 0; i < r.Blocks.GetLength(0); i++)
                 for (var j = 0; j < r.Blocks.GetLength(1); j++)
                     Assert.AreEqual(worldBlock.GetBlock(c.X + i, c.Y + j).BlockId
@@ -109,7 +109,7 @@ namespace Test.CombinedTest.Server.PacketTest
             }
         }
 
-        //ランダムにブロックを設置するテスト
+        
         [Test]
         [Order(3)]
         public void RandomPlaceBlockToChunkResponseTest()
@@ -119,7 +119,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
             var random = new Random(13944156);
-            //ブロックの設置
+            
             for (var i = 0; i < 1000; i++)
             {
                 IBlock b = null;
@@ -141,7 +141,7 @@ namespace Test.CombinedTest.Server.PacketTest
                 .Select(PayloadToBlock).Where(p => p is not null).ToList();
 
 
-            //検証
+            
             Assert.AreEqual(25, response.Count());
             var ans = new List<Coordinate>();
             for (var i = -40; i <= 40; i += ChunkResponseConst.ChunkSize)
@@ -150,10 +150,10 @@ namespace Test.CombinedTest.Server.PacketTest
 
             foreach (var r in response)
             {
-                //座標の確認
+                
                 var c = r.Coordinate;
                 Assert.True(ans.Contains(c));
-                //ブロックの確認
+                
                 for (var i = 0; i < r.Blocks.GetLength(0); i++)
                 for (var j = 0; j < r.Blocks.GetLength(1); j++)
                 {
@@ -166,7 +166,7 @@ namespace Test.CombinedTest.Server.PacketTest
             }
         }
 
-        //マップタイルの返信が正しいかチェックする
+        
         [Test]
         [Order(4)]
         public void TileMapResponseTest()
@@ -177,7 +177,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
             var veinCoordinate = new Coordinate(0, 0);
 
-            //10000*10000 ブロックの中から鉱石があるチャンクを探す
+            //10000*10000 
             for (var i = 0; i < 1000; i++)
             for (var j = 0; j < 1000; j++)
             {
@@ -186,20 +186,20 @@ namespace Test.CombinedTest.Server.PacketTest
                 veinCoordinate = new Coordinate(i, j);
             }
 
-            //鉱石がある座標のチャンクを取得
+            
             packetResponse.GetPacketResponse(GetHandshakePacket(25));
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(25, veinCoordinate.X, veinCoordinate.Y))
                 .Select(PayloadToBlock).Where(p => p is not null).ToList();
 
 
-            //正しく鉱石IDが帰ってきているかチェックする
+            //ID
             foreach (var r in response)
             {
                 var x = r.Coordinate.X;
                 var y = r.Coordinate.Y;
                 for (var i = 0; i < ChunkResponseConst.ChunkSize; i++)
                 for (var j = 0; j < ChunkResponseConst.ChunkSize; j++)
-                    //マップタイルと実際の返信を検証する
+                    
                     Assert.AreEqual(
                         worldMapTile.GetMapTile(i + x, j + y),
                         r.MapTiles[i, j]);
@@ -221,7 +221,7 @@ namespace Test.CombinedTest.Server.PacketTest
         private ChunkData PayloadToBlock(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<ChunkDataResponseMessagePack>(payload.ToArray());
-            //エンティティタグの時はnullを返す
+            //null
             if (data.Tag == PlayerCoordinateSendProtocol.EntityDataTag) return null;
 
 

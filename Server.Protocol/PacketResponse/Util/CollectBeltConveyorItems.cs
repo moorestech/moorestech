@@ -11,7 +11,7 @@ using Server.Protocol.PacketResponse.Const;
 namespace Server.Protocol.PacketResponse.Util
 {
     /// <summary>
-    ///     ベルトコンベアにあるアイテムを収集し、エンティティに変換して返す
+    ///     
     /// </summary>
     public static class CollectBeltConveyorItems
     {
@@ -55,19 +55,19 @@ namespace Server.Protocol.PacketResponse.Util
             {
                 foreach (var beltConveyorItem in vanillaBeltConveyor.InventoryItems)
                 {
-                    //残り時間をどこまで進んだかに変換するために 1- する
+                    // 1- 
                     var parent = 1 - (float)(beltConveyorItem.RemainingTime / vanillaBeltConveyor.TimeOfItemEnterToExit);
                     float entityX = x;
                     float entityY = y;
                     switch (blockDirection)
                     {
                         case BlockDirection.North:
-                            entityX += 0.5f; //ベルトコンベアの基準座標は中心なので0.5を他してアイテムを中心に持ってくる
+                            entityX += 0.5f; //0.5
                             entityY += parent;
                             break;
                         case BlockDirection.South:
                             entityX += 0.5f;
-                            entityY += 1 - parent; //北とは逆向きなので1を引いて逆向きにする
+                            entityY += 1 - parent; //1
                             break;
                         case BlockDirection.East:
                             entityX += parent;
@@ -79,7 +79,7 @@ namespace Server.Protocol.PacketResponse.Util
                             break;
                     }
 
-                    //Unity側ではZ軸がサーバーのY軸になるため変換する
+                    //UnityZY
                     var position = new ServerVector3(entityX, 0, entityY);
 
                     var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, beltConveyorItem.ItemInstanceId, position);

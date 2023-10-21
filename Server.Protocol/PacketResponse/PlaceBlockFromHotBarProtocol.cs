@@ -35,9 +35,9 @@ namespace Server.Protocol.PacketResponse
             var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(data.Slot);
             var item = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory.GetItem(inventorySlot);
 
-            //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
+            //IDID
             if (!_itemIdToBlockId.CanConvert(item.Id)) return new List<List<byte>>();
-            //すでにブロックがある場合はそもまま処理を終了
+            
             if (_worldBlockDatastore.Exists(data.X, data.Y)) return new List<List<byte>>();
 
 
@@ -51,12 +51,12 @@ namespace Server.Protocol.PacketResponse
             };
 
 
-            //ブロックの作成
+            
             var block = _blockFactory.Create(_itemIdToBlockId.Convert(item.Id), CreateBlockEntityId.Create());
-            //ブロックの設置
+            
             _worldBlockDatastore.AddBlock(block, data.X, data.Y, blockDirection);
 
-            //アイテムを減らし、セットする
+            
             item = item.SubItem(1);
             _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory.SetItem(inventorySlot, item);
 
@@ -79,7 +79,7 @@ namespace Server.Protocol.PacketResponse
             Y = y;
         }
 
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public SendPlaceHotBarBlockProtocolMessagePack()
         {
         }

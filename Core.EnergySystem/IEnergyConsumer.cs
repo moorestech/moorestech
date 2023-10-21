@@ -1,7 +1,7 @@
 ﻿namespace Core.EnergySystem
 {
     /// <summary>
-    ///     エネルギーを消費するモノ
+    ///     
     /// </summary>
     public interface IEnergyConsumer
     {

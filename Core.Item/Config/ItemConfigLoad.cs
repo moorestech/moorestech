@@ -34,8 +34,8 @@ namespace Core.Item.Config
                 }
                 catch (Exception e)
                 {
-                    //TODO ログ基盤に入れる
-                    Console.WriteLine(e.Message + "\n" + e.StackTrace + "\n アイテムコンフィグのロードに失敗しました mod id:" + mod);
+                    //TODO 
+                    Console.WriteLine(e.Message + "\n" + e.StackTrace + "\n  mod id:" + mod);
                 }
             }
 
@@ -59,9 +59,9 @@ namespace Core.Item.Config
             ItemHash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + Name).Hash);
         }
 
-        /// <summary>
-        ///     アイテムが定義されていないとき用のコンストラクタ
-        /// </summary>
+
+        ///     
+
         /// <param name="name"></param>
         /// <param name="maxStack"></param>
         /// <param name="modId"></param>

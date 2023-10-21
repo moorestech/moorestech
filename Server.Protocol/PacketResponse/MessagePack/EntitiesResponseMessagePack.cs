@@ -10,7 +10,7 @@ namespace Server.Protocol.PacketResponse.MessagePack
     [MessagePackObject(true)]
     public class EntitiesResponseMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public EntitiesResponseMessagePack()
         {
         }

@@ -4,7 +4,7 @@ using Core.Update;
 namespace Core.EnergySystem
 {
     /// <summary>
-    ///     そのエネルギーの供給、配分を行うシステム
+    ///     
     /// </summary>
     public class EnergySegment : IUpdatable
     {
@@ -25,19 +25,19 @@ namespace Core.EnergySystem
 
         public void Update()
         {
-            //供給されてる合計エネルギー量の算出
+            
             var powers = 0;
             foreach (var key in _generators.Keys) powers += _generators[key].OutputEnergy();
 
-            //エネルギーの需要量の算出
+            
             var requester = 0;
             foreach (var key in _consumers.Keys) requester += _consumers[key].RequestEnergy;
 
-            //エネルギー供給の割合の算出
+            
             var powerRate = powers / (double)requester;
             if (1 < powerRate) powerRate = 1;
 
-            //エネルギーを供給
+            
             foreach (var key in _consumers.Keys) _consumers[key].SupplyEnergy((int)(_consumers[key].RequestEnergy * powerRate));
         }
 

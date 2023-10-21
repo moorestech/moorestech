@@ -24,16 +24,16 @@ namespace Mod.Base
         public readonly IMachineRecipeConfig MachineRecipeConfig;
         public readonly IOreConfig OreConfig;
 
-        /// <summary>
-        ///     パケットを送信することができるインスタンス
-        /// </summary>
+
+        ///     
+
         public readonly PacketResponseCreator PacketResponseCreator;
 
         public readonly IQuestConfig QuestConfig;
 
-        /// <summary>
-        ///     各種サービスを取得できるDIコンテナ
-        /// </summary>
+
+        ///     DI
+
         public readonly ServiceProvider ServiceProvider;
 
 

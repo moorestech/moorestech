@@ -13,8 +13,8 @@ using Game.Block.Interface.State;
 namespace Game.Block.Blocks.Machine
 {
     /// <summary>
-    ///     機械を表すクラス
-    ///     具体的な処理は各コンポーネントに任せて、このクラスはInterfaceの実装だけを行う
+    ///     
+    ///     Interface
     /// </summary>
     public abstract class VanillaMachineBase : IBlock, IBlockInventory, IEnergyConsumer, IOpenableInventory
     {

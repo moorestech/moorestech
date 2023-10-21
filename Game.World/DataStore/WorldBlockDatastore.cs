@@ -10,18 +10,18 @@ using World.Event;
 namespace World.DataStore
 {
     /// <summary>
-    ///     ワールドに存在するブロックとその座標の対応づけを行います。
+    ///     。
     /// </summary>
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
         private readonly IBlockFactory _blockFactory;
 
-        //メインのデータストア
+        
         private readonly Dictionary<int, WorldBlockData> _blockMasterDictionary = new();
         private readonly BlockPlaceEvent _blockPlaceEvent;
         private readonly BlockRemoveEvent _blockRemoveEvent;
 
-        //座標とキーの紐づけ
+        
         private readonly Dictionary<Coordinate, int> _coordinateDictionary = new();
 
 
@@ -39,7 +39,7 @@ namespace World.DataStore
 
         public bool AddBlock(IBlock block, int x, int y, BlockDirection blockDirection)
         {
-            //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
+            
             if (!_blockMasterDictionary.ContainsKey(block.EntityId) &&
                 !_coordinateDictionary.ContainsKey(new Coordinate(x, y)))
             {
@@ -102,7 +102,7 @@ namespace World.DataStore
                 return (data.X, data.Y);
             }
 
-            throw new Exception("ブロックがありません");
+            throw new Exception("");
         }
 
         public BlockDirection GetBlockDirection(int x, int y)

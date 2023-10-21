@@ -6,7 +6,7 @@ using Game.World.Interface.Event;
 namespace Game.World.EventHandler.InventoryEvent
 {
     /// <summary>
-    ///     ブロックが削除されたとき、そのブロックと接続しているブロックを削除する
+    ///     
     /// </summary>
     public class BlockRemoveEventToBlockInventoryDisconnect
     {
@@ -23,17 +23,17 @@ namespace Game.World.EventHandler.InventoryEvent
             var x = blockRemoveEvent.Coordinate.X;
             var y = blockRemoveEvent.Coordinate.Y;
 
-            //削除されたブロックがIBlockInventoryでない場合、処理を終了する
+            //IBlockInventory
             if (!(blockRemoveEvent.Block is IBlockInventory)) return;
 
 
-            //削除されたブロックの東西南北にあるブロックインベントリを削除する
+            
             var connectOffsetBlockPositions = new List<(int, int)> { (1, 0), (-1, 0), (0, 1), (0, -1) };
 
             foreach (var (offsetX, offsetY) in connectOffsetBlockPositions)
-                //削除されたブロックの周りのブロックがIBlockInventoryを持っている時
+                //IBlockInventory
                 if (_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(x + offsetX, y + offsetY))
-                    //そのブロックの接続を削除する
+                    
                     _worldBlockDatastore.GetBlock<IBlockInventory>(x + offsetX, y + offsetY)
                         .RemoveOutputConnector((IBlockInventory)blockRemoveEvent.Block);
         }

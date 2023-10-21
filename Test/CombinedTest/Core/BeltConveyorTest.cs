@@ -15,11 +15,11 @@ using Test.Module.TestMod;
 namespace Test.CombinedTest.Core
 {
     /// <summary>
-    ///     コンフィグが変わったらこのテストを変更に応じて変更してください
+    ///     
     /// </summary>
     public class BeltConveyorTest
     {
-        //一定個数以上アイテムが入らないテストした後、正しく次に出力されるかのテスト
+        
         [Test]
         public void FullInsertAndChangeConnectorBeltConveyorTest()
         {
@@ -55,7 +55,7 @@ namespace Test.CombinedTest.Core
             }
         }
 
-        //一個のアイテムが入って正しく搬出されるかのテスト
+        
         [Test]
         public void InsertBeltConveyorTest()
         {
@@ -93,7 +93,7 @@ namespace Test.CombinedTest.Core
             }
         }
 
-        //ベルトコンベアのインベントリをフルにするテスト
+        
         [Test]
         public void FullInsertBeltConveyorTest()
         {
@@ -125,7 +125,7 @@ namespace Test.CombinedTest.Core
             }
         }
 
-        //二つのアイテムが入ったとき、一方しか入らないテスト
+        
         [Test]
         public void Insert2ItemBeltConveyorTest()
         {
@@ -136,7 +136,7 @@ namespace Test.CombinedTest.Core
             var random = new Random(4123);
             for (var i = 0; i < 5; i++)
             {
-                //必要な変数を作成
+                
                 var item1 = itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
                 var item2 = itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
 

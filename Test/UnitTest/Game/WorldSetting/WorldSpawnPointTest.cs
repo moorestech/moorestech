@@ -9,13 +9,13 @@ using Test.Module.TestMod;
 namespace Test.UnitTest.Game.WorldSetting
 {
     /// <summary>
-    ///     ワールドのスポーン地点が正しい位置にあるかどうかをテストする
+    ///     
     /// </summary>
     public class WorldSpawnPointTest
     {
-        /// <summary>
-        ///     スポーンポイントに鉄があればOKなので、それをテストする
-        /// </summary>
+
+        ///     OK
+
         [Test]
         public void WorldSpawnPointSearcherTest()
         {
@@ -26,7 +26,7 @@ namespace Test.UnitTest.Game.WorldSetting
 
             var spawnPoint = worldSettings.WorldSpawnPoint;
 
-            //その座標の鉱石のIDを取得し、それが正しいかどうかをチェックする
+            //ID
             var spawnPointOreId = vineGenerator.GetOreId(spawnPoint.X, spawnPoint.Y);
 
             Assert.AreEqual(vineGenerator.GetOreId(spawnPoint.X, spawnPoint.Y), spawnPointOreId);

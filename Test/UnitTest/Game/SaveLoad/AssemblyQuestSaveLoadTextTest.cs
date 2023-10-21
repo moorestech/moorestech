@@ -24,25 +24,25 @@ namespace Test.UnitTest.Game.SaveLoad
 
             var quests = questDataStore.GetPlayerQuestProgress(playerId);
 
-            //クエストのステータスを強制的に更新する
-            //index 1のクエストを完了しているようにする
+            
+            //index 1
             typeof(ItemCraftQuest).GetProperty("IsCompleted").SetValue(quests[1], true);
 
-            //index 2のクエストを完了、アイテムを渡しているようにする
+            //index 2
             typeof(ItemCraftQuest).GetProperty("IsCompleted").SetValue(quests[2], true);
             typeof(ItemCraftQuest).GetProperty("IsEarnedReward").SetValue(quests[2], true);
 
 
-            //セーブの実行
+            
             var json = assembleSaveJsonText.AssembleSaveJson();
             Console.WriteLine(json);
 
 
-            //ロードの実行
+            
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
 
-            //ロードしたクエストのチェック
+            
             var loadQuests = loadServiceProvider.GetService<IQuestDataStore>().GetPlayerQuestProgress(playerId);
 
             Assert.AreEqual(false, loadQuests[0].IsCompleted);

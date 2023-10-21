@@ -42,7 +42,7 @@ namespace Server.Protocol.PacketResponse
             Tag = QuestProgressRequestProtocol.Tag;
         }
 
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public QuestProgressRequestProtocolMessagePack()
         {
         }
@@ -60,7 +60,7 @@ namespace Server.Protocol.PacketResponse
             Quests = quests;
         }
 
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public QuestProgressResponseProtocolMessagePack()
         {
         }
@@ -79,7 +79,7 @@ namespace Server.Protocol.PacketResponse
             IsRewardEarnable = quest.IsRewardEarnable();
         }
 
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public QuestProgressMessagePack()
         {
         }

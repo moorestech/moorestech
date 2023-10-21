@@ -13,9 +13,9 @@ namespace Test.CombinedTest.Server.PacketTest
 {
     public class SetRecipeCraftingInventoryProtocolTest
     {
-        /// <summary>
-        ///     クラフトインベントリにレシピを置くテスト
-        /// </summary>
+
+        ///     
+
         [Test]
         public void CraftingRecipePlaceTest()
         {
@@ -31,17 +31,17 @@ namespace Test.CombinedTest.Server.PacketTest
             craftInventory.SetItem(0, 1, 1);
             grabInventory.SetItem(0, 1, 1);
 
-            //設置するレシピ
+            
             var recipe = new ItemMessagePack[]
             {
                 new(1, 1), new(1, 1), new(2, 1),
                 new(2, 1), new(0, 0), new(0, 0),
                 new(0, 0), new(0, 0), new(0, 0)
             };
-            //レシピの設置を送信
+            
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new SetRecipeCraftingInventoryProtocolMessagePack(0, recipe)).ToList());
 
-            //アイテムが綺麗に分散して配置されているかチェック
+            
             Assert.AreEqual(1, craftInventory.GetItem(0).Id);
             Assert.AreEqual(2, craftInventory.GetItem(0).Count);
 
@@ -56,9 +56,9 @@ namespace Test.CombinedTest.Server.PacketTest
         }
 
 
-        /// <summary>
-        ///     アイテムが足りなくても一部分だけ置かれるテスト
-        /// </summary>
+
+        ///     
+
         [Test]
         public void CraftRecipeLackItemTest()
         {
@@ -70,24 +70,24 @@ namespace Test.CombinedTest.Server.PacketTest
 
             mainInventory.SetItem(0, 1, 2);
 
-            //設置するレシピ
+            
             var recipe = new ItemMessagePack[]
             {
                 new(1, 1), new(1, 1), new(2, 1),
                 new(2, 1), new(0, 0), new(0, 0),
                 new(0, 0), new(0, 0), new(0, 0)
             };
-            //レシピの設置を送信
+            
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new SetRecipeCraftingInventoryProtocolMessagePack(0, recipe)).ToList());
 
-            //足りている部分だけ置かれているテスト
+            
             Assert.AreEqual(1, craftInventory.GetItem(0).Id);
             Assert.AreEqual(1, craftInventory.GetItem(0).Count);
 
             Assert.AreEqual(1, craftInventory.GetItem(1).Id);
             Assert.AreEqual(1, craftInventory.GetItem(1).Count);
 
-            //足りない部分には置かれていないテスト
+            
             Assert.AreEqual(0, craftInventory.GetItem(2).Id);
 
             Assert.AreEqual(0, craftInventory.GetItem(3).Id);

@@ -64,7 +64,7 @@ namespace Game.Block.Blocks.PowerGenerator
 
         public string GetSaveState()
         {
-            //フォーマット
+            
             //_fuelItemId,_remainingFuelTime,_fuelItemId1,_fuelItemCount1,_fuelItemId2,_fuelItemCount2,_fuelItemId3,_fuelItemCount3...
             var saveState = $"{_fuelItemId},{_remainingFuelTime}";
             foreach (var itemStack in _itemDataStoreService.Inventory) saveState += $",{itemStack.ItemHash},{itemStack.Count}";
@@ -78,7 +78,7 @@ namespace Game.Block.Blocks.PowerGenerator
         }
 
 
-        //発電機は何かを出力したりしない
+        
         public void AddOutputConnector(IBlockInventory blockInventory)
         {
         }
@@ -145,31 +145,31 @@ namespace Game.Block.Blocks.PowerGenerator
 
         public void Update()
         {
-            //現在燃料を消費しているか判定
-            //燃料が在る場合は燃料残り時間をUpdate時間分減らす
+            
+            //Update
             if (_fuelItemId != ItemConst.EmptyItemId)
             {
                 _remainingFuelTime -= GameUpdater.UpdateMillSecondTime;
 
-                //残り時間が0以下の時は燃料の設定をNullItemIdにする
+                //0NullItemId
                 if (_remainingFuelTime <= 0) _fuelItemId = ItemConst.EmptyItemId;
 
                 return;
             }
 
-            //燃料がない場合はスロットに燃料が在るか判定する
-            //スロットに燃料がある場合は燃料の設定し、アイテムを1個減らす
+            
+            //1
             for (var i = 0; i < _itemDataStoreService.GetSlotSize(); i++)
             {
-                //スロットに燃料がある場合
+                
                 var slotItemId = _itemDataStoreService.Inventory[i].Id;
                 if (!_fuelSettings.ContainsKey(slotItemId)) continue;
 
-                //ID、残り時間を設定
+                //ID
                 _fuelItemId = _fuelSettings[slotItemId].ItemId;
                 _remainingFuelTime = _fuelSettings[slotItemId].Time;
 
-                //アイテムを1個減らす
+                //1
                 _itemDataStoreService.SetItem(i, _itemDataStoreService.Inventory[i].SubItem(1));
                 return;
             }

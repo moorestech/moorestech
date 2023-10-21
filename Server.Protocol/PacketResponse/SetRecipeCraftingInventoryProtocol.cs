@@ -33,17 +33,17 @@ namespace Server.Protocol.PacketResponse
             var grabInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).GrabInventory;
 
 
-            //アイテムをすべてメインインベントリに移動
+            
             MovingItemToMainInventory.Move(mainInventory, craftingInventory, grabInventory);
 
-            //移動できるかチェック
-            //todo isPlaceable はいずれクライアント側で作れないアイテムであることを表示するために必要なので残しておく
+            
+            //todo isPlaceable 
             var (isPlaceable, mainInventoryRequiredItemCount) = CheckPlaceableRecipe.IsPlaceable(mainInventory, data.Recipe);
 
-            //実際に移動するアイテム数を計算
+            
             var moveItem = CalcCraftInventoryPlaceItem.Calc(_itemStackFactory, _itemConfig, data.Recipe, mainInventoryRequiredItemCount);
 
-            //実際に移動する
+            
             MoveRecipeMainInventoryToCraftInventory.Move(_itemStackFactory, mainInventory, craftingInventory, moveItem);
 
             return new List<List<byte>>();
@@ -60,7 +60,7 @@ namespace Server.Protocol.PacketResponse
             Recipe = recipe;
         }
 
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public SetRecipeCraftingInventoryProtocolMessagePack()
         {
         }

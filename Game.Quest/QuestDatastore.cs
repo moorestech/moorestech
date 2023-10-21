@@ -28,11 +28,11 @@ namespace Game.Quest
         {
             if (_quests.ContainsKey(playerId)) return _quests[playerId];
 
-            //新しいプレイヤーなので新しいクエストの作成
+            
             var newQuests = _questFactory.CreateQuests();
 
             _quests.Add(playerId, newQuests);
-            //クエスト完了時にイベントを発火させる
+            
             SetPlayerEvent(playerId, newQuests);
 
             return newQuests;
@@ -55,8 +55,8 @@ namespace Game.Quest
                 return quest;
             }
 
-            //TODO ログ基盤
-            throw new ArgumentException("クエストがありませんでした QuestId:" + questId);
+            //TODO 
+            throw new ArgumentException(" QuestId:" + questId);
         }
 
         public void LoadQuestDataDictionary(Dictionary<int, List<SaveQuestData>> quests)
@@ -66,7 +66,7 @@ namespace Game.Quest
                 var playerId = playerToQuestsList.Key;
                 var questList = _questFactory.LoadQuests(playerToQuestsList.Value);
                 _quests.Add(playerId, questList);
-                //クエスト完了時にイベントを発火させるために登録
+                
                 SetPlayerEvent(playerId, questList);
             }
         }

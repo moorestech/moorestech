@@ -13,12 +13,12 @@ namespace Server.Util
             {
                 if (i != 0 && i % 8 == 0)
                 {
-                    // 1バイト分で出力しビットカウント初期化
+                    // 1
                     bytes.Add(result);
                     result = 0;
                 }
 
-                // 指定桁数について1を立てる
+                // 1
                 result = (byte)(result << 1);
                 if (bits[i]) result |= 1;
             }

@@ -34,7 +34,7 @@ namespace Game.Quest.Config
 
         [JsonProperty("UIPosY")] public float UiPosY;
 
-        //クエストIDだけだと被るかもしれないのでmodIdとquestIdを結合する
+        //IDmodIdquestId
         public string QuestId => ModId + ":" + Id;
     }
 }

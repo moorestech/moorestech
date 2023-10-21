@@ -27,7 +27,7 @@ namespace Server.Protocol.PacketResponse
 
             //ExportInventoryLog(playerInventory);
 
-            //メインインベントリのアイテムを設定
+            
             var mainItems = new List<ItemMessagePack>();
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
@@ -37,13 +37,13 @@ namespace Server.Protocol.PacketResponse
             }
 
 
-            //グラブインベントリのアイテムを設定
+            
             var grabItem = new ItemMessagePack(
                 playerInventory.GrabInventory.GetItem(0).Id,
                 playerInventory.GrabInventory.GetItem(0).Count);
 
 
-            //クラフトインベントリのアイテムを設定
+            
             var craftItems = new List<ItemMessagePack>();
             for (var i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
@@ -52,7 +52,7 @@ namespace Server.Protocol.PacketResponse
                 craftItems.Add(new ItemMessagePack(id, count));
             }
 
-            //クラフト結果のアイテムを設定
+            
             var craftItem = new ItemMessagePack(
                 playerInventory.CraftingOpenableInventory.GetCreatableItem().Id,
                 playerInventory.CraftingOpenableInventory.GetCreatableItem().Count);
@@ -67,9 +67,9 @@ namespace Server.Protocol.PacketResponse
         }
 
 
-        /// <summary>
-        ///     デバッグ用でインベントリの中身が知りたい時に使用する
-        /// </summary>
+
+        ///     
+
         public static void ExportInventoryLog(PlayerInventoryData playerInventory, bool isExportMain, bool isExportCraft, bool isExportGrab)
         {
             var inventoryStr = new StringBuilder();
@@ -77,7 +77,7 @@ namespace Server.Protocol.PacketResponse
 
 
             if (isExportMain)
-                //メインインベントリのアイテムを設定
+                
                 for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
                 {
                     var id = playerInventory.MainOpenableInventory.GetItem(i).Id;
@@ -100,7 +100,7 @@ namespace Server.Protocol.PacketResponse
             {
                 inventoryStr.AppendLine();
                 inventoryStr.AppendLine("Craft Inventory");
-                //クラフトインベントリのアイテムを設定
+                
                 for (var i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
                 {
                     var id = playerInventory.CraftingOpenableInventory.GetItem(i).Id;
@@ -122,7 +122,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class RequestPlayerInventoryProtocolMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public RequestPlayerInventoryProtocolMessagePack()
         {
         }
@@ -140,7 +140,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class PlayerInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public PlayerInventoryResponseProtocolMessagePack()
         {
         }

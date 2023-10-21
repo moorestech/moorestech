@@ -13,9 +13,9 @@ namespace Test.UnitTest.Core.Other
 {
     public class ConnectingInventoryListPriorityInsertItemServiceTest
     {
-        /// <summary>
-        ///     アイテムを挿入の優先度がループしてるかテストする
-        /// </summary>
+
+        ///     
+
         [Test]
         public void Test()
         {
@@ -24,7 +24,7 @@ namespace Test.UnitTest.Core.Other
 
             var inventoryList = new List<IBlockInventory>();
 
-            //インベントリ1はインベントリのサイズを1にして、インベントリ2に入るか確認する
+            //112
             var inventory1 = new DummyBlockInventory(itemStackFactory, 1, 1);
             var inventory2 = new DummyBlockInventory(itemStackFactory);
             var inventory3 = new DummyBlockInventory(itemStackFactory);

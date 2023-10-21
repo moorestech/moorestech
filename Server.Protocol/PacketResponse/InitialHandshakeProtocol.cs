@@ -39,7 +39,7 @@ namespace Server.Protocol.PacketResponse
         {
             if (_entitiesDatastore.Exists(playerId))
             {
-                //プレイヤーがいるのでセーブされた座標を返す
+                
                 var pos = _entitiesDatastore.GetPosition(playerId);
                 return new Vector2MessagePack(pos.X, pos.Z);
             }
@@ -48,7 +48,7 @@ namespace Server.Protocol.PacketResponse
             _entitiesDatastore.Add(playerEntity);
 
 
-            //プレイヤーのデータがなかったのでスポーン地点を取得する
+            
             var x = _worldSettingsDatastore.WorldSpawnPoint.X;
             var y = _worldSettingsDatastore.WorldSpawnPoint.Y;
             return new Vector2MessagePack(x, y);
@@ -59,7 +59,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class RequestInitialHandshakeMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public RequestInitialHandshakeMessagePack()
         {
         }
@@ -78,7 +78,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class ResponseInitialHandshakeMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public ResponseInitialHandshakeMessagePack()
         {
         }

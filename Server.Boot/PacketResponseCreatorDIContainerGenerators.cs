@@ -54,7 +54,7 @@ namespace Server.Boot
 {
     public class PacketResponseCreatorDiContainerGenerators
     {
-        //TODO セーブファイルのディレクトリもここで指定できるようにする
+        //TODO 
         public (PacketResponseCreator, ServiceProvider) Create(string serverDirectory)
         {
             var services = new ServiceCollection();
@@ -62,7 +62,7 @@ namespace Server.Boot
             var modDirectory = Path.Combine(serverDirectory, "mods");
             var mapDirectory = Path.Combine(serverDirectory, "map");
 
-            //コンフィグ、ファクトリーのインスタンスを登録
+            
             var (configJsons, modsResource) = ModJsonStringLoader.GetConfigString(modDirectory);
             services.AddSingleton(new ConfigJsonList(configJsons));
             services.AddSingleton(modsResource);
@@ -76,7 +76,7 @@ namespace Server.Boot
             services.AddSingleton<ItemIdToBlockId, ItemIdToBlockId>();
 
 
-            //ゲームプレイに必要なクラスのインスタンスを生成
+            
             services.AddSingleton<IIsCreatableJudgementService, IsCreatableJudgementService>();
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
@@ -99,13 +99,13 @@ namespace Server.Boot
             services.AddSingleton<IMapObjectFactory, MapObjectFactory>();
 
 
-            //JSONファイルのセーブシステムの読み込み
+            //JSON
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(new SaveJsonFileName("save_1.json"));
             services.AddSingleton(new MapConfigFile(mapDirectory));
 
-            //イベントを登録
+            
             services.AddSingleton<IBlockPlaceEvent, BlockPlaceEvent>();
             services.AddSingleton<IBlockRemoveEvent, BlockRemoveEvent>();
             services.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
@@ -115,7 +115,7 @@ namespace Server.Boot
             services.AddSingleton<ICraftingEvent, CraftingEvent>();
             services.AddSingleton<IQuestCompletedEvent, QuestCompletedEvent>();
 
-            //イベントレシーバーを登録
+            
             services.AddSingleton<ChangeBlockStateEventPacket>();
             services.AddSingleton<MainInventoryUpdateToSetEventPacket>();
             services.AddSingleton<CraftingInventoryUpdateToSetEventPacket>();
@@ -132,15 +132,15 @@ namespace Server.Boot
             services.AddSingleton<QuestCompletedToSendEventPacket>();
             services.AddSingleton<MapObjectUpdateEventPacket>();
 
-            //データのセーブシステム
+            
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
 
 
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
-            //イベントレシーバーをインスタンス化する
-            //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
+            
+            //TODO DI VContinerRegisterEntryPoint
             serviceProvider.GetService<MainInventoryUpdateToSetEventPacket>();
             serviceProvider.GetService<CraftingInventoryUpdateToSetEventPacket>();
             serviceProvider.GetService<OpenableBlockInventoryUpdateToSetEventPacket>();

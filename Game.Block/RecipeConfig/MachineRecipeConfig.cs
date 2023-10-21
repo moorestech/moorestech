@@ -12,7 +12,7 @@ namespace Game.Block.RecipeConfig
         private readonly Dictionary<string, MachineRecipeData> _recipeDataCache;
         private readonly List<MachineRecipeData> _recipedatas;
 
-        //IDからレシピデータを取得する
+        //ID
         public MachineRecipeConfig(IBlockConfig blockConfig, ItemStackFactory itemStackFactory, ConfigJsonList configJson)
         {
             _recipedatas = new MachineRecipeJsonLoad().LoadConfig(blockConfig, itemStackFactory, configJson.SortedMachineRecipeConfigJsonList);
@@ -43,12 +43,12 @@ namespace Game.Block.RecipeConfig
         }
 
 
-        /// <summary>
-        ///     設置物IDと現在の搬入スロットからレシピを検索し、取得する
-        /// </summary>
-        /// <param name="BlockId">設置物ID</param>
-        /// <param name="inputItem">搬入スロット</param>
-        /// <returns>レシピデータ</returns>
+
+        ///     ID
+
+        /// <param name="BlockId">ID</param>
+        /// <param name="inputItem"></param>
+        /// <returns></returns>
         public MachineRecipeData GetRecipeData(int BlockId, IReadOnlyList<IItemStack> inputItem)
         {
             var tmpInputItem = inputItem.Where(i => i.Count != 0).ToList();

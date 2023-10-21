@@ -24,7 +24,7 @@ namespace PlayerInventory
 
         public void Open(int playerId, int x, int y)
         {
-            //開けるインベントリのブロックが存在していなかったらそのまま終了
+            
             if (!_worldBlockDatastore.TryGetBlock<IOpenableInventory>(x, y, out _)) return;
 
             var entityId = _worldBlockDatastore.GetBlock(x, y).EntityId;

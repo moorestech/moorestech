@@ -26,11 +26,11 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<RequestBlockInventoryRequestProtocolMessagePack>(payload.ToArray());
 
-            //開けるインベントリを持つブロックが存在するかどうかをチェック
+            
             if (!_blockDatastore.ExistsComponentBlock<IOpenableInventory>(data.X, data.Y)) return new List<List<byte>>();
 
 
-            //存在したらアイテム数とアイテムIDをまとめてレスポンスする
+            //ID
             var itemIds = new List<int>();
             var itemCounts = new List<int>();
 
@@ -47,7 +47,7 @@ namespace Server.Protocol.PacketResponse
             return new List<List<byte>> { response };
         }
 
-        //データのレスポンスを実行するdelegateを設定する
+        //delegate
         private delegate byte[] InventoryResponse(int x, int y, IBlockConfigParam config);
     }
 
@@ -55,7 +55,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class RequestBlockInventoryRequestProtocolMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public RequestBlockInventoryRequestProtocolMessagePack()
         {
         }
@@ -82,7 +82,7 @@ namespace Server.Protocol.PacketResponse
             ItemCounts = itemCounts;
         }
 
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public BlockInventoryResponseProtocolMessagePack()
         {
         }

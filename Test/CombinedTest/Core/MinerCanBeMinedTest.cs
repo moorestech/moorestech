@@ -33,7 +33,7 @@ namespace Test.CombinedTest.Core
                 for (var j = 0; j < 500; j++)
                 {
                     oreId = veinGenerator.GetOreId(i, j);
-                    //oreIdが1の時にその上に採掘機を設置する
+                    //oreId1
                     if (oreId != 1) continue;
                     x = i;
                     y = j;
@@ -47,7 +47,7 @@ namespace Test.CombinedTest.Core
             worldBlockDatastore.AddBlock(blockFactory.Create(MinerId, 1), x, y, BlockDirection.North);
 
             var miner = worldBlockDatastore.GetBlock(x, y) as VanillaMinerBase;
-            //リフレクションでidを取得する
+            //id
             var miningItems = (List<IItemStack>)typeof(VanillaMinerBase).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(miner);
 
             var defaultMiningTime = (int)typeof(VanillaMinerBase).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance)

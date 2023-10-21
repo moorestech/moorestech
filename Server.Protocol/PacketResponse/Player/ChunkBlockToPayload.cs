@@ -11,11 +11,11 @@ namespace Server.Protocol.PacketResponse.Player
     {
         public static List<byte> Convert(Coordinate chunkCoordinate, IWorldBlockDatastore worldBlockDatastore, WorldMapTile worldMapTile)
         {
-            //ブロックのIDの取得
+            //ID
             var blocksIds = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(chunkCoordinate, worldBlockDatastore);
             var blockDirections = CoordinateToChunkBlockIntArray.GetBlockDirectionInChunk(chunkCoordinate, worldBlockDatastore);
 
-            //マップタイルのIDの取得
+            //ID
             var mapTIleIds = CoordinateToChunkBlockIntArray.GetMapIdsInChunk(chunkCoordinate, worldMapTile);
 
 

@@ -19,7 +19,7 @@ namespace Server.Boot.PacketHandle
         public void StartListen()
         {
             var buffer = new byte[4096];
-            //切断されるまでパケットを受信
+            
             try
             {
                 var parser = new PacketBufferParser();
@@ -28,7 +28,7 @@ namespace Server.Boot.PacketHandle
                     var error = ReceiveProcess(parser, buffer);
                     if (error)
                     {
-                        Console.WriteLine("切断されました");
+                        Console.WriteLine("");
                         break;
                     }
                 }
@@ -36,7 +36,7 @@ namespace Server.Boot.PacketHandle
             catch (Exception e)
             {
                 _client.Close();
-                Console.WriteLine("エラーによる切断");
+                Console.WriteLine("");
                 Console.WriteLine(e);
             }
         }
@@ -46,7 +46,7 @@ namespace Server.Boot.PacketHandle
             var length = _client.Receive(buffer);
             if (length == 0) return true;
 
-            //受信データをパケットに分割
+            
             var packets = parser.Parse(buffer, length);
 
             foreach (var packet in packets)

@@ -9,7 +9,7 @@ using Test.Module.TestMod;
 namespace Test.UnitTest.Core.Inventory
 {
     /// <summary>
-    ///     <see cref="InventoryInsertItem" /> をテストする
+    ///     <see cref="InventoryInsertItem" /> 
     /// </summary>
     public class InsertItemLogicTest
     {
@@ -23,22 +23,22 @@ namespace Test.UnitTest.Core.Inventory
             var toInventory = new OpenableInventoryItemDataStoreService((_, _) => { }, itemStackFactory, 10);
 
 
-            // 8,9番目のスロットに優先的にアイテムを入れるようにする
+            // 8,9
             var insertItem = itemStackFactory.Create(1, 10);
             toInventory.InsertItemWithPrioritySlot(insertItem, new[] { 8, 9 });
-            //8番目に入っているか確認
+            //8
             Assert.AreEqual(insertItem, toInventory.GetItem(8));
 
-            //ID2を入れて、9番目に入っているかを確認する
+            //ID29
             insertItem = itemStackFactory.Create(2, 10);
             toInventory.InsertItemWithPrioritySlot(insertItem, new[] { 8, 9 });
-            //9番目に入っているか確認
+            //9
             Assert.AreEqual(insertItem, toInventory.GetItem(9));
 
-            //ID3を入れて、8,9番目に入らないので0番目に入ることを確認する
+            //ID38,90
             insertItem = itemStackFactory.Create(3, 10);
             toInventory.InsertItemWithPrioritySlot(insertItem, new[] { 8, 9 });
-            //0番目に入っているか確認
+            //0
             Assert.AreEqual(insertItem, toInventory.GetItem(0));
         }
     }

@@ -19,7 +19,7 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<EventProtocolMessagePack>(payload.ToArray());
 
-            //イベントプロトコルプロバイダからデータを取得して返す
+            
             return _eventProtocolProvider.GetEventBytesList(data.PlayerId);
         }
     }
@@ -27,7 +27,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class EventProtocolMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public EventProtocolMessagePack()
         {
         }

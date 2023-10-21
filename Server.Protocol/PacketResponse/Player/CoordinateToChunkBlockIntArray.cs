@@ -6,15 +6,15 @@ namespace Server.Protocol.PacketResponse.Player
 {
     public static class CoordinateToChunkBlockIntArray
     {
-        /// <summary>
-        ///     チャンクの原点からそこにあるブロックのID一覧を返す
-        /// </summary>
+
+        ///     ID
+
         /// <param name="coordinate"></param>
         /// <param name="worldBlockDatastore"></param>
         /// <returns></returns>
         public static int[,] GetBlockIdsInChunk(Coordinate coordinate, IWorldBlockDatastore worldBlockDatastore)
         {
-            //その座標のチャンクの原点
+            
             var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coordinate.X, coordinate.Y);
 
             var blocks = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
@@ -44,15 +44,15 @@ namespace Server.Protocol.PacketResponse.Player
             return blockDirections;
         }
 
-        /// <summary>
-        ///     チャンクの原点からマップタイルのID一覧を返す
-        /// </summary>
+
+        ///     ID
+
         /// <param name="coordinate"></param>
         /// <param name="worldMapTile"></param>
         /// <returns></returns>
         public static int[,] GetMapIdsInChunk(Coordinate coordinate, WorldMapTile worldMapTile)
         {
-            //その座標のチャンクの原点
+            
             var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coordinate.X, coordinate.Y);
 
             var blocks = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];

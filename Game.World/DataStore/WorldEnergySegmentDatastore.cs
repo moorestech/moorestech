@@ -9,7 +9,7 @@ namespace World.DataStore
     {
         private readonly List<TSegment> _segmentDictionary = new();
 
-        //電柱オブジェクトから所属している電力セグメントを取得する
+        
         public TSegment GetEnergySegment(IEnergyTransformer transformer)
         {
             foreach (var segment in _segmentDictionary)
@@ -18,7 +18,7 @@ namespace World.DataStore
                 return segment;
             }
 
-            throw new Exception("電力セグメントが見つかりませんでした");
+            throw new Exception("");
         }
 
         public TSegment GetEnergySegment(int index)

@@ -15,7 +15,7 @@ using Test.Module.TestMod;
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
     /// <summary>
-    ///     ブロックを消したらその情報がイベントで飛んでくるテスト
+    ///     
     /// </summary>
     public class BlockRemoveEventPacketTest
     {
@@ -23,38 +23,38 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         public void RemoveBlockEvent()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            //イベントキューにIDを登録する
+            //ID
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(0, response.Count);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
 
-            //ブロックを設置
+            
             BlockPlace(4, 0, 1, worldBlock, blockFactory);
             BlockPlace(3, 1, 2, worldBlock, blockFactory);
             BlockPlace(2, 3, 3, worldBlock, blockFactory);
             BlockPlace(1, 4, 4, worldBlock, blockFactory);
 
-            //イベントを取得
+            
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(4, response.Count);
 
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
-            //一個ブロックを削除
+            
             worldDataStore.RemoveBlock(4, 0);
 
-            //イベントを取得
+            
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(1, response.Count);
             var (x, y) = AnalysisResponsePacket(response[0]);
             Assert.AreEqual(4, x);
             Assert.AreEqual(0, y);
 
-            //二個ブロックを削除
+            
             worldDataStore.RemoveBlock(3, 1);
             worldDataStore.RemoveBlock(1, 4);
-            //イベントを取得
+            
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(2, response.Count);
             (x, y) = AnalysisResponsePacket(response[0]);

@@ -13,18 +13,18 @@ namespace Game.MapObject
     {
         private readonly IMapObjectFactory _mapObjectFactory;
 
-        /// <summary>
-        ///     このデータが空になる場合はワールドのロードか初期化ができていない状態である可能性が高いです。
-        ///     単純にmapObjectがない場合もありますが、、
-        ///     <see cref="WorldLoaderFromJson" />でロードもしくは初期化を行ってください。
-        /// </summary>
+
+        ///     。
+        ///     mapObject
+        ///     <see cref="WorldLoaderFromJson" />。
+
         private readonly Dictionary<int, IMapObject> _mapObjects = new();
 
         public MapObjectDatastore(IMapObjectFactory mapObjectFactory, MapConfigFile mapConfigFile)
         {
             _mapObjectFactory = mapObjectFactory;
 
-            //configからmap obejctを生成
+            //configmap obejct
             var mapObjects = JsonConvert.DeserializeObject<ConfigMapObjects>(File.ReadAllText(mapConfigFile.FullMapObjectConfigFilePath));
             foreach (var configMapObject in mapObjects.MapObjects)
             {

@@ -116,7 +116,7 @@ namespace Game.Block.Blocks.Miner
 
         public void SetMiningItem(int miningItemId, int miningTime)
         {
-            if (_defaultMiningTime != int.MaxValue) throw new Exception("採掘機に鉱石の設定をできるのは1度だけです");
+            if (_defaultMiningTime != int.MaxValue) throw new Exception("1");
 
             _miningItems = new List<IItemStack> { _itemStackFactory.Create(miningItemId, 1) };
             _defaultMiningTime = miningTime;
@@ -135,15 +135,15 @@ namespace Game.Block.Blocks.Miner
             var subTime = MachineCurrentPowerToSubMillSecond.GetSubMillSecond(_currentPower, RequestEnergy);
             if (subTime <= 0)
             {
-                //電力の都合で処理を進められないのでreturn
+                //return
                 _currentState = VanillaMinerState.Idle;
                 return;
             }
 
-            //insertできるかチェック
+            //insert
             if (!_openableInventoryItemDataStoreService.InsertionCheck(_miningItems))
             {
-                //挿入できないのでreturn
+                //return
                 _currentState = VanillaMinerState.Idle;
                 return;
             }
@@ -156,7 +156,7 @@ namespace Game.Block.Blocks.Miner
             {
                 _remainingMillSecond = _defaultMiningTime;
 
-                //空きスロットを探索し、あるならアイテムを挿入
+                
                 _openableInventoryItemDataStoreService.InsertItem(_miningItems);
             }
 
@@ -168,17 +168,17 @@ namespace Game.Block.Blocks.Miner
         {
             if (_lastMinerState == VanillaMinerState.Mining && _currentState == VanillaMinerState.Idle)
             {
-                //Miningからidleに切り替わったのでイベントを発火
+                //Miningidle
                 InvokeChangeStateEvent();
                 _lastMinerState = _currentState;
                 return;
             }
 
             if (_currentState == VanillaMinerState.Idle)
-                //Idle中は発火しない
+                //Idle
                 return;
 
-            //マイニング中 この時は常にイベントを発火
+            // 
             InvokeChangeStateEvent();
         }
 
@@ -261,10 +261,10 @@ namespace Game.Block.Blocks.Miner
 
     public static class ProcessStateExtension
     {
-        /// <summary>
-        ///     <see cref="ProcessState" />をStringに変換します。
-        ///     EnumのToStringを使わない理由はアロケーションによる速度低下をなくすためです。
-        /// </summary>
+
+        ///     <see cref="ProcessState" />String。
+        ///     EnumToString。
+
         public static string ToStr(this VanillaMinerState state)
         {
             return state switch

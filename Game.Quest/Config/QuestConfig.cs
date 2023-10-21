@@ -26,16 +26,16 @@ namespace Game.Quest.Config
         {
             if (_questIdToQuestConfigs.TryGetValue(id, out var quest)) return quest;
 
-            //TODO ログ取得基盤に入れるようにする
-            throw new ArgumentException("[QuestConfig]指定された クエストID:" + id + "は存在しません。");
+            //TODO 
+            throw new ArgumentException("[QuestConfig] ID:" + id + "。");
         }
 
         public List<string> GetQuestIds(string modId)
         {
             if (_modIdToQuests.TryGetValue(modId, out var quests)) return quests;
 
-            //TODO ログ取得基盤に入れるようにする
-            Console.WriteLine("[QuestConfig]指定された ModId:" + modId + "にクエストは存在しません。");
+            //TODO 
+            Console.WriteLine("[QuestConfig] ModId:" + modId + "。");
             return new List<string>();
         }
 

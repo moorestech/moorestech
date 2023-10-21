@@ -11,9 +11,9 @@ namespace Server.Event
             {
                 var binaryFormatter
                     = new BinaryFormatter();
-                binaryFormatter.Serialize(memoryStream, src); // シリアライズ
+                binaryFormatter.Serialize(memoryStream, src); // 
                 memoryStream.Seek(0, SeekOrigin.Begin);
-                return (T)binaryFormatter.Deserialize(memoryStream); // デシリアライズ
+                return (T)binaryFormatter.Deserialize(memoryStream); // 
             }
         }
     }

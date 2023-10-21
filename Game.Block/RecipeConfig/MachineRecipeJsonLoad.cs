@@ -19,10 +19,10 @@ namespace Game.Block.RecipeConfig
 
         private List<MachineRecipeData> Load(IBlockConfig blockConfig, ItemStackFactory itemStackFactory, string json)
         {
-            //JSONデータの読み込み
+            //JSON
             var data = JsonConvert.DeserializeObject<MachineRecipeJsonData[]>(json);
 
-            //レシピデータを実際に使用する形式に変換
+            
             var r = data.ToList().Select((r, index) =>
             {
                 var inputItem =
@@ -47,7 +47,7 @@ namespace Game.Block.RecipeConfig
         }
     }
 
-    //JSONからのデータを格納するためのクラス
+    //JSON
     [JsonObject]
     internal class MachineRecipeJsonData
     {

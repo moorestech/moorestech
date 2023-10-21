@@ -12,9 +12,9 @@ namespace Game.PlayerInventory.Interface
         public const int CraftingInventoryRows = 3;
         public const int CraftingSlotSize = CraftingInventoryColumns * CraftingInventoryRows;
 
-        /// <summary>
-        ///     ホットバーとなるインベントリのスロット
-        /// </summary>
+
+        ///     
+
         public static readonly int[] HotBarSlots =
         {
             HotBarSlotToInventorySlot(0),
@@ -29,15 +29,15 @@ namespace Game.PlayerInventory.Interface
         };
 
 
-        /// <summary>
-        ///     0〜8までのホットバーのIDをインベントリのスロットに変換します
-        /// </summary>
-        /// <exception cref="Exception">0〜8以外だとスローします</exception>
+
+        ///     0〜8ID
+
+        /// <exception cref="Exception">0〜8</exception>
         public static int HotBarSlotToInventorySlot(int slot)
         {
             if (slot < 0 || MainInventoryColumns <= slot)
-                throw new Exception("ホットバーは0～8までです");
-            //インベントリの一番したがホットバーとなる
+                throw new Exception("0～8");
+            
             return (MainInventoryRows - 1) * MainInventoryColumns + slot;
         }
     }

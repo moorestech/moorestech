@@ -5,7 +5,7 @@ using Core.Item;
 namespace Core.Inventory
 {
     /// <summary>
-    ///     開くことができるインベントリ（プレイヤーインベントリやチェストのインベントリ）の処理を統合的に行うクラスです
+    ///     （）
     /// </summary>
     public class OpenableInventoryItemDataStoreService : IOpenableInventory
     {
@@ -31,11 +31,11 @@ namespace Core.Inventory
 
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
-            //インベントリのアイテムをコピー
+            
             var inventoryCopy = new List<IItemStack>(_inventory);
-            //挿入を実行する
+            
             var result = InventoryInsertItem.InsertItem(itemStacks, inventoryCopy, _itemStackFactory);
-            //結果のアイテム数が0だったら挿入可能
+            //0
             return result.Count == 0;
         }
 
@@ -86,7 +86,7 @@ namespace Core.Inventory
 
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
-            //アイテムIDが同じの時はスタックして余ったものを返す
+            //ID
             var item = _inventory[slot];
             if (item.Id == itemStack.Id)
             {
@@ -96,7 +96,7 @@ namespace Core.Inventory
                 return result.RemainderItemStack;
             }
 
-            //違う場合はそのまま入れ替える
+            
             _inventory[slot] = itemStack;
             InvokeEvent(slot);
             return item;
@@ -127,9 +127,9 @@ namespace Core.Inventory
             return InventoryInsertItem.InsertItem(itemStacks, _inventory, _itemStackFactory, InvokeEvent);
         }
 
-        /// <summary>
-        ///     もしそのスロットに入れられるのであれば、まずはそれらのスロットに入れてから、余ったものを返す
-        /// </summary>
+
+        ///     
+
         public IItemStack InsertItemWithPrioritySlot(IItemStack itemStack, int[] prioritySlots)
         {
             return InventoryInsertItem.InsertItemWithPrioritySlot(itemStack, _inventory, _itemStackFactory, prioritySlots, InvokeEvent);

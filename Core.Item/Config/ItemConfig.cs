@@ -18,13 +18,13 @@ namespace Core.Item.Config
             _itemConfigList = new ItemConfigLoad().LoadFromJsons(configPath.ItemConfigs, configPath.SortedModIds);
 
 
-            //実際のIDは1から（空IDの次の値）始まる
+            //ID1（ID）
             for (var itemId = ItemConst.EmptyItemId + 1; itemId <= _itemConfigList.Count; itemId++)
             {
                 var arrayIndex = itemId - 1;
                 if (_bockHashToId.ContainsKey(_itemConfigList[arrayIndex].ItemHash))
-                    //TODO ログ基盤に入れる
-                    throw new Exception("アイテム名 " + _itemConfigList[arrayIndex].Name + " は重複しています。");
+                    //TODO 
+                    throw new Exception(" " + _itemConfigList[arrayIndex].Name + " 。");
                 _bockHashToId.Add(_itemConfigList[arrayIndex].ItemHash, itemId);
 
                 if (_modIdToItemIds.TryGetValue(_itemConfigList[arrayIndex].ModId, out var itemIds))
@@ -36,14 +36,14 @@ namespace Core.Item.Config
 
         public ItemConfigData GetItemConfig(int id)
         {
-            //0は何も持っていないことを表すので-1してListのindexにする
+            //0-1Listindex
             id -= 1;
             if (id < 0)
-                //TODO ログ基盤に入れる
+                //TODO 
                 throw new ArgumentException("id must be greater than 0 ID:" + id);
             if (id < _itemConfigList.Count) return _itemConfigList[id];
 
-            //TODO ログ基盤に入れる
+            //TODO 
             return new ItemConfigData("undefined id " + id, DefaultItemMaxCount, "mod is not found");
         }
 
@@ -55,7 +55,7 @@ namespace Core.Item.Config
         public int GetItemId(ulong itemHash)
         {
             if (_bockHashToId.TryGetValue(itemHash, out var id)) return id;
-            //TODO ログ基盤に入れる
+            //TODO 
             Console.WriteLine("itemHash:" + itemHash + " is not found");
             return ItemConst.EmptyItemId;
         }
@@ -70,7 +70,7 @@ namespace Core.Item.Config
         public int GetItemId(string modId, string itemName, string callerMethodName = "")
         {
             foreach (var itemId in GetItemIds(modId).Where(i => GetItemConfig(i).Name == itemName)) return itemId;
-            //TODO ログ基盤に入れる
+            //TODO 
             Console.WriteLine($"itemName:{itemName} itemModId:{modId} is not found callerMethodName:{callerMethodName}");
             return ItemConst.EmptyItemId;
         }

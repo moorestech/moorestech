@@ -11,9 +11,9 @@ namespace Test.CombinedTest.Game
 {
     public class InventoryItemInsertServiceTest
     {
-        /// <summary>
-        ///     通常のinsert処理
-        /// </summary>
+
+        ///     insert
+
         [Test]
         public void InsertTest()
         {
@@ -22,19 +22,19 @@ namespace Test.CombinedTest.Game
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).CraftingOpenableInventory;
 
-            //インベントリの設定
+            
             mainInventory.SetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0), 1, 10);
             craftInventory.SetItem(0, 1, 10);
             craftInventory.SetItem(2, 2, 10);
 
-            //クラフトからメインにid 1のアイテムを移す
+            //id 1
             InventoryItemInsertService.Insert(craftInventory, 0, mainInventory, 5);
 
             Assert.AreEqual(15, mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0)).Count);
             Assert.AreEqual(5, craftInventory.GetItem(0).Count);
 
 
-            //id 2のアイテムをクラフトからメインに移す
+            //id 2
             InventoryItemInsertService.Insert(craftInventory, 2, mainInventory, 10);
 
             Assert.AreEqual(10, mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(1)).Count);
@@ -42,9 +42,9 @@ namespace Test.CombinedTest.Game
         }
 
 
-        /// <summary>
-        ///     アイテムがいっぱいの時はinsertされないテスト
-        /// </summary>
+
+        ///     insert
+
         [Test]
         public void FullItemInsert()
         {
@@ -54,29 +54,29 @@ namespace Test.CombinedTest.Game
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).CraftingOpenableInventory;
             var id1MaxStack = serviceProvider.GetService<IItemConfig>().GetItemConfig(1).MaxStack;
 
-            //インベントリをアイテムで満たす
+            
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++) mainInventory.SetItem(i, 1, id1MaxStack);
-            //クラフトインベントリの設定
+            
             craftInventory.SetItem(0, 1, 10);
             craftInventory.SetItem(1, 2, 10);
 
-            //クラフトからメインにid 1のアイテムを移す
+            //id 1
             InventoryItemInsertService.Insert(craftInventory, 0, mainInventory, 5);
-            //挿入されてないことをテスト
+            
             Assert.AreEqual(10, craftInventory.GetItem(0).Count);
 
-            //クラフトからメインにid 2のアイテムを移す
+            //id 2
             InventoryItemInsertService.Insert(craftInventory, 1, mainInventory, 10);
-            //挿入されてないことをテスト
+            
             Assert.AreEqual(10, craftInventory.GetItem(1).Count);
 
 
-            //挿入した一部が帰ってくるテスト
-            //下準備としてスロットのアイテム数を5引く
+            
+            //5
             mainInventory.SetItem(0, 1, id1MaxStack - 5);
-            //クラフトからメインにid 1のアイテムを全て移す
+            //id 1
             InventoryItemInsertService.Insert(craftInventory, 0, mainInventory, 10);
-            //挿入されていることをテスト
+            
             Assert.AreEqual(5, craftInventory.GetItem(0).Count);
         }
     }

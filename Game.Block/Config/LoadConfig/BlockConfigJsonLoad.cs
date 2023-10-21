@@ -37,7 +37,7 @@ namespace Game.Block.Config.LoadConfig
 
         private List<BlockConfigData> LoadFormOneJson(string jsonText, string modId)
         {
-            //JSONを動的にデシリアライズする
+            //JSON
             dynamic person = JObject.Parse(jsonText);
 
             var blockDictionary = new List<BlockConfigData>();
@@ -50,7 +50,7 @@ namespace Game.Block.Config.LoadConfig
             });
 
 
-            //最初に設定されたIDの連番を設定していく
+            //ID
             var id = BlockConst.EmptyBlockId;
 
 
@@ -66,8 +66,8 @@ namespace Game.Block.Config.LoadConfig
 
                 var itemId = 0;
                 if (itemModId == null || itemName == null)
-                    //TODO ログ基盤に入れる
-                    Console.WriteLine("[BlockJsonLoad] ブロックのアイテム設定が不正です。modId:" + modId + " ブロック名:" + name);
+                    //TODO 
+                    Console.WriteLine("[BlockJsonLoad] 。modId:" + modId + " :" + name);
                 else
                     itemId = _itemConfig.GetItemId(itemModId, itemName);
 

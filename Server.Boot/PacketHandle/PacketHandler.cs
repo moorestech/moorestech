@@ -12,19 +12,19 @@ namespace Server.Boot.PacketHandle
 
         public void StartServer(PacketResponseCreator packetResponseCreator)
         {
-            //ソケットの作成
+            
             var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            //通信の受け入れ準備
+            
             listener.Bind(new IPEndPoint(IPAddress.Any, Port));
             listener.Listen(10);
-            Console.WriteLine("moorestechサーバー 起動完了");
+            Console.WriteLine("moorestech ");
 
             while (true)
             {
-                //通信の確率
+                
                 var client = listener.Accept();
-                Console.WriteLine("接続確立");
-                //性能が足りなくなってきたら非同期メソッドを使うようにする
+                Console.WriteLine("");
+                
                 Task.Run(() => new UserResponse(client, packetResponseCreator).StartListen());
             }
         }

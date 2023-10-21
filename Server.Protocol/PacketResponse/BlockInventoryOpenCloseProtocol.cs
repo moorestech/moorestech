@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<BlockInventoryOpenCloseProtocolMessagePack>(payload.ToArray());
 
-            //開く、閉じるのセット
+            
             if (data.IsOpen)
                 _inventoryOpenState.Open(data.PlayerId, data.X, data.Y);
             else
@@ -34,7 +34,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class BlockInventoryOpenCloseProtocolMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("。。")]
         public BlockInventoryOpenCloseProtocolMessagePack()
         {
         }

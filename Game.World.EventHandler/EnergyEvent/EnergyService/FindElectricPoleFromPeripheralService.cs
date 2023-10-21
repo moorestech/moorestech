@@ -7,10 +7,10 @@ namespace Game.World.EventHandler.Service
 {
     public static class FindElectricPoleFromPeripheralService
     {
-        /// <summary>
-        ///     周辺ブロックから電柱を探索します
-        ///     ただし、自身の電柱は含みません
-        /// </summary>
+
+        ///     
+        ///     
+
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="electricPoleConfigParam"></param>
@@ -22,20 +22,20 @@ namespace Game.World.EventHandler.Service
             IWorldBlockDatastore blockDatastore)
         {
             var electricPoles = new List<IEnergyTransformer>();
-            //for文のための設定
+            //for
             var poleRange = electricPoleConfigParam.poleConnectionRange;
             blockDatastore.GetBlock(x, y);
             var startElectricX = x - poleRange / 2;
             var startElectricY = y - poleRange / 2;
 
-            //実際の探索
+            
             for (var i = startElectricX; i < startElectricX + poleRange; i++)
             for (var j = startElectricY; j < startElectricY + poleRange; j++)
             {
-                //範囲内に電柱がある場合 ただし自身のブロックは除く
+                // 
                 if (!blockDatastore.ExistsComponentBlock<IEnergyTransformer>(i, j) || (i == x && j == y)) continue;
 
-                //電柱を追加
+                
                 electricPoles.Add(blockDatastore.GetBlock<IEnergyTransformer>(i, j));
             }
 

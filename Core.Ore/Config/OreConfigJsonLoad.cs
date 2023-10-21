@@ -11,8 +11,8 @@ namespace Core.Ore.Config
             foreach (var modIds in sortedModIds)
             {
                 if (!oreConfig.TryGetValue(modIds, out var config)) continue;
-                //TODO ログ基盤に入れる
-                //ID 0は何もないことを表すため、鉱石は1から始まる
+                //TODO 
+                //ID 01
                 var oreId = 1;
                 foreach (var oreConfigJsonData in JsonConvert.DeserializeObject<OreConfigJsonData[]>(config))
                 {
