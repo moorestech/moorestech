@@ -5,8 +5,8 @@
             "type": "Machine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "campfire",
-            "weight" : 1,
-            "height" : 1,
+            "width" : 1,
+            "height" : 2,
             "param": {
                 "inputSlot": 2,
                 "outputSlot": 1,
@@ -35,7 +35,7 @@
             "type": "Machine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "charcoal kiln",
-            "weight" : 1,
+            "width" : 1,
             "height" : 1,
             "param": {
                 "inputSlot": 2,
@@ -65,7 +65,7 @@
             "type": "Machine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "bloomery",
-            "weight" : 1,
+            "width" : 1,
             "height" : 1,
             "param": {
                 "inputSlot": 2,
@@ -95,7 +95,7 @@
             "type": "GearMachine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "bloomery with bellows",
-            "weight" : 1,
+            "width" : 1,
             "height" : 1,
             "param": {
                 "inputSlot": 2,
@@ -125,7 +125,7 @@
             "type": "BeltConveyor",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "wooden belt conveyor",
-            "weight" : 1,
+            "width" : 1,
             "height" : 1,
             "param": {
                 "slot": 3,
@@ -154,7 +154,7 @@
             "type": "GearMachine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "gear ore crusher",
-            "weight" : 1,
+            "width" : 1,
             "height" : 1,
             "param": {
                 "inputSlot": 1,
@@ -184,7 +184,7 @@
             "type": "GearMiner",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "gear miner",
-            "weight" : 1,
+            "width" : 1,
             "height" : 1,
             "param": {
                 "requiredPower": 100,
@@ -223,7 +223,7 @@
             "type": "GearGenerator",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "water wheel",
-            "weight" : 1,
+            "width" : 1,
             "height" : 1,
             "param": {
                 "fuelSlot": 0,
@@ -254,7 +254,7 @@
             "type": "GearEnergyTransformer",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "wooden gearbox",
-            "weight" : 1,
+            "width" : 1,
             "height" : 1,
             "param": {
                 "poleConnectionRange": 2,
