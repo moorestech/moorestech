@@ -18,7 +18,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
 {
     public class BlockPlaceEventPacketTest
     {
-        
+        //ブロックを設置しなかった時何も返ってこないテスト
         [Test]
         public void DontBlockPlaceTest()
         {
@@ -30,7 +30,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(response.Count, 0);
         }
 
-        //0
+        //ブロックを0個以上設置した時にブロック設置イベントが返ってくるテスト
         [Test]
         public void BlockPlaceEvent()
         {
@@ -38,14 +38,14 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
 
 
-            //ID
+            //イベントキューにIDを登録する
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(0, response.Count);
 
             var random = new Random(1410);
             for (var i = 0; i < 100; i++)
             {
-                
+                //ランダムな位置にブロックを設置する
                 Console.WriteLine(i);
                 var blocks = new List<TestBlockData>();
                 var cnt = random.Next(0, 20);
@@ -56,20 +56,20 @@ namespace Test.CombinedTest.Server.PacketTest.Event
                     var blockId = random.Next(1, 1000);
                     var direction = random.Next(0, 4);
 
-                    
+                    //設置したブロックを保持する
                     blocks.Add(new TestBlockData(x, y, blockId, direction));
-                    
+                    //ブロックの設置
                     worldBlockDataStore.AddBlock(new VanillaBlock(blockId, random.Next(1, 1000000), 1), x, y, (BlockDirection)direction);
                 }
 
 
-                
+                //イベントパケットをリクエストする
                 response = packetResponse.GetPacketResponse(EventRequestData(0));
 
                 Assert.AreEqual(cnt, response.Count);
 
 
-                
+                //返ってきたイベントパケットと設置したブロックを照合し、あったら削除する
                 foreach (var r in response)
                 {
                     var b = AnalysisResponsePacket(r);
@@ -78,11 +78,11 @@ namespace Test.CombinedTest.Server.PacketTest.Event
                             blocks.RemoveAt(j);
                 }
 
-                
+                //設置したブロックリストが残ってなければすべてのイベントが返ってきた事がわかる
                 Assert.AreEqual(0, blocks.Count);
 
 
-                
+                //イベントのリクエストを送ったので次は何も返ってこないテスト
                 response = packetResponse.GetPacketResponse(EventRequestData(0));
                 Assert.AreEqual(0, response.Count);
             }

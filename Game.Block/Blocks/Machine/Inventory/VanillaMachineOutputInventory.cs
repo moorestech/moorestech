@@ -40,11 +40,11 @@ namespace Game.Block.Blocks.Machine.Inventory
             InsertConnectInventory();
         }
 
-
-        ///     
-
+        /// <summary>
+        ///     アウトプットスロットにアイテムを入れれるかチェック
+        /// </summary>
         /// <param name="machineRecipeData"></param>
-        /// <returns>true</returns>
+        /// <returns>スロットに空きがあったらtrue</returns>
         public bool IsAllowedToOutputItem(MachineRecipeData machineRecipeData)
         {
             foreach (var itemOutput in machineRecipeData.ItemOutputs)
@@ -60,7 +60,7 @@ namespace Game.Block.Blocks.Machine.Inventory
 
         public void InsertOutputSlot(MachineRecipeData machineRecipeData)
         {
-            
+            //アウトプットスロットにアイテムを格納する
             foreach (var output in machineRecipeData.ItemOutputs)
                 for (var i = 0; i < OutputSlot.Count; i++)
                 {
@@ -80,7 +80,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         public void AddConnectInventory(IBlockInventory blockInventory)
         {
             _connectInventory.Add(blockInventory);
-            //NullInventory
+            //NullInventoryは削除しておく
             for (var i = _connectInventory.Count - 1; i >= 0; i--)
                 if (_connectInventory[i] is NullIBlockInventory)
                     _connectInventory.RemoveAt(i);

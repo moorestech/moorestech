@@ -6,7 +6,7 @@ using Game.Block.BlockInventory;
 namespace Game.Block.Blocks.Service
 {
     /// <summary>
-    ///     
+    ///     優先度を持ってアイテムを挿入する
     /// </summary>
     public class ConnectingInventoryListPriorityInsertItemService
     {

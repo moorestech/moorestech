@@ -5,28 +5,28 @@ namespace Core.ConfigJson
 {
     public class ConfigJsonList
     {
-
-        ///     
+        /// <summary>
+        ///     ブロックのコンフィグが入っている
         ///     Key modId : Value ConfigJson
-
+        /// </summary>
         public readonly Dictionary<string, string> BlockConfigs = new();
 
-
-        ///     
+        /// <summary>
+        ///     アイテムのコンフィグが入っている
         ///     Key modId : Value ConfigJson
-
+        /// </summary>
         public readonly Dictionary<string, string> ItemConfigs = new();
 
-
-        ///     
+        /// <summary>
+        ///     鉱石のコンフィグ
         ///     Key modId : Value ConfigJson
-
+        /// </summary>
         public readonly Dictionary<string, string> OreConfigs = new();
 
-
-        ///     
+        /// <summary>
+        ///     クエストのコンフィグ
         ///     Key modId : Value ConfigJson
-
+        /// </summary>
         public readonly Dictionary<string, string> QuestConfigs = new();
 
         public readonly List<string> SortedCraftRecipeConfigJsonList = new();

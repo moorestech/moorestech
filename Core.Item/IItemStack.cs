@@ -8,30 +8,30 @@ namespace Core.Item
         int Count { get; }
         ulong ItemHash { get; }
 
-
-        ///     ID
-        ///     
-        ///     ID
-
+        /// <summary>
+        ///     アイテムを識別するID
+        ///     新しいインスタンスが生成されるたびにかわる
+        ///     基本的にメモリ上でアイテムをエンティティとして扱うために使われるID、「今のところ」保存しなくてよい
+        /// </summary>
         long ItemInstanceId { get; }
 
         ItemProcessResult AddItem(IItemStack receiveItemStack);
         IItemStack SubItem(int subCount);
 
-
-        ///     true
-        ///     falce
-
+        /// <summary>
+        ///     アイテムを追加できるときtrueを返す
+        ///     あまりがある時はfalceを返す
+        /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
         bool IsAllowedToAdd(IItemStack item);
 
-
-        ///     true
-        ///     true
-        ///     IDfalse
-
-        /// <returns>true</returns>
+        /// <summary>
+        ///     アイテムを追加できるが、あまりが発生する場合trueを返します
+        ///     あまりが発生しない場合でも追加ができるならtrueを返します
+        ///     IDが違うことで追加ができない場合はfalseを返します
+        /// </summary>
+        /// <returns>あまりが出ても追加できるときはtrue</returns>
         bool IsAllowedToAddWithRemain(IItemStack item);
     }
 }

@@ -1,10 +1,10 @@
 namespace Game.Block.Interface.State
 {
     /// <summary>
-    ///     
-    ///     <see cref="CurrentState" /><see cref="PreviousState" />String
-    ///     
-    ///     TODO 
+    ///     変化したステートを通知するクラスです
+    ///     <see cref="CurrentState" />や<see cref="PreviousState" />がStringなのは、ブロックの種類によって表現したいステートが異なり、
+    ///     それらをパケットで取り扱う必要があるからです
+    ///     TODO シリアライズ可能なクラスにした方がいいかも？
     /// </summary>
     public class ChangedBlockState
     {

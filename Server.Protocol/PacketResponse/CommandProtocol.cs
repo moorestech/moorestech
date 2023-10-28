@@ -27,7 +27,7 @@ namespace Server.Protocol.PacketResponse
 
             var command = data.Command.Split(' '); //command text
 
-            
+            //他のコマンドを実装する場合、この実装方法をやめる
             if (command[0] == "give")
             {
                 var inventory = _playerInventoryDataStore.GetInventoryData(int.Parse(command[1]));
@@ -43,7 +43,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class SendCommandProtocolMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public SendCommandProtocolMessagePack()
         {
         }

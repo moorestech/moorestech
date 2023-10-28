@@ -15,7 +15,7 @@ using Server.Protocol.PacketResponse.Util;
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    ///     
+    ///     プレイヤー座標のプロトコル
     /// </summary>
     public class PlayerCoordinateSendProtocol : IPacketResponse
     {
@@ -44,17 +44,17 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<PlayerCoordinateSendProtocolMessagePack>(payload.ToArray());
 
-            //Dictionary
+            //新しいプレイヤーの情報ならDictionaryに追加する
             if (!_responses.ContainsKey(data.PlayerId)) _responses.Add(data.PlayerId, new PlayerCoordinateToResponse());
-            
+            //プレイヤーの座標を更新する
             var newPosition = new ServerVector3(data.X, 0, data.Y);
             _entitiesDatastore.SetPosition(data.PlayerId, newPosition);
 
 
-            
+            //プレイヤーの座標から返すチャンクのブロックデータを取得をする
             var response = GetChunkBytes(data);
 
-            
+            //エンティティのデータを取得する
             var entityResponse = GetEntityBytes(data);
             if (entityResponse != null) response.Add(entityResponse);
 
@@ -68,7 +68,7 @@ namespace Server.Protocol.PacketResponse
             var responseChunk = new List<List<byte>>();
             var responseChunkCoordinates = _responses[data.PlayerId].GetResponseChunkCoordinates(new Coordinate((int)data.X, (int)data.Y));
             foreach (var chunkCoordinate in responseChunkCoordinates)
-                
+                //チャンクのブロックデータを取得してバイト配列に変換する
                 responseChunk.Add(ChunkBlockToPayload.Convert(chunkCoordinate, _worldBlockDatastore, _worldMapTile));
 
             return responseChunk;
@@ -77,7 +77,7 @@ namespace Server.Protocol.PacketResponse
 
         private List<byte> GetEntityBytes(PlayerCoordinateSendProtocolMessagePack data)
         {
-            //TODO  entity
+            //TODO 今はベルトコンベアのアイテムをエンティティとして返しているだけ 今後は本当のentityも返す
             var coordinate = new Coordinate((int)data.X, (int)data.Y);
             var responseChunkCoordinates = PlayerCoordinateToResponse.GetChunkCoordinates(coordinate);
             var items = CollectBeltConveyorItems.CollectItem(responseChunkCoordinates, _worldBlockDatastore, _blockConfig, _entityFactory);
@@ -103,7 +103,7 @@ namespace Server.Protocol.PacketResponse
             Y = y;
         }
 
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public PlayerCoordinateSendProtocolMessagePack()
         {
         }

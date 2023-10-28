@@ -23,7 +23,7 @@ namespace Test.CombinedTest.Core.Generate
             var recipes = recipe.recipes;
             foreach (var r in recipes)
             {
-                
+                //必要量だけ入れる
                 testCase.Add(new MachineIOTest(
                     itemStackFactory,
                     r.input,
@@ -36,17 +36,17 @@ namespace Test.CombinedTest.Core.Generate
 
                 var random = new Random(seed);
 
-                //input
+                //inputにランダムな量増減する
                 var input = r.input.Select(rInput => new inputitem(rInput.id, rInput.count)).ToList();
 
-                
+                //ランダムな数足す
                 input.ForEach(i => i.count += random.Next(0, i.count * 10));
                 var remainder = new List<inputitem>();
                 remainder.AddRange(input.Select(i => new inputitem(i.id, i.count)));
 
                 var cnt = 0;
                 var continue_ = true;
-                
+                //余りを算出する
                 while (continue_)
                 {
                     for (var j = 0; j < remainder.Count; j++)
@@ -63,10 +63,10 @@ namespace Test.CombinedTest.Core.Generate
                     if (continue_) cnt++;
                 }
 
-                
+                //出力アイテムもクラフト回数分倍にする
                 var output = MachineIOTest.Convart(r.output, itemStackFactory)
                     .Select(i => i = itemStackFactory.Create(i.Id, i.Count * cnt)).ToList();
-                
+                //インプットアイテム数を増やしたテストケース
                 testCase.Add(new MachineIOTest(itemStackFactory, input.ToArray(), output, remainder.ToArray(),
                     r.BlockID, r.time, cnt));
             }

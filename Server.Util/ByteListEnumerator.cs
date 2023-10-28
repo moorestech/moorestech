@@ -55,15 +55,15 @@ namespace Server.Util
             return data;
         }
 
-
-        ///     
-
-        /// <param name="byteNum"> or0</param>
+        /// <summary>
+        ///     バイト数を指定してそのバイト数の文字列を取得します
+        /// </summary>
+        /// <param name="byteNum">バイト数 指定しないor0の時最後まで取得する</param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public string MoveNextToGetString(int byteNum)
         {
-            if (byteNum < 0) throw new ArgumentOutOfRangeException($":{byteNum} 0");
+            if (byteNum < 0) throw new ArgumentOutOfRangeException($"指定バイト数:{byteNum} バイト数は0以上にしてください");
 
             var b = new List<byte>();
             if (byteNum == 0)

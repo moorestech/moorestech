@@ -28,23 +28,23 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var craftingEvent = (CraftingEvent)serviceProvider.GetService<ICraftingEvent>();
 
             var response = packetResponse.GetPacketResponse(EventRequestData());
-            
+            //イベントがないことを確認する
             Assert.AreEqual(0, response.Count);
 
 
-            
+            //クエストを作成、取得する
             var itemCraftQuest = (ItemCraftQuest)questDataStore.GetPlayerQuestProgress(PlayerId)[0];
 
 
-            
+            //クラフト対象のアイテムをリフレクションで取得
             var questItemId = (int)itemCraftQuest.GetType().GetField("_questItemId", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(itemCraftQuest);
-            
+            //リフレクションでメソッドを取得、実行
             var method = typeof(CraftingEvent).GetMethod("InvokeEvent", BindingFlags.NonPublic | BindingFlags.Instance);
-            
+            //クラフトイベントを発火することで擬似的にクラフトを再現する
             method.Invoke(craftingEvent, new object?[] { questItemId, 1 });
 
 
-            
+            //クエストクリアのイベントがあることを確かめる
             response = packetResponse.GetPacketResponse(EventRequestData());
             Assert.AreEqual(1, response.Count);
             var data = MessagePackSerializer.Deserialize<QuestCompletedEventMessagePack>(response[0].ToArray());

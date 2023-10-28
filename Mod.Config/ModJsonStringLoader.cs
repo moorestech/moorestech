@@ -20,7 +20,7 @@ namespace Mod.Config
             var modResource = new ModsResource(modDirectory);
 
             var configDict = new Dictionary<string, ConfigJson>();
-            //zipjson
+            //zipファイルの中身のjsonファイルを読み込む
             foreach (var mod in modResource.Mods)
             {
                 var extractedPath = mod.Value.ExtractedPath;

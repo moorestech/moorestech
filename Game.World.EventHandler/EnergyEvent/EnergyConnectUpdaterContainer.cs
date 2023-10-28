@@ -7,7 +7,7 @@ using Game.World.Interface.Event;
 namespace Game.World.EventHandler.EnergyEvent
 {
     /// <summary>
-    ///     
+    ///     電柱や機械が設置されたときに、セグメントへの接続、切断を行うイベントクラスをまとめたクラス
     /// </summary>
     public class EnergyConnectUpdaterContainer<TSegment, TConsumer, TGenerator, TTransformer>
         where TSegment : EnergySegment, new()

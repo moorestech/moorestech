@@ -20,41 +20,41 @@ namespace Test.UnitTest.Game.SaveLoad
 {
     public class MachineSaveLoadTest
     {
-        
-        
+        //インベントリのあるブロックを追加した時のテスト
+        //レシピやブロックが変わった時はテストコードを修正してください
         [Test]
         public void InventoryBlockTest()
         {
-            
+            //機械の追加
             var (itemStackFactory, blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) =
                 CreateBlockTestModule();
             var machine = (VanillaMachineBase)blockFactory.Create(1, 10);
             worldBlockDatastore.AddBlock(machine, 0, 0, BlockDirection.North);
 
 
-            
+            //レシピ用のアイテムを追加
             machine.InsertItem(itemStackFactory.Create(1, 3));
             machine.InsertItem(itemStackFactory.Create(2, 1));
-            
+            //処理を開始
             GameUpdater.Update();
-            
+            //別のアイテムを追加
             machine.InsertItem(itemStackFactory.Create(5, 6));
             machine.InsertItem(itemStackFactory.Create(2, 4));
 
-            
-            
+            //リフレクションで機械の状態を設定
+            //機械のレシピの残り時間設定
             var vanillaMachineRunProcess = (VanillaMachineRunProcess)typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineRunProcess", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(machine);
             typeof(VanillaMachineRunProcess)
                 .GetField("_remainingMillSecond", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(vanillaMachineRunProcess, 300);
-            
+            //ステータスをセット
             typeof(VanillaMachineRunProcess)
                 .GetField("_currentState", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(vanillaMachineRunProcess, ProcessState.Processing);
 
-            
+            //機械のアウトプットスロットの設定
             var _vanillaMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
 
@@ -65,16 +65,16 @@ namespace Test.UnitTest.Game.SaveLoad
             outputInventory.SetItem(1, itemStackFactory.Create(1, 1));
             outputInventory.SetItem(2, itemStackFactory.Create(3, 2));
 
-            //ID
+            //レシピIDを取得
             var recipeId = vanillaMachineRunProcess.RecipeDataId;
 
             var json = assembleSaveJsonText.AssembleSaveJson();
             Console.WriteLine(json);
-            
+            //配置したブロックを削除
             worldBlockDatastore.RemoveBlock(0, 0);
 
 
-            
+            //ロードした時に機械の状態が正しいことを確認
             var (_, _, loadWorldBlockDatastore, _, _, loadJsonFile) = CreateBlockTestModule();
 
             loadJsonFile.Load(json);
@@ -82,33 +82,33 @@ namespace Test.UnitTest.Game.SaveLoad
             var loadMachine = (VanillaMachineBase)loadWorldBlockDatastore.GetBlock(0, 0);
             Console.WriteLine(machine.GetHashCode());
             Console.WriteLine(loadMachine.GetHashCode());
-            //IDintID
+            //ブロックID、intIDが同じであることを確認
             Assert.AreEqual(machine.BlockId, loadMachine.BlockId);
             Assert.AreEqual(machine.EntityId, loadMachine.EntityId);
 
 
-            
+            //機械のレシピの残り時間のチェック
             var loadVanillaMachineRunProcess = (VanillaMachineRunProcess)typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineRunProcess", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachine);
             Assert.AreEqual((double)300, loadVanillaMachineRunProcess.RemainingMillSecond);
-            //ID
+            //レシピIDのチェック
             Assert.AreEqual(recipeId, loadVanillaMachineRunProcess.RecipeDataId);
-            
+            //機械のステータスのチェック
             Assert.AreEqual(ProcessState.Processing, loadVanillaMachineRunProcess.CurrentState);
 
 
             var loadMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachine);
-            
+            //インプットスロットのチェック
             var inputInventoryField = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachineInventory);
             Assert.AreEqual(itemStackFactory.Create(5, 6), inputInventoryField.InputSlot[0]);
             Assert.AreEqual(itemStackFactory.Create(2, 4), inputInventoryField.InputSlot[1]);
 
-            
+            //アウトプットスロットのチェック
             var outputInventoryField = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachineInventory);

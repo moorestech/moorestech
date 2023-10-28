@@ -7,7 +7,7 @@ namespace Server.Util.MessagePack
     [MessagePackObject()]
     public class ItemMessagePack
     {
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ItemMessagePack()
         {
         }

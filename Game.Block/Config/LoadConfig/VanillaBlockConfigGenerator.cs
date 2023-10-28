@@ -7,9 +7,9 @@ namespace Game.Block.Config.LoadConfig
 {
     public class VanillaBlockConfigGenerator
     {
-
-        ///     
-
+        /// <summary>
+        ///     各ブロックのコンフィグを生成する
+        /// </summary>
         /// <returns></returns>
         public Dictionary<string, IBlockConfigParamGenerator> Generate(IItemConfig itemConfig)
         {

@@ -21,11 +21,11 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            
+            //機械のブロックを作る
             var machine = (VanillaMachineBase)serviceProvider.GetService<IBlockFactory>().Create(UnitTestModBlockId.MachineId, 1);
-            
+            //機械のブロックを配置
             serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine, 0, 0, BlockDirection.North);
-            
+            //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var item1 = itemStackFactory.Create("Test Author:forUniTest", "Test1", 3);
@@ -34,18 +34,18 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             machine.InsertItem(item1);
             machine.InsertItem(item2);
 
-            
+            //稼働用の電気を供給する
             machine.SupplyEnergy(100);
 
 
-            
+            //最初にイベントをリクエストして、ブロードキャストを受け取れるようにする
             packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
 
-            
+            //アップデートしてステートを更新する
             GameUpdater.Update();
 
 
-            
+            //ステートが実行中になっているかをチェック
             var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
             var changeStateData = MessagePackSerializer.Deserialize<ChangeBlockStateEventMessagePack>(response[0].ToArray());
 

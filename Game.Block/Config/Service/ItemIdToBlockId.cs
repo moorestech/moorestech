@@ -9,9 +9,9 @@ namespace Game.Block.Config.Service
     {
         private readonly Dictionary<int, int> _idTable = new();
 
-
-        ///     IDID
-
+        /// <summary>
+        ///     アイテムIDからブロックIDへ変換するテーブルを作成する
+        /// </summary>
         public ItemIdToBlockId(IBlockConfig blockConfig)
         {
             for (var i = 1; i <= blockConfig.GetBlockConfigCount(); i++)
@@ -20,7 +20,7 @@ namespace Game.Block.Config.Service
                 if (itemId == ItemConst.EmptyItemId) continue;
 
                 if (_idTable.ContainsKey(itemId))
-                    throw new Exception("IDID。１ID2ID");
+                    throw new Exception("アイテムIDからブロックIDへの対応付けに失敗。１つのアイテムIDが2つ以上のブロックが指定したアイテムIDと重複しています");
 
                 _idTable.Add(itemId, i);
             }
@@ -34,7 +34,7 @@ namespace Game.Block.Config.Service
         public int Convert(int itemId)
         {
             if (!_idTable.ContainsKey(itemId))
-                throw new Exception("ID");
+                throw new Exception("アイテムIDが存在しません");
 
             return _idTable[itemId];
         }

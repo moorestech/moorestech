@@ -43,7 +43,7 @@ namespace Server.Event.EventReceive
     [MessagePackObject(true)]
     public class CraftingInventoryUpdateEventMessagePack : EventProtocolMessagePackBase
     {
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public CraftingInventoryUpdateEventMessagePack()
         {
         }

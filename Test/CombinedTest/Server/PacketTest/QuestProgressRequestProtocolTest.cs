@@ -15,17 +15,17 @@ namespace Test.CombinedTest.Server.PacketTest
     {
         private const int PlayerId = 1;
 
-
-        ///     
-
+        /// <summary>
+        ///     現在のクエスト進捗状況を取得するテスト
+        /// </summary>
         [Test]
         public void GetTest()
         {
-            
+            //テスト用のセーブデータ
 
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            
+            //セーブデータを生成し、ロードする
             var playerQuests = new List<SaveQuestData>
             {
                 new("QuestAuthor:forQuestTest:Test1", false, false),
@@ -38,9 +38,9 @@ namespace Test.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IQuestDataStore>().LoadQuestDataDictionary(quests);
 
 
-            
+            //クエストのデータ要求クラス
             var payload = MessagePackSerializer.Serialize(new QuestProgressRequestProtocolMessagePack(PlayerId)).ToList();
-            
+            //データの検証
             var questResponse = MessagePackSerializer.Deserialize<QuestProgressResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0].ToArray()).Quests;
 
             Assert.AreEqual("QuestAuthor:forQuestTest:Test1", questResponse[0].Id);

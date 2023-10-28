@@ -3,8 +3,8 @@
 namespace Game.Block.Interface.Event
 {
     /// <summary>
-    ///     Subscribe
-    ///     Invoke
+    ///     Subscribeだけができるイベントインタフェース
+    ///     勝手にInvokeされないように定義している
     /// </summary>
     public interface IBlockOpenableInventoryUpdateEvent
     {

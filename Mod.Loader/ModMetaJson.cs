@@ -13,9 +13,9 @@ namespace Mod.Loader
         [JsonProperty("name")] private string _modName;
         [JsonProperty("version")] private string _modVersion;
 
-
-        ///     modId  + : + modId 
-
+        /// <summary>
+        ///     内部的にmodIdは 製作者名 + : + modId として扱う
+        /// </summary>
         public string ModId => _modAuthor + ":" + _modId;
 
         public string ModName => _modName;

@@ -7,7 +7,7 @@ namespace Server.Protocol.PacketResponse.MessagePack
     [MessagePackObject(true)]
     public class ChunkDataResponseMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ChunkDataResponseMessagePack()
         {
         }

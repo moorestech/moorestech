@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    ///     MapObject
+    ///     MapObjectを取得するときのプロトコル
     /// </summary>
     public class GetMapObjectProtocol : IPacketResponse
     {
@@ -38,7 +38,7 @@ namespace Server.Protocol.PacketResponse
                 _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
             var insertedItem = playerMainInventory.InsertItem(itemStack);
 
-            
+            //アイテムの挿入に成功したらマップオブジェクトを削除
             if (insertedItem.Id == ItemConst.EmptyItemId) mapObject.Destroy();
 
             return new List<List<byte>>();
@@ -49,7 +49,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class GetMapObjectProtocolProtocolMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public GetMapObjectProtocolProtocolMessagePack()
         {
         }

@@ -44,19 +44,19 @@ namespace Game.Save.Json
                 try
                 {
                     Load(json);
-                    Console.WriteLine("。");
+                    Console.WriteLine("セーブデータのロードが完了しました。");
                     return;
                 }
                 catch (Exception e)
                 {
-                    //TODO 
-                    Console.WriteLine("。Discord ( https://discord.gg/ekFYmY3rDP ) 。");
-                    Console.WriteLine($" {_saveJsonFileName.FullSaveFilePath}");
-                    throw new Exception($"。。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
+                    //TODO ログ基盤
+                    Console.WriteLine("セーブデータが破損していたか古いバージョンでした。Discordサーバー ( https://discord.gg/ekFYmY3rDP ) にて連絡をお願いします。");
+                    Console.WriteLine($"セーブファイルパス {_saveJsonFileName.FullSaveFilePath}");
+                    throw new Exception($"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
                 }
             }
 
-            Console.WriteLine("。。");
+            Console.WriteLine("セーブデータがありませんでした。新規作成します。");
             WorldInitialize();
         }
 

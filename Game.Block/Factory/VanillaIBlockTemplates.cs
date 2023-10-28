@@ -11,7 +11,7 @@ using Game.Block.Interface.RecipeConfig;
 namespace Game.Block.Factory
 {
     /// <summary>
-    ///     
+    ///     バニラのブロックの全てのテンプレートを作るクラス
     /// </summary>
     public class VanillaIBlockTemplates
     {
@@ -23,7 +23,7 @@ namespace Game.Block.Factory
         {
             var blockInventoryEvent = blockInventoryUpdateEvent as BlockOpenableInventoryUpdateEvent;
 
-            //TODO 
+            //TODO 動的に構築するようにする
             BlockTypesDictionary = new Dictionary<string, IBlockTemplate>();
             BlockTypesDictionary.Add(VanillaBlockType.Block, new VanillaDefaultBlock());
             BlockTypesDictionary.Add(VanillaBlockType.BeltConveyor, new VanillaBeltConveyorTemplate(itemStackFactory));

@@ -21,7 +21,7 @@ namespace Test.CombinedTest.Server.PacketTest
         private const int OutPutSlotNum = 3;
 
 
-        
+        //通常の機械のテスト
         [Test]
         public void MachineInventoryRequest()
         {
@@ -35,7 +35,7 @@ namespace Test.CombinedTest.Server.PacketTest
 
             serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine, 5, 10, BlockDirection.North);
 
-            
+            //レスポンスの取得
             var data = MessagePackSerializer.Deserialize<BlockInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(5, 10))[0].ToArray());
 
             Assert.AreEqual(InputSlotNum + OutPutSlotNum, data.ItemIds.Length); // slot num

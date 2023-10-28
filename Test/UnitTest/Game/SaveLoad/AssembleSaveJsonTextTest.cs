@@ -14,7 +14,7 @@ namespace Test.UnitTest.Game.SaveLoad
 {
     public class AssembleSaveJsonTextTest
     {
-        
+        //ブロックを追加した時のテスト
         [Test]
         public void SimpleBlockPlacedTest()
         {

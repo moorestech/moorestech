@@ -42,7 +42,7 @@ namespace Test.CombinedTest.Core.Generate
             var tmpInput = new List<inputitem>();
             for (var i = 0; i < inputnum; i++)
             {
-                //IDID
+                //IDが重複するときはIDを変更
                 var id = 0;
                 do
                 {
@@ -59,7 +59,7 @@ namespace Test.CombinedTest.Core.Generate
             var tmpOutput = new List<outputitem>();
             for (var i = 0; i < outputnum; i++)
             {
-                //IDID
+                //IDが重複するときはIDを変更
                 var id = r.Next(1, 1001);
                 while (tmpOutput.Find(x => x.id == id) != null) id = r.Next(1, 1001);
 

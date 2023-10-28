@@ -7,7 +7,7 @@ namespace Server.Util.MessagePack
     [MessagePackObject()]
     public class Vector3MessagePack
     {
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public Vector3MessagePack()
         {
         }

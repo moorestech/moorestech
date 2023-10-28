@@ -20,7 +20,7 @@ namespace Test.CombinedTest.Core
 {
     public class MachineIoTest
     {
-        
+        //アイテムが通常通り処理されるかのテスト
         [Test]
         public void ItemProcessingOutputTest()
         {
@@ -37,10 +37,10 @@ namespace Test.CombinedTest.Core
 
 
             var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
-            
+            //最大クラフト時間を超過するまでクラフトする
             while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
 
-            
+            //検証
             var (input, output) = GetInputOutputSlot(block);
 
             foreach (var inputItem in input) Assert.AreEqual(ItemConst.EmptyItemId, inputItem.Id);

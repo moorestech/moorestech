@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace Test.CombinedTest.Core.Generate
 {
     /// <summary>
-    ///     
+    ///     レシピファイル生成をする
     /// </summary>
     public class GeneratedJson
     {
@@ -18,12 +18,12 @@ namespace Test.CombinedTest.Core.Generate
             var recipeNum = 40;
             var recipe = RecipeGenerate.MakeRecipe(seed, recipeNum);
 
-            // JSON。
-            var st = new MemoryStream(); // 
-            var serializer = new DataContractJsonSerializer(typeof(recipe)); // 
-            serializer.WriteObject(st, recipe); // 
+            // データをJSON形式にシリアル化して、メモリーストリームに出力する。
+            var st = new MemoryStream(); // メモリーストリームを作成
+            var serializer = new DataContractJsonSerializer(typeof(recipe)); // シリアライザーを作成
+            serializer.WriteObject(st, recipe); // シリアライザーで出力
 
-            // 。
+            // メモリーストリームの内容をコンソールに出力する。
             st.Position = 0;
             var reader = new StreamReader(st);
             Console.WriteLine(reader.ReadToEnd());

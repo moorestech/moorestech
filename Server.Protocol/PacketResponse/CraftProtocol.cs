@@ -24,7 +24,7 @@ namespace Server.Protocol.PacketResponse
             var craftingInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).CraftingOpenableInventory;
 
 
-            
+            //クラフトの実行
             switch (data.CraftType)
             {
                 case 0:
@@ -53,7 +53,7 @@ namespace Server.Protocol.PacketResponse
             Tag = CraftProtocol.Tag;
         }
 
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public CraftProtocolMessagePack()
         {
         }

@@ -7,26 +7,26 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
 {
     public static class CheckPlaceableRecipe
     {
-
-        ///     
-        ///     
-
-        /// <param name="mainInventory"></param>
-        /// <param name="recipeItem"></param>
+        /// <summary>
+        ///     そのレシピが実際にクラフトインベントリに置けるかどうかをチェックします
+        ///     メインインベントリをチェックし、アイテムが足りるかどうかをチェックします
+        /// </summary>
+        /// <param name="mainInventory">チェックするメインインベントリ</param>
+        /// <param name="recipeItem">置こうとするレシピ</param>
         /// <returns>
-        ///     isPlaceable:　mainInventoryRequiredItemCount: key itemId value
+        ///     isPlaceable:設置可能かどうか　mainInventoryRequiredItemCount:レシピに使用するアイテムのうち、メインインベントリにあるアイテム数 key itemId value
         ///     itemCount
         /// </returns>
         public static (bool isPlaceable, Dictionary<int, int> mainInventoryRequiredItemCount) IsPlaceable(IOpenableInventory mainInventory, ItemMessagePack[] recipeItem)
         {
-            //Main
+            //必要なアイテムがMainインベントリにあるかチェックするための必要アイテム数辞書を作成
             var requiredItemCount = CreateRequiredItemCount(recipeItem);
 
-            //Main
+            //必要なアイテム数があるかチェックするためにMainインベントリを走査
             var mainInventoryRequiredItemCount = CreateMainInventoryRequiredItemCount(mainInventory, requiredItemCount);
 
 
-            
+            //アイテム数が足りているかチェックする
             foreach (var item in requiredItemCount)
             {
                 if (!mainInventoryRequiredItemCount.ContainsKey(item.Key)) return (false, mainInventoryRequiredItemCount);
@@ -38,11 +38,11 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
         }
 
 
-
-        ///     
-
+        /// <summary>
+        ///     レシピに必要なアイテム数の辞書を作成します
+        /// </summary>
         /// <param name="recipeItem"></param>
-        /// <returns>key ID value  </returns>
+        /// <returns>key アイテムID value アイテム数 </returns>
         private static Dictionary<int, int> CreateRequiredItemCount(ItemMessagePack[] recipeItem)
         {
             var requiredItemCount = new Dictionary<int, int>();
@@ -56,12 +56,12 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
         }
 
 
-
-        ///     
-
-        /// <param name="mainInventory"></param>
-        /// <param name="requiredItemCount">ID</param>
-        /// <returns>key ID value </returns>
+        /// <summary>
+        ///     レシピに必要なアイテムがメインインベントリに何個あるかを計算します
+        /// </summary>
+        /// <param name="mainInventory">メインインベントリ</param>
+        /// <param name="requiredItemCount">必要なアイテムIDかどうかをチェックする用</param>
+        /// <returns>key アイテムID value メインインベントリに入ってる合計アイテム数</returns>
         private static Dictionary<int, int> CreateMainInventoryRequiredItemCount(IOpenableInventory mainInventory, IReadOnlyDictionary<int, int> requiredItemCount)
         {
             var mainInventoryRequiredItemCount = new Dictionary<int, int>();

@@ -61,7 +61,7 @@ namespace Game.Block.Blocks.Chest
         public void AddOutputConnector(IBlockInventory blockInventory)
         {
             _connectInventory.Add(blockInventory);
-            //NullInventory
+            //NullInventoryは削除しておく
             for (var i = _connectInventory.Count - 1; i >= 0; i--)
                 if (_connectInventory[i] is NullIBlockInventory)
                     _connectInventory.RemoveAt(i);

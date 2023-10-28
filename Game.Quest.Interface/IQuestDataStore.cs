@@ -8,10 +8,10 @@ namespace Game.Quest.Interface
         public Dictionary<int, List<SaveQuestData>> GetQuestDataDictionary();
         public IQuest GetQuestData(int playerId, string questId);
 
-
-        ///     
-        ///     Key ID Value 
-
+        /// <summary>
+        ///     クエストのデータをロードします
+        ///     Key プレイヤーID Value クリア、報酬受け取り済みなどのクエストデータ
+        /// </summary>
         public void LoadQuestDataDictionary(Dictionary<int, List<SaveQuestData>> quests);
     }
 }

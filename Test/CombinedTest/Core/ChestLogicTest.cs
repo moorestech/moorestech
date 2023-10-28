@@ -17,7 +17,7 @@ namespace Test.CombinedTest.Core
 {
     public class ChestLogicTest
     {
-        
+        //ベルトコンベアからアイテムを搬入する
         [Test]
         public void BeltConveyorInsertChestLogicTest()
         {

@@ -33,15 +33,15 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<MiningOperationProtocolMessagePack>(payload.ToArray());
 
 
-            
+            //プレイヤーインベントリーの取得
             var playerMainInventory =
                 _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
 
-            //ID
+            //鉱石IDを取得
             var oreId = _veinGenerator.GetOreId(data.X, data.Y);
-            //ID
+            //鉱石のアイテムID
             var oreItemId = _oreConfig.OreIdToItemId(oreId);
-            
+            //プレイヤーインベントリーに鉱石を挿入
             playerMainInventory.InsertItem(_itemStackFactory.Create(oreItemId, 1));
 
 
@@ -53,7 +53,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class MiningOperationProtocolMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public MiningOperationProtocolMessagePack()
         {
         }

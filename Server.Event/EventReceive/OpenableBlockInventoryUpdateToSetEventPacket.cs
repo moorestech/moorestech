@@ -33,11 +33,11 @@ namespace Server.Event.EventReceive
 
         private void InventoryUpdateEvent(BlockOpenableInventoryUpdateEventProperties properties)
         {
-            
+            //そのブロックを開いているプレイヤーをリストアップ
             var playerIds = _inventoryOpenStateDataStore.GetBlockInventoryOpenPlayers(properties.EntityId);
             if (playerIds.Count == 0) return;
 
-            
+            //プレイヤーごとにイベントを送信
             foreach (var id in playerIds) _eventProtocolProvider.AddEvent(id, GetPayload(properties));
         }
 
@@ -55,7 +55,7 @@ namespace Server.Event.EventReceive
     [MessagePackObject(true)]
     public class OpenableBlockInventoryUpdateEventMessagePack : EventProtocolMessagePackBase
     {
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public OpenableBlockInventoryUpdateEventMessagePack()
         {
         }

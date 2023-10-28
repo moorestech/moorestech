@@ -5,32 +5,32 @@ namespace World.DataStore.WorldSettings
 {
     public static class WorldSpawnPointSearcher
     {
-
-        ///     ID
-        ///     TODO 
-
+        /// <summary>
+        ///     鉄の鉱石ID
+        ///     TODO このマジックナンバーを解消する
+        /// </summary>
         public const int IronOreId = 1;
 
-
-        ///     
-        ///     TODO 
-
+        /// <summary>
+        ///     ワールドの開始地点を探索する
+        ///     TODO 必要になったらインジェクションするようにする
+        /// </summary>
         public static Coordinate SearchSpawnPoint(VeinGenerator veinGenerator)
         {
-            //100,100-100,-100
+            //現状は100,100から-100,-100まで、鉄鉱石が生成されている場所を探索し、そこをスポーン地点とする
             var (fond, coordinate) = SearchSpawnPointRange(veinGenerator, 100, 100, -100, -100);
             if (fond) return coordinate;
 
-            
+            //なかった場合は、範囲を拡大して探索する
             (fond, coordinate) = SearchSpawnPointRange(veinGenerator, 200, 200, -500, -500);
             if (fond) return coordinate;
-            // 300,300
+            //それでもなかった場合は 300,300をスポーン地点とする
             return new Coordinate(300, 300);
         }
 
-
-        ///     2
-
+        /// <summary>
+        ///     範囲を指定して鉄インゴットが上下左右に2ブロック分にある位置を探索する
+        /// </summary>
         /// <returns></returns>
         private static (bool isFound, Coordinate coordinate) SearchSpawnPointRange(VeinGenerator veinGenerator, int x1, int y1, int x2, int y2)
         {
@@ -48,9 +48,9 @@ namespace World.DataStore.WorldSettings
             return (false, new Coordinate(0, 0));
         }
 
-
-        ///     OreID4
-
+        /// <summary>
+        ///     指定したOreIDが4方向の、指定したブロック分存在しているかどうかをチェック
+        /// </summary>
         /// <returns></returns>
         private static bool CheckOreExistDirection(VeinGenerator veinGenerator, int x, int y, int oreId, int checkBlock)
         {

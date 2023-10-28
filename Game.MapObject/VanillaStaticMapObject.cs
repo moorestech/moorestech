@@ -5,7 +5,7 @@ using Game.MapObject.Interface;
 namespace Game.MapObject
 {
     /// <summary>
-    ///     
+    ///     木や小石など基本的に動かないマップオブジェクト
     /// </summary>
     public class VanillaStaticMapObject : IMapObject
     {

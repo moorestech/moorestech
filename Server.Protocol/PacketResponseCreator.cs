@@ -13,7 +13,7 @@ namespace Server.Protocol
     {
         private readonly Dictionary<string, IPacketResponse> _packetResponseDictionary = new();
 
-        //DI?
+        //この辺もDIコンテナに載せる?
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
             _packetResponseDictionary.Add(DummyProtocol.Tag, new DummyProtocol());

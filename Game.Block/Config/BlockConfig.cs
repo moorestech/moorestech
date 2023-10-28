@@ -9,7 +9,7 @@ using Game.Block.Interface.BlockConfig;
 
 namespace Game.Block.Config
 {
-    //todo opneableInventory
+    //todo クライアントのためにそのブロックタイプがopneableInventoryを持っているかをチェックするクラスを作成する
     public class BlockConfig : IBlockConfig
     {
         private readonly List<BlockConfigData> _blockConfigList;
@@ -21,7 +21,7 @@ namespace Game.Block.Config
             _blockConfigList = new BlockConfigJsonLoad(itemConfig).LoadFromJsons(configJson.BlockConfigs, configJson.SortedModIds);
             foreach (var blockConfig in _blockConfigList)
             {
-                if (_bockHashToConfig.ContainsKey(blockConfig.BlockHash)) throw new Exception(" " + blockConfig.Name + " 。");
+                if (_bockHashToConfig.ContainsKey(blockConfig.BlockHash)) throw new Exception("ブロック名 " + blockConfig.Name + " は重複しています。");
 
                 _bockHashToConfig.Add(blockConfig.BlockHash, blockConfig);
 
@@ -35,14 +35,14 @@ namespace Game.Block.Config
 
         public BlockConfigData GetBlockConfig(int id)
         {
-            //01s
+            //0は空気ブロックなので1を引いておくs
             id -= 1;
             if (id < 0) throw new ArgumentException("id must be greater than 0 ID:" + id);
             if (id < _blockConfigList.Count) return _blockConfigList[id];
 
 
-            //NullBlockConfig
-            //id
+            //未定義の時はNullBlockConfigを返す
+            //idを元に戻す
             id++;
             return new BlockConfigData("mod is not found", id,
                 "ID " + id + " is undefined",
@@ -64,7 +64,7 @@ namespace Game.Block.Config
             foreach (var blockConfig in _blockConfigList)
                 if (blockConfig.ModId == modId && blockConfig.Name == blockName)
                     return blockConfig;
-            //TODO 
+            //TODO ログ基盤に入れる
             throw new Exception("Mod id or block name not found:" + modId + " " + blockName);
         }
 

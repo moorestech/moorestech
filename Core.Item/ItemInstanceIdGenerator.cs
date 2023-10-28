@@ -4,7 +4,7 @@ namespace Core.Item
 {
     public static class ItemInstanceIdGenerator
     {
-        //TODO random
+        //TODO randomを全て一つのシードから生成するようにする
         private static readonly Random Random = new(1);
 
         public static long Generate()

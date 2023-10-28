@@ -7,11 +7,11 @@ using Server.Util;
 
 namespace Test.UnitTest.Server
 {
-    
+    //バイト配列と各種オブジェクトとの変換のテスト
     public class ByteObjectConvertTest
     {
         [Test]
-        //int
+        //intを相互変化しても問題ないかテスト
         public void OneIntConvertTest()
         {
             var Int = new Random(1000).Next(int.MaxValue, int.MaxValue);
@@ -21,7 +21,7 @@ namespace Test.UnitTest.Server
         }
 
         [Test]
-        //short
+        //shortを相互変化しても問題ないかテスト
         public void OneShortConvertTest()
         {
             var Short = (short)new Random(1000).Next(short.MinValue, short.MaxValue);
@@ -31,7 +31,7 @@ namespace Test.UnitTest.Server
         }
 
         [Test]
-        //float
+        //floatを相互変化しても問題ないかテスト
         public void OneFloatConvertTest()
         {
             var Float = (float)new Random(1000).NextDouble();
@@ -41,27 +41,27 @@ namespace Test.UnitTest.Server
         }
 
         [Test]
-        //string
+        //バイト数を指定してstringを相互変化しても問題ないかテスト
         public void OneByteNumStringConvertTest()
         {
-            var String = "test012()aＢC:";
+            var String = "変換test012()あいうaＢC:";
             var byteData = new ByteListEnumerator(ToByteList.Convert(String));
 
             Assert.AreEqual(String, byteData.MoveNextToGetString(30));
         }
 
         [Test]
-        //string
+        //違うバイト数を指定してstringを相互変化して失敗させるテスト
         public void OneDifferentByteNumStringConvertTest()
         {
-            var String = "test012()aＢC:";
+            var String = "変換test012()あいうaＢC:";
             var byteData = new ByteListEnumerator(ToByteList.Convert(String));
 
             Assert.AreNotEqual(String, byteData.MoveNextToGetString(29));
         }
 
         [Test]
-        
+        //いろいろ相互変換をしても問題ないかテスト
         public void MoreConvertTest()
         {
             var random = new Random();

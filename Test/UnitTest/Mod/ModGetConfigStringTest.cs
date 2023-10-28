@@ -7,8 +7,8 @@ using Test.Module.TestMod;
 namespace Test.UnitTest.Mod
 {
     /// <summary>
-    ///     ConfigOnlytestConfigOnlyMod12
-    ///     zip
+    ///     ConfigOnlyのtestConfigOnlyMod1と2をロードできるかテストするクラス
+    ///     zip、ディレクトリそれぞれロードできるかチェックする
     /// </summary>
     public class ModGetConfigStringTest
     {

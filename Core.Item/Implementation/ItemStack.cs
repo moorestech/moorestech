@@ -20,7 +20,7 @@ namespace Core.Item.Implementation
 
             if (count < 1) throw new ArgumentOutOfRangeException();
 
-            if (itemConfig.GetItemConfig(id).MaxStack < count) throw new ArgumentOutOfRangeException(" ID:" + id + " Count:" + count + " MaxStack:" + itemConfig.GetItemConfig(id).MaxStack);
+            if (itemConfig.GetItemConfig(id).MaxStack < count) throw new ArgumentOutOfRangeException("アイテムスタック数の最大値を超えています ID:" + id + " Count:" + count + " MaxStack:" + itemConfig.GetItemConfig(id).MaxStack);
 
             Id = id;
             Count = count;
@@ -38,15 +38,15 @@ namespace Core.Item.Implementation
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)
         {
-            //null
+            //加算するアイテムがnullならそのまま追加して返す
             if (receiveItemStack.GetType() == typeof(NullItemStack))
             {
-                // ID
+                // インスタンスIDが同じだとベルトコンベアなどの輸送時に問題が生じるので、新しいインスタンスを生成する
                 var newItem = _itemStackFactory.Create(Id, Count);
                 return new ItemProcessResult(newItem, _itemStackFactory.CreatEmpty());
             }
 
-            //ID
+            //IDが違うならそれぞれで返す
             if (((ItemStack)receiveItemStack).Id != Id)
             {
                 var newItem = _itemStackFactory.Create(Id, Count);
@@ -56,7 +56,7 @@ namespace Core.Item.Implementation
             var newCount = ((ItemStack)receiveItemStack).Count + Count;
             var tmpStack = _itemConfig.GetItemConfig(Id).MaxStack;
 
-            
+            //量が指定数より多かったらはみ出した分を返す
             if (tmpStack < newCount)
             {
                 var tmpItem = _itemStackFactory.Create(Id, tmpStack);

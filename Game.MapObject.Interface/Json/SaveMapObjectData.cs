@@ -14,7 +14,7 @@ namespace Game.MapObject.Interface.Json
         [JsonProperty("y")] public float Y;
         [JsonProperty("z")] public float Z;
 
-        [Obsolete("Json。")]
+        [Obsolete("Json用にのみ使用してください。")]
         public SaveMapObjectData()
         {
         }

@@ -13,7 +13,7 @@ using Server.Protocol.PacketResponse.Util.InventoryService;
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    ///     
+    ///     インベントリでマウスを使ってアイテムの移動を操作するプロトコルです
     /// </summary>
     public class InventoryItemMoveProtocol : IPacketResponse
     {
@@ -86,7 +86,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class InventoryItemMoveProtocolMessagePack : ProtocolMessagePackBase
     {
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public InventoryItemMoveProtocolMessagePack()
         {
         }
@@ -114,14 +114,14 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject(true)]
     public class ItemMoveInventoryInfoMessagePack
     {
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ItemMoveInventoryInfoMessagePack()
         {
         }
 
         public ItemMoveInventoryInfoMessagePack(FromItemMoveInventoryInfo info)
         {
-            //enumint
+            //メッセージパックでenumは重いらしいのでintを使う
             InventoryId = (int)info.ItemMoveInventoryType;
             Slot = info.Slot;
             X = info.X;
@@ -130,14 +130,14 @@ namespace Server.Protocol.PacketResponse
 
         public ItemMoveInventoryInfoMessagePack(ToItemMoveInventoryInfo info)
         {
-            //enumint
+            //メッセージパックでenumは重いらしいのでintを使う
             InventoryId = (int)info.ItemMoveInventoryType;
             Slot = info.Slot;
             X = info.X;
             Y = info.Y;
         }
 
-        [Obsolete("。InventoryType。")]
+        [Obsolete("シリアライズ用の値です。InventoryTypeを使用してください。")]
         public int InventoryId { get; set; }
 
         public ItemMoveInventoryType InventoryType => (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), InventoryId);

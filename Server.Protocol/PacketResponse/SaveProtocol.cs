@@ -19,9 +19,9 @@ namespace Server.Protocol.PacketResponse
 
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            Console.WriteLine("");
+            Console.WriteLine("セーブ開始");
             _worldSaveDataSaver.Save();
-            Console.WriteLine("");
+            Console.WriteLine("セーブ完了");
             return new List<List<byte>>();
         }
     }

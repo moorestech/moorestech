@@ -32,24 +32,24 @@ namespace Test.CombinedTest.Server.PacketTest
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
 
-            
+            //インベントリの設定
             mainInventory.SetItem(0, 1, 10);
 
-            
+            //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
                 new FromItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, 0), new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0)));
 
-            
+            //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1, 3), mainInventory.GetItem(0));
             Assert.AreEqual(itemStackFactory.Create(1, 7), grabInventory.GetItem(0));
 
 
-            
+            //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
                 new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0), new ToItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, 0)));
 
 
-            
+            //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1, 8), mainInventory.GetItem(0));
             Assert.AreEqual(itemStackFactory.Create(1, 2), grabInventory.GetItem(0));
         }
@@ -63,23 +63,23 @@ namespace Test.CombinedTest.Server.PacketTest
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
-            
+            //インベントリの設定
             craftInventory.SetItem(0, 1, 10);
 
-            
+            //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
                 new FromItemMoveInventoryInfo(ItemMoveInventoryType.CraftInventory, 0), new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0)));
 
-            
+            //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1, 3), craftInventory.GetItem(0));
             Assert.AreEqual(itemStackFactory.Create(1, 7), grabInventory.GetItem(0));
 
 
-            
+            //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
                 new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0), new ToItemMoveInventoryInfo(ItemMoveInventoryType.CraftInventory, 0)));
 
-            
+            //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1, 8), craftInventory.GetItem(0));
             Assert.AreEqual(itemStackFactory.Create(1, 2), grabInventory.GetItem(0));
         }
@@ -97,24 +97,24 @@ namespace Test.CombinedTest.Server.PacketTest
             var chest = (VanillaChest)blockFactory.Create(ChestBlockId, 1);
             worldDataStore.AddBlock(chest, 5, 10, BlockDirection.North);
 
-            
+            //ブロックインベントリの設定
             chest.SetItem(1, 1, 10);
 
 
-            
+            //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
                 new FromItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, 1, 5, 10), new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0)));
 
-            
+            //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1, 3), chest.GetItem(1));
             Assert.AreEqual(itemStackFactory.Create(1, 7), grabInventory.GetItem(0));
 
 
-            
+            //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
                 new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0), new ToItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, 1, 5, 10)));
 
-            
+            //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1, 8), chest.GetItem(1));
             Assert.AreEqual(itemStackFactory.Create(1, 2), grabInventory.GetItem(0));
         }
@@ -127,12 +127,12 @@ namespace Test.CombinedTest.Server.PacketTest
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
             var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).CraftingOpenableInventory;
 
-            
+            //インベントリの設定
             mainInventory.SetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0), 1, 10);
             craftInventory.SetItem(0, 1, 10);
             craftInventory.SetItem(2, 2, 10);
 
-            //id 1
+            //クラフトからメインにid 1のアイテムを移す
             packet.GetPacketResponse(GetPacket(5,
                 new FromItemMoveInventoryInfo(ItemMoveInventoryType.CraftInventory, 0), new ToItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory), ItemMoveType.InsertSlot));
 
@@ -140,7 +140,7 @@ namespace Test.CombinedTest.Server.PacketTest
             Assert.AreEqual(5, craftInventory.GetItem(0).Count);
 
 
-            //id 2
+            //id 2のアイテムをクラフトからメインに移す
             packet.GetPacketResponse(GetPacket(10,
                 new FromItemMoveInventoryInfo(ItemMoveInventoryType.CraftInventory, 2), new ToItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory), ItemMoveType.InsertSlot));
 

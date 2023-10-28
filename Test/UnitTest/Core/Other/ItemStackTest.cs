@@ -103,7 +103,7 @@ namespace Test.UnitTest.Core.Other
         }
 
 
-        //False
+        //関係ないオブジェクトを渡すFalseになるテスト
         [TestCase(0)]
         [TestCase(1.5)]
         [TestCase("aaa")]

@@ -20,23 +20,23 @@ namespace Test.UnitTest.Game.SaveLoad
             var itemsStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var belt = new VanillaBeltConveyor(1, 10, 1, itemsStackFactory, 4, 4000);
-            //_inventoryItems
+            //リフレクションで_inventoryItemsを取得
             var inventoryItemsField =
                 typeof(VanillaBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (List<BeltConveyorInventoryItem>)inventoryItemsField.GetValue(belt);
-            
+            //アイテムを設定
             inventoryItems.Add(new BeltConveyorInventoryItem(1, 10, 0, 1));
             inventoryItems.Add(new BeltConveyorInventoryItem(2, 100, 1000, 2));
             inventoryItems.Add(new BeltConveyorInventoryItem(5, 2500, 2000, 3));
 
-            
+            //セーブデータ取得
             var str = belt.GetSaveState();
             Console.WriteLine(str);
-            
+            //セーブデータをロード
             var newBelt = new VanillaBeltConveyor(1, 10, 1, str, itemsStackFactory, 4, 4000);
             var newInventoryItems = (List<BeltConveyorInventoryItem>)inventoryItemsField.GetValue(newBelt);
 
-            
+            //アイテムが一致するかチェック
             Assert.AreEqual(3, newInventoryItems.Count);
             Assert.AreEqual(1, newInventoryItems[0].ItemId);
             Assert.AreEqual(10, newInventoryItems[0].RemainingTime);

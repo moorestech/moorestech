@@ -1,7 +1,7 @@
 ﻿namespace Core.Const
 {
     /// <summary>
-    ///     ID0
+    ///     アイテムがない時のアイテムIDは0です
     /// </summary>
     public static class ItemConst
     {

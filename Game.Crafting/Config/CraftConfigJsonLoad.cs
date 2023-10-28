@@ -37,7 +37,7 @@ namespace Game.Crafting.Config
                     items.Add(new CraftingItemData(_itemStackFactory.Create(craftItem.ModId, craftItem.ItemName, craftItem.Count), craftItem.IsRemain));
                 }
 
-                //TODO null
+                //TODO ロードした時にあるべきものがなくnullだったらエラーを出す
                 if (config.Result.ModId == null) Console.WriteLine(i + " : Result item is null");
 
                 var resultItem =

@@ -22,7 +22,7 @@ namespace Test.UnitTest.Game.SaveLoad
             var entityFactory = serviceProvider.GetService<IEntityFactory>();
 
 
-            
+            //セーブ用のエンティ追加
             var entity1 = entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, 10);
             var entityPosition = new ServerVector3(1, 2, 3);
             entity1.SetPosition(entityPosition);
@@ -34,16 +34,16 @@ namespace Test.UnitTest.Game.SaveLoad
             entitiesDatastore.Add(entity2);
 
 
-            
+            //セーブの実行
             var json = assembleSaveJsonText.AssembleSaveJson();
             Console.WriteLine(json);
 
-            
+            //ロードの実行
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
 
 
-            
+            //ロードしたエンティティを取得
             var loadedEntity1 = entitiesDatastore.Get(10);
             Assert.AreEqual(entity1.InstanceId, loadedEntity1.InstanceId);
             Assert.AreEqual(entityPosition, loadedEntity1.Position);

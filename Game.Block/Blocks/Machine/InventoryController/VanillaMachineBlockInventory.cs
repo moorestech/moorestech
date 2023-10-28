@@ -32,14 +32,14 @@ namespace Game.Block.Blocks.Machine.InventoryController
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            
+            //アイテムをインプットスロットに入れた後、プロセス開始できるなら開始
             var item = _vanillaMachineInputInventory.InsertItem(itemStack);
             return item;
         }
 
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
-            
+            //アイテムをインプットスロットに入れた後、プロセス開始できるなら開始
             return _vanillaMachineInputInventory.InsertItem(itemStacks);
         }
 
@@ -84,9 +84,9 @@ namespace Game.Block.Blocks.Machine.InventoryController
             return _vanillaMachineInputInventory.InputSlot.Count + _vanillaMachineOutputInventory.OutputSlot.Count;
         }
 
-
-        ///     ID。
-
+        /// <summary>
+        ///     アイテムの置き換えを実行しますが、同じアイテムIDの場合はそのまま現在のアイテムにスタックされ、スタックしきらなかったらその分を返します。
+        /// </summary>
         /// <param name="slot"></param>
         /// <param name="itemStack"></param>
         /// <returns></returns>
@@ -95,7 +95,7 @@ namespace Game.Block.Blocks.Machine.InventoryController
             ItemProcessResult result;
             if (slot < _vanillaMachineInputInventory.InputSlot.Count)
             {
-                //ID
+                //アイテムIDが同じの時はスタックして余ったものを返す
                 var item = _vanillaMachineInputInventory.InputSlot[slot];
                 if (item.Id == itemStack.Id)
                 {
@@ -104,13 +104,13 @@ namespace Game.Block.Blocks.Machine.InventoryController
                     return result.RemainderItemStack;
                 }
 
-                
+                //違う場合はそのまま入れ替える
                 _vanillaMachineInputInventory.SetItem(slot, itemStack);
                 return item;
             }
             else
             {
-                
+                //アウトプットスロットのインデックスに変換する
                 slot -= _vanillaMachineInputInventory.InputSlot.Count;
 
                 var item = _vanillaMachineOutputInventory.OutputSlot[slot];

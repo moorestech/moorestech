@@ -8,8 +8,8 @@ using Game.Block.Interface.RecipeConfig;
 namespace Game.Block.Blocks.Machine.Inventory
 {
     /// <summary>
-    ///     
-    ///     InsertInput
+    ///     インプットのインベントリとアウトプットのインベントリを同じように扱う
+    ///     Insertなどの処理は基本的にInputのインベントリにのみ行う
     /// </summary>
     public class VanillaMachineInputInventory
     {
@@ -35,9 +35,9 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             get
             {
-                //ID
+                //建物IDと現在のインプットスロットからレシピを検索する
                 var recipe = _machineRecipeConfig.GetRecipeData(_blockId, InputSlot);
-                
+                //実行できるレシピかどうか
                 return recipe.RecipeConfirmation(InputSlot, _blockId);
             }
         }
@@ -59,12 +59,12 @@ namespace Game.Block.Blocks.Machine.Inventory
 
         public void ReduceInputSlot(MachineRecipeData recipe)
         {
-            //input
+            //inputスロットからアイテムを減らす
             foreach (var item in recipe.ItemInputs)
                 for (var i = 0; i < InputSlot.Count; i++)
                 {
                     if (_itemDataStoreService.Inventory[i].Id != item.Id || item.Count > InputSlot[i].Count) continue;
-                    
+                    //アイテムを減らす
                     _itemDataStoreService.SetItem(i, InputSlot[i].SubItem(item.Count));
                     break;
                 }

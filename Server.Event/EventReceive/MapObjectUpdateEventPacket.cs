@@ -6,7 +6,7 @@ using MessagePack;
 namespace Server.Event.EventReceive
 {
     /// <summary>
-    ///     Map
+    ///     Mapオブジェクトが破壊など、更新されたらその情報を伝えるためのパケット
     /// </summary>
     public class MapObjectUpdateEventPacket
     {
@@ -37,7 +37,7 @@ namespace Server.Event.EventReceive
         public const string OnDestroyEventType = "destroy";
 
 
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public MapObjectUpdateEventMessagePack()
         {
         }

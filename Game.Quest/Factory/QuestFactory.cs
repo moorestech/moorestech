@@ -15,7 +15,7 @@ namespace Game.Quest.Factory
 
         public QuestFactory(IQuestConfig questConfig, ItemStackFactory itemStackFactory, ICraftingEvent craftingEvent)
         {
-            
+            //クエストのテンプレート一覧の作成
             _questTemplates.Add(VanillaQuestTypes.ItemCraftQuestType, new ItemCraftQuestTemplate(itemStackFactory, craftingEvent));
 
             _questConfig = questConfig;
@@ -40,17 +40,17 @@ namespace Game.Quest.Factory
             return quests;
         }
 
-
-        ///     
-
-        /// <param name="questConfigData"></param>
-        /// <param name="allQuests"></param>
+        /// <summary>
+        ///     再帰的にクエストを探索し、前提クエストを取得する
+        /// </summary>
+        /// <param name="questConfigData">前提クエストを作成したクエストコンフィグ</param>
+        /// <param name="allQuests">この関数内で新たに作ったクエストを入れておくためのリスト</param>
         /// <returns></returns>
         private List<IQuest> GetPreRequestQuest(QuestConfigData questConfigData, Dictionary<string, IQuest> allQuests)
         {
-            
+            //前提クエストがないときはそのまま通す
             if (questConfigData.PrerequisiteQuests.Count == 0) return new List<IQuest>();
-            
+            //再帰的に前提クエストを作成する
             var preRequestQuests = new List<IQuest>();
             foreach (var preRequestConfig in questConfigData.PrerequisiteQuests)
             {
@@ -60,7 +60,7 @@ namespace Game.Quest.Factory
                     continue;
                 }
 
-                
+                //既に作ったクエストになかったので作成してリストに入れる
                 var quest = CreateQuest(preRequestConfig, GetPreRequestQuest(preRequestConfig, allQuests));
                 allQuests.Add(quest.QuestConfig.QuestId, quest);
                 preRequestQuests.Add(quest);
@@ -72,8 +72,8 @@ namespace Game.Quest.Factory
         private IQuest CreateQuest(QuestConfigData questConfig, List<IQuest> preRequestQuest)
         {
             if (_questTemplates.ContainsKey(questConfig.QuestType)) return _questTemplates[questConfig.QuestType].CreateQuest(questConfig, preRequestQuest);
-            //TODO 
-            throw new ArgumentException("[QuestFactory]:" + questConfig.QuestType + "。");
+            //TODO ログ取得基盤に入れるようにする
+            throw new ArgumentException("[QuestFactory]指定されたクエストタイプ:" + questConfig.QuestType + "は存在しません。");
         }
 
         public List<IQuest> LoadQuests(List<SaveQuestData> loadedQuests)
@@ -81,15 +81,15 @@ namespace Game.Quest.Factory
             var newQuests = CreateQuestDictionary();
             foreach (var quest in loadedQuests)
             {
-                
+                //クエストが存在するときはそのクエストを取得する
                 if (newQuests.TryGetValue(quest.QuestId, out var newQuest))
                 {
                     newQuest.LoadQuestData(quest);
                     continue;
                 }
 
-                //TODO 
-                throw new ArgumentException("[QuestFactory]ID:" + quest.QuestId + "。");
+                //TODO ログ取得基盤に入れるようにする
+                throw new ArgumentException("[QuestFactory]クエストID:" + quest.QuestId + "が存在しません。");
             }
 
             return newQuests.Values.ToList();

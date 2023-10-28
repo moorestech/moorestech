@@ -27,7 +27,7 @@ namespace Server.Event.EventReceive
     [MessagePackObject(true)]
     public class QuestCompletedEventMessagePack : EventProtocolMessagePackBase
     {
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public QuestCompletedEventMessagePack()
         {
         }

@@ -24,14 +24,14 @@ namespace Game.MapObject
 
         public IMapObject Create(string type, ServerVector3 position)
         {
-            //TODO mapseed
+            //TODO mapのseed値に対応させる
             var id = new Random().Next();
             var (itemId, itemCount) = GetItemIdAndCount(type);
 
             return new VanillaStaticMapObject(id, type, false, position, itemId, 1);
         }
 
-        //TODO 
+        //TODO コンフィグを参照するようにする
         private (int itemId, int count) GetItemIdAndCount(string type)
         {
             return type switch

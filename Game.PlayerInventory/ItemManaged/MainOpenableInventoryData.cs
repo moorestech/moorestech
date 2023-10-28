@@ -56,9 +56,9 @@ namespace PlayerInventory.ItemManaged
             return _openableInventoryService.ReplaceItem(slot, itemId, count);
         }
 
-
-        ///     Insert
-
+        /// <summary>
+        ///     プレイヤーのメインインベントリの場合はホットバーを優先的にInsertする
+        /// </summary>
         public IItemStack InsertItem(IItemStack itemStack)
         {
             return _openableInventoryService.InsertItemWithPrioritySlot(itemStack, PlayerInventoryConst.HotBarSlots);

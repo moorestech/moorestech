@@ -8,8 +8,8 @@ using Test.Module.TestMod;
 namespace Test.UnitTest.Core.Other
 {
     /// <summary>
-    ///     
-    ///     
+    ///     鉱石のコンフィグのテスト
+    ///     コンフィグが変わったら都度変える
     /// </summary>
     public class OreConfigTest
     {

@@ -33,7 +33,7 @@ namespace Server.Event.EventReceive
     [MessagePackObject(true)]
     public class RemoveBlockEventMessagePack : EventProtocolMessagePackBase
     {
-        [Obsolete("。。")]
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public RemoveBlockEventMessagePack()
         {
         }

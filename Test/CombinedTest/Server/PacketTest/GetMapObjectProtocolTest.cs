@@ -26,12 +26,12 @@ namespace Test.CombinedTest.Server.PacketTest
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
 
-            
+            //マップオブジェクトを取得するプロトコルを送信
             var mapObject = worldMapObjectDataStore.MapObjects[0];
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new GetMapObjectProtocolProtocolMessagePack(PlayerId, mapObject.InstanceId)).ToList());
 
 
-            
+            //実際マップオブジェクトが取得されているかのテスト
             var mapObjectItemStack = itemStackFactory.Create(mapObject.ItemId, mapObject.ItemCount);
             var playerInventory = playerInventoryDataStore.GetInventoryData(PlayerId).MainOpenableInventory;
             Assert.AreEqual(playerInventory.GetItem(0), mapObjectItemStack);

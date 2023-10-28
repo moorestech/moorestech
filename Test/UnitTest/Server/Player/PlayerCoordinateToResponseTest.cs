@@ -13,7 +13,7 @@ namespace Test.UnitTest.Server.Player
         public void OneCoordinateResponseTest()
         {
             var p = new PlayerCoordinateToResponse();
-            //1
+            //1回目は全てを返す
             var cList = p.GetResponseChunkCoordinates(new Coordinate(0, 0));
 
             var ans = new List<Coordinate>();
@@ -25,18 +25,18 @@ namespace Test.UnitTest.Server.Player
 
             foreach (var a in ans) Assert.True(cList.Contains(a));
 
-            //2
+            //2回目は何も返さない
             cList = p.GetResponseChunkCoordinates(new Coordinate(0, 0));
             Assert.AreEqual(0, cList.Count);
         }
 
 
-        
+        //初期座標がマイナスの時のテスト
         [Test]
         public void OneMinusCoordinateResponseTest()
         {
             var p = new PlayerCoordinateToResponse();
-            //1
+            //1回目は全てを返す
             var cList = p.GetResponseChunkCoordinates(new Coordinate(-10, 0));
 
             var ans = new List<Coordinate>();
@@ -48,7 +48,7 @@ namespace Test.UnitTest.Server.Player
 
             foreach (var a in ans) Assert.True(cList.Contains(a));
 
-            //2
+            //2回目は何も返さない
             cList = p.GetResponseChunkCoordinates(new Coordinate(-10, 0));
             Assert.AreEqual(0, cList.Count);
         }
@@ -57,12 +57,12 @@ namespace Test.UnitTest.Server.Player
         public void ShiftSideToCoordinateResponseTest()
         {
             var p = new PlayerCoordinateToResponse();
-            //1
+            //1回目は全てを返す
             var cList = p.GetResponseChunkCoordinates(new Coordinate(0, 0));
             Assert.AreEqual(cList.Count,
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk);
 
-            //21x
+            //2回目1チャンクx分を増加させる
             cList = p.GetResponseChunkCoordinates(new Coordinate(25, 0));
             var ans = new List<Coordinate>();
             for (var i = -2; i < 3; i++) ans.Add(new Coordinate(60, i * ChunkResponseConst.ChunkSize));
@@ -74,12 +74,12 @@ namespace Test.UnitTest.Server.Player
         public void ShiftSideAndUpToCoordinateResponseTest()
         {
             var p = new PlayerCoordinateToResponse();
-            //1
+            //1回目は全てを返す
             var cList = p.GetResponseChunkCoordinates(new Coordinate(0, 0));
             Assert.AreEqual(cList.Count,
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk);
 
-            //21x
+            //2回目1チャンクx分を増加させる
             cList = p.GetResponseChunkCoordinates(new Coordinate(25, 25));
             var ans = new List<Coordinate>();
             for (var i = -1; i < 4; i++) ans.Add(new Coordinate(i * ChunkResponseConst.ChunkSize, 60));
@@ -93,7 +93,7 @@ namespace Test.UnitTest.Server.Player
         }
 
 
-        //startXendXx
+        //startXからendXまで移動した時にえられるx座標のチャンクのデータを返す
         [TestCase(0, 25, 60)]
         [TestCase(25, 45, 80)]
         [TestCase(1000, 1020, 1060)]
@@ -104,12 +104,12 @@ namespace Test.UnitTest.Server.Player
         public void ShiftOneChunkXToCoordinateResponseTest(int startX, int endX, int getChunkX)
         {
             var p = new PlayerCoordinateToResponse();
-            //1
+            //1回目は全てを返す
             var cList = p.GetResponseChunkCoordinates(new Coordinate(startX, 0));
             Assert.AreEqual(cList.Count,
                 ChunkResponseConst.PlayerVisibleRangeChunk * ChunkResponseConst.PlayerVisibleRangeChunk);
 
-            //21x
+            //2回目1チャンクx分を増加させる
             cList = p.GetResponseChunkCoordinates(new Coordinate(endX, 0));
             var ans = new List<Coordinate>();
             for (var i = -2; i < 3; i++) ans.Add(new Coordinate(getChunkX, i * ChunkResponseConst.ChunkSize));

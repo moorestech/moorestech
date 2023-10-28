@@ -20,14 +20,14 @@ namespace Game.World.EventHandler.Service
             for (var i = startMachineX; i < startMachineX + machineRange; i++)
             for (var j = startMachineY; j < startMachineY + machineRange; j++)
             {
-                
+                //範囲内に機械がある場合
                 if (worldBlockDatastore.TryGetBlock<IBlockElectricConsumer>(i, j, out var consumer))
-                    
+                    //機械を電力セグメントに追加
                     blocks.Add(consumer);
 
-                
+                //範囲内に発電機がある場合
                 if (worldBlockDatastore.TryGetBlock<IElectricGenerator>(i, j, out var generator))
-                    
+                    //機械を電力セグメントに追加
                     generators.Add(generator);
             }
 

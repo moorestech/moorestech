@@ -6,8 +6,8 @@ namespace Test.UnitTest.Core.Other
 {
     public class UtilTest
     {
-        //1
-        //+-5%
+        //確立のテストだから1万回繰り返して平均を取る
+        //+-5%なら許容範囲内
         [TestCase(0.0)]
         [TestCase(0.1)]
         [TestCase(0.2)]

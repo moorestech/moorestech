@@ -16,7 +16,7 @@ using Test.Module.TestMod;
 namespace Test.CombinedTest.Server.PacketTest.Event
 {
     /// <summary>
-    ///     
+    ///     ブロックのインベントリが更新された時、イベントのパケットが更新されているかをテストする
     /// </summary>
     public class BlockInventoryUpdateEventPacketTest
     {
@@ -24,7 +24,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
         private const int PlayerId = 3;
         private const short PacketId = 16;
 
-        
+        //正しくインベントリの情報が更新されたことを通知するパケットが送られるかチェックする
         [Test]
         public void BlockInventoryUpdatePacketTest()
         {
@@ -34,23 +34,23 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
-            
+            //ブロックをセットアップ
             var block = blockFactory.Create(MachineBlockId, 1);
             var blockInventory = (IOpenableInventory)block;
             worldBlockDataStore.AddBlock(block, 5, 7, BlockDirection.North);
 
 
-            
+            //インベントリを開く
             packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(5, 7, true));
-            
+            //ブロックにアイテムを入れる
             blockInventory.SetItem(1, itemStackFactory.Create(4, 8));
 
 
-            
-            
+            //パケットが送られていることをチェック
+            //イベントパケットを取得
             var eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
 
-            
+            //イベントパケットをチェック
             Assert.AreEqual(1, eventPacket.Count);
 
             var data =
@@ -64,22 +64,22 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(7, data.Y); // y
 
 
-            
+            //ブロックのインベントリを閉じる
             packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(5, 7, false));
 
-            
+            //ブロックにアイテムを入れる
             blockInventory.SetItem(2, itemStackFactory.Create(4, 8));
 
 
-            
-            
+            //パケットが送られていないことをチェック
+            //イベントパケットを取得
             eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
-            
+            //イベントパケットをチェック
             Assert.AreEqual(0, eventPacket.Count);
         }
 
 
-        //１
+        //インベントリが開けるのは１つまでであることをテストする
         [Test]
         public void OnlyOneInventoryCanBeOpenedTest()
         {
@@ -89,29 +89,29 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
-            //1
+            //ブロック1をセットアップ
             var block1 = blockFactory.Create(MachineBlockId, 1);
             var block1Inventory = (IOpenableInventory)block1;
             worldBlockDataStore.AddBlock(block1, 5, 7, BlockDirection.North);
-            //2
+            //ブロック2をセットアップ
             var block2 = blockFactory.Create(MachineBlockId, 2);
             worldBlockDataStore.AddBlock(block2, 10, 20, BlockDirection.North);
 
 
-            
+            //一つ目のブロックインベントリを開く
             packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(5, 7, true));
-            
+            //二つ目のブロックインベントリを開く
             packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(10, 20, true));
 
 
-            
+            //一つ目のブロックインベントリにアイテムを入れる
             block1Inventory.SetItem(2, itemStackFactory.Create(4, 8));
 
 
-            
-            
+            //パケットが送られていないことをチェック
+            //イベントパケットを取得
             var eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
-            
+            //イベントパケットをチェック
             Assert.AreEqual(0, eventPacket.Count);
         }
 
