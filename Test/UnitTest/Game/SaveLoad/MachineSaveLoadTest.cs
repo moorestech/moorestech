@@ -47,11 +47,11 @@ namespace Test.UnitTest.Game.SaveLoad
                 .GetField("_vanillaMachineRunProcess", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(machine);
             typeof(VanillaMachineRunProcess)
-                .GetField("_remainingMillSecond", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetProperty("RemainingMillSecond")
                 .SetValue(vanillaMachineRunProcess, 300);
             //ステータスをセット
             typeof(VanillaMachineRunProcess)
-                .GetField("_currentState", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetProperty("CurrentState")
                 .SetValue(vanillaMachineRunProcess, ProcessState.Processing);
 
             //機械のアウトプットスロットの設定

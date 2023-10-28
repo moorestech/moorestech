@@ -12,6 +12,9 @@ namespace World.DataStore
             OriginY = originY;
             BlockDirection = blockDirection;
             Block = block;
+            var config = blockConfig.GetBlockConfig(block.BlockId);
+            Height = config.BlockSize.Y;
+            Weight = config.BlockSize.X;
         }
 
         public int OriginX { get; }

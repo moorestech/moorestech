@@ -5,6 +5,8 @@
       "type": "Machine",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test1",
+      "weight" : 1,
+      "height" : 1,
       "param": {
         "inputSlot": 2,
         "outputSlot": 3,
@@ -16,6 +18,8 @@
       "type": "Block",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test2",
+      "weight" : 1,
+      "height" : 1,
       "param": {}
     },
     {
@@ -23,6 +27,8 @@
       "type": "BeltConveyor",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test3",
+      "weight" : 1,
+      "height" : 1,
       "param": {
         "slot": 4,
         "time": 2000
@@ -33,6 +39,8 @@
       "type": "ElectricPole",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test4",
+      "weight" : 1,
+      "height" : 1,
       "param": {
         "poleConnectionRange": 7,
         "machineConnectionRange": 5
@@ -43,6 +51,8 @@
       "type": "Generator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test5",
+      "weight" : 1,
+      "height" : 1,
       "param": {
         "isInfinityPower": false,
         "infinityPower": 0,
@@ -68,6 +78,8 @@
       "type": "Miner",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test6",
+      "weight" : 1,
+      "height" : 1,
       "param": {
         "requiredPower": 100,
         "outputSlot": 3,
@@ -84,6 +96,8 @@
       "type": "Chest",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test7",
+      "weight" : 1,
+      "height" : 1,
       "param": {
         "slot": 5
       }
@@ -93,6 +107,8 @@
       "type": "Generator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test8",
+      "weight" : 1,
+      "height" : 1,
       "param": {
         "isInfinityPower": true,
         "infinityPower": 10,

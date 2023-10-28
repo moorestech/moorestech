@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Core.ConfigJson;
 using Core.Const;
 using Core.Item.Config;
+using Core.Util;
 using Game.Block.Config.LoadConfig;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
@@ -44,12 +45,13 @@ namespace Game.Block.Config
             //未定義の時はNullBlockConfigを返す
             //idを元に戻す
             id++;
+            //TODo ここのエラーハンドリングをどうするか決める
             return new BlockConfigData("mod is not found", id,
                 "ID " + id + " is undefined",
                 0,
                 VanillaBlockType.Block,
                 new NullBlockConfigParam(),
-                ItemConst.EmptyItemId, new ModelTransform());
+                ItemConst.EmptyItemId, new ModelTransform(), new CoreVector2Int(1,1));
         }
 
         public BlockConfigData GetBlockConfig(ulong blockHash)
