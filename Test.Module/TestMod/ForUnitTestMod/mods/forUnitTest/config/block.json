@@ -6,7 +6,7 @@
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test1",
       "weight" : 1,
-      "height" : 1,
+      "height" : 4,
       "param": {
         "inputSlot": 2,
         "outputSlot": 3,
@@ -18,8 +18,8 @@
       "type": "Block",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test2",
-      "weight" : 1,
-      "height" : 1,
+      "weight" : 3,
+      "height" : 2,
       "param": {}
     },
     {
