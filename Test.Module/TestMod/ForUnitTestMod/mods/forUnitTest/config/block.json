@@ -6,7 +6,7 @@
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test1",
       "weight" : 1,
-      "height" : 4,
+      "height" : 1,
       "param": {
         "inputSlot": 2,
         "outputSlot": 3,
@@ -18,8 +18,8 @@
       "type": "Block",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test2",
-      "weight" : 3,
-      "height" : 2,
+      "weight" : 1,
+      "height" : 1,
       "param": {}
     },
     {
@@ -109,6 +109,34 @@
       "itemName": "Test8",
       "weight" : 1,
       "height" : 1,
+      "param": {
+        "isInfinityPower": true,
+        "infinityPower": 10,
+        "fuelSlot": 0,
+        "fuel": []
+      }
+    },
+    {
+      "name": "MultiBlock1",
+      "type": "Generator",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test9",
+      "weight" : 1,
+      "height" : 4,
+      "param": {
+        "isInfinityPower": true,
+        "infinityPower": 10,
+        "fuelSlot": 0,
+        "fuel": []
+      }
+    },
+    {
+      "name": "MultiBlock2",
+      "type": "Generator",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test10",
+      "weight" : 3,
+      "height" : 2,
       "param": {
         "isInfinityPower": true,
         "infinityPower": 10,

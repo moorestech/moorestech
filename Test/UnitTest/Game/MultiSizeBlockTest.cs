@@ -12,8 +12,8 @@ namespace Test.UnitTest.Game
 {
     public class MultiSizeBlockTest
     {
-        public const int Block_1x4_Id = 1;
-        public const int Block_3x2_Id = 2;
+        public const int Block_1x4_Id = 9;
+        public const int Block_3x2_Id = 10;
 
         private IBlockFactory _blockFactory;
         private IWorldBlockDatastore worldDatastore;
@@ -51,6 +51,13 @@ namespace Test.UnitTest.Game
             RetrieveBlock(Block_3x2_Id, new CoreVector2Int(-9, 12));
             RetrieveNonExistentBlock(new CoreVector2Int(-10, 9));
             RetrieveNonExistentBlock(new CoreVector2Int(-9, 13));
+        }
+
+
+        [Test]
+        private void DuplicateBlockTest()
+        {
+            throw new NotImplementedException();
         }
 
         private void PlaceBlock(int blockId, CoreVector2Int position, BlockDirection direction)

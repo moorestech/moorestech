@@ -82,33 +82,20 @@ namespace World.DataStore
 
         public IBlock GetBlock(int x, int y)
         {
-            //TODO GetBlockは頻繁に呼ばれる訳では無いが、この方式は効率が悪いのでなにか改善したい
-            foreach (var block in 
-                     _blockMasterDictionary.Where(block => block.Value.IsContain(x, y)))
-            {
-                return block.Value.Block;
-            }
-
-            return _nullBlock;
+            return GetBlockDatastore(x, y)?.Block ?? _nullBlock;
         }
 
         public bool TryGetBlock(int x, int y, out IBlock block)
         {
-            if (Exists(x, y))
-            {
-                block = GetBlock(x, y);
-                return true;
-            }
-
-            block = _nullBlock;
-            return false;
+            block = GetBlock(x, y);
+            block ??= _nullBlock;
+            return block != _nullBlock;
         }
 
         public (int, int) GetBlockPosition(int entityId)
         {
-            if (_blockMasterDictionary.ContainsKey(entityId))
+            if (_blockMasterDictionary.TryGetValue(entityId, out var data))
             {
-                var data = _blockMasterDictionary[entityId];
                 return (data.OriginX, data.OriginY);
             }
 
@@ -117,13 +104,37 @@ namespace World.DataStore
 
         public BlockDirection GetBlockDirection(int x, int y)
         {
-            var c = new CoreVector2Int(x, y);
-            if (_coordinateDictionary.ContainsKey(c))
-                return _blockMasterDictionary[_coordinateDictionary[c]].BlockDirection;
-            return BlockDirection.North;
+            var block = GetBlockDatastore(x, y);
+            //TODO ブロックないときの処理どうしよう
+            return block?.BlockDirection ?? BlockDirection.North;
+        }
+        
+
+        public bool Exists(int x, int y)
+        {
+            return GetBlock(x, y).BlockId != BlockConst.EmptyBlockId;
         }
 
+        private int GetEntityId(int x, int y)
+        {
+            return GetBlockDatastore(x, y).Block.EntityId;
+        }
+        
+        /// <summary>
+        /// TODO GetBlockは頻繁に呼ばれる訳では無いが、この方式は効率が悪いのでなにか改善したい
+        /// </summary>
+        private WorldBlockData GetBlockDatastore(int x,int y)
+        {
+            foreach (var block in 
+                     _blockMasterDictionary.Where(block => block.Value.IsContain(x, y)))
+            {
+                return block.Value;
+            }
 
+            return null;
+        }
+
+        #region Component
         public bool ExistsComponentBlock<TComponent>(int x, int y)
         {
             return GetBlock(x, y) is TComponent;
@@ -148,7 +159,10 @@ namespace World.DataStore
             component = default;
             return false;
         }
+        #endregion
 
+
+        #region Save&Load 
         public List<SaveBlockData> GetSaveBlockDataList()
         {
             var list = new List<SaveBlockData>();
@@ -173,16 +187,6 @@ namespace World.DataStore
                     block.Y,
                     (BlockDirection)block.Direction);
         }
-
-
-        public bool Exists(int x, int y)
-        {
-            return GetBlock(x, y).BlockId != BlockConst.EmptyBlockId;
-        }
-
-        private int GetEntityId(int x, int y)
-        {
-            return _coordinateDictionary[new CoreVector2Int(x, y)];
-        }
+        #endregion
     }
 }
