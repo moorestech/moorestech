@@ -1,3 +1,4 @@
+using Core.Util;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 
@@ -7,11 +8,11 @@ namespace Game.World.Interface.Event
     {
         public readonly IBlock Block;
         public readonly BlockDirection BlockDirection;
-        public readonly Coordinate Coordinate;
+        public readonly CoreVector2Int CoreVector2Int;
 
-        public BlockPlaceEventProperties(Coordinate coordinate, IBlock block, BlockDirection blockDirection)
+        public BlockPlaceEventProperties(CoreVector2Int coreVector2Int, IBlock block, BlockDirection blockDirection)
         {
-            Coordinate = coordinate;
+            CoreVector2Int = coreVector2Int;
             Block = block;
             BlockDirection = blockDirection;
         }

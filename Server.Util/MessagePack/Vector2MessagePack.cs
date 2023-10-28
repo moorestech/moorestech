@@ -1,4 +1,5 @@
 using System;
+using Core.Util;
 using Game.World.Interface.DataStore;
 using MessagePack;
 
@@ -18,10 +19,10 @@ namespace Server.Util.MessagePack
             Y = y;
         }
 
-        public Vector2MessagePack(Coordinate coordinate)
+        public Vector2MessagePack(CoreVector2Int coreVector2Int)
         {
-            X = coordinate.X;
-            Y = coordinate.Y;
+            X = coreVector2Int.X;
+            Y = coreVector2Int.Y;
         }
 
 

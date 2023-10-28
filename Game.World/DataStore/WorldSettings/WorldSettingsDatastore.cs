@@ -1,3 +1,4 @@
+using Core.Util;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
 
@@ -16,7 +17,7 @@ namespace World.DataStore.WorldSettings
             _veinGenerator = veinGenerator;
         }
 
-        public Coordinate WorldSpawnPoint { get; private set; }
+        public CoreVector2Int WorldSpawnPoint { get; private set; }
 
         public void Initialize()
         {
@@ -30,7 +31,7 @@ namespace World.DataStore.WorldSettings
 
         public void LoadSettingData(WorldSettingSaveData worldSettingSaveData)
         {
-            WorldSpawnPoint = new Coordinate(worldSettingSaveData.SpawnX, worldSettingSaveData.SpawnY);
+            WorldSpawnPoint = new CoreVector2Int(worldSettingSaveData.SpawnX, worldSettingSaveData.SpawnY);
         }
     }
 }

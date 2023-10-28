@@ -39,8 +39,8 @@ namespace Game.World.EventHandler.EnergyEvent
 
         private void OnBlockRemove(BlockRemoveEventProperties blockRemoveEvent)
         {
-            var x = blockRemoveEvent.Coordinate.X;
-            var y = blockRemoveEvent.Coordinate.Y;
+            var x = blockRemoveEvent.CoreVector2Int.X;
+            var y = blockRemoveEvent.CoreVector2Int.Y;
 
             //電柱かどうか判定
             //電柱だったら接続範囲内周りにある電柱を取得する

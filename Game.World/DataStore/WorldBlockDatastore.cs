@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Const;
+using Core.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.State;
@@ -24,7 +25,7 @@ namespace World.DataStore
         private readonly BlockRemoveEvent _blockRemoveEvent;
 
         //座標とキーの紐づけ
-        private readonly Dictionary<Coordinate, int> _coordinateDictionary = new();
+        private readonly Dictionary<CoreVector2Int, int> _coordinateDictionary = new();
 
 
         private readonly IBlock _nullBlock = new NullBlock();
@@ -44,9 +45,9 @@ namespace World.DataStore
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
             if (!_blockMasterDictionary.ContainsKey(block.EntityId) &&
-                !_coordinateDictionary.ContainsKey(new Coordinate(x, y)))
+                !_coordinateDictionary.ContainsKey(new CoreVector2Int(x, y)))
             {
-                var c = new Coordinate(x, y);
+                var c = new CoreVector2Int(x, y);
                 var data = new WorldBlockData(block, x, y, blockDirection,_blockConfig);
                 _blockMasterDictionary.Add(block.EntityId, data);
                 _coordinateDictionary.Add(c, block.EntityId);
@@ -70,17 +71,17 @@ namespace World.DataStore
             var data = _blockMasterDictionary[entityId];
 
             _blockRemoveEvent.OnBlockRemoveEventInvoke(new BlockRemoveEventProperties(
-                new Coordinate(x, y), data.Block));
+                new CoreVector2Int(x, y), data.Block));
 
             _blockMasterDictionary.Remove(entityId);
-            _coordinateDictionary.Remove(new Coordinate(x, y));
+            _coordinateDictionary.Remove(new CoreVector2Int(x, y));
             return true;
         }
 
 
         public IBlock GetBlock(int x, int y)
         {
-            var c = new Coordinate(x, y);
+            var c = new CoreVector2Int(x, y);
             if (_coordinateDictionary.ContainsKey(c)) return _blockMasterDictionary[_coordinateDictionary[c]].Block;
             return _nullBlock;
         }
@@ -110,7 +111,7 @@ namespace World.DataStore
 
         public BlockDirection GetBlockDirection(int x, int y)
         {
-            var c = new Coordinate(x, y);
+            var c = new CoreVector2Int(x, y);
             if (_coordinateDictionary.ContainsKey(c))
                 return _blockMasterDictionary[_coordinateDictionary[c]].BlockDirection;
             return BlockDirection.North;
@@ -175,7 +176,7 @@ namespace World.DataStore
 
         private int GetEntityId(int x, int y)
         {
-            return _coordinateDictionary[new Coordinate(x, y)];
+            return _coordinateDictionary[new CoreVector2Int(x, y)];
         }
     }
 }

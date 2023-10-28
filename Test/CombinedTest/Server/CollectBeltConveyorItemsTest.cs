@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Core.Item;
 using Core.Update;
+using Core.Util;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface.BlockConfig;
 using Game.Entity.Interface;
@@ -23,8 +24,8 @@ namespace Test.CombinedTest.Server
         private const int TimeOfItemEnterToExit = 4000;
         private const int RemainingTime = 1000;
         private const int ItemInstanceId = 100;
-        private readonly List<Coordinate> _minusPlayerCoordinate = new() { new Coordinate(-ChunkResponseConst.ChunkSize, -ChunkResponseConst.ChunkSize) };
-        private readonly List<Coordinate> _plusPlayerCoordinate = new() { new Coordinate(0, 0) };
+        private readonly List<CoreVector2Int> _minusPlayerCoordinate = new() { new CoreVector2Int(-ChunkResponseConst.ChunkSize, -ChunkResponseConst.ChunkSize) };
+        private readonly List<CoreVector2Int> _plusPlayerCoordinate = new() { new CoreVector2Int(0, 0) };
 
         /// <summary>
         ///     各方向に向いたベルトコンベア内のアイテムの位置が正しいかどうかをチェックする

@@ -30,8 +30,8 @@ namespace Game.World.EventHandler.InventoryEvent
         private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
         {
             var connectOffsetBlockPositions = new List<(int, int)> { (1, 0), (-1, 0), (0, 1), (0, -1) };
-            var x = blockPlaceEvent.Coordinate.X;
-            var y = blockPlaceEvent.Coordinate.Y;
+            var x = blockPlaceEvent.CoreVector2Int.X;
+            var y = blockPlaceEvent.CoreVector2Int.Y;
 
             foreach (var (offsetX, offsetY) in connectOffsetBlockPositions)
             {

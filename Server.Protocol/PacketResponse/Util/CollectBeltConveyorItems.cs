@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Util;
 using Game.Base;
 using Game.Block;
 using Game.Block.Blocks.BeltConveyor;
@@ -15,7 +16,7 @@ namespace Server.Protocol.PacketResponse.Util
     /// </summary>
     public static class CollectBeltConveyorItems
     {
-        public static List<IEntity> CollectItem(List<Coordinate> collectChunks, IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
+        public static List<IEntity> CollectItem(List<CoreVector2Int> collectChunks, IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
             foreach (var collectChunk in collectChunks) result.AddRange(CollectItemFromChunk(collectChunk, worldBlockDatastore, blockConfig, entityFactory));
@@ -24,7 +25,7 @@ namespace Server.Protocol.PacketResponse.Util
         }
 
 
-        private static List<IEntity> CollectItemFromChunk(Coordinate chunk, IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
+        private static List<IEntity> CollectItemFromChunk(CoreVector2Int chunk, IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
             for (var i = 0; i < ChunkResponseConst.ChunkSize; i++)

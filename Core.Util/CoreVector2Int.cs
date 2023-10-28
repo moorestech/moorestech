@@ -1,11 +1,11 @@
-﻿namespace Game.World.Interface.DataStore
+﻿namespace Core.Util
 {
-    public struct Coordinate
+    public struct CoreVector2Int
     {
         public int X;
         public int Y;
 
-        public Coordinate(int x, int y)
+        public CoreVector2Int(int x, int y)
         {
             X = x;
             Y = y;

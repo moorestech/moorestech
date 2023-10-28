@@ -20,8 +20,8 @@ namespace Game.World.EventHandler.InventoryEvent
 
         private void OnRemoveBlock(BlockRemoveEventProperties blockRemoveEvent)
         {
-            var x = blockRemoveEvent.Coordinate.X;
-            var y = blockRemoveEvent.Coordinate.Y;
+            var x = blockRemoveEvent.CoreVector2Int.X;
+            var y = blockRemoveEvent.CoreVector2Int.Y;
 
             //削除されたブロックがIBlockInventoryでない場合、処理を終了する
             if (!(blockRemoveEvent.Block is IBlockInventory)) return;

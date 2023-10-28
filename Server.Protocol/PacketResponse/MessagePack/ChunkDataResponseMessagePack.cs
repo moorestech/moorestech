@@ -1,4 +1,5 @@
 ﻿using System;
+using Core.Util;
 using Game.World.Interface.DataStore;
 using MessagePack;
 
@@ -12,7 +13,7 @@ namespace Server.Protocol.PacketResponse.MessagePack
         {
         }
 
-        public ChunkDataResponseMessagePack(Coordinate chunk, int[,] blockIds, int[,] blockDirect, int[,] mapTileIds)
+        public ChunkDataResponseMessagePack(CoreVector2Int chunk, int[,] blockIds, int[,] blockDirect, int[,] mapTileIds)
         {
             Tag = PlayerCoordinateSendProtocol.ChunkDataTag;
             ChunkX = chunk.X;

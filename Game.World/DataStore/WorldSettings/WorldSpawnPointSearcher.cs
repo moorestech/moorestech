@@ -1,3 +1,4 @@
+using Core.Util;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
 
@@ -15,7 +16,7 @@ namespace World.DataStore.WorldSettings
         ///     ワールドの開始地点を探索する
         ///     TODO 必要になったらインジェクションするようにする
         /// </summary>
-        public static Coordinate SearchSpawnPoint(VeinGenerator veinGenerator)
+        public static CoreVector2Int SearchSpawnPoint(VeinGenerator veinGenerator)
         {
             //現状は100,100から-100,-100まで、鉄鉱石が生成されている場所を探索し、そこをスポーン地点とする
             var (fond, coordinate) = SearchSpawnPointRange(veinGenerator, 100, 100, -100, -100);
@@ -25,14 +26,14 @@ namespace World.DataStore.WorldSettings
             (fond, coordinate) = SearchSpawnPointRange(veinGenerator, 200, 200, -500, -500);
             if (fond) return coordinate;
             //それでもなかった場合は 300,300をスポーン地点とする
-            return new Coordinate(300, 300);
+            return new CoreVector2Int(300, 300);
         }
 
         /// <summary>
         ///     範囲を指定して鉄インゴットが上下左右に2ブロック分にある位置を探索する
         /// </summary>
         /// <returns></returns>
-        private static (bool isFound, Coordinate coordinate) SearchSpawnPointRange(VeinGenerator veinGenerator, int x1, int y1, int x2, int y2)
+        private static (bool isFound, CoreVector2Int coordinate) SearchSpawnPointRange(VeinGenerator veinGenerator, int x1, int y1, int x2, int y2)
         {
             if (x2 < x1) (x1, x2) = (x2, x1);
             if (y2 < y1) (y1, y2) = (y2, y1);
@@ -42,10 +43,10 @@ namespace World.DataStore.WorldSettings
             for (var y = y1; y < y2; y++)
             {
                 var veinId = veinGenerator.GetOreId(x, y);
-                if (veinId == IronOreId && CheckOreExistDirection(veinGenerator, x, y, IronOreId, 2)) return (true, new Coordinate(x, y));
+                if (veinId == IronOreId && CheckOreExistDirection(veinGenerator, x, y, IronOreId, 2)) return (true, new CoreVector2Int(x, y));
             }
 
-            return (false, new Coordinate(0, 0));
+            return (false, new CoreVector2Int(0, 0));
         }
 
         /// <summary>

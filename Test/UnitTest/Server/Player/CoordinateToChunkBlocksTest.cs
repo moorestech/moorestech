@@ -1,6 +1,7 @@
 #if NET6_0
 using System;
 using Core.Const;
+using Core.Util;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
@@ -22,7 +23,7 @@ namespace Test.UnitTest.Server.Player
         {
             var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
-            var b = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(new Coordinate(0, 0), worldData);
+            var b = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(new CoreVector2Int(0, 0), worldData);
 
             Assert.AreEqual(b.GetLength(0), ChunkResponseConst.ChunkSize);
             Assert.AreEqual(b.GetLength(1), ChunkResponseConst.ChunkSize);
@@ -48,7 +49,7 @@ namespace Test.UnitTest.Server.Player
             //レスポンスのチェック
             for (var l = 0; l < 100; l++)
             {
-                var c = new Coordinate(
+                var c = new CoreVector2Int(
                     random.Next(-5, 5) * ChunkResponseConst.ChunkSize,
                     random.Next(-5, 5) * ChunkResponseConst.ChunkSize);
                 var b = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(c, worldData);

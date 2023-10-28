@@ -18,7 +18,7 @@ namespace Server.Event.EventReceive
 
         private void ReceivedEvent(BlockPlaceEventProperties blockPlaceEventProperties)
         {
-            var c = blockPlaceEventProperties.Coordinate;
+            var c = blockPlaceEventProperties.CoreVector2Int;
             var blockId = blockPlaceEventProperties.Block.BlockId;
 
             var payload = MessagePackSerializer.Serialize(new PlaceBlockEventMessagePack(

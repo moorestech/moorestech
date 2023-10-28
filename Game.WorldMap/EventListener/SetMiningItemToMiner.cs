@@ -34,8 +34,8 @@ namespace Game.WorldMap.EventListener
 
         public void OnBlockPlace(BlockPlaceEventProperties blockPlaceEventProperties)
         {
-            var x = blockPlaceEventProperties.Coordinate.X;
-            var y = blockPlaceEventProperties.Coordinate.Y;
+            var x = blockPlaceEventProperties.CoreVector2Int.X;
+            var y = blockPlaceEventProperties.CoreVector2Int.Y;
             if (!_worldBlockDatastore.ExistsComponentBlock<IMiner>(x, y)) return;
 
             //鉱石コンフィグを取得

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
 using Core.Ore;
+using Core.Util;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
@@ -32,15 +33,15 @@ namespace Test.CombinedTest.Server.PacketTest
                 .Select(PayloadToBlock).Where(p => p is not null).ToList();
 
             Assert.AreEqual(25, response.Count());
-            var ans = new List<Coordinate>();
+            var ans = new List<CoreVector2Int>();
             for (var i = -40; i <= 40; i += ChunkResponseConst.ChunkSize)
             for (var j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
-                ans.Add(new Coordinate(i, j));
+                ans.Add(new CoreVector2Int(i, j));
 
             foreach (var r in response)
             {
                 //座標の確認
-                Assert.True(ans.Contains(r.Coordinate));
+                Assert.True(ans.Contains(r.CoreVector2Int));
                 //ブロックの確認
                 for (var i = 0; i < r.Blocks.GetLength(0); i++)
                 for (var j = 0; j < r.Blocks.GetLength(1); j++)
@@ -91,15 +92,15 @@ namespace Test.CombinedTest.Server.PacketTest
 
 
             Assert.AreEqual(25, response.Count());
-            var ans = new List<Coordinate>();
+            var ans = new List<CoreVector2Int>();
             for (var i = -40; i <= 40; i += ChunkResponseConst.ChunkSize)
             for (var j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
-                ans.Add(new Coordinate(i, j));
+                ans.Add(new CoreVector2Int(i, j));
 
             foreach (var r in response)
             {
                 //座標の確認
-                var c = r.Coordinate;
+                var c = r.CoreVector2Int;
                 Assert.True(ans.Contains(c));
                 //ブロックの確認
                 for (var i = 0; i < r.Blocks.GetLength(0); i++)
@@ -143,15 +144,15 @@ namespace Test.CombinedTest.Server.PacketTest
 
             //検証
             Assert.AreEqual(25, response.Count());
-            var ans = new List<Coordinate>();
+            var ans = new List<CoreVector2Int>();
             for (var i = -40; i <= 40; i += ChunkResponseConst.ChunkSize)
             for (var j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
-                ans.Add(new Coordinate(i, j));
+                ans.Add(new CoreVector2Int(i, j));
 
             foreach (var r in response)
             {
                 //座標の確認
-                var c = r.Coordinate;
+                var c = r.CoreVector2Int;
                 Assert.True(ans.Contains(c));
                 //ブロックの確認
                 for (var i = 0; i < r.Blocks.GetLength(0); i++)
@@ -175,7 +176,7 @@ namespace Test.CombinedTest.Server.PacketTest
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
             var worldMapTile = serviceProvider.GetService<WorldMapTile>();
 
-            var veinCoordinate = new Coordinate(0, 0);
+            var veinCoordinate = new CoreVector2Int(0, 0);
 
             //10000*10000 ブロックの中から鉱石があるチャンクを探す
             for (var i = 0; i < 1000; i++)
@@ -183,7 +184,7 @@ namespace Test.CombinedTest.Server.PacketTest
             {
                 var id = veinGenerator.GetOreId(i, j);
                 if (OreConst.NoneOreId == id) continue;
-                veinCoordinate = new Coordinate(i, j);
+                veinCoordinate = new CoreVector2Int(i, j);
             }
 
             //鉱石がある座標のチャンクを取得
@@ -195,8 +196,8 @@ namespace Test.CombinedTest.Server.PacketTest
             //正しく鉱石IDが帰ってきているかチェックする
             foreach (var r in response)
             {
-                var x = r.Coordinate.X;
-                var y = r.Coordinate.Y;
+                var x = r.CoreVector2Int.X;
+                var y = r.CoreVector2Int.Y;
                 for (var i = 0; i < ChunkResponseConst.ChunkSize; i++)
                 for (var j = 0; j < ChunkResponseConst.ChunkSize; j++)
                     //マップタイルと実際の返信を検証する
@@ -225,20 +226,20 @@ namespace Test.CombinedTest.Server.PacketTest
             if (data.Tag == PlayerCoordinateSendProtocol.EntityDataTag) return null;
 
 
-            return new ChunkData(new Coordinate(data.ChunkX, data.ChunkY), data.BlockIds, data.MapTileIds, data.BlockDirect);
+            return new ChunkData(new CoreVector2Int(data.ChunkX, data.ChunkY), data.BlockIds, data.MapTileIds, data.BlockDirect);
         }
 
         private class ChunkData
         {
             public readonly BlockDirection[,] BlockDirections;
             public readonly int[,] Blocks;
-            public readonly Coordinate Coordinate;
+            public readonly CoreVector2Int CoreVector2Int;
             public readonly int[,] MapTiles;
 
-            public ChunkData(Coordinate coordinate, int[,] blocks, int[,] mapTiles, int[,] blockDirections)
+            public ChunkData(CoreVector2Int coreVector2Int, int[,] blocks, int[,] mapTiles, int[,] blockDirections)
             {
                 Blocks = blocks;
-                Coordinate = coordinate;
+                CoreVector2Int = coreVector2Int;
                 MapTiles = mapTiles;
                 BlockDirections = new BlockDirection[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
 
