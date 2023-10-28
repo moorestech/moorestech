@@ -1,20 +1,28 @@
 ﻿using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.DataStore;
 
 namespace World.DataStore
 {
     public class WorldBlockData
     {
-        public WorldBlockData(IBlock block, int x, int y, BlockDirection blockDirection)
+        public WorldBlockData(IBlock block, int originX, int originY, BlockDirection blockDirection,IBlockConfig blockConfig)
         {
-            X = x;
-            Y = y;
+            OriginX = originX;
+            OriginY = originY;
             BlockDirection = blockDirection;
             Block = block;
         }
 
-        public int X { get; }
-        public int Y { get; }
+        public int OriginX { get; }
+        public int OriginY { get; }
+        public int Height { get; }
+        public int Weight { get; }
+        
+        
+        public int MaxX => BlockDirection is BlockDirection.North or BlockDirection.South ? OriginX + Weight : OriginX + Height;
+        public int MaxY => BlockDirection is BlockDirection.North or BlockDirection.South ? OriginY + Height : OriginY + Weight;
+        
         public IBlock Block { get; }
         public BlockDirection BlockDirection { get; }
     }

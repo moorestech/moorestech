@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Core.Const;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.State;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
@@ -15,6 +16,7 @@ namespace World.DataStore
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
         private readonly IBlockFactory _blockFactory;
+        private readonly IBlockConfig _blockConfig;
 
         //メインのデータストア
         private readonly Dictionary<int, WorldBlockData> _blockMasterDictionary = new();
@@ -28,9 +30,10 @@ namespace World.DataStore
         private readonly IBlock _nullBlock = new NullBlock();
 
         public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, IBlockFactory blockFactory,
-            IBlockRemoveEvent blockRemoveEvent)
+            IBlockRemoveEvent blockRemoveEvent, IBlockConfig blockConfig)
         {
             _blockFactory = blockFactory;
+            _blockConfig = blockConfig;
             _blockRemoveEvent = (BlockRemoveEvent)blockRemoveEvent;
             _blockPlaceEvent = (BlockPlaceEvent)blockPlaceEvent;
         }
@@ -44,7 +47,7 @@ namespace World.DataStore
                 !_coordinateDictionary.ContainsKey(new Coordinate(x, y)))
             {
                 var c = new Coordinate(x, y);
-                var data = new WorldBlockData(block, x, y, blockDirection);
+                var data = new WorldBlockData(block, x, y, blockDirection,_blockConfig);
                 _blockMasterDictionary.Add(block.EntityId, data);
                 _coordinateDictionary.Add(c, block.EntityId);
                 _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(c, data.Block, blockDirection));
@@ -99,7 +102,7 @@ namespace World.DataStore
             if (_blockMasterDictionary.ContainsKey(entityId))
             {
                 var data = _blockMasterDictionary[entityId];
-                return (data.X, data.Y);
+                return (data.OriginX, data.OriginY);
             }
 
             throw new Exception("ブロックがありません");
@@ -144,8 +147,8 @@ namespace World.DataStore
             var list = new List<SaveBlockData>();
             foreach (var block in _blockMasterDictionary)
                 list.Add(new SaveBlockData(
-                    block.Value.X,
-                    block.Value.Y,
+                    block.Value.OriginX,
+                    block.Value.OriginY,
                     block.Value.Block.BlockHash,
                     block.Value.Block.EntityId,
                     block.Value.Block.GetSaveState(),
