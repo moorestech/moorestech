@@ -5,7 +5,7 @@
       "type": "Machine",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test1",
-      "weight" : 1,
+      "width" : 1,
       "height" : 1,
       "param": {
         "inputSlot": 2,
@@ -18,7 +18,7 @@
       "type": "Block",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test2",
-      "weight" : 1,
+      "width" : 1,
       "height" : 1,
       "param": {}
     },
@@ -27,7 +27,7 @@
       "type": "BeltConveyor",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test3",
-      "weight" : 1,
+      "width" : 1,
       "height" : 1,
       "param": {
         "slot": 4,
@@ -39,7 +39,7 @@
       "type": "ElectricPole",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test4",
-      "weight" : 1,
+      "width" : 1,
       "height" : 1,
       "param": {
         "poleConnectionRange": 7,
@@ -51,7 +51,7 @@
       "type": "Generator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test5",
-      "weight" : 1,
+      "width" : 1,
       "height" : 1,
       "param": {
         "isInfinityPower": false,
@@ -78,7 +78,7 @@
       "type": "Miner",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test6",
-      "weight" : 1,
+      "width" : 1,
       "height" : 1,
       "param": {
         "requiredPower": 100,
@@ -96,7 +96,7 @@
       "type": "Chest",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test7",
-      "weight" : 1,
+      "width" : 1,
       "height" : 1,
       "param": {
         "slot": 5
@@ -107,7 +107,7 @@
       "type": "Generator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test8",
-      "weight" : 1,
+      "width" : 1,
       "height" : 1,
       "param": {
         "isInfinityPower": true,
@@ -121,7 +121,7 @@
       "type": "Generator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test9",
-      "weight" : 1,
+      "width" : 1,
       "height" : 4,
       "param": {
         "isInfinityPower": true,
@@ -135,7 +135,7 @@
       "type": "Generator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test10",
-      "weight" : 3,
+      "width" : 3,
       "height" : 2,
       "param": {
         "isInfinityPower": true,

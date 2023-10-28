@@ -13,17 +13,17 @@ namespace Game.World.Interface.DataStore
             Block = block;
             var config = blockConfig.GetBlockConfig(block.BlockId);
             Height = config.BlockSize.Y;
-            Weight = config.BlockSize.X;
+            Width = config.BlockSize.X;
         }
 
         public int OriginX { get; }
         public int OriginY { get; }
         public int Height { get; }
-        public int Weight { get; }
+        public int Width { get; }
         
         
-        public int MaxX => (BlockDirection is BlockDirection.North or BlockDirection.South ? OriginX + Weight : OriginX + Height) - 1;
-        public int MaxY => (BlockDirection is BlockDirection.North or BlockDirection.South ? OriginY + Height : OriginY + Weight) - 1;
+        public int MaxX => (BlockDirection is BlockDirection.North or BlockDirection.South ? OriginX + Width : OriginX + Height) - 1;
+        public int MaxY => (BlockDirection is BlockDirection.North or BlockDirection.South ? OriginY + Height : OriginY + Width) - 1;
         
         public bool IsContain(int x, int y)
         {
