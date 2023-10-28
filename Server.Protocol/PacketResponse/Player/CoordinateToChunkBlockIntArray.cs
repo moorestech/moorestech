@@ -22,15 +22,14 @@ namespace Server.Protocol.PacketResponse.Player
 
             for (var i = 0; i < blocks.GetLength(0); i++)
             for (var j = 0; j < blocks.GetLength(1); j++)
-                blocks[i, j] = worldBlockDatastore.GetBlock(
+                blocks[i, j] = worldBlockDatastore.GetOriginPosBlock(
                     x + i,
-                    y + j).BlockId;
+                    y + j)?.Block.BlockId ?? 0;
 
             return blocks;
         }
 
-        public static int[,] GetBlockDirectionInChunk(CoreVector2Int coreVector2Int,
-            IWorldBlockDatastore worldBlockDatastore)
+        public static int[,] GetBlockDirectionInChunk(CoreVector2Int coreVector2Int, IWorldBlockDatastore worldBlockDatastore)
         {
             var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coreVector2Int.X, coreVector2Int.Y);
 
@@ -38,9 +37,9 @@ namespace Server.Protocol.PacketResponse.Player
 
             for (var i = 0; i < blockDirections.GetLength(0); i++)
             for (var j = 0; j < blockDirections.GetLength(1); j++)
-                blockDirections[i, j] = (int)worldBlockDatastore.GetBlockDirection(
+                blockDirections[i, j] = (int)(worldBlockDatastore.GetOriginPosBlock(
                     x + i,
-                    y + j);
+                    y + j)?.BlockDirection ?? BlockDirection.North);
 
             return blockDirections;
         }

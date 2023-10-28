@@ -58,7 +58,7 @@ namespace Test.UnitTest.Server.Player
                 for (var i = 0; i < b.GetLength(0); i++)
                 for (var j = 0; j < b.GetLength(1); j++)
                     Assert.AreEqual(
-                        worldData.GetBlock(c.X + i, c.Y + j).BlockId,
+                        worldData.GetOriginPosBlock(c.X + i, c.Y + j)?.Block.BlockId ?? BlockConst.EmptyBlockId,
                         b[i, j]);
             }
         }

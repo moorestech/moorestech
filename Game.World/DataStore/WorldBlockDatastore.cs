@@ -22,6 +22,7 @@ namespace World.DataStore
 
         //メインのデータストア
         private readonly Dictionary<int, WorldBlockData> _blockMasterDictionary = new();
+        
         private readonly BlockPlaceEvent _blockPlaceEvent;
         private readonly BlockRemoveEvent _blockRemoveEvent;
 
@@ -83,6 +84,13 @@ namespace World.DataStore
         public IBlock GetBlock(int x, int y)
         {
             return GetBlockDatastore(x, y)?.Block ?? _nullBlock;
+        }
+
+        public WorldBlockData GetOriginPosBlock(int x, int y)
+        {
+            return _coordinateDictionary.TryGetValue(new CoreVector2Int(x, y), out var entityId)
+                ? _blockMasterDictionary[entityId]
+                : null;
         }
 
         public bool TryGetBlock(int x, int y, out IBlock block)

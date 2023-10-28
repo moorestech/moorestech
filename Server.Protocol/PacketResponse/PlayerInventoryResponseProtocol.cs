@@ -68,7 +68,7 @@ namespace Server.Protocol.PacketResponse
 
 
         /// <summary>
-        ///     デバッグ用でインベントリの中身が知りたい時に使用する
+        /// デバッグ用でインベントリの中身が知りたい時に使用する
         /// </summary>
         public static void ExportInventoryLog(PlayerInventoryData playerInventory, bool isExportMain, bool isExportCraft, bool isExportGrab)
         {

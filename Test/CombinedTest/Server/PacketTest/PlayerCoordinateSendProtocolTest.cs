@@ -23,7 +23,6 @@ namespace Test.CombinedTest.Server.PacketTest
     public class PlayerCoordinateSendProtocolTest
     {
         [Test]
-        [Order(1)]
         public void SimpleChunkResponseTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
@@ -41,7 +40,7 @@ namespace Test.CombinedTest.Server.PacketTest
             foreach (var r in response)
             {
                 //座標の確認
-                Assert.True(ans.Contains(r.CoreVector2Int));
+                Assert.True(ans.Contains(r.ChunkOrigin));
                 //ブロックの確認
                 for (var i = 0; i < r.Blocks.GetLength(0); i++)
                 for (var j = 0; j < r.Blocks.GetLength(1); j++)
@@ -70,21 +69,20 @@ namespace Test.CombinedTest.Server.PacketTest
         }
 
 
+        public const int Block_1x4_Id = 9;
+        
         //ブロックを設置するテスト
         [Test]
-        [Order(2)]
         public void PlaceBlockToChunkResponseTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
-            var random = new Random(13944156);
             //ブロックの設置
-            var b = blockFactory.Create(5, 1);
+            var b = blockFactory.Create(Block_1x4_Id, 1);
             worldBlock.AddBlock(b, 0, 0, BlockDirection.North);
-
-
+            
             packetResponse.GetPacketResponse(GetHandshakePacket(20));
 
             var bytes = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0));
@@ -100,19 +98,24 @@ namespace Test.CombinedTest.Server.PacketTest
             foreach (var r in response)
             {
                 //座標の確認
-                var c = r.CoreVector2Int;
+                var c = r.ChunkOrigin;
                 Assert.True(ans.Contains(c));
                 //ブロックの確認
                 for (var i = 0; i < r.Blocks.GetLength(0); i++)
                 for (var j = 0; j < r.Blocks.GetLength(1); j++)
-                    Assert.AreEqual(worldBlock.GetBlock(c.X + i, c.Y + j).BlockId
-                        , r.Blocks[i, j]);
+                    if (i == 0 && j == 0 && c == new CoreVector2Int(0,0))
+                    {
+                        Assert.AreEqual(Block_1x4_Id, r.Blocks[i, j]);
+                    }
+                    else
+                    {
+                        Assert.AreEqual(BlockConst.EmptyBlockId, r.Blocks[i, j]);            
+                    }
             }
         }
 
         //ランダムにブロックを設置するテスト
         [Test]
-        [Order(3)]
         public void RandomPlaceBlockToChunkResponseTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
@@ -152,16 +155,16 @@ namespace Test.CombinedTest.Server.PacketTest
             foreach (var r in response)
             {
                 //座標の確認
-                var c = r.CoreVector2Int;
+                var c = r.ChunkOrigin;
                 Assert.True(ans.Contains(c));
                 //ブロックの確認
                 for (var i = 0; i < r.Blocks.GetLength(0); i++)
                 for (var j = 0; j < r.Blocks.GetLength(1); j++)
                 {
-                    var id = worldBlock.GetBlock(c.X + i, c.Y + j).BlockId;
+                    var id = worldBlock.GetOriginPosBlock(c.X + i, c.Y + j)?.Block.BlockId ?? BlockConst.EmptyBlockId;
                     Assert.AreEqual(id, r.Blocks[i, j]);
 
-                    var direction = worldBlock.GetBlockDirection(c.X + i, c.Y + j);
+                    var direction = worldBlock.GetOriginPosBlock(c.X + i, c.Y + j)?.BlockDirection ?? BlockDirection.North;
                     Assert.AreEqual(direction, r.BlockDirections[i, j]);
                 }
             }
@@ -169,7 +172,6 @@ namespace Test.CombinedTest.Server.PacketTest
 
         //マップタイルの返信が正しいかチェックする
         [Test]
-        [Order(4)]
         public void TileMapResponseTest()
         {
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
@@ -196,8 +198,8 @@ namespace Test.CombinedTest.Server.PacketTest
             //正しく鉱石IDが帰ってきているかチェックする
             foreach (var r in response)
             {
-                var x = r.CoreVector2Int.X;
-                var y = r.CoreVector2Int.Y;
+                var x = r.ChunkOrigin.X;
+                var y = r.ChunkOrigin.Y;
                 for (var i = 0; i < ChunkResponseConst.ChunkSize; i++)
                 for (var j = 0; j < ChunkResponseConst.ChunkSize; j++)
                     //マップタイルと実際の返信を検証する
@@ -233,13 +235,13 @@ namespace Test.CombinedTest.Server.PacketTest
         {
             public readonly BlockDirection[,] BlockDirections;
             public readonly int[,] Blocks;
-            public readonly CoreVector2Int CoreVector2Int;
+            public readonly CoreVector2Int ChunkOrigin;
             public readonly int[,] MapTiles;
 
-            public ChunkData(CoreVector2Int coreVector2Int, int[,] blocks, int[,] mapTiles, int[,] blockDirections)
+            public ChunkData(CoreVector2Int chunkOrigin, int[,] blocks, int[,] mapTiles, int[,] blockDirections)
             {
                 Blocks = blocks;
-                CoreVector2Int = coreVector2Int;
+                ChunkOrigin = chunkOrigin;
                 MapTiles = mapTiles;
                 BlockDirections = new BlockDirection[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
 

@@ -1,8 +1,7 @@
 ﻿using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
-using Game.World.Interface.DataStore;
 
-namespace World.DataStore
+namespace Game.World.Interface.DataStore
 {
     public class WorldBlockData
     {

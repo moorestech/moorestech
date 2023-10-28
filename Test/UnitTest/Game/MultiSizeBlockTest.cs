@@ -55,9 +55,34 @@ namespace Test.UnitTest.Game
 
 
         [Test]
-        private void DuplicateBlockTest()
+        public void OverlappingBlockTest()
         {
-            throw new NotImplementedException();
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+
+            _blockFactory = serviceProvider.GetService<IBlockFactory>();
+            worldDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+
+            PlaceBlock(Block_1x4_Id, new CoreVector2Int(10, 10), BlockDirection.North);
+            PlaceBlock(Block_3x2_Id, new CoreVector2Int(10, 12), BlockDirection.South);
+
+            //3x2が設置されてないことをチェックする
+            RetrieveBlock(Block_3x2_Id, new CoreVector2Int(11,12));
+        }
+
+        [Test]
+        public void BoundaryBlockTest()
+        {
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+
+            _blockFactory = serviceProvider.GetService<IBlockFactory>();
+            worldDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
+
+
+            PlaceBlock(Block_1x4_Id, new CoreVector2Int(10,10), BlockDirection.North);
+            PlaceBlock(Block_1x4_Id, new CoreVector2Int(11,11), BlockDirection.East);
+
+            //1x4が設置されてないことをチェックする
+            RetrieveBlock(Block_1x4_Id, new CoreVector2Int(11,11));
         }
 
         private void PlaceBlock(int blockId, CoreVector2Int position, BlockDirection direction)
