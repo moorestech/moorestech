@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Const;
 using Core.Util;
 using Game.Block.Interface;
@@ -81,8 +82,13 @@ namespace World.DataStore
 
         public IBlock GetBlock(int x, int y)
         {
-            var c = new CoreVector2Int(x, y);
-            if (_coordinateDictionary.ContainsKey(c)) return _blockMasterDictionary[_coordinateDictionary[c]].Block;
+            //TODO GetBlockは頻繁に呼ばれる訳では無いが、この方式は効率が悪いのでなにか改善したい
+            foreach (var block in 
+                     _blockMasterDictionary.Where(block => block.Value.IsContain(x, y)))
+            {
+                return block.Value.Block;
+            }
+
             return _nullBlock;
         }
 

@@ -23,8 +23,13 @@ namespace World.DataStore
         public int Weight { get; }
         
         
-        public int MaxX => BlockDirection is BlockDirection.North or BlockDirection.South ? OriginX + Weight : OriginX + Height;
-        public int MaxY => BlockDirection is BlockDirection.North or BlockDirection.South ? OriginY + Height : OriginY + Weight;
+        public int MaxX => (BlockDirection is BlockDirection.North or BlockDirection.South ? OriginX + Weight : OriginX + Height) - 1;
+        public int MaxY => (BlockDirection is BlockDirection.North or BlockDirection.South ? OriginY + Height : OriginY + Weight) - 1;
+        
+        public bool IsContain(int x, int y)
+        {
+            return OriginX <= x && x <= MaxX && OriginY <= y && y <= MaxY;
+        }
         
         public IBlock Block { get; }
         public BlockDirection BlockDirection { get; }
