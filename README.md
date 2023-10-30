@@ -1,22 +1,28 @@
-# moorestech
-FactorioやSatisfactoryみたいな工業ゲーのサーバー
-[クライアントはこっち](https://github.com/moorestech/moorestech_client)
+# moorestech_client
 
-## OSSに関する表記
+工業ゲームmoorestechのUnityクライアントです
+
+### OSSに関する表記
+
+TODO この辺ちゃんとする
+
+VContainer
+https://github.com/hadashiA/VContainer
+
+NaughtyCharacter
+https://github.com/dbrizov/NaughtyCharacter
+
 Microsoft.Extensions.DependencyInjection  
 https://github.com/aspnet/DependencyInjection
 
-VSTest  
-https://github.com/microsoft/vstest
+CsvHelper
+https://github.com/JoshClose/CsvHelper
 
-nunit  
-https://github.com/nunit/nunit  
 
-Json.NET  
-https://github.com/JamesNK/Newtonsoft.Json
+### フォントラインセンスに関する表記
 
-.net core  
-https://github.com/dotnet/core  
+Noto Sans Japanese
+https://fonts.google.com/noto/specimen/Noto+Sans+JP
 
-FastNoiseLite  
-https://github.com/Auburn/FastNoiseLite  
+Noto Sans
+https://fonts.google.com/noto/specimen/Noto+Sans

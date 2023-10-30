@@ -1,0 +1,229 @@
+name: Build
+
+on:
+  # masterへのPRマージをトリガーとしてワークフローを開始する
+  pull_request:
+    branches:
+      - master
+    types: [closed]
+
+  # 手動実行デバッグ用
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.platform.runner }}
+    
+    strategy:
+      matrix:
+        platform:
+          - name: StandaloneWindows64
+            buildMethod: BuildPipeline.WindowsBuildFromGithubAction
+            runner: ubuntu-latest
+          - name: StandaloneOSX
+            buildMethod: BuildPipeline.MacOsBuildFromGithubAction
+            runner: macos-latest
+          - name: StandaloneLinux64
+            buildMethod: BuildPipeline.LinuxBuildFromGithubAction
+            runner: ubuntu-latest
+    
+    steps:
+      # Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: Assets/Script/Server/moorestech
+      # Submoduleの設定
+      - name: Init submodules
+        id: init
+        run: git submodule update --init
+      - name: Run git status
+        id: status
+        run: echo "::set-output name=status::$(git status -s)"
+
+      # 年月日を取得　キャッシュのkeyに利用
+      - name: Set current datetime as env variable
+        env:
+          TZ: 'Asia/Tokyo' # タイムゾーン指定
+        run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
+      
+      # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
+      - uses: actions/cache@v3
+        with:
+          path: Library
+          key: "Library_${{ env.CURRENT_DATETIME }}"
+      
+      # Build
+      - name: ${{ matrix.platform.name }} Build project
+        uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 2022.3.1f1
+          buildMethod: ${{ matrix.platform.buildMethod }}
+          allowDirtyBuild: true
+      
+      # Upload Build for Windows, Mac
+      - name: ${{ matrix.platform.name }} Upload
+        if: matrix.platform.name != 'StandaloneLinux64'
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_${{ matrix.platform.name }}
+          path: Output_${{ matrix.platform.name }}
+      
+      # Archive for Linux
+      - name: Archive for Linux
+        if: matrix.platform.name == 'StandaloneLinux64'
+        run: |
+          tar -czvf output.tar.gz Output_${{ matrix.platform.name }}
+      
+      # Upload Archival for Linux
+      - name: Upload Archival for Linux
+        if: matrix.platform.name == 'StandaloneLinux64'
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_${{ matrix.platform.name }}
+          path: ./output.tar.gz
+
+
+
+  # itch.ioへのデプロイ
+  idchDeploy:
+    name: itch.io Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        platform:
+          - name: StandaloneWindows64
+            itchioChannel: windows
+          - name: StandaloneOSX
+            itchioChannel: osx 
+          - name: StandaloneLinux64
+            itchioChannel: linux
+    
+    steps:
+      # ビルドしたデータをダウンロード
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_${{ matrix.platform.name }}
+          path: Output_${{ matrix.platform.name }}
+      # itch ioにデプロイ
+      - uses: manleydev/butler-publish-itchio-action@master
+        env:
+          BUTLER_CREDENTIALS: ${{ secrets.ITCH_IO_APY_KEY }}
+          CHANNEL: ${{ matrix.platform.itchioChannel }}
+          ITCH_GAME: ${{ secrets.ITCH_IO_GAME_NAME }}
+          ITCH_USER: ${{ secrets.ITCH_IO_USER_NAME }}
+          PACKAGE: Output_${{ matrix.platform.name }}
+  
+  
+    
+  # Steamへのデプロイ
+  steamDeploy:
+    name: Steam Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # 各プラットフォーム向けにビルドしたデータをダウンロード
+      - name: Download windows artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_StandaloneWindows64
+          path: build/StandaloneWindows64
+      - name: Download osx artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_StandaloneOSX
+          path: build/StandaloneOSX
+      - name: Download linux artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_StandaloneLinux64
+          path: build/StandaloneLinux64
+          
+      - uses: game-ci/steam-deploy@v3
+        with:
+          username: ${{ secrets.STEAM_USERNAME }}
+          configVdf: ${{ secrets.STEAM_CONFIG_VDF}}
+          appId: 1958160
+          buildDescription: upload from github action
+          rootPath: build
+          depot1Path: StandaloneWindows64
+          depot2Path: StandaloneOSX
+          depot3Path: StandaloneLinux64
+          releaseBranch: github-action
+  
+  
+  # Github Releaseへのデプロイ
+  createRelease:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # 各プラットフォーム向けにビルドしたデータをダウンロード
+      - name: Download windows artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_StandaloneWindows64
+          path: build/StandaloneWindows64
+      - name: Download osx artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_StandaloneOSX
+          path: build/StandaloneOSX
+      - name: Download linux artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Output_StandaloneLinux64
+          path: build/StandaloneLinux64
+          
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Changes in this Release
+            - First Change
+            - Second Change
+          draft: false
+          prerelease: false
+
+        # Upload Release Asset
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/StandaloneWindows64
+          asset_name: StandaloneWindows64
+          asset_content_type: application/zip
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/StandaloneOSX
+          asset_name: StandaloneOSX
+          asset_content_type: application/zip
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/StandaloneLinux64
+          asset_name: StandaloneLinux64
+          asset_content_type: application/zip
+          
