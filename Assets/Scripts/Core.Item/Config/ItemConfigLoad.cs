@@ -5,6 +5,7 @@ using System.Data.HashFunction.xxHash;
 using System.Linq;
 using Core.Const;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Core.Item.Config
 {
@@ -35,7 +36,7 @@ namespace Core.Item.Config
                 catch (Exception e)
                 {
                     //TODO ログ基盤に入れる
-                    Console.WriteLine(e.Message + "\n" + e.StackTrace + "\n アイテムコンフィグのロードに失敗しました mod id:" + mod);
+                    Debug.Log(e.Message + "\n" + e.StackTrace + "\n アイテムコンフィグのロードに失敗しました mod id:" + mod);
                 }
             }
 

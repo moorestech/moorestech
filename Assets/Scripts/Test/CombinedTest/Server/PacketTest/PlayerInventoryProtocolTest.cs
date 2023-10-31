@@ -69,8 +69,8 @@ namespace Test.CombinedTest.Server.PacketTest
             {
                 var id = craftConfig.CraftItemInfos[i].ItemStack.Id;
                 var count = craftConfig.CraftItemInfos[i].ItemStack.Count;
-                Console.WriteLine(craftConfig.CraftItemInfos[i].ItemStack.Id);
-                Console.WriteLine(craftConfig.CraftItemInfos[i].ItemStack.Count);
+                Debug.Log(craftConfig.CraftItemInfos[i].ItemStack.Id);
+                Debug.Log(craftConfig.CraftItemInfos[i].ItemStack.Count);
                 playerInventoryData.CraftingOpenableInventory.SetItem(i, id, count * 2);
             }
 

@@ -45,7 +45,7 @@ namespace Test.UnitTest.Game.SaveLoad
             fuelItemStacks.SetItem(2, itemStackFactory.Create(3, 5));
             //セーブのテキストを取得
             var saveText = powerGenerator.GetSaveState();
-            Console.WriteLine(saveText);
+            Debug.Log(saveText);
 
 
             var blockHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(PowerGeneratorId).BlockHash;

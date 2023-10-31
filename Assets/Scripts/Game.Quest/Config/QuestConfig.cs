@@ -4,6 +4,7 @@ using System.Linq;
 using Core.ConfigJson;
 using Core.Item;
 using Game.Quest.Interface;
+using UnityEngine;
 
 namespace Game.Quest.Config
 {
@@ -35,7 +36,7 @@ namespace Game.Quest.Config
             if (_modIdToQuests.TryGetValue(modId, out var quests)) return quests;
 
             //TODO ログ取得基盤に入れるようにする
-            Console.WriteLine("[QuestConfig]指定された ModId:" + modId + "にクエストは存在しません。");
+            Debug.Log("[QuestConfig]指定された ModId:" + modId + "にクエストは存在しません。");
             return new List<string>();
         }
 

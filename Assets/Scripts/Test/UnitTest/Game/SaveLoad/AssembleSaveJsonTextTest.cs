@@ -32,7 +32,7 @@ namespace Test.UnitTest.Game.SaveLoad
 
             var json = assembleSaveJsonText.AssembleSaveJson();
 
-            Console.WriteLine(json);
+            Debug.Log(json);
 
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);

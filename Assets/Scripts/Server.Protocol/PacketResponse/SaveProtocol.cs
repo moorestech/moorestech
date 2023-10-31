@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Save.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -19,9 +20,9 @@ namespace Server.Protocol.PacketResponse
 
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            Console.WriteLine("セーブ開始");
+            Debug.Log("セーブ開始");
             _worldSaveDataSaver.Save();
-            Console.WriteLine("セーブ完了");
+            Debug.Log("セーブ完了");
             return new List<List<byte>>();
         }
     }

@@ -26,7 +26,7 @@ namespace Test.CombinedTest.Core.Generate
             // メモリーストリームの内容をコンソールに出力する。
             st.Position = 0;
             var reader = new StreamReader(st);
-            Console.WriteLine(reader.ReadToEnd());
+            Debug.Log(reader.ReadToEnd());
 
 
             Assert.True(true);

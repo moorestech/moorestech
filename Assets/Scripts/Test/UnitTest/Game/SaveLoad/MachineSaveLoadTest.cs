@@ -69,7 +69,7 @@ namespace Test.UnitTest.Game.SaveLoad
             var recipeId = vanillaMachineRunProcess.RecipeDataId;
 
             var json = assembleSaveJsonText.AssembleSaveJson();
-            Console.WriteLine(json);
+            Debug.Log(json);
             //配置したブロックを削除
             worldBlockDatastore.RemoveBlock(0, 0);
 
@@ -80,8 +80,8 @@ namespace Test.UnitTest.Game.SaveLoad
             loadJsonFile.Load(json);
 
             var loadMachine = (VanillaMachineBase)loadWorldBlockDatastore.GetBlock(0, 0);
-            Console.WriteLine(machine.GetHashCode());
-            Console.WriteLine(loadMachine.GetHashCode());
+            Debug.Log(machine.GetHashCode());
+            Debug.Log(loadMachine.GetHashCode());
             //ブロックID、intIDが同じであることを確認
             Assert.AreEqual(machine.BlockId, loadMachine.BlockId);
             Assert.AreEqual(machine.EntityId, loadMachine.EntityId);

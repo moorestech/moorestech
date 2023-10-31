@@ -46,7 +46,7 @@ namespace Test.CombinedTest.Server.PacketTest.Event
             for (var i = 0; i < 100; i++)
             {
                 //ランダムな位置にブロックを設置する
-                Console.WriteLine(i);
+                Debug.Log(i);
                 var blocks = new List<TestBlockData>();
                 var cnt = random.Next(0, 20);
                 for (var j = 0; j < cnt; j++)

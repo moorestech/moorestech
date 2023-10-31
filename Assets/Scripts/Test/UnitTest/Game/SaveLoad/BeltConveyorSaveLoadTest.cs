@@ -31,7 +31,7 @@ namespace Test.UnitTest.Game.SaveLoad
 
             //セーブデータ取得
             var str = belt.GetSaveState();
-            Console.WriteLine(str);
+            Debug.Log(str);
             //セーブデータをロード
             var newBelt = new VanillaBeltConveyor(1, 10, 1, str, itemsStackFactory, 4, 4000);
             var newInventoryItems = (List<BeltConveyorInventoryItem>)inventoryItemsField.GetValue(newBelt);

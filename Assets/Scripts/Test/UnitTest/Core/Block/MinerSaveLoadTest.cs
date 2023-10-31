@@ -34,7 +34,7 @@ namespace Test.UnitTest.Game.Block
 
 
             var json = originalMiner.GetSaveState();
-            Console.WriteLine(json);
+            Debug.Log(json);
 
 
             var loadedMiner = blockFactory.Load(minerHash, 1, json);

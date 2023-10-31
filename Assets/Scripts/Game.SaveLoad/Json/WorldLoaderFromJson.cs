@@ -8,6 +8,7 @@ using Game.Save.Interface;
 using Game.Save.Json.WorldVersions;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Game.Save.Json
 {
@@ -44,19 +45,19 @@ namespace Game.Save.Json
                 try
                 {
                     Load(json);
-                    Console.WriteLine("セーブデータのロードが完了しました。");
+                    Debug.Log("セーブデータのロードが完了しました。");
                     return;
                 }
                 catch (Exception e)
                 {
                     //TODO ログ基盤
-                    Console.WriteLine("セーブデータが破損していたか古いバージョンでした。Discordサーバー ( https://discord.gg/ekFYmY3rDP ) にて連絡をお願いします。");
-                    Console.WriteLine($"セーブファイルパス {_saveJsonFileName.FullSaveFilePath}");
+                    Debug.Log("セーブデータが破損していたか古いバージョンでした。Discordサーバー ( https://discord.gg/ekFYmY3rDP ) にて連絡をお願いします。");
+                    Debug.Log($"セーブファイルパス {_saveJsonFileName.FullSaveFilePath}");
                     throw new Exception($"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
                 }
             }
 
-            Console.WriteLine("セーブデータがありませんでした。新規作成します。");
+            Debug.Log("セーブデータがありませんでした。新規作成します。");
             WorldInitialize();
         }
 

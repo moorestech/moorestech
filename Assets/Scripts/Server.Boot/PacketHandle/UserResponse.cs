@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using Server.Protocol;
 using Server.Util;
+using UnityEngine;
 
 namespace Server.Boot.PacketHandle
 {
@@ -28,7 +29,7 @@ namespace Server.Boot.PacketHandle
                     var error = ReceiveProcess(parser, buffer);
                     if (error)
                     {
-                        Console.WriteLine("切断されました");
+                        Debug.Log("切断されました");
                         break;
                     }
                 }
@@ -36,8 +37,8 @@ namespace Server.Boot.PacketHandle
             catch (Exception e)
             {
                 _client.Close();
-                Console.WriteLine("エラーによる切断");
-                Console.WriteLine(e);
+                Debug.Log("エラーによる切断");
+                Debug.Log(e);
             }
         }
 

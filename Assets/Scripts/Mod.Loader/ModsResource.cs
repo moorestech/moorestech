@@ -7,6 +7,7 @@ using System.Reflection;
 using Game.Paths;
 using Mod.Base;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Mod.Loader
 {
@@ -39,7 +40,7 @@ namespace Mod.Loader
 
                 if (modMeta == null)
                 {
-                    Console.WriteLine("Mod meta file not found in " + zipFile);
+                    Debug.Log("Mod meta file not found in " + zipFile);
                     continue;
                 }
 
@@ -67,7 +68,7 @@ namespace Mod.Loader
                 if (!File.Exists(modMetaFile))
                 {
                     //TODO ログ基盤に入れる
-                    Console.WriteLine("Mod meta file not found in " + modDir);
+                    Debug.Log("Mod meta file not found in " + modDir);
                     continue;
                 }
 

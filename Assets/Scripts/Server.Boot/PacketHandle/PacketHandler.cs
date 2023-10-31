@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Server.Protocol;
+using UnityEngine;
 
 namespace Server.Boot.PacketHandle
 {
@@ -17,13 +18,13 @@ namespace Server.Boot.PacketHandle
             //通信の受け入れ準備
             listener.Bind(new IPEndPoint(IPAddress.Any, Port));
             listener.Listen(10);
-            Console.WriteLine("moorestechサーバー 起動完了");
+            Debug.Log("moorestechサーバー 起動完了");
 
             while (true)
             {
                 //通信の確率
                 var client = listener.Accept();
-                Console.WriteLine("接続確立");
+                Debug.Log("接続確立");
                 //性能が足りなくなってきたら非同期メソッドを使うようにする
                 Task.Run(() => new UserResponse(client, packetResponseCreator).StartListen());
             }

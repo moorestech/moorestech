@@ -5,6 +5,7 @@ using System.Text;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -114,7 +115,7 @@ namespace Server.Protocol.PacketResponse
                 inventoryStr.AppendLine(playerInventory.CraftingOpenableInventory.GetCreatableItem().Id + " " + playerInventory.CraftingOpenableInventory.GetCreatableItem().Count + "  ");
             }
 
-            Console.WriteLine(inventoryStr);
+            Debug.Log(inventoryStr);
         }
     }
 

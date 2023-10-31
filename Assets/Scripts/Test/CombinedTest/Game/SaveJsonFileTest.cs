@@ -27,7 +27,7 @@ namespace Test.CombinedTest.Game
 
             //リフレクションでテスト用のファイル名を変更
             ChangeFilePath(saveServiceProvider.GetService<SaveJsonFileName>(), "SaveJsonAndLoadTest.json");
-            Console.WriteLine(saveServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
+            Debug.Log(saveServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
 
 
             //ブロックの追加
@@ -44,7 +44,7 @@ namespace Test.CombinedTest.Game
             //テスト用にファイル名を変更
             //リフレクションでテスト用のファイル名を変更
             ChangeFilePath(loadServiceProvider.GetService<SaveJsonFileName>(), "SaveJsonAndLoadTest.json");
-            Console.WriteLine(loadServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
+            Debug.Log(loadServiceProvider.GetService<SaveJsonFileName>().FullSaveFilePath);
 
             loadServiceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
             var loadWorldBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();

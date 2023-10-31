@@ -1,6 +1,7 @@
 using System;
 using Core.Inventory;
 using Core.Item;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util.InventoryService
 {
@@ -17,11 +18,11 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
                 //TODO ログ基盤に入れる
                 var fromInventoryName = fromInventory.GetType().Name;
                 var toInventoryName = toInventory.GetType().Name;
-                Console.WriteLine($"InventoryItemMoveService.Move: \n {e.Message} \n fromInventory={fromInventoryName} fromSlot={fromSlot} toInventory={toInventoryName} toSlot={toSlot} itemCount={itemCount}  \n {e.StackTrace}");
+                Debug.Log($"InventoryItemMoveService.Move: \n {e.Message} \n fromInventory={fromInventoryName} fromSlot={fromSlot} toInventory={toInventoryName} toSlot={toSlot} itemCount={itemCount}  \n {e.StackTrace}");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Debug.Log(e);
             }
         }
 

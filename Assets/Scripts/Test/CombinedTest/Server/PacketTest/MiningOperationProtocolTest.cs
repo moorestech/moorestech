@@ -50,7 +50,7 @@ namespace Test.CombinedTest.Server.PacketTest
             }
 
             var oreItemId = oreConfig.OreIdToItemId(oreId);
-            Console.WriteLine(oreItemId);
+            Debug.Log(oreItemId);
 
             //プロトコルを使って鉱石を採掘
             packet.GetPacketResponse(MiningOperation(x, y, PlayerId));

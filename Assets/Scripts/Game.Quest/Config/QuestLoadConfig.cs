@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Core.Item;
 using Game.Quest.Interface;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Game.Quest.Config
 {
@@ -57,7 +58,7 @@ namespace Game.Quest.Config
             if (detectLoopLog.Contains(questConfigJsonData.QuestId))
             {
                 //TODO 例外を出力す方法を考える
-                Console.WriteLine("[ConfigLoadLog] ModId:" + questConfigJsonData.ModId + "の前提クエストにループがありました。前提クエストをチェックしてください。　クエストId:" + questConfigJsonData.QuestId);
+                Debug.Log("[ConfigLoadLog] ModId:" + questConfigJsonData.ModId + "の前提クエストにループがありました。前提クエストをチェックしてください。　クエストId:" + questConfigJsonData.QuestId);
                 return new List<QuestConfigData>();
             }
 
@@ -79,7 +80,7 @@ namespace Game.Quest.Config
                 if (!keyQuestIdJsonConfigs.TryGetValue(prerequisiteId, out var prerequisiteJsonConfig))
                 {
                     //TODO 例外を出力す方法を考える
-                    Console.WriteLine("[ConfigLoadLog] ModId:" + questConfigJsonData.ModId + "のクエスト " + questConfigJsonData.QuestId + "の前提クエストに存在しないクエストIDが渡されました。　存在しないクエストId:" + prerequisiteId);
+                    Debug.Log("[ConfigLoadLog] ModId:" + questConfigJsonData.ModId + "のクエスト " + questConfigJsonData.QuestId + "の前提クエストに存在しないクエストIDが渡されました。　存在しないクエストId:" + prerequisiteId);
                     continue;
                 }
 
@@ -114,7 +115,7 @@ namespace Game.Quest.Config
                 if (loadedQuests == null)
                 {
                     //TODO 例外を出力す方法を考える
-                    Console.WriteLine("[ConfigLoadLog] ModId:" + modId + "のクエストコンフィグのロードに失敗しました。JSONファイルを確認してください。");
+                    Debug.Log("[ConfigLoadLog] ModId:" + modId + "のクエストコンフィグのロードに失敗しました。JSONファイルを確認してください。");
                     continue;
                 }
 

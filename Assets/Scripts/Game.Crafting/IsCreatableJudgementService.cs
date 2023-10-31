@@ -6,6 +6,7 @@ using Core.Item;
 using Core.Item.Config;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
+using UnityEngine;
 
 namespace Game.Crafting
 {
@@ -36,8 +37,8 @@ namespace Game.Crafting
                     var existItemName = _itemConfig.GetItemConfig(_craftingConfigDataCache[cashKey].Result.Id).Name;
 
                     //TODO Modパースエラーのログを出す
-                    Console.WriteLine("クラフトレシピのキャッシュの構築中に失敗しました。クラフトレシピに重複があります。");
-                    Console.WriteLine($"ロードしようとしたレシピの結果 ModId:{resultItemModId} Name:{resultItemName} 重複したレシピの結果 ModId:{existItemModId} Name:{existItemName}");
+                    Debug.Log("クラフトレシピのキャッシュの構築中に失敗しました。クラフトレシピに重複があります。");
+                    Debug.Log($"ロードしようとしたレシピの結果 ModId:{resultItemModId} Name:{resultItemName} 重複したレシピの結果 ModId:{existItemModId} Name:{existItemName}");
                     throw new ArgumentException();
                 }
 

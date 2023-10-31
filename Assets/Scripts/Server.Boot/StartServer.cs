@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Mod.Base;
 using Mod.Loader;
 using Server.Boot.PacketHandle;
+using UnityEngine;
 
 namespace Server.Boot
 {
@@ -21,13 +22,14 @@ namespace Server.Boot
         {
             get
             {
-                var path = Environment.GetEnvironmentVariable("MOORES_SERVER_DIRECTORY");
+                return @"/Users/katsumi.sato/moorestech_client/Server";
+                var path = Environment.GetEnvironmentVariable("MOORES_SERVER_DIRECTORY", EnvironmentVariableTarget.User);
                 if (path != null) return path;
 
                 //環境変数を取得する
-                Console.WriteLine("環境変数にコンフィグのパスが指定されていませんでした。MOORES_SERVER_DIRECTORYを設定してください。");
-                Console.WriteLine("Windowsの場合の設定コマンド > setx /M MOORES_SERVER_DIRECTORY \"C:～ \"");
-                Console.WriteLine("Macの場合の設定コマンド > export MOORES_SERVER_DIRECTORY=\"～\"");
+                Debug.Log("環境変数にコンフィグのパスが指定されていませんでした。MOORES_SERVER_DIRECTORYを設定してください。");
+                Debug.Log("Windowsの場合の設定コマンド > setx /M MOORES_SERVER_DIRECTORY \"C:～ \"");
+                Debug.Log("Macの場合の設定コマンド > export MOORES_SERVER_DIRECTORY=\"～\"");
                 return Environment.CurrentDirectory;
             }
         }
@@ -41,57 +43,44 @@ namespace Server.Boot
             }
         }
 
-        public static async Task Start(string[] args)
+        public static (Thread serverUpdateThread, Thread gameUpdateThread, CancellationTokenSource autoSaveTokenSource)
+            Start(string[] args)
         {
-            try
-            {
 #if DEBUG
-                var serverDirectory = DebugServerDirectory;
+            var serverDirectory = DebugServerDirectory;
 #else
-                var serverDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            var serverDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 #endif
 
-                Console.WriteLine("データをロードします　パス:" + serverDirectory);
+            Debug.Log("データをロードします　パス:" + serverDirectory);
 
-                var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(serverDirectory);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(serverDirectory);
 
-                //マップをロードする
-                serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
+            //マップをロードする
+            serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
 
-                //modのOnLoadコードを実行する
-                var modsResource = serviceProvider.GetService<ModsResource>();
-                modsResource.Mods.ToList().ForEach(
-                    m => m.Value.ModEntryPoints.ForEach(
-                        e =>
-                        {
-                            Console.WriteLine("Modをロードしました modId:" + m.Value + " className:" + e.GetType().Name);
-                            e.OnLoad(new ServerModEntryInterface(serviceProvider, packet));
-                        }));
+            //modのOnLoadコードを実行する
+            var modsResource = serviceProvider.GetService<ModsResource>();
+            modsResource.Mods.ToList().ForEach(
+                m => m.Value.ModEntryPoints.ForEach(
+                    e =>
+                    {
+                        Debug.Log("Modをロードしました modId:" + m.Value + " className:" + e.GetType().Name);
+                        e.OnLoad(new ServerModEntryInterface(serviceProvider, packet));
+                    }));
 
 
-                //サーバーの起動とゲームアップデートの開始
-                new Thread(() => new PacketHandler().StartServer(packet)).Start();
-                new Thread(() =>
-                {
-                    while (true) GameUpdater.Update();
-                }).Start();
-
-                await new AutoSaveSystem(serviceProvider.GetService<IWorldSaveDataSaver>()).AutoSave();
-
-                Console.ReadKey();
-            }
-            catch (Exception e)
+            //サーバーの起動とゲームアップデートの開始
+            var serverUpdateThread = new Thread(() => new PacketHandler().StartServer(packet));
+            var gameUpdateThread = new Thread(() =>
             {
-                Console.WriteLine(e);
-                Console.WriteLine("StackTrace");
-                Console.WriteLine(e.StackTrace);
+                while (true) GameUpdater.Update();
+            });
 
-                Console.WriteLine();
-                Console.WriteLine("Message");
+            var autoSaveTaskTokenSource = new CancellationTokenSource();
+            Task.Run(() => new AutoSaveSystem(serviceProvider.GetService<IWorldSaveDataSaver>()).AutoSave(autoSaveTaskTokenSource), autoSaveTaskTokenSource.Token);
 
-                Console.WriteLine(e.Message);
-                Console.ReadKey();
-            }
+            return (serverUpdateThread, gameUpdateThread, autoSaveTaskTokenSource);
         }
     }
 }

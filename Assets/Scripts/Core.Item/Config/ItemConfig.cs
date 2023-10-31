@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.ConfigJson;
 using Core.Const;
+using UnityEngine;
 
 namespace Core.Item.Config
 {
@@ -56,7 +57,7 @@ namespace Core.Item.Config
         {
             if (_bockHashToId.TryGetValue(itemHash, out var id)) return id;
             //TODO ログ基盤に入れる
-            Console.WriteLine("itemHash:" + itemHash + " is not found");
+            Debug.Log("itemHash:" + itemHash + " is not found");
             return ItemConst.EmptyItemId;
         }
 
@@ -71,7 +72,7 @@ namespace Core.Item.Config
         {
             foreach (var itemId in GetItemIds(modId).Where(i => GetItemConfig(i).Name == itemName)) return itemId;
             //TODO ログ基盤に入れる
-            Console.WriteLine($"itemName:{itemName} itemModId:{modId} is not found callerMethodName:{callerMethodName}");
+            Debug.Log($"itemName:{itemName} itemModId:{modId} is not found callerMethodName:{callerMethodName}");
             return ItemConst.EmptyItemId;
         }
     }

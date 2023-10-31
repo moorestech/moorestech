@@ -88,7 +88,7 @@ namespace Test.CombinedTest.Core
 
                 Assert.True(outputItem.Equals(itemStackFactory.Create(id, count - 1)));
                 var tmp = itemStackFactory.Create(id, 1);
-                Console.WriteLine($"{tmp} {dummy.InsertedItems[0]}");
+                Debug.Log($"{tmp} {dummy.InsertedItems[0]}");
                 Assert.AreEqual(tmp.ToString(), dummy.InsertedItems[0].ToString());
             }
         }

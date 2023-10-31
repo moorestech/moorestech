@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest.Interface;
+using UnityEngine;
 
 namespace Game.Quest.QuestEntity
 {
@@ -49,7 +50,7 @@ namespace Game.Quest.QuestEntity
             }
 
             //TODO ログ基盤に入れる
-            Console.WriteLine("You haven't completed this quest yet");
+            Debug.Log("You haven't completed this quest yet");
         }
 
         private void OnItemCraft((int itemId, int itemCount) result)

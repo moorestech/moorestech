@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Item;
 using Game.Crafting.Interface;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Game.Crafting.Config
 {
@@ -38,7 +39,7 @@ namespace Game.Crafting.Config
                 }
 
                 //TODO ロードした時にあるべきものがなくnullだったらエラーを出す
-                if (config.Result.ModId == null) Console.WriteLine(i + " : Result item is null");
+                if (config.Result.ModId == null) Debug.Log(i + " : Result item is null");
 
                 var resultItem =
                     _itemStackFactory.Create(config.Result.ModId, config.Result.ItemName, config.Result.Count);

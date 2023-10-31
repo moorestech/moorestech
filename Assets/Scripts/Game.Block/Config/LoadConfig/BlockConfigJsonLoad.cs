@@ -7,6 +7,7 @@ using Core.Item.Config;
 using Core.Util;
 using Game.Block.Interface.BlockConfig;
 using Newtonsoft.Json.Linq;
+using UnityEngine;
 
 namespace Game.Block.Config.LoadConfig
 {
@@ -67,7 +68,7 @@ namespace Game.Block.Config.LoadConfig
                 var itemId = 0;
                 if (itemModId == null || itemName == null)
                     //TODO ログ基盤に入れる
-                    Console.WriteLine("[BlockJsonLoad] ブロックのアイテム設定が不正です。modId:" + modId + " ブロック名:" + name);
+                    Debug.Log("[BlockJsonLoad] ブロックのアイテム設定が不正です。modId:" + modId + " ブロック名:" + name);
                 else
                     itemId = _itemConfig.GetItemId(itemModId, itemName);
 

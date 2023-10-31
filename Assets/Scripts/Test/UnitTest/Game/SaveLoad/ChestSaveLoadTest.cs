@@ -30,7 +30,7 @@ namespace Test.UnitTest.Game.SaveLoad
             chest.SetItem(4, 3, 3);
 
             var save = chest.GetSaveState();
-            Console.WriteLine(save);
+            Debug.Log(save);
 
             var chest2 = (VanillaChest)blockFactory.Load(blockHash, 1, save);
 

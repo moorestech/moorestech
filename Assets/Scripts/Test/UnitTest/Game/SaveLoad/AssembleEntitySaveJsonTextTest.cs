@@ -36,7 +36,7 @@ namespace Test.UnitTest.Game.SaveLoad
 
             //セーブの実行
             var json = assembleSaveJsonText.AssembleSaveJson();
-            Console.WriteLine(json);
+            Debug.Log(json);
 
             //ロードの実行
             var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
