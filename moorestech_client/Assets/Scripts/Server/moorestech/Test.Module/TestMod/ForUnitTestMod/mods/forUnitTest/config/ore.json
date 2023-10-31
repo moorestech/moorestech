@@ -1,0 +1,20 @@
+[
+  {
+    "oreId": 1,
+    "name": "iron",
+    "veinSize": 1,
+    "veinFrequency": 1,
+    "priority": 10,
+    "itemName": "Test3",
+    "itemModId": "Test Author:forUniTest"
+  },
+  {
+    "oreId": 2,
+    "name": "copper",
+    "veinSize": 1,
+    "veinFrequency": 1,
+    "priority": 9,
+    "itemName": "Test4",
+    "itemModId": "Test Author:forUniTest"
+  }
+]

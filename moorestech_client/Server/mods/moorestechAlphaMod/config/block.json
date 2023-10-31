@@ -1,0 +1,282 @@
+{
+    "Blocks": [
+        {
+            "name": "campfire",
+            "type": "Machine",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "campfire",
+            "width": 2,
+            "height": 2,
+            "param": {
+                "inputSlot": 2,
+                "outputSlot": 1,
+                "requiredPower": 0
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 1,
+                    "y": 0,
+                    "z": 1
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 2,
+                    "y": 2,
+                    "z": 2
+                }
+            }
+        },
+        {
+            "name": "charcoal kiln",
+            "type": "Machine",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "charcoal kiln",
+            "width": 1,
+            "height": 1,
+            "param": {
+                "inputSlot": 2,
+                "outputSlot": 1,
+                "requiredPower": 0
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "bloomery",
+            "type": "Machine",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "bloomery",
+            "width": 1,
+            "height": 1,
+            "param": {
+                "inputSlot": 2,
+                "outputSlot": 1,
+                "requiredPower": 0
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "bloomery with bellows",
+            "type": "GearMachine",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "bloomery with bellows",
+            "width": 1,
+            "height": 1,
+            "param": {
+                "inputSlot": 2,
+                "outputSlot": 1,
+                "requiredPower": 100
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "wooden belt conveyor",
+            "type": "BeltConveyor",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "wooden belt conveyor",
+            "width": 1,
+            "height": 1,
+            "param": {
+                "slot": 3,
+                "time": 10000
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "gear ore crusher",
+            "type": "GearMachine",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "gear ore crusher",
+            "width": 1,
+            "height": 1,
+            "param": {
+                "inputSlot": 1,
+                "outputSlot": 1,
+                "requiredPower": 100
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "gear miner",
+            "type": "GearMiner",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "gear miner",
+            "width": 1,
+            "height": 1,
+            "param": {
+                "requiredPower": 100,
+                "outputSlot": 1,
+                "oreSetting": [
+                    {
+                        "oreId": 1,
+                        "time": 20000
+                    },
+                    {
+                        "oreId": 2,
+                        "time": 20000
+                    }
+                ]
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "water wheel",
+            "type": "GearGenerator",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "water wheel",
+            "width": 1,
+            "height": 1,
+            "param": {
+                "fuelSlot": 0,
+                "isInfinityPower": true,
+                "infinityPower": 50,
+                "fuel": []
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        },
+        {
+            "name": "wooden gearbox",
+            "type": "GearEnergyTransformer",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "wooden gearbox",
+            "width": 1,
+            "height": 1,
+            "param": {
+                "poleConnectionRange": 2,
+                "machineConnectionRange": 2
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,18 @@
+[
+    {
+        "name": "iron_ore",
+        "veinSize" : 2,
+        "veinFrequency" : 2,
+        "priority" : 100,
+        "itemName" : "iron ore",
+        "itemModId": "sakastudio:moorestechAlphaMod"
+      },
+      {
+        "name": "coal_ore",
+        "veinSize" : 1,
+        "veinFrequency" : 1.5,
+        "priority" : 80,
+        "itemName" : "coal",
+        "itemModId": "sakastudio:moorestechAlphaMod"
+      }
+]
