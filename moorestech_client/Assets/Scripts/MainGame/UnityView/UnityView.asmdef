@@ -1,0 +1,31 @@
+{
+    "name": "UnityView",
+    "rootNamespace": "",
+    "references": [
+        "Unity.InputSystem",
+        "Cinemachine",
+        "VContainer",
+        "Unity.TextMeshPro",
+        "Constant",
+        "GameConst",
+        "Server",
+        "ModLoader",
+        "UniTask",
+        "ThirdPersonController",
+        "MessagePack",
+        "Localization",
+        "UniRx",
+        "Network"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "SinglePlay.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

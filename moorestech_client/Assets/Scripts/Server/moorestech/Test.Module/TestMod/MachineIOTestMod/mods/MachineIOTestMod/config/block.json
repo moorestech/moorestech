@@ -1,0 +1,43 @@
+﻿{
+  "Blocks": [
+    {
+      "name": "TestMachine",
+      "type": "Machine",
+      "itemModId": "Test Author 2:testMod2",
+      "itemName": "Test1",
+      "width" : 1,
+      "height" : 1,
+      "param": {
+        "inputSlot": 100,
+        "outputSlot": 100,
+        "requiredPower": 101
+      }
+    },
+    {
+      "name": "TestMachine1",
+      "type": "Machine",
+      "itemModId": "Test Author 2:testMod2",
+      "itemName": "Test2",
+      "width" : 1,
+      "height" : 1,
+      "param": {
+        "inputSlot": 100,
+        "outputSlot": 100,
+        "requiredPower": 101
+      }
+    },
+    {
+      "name": "TestMachine2",
+      "type": "Machine",
+      "itemModId": "Test Author 2:testMod2",
+      "itemName": "Test3",
+      "width" : 1,
+      "height" : 1,
+      "param": {
+        "inputSlot": 100,
+        "outputSlot": 100,
+        "requiredPower": 101
+      }
+    }
+  ]
+}

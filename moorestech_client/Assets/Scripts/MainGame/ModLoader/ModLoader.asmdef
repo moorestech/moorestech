@@ -1,0 +1,26 @@
+{
+    "name": "ModLoader",
+    "rootNamespace": "",
+    "references": [
+        "Server",
+        "UniGLTF",
+        "VRM",
+        "VRM10",
+        "VrmLib",
+        "VRMShaders.GLTF.IO.Runtime",
+        "VRMShaders.VRM.IO.Runtime",
+        "VRMShaders.VRM10.Format.Runtime",
+        "VRMShaders.VRM10.MToon10.Runtime",
+        "UniTask",
+        "Constant"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
