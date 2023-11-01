@@ -2,7 +2,7 @@
     "name": "Constant",
     "rootNamespace": "",
     "references": [
-        "Server"
+        "moorestechServer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

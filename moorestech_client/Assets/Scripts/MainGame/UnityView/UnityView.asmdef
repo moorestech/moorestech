@@ -8,14 +8,14 @@
         "Unity.TextMeshPro",
         "Constant",
         "GameConst",
-        "Server",
         "ModLoader",
         "UniTask",
         "ThirdPersonController",
         "MessagePack",
         "Localization",
         "UniRx",
-        "Network"
+        "Network",
+        "moorestechServer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

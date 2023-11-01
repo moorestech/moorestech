@@ -2,7 +2,6 @@
     "name": "ModLoader",
     "rootNamespace": "",
     "references": [
-        "Server",
         "UniGLTF",
         "VRM",
         "VRM10",
@@ -12,7 +11,8 @@
         "VRMShaders.VRM10.Format.Runtime",
         "VRMShaders.VRM10.MToon10.Runtime",
         "UniTask",
-        "Constant"
+        "Constant",
+        "moorestechServer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
