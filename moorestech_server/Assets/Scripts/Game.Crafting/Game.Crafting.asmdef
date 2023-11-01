@@ -1,0 +1,4 @@
+{
+    "name": "Game.Crafting",
+    "references":[ "GUID:50f16bfed1dca47318ee62eae71e344a", "GUID:d10205307f59843dba7c8a22b322ecd8", "GUID:ef51da6ab00ef46f19c50828f3a7b5a0", "GUID:8335664a9033441439b8427a414d8032", "GUID:89119084300464c008e0944f3b792c5e" ]
+}

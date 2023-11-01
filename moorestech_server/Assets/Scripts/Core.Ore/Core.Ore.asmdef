@@ -1,0 +1,4 @@
+{
+    "name": "Core.Ore",
+    "references":[ "GUID:ef51da6ab00ef46f19c50828f3a7b5a0", "GUID:d10205307f59843dba7c8a22b322ecd8", "GUID:83870f06bca35461788c2966a6590389" ]
+}

@@ -1,0 +1,4 @@
+{
+    "name": "Mod.Config",
+    "references":[ "GUID:ef51da6ab00ef46f19c50828f3a7b5a0", "GUID:9b0524cdf9e32431597d388b784f3852" ]
+}

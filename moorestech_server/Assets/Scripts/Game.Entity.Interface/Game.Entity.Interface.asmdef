@@ -1,0 +1,4 @@
+{
+    "name": "Game.Entity.Interface",
+    "references":[ "GUID:0d1775a337cb34cc1b26e6341a565140", "GUID:d10205307f59843dba7c8a22b322ecd8" ]
+}

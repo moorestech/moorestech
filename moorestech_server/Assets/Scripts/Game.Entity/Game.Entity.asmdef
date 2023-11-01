@@ -1,0 +1,4 @@
+{
+    "name": "Game.Entity",
+    "references":[ "GUID:915eeaccec5a0491f9ff28208aec0628", "GUID:0d1775a337cb34cc1b26e6341a565140" ]
+}

@@ -1,0 +1,4 @@
+{
+    "name": "Core.Item",
+    "references":[ "GUID:83870f06bca35461788c2966a6590389", "GUID:ef51da6ab00ef46f19c50828f3a7b5a0" ]
+}

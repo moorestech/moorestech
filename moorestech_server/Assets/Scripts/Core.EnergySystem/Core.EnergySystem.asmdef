@@ -1,0 +1,4 @@
+{
+    "name": "Core.EnergySystem",
+    "references":[ "GUID:2e65bd1131a2144bca9461c5f24dc755" ]
+}

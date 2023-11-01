@@ -1,0 +1,4 @@
+{
+    "name": "Mod.Loader",
+    "references":[ "GUID:df98b2a9e2100471887bac191c5233be", "GUID:956d9e7d78b5b469cb45f27076151522" ]
+}

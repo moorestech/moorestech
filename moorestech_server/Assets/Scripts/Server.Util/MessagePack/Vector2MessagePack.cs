@@ -1,6 +1,5 @@
 using System;
 using Core.Util;
-using Game.World.Interface.DataStore;
 using MessagePack;
 
 namespace Server.Util.MessagePack
