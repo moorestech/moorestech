@@ -1,0 +1,50 @@
+Line,Main,Home,はぁあ..金欠だぁ...\nお金持ちになりたいなぁ
+Line,Friend,Home,...
+Line,Friend,Home,...じゃ、惑星開拓でもやってみたら？
+Line,Main,Home,惑星開拓？
+Line,Friend,Home,惑星を丸ごと1つ買い取って工場にするやつ
+Line,Friend,Home,最近流行ってるでしょ？
+Line,Main,Home,え、それめっちゃお金かからない？\n私はお金に困ってるんだけど
+Line,Friend,Home,最近は惑星開拓者を送り込む派遣サービスもあるから...\nそれを使うとか...ほら、これとか...
+Line,Main,Home,ふうん、そういうものもあるのね\nこれ、なんか怪しい感じだけど大丈夫なの？
+Line,Friend,Home,さぁ...\nでも、これくらいしかなくない...?
+Line,Main,Home,....
+Transition,,,
+Line,Main,Spaceship,ここまで来ちゃったけど、本当に大丈夫なのかな...
+Line,Friend,Spaceship,[携帯電話] 一応開拓する惑星の周回軌道上にいるわけだし..大丈夫なんじゃないの？
+Line,Main,Spaceship,そうなんだけどさぁ ここまでの手続きがね
+Line,Friend,Spaceship,ふうん..じゃあ私は切るね また降下したら教えて
+Line,Main,Spaceship,えっちょっと
+Line,None,Spaceship,ツー・ツー
+Line,Main,Spaceship,はぁ～
+Line,SupportAI,Spaceship,はじめまして！私は[サポートAI]です！\nあなたの惑星開拓ライフをサポートするAIアシスタントです♪
+Line,Main,Spaceship,へぇー最近のAIは可愛くなったんだね
+Line,SupportAI,Spaceship,えへへ、可愛いだなんて、ありがとうございます！それでは、早速惑星に降下する準備を始めます！
+Transition,,,
+Line,SupportAI,SpaceshipWithDroppod,今回降下に使う宇宙船はこちらです！
+Line,Main,SpaceshipWithDroppod,ねぇ、これかなりの年代物じゃない？大丈夫なの？
+Line,SupportAI,SpaceshipWithDroppod,今回は予算の都合でこちらになります！私がきちんと整備しているので問題ありません！
+Line,Main,SpaceshipWithDroppod,そうか...貧乏は悲しいな
+Line,SupportAI,SpaceshipWithDroppod,ささ、早く搭乗してください。降下は30分後ですよ！
+Line,Main,SpaceshipWithDroppod,はぁ...
+Transition,,,
+Line,SupportAI,Droppod,母機分離まであと10秒...
+Line,SupportAI,Droppod,3..2..1..分離成功、これより逆噴射による減速を行い、降下を開始します。
+Transition,,,
+Line,SupportAI,Droppod,大気圏再突入まであと3...2...1...
+Line,SupportAI,Droppod,本機は順調に降下中...
+Line,SupportAI,Droppod,高度45km..パラシュート展開
+Line,None,Droppod,ビービービービー
+Line,Main,Droppod,何!?
+Line,SupportAI,Droppod,マズイ パラシュートが絡まってます！
+Line,Main,Droppod,は！？えっ！？ちゃんと整備したんじゃないの！？
+Line,SupportAI,Droppod,はい！3年前に
+Line,Main,Droppod,それはちゃんと整備しているとは言わん！！
+Line,SupportAI,Droppod,貨物エリアを分離！逆噴射準備！
+Line,Main,Droppod,貨物エリア分離って言った！？あの中に工場建設のためのツールも全部入ってるんだけど！？
+Line,SupportAI,Droppod,緊急事態なのであきらめてください！高度21km 逆噴射開始
+Line,SupportAI,Droppod,着地まで残り10..9..8..7..6..5..4..3..2..1..
+Line,None,Droppod,ドン！
+Line,SupportAI,Droppod,ふぅ〜着陸成功です！
+Line,Main,Droppod,そりゃどうも..さて、これからどうしていこうか....
+Transition,,,

@@ -1,0 +1,22 @@
+{
+    "name": "Network",
+    "rootNamespace": "",
+    "references": [
+        "Constant",
+        "VContainer",
+        "MessagePack",
+        "MessagePack.Annotations",
+        "UniTask",
+        "UniRx",
+        "moorestechServer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

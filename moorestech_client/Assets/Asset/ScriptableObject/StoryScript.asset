@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b0e404fc8f14c448847de24716be200, type: 3}
+  m_Name: StoryScript
+  m_EditorClassIdentifier: 
+  eventScripts:
+  - key: Intro
+    scenarioCsv: {fileID: 4900000, guid: a9336fe5c0f911d4692b1c665612afb3, type: 3}
+  characters:
+  - name: "\u4E3B\u4EBA\u516C"
+    key: Main
+    characterSprite: {fileID: 21300000, guid: 917552d973beb4415b45bcdd1160ec5d, type: 3}
+  - name: "\u53CB\u4EBA"
+    key: Friend
+    characterSprite: {fileID: 21300000, guid: 37f950d177c7f4ee3a26da8876e63e55, type: 3}
+  - name: "\u30B5\u30DD\u30FC\u30C8AI"
+    key: SupportAI
+    characterSprite: {fileID: 0}
+  - name: 
+    key: None
+    characterSprite: {fileID: 21300000, guid: 5b1b09df14a2aba498897db911b3eec3, type: 3}
+  backgrounds:
+  - key: None
+    characterSprite: {fileID: 0}
+  - key: Home
+    characterSprite: {fileID: 21300000, guid: f2926eed818b0784f85aeec3a315851c, type: 3}
+  - key: Spaceship
+    characterSprite: {fileID: 21300000, guid: 1667942090a4ad84fb5ebe265a2fdebd, type: 3}
+  - key: SpaceshipWithDroppod
+    characterSprite: {fileID: 21300000, guid: 71700f3f74e89724ebeea52d98a2e6eb, type: 3}
+  - key: Droppod
+    characterSprite: {fileID: 21300000, guid: d8d9dace646e0464c9c98e9a8ced3ba8, type: 3}

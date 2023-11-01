@@ -1,0 +1,25 @@
+{
+    "name": "Presenter",
+    "rootNamespace": "",
+    "references": [
+        "Network",
+        "UnityView",
+        "Constant",
+        "VContainer",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro",
+        "UniRx",
+        "UniTask",
+        "ModLoader",
+        "moorestechServer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

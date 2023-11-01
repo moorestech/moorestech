@@ -1,0 +1,27 @@
+{
+    "name": "Starter",
+    "rootNamespace": "",
+    "references": [
+        "UnityView",
+        "VContainer",
+        "GameConst",
+        "Constant",
+        "Presenter",
+        "Network",
+        "ModLoader",
+        "Extension",
+        "Localization",
+        "moorestechServer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "SinglePlay.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

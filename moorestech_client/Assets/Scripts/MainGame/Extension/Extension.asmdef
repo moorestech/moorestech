@@ -1,0 +1,20 @@
+{
+    "name": "Extension",
+    "rootNamespace": "",
+    "references": [
+        "UnityView",
+        "ModLoader",
+        "VContainer",
+        "Network",
+        "moorestechServer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
