@@ -18,21 +18,7 @@ namespace Server.Boot
         private const int argsCount = 1;
 
 
-        private static string DebugServerDirectory
-        {
-            get
-            {
-                return @"/Users/katsumi.sato/moorestech_client/Server";
-                var path = Environment.GetEnvironmentVariable("MOORES_SERVER_DIRECTORY", EnvironmentVariableTarget.User);
-                if (path != null) return path;
-
-                //環境変数を取得する
-                Debug.Log("環境変数にコンフィグのパスが指定されていませんでした。MOORES_SERVER_DIRECTORYを設定してください。");
-                Debug.Log("Windowsの場合の設定コマンド > setx /M MOORES_SERVER_DIRECTORY \"C:～ \"");
-                Debug.Log("Macの場合の設定コマンド > export MOORES_SERVER_DIRECTORY=\"～\"");
-                return Environment.CurrentDirectory;
-            }
-        }
+        private static string DebugServerDirectory => Path.GetFullPath(Path.Combine(Environment.CurrentDirectory ,"../moorestech_client/Server"));
 
         private static string StartupFromClientFolderPath
         {
@@ -43,9 +29,9 @@ namespace Server.Boot
             }
         }
 
-        public static (Thread serverUpdateThread, Thread gameUpdateThread, CancellationTokenSource autoSaveTokenSource)
-            Start(string[] args)
+        public static (Thread serverUpdateThread, Thread gameUpdateThread, CancellationTokenSource autoSaveTokenSource) Start(string[] args)
         {
+            //カレントディレクトリを表示
 #if DEBUG
             var serverDirectory = DebugServerDirectory;
 #else
