@@ -1,6 +1,9 @@
-# moorestech_client
+# moorestech
 
-工業ゲームmoorestechのUnityクライアントです
+工業ゲームmoorestechのUnityのサーバー、クライアントです
+
+# 起動方法
+mooresech_server、clientともにUnityで開き、serverを再生した後、clientのMainGameシーンを再生してください
 
 ### OSSに関する表記
 
