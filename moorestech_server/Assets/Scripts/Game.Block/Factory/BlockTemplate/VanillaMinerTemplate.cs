@@ -10,9 +10,9 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaMinerTemplate : IBlockTemplate
     {
-        public delegate VanillaMinerBase LoadMiner((string state, int blockId, int entityId, ulong blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemFactory, BlockOpenableInventoryUpdateEvent openableInvEvent) data);
+        public delegate VanillaMinerBase LoadMiner((string state, int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemFactory, BlockOpenableInventoryUpdateEvent openableInvEvent) data);
 
-        public delegate VanillaMinerBase NewMiner((int blockId, int entityId, ulong blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemFactory, BlockOpenableInventoryUpdateEvent openableInvEvent) data);
+        public delegate VanillaMinerBase NewMiner((int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemFactory, BlockOpenableInventoryUpdateEvent openableInvEvent) data);
 
         private readonly BlockOpenableInventoryUpdateEvent _blockOpenableInventoryUpdateEvent;
 
@@ -30,7 +30,7 @@ namespace Game.Block.Factory.BlockTemplate
             _loadMiner = loadMiner;
         }
 
-        public IBlock New(BlockConfigData param, int entityId, ulong blockHash)
+        public IBlock New(BlockConfigData param, int entityId, long blockHash)
         {
             var (requestPower, outputSlot) = GetData(param, entityId);
 
@@ -38,7 +38,7 @@ namespace Game.Block.Factory.BlockTemplate
                 _itemStackFactory, _blockOpenableInventoryUpdateEvent));
         }
 
-        public IBlock Load(BlockConfigData param, int entityId, ulong blockHash, string state)
+        public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state)
         {
             var (requestPower, outputSlot) = GetData(param, entityId);
 

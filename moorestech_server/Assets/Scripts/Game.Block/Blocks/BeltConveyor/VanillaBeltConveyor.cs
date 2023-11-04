@@ -21,7 +21,7 @@ namespace Game.Block.Blocks.BeltConveyor
         public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         private IBlockInventory _connector;
 
-        public VanillaBeltConveyor(int blockId, int entityId, ulong blockHash, ItemStackFactory itemStackFactory, int inventoryItemNum, int timeOfItemEnterToExit)
+        public VanillaBeltConveyor(int blockId, int entityId, long blockHash, ItemStackFactory itemStackFactory, int inventoryItemNum, int timeOfItemEnterToExit)
         {
             EntityId = entityId;
             BlockId = blockId;
@@ -33,7 +33,7 @@ namespace Game.Block.Blocks.BeltConveyor
             GameUpdater.RegisterUpdater(this);
         }
 
-        public VanillaBeltConveyor(int blockId, int entityId, ulong blockHash, string state, ItemStackFactory itemStackFactory,
+        public VanillaBeltConveyor(int blockId, int entityId, long blockHash, string state, ItemStackFactory itemStackFactory,
             int inventoryItemNum, int timeOfItemEnterToExit) : this(blockId, entityId, blockHash, itemStackFactory, inventoryItemNum, timeOfItemEnterToExit)
         {
             //stateから復元
@@ -52,7 +52,7 @@ namespace Game.Block.Blocks.BeltConveyor
         public IReadOnlyList<BeltConveyorInventoryItem> InventoryItems => _inventoryItems;
         public int EntityId { get; }
         public int BlockId { get; }
-        public ulong BlockHash { get; }
+        public long BlockHash { get; }
 
         public event Action<ChangedBlockState> OnBlockStateChange;
 

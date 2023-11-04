@@ -7,7 +7,7 @@ namespace Game.Block.Interface
     {
         public int EntityId { get; }
         public int BlockId { get; }
-        public ulong BlockHash { get; }
+        public long BlockHash { get; }
         public string GetSaveState();
 
         /// <summary>

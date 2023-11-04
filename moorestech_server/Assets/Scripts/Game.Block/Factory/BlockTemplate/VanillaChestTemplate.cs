@@ -18,13 +18,13 @@ namespace Game.Block.Factory.BlockTemplate
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
         }
 
-        public IBlock New(BlockConfigData param, int entityId, ulong blockHash)
+        public IBlock New(BlockConfigData param, int entityId, long blockHash)
         {
             var chest = param.Param as ChestConfigParam;
             return new VanillaChest(param.BlockId, entityId, blockHash, chest.ChestItemNum, _itemStackFactory, _blockInventoryUpdateEvent);
         }
 
-        public IBlock Load(BlockConfigData param, int entityId, ulong blockHash, string state)
+        public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state)
         {
             var chest = param.Param as ChestConfigParam;
             return new VanillaChest(state, param.BlockId, entityId, blockHash, chest.ChestItemNum, _itemStackFactory, _blockInventoryUpdateEvent);

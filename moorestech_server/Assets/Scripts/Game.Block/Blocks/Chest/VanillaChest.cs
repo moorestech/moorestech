@@ -21,7 +21,7 @@ namespace Game.Block.Blocks.Chest
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
 
-        public VanillaChest(int blockId, int entityId, ulong blockHash, int slotNum, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate)
+        public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -33,7 +33,7 @@ namespace Game.Block.Blocks.Chest
             GameUpdater.RegisterUpdater(this);
         }
 
-        public VanillaChest(string saveData, int blockId, int entityId, ulong blockHash, int slotNum, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate) : this(blockId, entityId, blockHash, slotNum, itemStackFactory, blockInventoryUpdate)
+        public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate) : this(blockId, entityId, blockHash, slotNum, itemStackFactory, blockInventoryUpdate)
         {
             var split = saveData.Split(',');
             for (var i = 0; i < split.Length; i += 2)
@@ -47,7 +47,7 @@ namespace Game.Block.Blocks.Chest
 
         public int EntityId { get; }
         public int BlockId { get; }
-        public ulong BlockHash { get; }
+        public long BlockHash { get; }
         public event Action<ChangedBlockState> OnBlockStateChange;
 
         public string GetSaveState()

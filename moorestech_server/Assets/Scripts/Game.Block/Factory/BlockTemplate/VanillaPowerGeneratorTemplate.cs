@@ -30,7 +30,7 @@ namespace Game.Block.Factory.BlockTemplate
             _loadGenerator = loadGenerator;
         }
 
-        public IBlock New(BlockConfigData param, int entityId, ulong blockHash)
+        public IBlock New(BlockConfigData param, int entityId, long blockHash)
         {
             var generatorParam = param.Param as PowerGeneratorConfigParam;
             return _newGenerator(new VanillaPowerGeneratorProperties(
@@ -38,7 +38,7 @@ namespace Game.Block.Factory.BlockTemplate
                 generatorParam.FuelSettings, _blockInventoryUpdateEven));
         }
 
-        public IBlock Load(BlockConfigData param, int entityId, ulong blockHash, string state)
+        public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state)
         {
             var generatorParam = param.Param as PowerGeneratorConfigParam;
             return _loadGenerator(new VanillaPowerGeneratorProperties(
@@ -49,7 +49,7 @@ namespace Game.Block.Factory.BlockTemplate
 
     public class VanillaPowerGeneratorProperties
     {
-        public readonly ulong BlockHash;
+        public readonly long BlockHash;
         public readonly int BlockId;
         public readonly IBlockOpenableInventoryUpdateEvent BlockInventoryUpdate;
         public readonly int EntityId;
@@ -59,7 +59,7 @@ namespace Game.Block.Factory.BlockTemplate
         public readonly bool IsInfinityPower;
         public readonly ItemStackFactory ItemStackFactory;
 
-        public VanillaPowerGeneratorProperties(int blockId, int entityId, ulong blockHash, int fuelItemSlot, bool isInfinityPower, int infinityPower, ItemStackFactory itemStackFactory, Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate)
+        public VanillaPowerGeneratorProperties(int blockId, int entityId, long blockHash, int fuelItemSlot, bool isInfinityPower, int infinityPower, ItemStackFactory itemStackFactory, Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate)
         {
             BlockId = blockId;
             EntityId = entityId;

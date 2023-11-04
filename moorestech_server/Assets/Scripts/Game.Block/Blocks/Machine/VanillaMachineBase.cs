@@ -23,7 +23,7 @@ namespace Game.Block.Blocks.Machine
         private readonly VanillaMachineRunProcess _vanillaMachineRunProcess;
         private readonly VanillaMachineSave _vanillaMachineSave;
 
-        protected VanillaMachineBase(int blockId, int entityId, ulong blockHash,
+        protected VanillaMachineBase(int blockId, int entityId, long blockHash,
             VanillaMachineBlockInventory vanillaMachineBlockInventory,
             VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess, ItemStackFactory itemStackFactory)
         {
@@ -40,7 +40,7 @@ namespace Game.Block.Blocks.Machine
 
         public int EntityId { get; }
         public int BlockId { get; }
-        public ulong BlockHash { get; }
+        public long BlockHash { get; }
         public event Action<ChangedBlockState> OnBlockStateChange;
 
 

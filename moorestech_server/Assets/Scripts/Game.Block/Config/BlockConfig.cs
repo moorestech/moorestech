@@ -14,7 +14,7 @@ namespace Game.Block.Config
     public class BlockConfig : IBlockConfig
     {
         private readonly List<BlockConfigData> _blockConfigList;
-        private readonly Dictionary<ulong, BlockConfigData> _bockHashToConfig = new();
+        private readonly Dictionary<long, BlockConfigData> _bockHashToConfig = new();
         private readonly Dictionary<string, List<int>> _modIdToBlockIds = new();
 
         public BlockConfig(ConfigJsonList configJson, IItemConfig itemConfig)
@@ -54,7 +54,7 @@ namespace Game.Block.Config
                 ItemConst.EmptyItemId, new ModelTransform(), new CoreVector2Int(1,1));
         }
 
-        public BlockConfigData GetBlockConfig(ulong blockHash)
+        public BlockConfigData GetBlockConfig(long blockHash)
         {
             if (_bockHashToConfig.TryGetValue(blockHash, out var blockConfig)) return blockConfig;
 

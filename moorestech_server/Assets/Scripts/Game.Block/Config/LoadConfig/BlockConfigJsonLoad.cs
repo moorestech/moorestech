@@ -75,7 +75,7 @@ namespace Game.Block.Config.LoadConfig
 
                 IBlockConfigParam blockParam = _generators[type].Generate(block.param);
 
-                var hash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + name).Hash);
+                var hash = BitConverter.ToInt64(xxHash.ComputeHash(modId + "/" + name).Hash);
 
                 var modelTransform = GetModelTransform(block);
                 int width = block.width;

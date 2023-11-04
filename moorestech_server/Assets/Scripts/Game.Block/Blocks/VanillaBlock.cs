@@ -6,7 +6,7 @@ namespace Game.Block.Blocks
 {
     public class VanillaBlock : IBlock
     {
-        public VanillaBlock(int blockId, int entityId, ulong blockHash)
+        public VanillaBlock(int blockId, int entityId, long blockHash)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -15,7 +15,7 @@ namespace Game.Block.Blocks
 
         public int EntityId { get; }
         public int BlockId { get; }
-        public ulong BlockHash { get; }
+        public long BlockHash { get; }
         public event Action<ChangedBlockState> OnBlockStateChange;
 
         public string GetSaveState()

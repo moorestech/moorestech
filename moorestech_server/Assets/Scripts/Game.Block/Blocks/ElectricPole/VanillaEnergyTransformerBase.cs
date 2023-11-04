@@ -7,7 +7,7 @@ namespace Game.Block.Blocks.ElectricPole
 {
     public abstract class VanillaEnergyTransformerBase : IEnergyTransformer, IBlock
     {
-        protected VanillaEnergyTransformerBase(int blockId, int entityId, ulong blockHash)
+        protected VanillaEnergyTransformerBase(int blockId, int entityId, long blockHash)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -15,7 +15,7 @@ namespace Game.Block.Blocks.ElectricPole
         }
 
         public int BlockId { get; }
-        public ulong BlockHash { get; }
+        public long BlockHash { get; }
         public event Action<ChangedBlockState> OnBlockStateChange;
 
         public string GetSaveState()

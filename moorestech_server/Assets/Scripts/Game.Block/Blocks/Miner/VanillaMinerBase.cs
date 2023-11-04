@@ -34,7 +34,7 @@ namespace Game.Block.Blocks.Miner
         private List<IItemStack> _miningItems = new();
         private int _remainingMillSecond = int.MaxValue;
 
-        protected VanillaMinerBase(int blockId, int entityId, ulong blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
+        protected VanillaMinerBase(int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -50,7 +50,7 @@ namespace Game.Block.Blocks.Miner
             GameUpdater.RegisterUpdater(this);
         }
 
-        protected VanillaMinerBase(string saveData, int blockId, int entityId, ulong blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
+        protected VanillaMinerBase(string saveData, int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
             : this(blockId, entityId, blockHash, requestPower, outputSlotCount, itemStackFactory, openableInventoryUpdateEvent)
         {
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
@@ -69,7 +69,7 @@ namespace Game.Block.Blocks.Miner
 
         public int EntityId { get; }
         public int BlockId { get; }
-        public ulong BlockHash { get; }
+        public long BlockHash { get; }
         public event Action<ChangedBlockState> OnBlockStateChange;
 
         public string GetSaveState()

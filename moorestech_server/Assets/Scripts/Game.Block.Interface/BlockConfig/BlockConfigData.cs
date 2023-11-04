@@ -4,7 +4,7 @@ namespace Game.Block.Interface.BlockConfig
 {
     public class BlockConfigData
     {
-        public readonly ulong BlockHash;
+        public readonly long BlockHash;
 
         public readonly int BlockId;
         public readonly int ItemId;
@@ -15,7 +15,7 @@ namespace Game.Block.Interface.BlockConfig
         public readonly string Type;
         public readonly CoreVector2Int BlockSize;
 
-        public BlockConfigData(string modId, int blockId, string name, ulong blockHash, string type, IBlockConfigParam param, int itemId, ModelTransform modelTransform, CoreVector2Int blockSize)
+        public BlockConfigData(string modId, int blockId, string name, long blockHash, string type, IBlockConfigParam param, int itemId, ModelTransform modelTransform, CoreVector2Int blockSize)
         {
             BlockId = blockId;
             Name = name;

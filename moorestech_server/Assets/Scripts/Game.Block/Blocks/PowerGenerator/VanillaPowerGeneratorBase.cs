@@ -59,7 +59,7 @@ namespace Game.Block.Blocks.PowerGenerator
 
         public int EntityId { get; }
         public int BlockId { get; }
-        public ulong BlockHash { get; }
+        public long BlockHash { get; }
         public event Action<ChangedBlockState> OnBlockStateChange;
 
         public string GetSaveState()

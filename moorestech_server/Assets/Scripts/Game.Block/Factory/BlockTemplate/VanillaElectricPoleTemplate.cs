@@ -6,12 +6,12 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaElectricPoleTemplate : IBlockTemplate
     {
-        public IBlock New(BlockConfigData param, int entityId, ulong blockHash)
+        public IBlock New(BlockConfigData param, int entityId, long blockHash)
         {
             return new VanillaElectricPole(param.BlockId, entityId, blockHash);
         }
 
-        public IBlock Load(BlockConfigData param, int entityId, ulong blockHash, string state)
+        public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state)
         {
             return new VanillaElectricPole(param.BlockId, entityId, blockHash);
         }

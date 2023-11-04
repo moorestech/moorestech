@@ -14,7 +14,7 @@ namespace Game.Block.Factory.BlockTemplate
     public class VanillaMachineTemplate : IBlockTemplate
     {
         public delegate VanillaMachineBase CreateMachine(
-            (int blockId, int entityId, ulong blockHash, VanillaMachineBlockInventory vanillaMachineBlockInventory, VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess, ItemStackFactory itemStackFactory) data);
+            (int blockId, int entityId, long blockHash, VanillaMachineBlockInventory vanillaMachineBlockInventory, VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess, ItemStackFactory itemStackFactory) data);
 
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
         private readonly CreateMachine _createMachine;
@@ -33,7 +33,7 @@ namespace Game.Block.Factory.BlockTemplate
             _createMachine = createMachine;
         }
 
-        public IBlock New(BlockConfigData param, int entityId, ulong blockHash)
+        public IBlock New(BlockConfigData param, int entityId, long blockHash)
         {
             var (input, output, machineParam) = GetData(param, entityId);
 
@@ -48,7 +48,7 @@ namespace Game.Block.Factory.BlockTemplate
                 ));
         }
 
-        public IBlock Load(BlockConfigData param, int entityId, ulong blockHash, string state)
+        public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state)
         {
             var (input, output, machineParam) = GetData(param, entityId);
 
