@@ -59,7 +59,7 @@ namespace Game.Block.Blocks.Miner
             var inventoryItems = new List<IItemStack>();
             for (var i = 1; i < split.Length; i += 2)
             {
-                var itemHash = ulong.Parse(split[i]);
+                var itemHash = long.Parse(split[i]);
                 var itemCount = int.Parse(split[i + 1]);
                 inventoryItems.Add(_itemStackFactory.Create(itemHash, itemCount));
             }

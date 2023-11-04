@@ -33,7 +33,7 @@ namespace Core.Item
             return new ItemStack(id, count, _itemConfig, this, instanceId);
         }
 
-        public IItemStack Create(ulong itemHash, int count)
+        public IItemStack Create(long itemHash, int count)
         {
             if (count < 1) return CreatEmpty();
 

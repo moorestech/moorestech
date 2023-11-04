@@ -46,7 +46,7 @@ namespace Core.Item.Config
 
     public class ItemConfigData
     {
-        public readonly ulong ItemHash;
+        public readonly long ItemHash;
         public readonly string ModId;
 
         internal ItemConfigData(ItemConfigJsonData jsonData, string modId, IxxHash xxHash)
@@ -57,7 +57,7 @@ namespace Core.Item.Config
             ImagePath = jsonData.ImagePath;
             ItemHash = 1;
 
-            ItemHash = BitConverter.ToUInt64(xxHash.ComputeHash(modId + "/" + Name).Hash);
+            ItemHash = BitConverter.ToInt64(xxHash.ComputeHash(modId + "/" + Name).Hash);
         }
 
         /// <summary>

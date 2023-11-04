@@ -15,7 +15,7 @@ namespace Core.Item.Implementation
 
         public int Id => ItemConst.EmptyItemId;
         public int Count => 0;
-        public ulong ItemHash => 0;
+        public long ItemHash => 0;
         public long ItemInstanceId { get; }
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)

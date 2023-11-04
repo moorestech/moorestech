@@ -52,7 +52,7 @@ namespace Game.Block.Blocks.PowerGenerator
             var slot = 0;
             for (var i = 2; i < split.Length; i += 2)
             {
-                _itemDataStoreService.SetItem(slot, data.ItemStackFactory.Create(ulong.Parse(split[i]), int.Parse(split[i + 1])));
+                _itemDataStoreService.SetItem(slot, data.ItemStackFactory.Create(long.Parse(split[i]), int.Parse(split[i + 1])));
                 slot++;
             }
         }

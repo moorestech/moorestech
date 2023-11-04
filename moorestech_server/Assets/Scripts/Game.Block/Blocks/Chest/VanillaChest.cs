@@ -38,7 +38,7 @@ namespace Game.Block.Blocks.Chest
             var split = saveData.Split(',');
             for (var i = 0; i < split.Length; i += 2)
             {
-                var itemHash = ulong.Parse(split[i]);
+                var itemHash = long.Parse(split[i]);
                 var itemCount = int.Parse(split[i + 1]);
                 var item = itemStackFactory.Create(itemHash, itemCount);
                 _itemDataStoreService.SetItem(i / 2, item);

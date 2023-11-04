@@ -10,7 +10,7 @@ namespace Core.Item.Config
     public class ItemConfig : IItemConfig
     {
         private const int DefaultItemMaxCount = int.MaxValue;
-        private readonly Dictionary<ulong, int> _bockHashToId = new();
+        private readonly Dictionary<long, int> _bockHashToId = new();
         private readonly List<ItemConfigData> _itemConfigList;
         private readonly Dictionary<string, List<int>> _modIdToItemIds = new();
 
@@ -48,12 +48,12 @@ namespace Core.Item.Config
             return new ItemConfigData("undefined id " + id, DefaultItemMaxCount, "mod is not found");
         }
 
-        public ItemConfigData GetItemConfig(ulong itemHash)
+        public ItemConfigData GetItemConfig(long itemHash)
         {
             return GetItemConfig(GetItemId(itemHash));
         }
 
-        public int GetItemId(ulong itemHash)
+        public int GetItemId(long itemHash)
         {
             if (_bockHashToId.TryGetValue(itemHash, out var id)) return id;
             //TODO ログ基盤に入れる

@@ -33,7 +33,7 @@ namespace Core.Item.Implementation
 
         public int Id { get; }
         public int Count { get; }
-        public ulong ItemHash { get; }
+        public long ItemHash { get; }
         public long ItemInstanceId { get; }
 
         public ItemProcessResult AddItem(IItemStack receiveItemStack)

@@ -6,7 +6,7 @@ namespace Core.Item
     {
         int Id { get; }
         int Count { get; }
-        ulong ItemHash { get; }
+        long ItemHash { get; }
 
         /// <summary>
         ///     アイテムを識別するID
