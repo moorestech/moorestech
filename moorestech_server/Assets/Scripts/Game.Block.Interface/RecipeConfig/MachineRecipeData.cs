@@ -28,7 +28,8 @@ namespace Game.Block.Interface.RecipeConfig
 
         public static MachineRecipeData CreateEmptyRecipe()
         {
-            return new MachineRecipeData(BlockConst.EmptyBlockId, 0, new List<IItemStack>(), new List<ItemOutput>(), -1);
+            return new MachineRecipeData(BlockConst.EmptyBlockId, 0, new List<IItemStack>(), new List<ItemOutput>(),
+                -1);
         }
 
         public bool RecipeConfirmation(IReadOnlyList<IItemStack> inputSlot, int blockId)
@@ -36,7 +37,8 @@ namespace Game.Block.Interface.RecipeConfig
             if (blockId != BlockId) return false;
 
             var cnt = 0;
-            foreach (var slot in inputSlot) cnt += ItemInputs.Count(input => slot.Id == input.Id && input.Count <= slot.Count);
+            foreach (var slot in inputSlot)
+                cnt += ItemInputs.Count(input => slot.Id == input.Id && input.Count <= slot.Count);
 
             return cnt == ItemInputs.Count;
         }

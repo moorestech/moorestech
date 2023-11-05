@@ -1,5 +1,3 @@
-
-using System;
 using System.Reflection;
 using Core.Inventory;
 using Game.Block.Blocks.Miner;
@@ -20,7 +18,8 @@ namespace Tests.UnitTest.Game.Block
         [Test]
         public void SaveLoadTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var minerHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(MinerId).BlockHash;
 
@@ -28,10 +27,13 @@ namespace Tests.UnitTest.Game.Block
             var originalRemainingMillSecond = 350;
 
             var inventory =
-                (OpenableInventoryItemDataStoreService)typeof(VanillaMinerBase).GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(originalMiner);
+                (OpenableInventoryItemDataStoreService)typeof(VanillaMinerBase)
+                    .GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(originalMiner);
             inventory.SetItem(0, 1, 1);
             inventory.SetItem(2, 4, 1);
-            typeof(VanillaMinerBase).GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(originalMiner, originalRemainingMillSecond);
+            typeof(VanillaMinerBase).GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(originalMiner, originalRemainingMillSecond);
 
 
             var json = originalMiner.GetSaveState();
@@ -40,9 +42,13 @@ namespace Tests.UnitTest.Game.Block
 
             var loadedMiner = blockFactory.Load(minerHash, 1, json);
             var loadedInventory =
-                (OpenableInventoryItemDataStoreService)typeof(VanillaMinerBase).GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(originalMiner);
+                (OpenableInventoryItemDataStoreService)typeof(VanillaMinerBase)
+                    .GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(originalMiner);
             var loadedRemainingMillSecond =
-                (int)typeof(VanillaMinerBase).GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(loadedMiner);
+                (int)typeof(VanillaMinerBase)
+                    .GetField("_remainingMillSecond", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(loadedMiner);
 
             Assert.AreEqual(inventory.GetItem(0), loadedInventory.GetItem(0));
             Assert.AreEqual(inventory.GetItem(1), loadedInventory.GetItem(1));

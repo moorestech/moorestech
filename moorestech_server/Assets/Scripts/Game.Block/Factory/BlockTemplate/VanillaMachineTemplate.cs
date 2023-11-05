@@ -14,7 +14,9 @@ namespace Game.Block.Factory.BlockTemplate
     public class VanillaMachineTemplate : IBlockTemplate
     {
         public delegate VanillaMachineBase CreateMachine(
-            (int blockId, int entityId, long blockHash, VanillaMachineBlockInventory vanillaMachineBlockInventory, VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess, ItemStackFactory itemStackFactory) data);
+            (int blockId, int entityId, long blockHash, VanillaMachineBlockInventory vanillaMachineBlockInventory,
+                VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess,
+                ItemStackFactory itemStackFactory) data);
 
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
         private readonly CreateMachine _createMachine;
@@ -64,15 +66,18 @@ namespace Game.Block.Factory.BlockTemplate
                 ));
         }
 
-        private (VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetData(BlockConfigData param, int entityId)
+        private (VanillaMachineInputInventory, VanillaMachineOutputInventory, MachineBlockConfigParam) GetData(
+            BlockConfigData param, int entityId)
         {
             var machineParam = param.Param as MachineBlockConfigParam;
 
             var input = new VanillaMachineInputInventory(
-                param.BlockId, machineParam.InputSlot, _machineRecipeConfig, _itemStackFactory, _blockInventoryUpdateEvent, entityId);
+                param.BlockId, machineParam.InputSlot, _machineRecipeConfig, _itemStackFactory,
+                _blockInventoryUpdateEvent, entityId);
 
             var output = new VanillaMachineOutputInventory(
-                machineParam.OutputSlot, _itemStackFactory, _blockInventoryUpdateEvent, entityId, machineParam.InputSlot);
+                machineParam.OutputSlot, _itemStackFactory, _blockInventoryUpdateEvent, entityId,
+                machineParam.InputSlot);
 
             return (input, output, machineParam);
         }

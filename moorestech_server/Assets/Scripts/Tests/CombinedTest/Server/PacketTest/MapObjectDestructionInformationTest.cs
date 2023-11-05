@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Game.MapObject.Interface;
@@ -16,7 +15,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void GetMapObjectTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
 
 
@@ -25,7 +25,9 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             var responseArray = packet.GetPacketResponse(MapObjectDestructionInformationProtocol())[0];
-            var response = MessagePackSerializer.Deserialize<ResponseMapObjectDestructionInformationMessagePack>(responseArray.ToArray());
+            var response =
+                MessagePackSerializer.Deserialize<ResponseMapObjectDestructionInformationMessagePack>(
+                    responseArray.ToArray());
 
             foreach (var mapObject in mapObjectDatastore.MapObjects)
             {

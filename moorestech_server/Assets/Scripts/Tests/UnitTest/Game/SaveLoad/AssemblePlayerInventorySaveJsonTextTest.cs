@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using Core.Item;
@@ -17,7 +16,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void OnePlayerTest()
         {
-            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, saveServiceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInventory = saveServiceProvider.GetService<IPlayerInventoryDataStore>();
             var itemStackFactory = saveServiceProvider.GetService<ItemStackFactory>();
             var assembleJsonText = saveServiceProvider.GetService<AssembleSaveJsonText>();
@@ -50,9 +50,11 @@ namespace Tests.UnitTest.Game.SaveLoad
 
 
             //セーブしたデータをロードする
-            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, loadServiceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
-            var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerEntityId);
+            var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>()
+                .GetInventoryData(playerEntityId);
 
             //メインのインベントリのチェック
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
@@ -75,7 +77,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                     continue;
                 }
 
-                Assert.AreEqual(itemStackFactory.CreatEmpty(), loadedPlayerInventory.CraftingOpenableInventory.GetItem(i));
+                Assert.AreEqual(itemStackFactory.CreatEmpty(),
+                    loadedPlayerInventory.CraftingOpenableInventory.GetItem(i));
             }
         }
 
@@ -85,7 +88,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void MultiplePlayerSaveTest()
         {
-            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, saveServiceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInventory = saveServiceProvider.GetService<IPlayerInventoryDataStore>();
             var itemStackFactory = saveServiceProvider.GetService<ItemStackFactory>();
             var seed = 13143;
@@ -111,7 +115,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
 
             //セーブしたデータをロードする
-            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, loadServiceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
             var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>();
 

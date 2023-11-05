@@ -21,10 +21,7 @@ namespace Server.Boot
             {
                 await Task.Delay(TimeSpan.FromSeconds(30));
                 _worldSaveDataSaver.Save();
-                if (cancellationTokenSource.Token.IsCancellationRequested)
-                {
-                    break;
-                }
+                if (cancellationTokenSource.Token.IsCancellationRequested) break;
             }
         }
     }

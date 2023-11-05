@@ -12,7 +12,9 @@ namespace Game.World.EventHandler.Service
         /// <param name="segmentDatastore"></param>
         /// <param name="poles">マージしたい電柱</param>
         /// <returns></returns>
-        public static EnergySegment MergeAndSetDatastoreElectricSegments<TSegment>(IWorldEnergySegmentDatastore<TSegment> segmentDatastore, List<IEnergyTransformer> poles) where TSegment : EnergySegment, new()
+        public static EnergySegment MergeAndSetDatastoreElectricSegments<TSegment>(
+            IWorldEnergySegmentDatastore<TSegment> segmentDatastore, List<IEnergyTransformer> poles)
+            where TSegment : EnergySegment, new()
         {
             //電力セグメントをリストアップ
             var electricSegments = new List<TSegment>();

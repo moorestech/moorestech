@@ -1,4 +1,3 @@
-
 using Core.EnergySystem;
 using Core.EnergySystem.Electric;
 using Core.Update;

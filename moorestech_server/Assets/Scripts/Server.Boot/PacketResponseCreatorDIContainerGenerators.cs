@@ -83,7 +83,9 @@ namespace Server.Boot
             services.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IBlockInventoryOpenStateDataStore, BlockInventoryOpenStateDataStore>();
-            services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
+            services
+                .AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>,
+                    WorldEnergySegmentDatastore<EnergySegment>>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IOreConfig, OreConfig>();
             services.AddSingleton<VeinGenerator, VeinGenerator>();
@@ -126,7 +128,9 @@ namespace Server.Boot
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect>();
             services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect>();
 
-            services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
+            services
+                .AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator,
+                    IElectricPole>>();
 
             services.AddSingleton<SetMiningItemToMiner>();
             services.AddSingleton<QuestCompletedToSendEventPacket>();
@@ -150,7 +154,9 @@ namespace Server.Boot
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();
 
-            serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
+            serviceProvider
+                .GetService<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator,
+                    IElectricPole>>();
 
             serviceProvider.GetService<SetMiningItemToMiner>();
             serviceProvider.GetService<QuestCompletedToSendEventPacket>();

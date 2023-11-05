@@ -27,7 +27,8 @@ namespace Game.Block.Blocks.Machine.Inventory
             _blockInventoryUpdate = blockInventoryUpdate;
             _entityId = entityId;
             _inputSlotSize = inputSlotSize;
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlot);
+            _itemDataStoreService =
+                new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlot);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdater.RegisterUpdater(this);
         }
@@ -74,7 +75,8 @@ namespace Game.Block.Blocks.Machine.Inventory
 
         private void InsertConnectInventory()
         {
-            for (var i = 0; i < OutputSlot.Count; i++) _itemDataStoreService.SetItem(i, _connectInventoryService.InsertItem(OutputSlot[i]));
+            for (var i = 0; i < OutputSlot.Count; i++)
+                _itemDataStoreService.SetItem(i, _connectInventoryService.InsertItem(OutputSlot[i]));
         }
 
         public void AddConnectInventory(IBlockInventory blockInventory)

@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
@@ -21,13 +20,16 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void CraftEventTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             //クラフトに必要ないアイテムを追加
             //craftingInventoryにアイテムを入れる
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[0];
-            var craftingInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
-            for (var i = 0; i < craftConfig.CraftItemInfos.Count; i++) craftingInventory.SetItem(i, craftConfig.CraftItemInfos[i].ItemStack);
+            var craftingInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .CraftingOpenableInventory;
+            for (var i = 0; i < craftConfig.CraftItemInfos.Count; i++)
+                craftingInventory.SetItem(i, craftConfig.CraftItemInfos[i].ItemStack);
 
             //イベントを取得
             var response = packetResponse.GetPacketResponse(EventRequest());
@@ -41,7 +43,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var checkSlot = craftEventCount - 2;
 
 
-            var data = MessagePackSerializer.Deserialize<CraftingInventoryUpdateEventMessagePack>(response[checkSlot].ToArray());
+            var data =
+                MessagePackSerializer.Deserialize<CraftingInventoryUpdateEventMessagePack>(
+                    response[checkSlot].ToArray());
 
             Assert.AreEqual(7, data.Slot); //インベントリスロット レシピによって変わるので固定値
             Assert.AreEqual(craftConfig.CraftItemInfos[7].ItemStack.Id, data.Item.Id); //更新アイテムID
@@ -54,7 +58,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             //最後のパケットはクラフト可能になっていることを検証する
             checkSlot = craftEventCount - 1;
-            data = MessagePackSerializer.Deserialize<CraftingInventoryUpdateEventMessagePack>(response[checkSlot].ToArray());
+            data = MessagePackSerializer.Deserialize<CraftingInventoryUpdateEventMessagePack>(response[checkSlot]
+                .ToArray());
             Assert.AreEqual(8, data.Slot); //インベントリスロット レシピによって変わるので固定値
             Assert.AreEqual(craftConfig.CraftItemInfos[8].ItemStack.Id, data.Item.Id); //更新アイテムID
             Assert.AreEqual(craftConfig.CraftItemInfos[8].ItemStack.Count, data.Item.Count); //更新アイテム数
@@ -70,11 +75,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             //イベントが発火しているか
             response = packetResponse.GetPacketResponse(EventRequest());
-            Assert.AreEqual(craftEventCount + 1, response.Count); //クラフトすると全てのスロットが更新されるため、craftEventCount + 1個のイベントが発生する
+            Assert.AreEqual(craftEventCount + 1,
+                response.Count); //クラフトすると全てのスロットが更新されるため、craftEventCount + 1個のイベントが発生する
 
             //つかみインベントリが更新されてるかチェック
             checkSlot = craftEventCount + 1 - 1;
-            var grabData = MessagePackSerializer.Deserialize<GrabInventoryUpdateEventMessagePack>(response[checkSlot].ToArray());
+            var grabData =
+                MessagePackSerializer.Deserialize<GrabInventoryUpdateEventMessagePack>(response[checkSlot].ToArray());
 
             Assert.AreEqual(craftConfig.Result.Id, grabData.Item.Id); //更新アイテムID
             Assert.AreEqual(craftConfig.Result.Count, grabData.Item.Count); //更新アイテム数

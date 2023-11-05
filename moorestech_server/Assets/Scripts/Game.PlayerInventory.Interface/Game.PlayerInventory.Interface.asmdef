@@ -1,4 +1,7 @@
 {
-    "name": "Game.PlayerInventory.Interface",
-    "references":[ "GUID:d10205307f59843dba7c8a22b322ecd8", "GUID:89119084300464c008e0944f3b792c5e" ]
+  "name": "Game.PlayerInventory.Interface",
+  "references": [
+    "GUID:d10205307f59843dba7c8a22b322ecd8",
+    "GUID:89119084300464c008e0944f3b792c5e"
+  ]
 }

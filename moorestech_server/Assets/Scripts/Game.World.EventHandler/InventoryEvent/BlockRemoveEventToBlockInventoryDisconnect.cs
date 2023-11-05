@@ -12,7 +12,8 @@ namespace Game.World.EventHandler.InventoryEvent
     {
         private readonly IWorldBlockDatastore _worldBlockDatastore;
 
-        public BlockRemoveEventToBlockInventoryDisconnect(IBlockRemoveEvent blockRemoveEvent, IWorldBlockDatastore worldBlockDatastore)
+        public BlockRemoveEventToBlockInventoryDisconnect(IBlockRemoveEvent blockRemoveEvent,
+            IWorldBlockDatastore worldBlockDatastore)
         {
             _worldBlockDatastore = worldBlockDatastore;
             blockRemoveEvent.Subscribe(OnRemoveBlock);

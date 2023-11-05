@@ -1,4 +1,3 @@
-
 using Core.EnergySystem;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;
@@ -20,7 +19,8 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void PlaceElectricPoleToPlaceElectricPoleTest()
         {
-            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, saveServiceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
@@ -73,7 +73,8 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void PlaceElectricPoleToPlaceMachineTest()
         {
-            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, saveServiceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
@@ -131,7 +132,8 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void PlaceMachineToPlaceElectricPoleTest()
         {
-            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, saveServiceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
@@ -156,7 +158,8 @@ namespace Tests.CombinedTest.Game
 
 
             //範囲内の設置
-            var segment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>().GetEnergySegment(0);
+            var segment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>()
+                .GetEnergySegment(0);
             //リフレクションで機械を取得する
             var electricBlocks = segment.Consumers;
             var powerGeneratorBlocks = segment.Generators;
@@ -176,7 +179,8 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void SegmentConnectionTest()
         {
-            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, saveServiceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 

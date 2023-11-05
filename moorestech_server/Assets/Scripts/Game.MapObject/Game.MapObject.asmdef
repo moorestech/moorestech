@@ -1,4 +1,9 @@
 {
-    "name": "Game.MapObject",
-    "references":[ "GUID:3092083d9babd4b8c90be476115a08ea", "GUID:d10205307f59843dba7c8a22b322ecd8", "GUID:0d1775a337cb34cc1b26e6341a565140", "GUID:7bc3e25c71e814d04877820bbd2a8db5" ]
+  "name": "Game.MapObject",
+  "references": [
+    "GUID:3092083d9babd4b8c90be476115a08ea",
+    "GUID:d10205307f59843dba7c8a22b322ecd8",
+    "GUID:0d1775a337cb34cc1b26e6341a565140",
+    "GUID:7bc3e25c71e814d04877820bbd2a8db5"
+  ]
 }

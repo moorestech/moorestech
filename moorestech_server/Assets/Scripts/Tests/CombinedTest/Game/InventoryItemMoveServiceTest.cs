@@ -1,4 +1,3 @@
-
 using Core.Item;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +17,8 @@ namespace Tests.CombinedTest.Game
 
             //初期設定----------------------------------------------------------
 
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             //プレイヤーのインベントリの設定

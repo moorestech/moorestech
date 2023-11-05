@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
@@ -11,8 +10,8 @@ namespace Test.Module
     public class DummyBlockInventory : IBlockInventory
     {
         private readonly List<IItemStack> _insertedItems;
-        private int _endInsertCnt;
         private readonly ItemStackFactory _itemStackFactory;
+        private int _endInsertCnt;
 
         public DummyBlockInventory(ItemStackFactory itemStackFactory, int insertToEndNum = 1, int maxSlot = 100)
         {

@@ -1,4 +1,3 @@
-
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +18,8 @@ namespace Tests.UnitTest.Game.WorldSetting
         [Test]
         public void WorldSpawnPointSearcherTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldSettings = serviceProvider.GetService<IWorldSettingsDatastore>();
             var vineGenerator = serviceProvider.GetService<VeinGenerator>();
             worldSettings.Initialize();

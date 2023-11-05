@@ -1,4 +1,3 @@
-
 using System;
 using Core.Const;
 using Core.Item;
@@ -16,7 +15,8 @@ namespace Tests.UnitTest.Core.Other
         [SetUp]
         public void Setup()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 

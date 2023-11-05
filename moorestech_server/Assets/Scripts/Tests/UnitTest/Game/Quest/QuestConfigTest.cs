@@ -1,4 +1,3 @@
-
 using Game.Quest.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -14,7 +13,8 @@ namespace Tests.UnitTest.Game.Quest
         [Test]
         public void QuestLoadTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var questConfig = serviceProvider.GetService<IQuestConfig>();
 
             const string previousQuestId = ModId + ":";

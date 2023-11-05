@@ -1,5 +1,3 @@
-
-using System;
 using Game.Base;
 using Game.Entity.Interface;
 using Game.Save.Interface;
@@ -17,7 +15,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void EntitySaveTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
             var entityFactory = serviceProvider.GetService<IEntityFactory>();
@@ -40,7 +39,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             Debug.Log(json);
 
             //ロードの実行
-            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, loadServiceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
 
 

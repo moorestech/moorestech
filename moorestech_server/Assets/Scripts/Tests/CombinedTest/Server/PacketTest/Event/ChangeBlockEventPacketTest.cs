@@ -1,4 +1,3 @@
-
 using Core.Item;
 using Core.Update;
 using Game.Block.Blocks.Machine;
@@ -19,10 +18,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void MachineChangeStateEvent()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             //機械のブロックを作る
-            var machine = (VanillaMachineBase)serviceProvider.GetService<IBlockFactory>().Create(UnitTestModBlockId.MachineId, 1);
+            var machine = (VanillaMachineBase)serviceProvider.GetService<IBlockFactory>()
+                .Create(UnitTestModBlockId.MachineId, 1);
             //機械のブロックを配置
             serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine, 0, 0, BlockDirection.North);
             //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する
@@ -47,7 +48,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             //ステートが実行中になっているかをチェック
             var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
-            var changeStateData = MessagePackSerializer.Deserialize<ChangeBlockStateEventMessagePack>(response[0].ToArray());
+            var changeStateData =
+                MessagePackSerializer.Deserialize<ChangeBlockStateEventMessagePack>(response[0].ToArray());
 
             Assert.AreEqual(VanillaMachineBlockStateConst.IdleState, changeStateData.PreviousState);
             Assert.AreEqual(VanillaMachineBlockStateConst.ProcessingState, changeStateData.CurrentState);

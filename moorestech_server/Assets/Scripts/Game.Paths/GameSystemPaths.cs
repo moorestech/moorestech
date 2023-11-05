@@ -10,9 +10,13 @@ namespace Game.Paths
         {
             get
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return DirectoryCreator("C:\\Users", Environment.UserName, "AppData", "Roaming", ".moorestech");
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) return DirectoryCreator("/Users", Environment.UserName, "Library", "Application Support", "moorestech");
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return DirectoryCreator("/home", Environment.UserName, ".moorestech");
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    return DirectoryCreator("C:\\Users", Environment.UserName, "AppData", "Roaming", ".moorestech");
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    return DirectoryCreator("/Users", Environment.UserName, "Library", "Application Support",
+                        "moorestech");
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    return DirectoryCreator("/home", Environment.UserName, ".moorestech");
                 throw new Exception("Unsupported OS");
             }
         }

@@ -21,7 +21,8 @@ namespace Game.Block.Blocks.Chest
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
 
-        public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate)
+        public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, ItemStackFactory itemStackFactory,
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdate)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -33,7 +34,9 @@ namespace Game.Block.Blocks.Chest
             GameUpdater.RegisterUpdater(this);
         }
 
-        public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate) : this(blockId, entityId, blockHash, slotNum, itemStackFactory, blockInventoryUpdate)
+        public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum,
+            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate) : this(blockId,
+            entityId, blockHash, slotNum, itemStackFactory, blockInventoryUpdate)
         {
             var split = saveData.Split(',');
             for (var i = 0; i < split.Length; i += 2)
@@ -54,7 +57,8 @@ namespace Game.Block.Blocks.Chest
         {
             //itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var saveState = "";
-            foreach (var itemStack in _itemDataStoreService.Inventory) saveState += $"{itemStack.ItemHash},{itemStack.Count},";
+            foreach (var itemStack in _itemDataStoreService.Inventory)
+                saveState += $"{itemStack.ItemHash},{itemStack.Count},";
             return saveState.TrimEnd(',');
         }
 

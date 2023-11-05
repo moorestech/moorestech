@@ -5,7 +5,8 @@ namespace Game.World.Interface.DataStore
 {
     public class WorldBlockData
     {
-        public WorldBlockData(IBlock block, int originX, int originY, BlockDirection blockDirection,IBlockConfig blockConfig)
+        public WorldBlockData(IBlock block, int originX, int originY, BlockDirection blockDirection,
+            IBlockConfig blockConfig)
         {
             OriginX = originX;
             OriginY = originY;
@@ -20,17 +21,22 @@ namespace Game.World.Interface.DataStore
         public int OriginY { get; }
         public int Height { get; }
         public int Width { get; }
-        
-        
-        public int MaxX => (BlockDirection is BlockDirection.North or BlockDirection.South ? OriginX + Width : OriginX + Height) - 1;
-        public int MaxY => (BlockDirection is BlockDirection.North or BlockDirection.South ? OriginY + Height : OriginY + Width) - 1;
-        
+
+
+        public int MaxX => (BlockDirection is BlockDirection.North or BlockDirection.South
+            ? OriginX + Width
+            : OriginX + Height) - 1;
+
+        public int MaxY => (BlockDirection is BlockDirection.North or BlockDirection.South
+            ? OriginY + Height
+            : OriginY + Width) - 1;
+
+        public IBlock Block { get; }
+        public BlockDirection BlockDirection { get; }
+
         public bool IsContain(int x, int y)
         {
             return OriginX <= x && x <= MaxX && OriginY <= y && y <= MaxY;
         }
-        
-        public IBlock Block { get; }
-        public BlockDirection BlockDirection { get; }
     }
 }

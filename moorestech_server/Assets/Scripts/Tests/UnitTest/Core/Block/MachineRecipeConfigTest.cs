@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
@@ -18,7 +17,8 @@ namespace Tests.UnitTest.Game.Block
         [SetUp]
         public void Setup()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             _machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
         }

@@ -16,7 +16,8 @@ namespace Game.Quest
 
         private readonly Dictionary<int, List<IQuest>> _quests = new();
 
-        public QuestDatastore(IQuestConfig questConfig, QuestFactory questFactory, IQuestCompletedEvent questCompletedEvent)
+        public QuestDatastore(IQuestConfig questConfig, QuestFactory questFactory,
+            IQuestCompletedEvent questCompletedEvent)
         {
             _questConfig = questConfig;
             _questFactory = questFactory;

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
@@ -35,7 +34,9 @@ namespace Game.Crafting.Config
                         continue;
                     }
 
-                    items.Add(new CraftingItemData(_itemStackFactory.Create(craftItem.ModId, craftItem.ItemName, craftItem.Count), craftItem.IsRemain));
+                    items.Add(new CraftingItemData(
+                        _itemStackFactory.Create(craftItem.ModId, craftItem.ItemName, craftItem.Count),
+                        craftItem.IsRemain));
                 }
 
                 //TODO ロードした時にあるべきものがなくnullだったらエラーを出す

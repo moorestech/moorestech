@@ -24,7 +24,9 @@ namespace Server.Protocol.PacketResponse
         public List<List<byte>> GetResponse(List<byte> payload)
         {
             var sendMapObjects = new List<MapObjectDestructionInformationData>();
-            foreach (var mapObject in _mapObjectDatastore.MapObjects) sendMapObjects.Add(new MapObjectDestructionInformationData(mapObject.InstanceId, mapObject.IsDestroyed));
+            foreach (var mapObject in _mapObjectDatastore.MapObjects)
+                sendMapObjects.Add(
+                    new MapObjectDestructionInformationData(mapObject.InstanceId, mapObject.IsDestroyed));
 
             var response = new ResponseMapObjectDestructionInformationMessagePack(sendMapObjects);
 

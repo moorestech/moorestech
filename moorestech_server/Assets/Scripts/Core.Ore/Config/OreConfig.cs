@@ -31,7 +31,8 @@ namespace Core.Ore.Config
             //0は空白なためインデックスをずらす
             oreId -= 1;
             if (oreId < 0) return ItemConst.EmptyItemId;
-            if (oreId < _oreConfigData.Count) return _itemConfig.GetItemId(_oreConfigData[oreId].ItemModId, _oreConfigData[oreId].ItemName);
+            if (oreId < _oreConfigData.Count)
+                return _itemConfig.GetItemId(_oreConfigData[oreId].ItemModId, _oreConfigData[oreId].ItemName);
 
             return ItemConst.EmptyItemId;
         }

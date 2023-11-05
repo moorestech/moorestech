@@ -6,7 +6,9 @@ namespace Game.Quest.Interface
 {
     public class QuestConfigData
     {
-        public QuestConfigData(string modId, string questId, List<QuestConfigData> prerequisiteQuests, string questCategory, QuestPrerequisiteType questPrerequisiteType, string questType, string questName, string questDescription, CoreVector2 uiPosition, List<IItemStack> rewardItemStacks, string questParameter)
+        public QuestConfigData(string modId, string questId, List<QuestConfigData> prerequisiteQuests,
+            string questCategory, QuestPrerequisiteType questPrerequisiteType, string questType, string questName,
+            string questDescription, CoreVector2 uiPosition, List<IItemStack> rewardItemStacks, string questParameter)
         {
             ModId = modId;
             QuestId = questId;

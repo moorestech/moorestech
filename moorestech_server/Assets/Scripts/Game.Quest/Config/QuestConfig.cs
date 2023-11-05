@@ -15,7 +15,8 @@ namespace Game.Quest.Config
 
         public QuestConfig(ConfigJsonList configJson, ItemStackFactory itemStackFactory)
         {
-            (_modIdToQuests, _questIdToQuestConfigs) = QuestLoadConfig.LoadConfig(itemStackFactory, configJson.QuestConfigs);
+            (_modIdToQuests, _questIdToQuestConfigs) =
+                QuestLoadConfig.LoadConfig(itemStackFactory, configJson.QuestConfigs);
         }
 
         public IReadOnlyList<QuestConfigData> GetAllQuestConfig()

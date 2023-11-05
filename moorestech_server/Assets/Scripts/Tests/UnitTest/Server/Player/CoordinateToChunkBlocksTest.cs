@@ -1,4 +1,3 @@
-
 using System;
 using Core.Const;
 using Core.Util;
@@ -21,7 +20,8 @@ namespace Tests.UnitTest.Server.Player
         [Test]
         public void NothingBlockTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
             var b = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(new CoreVector2Int(0, 0), worldData);
 
@@ -36,7 +36,8 @@ namespace Tests.UnitTest.Server.Player
         [Test]
         public void SameBlockResponseTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
             var random = new Random(3944156);
             //ブロックの設置
@@ -67,7 +68,8 @@ namespace Tests.UnitTest.Server.Player
         {
             if (_blockFactory == null)
             {
-                var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                var (packet, serviceProvider) =
+                    new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
                 _blockFactory = serviceProvider.GetService<IBlockFactory>();
             }
 

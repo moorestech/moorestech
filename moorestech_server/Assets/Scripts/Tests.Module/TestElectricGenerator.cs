@@ -1,4 +1,3 @@
-
 using Core.EnergySystem.Electric;
 
 namespace Test.Module

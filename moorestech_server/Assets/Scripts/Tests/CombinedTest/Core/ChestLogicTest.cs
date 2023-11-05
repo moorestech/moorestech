@@ -1,4 +1,3 @@
-
 using System;
 using Core.Item;
 using Core.Update;
@@ -50,7 +49,8 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void BeltConveyorOutputChestLogicTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();

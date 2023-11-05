@@ -15,7 +15,8 @@ namespace Game.World.EventHandler.Service
                 if (blockConfig.GetBlockConfig(i).Type != VanillaBlockType.ElectricPole) continue;
 
                 var param = blockConfig.GetBlockConfig(i).Param as ElectricPoleConfigParam;
-                if (_maxElectricPoleMachineConnectionRange < param.machineConnectionRange) _maxElectricPoleMachineConnectionRange = param.machineConnectionRange;
+                if (_maxElectricPoleMachineConnectionRange < param.machineConnectionRange)
+                    _maxElectricPoleMachineConnectionRange = param.machineConnectionRange;
             }
         }
 

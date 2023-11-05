@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +21,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void RemoveBlockEvent()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             //イベントキューにIDを登録する
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(0, response.Count);

@@ -27,7 +27,8 @@ namespace Game.World.EventHandler.EnergyEvent
         public ConnectMachineToElectricSegment(IBlockPlaceEvent blockPlaceEvent,
             IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
             IBlockConfig blockConfig,
-            MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange, IWorldBlockDatastore worldBlockDatastore)
+            MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange,
+            IWorldBlockDatastore worldBlockDatastore)
         {
             _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
             _blockConfig = blockConfig;
@@ -87,7 +88,8 @@ namespace Game.World.EventHandler.EnergyEvent
             var segment = _worldEnergySegmentDatastore.GetEnergySegment(pole);
             if (_worldBlockDatastore.ExistsComponentBlock<TGenerator>(machineX, machineY))
                 segment.AddGenerator(_worldBlockDatastore.GetBlock<TGenerator>(machineX, machineY));
-            else if (_worldBlockDatastore.ExistsComponentBlock<TConsumer>(machineX, machineY)) segment.AddEnergyConsumer(_worldBlockDatastore.GetBlock<TConsumer>(machineX, machineY));
+            else if (_worldBlockDatastore.ExistsComponentBlock<TConsumer>(machineX, machineY))
+                segment.AddEnergyConsumer(_worldBlockDatastore.GetBlock<TConsumer>(machineX, machineY));
         }
     }
 }

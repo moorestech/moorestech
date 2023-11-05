@@ -48,7 +48,8 @@ namespace Server.Event.EventReceive
         {
         }
 
-        public CraftingInventoryUpdateEventMessagePack(int slot, IItemStack itemStack, bool isCreatable, IItemStack creatableItem)
+        public CraftingInventoryUpdateEventMessagePack(int slot, IItemStack itemStack, bool isCreatable,
+            IItemStack creatableItem)
         {
             EventTag = CraftingInventoryUpdateToSetEventPacket.EventTag;
             Slot = slot;

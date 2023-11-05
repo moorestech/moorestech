@@ -17,12 +17,12 @@ namespace World.DataStore
     /// </summary>
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
-        private readonly IBlockFactory _blockFactory;
         private readonly IBlockConfig _blockConfig;
+        private readonly IBlockFactory _blockFactory;
 
         //メインのデータストア
         private readonly Dictionary<int, WorldBlockData> _blockMasterDictionary = new();
-        
+
         private readonly BlockPlaceEvent _blockPlaceEvent;
         private readonly BlockRemoveEvent _blockRemoveEvent;
 
@@ -50,7 +50,7 @@ namespace World.DataStore
                 !_coordinateDictionary.ContainsKey(new CoreVector2Int(x, y)))
             {
                 var c = new CoreVector2Int(x, y);
-                var data = new WorldBlockData(block, x, y, blockDirection,_blockConfig);
+                var data = new WorldBlockData(block, x, y, blockDirection, _blockConfig);
                 _blockMasterDictionary.Add(block.EntityId, data);
                 _coordinateDictionary.Add(c, block.EntityId);
                 _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(c, data.Block, blockDirection));
@@ -102,10 +102,7 @@ namespace World.DataStore
 
         public (int, int) GetBlockPosition(int entityId)
         {
-            if (_blockMasterDictionary.TryGetValue(entityId, out var data))
-            {
-                return (data.OriginX, data.OriginY);
-            }
+            if (_blockMasterDictionary.TryGetValue(entityId, out var data)) return (data.OriginX, data.OriginY);
 
             throw new Exception("ブロックがありません");
         }
@@ -116,7 +113,7 @@ namespace World.DataStore
             //TODO ブロックないときの処理どうしよう
             return block?.BlockDirection ?? BlockDirection.North;
         }
-        
+
 
         public bool Exists(int x, int y)
         {
@@ -127,22 +124,21 @@ namespace World.DataStore
         {
             return GetBlockDatastore(x, y).Block.EntityId;
         }
-        
+
         /// <summary>
-        /// TODO GetBlockは頻繁に呼ばれる訳では無いが、この方式は効率が悪いのでなにか改善したい
+        ///     TODO GetBlockは頻繁に呼ばれる訳では無いが、この方式は効率が悪いのでなにか改善したい
         /// </summary>
-        private WorldBlockData GetBlockDatastore(int x,int y)
+        private WorldBlockData GetBlockDatastore(int x, int y)
         {
-            foreach (var block in 
+            foreach (var block in
                      _blockMasterDictionary.Where(block => block.Value.IsContain(x, y)))
-            {
                 return block.Value;
-            }
 
             return null;
         }
 
         #region Component
+
         public bool ExistsComponentBlock<TComponent>(int x, int y)
         {
             return GetBlock(x, y) is TComponent;
@@ -167,10 +163,12 @@ namespace World.DataStore
             component = default;
             return false;
         }
+
         #endregion
 
 
-        #region Save&Load 
+        #region Save&Load
+
         public List<SaveBlockData> GetSaveBlockDataList()
         {
             var list = new List<SaveBlockData>();
@@ -195,6 +193,7 @@ namespace World.DataStore
                     block.Y,
                     (BlockDirection)block.Direction);
         }
+
         #endregion
     }
 }

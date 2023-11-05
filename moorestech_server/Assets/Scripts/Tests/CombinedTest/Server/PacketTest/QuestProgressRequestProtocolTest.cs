@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Game.Quest.Interface;
@@ -23,7 +22,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             //テスト用のセーブデータ
 
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             //セーブデータを生成し、ロードする
             var playerQuests = new List<SaveQuestData>
@@ -39,9 +39,12 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //クエストのデータ要求クラス
-            var payload = MessagePackSerializer.Serialize(new QuestProgressRequestProtocolMessagePack(PlayerId)).ToList();
+            var payload = MessagePackSerializer.Serialize(new QuestProgressRequestProtocolMessagePack(PlayerId))
+                .ToList();
             //データの検証
-            var questResponse = MessagePackSerializer.Deserialize<QuestProgressResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0].ToArray()).Quests;
+            var questResponse = MessagePackSerializer
+                .Deserialize<QuestProgressResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0].ToArray())
+                .Quests;
 
             Assert.AreEqual("QuestAuthor:forQuestTest:Test1", questResponse[0].Id);
             Assert.AreEqual(false, questResponse[0].IsCompleted);

@@ -29,7 +29,8 @@ namespace Server.Protocol.PacketResponse.Player
             return blocks;
         }
 
-        public static int[,] GetBlockDirectionInChunk(CoreVector2Int coreVector2Int, IWorldBlockDatastore worldBlockDatastore)
+        public static int[,] GetBlockDirectionInChunk(CoreVector2Int coreVector2Int,
+            IWorldBlockDatastore worldBlockDatastore)
         {
             var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coreVector2Int.X, coreVector2Int.Y);
 

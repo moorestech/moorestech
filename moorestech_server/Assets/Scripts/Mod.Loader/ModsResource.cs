@@ -144,7 +144,8 @@ namespace Mod.Loader
                 foreach (var dllPath in Directory.GetFiles(modDirectory, "*.dll", SearchOption.AllDirectories))
                 {
                     var assembly = Assembly.LoadFrom(dllPath);
-                    var modBaseTypes = assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(MoorestechServerModEntryPoint)));
+                    var modBaseTypes = assembly.GetTypes()
+                        .Where(t => t.IsSubclassOf(typeof(MoorestechServerModEntryPoint)));
                     foreach (var modBaseType in modBaseTypes)
                     {
                         var modBase = (MoorestechServerModEntryPoint)Activator.CreateInstance(modBaseType);

@@ -1,4 +1,3 @@
-
 using System.Linq;
 using Core.Item;
 using Game.PlayerInventory.Interface;
@@ -23,11 +22,14 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void CanNotNormalCraftTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
-            var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).GrabInventory;
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .CraftingOpenableInventory;
+            var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .GrabInventory;
 
             //craftingInventoryにアイテムを入れる
             var item = itemStackFactory.Create(TestCraftItemId, 2);
@@ -52,19 +54,23 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void AllCraftReminderTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             //クラフトインベントリの作成
-            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
-            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .CraftingOpenableInventory;
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .MainOpenableInventory;
 
 
             //craftingInventoryにアイテムを入れる
             craftInventory.SetItem(0, itemStackFactory.Create(TestCraftItemId, 100));
 
             //メインインベントリに2つのスロットを開けてアイテムを入れる
-            for (var i = 2; i < mainInventory.GetSlotSize(); i++) mainInventory.SetItem(i, itemStackFactory.Create(2, 1));
+            for (var i = 2; i < mainInventory.GetSlotSize(); i++)
+                mainInventory.SetItem(i, itemStackFactory.Create(2, 1));
 
 
             //プロトコルで全てクラフト実行
@@ -85,19 +91,23 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void AllCanNotCraftTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             //クラフトインベントリの作成
-            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
-            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .CraftingOpenableInventory;
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .MainOpenableInventory;
 
 
             //craftingInventoryにアイテムを入れる
             craftInventory.SetItem(0, itemStackFactory.Create(TestCraftItemId, 100));
 
             //メインインベントリに全てのスロットにアイテムを入れる
-            for (var i = 0; i < mainInventory.GetSlotSize(); i++) mainInventory.SetItem(i, itemStackFactory.Create(2, 1));
+            for (var i = 0; i < mainInventory.GetSlotSize(); i++)
+                mainInventory.SetItem(i, itemStackFactory.Create(2, 1));
 
 
             //プロトコルで全てクラフト実行
@@ -116,19 +126,23 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void OneStackCraftReminderTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             //クラフトインベントリの作成
-            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
-            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .CraftingOpenableInventory;
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .MainOpenableInventory;
 
 
             //craftingInventoryにアイテムを入れる
             craftInventory.SetItem(0, itemStackFactory.Create(TestCraftItemId, 100));
 
             //メインインベントリに1つのスロットを開けてアイテムを入れる
-            for (var i = 1; i < mainInventory.GetSlotSize(); i++) mainInventory.SetItem(i, itemStackFactory.Create(2, 1));
+            for (var i = 1; i < mainInventory.GetSlotSize(); i++)
+                mainInventory.SetItem(i, itemStackFactory.Create(2, 1));
             //1回だけクラフトできる量をメインインベントリに入れておく
             mainInventory.SetItem(0, itemStackFactory.Create(TestCraftItemId, 20));
 
@@ -151,19 +165,23 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void OneCanNotStackCraftTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             //クラフトインベントリの作成
-            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
-            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .CraftingOpenableInventory;
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .MainOpenableInventory;
 
 
             //craftingInventoryにアイテムを入れる
             craftInventory.SetItem(0, itemStackFactory.Create(TestCraftItemId, 100));
 
             //メインインベントリに全てのスロットにアイテムを入れる
-            for (var i = 0; i < mainInventory.GetSlotSize(); i++) mainInventory.SetItem(i, itemStackFactory.Create(2, 1));
+            for (var i = 0; i < mainInventory.GetSlotSize(); i++)
+                mainInventory.SetItem(i, itemStackFactory.Create(2, 1));
 
 
             //プロトコルで一スタッククラフト実行

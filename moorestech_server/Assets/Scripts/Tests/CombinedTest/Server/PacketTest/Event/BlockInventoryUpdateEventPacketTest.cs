@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
@@ -28,7 +27,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void BlockInventoryUpdatePacketTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
@@ -83,7 +83,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void OnlyOneInventoryCanBeOpenedTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
@@ -118,7 +119,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
         private List<byte> OpenCloseBlockInventoryPacket(int x, int y, bool isOpen)
         {
-            return MessagePackSerializer.Serialize(new BlockInventoryOpenCloseProtocolMessagePack(PlayerId, x, y, isOpen)).ToList();
+            return MessagePackSerializer
+                .Serialize(new BlockInventoryOpenCloseProtocolMessagePack(PlayerId, x, y, isOpen)).ToList();
         }
 
         private List<byte> GetEventPacket()

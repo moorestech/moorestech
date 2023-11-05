@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Game.MapObject.Interface;
@@ -19,7 +18,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void MapObjectDestroyToEventTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
 
             var response = packetResponse.GetPacketResponse(EventRequestData());

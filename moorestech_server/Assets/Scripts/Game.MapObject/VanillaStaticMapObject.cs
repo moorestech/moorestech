@@ -9,7 +9,8 @@ namespace Game.MapObject
     /// </summary>
     public class VanillaStaticMapObject : IMapObject
     {
-        public VanillaStaticMapObject(int id, string type, bool isDestroyed, ServerVector3 position, int itemId, int itemCount)
+        public VanillaStaticMapObject(int id, string type, bool isDestroyed, ServerVector3 position, int itemId,
+            int itemCount)
         {
             InstanceId = id;
             Type = type;

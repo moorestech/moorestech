@@ -24,7 +24,8 @@ namespace PlayerInventory
 
         public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent,
             ICraftInventoryUpdateEvent craftInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory, IIsCreatableJudgementService isCreatableJudgementService, IGrabInventoryUpdateEvent grabInventoryUpdateEvent, ICraftingEvent craftingEvent)
+            ItemStackFactory itemStackFactory, IIsCreatableJudgementService isCreatableJudgementService,
+            IGrabInventoryUpdateEvent grabInventoryUpdateEvent, ICraftingEvent craftingEvent)
         {
             //イベントの呼び出しをアセンブリに隠蔽するため、インターフェースをキャストします。
             _mainInventoryUpdateEvent = (MainInventoryUpdateEvent)mainInventoryUpdateEvent;
@@ -42,7 +43,8 @@ namespace PlayerInventory
             {
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, _itemStackFactory);
-                var craft = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory, _isCreatableJudgementService, main, grab, _craftingEvent);
+                var craft = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,
+                    _isCreatableJudgementService, main, grab, _craftingEvent);
 
                 _playerInventoryData.Add(playerId, new PlayerInventoryData(main, craft, grab));
             }
@@ -74,9 +76,11 @@ namespace PlayerInventory
                 var (mainItems, craftItems, grabItem) = saveInventory.GetPlayerInventoryData(_itemStackFactory);
 
                 //アイテムを復元
-                var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory, mainItems);
+                var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,
+                    mainItems);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, _itemStackFactory, grabItem);
-                var craftingInventory = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory, _isCreatableJudgementService, craftItems, main, grab, _craftingEvent);
+                var craftingInventory = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent,
+                    _itemStackFactory, _isCreatableJudgementService, craftItems, main, grab, _craftingEvent);
 
                 var playerInventory = new PlayerInventoryData(main, craftingInventory, grab);
 

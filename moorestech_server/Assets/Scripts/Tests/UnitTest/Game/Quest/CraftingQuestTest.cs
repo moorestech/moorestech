@@ -1,4 +1,3 @@
-
 using System.Reflection;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest.Interface;
@@ -22,7 +21,8 @@ namespace Tests.UnitTest.Game.Quest
         [Test]
         public void OnePreRequestQuestTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var questDataStore = serviceProvider.GetService<IQuestDataStore>();
             var craftEvent = serviceProvider.GetService<ICraftingEvent>();
@@ -61,14 +61,16 @@ namespace Tests.UnitTest.Game.Quest
         [Test]
         public void AndPreRequestQuest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var questDataStore = serviceProvider.GetService<IQuestDataStore>();
             var craftEvent = serviceProvider.GetService<ICraftingEvent>();
 
             var test1Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "QuestAuthor:forQuestTest:Test1");
             var test2Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "QuestAuthor:forQuestTest:Test2");
-            var testAndPreRequestQuest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "QuestAuthor:forQuestTest:Test3");
+            var testAndPreRequestQuest =
+                (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "QuestAuthor:forQuestTest:Test3");
 
             //全てのクエストがまだ合格していないことをテスト
             Assert.False(test1Quest.IsCompleted);
@@ -102,13 +104,15 @@ namespace Tests.UnitTest.Game.Quest
         [Test]
         public void OrPreRequestQuest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var questDataStore = serviceProvider.GetService<IQuestDataStore>();
             var craftEvent = serviceProvider.GetService<ICraftingEvent>();
 
             var test1Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "QuestAuthor:forQuestTest:Test1");
-            var testOrPreRequestQuest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "QuestAuthor:forQuestTest:Test4");
+            var testOrPreRequestQuest =
+                (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "QuestAuthor:forQuestTest:Test4");
 
             //全てのクエストがまだ合格していないことをテスト
             Assert.False(test1Quest.IsCompleted);
@@ -142,7 +146,8 @@ namespace Tests.UnitTest.Game.Quest
 
         private int GetQuestIdWithReflection(ItemCraftQuest itemCraftQuest)
         {
-            return (int)itemCraftQuest.GetType().GetField("_questItemId", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(itemCraftQuest);
+            return (int)itemCraftQuest.GetType()
+                .GetField("_questItemId", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(itemCraftQuest);
         }
     }
 }

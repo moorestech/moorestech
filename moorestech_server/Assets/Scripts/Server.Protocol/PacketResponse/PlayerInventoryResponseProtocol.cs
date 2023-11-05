@@ -69,9 +69,10 @@ namespace Server.Protocol.PacketResponse
 
 
         /// <summary>
-        /// デバッグ用でインベントリの中身が知りたい時に使用する
+        ///     デバッグ用でインベントリの中身が知りたい時に使用する
         /// </summary>
-        public static void ExportInventoryLog(PlayerInventoryData playerInventory, bool isExportMain, bool isExportCraft, bool isExportGrab)
+        public static void ExportInventoryLog(PlayerInventoryData playerInventory, bool isExportMain,
+            bool isExportCraft, bool isExportGrab)
         {
             var inventoryStr = new StringBuilder();
             inventoryStr.AppendLine("Main Inventory");
@@ -93,7 +94,8 @@ namespace Server.Protocol.PacketResponse
             if (isExportGrab)
             {
                 inventoryStr.AppendLine("Grab Inventory");
-                inventoryStr.AppendLine(playerInventory.GrabInventory.GetItem(0).Id + " " + playerInventory.GrabInventory.GetItem(0).Count + "  ");
+                inventoryStr.AppendLine(playerInventory.GrabInventory.GetItem(0).Id + " " +
+                                        playerInventory.GrabInventory.GetItem(0).Count + "  ");
             }
 
 
@@ -112,7 +114,8 @@ namespace Server.Protocol.PacketResponse
                 }
 
                 inventoryStr.AppendLine("Craft Result Item");
-                inventoryStr.AppendLine(playerInventory.CraftingOpenableInventory.GetCreatableItem().Id + " " + playerInventory.CraftingOpenableInventory.GetCreatableItem().Count + "  ");
+                inventoryStr.AppendLine(playerInventory.CraftingOpenableInventory.GetCreatableItem().Id + " " +
+                                        playerInventory.CraftingOpenableInventory.GetCreatableItem().Count + "  ");
             }
 
             Debug.Log(inventoryStr);
@@ -147,7 +150,8 @@ namespace Server.Protocol.PacketResponse
         }
 
 
-        public PlayerInventoryResponseProtocolMessagePack(int playerId, ItemMessagePack[] main, ItemMessagePack grab, ItemMessagePack[] craft, ItemMessagePack craftResult, bool isCreatable)
+        public PlayerInventoryResponseProtocolMessagePack(int playerId, ItemMessagePack[] main, ItemMessagePack grab,
+            ItemMessagePack[] craft, ItemMessagePack craftResult, bool isCreatable)
         {
             Tag = PlayerInventoryResponseProtocol.Tag;
             PlayerId = playerId;

@@ -1,4 +1,3 @@
-
 using System;
 using Core.EnergySystem;
 using Core.Item;
@@ -26,7 +25,8 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void MiningTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var oreConfig = serviceProvider.GetService<IOreConfig>();
@@ -37,7 +37,8 @@ namespace Tests.CombinedTest.Core
             var miningTime = minerBlockConfigParam.OreSettings[0].MiningTime;
             var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.OreSettings[0].OreId);
 
-            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, itemStackFactory, new BlockOpenableInventoryUpdateEvent()));
+            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount,
+                itemStackFactory, new BlockOpenableInventoryUpdateEvent()));
             miner.SetMiningItem(miningItemId, miningTime);
 
             var dummyInventory = new DummyBlockInventory(itemStackFactory);

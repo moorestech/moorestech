@@ -14,7 +14,8 @@ namespace Server.Event.EventReceive
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IMapObjectDatastore _mapObjectDatastore;
 
-        public MapObjectUpdateEventPacket(IMapObjectDatastore mapObjectDatastore, EventProtocolProvider eventProtocolProvider)
+        public MapObjectUpdateEventPacket(IMapObjectDatastore mapObjectDatastore,
+            EventProtocolProvider eventProtocolProvider)
         {
             _mapObjectDatastore = mapObjectDatastore;
             _eventProtocolProvider = eventProtocolProvider;

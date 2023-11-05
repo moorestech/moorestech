@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
@@ -24,7 +23,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void BlockPlaceTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             //パケットでプレイヤーインベントリを生成
@@ -67,7 +67,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void PlaceDirectionTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
 
@@ -94,7 +95,9 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private List<byte> CreateUseHotBarProtocol(int x, int y, byte blockDirection)
         {
-            return MessagePackSerializer.Serialize(new SendPlaceHotBarBlockProtocolMessagePack(PlayerId, blockDirection, HotBarSlot, x, y)).ToList();
+            return MessagePackSerializer
+                .Serialize(new SendPlaceHotBarBlockProtocolMessagePack(PlayerId, blockDirection, HotBarSlot, x, y))
+                .ToList();
         }
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using Core.Item;
 using Core.Update;
@@ -14,11 +13,8 @@ using NUnit.Framework;
 using PlayerInventory;
 using Server.Boot;
 using Test.Module.TestMod;
-using UnityEditor.MPE;
 using UnityEngine;
-using UnityEngine.Assertions;
 using Assert = UnityEngine.Assertions.Assert;
-using ProcessState = Game.Block.Blocks.Machine.ProcessState;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -60,7 +56,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             //機械のアウトプットスロットの設定
             var _vanillaMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
-                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machine);
+                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(machine);
 
             var outputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
@@ -95,7 +92,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadVanillaMachineRunProcess = (VanillaMachineRunProcess)typeof(VanillaMachineBase)
                 .GetField("_vanillaMachineRunProcess", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachine);
-            Assert.AreEqual((double)300, loadVanillaMachineRunProcess.RemainingMillSecond);
+            Assert.AreEqual(300, loadVanillaMachineRunProcess.RemainingMillSecond);
             //レシピIDのチェック
             Assert.AreEqual(recipeId, loadVanillaMachineRunProcess.RecipeDataId);
             //機械のステータスのチェック
@@ -121,10 +118,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(itemStackFactory.Create(3, 2), outputInventoryField.OutputSlot[2]);
         }
 
-        private (ItemStackFactory, IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText, WorldLoaderFromJson)
+        private (ItemStackFactory, IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText,
+            WorldLoaderFromJson)
             CreateBlockTestModule()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
@@ -133,7 +132,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var playerInventoryDataStore = serviceProvider.GetService<PlayerInventoryDataStore>();
             var loadJsonFile = serviceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
 
-            return (itemStackFactory, blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText, loadJsonFile);
+            return (itemStackFactory, blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText,
+                loadJsonFile);
         }
     }
 }

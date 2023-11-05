@@ -1,4 +1,3 @@
-
 using System.IO;
 using Mod.Config;
 using NUnit.Framework;
@@ -15,7 +14,8 @@ namespace Tests.UnitTest.Mod
         [Test]
         public void LoadConfigTest()
         {
-            var (loaded, mod) = ModJsonStringLoader.GetConfigString(Path.Combine(TestModDirectory.ConfigOnlyDirectory, "mods"));
+            var (loaded, mod) =
+                ModJsonStringLoader.GetConfigString(Path.Combine(TestModDirectory.ConfigOnlyDirectory, "mods"));
 
             Assert.AreEqual(loaded.Count, 2);
 

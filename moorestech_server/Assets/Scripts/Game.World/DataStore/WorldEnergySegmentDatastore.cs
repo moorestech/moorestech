@@ -5,7 +5,8 @@ using Game.World.Interface.DataStore;
 
 namespace World.DataStore
 {
-    public class WorldEnergySegmentDatastore<TSegment> : IWorldEnergySegmentDatastore<TSegment> where TSegment : EnergySegment, new()
+    public class WorldEnergySegmentDatastore<TSegment> : IWorldEnergySegmentDatastore<TSegment>
+        where TSegment : EnergySegment, new()
     {
         private readonly List<TSegment> _segmentDictionary = new();
 

@@ -10,7 +10,8 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:removeBlock";
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public RemoveBlockToSetEventPacket(IBlockRemoveEvent blockRemoveEvent, EventProtocolProvider eventProtocolProvider)
+        public RemoveBlockToSetEventPacket(IBlockRemoveEvent blockRemoveEvent,
+            EventProtocolProvider eventProtocolProvider)
         {
             blockRemoveEvent.Subscribe(ReceivedEvent);
             _eventProtocolProvider = eventProtocolProvider;

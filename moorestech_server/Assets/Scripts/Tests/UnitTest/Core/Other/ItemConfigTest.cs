@@ -1,4 +1,3 @@
-
 using Core.Item.Config;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -17,7 +16,8 @@ namespace Tests.UnitTest.Core.Other
         [TestCase(7, 100)]
         public void JsonStackTest(int id, int stack)
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemConfig = serviceProvider.GetService<IItemConfig>();
             Assert.AreEqual(stack, itemConfig.GetItemConfig(id).MaxStack);
         }
@@ -31,7 +31,8 @@ namespace Tests.UnitTest.Core.Other
         [TestCase(7, "Test7")]
         public void JsonNameTest(int id, string name)
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemConfig = serviceProvider.GetService<IItemConfig>();
             Assert.AreEqual(name, itemConfig.GetItemConfig(id).Name);
         }
@@ -39,7 +40,8 @@ namespace Tests.UnitTest.Core.Other
         [Test]
         public void ModIdToItemListTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemConfig = serviceProvider.GetService<IItemConfig>();
 
 

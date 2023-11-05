@@ -10,11 +10,13 @@ namespace Server.Protocol.PacketResponse.Player
 {
     public static class ChunkBlockToPayload
     {
-        public static List<byte> Convert(CoreVector2Int chunkCoreVector2Int, IWorldBlockDatastore worldBlockDatastore, WorldMapTile worldMapTile)
+        public static List<byte> Convert(CoreVector2Int chunkCoreVector2Int, IWorldBlockDatastore worldBlockDatastore,
+            WorldMapTile worldMapTile)
         {
             //ブロックのIDの取得
             var blocksIds = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(chunkCoreVector2Int, worldBlockDatastore);
-            var blockDirections = CoordinateToChunkBlockIntArray.GetBlockDirectionInChunk(chunkCoreVector2Int, worldBlockDatastore);
+            var blockDirections =
+                CoordinateToChunkBlockIntArray.GetBlockDirectionInChunk(chunkCoreVector2Int, worldBlockDatastore);
 
             //マップタイルのIDの取得
             var mapTIleIds = CoordinateToChunkBlockIntArray.GetMapIdsInChunk(chunkCoreVector2Int, worldMapTile);

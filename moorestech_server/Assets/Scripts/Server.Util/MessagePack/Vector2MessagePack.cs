@@ -4,7 +4,7 @@ using MessagePack;
 
 namespace Server.Util.MessagePack
 {
-    [MessagePackObject()]
+    [MessagePackObject]
     public class Vector2MessagePack
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

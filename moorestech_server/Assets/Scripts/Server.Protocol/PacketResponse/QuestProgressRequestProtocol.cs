@@ -21,10 +21,12 @@ namespace Server.Protocol.PacketResponse
 
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            var playerId = MessagePackSerializer.Deserialize<QuestProgressRequestProtocolMessagePack>(payload.ToArray()).PlayerId;
+            var playerId = MessagePackSerializer.Deserialize<QuestProgressRequestProtocolMessagePack>(payload.ToArray())
+                .PlayerId;
 
             var responseQuest = new List<QuestProgressMessagePack>();
-            foreach (var quest in _questDataStore.GetPlayerQuestProgress(playerId)) responseQuest.Add(new QuestProgressMessagePack(quest));
+            foreach (var quest in _questDataStore.GetPlayerQuestProgress(playerId))
+                responseQuest.Add(new QuestProgressMessagePack(quest));
 
             var responseData = new QuestProgressResponseProtocolMessagePack(responseQuest);
 
@@ -68,7 +70,7 @@ namespace Server.Protocol.PacketResponse
         public List<QuestProgressMessagePack> Quests { get; set; }
     }
 
-    [MessagePackObject()]
+    [MessagePackObject]
     public class QuestProgressMessagePack
     {
         public QuestProgressMessagePack(IQuest quest)

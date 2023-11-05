@@ -1,4 +1,3 @@
-
 using System.Linq;
 using Core.Const;
 using Game.PlayerInventory.Interface;
@@ -27,14 +26,18 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void NormalEarnTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            var quest = (ItemCraftQuest)serviceProvider.GetService<IQuestDataStore>().GetPlayerQuestProgress(PlayerId)[RewardQuestIndex];
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var quest =
+                (ItemCraftQuest)serviceProvider.GetService<IQuestDataStore>().GetPlayerQuestProgress(PlayerId)[
+                    RewardQuestIndex];
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
 
 
             //クリアになって無いとき報酬を受け取れない時のテスト
             //報酬受け取りのパケットを送信
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.QuestConfig.QuestId)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer
+                .Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.QuestConfig.QuestId)).ToList());
             //報酬が受け取れていないことを確認
             Assert.AreEqual(false, quest.IsEarnedReward);
             //アイテムが入っていないことを確認
@@ -46,7 +49,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             typeof(ItemCraftQuest).GetProperty("IsCompleted").SetValue(quest, true);
 
             //報酬受け取りのパケットを送信
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.QuestConfig.QuestId)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer
+                .Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.QuestConfig.QuestId)).ToList());
 
             //報酬が入っているか確認
             Assert.AreEqual(quest.QuestConfig.RewardItemStacks[0], playerInventory.MainOpenableInventory.Items[0]);
@@ -56,7 +60,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             //報酬は複数受け取れない時のテスト
             //報酬受け取りのパケットを送信
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.QuestConfig.QuestId)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer
+                .Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.QuestConfig.QuestId)).ToList());
             //アイテムが入っていないことを確認する
             Assert.AreEqual(quest.QuestConfig.RewardItemStacks[0], playerInventory.MainOpenableInventory.Items[0]);
         }
@@ -68,9 +73,13 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void ItemFullNotEarnTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
-            var quest = (ItemCraftQuest)serviceProvider.GetService<IQuestDataStore>().GetPlayerQuestProgress(PlayerId)[RewardQuestIndex];
-            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var quest =
+                (ItemCraftQuest)serviceProvider.GetService<IQuestDataStore>().GetPlayerQuestProgress(PlayerId)[
+                    RewardQuestIndex];
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .MainOpenableInventory;
 
             //クリアした状態をリフレクションで設定
             typeof(ItemCraftQuest).GetProperty("IsCompleted").SetValue(quest, true);
@@ -84,7 +93,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //報酬受け取りのパケットを送信
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.QuestConfig.QuestId)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer
+                .Serialize(new EarnQuestRewardMessagePack(PlayerId, quest.QuestConfig.QuestId)).ToList());
             //報酬が受け取りになっていないテスト
             Assert.AreEqual(false, quest.IsEarnedReward);
         }

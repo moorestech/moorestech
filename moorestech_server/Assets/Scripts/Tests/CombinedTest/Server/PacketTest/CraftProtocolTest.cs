@@ -1,4 +1,3 @@
-
 using System.Linq;
 using Core.Item;
 using Core.Item.Config;
@@ -25,16 +24,20 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void CraftTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             //クラフトインベントリの作成
-            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
-            var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).GrabInventory;
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .CraftingOpenableInventory;
+            var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .GrabInventory;
             //CraftConfigの作成
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[0];
             var craftingEvent = serviceProvider.GetService<ICraftingEvent>();
 
             //craftingInventoryにアイテムを入れる
-            for (var i = 0; i < craftConfig.CraftItemInfos.Count; i++) craftInventory.SetItem(i, craftConfig.CraftItemInfos[i].ItemStack);
+            for (var i = 0; i < craftConfig.CraftItemInfos.Count; i++)
+                craftInventory.SetItem(i, craftConfig.CraftItemInfos[i].ItemStack);
 
 
             //イベントをサブスクライブ
@@ -58,13 +61,17 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void AllCraftTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();
-            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
-            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[2]; //id2のレシピはこのテスト用のレシピ
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .CraftingOpenableInventory;
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .MainOpenableInventory;
+            var craftConfig =
+                serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[2]; //id2のレシピはこのテスト用のレシピ
             var craftingEvent = serviceProvider.GetService<ICraftingEvent>();
 
             //craftingInventoryに2つ分のアイテムを入れる
@@ -85,7 +92,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //クラフト結果がメインインベントリにアイテムが入っているかチェック
-            Assert.AreEqual(craftConfig.Result.Id, mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0)).Id);
+            Assert.AreEqual(craftConfig.Result.Id,
+                mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0)).Id);
             Assert.AreEqual(100, mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0)).Count);
             Assert.AreEqual(60, mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(1)).Count);
         }
@@ -93,12 +101,16 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void OneStackCraftTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).CraftingOpenableInventory;
-            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[2]; //id2のレシピはこのテスト用のレシピ
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .CraftingOpenableInventory;
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                .MainOpenableInventory;
+            var craftConfig =
+                serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigList()[2]; //id2のレシピはこのテスト用のレシピ
             var craftingEvent = serviceProvider.GetService<ICraftingEvent>();
 
             //craftingInventoryに2つ分のアイテムを入れる
@@ -118,7 +130,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //クラフト結果がメインインベントリにアイテムが入っているかチェック
-            Assert.AreEqual(craftConfig.Result.Id, mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0)).Id);
+            Assert.AreEqual(craftConfig.Result.Id,
+                mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0)).Id);
             Assert.AreEqual(80, mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0)).Count);
         }
     }

@@ -18,7 +18,8 @@ namespace Server.Boot
         private const int argsCount = 1;
 
 
-        private static string DebugServerDirectory => Path.GetFullPath(Path.Combine(Environment.CurrentDirectory ,"../moorestech_client/Server"));
+        private static string DebugServerDirectory =>
+            Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../moorestech_client/Server"));
 
         private static string StartupFromClientFolderPath
         {
@@ -29,7 +30,8 @@ namespace Server.Boot
             }
         }
 
-        public static (Thread serverUpdateThread, Thread gameUpdateThread, CancellationTokenSource autoSaveTokenSource) Start(string[] args)
+        public static (Thread serverUpdateThread, Thread gameUpdateThread, CancellationTokenSource autoSaveTokenSource)
+            Start(string[] args)
         {
             //カレントディレクトリを表示
 #if DEBUG
@@ -64,7 +66,9 @@ namespace Server.Boot
             });
 
             var autoSaveTaskTokenSource = new CancellationTokenSource();
-            Task.Run(() => new AutoSaveSystem(serviceProvider.GetService<IWorldSaveDataSaver>()).AutoSave(autoSaveTaskTokenSource), autoSaveTaskTokenSource.Token);
+            Task.Run(
+                () => new AutoSaveSystem(serviceProvider.GetService<IWorldSaveDataSaver>()).AutoSave(
+                    autoSaveTaskTokenSource), autoSaveTaskTokenSource.Token);
 
             return (serverUpdateThread, gameUpdateThread, autoSaveTaskTokenSource);
         }

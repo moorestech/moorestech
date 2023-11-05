@@ -20,13 +20,16 @@ namespace Core.Item.Implementation
 
             if (count < 1) throw new ArgumentOutOfRangeException();
 
-            if (itemConfig.GetItemConfig(id).MaxStack < count) throw new ArgumentOutOfRangeException("アイテムスタック数の最大値を超えています ID:" + id + " Count:" + count + " MaxStack:" + itemConfig.GetItemConfig(id).MaxStack);
+            if (itemConfig.GetItemConfig(id).MaxStack < count)
+                throw new ArgumentOutOfRangeException("アイテムスタック数の最大値を超えています ID:" + id + " Count:" + count +
+                                                      " MaxStack:" + itemConfig.GetItemConfig(id).MaxStack);
 
             Id = id;
             Count = count;
         }
 
-        public ItemStack(int id, int count, IItemConfig itemConfig, ItemStackFactory itemStackFactory, long instanceId) : this(id, count, itemConfig, itemStackFactory)
+        public ItemStack(int id, int count, IItemConfig itemConfig, ItemStackFactory itemStackFactory, long instanceId)
+            : this(id, count, itemConfig, itemStackFactory)
         {
             ItemInstanceId = instanceId;
         }

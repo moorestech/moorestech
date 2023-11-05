@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +23,8 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void ItemProcessingOutputTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.MachineIoTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.MachineIoTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
@@ -33,7 +33,8 @@ namespace Tests.CombinedTest.Core
 
 
             var block = (VanillaMachineBase)blockFactory.Create(recipe.BlockId, 1);
-            foreach (var inputItem in recipe.ItemInputs) block.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
+            foreach (var inputItem in recipe.ItemInputs)
+                block.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
 
 
             var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
@@ -51,7 +52,8 @@ namespace Tests.CombinedTest.Core
         public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBase machineBase)
         {
             var _vanillaMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
-                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machineBase);
+                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(machineBase);
             var _vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(_vanillaMachineInventory);

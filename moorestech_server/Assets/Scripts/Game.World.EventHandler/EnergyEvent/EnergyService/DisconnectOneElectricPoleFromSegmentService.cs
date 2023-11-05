@@ -19,12 +19,14 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         where TGenerator : IEnergyGenerator
         where TTransformer : IEnergyTransformer
     {
-        public static void Disconnect(IEnergyTransformer removedElectricPole, EnergyServiceDependencyContainer<TSegment> container)
+        public static void Disconnect(IEnergyTransformer removedElectricPole,
+            EnergyServiceDependencyContainer<TSegment> container)
         {
             //必要なデータを取得
             var (x, y) = container.WorldBlockDatastore.GetBlockPosition(removedElectricPole.EntityId);
             var poleConfig =
-                container.BlockConfig.GetBlockConfig(((IBlock)removedElectricPole).BlockId).Param as ElectricPoleConfigParam;
+                container.BlockConfig.GetBlockConfig(((IBlock)removedElectricPole).BlockId).Param as
+                    ElectricPoleConfigParam;
             var removedSegment = container.WorldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);
             var electricPoles = FindElectricPoleFromPeripheralService.Find(
                 x, y, poleConfig, container.WorldBlockDatastore);
@@ -47,9 +49,11 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             //繋がっていた1つの電柱の周辺の機械と発電機を探索
             var (connectedX, connectedY) = container.WorldBlockDatastore.GetBlockPosition(electricPoles[0].EntityId);
             var connectedPoleConfig =
-                container.BlockConfig.GetBlockConfig(((IBlock)electricPoles[0]).BlockId).Param as ElectricPoleConfigParam;
+                container.BlockConfig.GetBlockConfig(((IBlock)electricPoles[0]).BlockId).Param as
+                    ElectricPoleConfigParam;
             var (connectedBlocks, connectedGenerators) =
-                FindMachineAndGeneratorFromPeripheralService.Find(connectedX, connectedY, connectedPoleConfig, container.WorldBlockDatastore);
+                FindMachineAndGeneratorFromPeripheralService.Find(connectedX, connectedY, connectedPoleConfig,
+                    container.WorldBlockDatastore);
 
             //セグメントに追加する
             connectedBlocks.ForEach(removedSegment.AddEnergyConsumer);

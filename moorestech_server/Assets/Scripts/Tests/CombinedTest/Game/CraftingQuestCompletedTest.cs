@@ -1,4 +1,3 @@
-
 using System.Reflection;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest.Interface;
@@ -27,14 +26,16 @@ namespace Tests.CombinedTest.Game
         {
             _eventInvokeCount = 0;
 
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var questDatastore = serviceProvider.GetService<IQuestDataStore>();
             var craftingEvent = (CraftingEvent)serviceProvider.GetService<ICraftingEvent>();
 
             //クエストの作成と取得
             var quest = (ItemCraftQuest)questDatastore.GetPlayerQuestProgress(PlayerId)[0];
             //クラフト対象のアイテムをリフレクションで取得
-            var questItemId = (int)quest.GetType().GetField("_questItemId", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(quest);
+            var questItemId = (int)quest.GetType()
+                .GetField("_questItemId", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(quest);
             //クエストのイベント購読
             quest.OnQuestCompleted += OnQuestCompleted;
 

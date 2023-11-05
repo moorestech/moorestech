@@ -1,5 +1,3 @@
-
-
 namespace Test.Module.TestMod
 {
     public class UnitTestModBlockId

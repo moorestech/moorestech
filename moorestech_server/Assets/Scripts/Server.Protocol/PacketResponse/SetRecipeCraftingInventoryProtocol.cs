@@ -26,7 +26,8 @@ namespace Server.Protocol.PacketResponse
 
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            var data = MessagePackSerializer.Deserialize<SetRecipeCraftingInventoryProtocolMessagePack>(payload.ToArray());
+            var data =
+                MessagePackSerializer.Deserialize<SetRecipeCraftingInventoryProtocolMessagePack>(payload.ToArray());
 
             var mainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
             var craftingInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).CraftingOpenableInventory;
@@ -38,10 +39,12 @@ namespace Server.Protocol.PacketResponse
 
             //移動できるかチェック
             //todo isPlaceable はいずれクライアント側で作れないアイテムであることを表示するために必要なので残しておく
-            var (isPlaceable, mainInventoryRequiredItemCount) = CheckPlaceableRecipe.IsPlaceable(mainInventory, data.Recipe);
+            var (isPlaceable, mainInventoryRequiredItemCount) =
+                CheckPlaceableRecipe.IsPlaceable(mainInventory, data.Recipe);
 
             //実際に移動するアイテム数を計算
-            var moveItem = CalcCraftInventoryPlaceItem.Calc(_itemStackFactory, _itemConfig, data.Recipe, mainInventoryRequiredItemCount);
+            var moveItem = CalcCraftInventoryPlaceItem.Calc(_itemStackFactory, _itemConfig, data.Recipe,
+                mainInventoryRequiredItemCount);
 
             //実際に移動する
             MoveRecipeMainInventoryToCraftInventory.Move(_itemStackFactory, mainInventory, craftingInventory, moveItem);

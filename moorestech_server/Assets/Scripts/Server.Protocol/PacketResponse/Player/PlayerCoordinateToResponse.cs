@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Util;
-using Game.World.Interface.DataStore;
 using Server.Protocol.PacketResponse.Const;
 
 namespace Server.Protocol.PacketResponse.Player
@@ -18,7 +17,8 @@ namespace Server.Protocol.PacketResponse.Player
             //例えばユーザーが一度ログアウトして、再度ログインすると、クライアント側ではブロックの情報は消えているが、
             //サーバー側では前回との差分しか返さないようになってしまう
             //そのため、前回の取得から5000ミリ秒以上経過している場合は、前回座標のリセットを行う
-            if (_lastGetTime.AddMilliseconds(RequestPlayerIntervalMilliSeconds) < DateTime.Now) _lastCoreVector2Int = new CoreVector2Int { X = int.MaxValue, Y = int.MaxValue };
+            if (_lastGetTime.AddMilliseconds(RequestPlayerIntervalMilliSeconds) < DateTime.Now)
+                _lastCoreVector2Int = new CoreVector2Int { X = int.MaxValue, Y = int.MaxValue };
 
             _lastGetTime = DateTime.Now;
 

@@ -22,7 +22,8 @@ namespace PlayerInventory.ItemManaged
                 itemStackFactory, 1);
         }
 
-        public GrabInventoryData(int playerId, GrabInventoryUpdateEvent grabInventoryUpdateEvent, ItemStackFactory itemStackFactory, IItemStack itemStacks) :
+        public GrabInventoryData(int playerId, GrabInventoryUpdateEvent grabInventoryUpdateEvent,
+            ItemStackFactory itemStackFactory, IItemStack itemStacks) :
             this(playerId, grabInventoryUpdateEvent, itemStackFactory)
         {
             _openableInventoryService.SetItemWithoutEvent(0, itemStacks);

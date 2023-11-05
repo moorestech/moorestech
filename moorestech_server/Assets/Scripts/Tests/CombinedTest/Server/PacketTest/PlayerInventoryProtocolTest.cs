@@ -1,5 +1,3 @@
-
-using System;
 using System.Linq;
 using Core.Const;
 using Core.Item;
@@ -22,13 +20,16 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var playerId = 1;
 
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
 
             //からの時のデータ要求
-            var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack(playerId)).ToList();
+            var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack(playerId))
+                .ToList();
             //データの検証
-            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0].ToArray());
+            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(
+                packet.GetPacketResponse(payload)[0].ToArray());
             Assert.AreEqual(playerId, data.PlayerId);
 
             //プレイヤーインベントリの検証
@@ -57,7 +58,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //インベントリにアイテムが入っている時のテスト
-            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
+            var playerInventoryData =
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             playerInventoryData.MainOpenableInventory.SetItem(0, itemStackFactory.Create(1, 5));
             playerInventoryData.MainOpenableInventory.SetItem(20, itemStackFactory.Create(3, 1));
@@ -82,7 +84,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //2回目のデータ要求
-            data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0].ToArray());
+            data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(
+                packet.GetPacketResponse(payload)[0].ToArray());
             Assert.AreEqual(playerId, data.PlayerId);
 
             //データの検証

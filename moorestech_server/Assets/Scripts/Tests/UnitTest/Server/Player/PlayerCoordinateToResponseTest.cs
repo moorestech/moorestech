@@ -1,7 +1,5 @@
-
 using System.Collections.Generic;
 using Core.Util;
-using Game.World.Interface.DataStore;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Player;
@@ -18,7 +16,8 @@ namespace Tests.UnitTest.Server.Player
             var cList = p.GetResponseChunkCoordinates(new CoreVector2Int(0, 0));
 
             var ans = new List<CoreVector2Int>();
-            if (ChunkResponseConst.ChunkSize != 20 || ChunkResponseConst.PlayerVisibleRangeChunk != 5) Assert.Fail("Changed const?");
+            if (ChunkResponseConst.ChunkSize != 20 || ChunkResponseConst.PlayerVisibleRangeChunk != 5)
+                Assert.Fail("Changed const?");
 
             for (var i = -40; i <= 40; i += ChunkResponseConst.ChunkSize)
             for (var j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
@@ -41,7 +40,8 @@ namespace Tests.UnitTest.Server.Player
             var cList = p.GetResponseChunkCoordinates(new CoreVector2Int(-10, 0));
 
             var ans = new List<CoreVector2Int>();
-            if (ChunkResponseConst.ChunkSize != 20 || ChunkResponseConst.PlayerVisibleRangeChunk != 5) Assert.Fail("Changed const?");
+            if (ChunkResponseConst.ChunkSize != 20 || ChunkResponseConst.PlayerVisibleRangeChunk != 5)
+                Assert.Fail("Changed const?");
 
             for (var i = -60; i <= 20; i += ChunkResponseConst.ChunkSize)
             for (var j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)

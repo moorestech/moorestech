@@ -1,4 +1,3 @@
-
 using Core.Ore;
 using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +13,8 @@ namespace Tests.CombinedTest.Game
         public void GenerateTest()
         {
             //直接生成してテストできないので、500x500の範囲で生成して100個以上鉱石があればOKとする
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
 
             var count = 0;

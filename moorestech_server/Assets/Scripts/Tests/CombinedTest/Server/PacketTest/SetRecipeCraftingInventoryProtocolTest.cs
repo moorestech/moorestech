@@ -1,4 +1,3 @@
-
 using System.Linq;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -19,7 +18,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void CraftingRecipePlaceTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0);
             var mainInventory = playerInventory.MainOpenableInventory;
@@ -39,7 +39,8 @@ namespace Tests.CombinedTest.Server.PacketTest
                 new(0, 0), new(0, 0), new(0, 0)
             };
             //レシピの設置を送信
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new SetRecipeCraftingInventoryProtocolMessagePack(0, recipe)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer
+                .Serialize(new SetRecipeCraftingInventoryProtocolMessagePack(0, recipe)).ToList());
 
             //アイテムが綺麗に分散して配置されているかチェック
             Assert.AreEqual(1, craftInventory.GetItem(0).Id);
@@ -62,7 +63,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void CraftRecipeLackItemTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0);
             var mainInventory = playerInventory.MainOpenableInventory;
@@ -78,7 +80,8 @@ namespace Tests.CombinedTest.Server.PacketTest
                 new(0, 0), new(0, 0), new(0, 0)
             };
             //レシピの設置を送信
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new SetRecipeCraftingInventoryProtocolMessagePack(0, recipe)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer
+                .Serialize(new SetRecipeCraftingInventoryProtocolMessagePack(0, recipe)).ToList());
 
             //足りている部分だけ置かれているテスト
             Assert.AreEqual(1, craftInventory.GetItem(0).Id);

@@ -25,10 +25,13 @@ namespace Game.MapObject
             _mapObjectFactory = mapObjectFactory;
 
             //configからmap obejctを生成
-            var mapObjects = JsonConvert.DeserializeObject<ConfigMapObjects>(File.ReadAllText(mapConfigFile.FullMapObjectConfigFilePath));
+            var mapObjects =
+                JsonConvert.DeserializeObject<ConfigMapObjects>(
+                    File.ReadAllText(mapConfigFile.FullMapObjectConfigFilePath));
             foreach (var configMapObject in mapObjects.MapObjects)
             {
-                var mapObject = _mapObjectFactory.Create(configMapObject.InstanceId, configMapObject.Type, configMapObject.Position, false);
+                var mapObject = _mapObjectFactory.Create(configMapObject.InstanceId, configMapObject.Type,
+                    configMapObject.Position, false);
                 _mapObjects.Add(mapObject.InstanceId, mapObject);
                 mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
             }
@@ -47,7 +50,8 @@ namespace Game.MapObject
                 }
                 else
                 {
-                    var mapObject = _mapObjectFactory.Create(data.InstanceId, data.Type, data.Position, data.IsDestroyed);
+                    var mapObject =
+                        _mapObjectFactory.Create(data.InstanceId, data.Type, data.Position, data.IsDestroyed);
                     mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
                 }
         }

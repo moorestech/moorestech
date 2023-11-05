@@ -60,7 +60,8 @@ namespace Game.Block.Blocks.Machine.InventoryController
 
         public IItemStack GetItem(int slot)
         {
-            if (slot < _vanillaMachineInputInventory.InputSlot.Count) return _vanillaMachineInputInventory.InputSlot[slot];
+            if (slot < _vanillaMachineInputInventory.InputSlot.Count)
+                return _vanillaMachineInputInventory.InputSlot[slot];
 
             slot -= _vanillaMachineInputInventory.InputSlot.Count;
             return _vanillaMachineOutputInventory.OutputSlot[slot];

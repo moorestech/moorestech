@@ -18,7 +18,9 @@ namespace Game.Save.Json
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
 
         public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore,
-            IWorldBlockDatastore worldBlockDatastore, IEntitiesDatastore entitiesDatastore, IQuestDataStore questDataStore, IWorldSettingsDatastore worldSettingsDatastore, IMapObjectDatastore mapObjectDatastore)
+            IWorldBlockDatastore worldBlockDatastore, IEntitiesDatastore entitiesDatastore,
+            IQuestDataStore questDataStore, IWorldSettingsDatastore worldSettingsDatastore,
+            IMapObjectDatastore mapObjectDatastore)
         {
             _inventoryDataStore = inventoryDataStore;
             _worldBlockDatastore = worldBlockDatastore;

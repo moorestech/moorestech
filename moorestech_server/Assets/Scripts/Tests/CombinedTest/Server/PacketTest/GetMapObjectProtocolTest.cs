@@ -1,4 +1,3 @@
-
 using System.Linq;
 using Core.Item;
 using Game.MapObject.Interface;
@@ -19,7 +18,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void GetMapObjectProtocol_DestroyAndAddToInventory_Test()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             var worldMapObjectDataStore = serviceProvider.GetService<IMapObjectDatastore>();
@@ -28,7 +28,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             //マップオブジェクトを取得するプロトコルを送信
             var mapObject = worldMapObjectDataStore.MapObjects[0];
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new GetMapObjectProtocolProtocolMessagePack(PlayerId, mapObject.InstanceId)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer
+                .Serialize(new GetMapObjectProtocolProtocolMessagePack(PlayerId, mapObject.InstanceId)).ToList());
 
 
             //実際マップオブジェクトが取得されているかのテスト

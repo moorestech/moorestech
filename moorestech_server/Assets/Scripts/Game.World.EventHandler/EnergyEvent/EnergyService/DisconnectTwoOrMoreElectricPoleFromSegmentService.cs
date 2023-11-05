@@ -13,7 +13,8 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         where TGenerator : IEnergyGenerator
         where TTransformer : IEnergyTransformer
     {
-        public static void Disconnect(IEnergyTransformer removedElectricPole, EnergyServiceDependencyContainer<TSegment> container)
+        public static void Disconnect(IEnergyTransformer removedElectricPole,
+            EnergyServiceDependencyContainer<TSegment> container)
         {
             //データを取得
             var removedSegment = container.WorldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);
@@ -59,13 +60,15 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         }
 
         //再帰的に電柱を探索する 
-        private static (Dictionary<int, IEnergyTransformer>, Dictionary<int, IBlockElectricConsumer>, Dictionary<int, IElectricGenerator>)
+        private static (Dictionary<int, IEnergyTransformer>, Dictionary<int, IBlockElectricConsumer>,
+            Dictionary<int, IElectricGenerator>)
             GetElectricPoles(
                 IEnergyTransformer electricPole,
                 IEnergyTransformer removedElectricPole,
                 Dictionary<int, IEnergyTransformer> electricPoles,
                 Dictionary<int, IBlockElectricConsumer> blockElectrics,
-                Dictionary<int, IElectricGenerator> powerGenerators, EnergyServiceDependencyContainer<TSegment> container)
+                Dictionary<int, IElectricGenerator> powerGenerators,
+                EnergyServiceDependencyContainer<TSegment> container)
         {
             var (x, y) = container.WorldBlockDatastore.GetBlockPosition(electricPole.EntityId);
             var poleConfig =
@@ -90,7 +93,8 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
 
 
             //周辺の電柱を取得
-            var peripheralElectricPoles = FindElectricPoleFromPeripheralService.Find(x, y, poleConfig, container.WorldBlockDatastore);
+            var peripheralElectricPoles =
+                FindElectricPoleFromPeripheralService.Find(x, y, poleConfig, container.WorldBlockDatastore);
             //削除された電柱は除く
             peripheralElectricPoles.Remove(removedElectricPole);
             //自身の電柱は追加する

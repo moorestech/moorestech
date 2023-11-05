@@ -23,7 +23,8 @@ namespace PlayerInventory.ItemManaged
                 itemStackFactory, PlayerInventoryConst.MainInventorySize);
         }
 
-        public MainOpenableInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent, ItemStackFactory itemStackFactory, List<IItemStack> itemStacks) :
+        public MainOpenableInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent,
+            ItemStackFactory itemStackFactory, List<IItemStack> itemStacks) :
             this(playerId, mainInventoryUpdateEvent, itemStackFactory)
         {
             for (var i = 0; i < itemStacks.Count; i++) _openableInventoryService.SetItemWithoutEvent(i, itemStacks[i]);
@@ -66,7 +67,8 @@ namespace PlayerInventory.ItemManaged
 
         public IItemStack InsertItem(int itemId, int count)
         {
-            return _openableInventoryService.InsertItemWithPrioritySlot(itemId, count, PlayerInventoryConst.HotBarSlots);
+            return _openableInventoryService.InsertItemWithPrioritySlot(itemId, count,
+                PlayerInventoryConst.HotBarSlots);
         }
 
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)

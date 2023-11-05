@@ -20,7 +20,8 @@ namespace Game.Crafting
         private readonly ItemStackFactory _itemStackFactory;
         private readonly CraftingConfigData _nullCraftingConfigData;
 
-        public IsCreatableJudgementService(ICraftingConfig craftingConfig, ItemStackFactory itemStackFactory, IItemConfig itemConfig)
+        public IsCreatableJudgementService(ICraftingConfig craftingConfig, ItemStackFactory itemStackFactory,
+            IItemConfig itemConfig)
         {
             _itemStackFactory = itemStackFactory;
             _itemConfig = itemConfig;
@@ -38,7 +39,8 @@ namespace Game.Crafting
 
                     //TODO Modパースエラーのログを出す
                     Debug.Log("クラフトレシピのキャッシュの構築中に失敗しました。クラフトレシピに重複があります。");
-                    Debug.Log($"ロードしようとしたレシピの結果 ModId:{resultItemModId} Name:{resultItemName} 重複したレシピの結果 ModId:{existItemModId} Name:{existItemName}");
+                    Debug.Log(
+                        $"ロードしようとしたレシピの結果 ModId:{resultItemModId} Name:{resultItemName} 重複したレシピの結果 ModId:{existItemModId} Name:{existItemName}");
                     throw new ArgumentException();
                 }
 
@@ -47,7 +49,8 @@ namespace Game.Crafting
 
             //レシピがない時のデータの作成
             var nullItem = new List<CraftingItemData>();
-            for (var i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++) nullItem.Add(new CraftingItemData(itemStackFactory.CreatEmpty(), false));
+            for (var i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
+                nullItem.Add(new CraftingItemData(itemStackFactory.CreatEmpty(), false));
             _nullCraftingConfigData = new CraftingConfigData(nullItem, itemStackFactory.CreatEmpty());
         }
 
@@ -100,7 +103,8 @@ namespace Game.Crafting
         /// <param name="craftingItems">クラフトスロットにおいてあるアイテム</param>
         /// <param name="mainInventoryItems">クラフト結果を入れるメインインベントリ</param>
         /// <returns>クラフト可能な個数</returns>
-        public int CalcAllCraftItemNum(IReadOnlyList<IItemStack> craftingItems, IReadOnlyList<IItemStack> mainInventoryItems)
+        public int CalcAllCraftItemNum(IReadOnlyList<IItemStack> craftingItems,
+            IReadOnlyList<IItemStack> mainInventoryItems)
         {
             //クラフト不可能ならそのまま終了
             if (!IsCreatable(craftingItems)) return 0;
@@ -117,7 +121,8 @@ namespace Game.Crafting
         /// <param name="craftingItems">クラフトスロットにおいてあるアイテム</param>
         /// <param name="mainInventoryItems">クラフト結果を入れるメインインベントリ</param>
         /// <returns>クラフト可能な個数</returns>
-        public int CalcOneStackCraftItemNum(IReadOnlyList<IItemStack> craftingItems, IReadOnlyList<IItemStack> mainInventoryItems)
+        public int CalcOneStackCraftItemNum(IReadOnlyList<IItemStack> craftingItems,
+            IReadOnlyList<IItemStack> mainInventoryItems)
         {
             //クラフト不可能ならそのまま終了
             if (!IsCreatable(craftingItems)) return 0;
@@ -135,10 +140,12 @@ namespace Game.Crafting
             ;
         }
 
-        private int MainInventoryCanInsertNum(int maxNum, IItemStack insertItem, IReadOnlyList<IItemStack> mainInventoryItems)
+        private int MainInventoryCanInsertNum(int maxNum, IItemStack insertItem,
+            IReadOnlyList<IItemStack> mainInventoryItems)
         {
             //クラフト可能な個数を求めるために仮のインベントリを作成する
-            var tempMainInventory = new OpenableInventoryItemDataStoreService((_, _) => { }, _itemStackFactory, PlayerInventoryConst.MainInventorySize);
+            var tempMainInventory = new OpenableInventoryItemDataStoreService((_, _) => { }, _itemStackFactory,
+                PlayerInventoryConst.MainInventorySize);
             //仮インベントリにアイテムをセットする
             for (var i = 0; i < mainInventoryItems.Count; i++) tempMainInventory.SetItem(i, mainInventoryItems[i]);
 
