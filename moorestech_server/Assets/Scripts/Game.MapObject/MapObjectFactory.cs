@@ -1,7 +1,8 @@
 ﻿using System;
 using Core.Item.Config;
-using Game.Base;
 using Game.MapObject.Interface;
+using UnityEngine;
+using Random = System.Random;
 
 namespace Game.MapObject
 {
@@ -16,13 +17,13 @@ namespace Game.MapObject
             _itemConfig = itemConfig;
         }
 
-        public IMapObject Create(int instanceId, string type, ServerVector3 position, bool isDestroyed)
+        public IMapObject Create(int instanceId, string type, Vector3 position, bool isDestroyed)
         {
             var (itemId, itemCount) = GetItemIdAndCount(type);
             return new VanillaStaticMapObject(instanceId, type, isDestroyed, position, itemId, itemCount);
         }
 
-        public IMapObject Create(string type, ServerVector3 position)
+        public IMapObject Create(string type, Vector3 position)
         {
             //TODO mapのseed値に対応させる
             var id = new Random().Next();

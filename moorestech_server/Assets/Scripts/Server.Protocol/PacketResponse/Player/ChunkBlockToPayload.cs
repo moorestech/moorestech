@@ -1,16 +1,16 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Util;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
 using MessagePack;
 using Server.Protocol.PacketResponse.MessagePack;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Player
 {
     public static class ChunkBlockToPayload
     {
-        public static List<byte> Convert(CoreVector2Int chunkCoreVector2Int, IWorldBlockDatastore worldBlockDatastore,
+        public static List<byte> Convert(Vector2Int chunkCoreVector2Int, IWorldBlockDatastore worldBlockDatastore,
             WorldMapTile worldMapTile)
         {
             //ブロックのIDの取得

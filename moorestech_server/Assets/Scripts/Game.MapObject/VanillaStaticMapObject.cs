@@ -1,6 +1,6 @@
 ﻿using System;
-using Game.Base;
 using Game.MapObject.Interface;
+using UnityEngine;
 
 namespace Game.MapObject
 {
@@ -9,7 +9,7 @@ namespace Game.MapObject
     /// </summary>
     public class VanillaStaticMapObject : IMapObject
     {
-        public VanillaStaticMapObject(int id, string type, bool isDestroyed, ServerVector3 position, int itemId,
+        public VanillaStaticMapObject(int id, string type, bool isDestroyed, Vector3 position, int itemId,
             int itemCount)
         {
             InstanceId = id;
@@ -23,7 +23,7 @@ namespace Game.MapObject
         public int InstanceId { get; }
         public string Type { get; }
         public bool IsDestroyed { get; private set; }
-        public ServerVector3 Position { get; }
+        public Vector3 Position { get; }
         public int ItemId { get; }
         public int ItemCount { get; }
 

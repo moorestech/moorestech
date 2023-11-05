@@ -1,6 +1,6 @@
 ﻿using System;
-using Game.Base;
 using MessagePack;
+using UnityEngine;
 
 namespace Server.Util.MessagePack
 {
@@ -19,11 +19,11 @@ namespace Server.Util.MessagePack
             Z = z;
         }
 
-        public Vector3MessagePack(ServerVector3 vector3)
+        public Vector3MessagePack(Vector3 vector3)
         {
-            X = vector3.X;
-            Y = vector3.Y;
-            Z = vector3.Z;
+            X = vector3.x;
+            Y = vector3.y;
+            Z = vector3.z;
         }
 
 

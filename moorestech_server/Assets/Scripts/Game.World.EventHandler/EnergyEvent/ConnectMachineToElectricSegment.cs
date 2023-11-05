@@ -40,8 +40,8 @@ namespace Game.World.EventHandler.EnergyEvent
         private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
         {
             //設置されたブロックが電柱だった時の処理
-            var x = blockPlaceEvent.CoreVector2Int.X;
-            var y = blockPlaceEvent.CoreVector2Int.Y;
+            var x = blockPlaceEvent.CoreVector2Int.x;
+            var y = blockPlaceEvent.CoreVector2Int.y;
 
             //設置されたブロックが発電機か機械以外はスルー処理
             if (!IsElectricMachine(x, y)) return;

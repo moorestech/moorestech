@@ -23,7 +23,7 @@ namespace Server.Event.EventReceive
 
 
             var payload = MessagePackSerializer.Serialize(new RemoveBlockEventMessagePack(
-                c.X, c.Y)).ToList();
+                c.x, c.y)).ToList();
 
 
             _eventProtocolProvider.AddBroadcastEvent(payload);

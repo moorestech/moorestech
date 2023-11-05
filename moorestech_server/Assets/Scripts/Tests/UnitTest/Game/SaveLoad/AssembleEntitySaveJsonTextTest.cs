@@ -1,4 +1,3 @@
-using Game.Base;
 using Game.Entity.Interface;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
@@ -15,7 +14,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void EntitySaveTest()
         {
-            var (packet, serviceProvider) =
+            var (_, serviceProvider) =
                 new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
@@ -24,12 +23,12 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             //セーブ用のエンティ追加
             var entity1 = entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, 10);
-            var entityPosition = new ServerVector3(1, 2, 3);
+            var entityPosition = new Vector3(1, 2, 3);
             entity1.SetPosition(entityPosition);
             entitiesDatastore.Add(entity1);
 
             var entity2 = entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, 30);
-            var entityPosition2 = new ServerVector3(4, 5, 6);
+            var entityPosition2 = new Vector3(4, 5, 6);
             entity2.SetPosition(entityPosition2);
             entitiesDatastore.Add(entity2);
 

@@ -4,7 +4,6 @@ using System.Data.HashFunction;
 using System.Data.HashFunction.xxHash;
 using Core.Const;
 using Core.Item.Config;
-using Core.Util;
 using Game.Block.Interface.BlockConfig;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -82,7 +81,7 @@ namespace Game.Block.Config.LoadConfig
                 int height = block.height;
 
                 blockDictionary.Add(new BlockConfigData(modId, id, name, hash, type, blockParam, itemId, modelTransform,
-                    new CoreVector2Int(width, height)));
+                    new Vector2Int(width, height)));
             }
 
             return blockDictionary;
@@ -96,26 +95,26 @@ namespace Game.Block.Config.LoadConfig
             var modelTransform = new ModelTransform();
             if (modelTransformJson != null)
             {
-                var posVector3 = new CoreVector3();
-                var rotVector3 = new CoreVector3();
-                var scaleVector3 = new CoreVector3();
+                var posVector3 = new Vector3();
+                var rotVector3 = new Vector3();
+                var scaleVector3 = new Vector3();
                 if (modelTransformJson.position != null)
                 {
                     var pos = modelTransformJson.position;
-                    posVector3 = new CoreVector3((float)pos.x, (float)pos.y, (float)pos.z);
+                    posVector3 = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
                 }
 
 
                 if (modelTransformJson.rotation != null)
                 {
                     var rot = modelTransformJson.rotation;
-                    rotVector3 = new CoreVector3((float)rot.x, (float)rot.y, (float)rot.z);
+                    rotVector3 = new Vector3((float)rot.x, (float)rot.y, (float)rot.z);
                 }
 
                 if (modelTransformJson.scale != null)
                 {
                     var scale = modelTransformJson.scale;
-                    scaleVector3 = new CoreVector3((float)scale.x, (float)scale.y, (float)scale.z);
+                    scaleVector3 = new Vector3((float)scale.x, (float)scale.y, (float)scale.z);
                 }
 
                 modelTransform = new ModelTransform(posVector3, rotVector3, scaleVector3);

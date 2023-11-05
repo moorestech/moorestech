@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
-using Core.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.State;
 using Game.World.Event;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
+using UnityEngine;
 
 namespace Game.World.DataStore
 {
@@ -27,7 +27,7 @@ namespace Game.World.DataStore
         private readonly BlockRemoveEvent _blockRemoveEvent;
 
         //座標とキーの紐づけ
-        private readonly Dictionary<CoreVector2Int, int> _coordinateDictionary = new();
+        private readonly Dictionary<Vector2Int, int> _coordinateDictionary = new();
 
 
         private readonly IBlock _nullBlock = new NullBlock();
@@ -47,9 +47,9 @@ namespace Game.World.DataStore
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
             if (!_blockMasterDictionary.ContainsKey(block.EntityId) &&
-                !_coordinateDictionary.ContainsKey(new CoreVector2Int(x, y)))
+                !_coordinateDictionary.ContainsKey(new Vector2Int(x, y)))
             {
-                var c = new CoreVector2Int(x, y);
+                var c = new Vector2Int(x, y);
                 var data = new WorldBlockData(block, x, y, blockDirection, _blockConfig);
                 _blockMasterDictionary.Add(block.EntityId, data);
                 _coordinateDictionary.Add(c, block.EntityId);
@@ -73,10 +73,10 @@ namespace Game.World.DataStore
             var data = _blockMasterDictionary[entityId];
 
             _blockRemoveEvent.OnBlockRemoveEventInvoke(new BlockRemoveEventProperties(
-                new CoreVector2Int(x, y), data.Block));
+                new Vector2Int(x, y), data.Block));
 
             _blockMasterDictionary.Remove(entityId);
-            _coordinateDictionary.Remove(new CoreVector2Int(x, y));
+            _coordinateDictionary.Remove(new Vector2Int(x, y));
             return true;
         }
 
@@ -88,7 +88,7 @@ namespace Game.World.DataStore
 
         public WorldBlockData GetOriginPosBlock(int x, int y)
         {
-            return _coordinateDictionary.TryGetValue(new CoreVector2Int(x, y), out var entityId)
+            return _coordinateDictionary.TryGetValue(new Vector2Int(x, y), out var entityId)
                 ? _blockMasterDictionary[entityId]
                 : null;
         }

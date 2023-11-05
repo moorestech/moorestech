@@ -1,11 +1,11 @@
 ﻿using Core.Item;
-using Game.Base;
+using UnityEngine;
 
 namespace Game.Entity.Interface.EntityInstance
 {
     public class ItemEntity : IEntity
     {
-        public ItemEntity(long instanceId, ServerVector3 position)
+        public ItemEntity(long instanceId, Vector3 position)
         {
             InstanceId = instanceId;
             Position = position;
@@ -13,13 +13,13 @@ namespace Game.Entity.Interface.EntityInstance
 
         public long InstanceId { get; }
         public string EntityType => VanillaEntityType.VanillaItem;
-        public ServerVector3 Position { get; private set; }
+        public Vector3 Position { get; private set; }
         public string State { get; private set; }
 
 
-        public void SetPosition(ServerVector3 serverVector3)
+        public void SetPosition(Vector3 position)
         {
-            Position = serverVector3;
+            Position = position;
         }
 
         public void SetState(IItemStack itemStack)

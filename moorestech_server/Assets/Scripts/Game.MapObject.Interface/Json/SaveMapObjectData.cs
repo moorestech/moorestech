@@ -1,6 +1,6 @@
 ﻿using System;
-using Game.Base;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Game.MapObject.Interface.Json
 {
@@ -24,11 +24,11 @@ namespace Game.MapObject.Interface.Json
             instanceId = mapObject.InstanceId;
             isDestroyed = mapObject.IsDestroyed;
             type = mapObject.Type;
-            x = mapObject.Position.X;
-            y = mapObject.Position.Y;
-            z = mapObject.Position.Z;
+            x = mapObject.Position.x;
+            y = mapObject.Position.y;
+            z = mapObject.Position.z;
         }
 
-        public ServerVector3 Position => new(x, y, z);
+        public Vector3 Position => new(x, y, z);
     }
 }

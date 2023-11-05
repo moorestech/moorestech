@@ -13,8 +13,8 @@ namespace Game.World.Interface.DataStore
             BlockDirection = blockDirection;
             Block = block;
             var config = blockConfig.GetBlockConfig(block.BlockId);
-            Height = config.BlockSize.Y;
-            Width = config.BlockSize.X;
+            Height = config.BlockSize.y;
+            Width = config.BlockSize.x;
         }
 
         public int OriginX { get; }

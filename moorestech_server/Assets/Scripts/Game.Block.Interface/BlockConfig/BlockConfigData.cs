@@ -1,4 +1,4 @@
-using Core.Util;
+using UnityEngine;
 
 namespace Game.Block.Interface.BlockConfig
 {
@@ -7,7 +7,7 @@ namespace Game.Block.Interface.BlockConfig
         public readonly long BlockHash;
 
         public readonly int BlockId;
-        public readonly CoreVector2Int BlockSize;
+        public readonly Vector2Int BlockSize;
         public readonly int ItemId;
         public readonly ModelTransform ModelTransform;
         public readonly string ModId;
@@ -16,7 +16,7 @@ namespace Game.Block.Interface.BlockConfig
         public readonly string Type;
 
         public BlockConfigData(string modId, int blockId, string name, long blockHash, string type,
-            IBlockConfigParam param, int itemId, ModelTransform modelTransform, CoreVector2Int blockSize)
+            IBlockConfigParam param, int itemId, ModelTransform modelTransform, Vector2Int blockSize)
         {
             BlockId = blockId;
             Name = name;
@@ -32,11 +32,11 @@ namespace Game.Block.Interface.BlockConfig
 
     public class ModelTransform
     {
-        public CoreVector3 Position;
-        public CoreVector3 Rotation;
-        public CoreVector3 Scale;
+        public Vector3 Position;
+        public Vector3 Rotation;
+        public Vector3 Scale;
 
-        public ModelTransform(CoreVector3 position, CoreVector3 rotation, CoreVector3 scale)
+        public ModelTransform(Vector3 position, Vector3 rotation, Vector3 scale)
         {
             Position = position;
             Rotation = rotation;

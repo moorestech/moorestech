@@ -1,6 +1,6 @@
 ﻿using System;
-using Core.Util;
 using MessagePack;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.MessagePack
 {
@@ -12,12 +12,12 @@ namespace Server.Protocol.PacketResponse.MessagePack
         {
         }
 
-        public ChunkDataResponseMessagePack(CoreVector2Int chunk, int[,] blockIds, int[,] blockDirect,
+        public ChunkDataResponseMessagePack(Vector2Int chunk, int[,] blockIds, int[,] blockDirect,
             int[,] mapTileIds)
         {
             Tag = PlayerCoordinateSendProtocol.ChunkDataTag;
-            ChunkX = chunk.X;
-            ChunkY = chunk.Y;
+            ChunkX = chunk.x;
+            ChunkY = chunk.y;
             BlockIds = blockIds;
             BlockDirect = blockDirect;
             MapTileIds = mapTileIds;

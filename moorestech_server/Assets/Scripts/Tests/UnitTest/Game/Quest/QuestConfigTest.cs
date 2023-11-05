@@ -34,8 +34,8 @@ namespace Tests.UnitTest.Game.Quest
             Assert.AreEqual("ItemCraft", test1Quest.QuestType);
             Assert.AreEqual("Test Quest", test1Quest.QuestName);
             Assert.AreEqual("Test Quest Description", test1Quest.QuestDescription);
-            Assert.AreEqual(3, test1Quest.UiPosition.X);
-            Assert.AreEqual(5, test1Quest.UiPosition.Y);
+            Assert.AreEqual(3, test1Quest.UiPosition.x);
+            Assert.AreEqual(5, test1Quest.UiPosition.y);
             Assert.AreEqual(0, test1Quest.RewardItemStacks.Count);
             Assert.AreEqual("{\"modId\":\"Test Author:forUniTest\",\"name\":\"Test1\"}", test1Quest.QuestParameter);
 

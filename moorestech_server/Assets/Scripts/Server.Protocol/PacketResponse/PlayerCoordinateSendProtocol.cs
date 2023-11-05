@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Util;
-using Game.Base;
 using Game.Block.Interface.BlockConfig;
 using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
@@ -12,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.MessagePack;
 using Server.Protocol.PacketResponse.Player;
 using Server.Protocol.PacketResponse.Util;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -48,7 +47,7 @@ namespace Server.Protocol.PacketResponse
             //新しいプレイヤーの情報ならDictionaryに追加する
             _responses.TryAdd(data.PlayerId, new PlayerCoordinateToResponse());
             //プレイヤーの座標を更新する
-            var newPosition = new ServerVector3(data.X, 0, data.Y);
+            var newPosition = new Vector3(data.X, 0, data.Y);
             _entitiesDatastore.SetPosition(data.PlayerId, newPosition);
 
 
@@ -68,7 +67,7 @@ namespace Server.Protocol.PacketResponse
         {
             var responseChunk = new List<List<byte>>();
             var responseChunkCoordinates = _responses[data.PlayerId]
-                .GetResponseChunkCoordinates(new CoreVector2Int((int)data.X, (int)data.Y));
+                .GetResponseChunkCoordinates(new Vector2Int((int)data.X, (int)data.Y));
             foreach (var chunkCoordinate in responseChunkCoordinates)
                 //チャンクのブロックデータを取得してバイト配列に変換する
                 responseChunk.Add(ChunkBlockToPayload.Convert(chunkCoordinate, _worldBlockDatastore, _worldMapTile));
@@ -80,7 +79,7 @@ namespace Server.Protocol.PacketResponse
         private List<byte> GetEntityBytes(PlayerCoordinateSendProtocolMessagePack data)
         {
             //TODO 今はベルトコンベアのアイテムをエンティティとして返しているだけ 今後は本当のentityも返す
-            var coordinate = new CoreVector2Int((int)data.X, (int)data.Y);
+            var coordinate = new Vector2Int((int)data.X, (int)data.Y);
             var responseChunkCoordinates = PlayerCoordinateToResponse.GetChunkCoordinates(coordinate);
             var items = CollectBeltConveyorItems.CollectItem(responseChunkCoordinates, _worldBlockDatastore,
                 _blockConfig, _entityFactory);

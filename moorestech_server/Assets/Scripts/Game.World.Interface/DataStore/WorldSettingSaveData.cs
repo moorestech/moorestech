@@ -1,5 +1,5 @@
-using Core.Util;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Game.World.Interface.DataStore
 {
@@ -8,10 +8,10 @@ namespace Game.World.Interface.DataStore
         [JsonProperty("SpawnX")] public int SpawnX;
         [JsonProperty("SpawnY")] public int SpawnY;
 
-        public WorldSettingSaveData(CoreVector2Int spawnPoint)
+        public WorldSettingSaveData(Vector2Int spawnPoint)
         {
-            SpawnX = spawnPoint.X;
-            SpawnY = spawnPoint.Y;
+            SpawnX = spawnPoint.x;
+            SpawnY = spawnPoint.y;
         }
     }
 }

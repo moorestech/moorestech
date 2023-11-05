@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using Core.Item;
 using Core.Update;
-using Core.Util;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface.BlockConfig;
 using Game.Entity.Interface;
@@ -14,6 +13,7 @@ using Server.Boot;
 using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Util;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.CombinedTest.Server
 {
@@ -24,10 +24,10 @@ namespace Tests.CombinedTest.Server
         private const int RemainingTime = 1000;
         private const int ItemInstanceId = 100;
 
-        private readonly List<CoreVector2Int> _minusPlayerCoordinate = new()
-            { new CoreVector2Int(-ChunkResponseConst.ChunkSize, -ChunkResponseConst.ChunkSize) };
+        private readonly List<Vector2Int> _minusPlayerCoordinate = new()
+            { new Vector2Int(-ChunkResponseConst.ChunkSize, -ChunkResponseConst.ChunkSize) };
 
-        private readonly List<CoreVector2Int> _plusPlayerCoordinate = new() { new CoreVector2Int(0, 0) };
+        private readonly List<Vector2Int> _plusPlayerCoordinate = new() { new Vector2Int(0, 0) };
 
         /// <summary>
         ///     各方向に向いたベルトコンベア内のアイテムの位置が正しいかどうかをチェックする
@@ -53,9 +53,9 @@ namespace Tests.CombinedTest.Server
                 CollectBeltConveyorItems.CollectItem(_plusPlayerCoordinate, worldDataStore, blockConfig,
                     entityFactory)[0];
             //座標を検証
-            Assert.AreEqual(0.5, itemEntity.Position.X); //0,0に設置してベルトコンベアの中心にアイテムがあるため、Z座標は0.5となる 
-            Assert.AreEqual(0, itemEntity.Position.Y); //2次元座標から3次元座標に変換されているため、Y座標は0となる
-            Assert.AreEqual(0.75, itemEntity.Position.Z); //4秒のベルトコンベアで残り1秒の時の座標のため、1の3/4の位置にある
+            Assert.AreEqual(0.5, itemEntity.Position.x); //0,0に設置してベルトコンベアの中心にアイテムがあるため、Z座標は0.5となる 
+            Assert.AreEqual(0, itemEntity.Position.y); //2次元座標から3次元座標に変換されているため、Y座標は0となる
+            Assert.AreEqual(0.75, itemEntity.Position.z); //4秒のベルトコンベアで残り1秒の時の座標のため、1の3/4の位置にある
             //エンティティを検証
             Assert.AreEqual(ItemInstanceId, itemEntity.InstanceId);
             Assert.AreEqual(VanillaEntityType.VanillaItem, itemEntity.EntityType);
@@ -68,9 +68,9 @@ namespace Tests.CombinedTest.Server
                 CollectBeltConveyorItems.CollectItem(_plusPlayerCoordinate, worldDataStore, blockConfig,
                     entityFactory)[0];
             //座標を検証
-            Assert.AreEqual(0.75, itemEntity.Position.X);
-            Assert.AreEqual(0, itemEntity.Position.Y);
-            Assert.AreEqual(0.5, itemEntity.Position.Z);
+            Assert.AreEqual(0.75, itemEntity.Position.x);
+            Assert.AreEqual(0, itemEntity.Position.y);
+            Assert.AreEqual(0.5, itemEntity.Position.z);
 
 
             //ブロックを削除し南向きに設置
@@ -80,9 +80,9 @@ namespace Tests.CombinedTest.Server
                 CollectBeltConveyorItems.CollectItem(_plusPlayerCoordinate, worldDataStore, blockConfig,
                     entityFactory)[0];
             //座標を検証
-            Assert.AreEqual(0.5, itemEntity.Position.X);
-            Assert.AreEqual(0, itemEntity.Position.Y);
-            Assert.AreEqual(0.25, itemEntity.Position.Z);
+            Assert.AreEqual(0.5, itemEntity.Position.x);
+            Assert.AreEqual(0, itemEntity.Position.y);
+            Assert.AreEqual(0.25, itemEntity.Position.z);
 
 
             //ブロックを削除し西向きに設置
@@ -92,9 +92,9 @@ namespace Tests.CombinedTest.Server
                 CollectBeltConveyorItems.CollectItem(_plusPlayerCoordinate, worldDataStore, blockConfig,
                     entityFactory)[0];
             //ブロックを削除し座標を検証
-            Assert.AreEqual(0.25, itemEntity.Position.X);
-            Assert.AreEqual(0, itemEntity.Position.Y);
-            Assert.AreEqual(0.5, itemEntity.Position.Z);
+            Assert.AreEqual(0.25, itemEntity.Position.x);
+            Assert.AreEqual(0, itemEntity.Position.y);
+            Assert.AreEqual(0.5, itemEntity.Position.z);
 
 
             //x、yがマイナスであるときのテスト
@@ -107,9 +107,9 @@ namespace Tests.CombinedTest.Server
                 CollectBeltConveyorItems.CollectItem(_minusPlayerCoordinate, worldDataStore, blockConfig,
                     entityFactory)[0];
             //座標を検証
-            Assert.AreEqual(-0.5, itemEntity.Position.X);
-            Assert.AreEqual(0, itemEntity.Position.Y);
-            Assert.AreEqual(-0.25, itemEntity.Position.Z); //ブロックの座標がマイナスなので-1を原点として3/4の値である-0.25となる
+            Assert.AreEqual(-0.5, itemEntity.Position.x);
+            Assert.AreEqual(0, itemEntity.Position.y);
+            Assert.AreEqual(-0.25, itemEntity.Position.z); //ブロックの座標がマイナスなので-1を原点として3/4の値である-0.25となる
 
 
             //東向きに設置
@@ -119,9 +119,9 @@ namespace Tests.CombinedTest.Server
                 CollectBeltConveyorItems.CollectItem(_minusPlayerCoordinate, worldDataStore, blockConfig,
                     entityFactory)[0];
             //座標を検証
-            Assert.AreEqual(-0.25, itemEntity.Position.X);
-            Assert.AreEqual(0, itemEntity.Position.Y);
-            Assert.AreEqual(-0.5, itemEntity.Position.Z);
+            Assert.AreEqual(-0.25, itemEntity.Position.x);
+            Assert.AreEqual(0, itemEntity.Position.y);
+            Assert.AreEqual(-0.5, itemEntity.Position.z);
 
 
             //ブロックを削除し南向きに設置
@@ -131,9 +131,9 @@ namespace Tests.CombinedTest.Server
                 CollectBeltConveyorItems.CollectItem(_minusPlayerCoordinate, worldDataStore, blockConfig,
                     entityFactory)[0];
             //座標を検証
-            Assert.AreEqual(-0.5, itemEntity.Position.X);
-            Assert.AreEqual(0, itemEntity.Position.Y);
-            Assert.AreEqual(-0.75, itemEntity.Position.Z);
+            Assert.AreEqual(-0.5, itemEntity.Position.x);
+            Assert.AreEqual(0, itemEntity.Position.y);
+            Assert.AreEqual(-0.75, itemEntity.Position.z);
 
 
             //ブロックを削除し西向きに設置
@@ -143,9 +143,9 @@ namespace Tests.CombinedTest.Server
                 CollectBeltConveyorItems.CollectItem(_minusPlayerCoordinate, worldDataStore, blockConfig,
                     entityFactory)[0];
             //ブロックを削除し座標を検証
-            Assert.AreEqual(-0.75, itemEntity.Position.X);
-            Assert.AreEqual(0, itemEntity.Position.Y);
-            Assert.AreEqual(-0.5, itemEntity.Position.Z);
+            Assert.AreEqual(-0.75, itemEntity.Position.x);
+            Assert.AreEqual(0, itemEntity.Position.y);
+            Assert.AreEqual(-0.5, itemEntity.Position.z);
         }
 
 

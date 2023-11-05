@@ -35,8 +35,8 @@ namespace Game.World.EventHandler.EnergyEvent
         private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
         {
             //設置されたブロックが電柱だった時の処理
-            var x = blockPlaceEvent.CoreVector2Int.X;
-            var y = blockPlaceEvent.CoreVector2Int.Y;
+            var x = blockPlaceEvent.CoreVector2Int.x;
+            var y = blockPlaceEvent.CoreVector2Int.y;
             if (!_worldBlockDatastore.ExistsComponentBlock<IEnergyTransformer>(x, y)) return;
 
             var electricPoleConfigParam =

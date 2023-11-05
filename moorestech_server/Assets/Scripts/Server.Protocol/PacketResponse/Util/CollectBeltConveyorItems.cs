@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Core.Util;
-using Game.Base;
 using Game.Block;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface.BlockConfig;
@@ -8,6 +6,7 @@ using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
 using Game.World.Interface.DataStore;
 using Server.Protocol.PacketResponse.Const;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util
 {
@@ -16,7 +15,7 @@ namespace Server.Protocol.PacketResponse.Util
     /// </summary>
     public static class CollectBeltConveyorItems
     {
-        public static List<IEntity> CollectItem(List<CoreVector2Int> collectChunks,
+        public static List<IEntity> CollectItem(List<Vector2Int> collectChunks,
             IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
@@ -27,15 +26,15 @@ namespace Server.Protocol.PacketResponse.Util
         }
 
 
-        private static List<IEntity> CollectItemFromChunk(CoreVector2Int chunk,
+        private static List<IEntity> CollectItemFromChunk(Vector2Int chunk,
             IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
             for (var i = 0; i < ChunkResponseConst.ChunkSize; i++)
             for (var j = 0; j < ChunkResponseConst.ChunkSize; j++)
             {
-                var x = i + chunk.X;
-                var y = j + chunk.Y;
+                var x = i + chunk.x;
+                var y = j + chunk.y;
 
                 if (!worldBlockDatastore.TryGetBlock(x, y, out var block)) continue;
 
@@ -87,7 +86,7 @@ namespace Server.Protocol.PacketResponse.Util
                     }
 
                     //Unity側ではZ軸がサーバーのY軸になるため変換する
-                    var position = new ServerVector3(entityX, 0, entityY);
+                    var position = new Vector3(entityX, 0, entityY);
 
                     var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem,
                         beltConveyorItem.ItemInstanceId, position);

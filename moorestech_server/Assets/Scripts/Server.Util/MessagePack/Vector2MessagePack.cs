@@ -1,6 +1,6 @@
 using System;
-using Core.Util;
 using MessagePack;
+using UnityEngine;
 
 namespace Server.Util.MessagePack
 {
@@ -18,10 +18,10 @@ namespace Server.Util.MessagePack
             Y = y;
         }
 
-        public Vector2MessagePack(CoreVector2Int coreVector2Int)
+        public Vector2MessagePack(Vector2Int coreVector2Int)
         {
-            X = coreVector2Int.X;
-            Y = coreVector2Int.Y;
+            X = coreVector2Int.x;
+            Y = coreVector2Int.y;
         }
 
 

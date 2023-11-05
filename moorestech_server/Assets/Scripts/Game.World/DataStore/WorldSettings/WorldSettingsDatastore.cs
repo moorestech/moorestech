@@ -1,6 +1,6 @@
-using Core.Util;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
+using UnityEngine;
 
 namespace Game.World.DataStore.WorldSettings
 {
@@ -17,7 +17,7 @@ namespace Game.World.DataStore.WorldSettings
             _veinGenerator = veinGenerator;
         }
 
-        public CoreVector2Int WorldSpawnPoint { get; private set; }
+        public Vector2Int WorldSpawnPoint { get; private set; }
 
         public void Initialize()
         {
@@ -31,7 +31,7 @@ namespace Game.World.DataStore.WorldSettings
 
         public void LoadSettingData(WorldSettingSaveData worldSettingSaveData)
         {
-            WorldSpawnPoint = new CoreVector2Int(worldSettingSaveData.SpawnX, worldSettingSaveData.SpawnY);
+            WorldSpawnPoint = new Vector2Int(worldSettingSaveData.SpawnX, worldSettingSaveData.SpawnY);
         }
     }
 }

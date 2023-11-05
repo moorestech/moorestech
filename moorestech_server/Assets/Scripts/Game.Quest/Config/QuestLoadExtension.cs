@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
-using Core.Util;
 using Game.Quest.Interface;
+using UnityEngine;
 
 namespace Game.Quest.Config
 {
@@ -24,7 +24,7 @@ namespace Game.Quest.Config
                 questConfigJsonData.Type,
                 questConfigJsonData.Name,
                 questConfigJsonData.Description,
-                new CoreVector2(questConfigJsonData.UiPosX, questConfigJsonData.UiPosY),
+                new Vector2(questConfigJsonData.UiPosX, questConfigJsonData.UiPosY),
                 rewardItems,
                 // パラメーターは " を ' にしたjsonデータなのでReplaceする
                 questConfigJsonData.Param.Replace("'", "\""));

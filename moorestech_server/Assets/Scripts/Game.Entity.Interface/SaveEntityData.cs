@@ -1,5 +1,5 @@
-using Game.Base;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Game.Entity.Interface
 {
@@ -12,13 +12,13 @@ namespace Game.Entity.Interface
         [JsonProperty("Y")] public float Y;
         [JsonProperty("Z")] public float Z;
 
-        public SaveEntityData(string type, long instanceId, ServerVector3 serverVector3)
+        public SaveEntityData(string type, long instanceId, Vector3 serverVector3)
         {
             Type = type;
             InstanceId = instanceId;
-            X = serverVector3.X;
-            Y = serverVector3.Y;
-            Z = serverVector3.Z;
+            X = serverVector3.x;
+            Y = serverVector3.y;
+            Z = serverVector3.z;
         }
     }
 }
