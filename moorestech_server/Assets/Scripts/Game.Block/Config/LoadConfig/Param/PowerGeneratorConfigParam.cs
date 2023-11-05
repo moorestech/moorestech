@@ -10,7 +10,8 @@ namespace Game.Block.Config.LoadConfig.Param
         public readonly int InfinityPower;
         public readonly bool IsInfinityPower;
 
-        public PowerGeneratorConfigParam(Dictionary<int, FuelSetting> fuelSettings, int fuelSlot, bool isInfinityPower, int infinityPower)
+        public PowerGeneratorConfigParam(Dictionary<int, FuelSetting> fuelSettings, int fuelSlot, bool isInfinityPower,
+            int infinityPower)
         {
             FuelSettings = fuelSettings;
             FuelSlot = fuelSlot;

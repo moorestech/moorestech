@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Buffers;
-using System.Data.Common;
 
 namespace MessagePack
 {
@@ -12,13 +10,19 @@ namespace MessagePack
 #else
     public
 #endif
-    struct Nil : IEquatable<Nil>
+        struct Nil : IEquatable<Nil>
     {
-        public static readonly Nil Default = default(Nil);
+        public static readonly Nil Default = default;
 
-        public static bool operator ==(Nil left, Nil right) => true;
+        public static bool operator ==(Nil left, Nil right)
+        {
+            return true;
+        }
 
-        public static bool operator !=(Nil left, Nil right) => false;
+        public static bool operator !=(Nil left, Nil right)
+        {
+            return false;
+        }
 
         public override bool Equals(object obj)
         {

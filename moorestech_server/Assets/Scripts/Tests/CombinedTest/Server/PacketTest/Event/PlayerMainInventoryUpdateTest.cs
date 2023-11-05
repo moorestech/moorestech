@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
@@ -9,9 +8,8 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUitl;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -22,7 +20,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void UpdateTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(0, response.Count);
@@ -30,7 +29,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             //インベントリにアイテムを追加
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0);
-            playerInventoryData.MainOpenableInventory.SetItem(5, serviceProvider.GetService<ItemStackFactory>().Create(1, 5));
+            playerInventoryData.MainOpenableInventory.SetItem(5,
+                serviceProvider.GetService<ItemStackFactory>().Create(1, 5));
 
             //追加時のイベントのキャッチ
             response = packetResponse.GetPacketResponse(EventRequestData(PlayerId));
@@ -53,13 +53,17 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(4, response.Count);
 
             var grabUp = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[0].ToArray());
-            var setMainInventory = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[1].ToArray());
-            var outMainInventory = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[2].ToArray());
-            var grabDown = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[3].ToArray());
+            var setMainInventory =
+                MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[1].ToArray());
+            var outMainInventory =
+                MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[2].ToArray());
+            var grabDown =
+                MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[3].ToArray());
 
             Assert.AreEqual(GrabInventoryUpdateToSetEventPacket.EventTag, grabUp.EventTag); //イベントタグの確認 アイテムを持ち上げる
             Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag, setMainInventory.EventTag); //インベントリのアイテムがへる
-            Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag, outMainInventory.EventTag); //インベントリにアイテムがセットされる
+            Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag,
+                outMainInventory.EventTag); //インベントリにアイテムがセットされる
             Assert.AreEqual(GrabInventoryUpdateToSetEventPacket.EventTag, grabDown.EventTag); //アイテムが置かれる
 
             Assert.AreEqual(0, grabUp.Slot); //移動時のスロット確認
@@ -86,14 +90,17 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             Assert.AreEqual(4, response.Count);
             grabUp = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[0].ToArray());
-            setMainInventory = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[1].ToArray());
-            outMainInventory = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[2].ToArray());
+            setMainInventory =
+                MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[1].ToArray());
+            outMainInventory =
+                MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[2].ToArray());
             grabDown = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(response[3].ToArray());
 
 
             Assert.AreEqual(GrabInventoryUpdateToSetEventPacket.EventTag, grabUp.EventTag); //イベントタグの確認 アイテムを持ち上げる
             Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag, setMainInventory.EventTag); //インベントリのアイテムがへる
-            Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag, outMainInventory.EventTag); //インベントリにアイテムがセットされる
+            Assert.AreEqual(MainInventoryUpdateToSetEventPacket.EventTag,
+                outMainInventory.EventTag); //インベントリにアイテムがセットされる
             Assert.AreEqual(GrabInventoryUpdateToSetEventPacket.EventTag, grabDown.EventTag); //アイテムが置かれる
 
             Assert.AreEqual(0, grabUp.Slot); //移動時のスロット確認
@@ -135,7 +142,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             }
 
             return MessagePackSerializer.Serialize(
-                new InventoryItemMoveProtocolMessagePack(PlayerId, itemCount, ItemMoveType.SwapSlot, from, to)).ToList();
+                    new InventoryItemMoveProtocolMessagePack(PlayerId, itemCount, ItemMoveType.SwapSlot, from, to))
+                .ToList();
         }
     }
 }

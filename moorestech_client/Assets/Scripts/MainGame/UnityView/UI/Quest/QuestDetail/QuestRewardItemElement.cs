@@ -10,11 +10,11 @@ namespace MainGame.UnityView.UI.Quest.QuestDetail
     {
         [SerializeField] private Image iconImage;
         [SerializeField] private TMP_Text cntText;
-        public void SetItem(IItemStack itemStack,ItemImages itemImages)
+
+        public void SetItem(IItemStack itemStack, ItemImages itemImages)
         {
             cntText.text = itemStack.Count.ToString();
             iconImage.sprite = itemImages.GetItemView(itemStack.Id).ItemImage;
         }
-        
     }
 }

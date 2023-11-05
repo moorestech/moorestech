@@ -1,7 +1,4 @@
-
-using System;
 using Core.Const;
-using Core.Util;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
@@ -10,7 +7,9 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Player;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
+using UnityEngine;
+using Random = System.Random;
 
 namespace Tests.UnitTest.Server.Player
 {
@@ -21,9 +20,10 @@ namespace Tests.UnitTest.Server.Player
         [Test]
         public void NothingBlockTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
-            var b = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(new CoreVector2Int(0, 0), worldData);
+            var b = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(new Vector2Int(0, 0), worldData);
 
             Assert.AreEqual(b.GetLength(0), ChunkResponseConst.ChunkSize);
             Assert.AreEqual(b.GetLength(1), ChunkResponseConst.ChunkSize);
@@ -36,7 +36,8 @@ namespace Tests.UnitTest.Server.Player
         [Test]
         public void SameBlockResponseTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
             var random = new Random(3944156);
             //ブロックの設置
@@ -49,7 +50,7 @@ namespace Tests.UnitTest.Server.Player
             //レスポンスのチェック
             for (var l = 0; l < 100; l++)
             {
-                var c = new CoreVector2Int(
+                var c = new Vector2Int(
                     random.Next(-5, 5) * ChunkResponseConst.ChunkSize,
                     random.Next(-5, 5) * ChunkResponseConst.ChunkSize);
                 var b = CoordinateToChunkBlockIntArray.GetBlockIdsInChunk(c, worldData);
@@ -58,7 +59,7 @@ namespace Tests.UnitTest.Server.Player
                 for (var i = 0; i < b.GetLength(0); i++)
                 for (var j = 0; j < b.GetLength(1); j++)
                     Assert.AreEqual(
-                        worldData.GetOriginPosBlock(c.X + i, c.Y + j)?.Block.BlockId ?? BlockConst.EmptyBlockId,
+                        worldData.GetOriginPosBlock(c.x + i, c.y + j)?.Block.BlockId ?? BlockConst.EmptyBlockId,
                         b[i, j]);
             }
         }
@@ -67,7 +68,8 @@ namespace Tests.UnitTest.Server.Player
         {
             if (_blockFactory == null)
             {
-                var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                var (packet, serviceProvider) =
+                    new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
                 _blockFactory = serviceProvider.GetService<IBlockFactory>();
             }
 

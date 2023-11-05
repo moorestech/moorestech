@@ -10,9 +10,13 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaMinerTemplate : IBlockTemplate
     {
-        public delegate VanillaMinerBase LoadMiner((string state, int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemFactory, BlockOpenableInventoryUpdateEvent openableInvEvent) data);
+        public delegate VanillaMinerBase LoadMiner(
+            (string state, int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount,
+                ItemStackFactory itemFactory, BlockOpenableInventoryUpdateEvent openableInvEvent) data);
 
-        public delegate VanillaMinerBase NewMiner((int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemFactory, BlockOpenableInventoryUpdateEvent openableInvEvent) data);
+        public delegate VanillaMinerBase NewMiner(
+            (int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, ItemStackFactory
+                itemFactory, BlockOpenableInventoryUpdateEvent openableInvEvent) data);
 
         private readonly BlockOpenableInventoryUpdateEvent _blockOpenableInventoryUpdateEvent;
 
@@ -22,7 +26,8 @@ namespace Game.Block.Factory.BlockTemplate
 
         public readonly NewMiner _newMiner;
 
-        public VanillaMinerTemplate(ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent, NewMiner newMiner, LoadMiner loadMiner)
+        public VanillaMinerTemplate(ItemStackFactory itemStackFactory,
+            BlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent, NewMiner newMiner, LoadMiner loadMiner)
         {
             _itemStackFactory = itemStackFactory;
             _blockOpenableInventoryUpdateEvent = blockOpenableInventoryUpdateEvent;

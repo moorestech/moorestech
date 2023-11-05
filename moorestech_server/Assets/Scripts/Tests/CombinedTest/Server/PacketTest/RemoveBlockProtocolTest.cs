@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
@@ -13,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -25,7 +24,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void RemoveTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
@@ -61,7 +61,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(7, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);
 
             //削除したブロックは次のスロットに入っているのでそれをチェック
-            Assert.AreEqual(blockConfigData.ItemId, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Id);
+            Assert.AreEqual(blockConfigData.ItemId,
+                playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Id);
             Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Count);
         }
 
@@ -70,17 +71,20 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void InventoryFullToRemoveBlockSomeItemRemainTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var mainInventory =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                    .MainOpenableInventory;
 
             //インベントリの2つのスロットを残してインベントリを満杯にする
-            for (var i = 2; i < mainInventory.GetSlotSize(); i++) mainInventory.SetItem(i, itemStackFactory.Create(1000, 1));
+            for (var i = 2; i < mainInventory.GetSlotSize(); i++)
+                mainInventory.SetItem(i, itemStackFactory.Create(1000, 1));
 
             //一つの目のスロットにはID3の最大スタック数から1個少ないアイテムを入れる
             var id3MaxStack = itemConfig.GetItemConfig(3).MaxStack;
@@ -121,17 +125,20 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void InventoryFullToCantRemoveBlockTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var mainInventory =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
+                    .MainOpenableInventory;
 
             //インベントリを満杯にする
-            for (var i = 0; i < mainInventory.GetSlotSize(); i++) mainInventory.SetItem(i, itemStackFactory.Create(1000, 1));
+            for (var i = 0; i < mainInventory.GetSlotSize(); i++)
+                mainInventory.SetItem(i, itemStackFactory.Create(1000, 1));
 
             //ブロックを設置
             var block = blockFactory.Create(MachineBlockId, 0);

@@ -36,22 +36,59 @@ namespace MessagePack.LZ4
 {
     internal static partial class LZ4Codec
     {
+        #region public interface (common)
+
+        /// <summary>Gets maximum the length of the output.</summary>
+        /// <param name="inputLength">Length of the input.</param>
+        /// <returns>Maximum number of bytes needed for compressed buffer.</returns>
+        public static int MaximumOutputLength(int inputLength)
+        {
+            return inputLength + inputLength / 255 + 16;
+        }
+
+        #endregion
+
+        #region internal interface (common)
+
+        internal static void CheckArguments(byte[] input, int inputOffset, int inputLength, byte[] output, int outputOffset, int outputLength)
+        {
+            if (inputLength == 0)
+            {
+                outputLength = 0;
+                return;
+            }
+
+            if (input == null) throw new ArgumentNullException("input");
+
+            if ((uint)inputOffset > (uint)input.Length) throw new ArgumentOutOfRangeException("inputOffset");
+
+            if ((uint)inputLength > (uint)input.Length - (uint)inputOffset) throw new ArgumentOutOfRangeException("inputLength");
+
+            if (output == null) throw new ArgumentNullException("output");
+
+            if ((uint)outputOffset > (uint)output.Length) throw new ArgumentOutOfRangeException("outputOffset");
+
+            if ((uint)outputLength > (uint)output.Length - (uint)outputOffset) throw new ArgumentOutOfRangeException("outputLength");
+        }
+
+        #endregion
+
         #region configuration
 
         /// <summary>
-        /// Memory usage formula : N->2^N Bytes (examples : 10 -> 1KB; 12 -> 4KB ; 16 -> 64KB; 20 -> 1MB; etc.)
-        /// Increasing memory usage improves compression ratio
-        /// Reduced memory usage can improve speed, due to cache effect
-        /// Default value is 14, for 16KB, which nicely fits into Intel x86 L1 cache.
+        ///     Memory usage formula : N->2^N Bytes (examples : 10 -> 1KB; 12 -> 4KB ; 16 -> 64KB; 20 -> 1MB; etc.)
+        ///     Increasing memory usage improves compression ratio
+        ///     Reduced memory usage can improve speed, due to cache effect
+        ///     Default value is 14, for 16KB, which nicely fits into Intel x86 L1 cache.
         /// </summary>
         private const int MEMORY_USAGE = 12; // modified use 12.
 
         /// <summary>
-        /// Decreasing this value will make the algorithm skip faster data segments considered "incompressible"
-        /// This may decrease compression ratio dramatically, but will be faster on incompressible data
-        /// Increasing this value will make the algorithm search more before declaring a segment "incompressible"
-        /// This could improve compression a bit, but will be slower on incompressible data
-        /// The default value (6) is recommended.
+        ///     Decreasing this value will make the algorithm skip faster data segments considered "incompressible"
+        ///     This may decrease compression ratio dramatically, but will be faster on incompressible data
+        ///     Increasing this value will make the algorithm search more before declaring a segment "incompressible"
+        ///     This could improve compression a bit, but will be slower on incompressible data
+        ///     The default value (6) is recommended.
         /// </summary>
         private const int NOTCOMPRESSIBLE_DETECTIONLEVEL = 6;
 
@@ -85,15 +122,16 @@ namespace MessagePack.LZ4
 
         private const int HASH_LOG = MEMORY_USAGE - 2;
         private const int HASH_TABLESIZE = 1 << HASH_LOG;
-        private const int HASH_ADJUST = (MINMATCH * 8) - HASH_LOG;
+        private const int HASH_ADJUST = MINMATCH * 8 - HASH_LOG;
 
         private const int HASH64K_LOG = HASH_LOG + 1;
         private const int HASH64K_TABLESIZE = 1 << HASH64K_LOG;
-        private const int HASH64K_ADJUST = (MINMATCH * 8) - HASH64K_LOG;
+        private const int HASH64K_ADJUST = MINMATCH * 8 - HASH64K_LOG;
 
         private const int HASHHC_LOG = MAXD_LOG - 1;
         private const int HASHHC_TABLESIZE = 1 << HASHHC_LOG;
-        private const int HASHHC_ADJUST = (MINMATCH * 8) - HASHHC_LOG;
+
+        private const int HASHHC_ADJUST = MINMATCH * 8 - HASHHC_LOG;
         ////private const int HASHHC_MASK = HASHHC_TABLESIZE - 1;
 
         private const int MAX_NB_ATTEMPTS = 256;
@@ -107,7 +145,7 @@ namespace MessagePack.LZ4
         private static readonly int[] DEBRUIJN_TABLE_32 =
         {
             0, 0, 3, 0, 3, 1, 3, 0, 3, 2, 2, 1, 3, 2, 0, 1,
-            3, 3, 1, 2, 2, 2, 2, 0, 3, 1, 2, 0, 1, 0, 1, 1,
+            3, 3, 1, 2, 2, 2, 2, 0, 3, 1, 2, 0, 1, 0, 1, 1
         };
 
         private static readonly int[] DEBRUIJN_TABLE_64 =
@@ -115,63 +153,8 @@ namespace MessagePack.LZ4
             0, 0, 0, 0, 0, 1, 1, 2, 0, 3, 1, 3, 1, 4, 2, 7,
             0, 2, 3, 6, 1, 5, 3, 5, 1, 3, 4, 4, 2, 5, 6, 7,
             7, 0, 1, 2, 3, 3, 4, 6, 2, 6, 5, 5, 3, 4, 5, 6,
-            7, 1, 2, 4, 6, 4, 4, 5, 7, 2, 6, 5, 7, 6, 7, 7,
+            7, 1, 2, 4, 6, 4, 4, 5, 7, 2, 6, 5, 7, 6, 7, 7
         };
-
-        #endregion
-
-        #region public interface (common)
-
-        /// <summary>Gets maximum the length of the output.</summary>
-        /// <param name="inputLength">Length of the input.</param>
-        /// <returns>Maximum number of bytes needed for compressed buffer.</returns>
-        public static int MaximumOutputLength(int inputLength)
-        {
-            return inputLength + (inputLength / 255) + 16;
-        }
-
-        #endregion
-
-        #region internal interface (common)
-
-        internal static void CheckArguments(byte[] input, int inputOffset, int inputLength, byte[] output, int outputOffset, int outputLength)
-        {
-            if (inputLength == 0)
-            {
-                outputLength = 0;
-                return;
-            }
-
-            if (input == null)
-            {
-                throw new ArgumentNullException("input");
-            }
-
-            if ((uint)inputOffset > (uint)input.Length)
-            {
-                throw new ArgumentOutOfRangeException("inputOffset");
-            }
-
-            if ((uint)inputLength > (uint)input.Length - (uint)inputOffset)
-            {
-                throw new ArgumentOutOfRangeException("inputLength");
-            }
-
-            if (output == null)
-            {
-                throw new ArgumentNullException("output");
-            }
-
-            if ((uint)outputOffset > (uint)output.Length)
-            {
-                throw new ArgumentOutOfRangeException("outputOffset");
-            }
-
-            if ((uint)outputLength > (uint)output.Length - (uint)outputOffset)
-            {
-                throw new ArgumentOutOfRangeException("outputLength");
-            }
-        }
 
         #endregion
     }

@@ -3,9 +3,7 @@
 
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 using MessagePack.Formatters;
 using UnityEngine;
 
@@ -22,8 +20,6 @@ namespace MessagePack.Unity.Extension
     {
         protected abstract sbyte TypeCode { get; }
 
-        protected void CopyDeserializeUnsafe(ReadOnlySpan<byte> src, Span<T> dest) => src.CopyTo(MemoryMarshal.Cast<T, byte>(dest));
-
         public void Serialize(ref MessagePackWriter writer, T[] value, MessagePackSerializerOptions options)
         {
             if (value == null)
@@ -34,7 +30,7 @@ namespace MessagePack.Unity.Extension
 
             var byteLen = value.Length * Marshal.SizeOf<T>();
 
-            writer.WriteExtensionFormatHeader(new ExtensionHeader(this.TypeCode, byteLen));
+            writer.WriteExtensionFormatHeader(new ExtensionHeader(TypeCode, byteLen));
             writer.Write(byteLen); // write original header(not array header)
             writer.Write(BitConverter.IsLittleEndian);
             writer.WriteRaw(MemoryMarshal.Cast<T, byte>(value));
@@ -42,138 +38,84 @@ namespace MessagePack.Unity.Extension
 
         public T[] Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.TryReadNil())
-            {
-                return null;
-            }
+            if (reader.TryReadNil()) return null;
 
-            ExtensionHeader header = reader.ReadExtensionFormatHeader();
-            if (header.TypeCode != this.TypeCode)
-            {
-                throw new InvalidOperationException("Invalid typeCode.");
-            }
+            var header = reader.ReadExtensionFormatHeader();
+            if (header.TypeCode != TypeCode) throw new InvalidOperationException("Invalid typeCode.");
 
             var byteLength = reader.ReadInt32();
             var isLittleEndian = reader.ReadBoolean();
 
             // Allocate a T[] that we will return. We'll then cast the T[] as byte[] so we can copy the byte sequence directly into it.
             var result = new T[byteLength / Marshal.SizeOf<T>()];
-            Span<byte> resultAsBytes = MemoryMarshal.Cast<T, byte>(result);
+            var resultAsBytes = MemoryMarshal.Cast<T, byte>(result);
             reader.ReadRaw(byteLength).CopyTo(resultAsBytes);
 
             // Reverse the byte order if necessary.
             if (isLittleEndian != BitConverter.IsLittleEndian)
-            {
                 for (int i = 0, j = resultAsBytes.Length - 1; i < j; i++, j--)
                 {
-                    byte tmp = resultAsBytes[i];
+                    var tmp = resultAsBytes[i];
                     resultAsBytes[i] = resultAsBytes[j];
                     resultAsBytes[j] = tmp;
                 }
-            }
 
             return result;
+        }
+
+        protected void CopyDeserializeUnsafe(ReadOnlySpan<byte> src, Span<T> dest)
+        {
+            src.CopyTo(MemoryMarshal.Cast<T, byte>(dest));
         }
     }
 
     public class Vector2ArrayBlitFormatter : UnsafeBlitFormatterBase<Vector2>
     {
-        protected override sbyte TypeCode
-        {
-            get
-            {
-                return ThisLibraryExtensionTypeCodes.UnityVector2;
-            }
-        }
+        protected override sbyte TypeCode => ThisLibraryExtensionTypeCodes.UnityVector2;
     }
 
     public class Vector3ArrayBlitFormatter : UnsafeBlitFormatterBase<Vector3>
     {
-        protected override sbyte TypeCode
-        {
-            get
-            {
-                return ThisLibraryExtensionTypeCodes.UnityVector3;
-            }
-        }
+        protected override sbyte TypeCode => ThisLibraryExtensionTypeCodes.UnityVector3;
     }
 
     public class Vector4ArrayBlitFormatter : UnsafeBlitFormatterBase<Vector4>
     {
-        protected override sbyte TypeCode
-        {
-            get
-            {
-                return ThisLibraryExtensionTypeCodes.UnityVector4;
-            }
-        }
+        protected override sbyte TypeCode => ThisLibraryExtensionTypeCodes.UnityVector4;
     }
 
     public class QuaternionArrayBlitFormatter : UnsafeBlitFormatterBase<Quaternion>
     {
-        protected override sbyte TypeCode
-        {
-            get
-            {
-                return ThisLibraryExtensionTypeCodes.UnityQuaternion;
-            }
-        }
+        protected override sbyte TypeCode => ThisLibraryExtensionTypeCodes.UnityQuaternion;
     }
 
     public class ColorArrayBlitFormatter : UnsafeBlitFormatterBase<Color>
     {
-        protected override sbyte TypeCode
-        {
-            get
-            {
-                return ThisLibraryExtensionTypeCodes.UnityColor;
-            }
-        }
+        protected override sbyte TypeCode => ThisLibraryExtensionTypeCodes.UnityColor;
     }
 
     public class BoundsArrayBlitFormatter : UnsafeBlitFormatterBase<Bounds>
     {
-        protected override sbyte TypeCode
-        {
-            get
-            {
-                return ThisLibraryExtensionTypeCodes.UnityBounds;
-            }
-        }
+        protected override sbyte TypeCode => ThisLibraryExtensionTypeCodes.UnityBounds;
     }
 
     public class RectArrayBlitFormatter : UnsafeBlitFormatterBase<Rect>
     {
-        protected override sbyte TypeCode
-        {
-            get
-            {
-                return ThisLibraryExtensionTypeCodes.UnityRect;
-            }
-        }
+        protected override sbyte TypeCode => ThisLibraryExtensionTypeCodes.UnityRect;
     }
 
     public class IntArrayBlitFormatter : UnsafeBlitFormatterBase<int>
     {
-        protected override sbyte TypeCode
-        {
-            get { return ThisLibraryExtensionTypeCodes.UnityInt; }
-        }
+        protected override sbyte TypeCode => ThisLibraryExtensionTypeCodes.UnityInt;
     }
 
     public class FloatArrayBlitFormatter : UnsafeBlitFormatterBase<float>
     {
-        protected override sbyte TypeCode
-        {
-            get { return ThisLibraryExtensionTypeCodes.UnityFloat; }
-        }
+        protected override sbyte TypeCode => ThisLibraryExtensionTypeCodes.UnityFloat;
     }
 
     public class DoubleArrayBlitFormatter : UnsafeBlitFormatterBase<double>
     {
-        protected override sbyte TypeCode
-        {
-            get { return ThisLibraryExtensionTypeCodes.UnityDouble; }
-        }
+        protected override sbyte TypeCode => ThisLibraryExtensionTypeCodes.UnityDouble;
     }
 }

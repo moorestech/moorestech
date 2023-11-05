@@ -9,15 +9,15 @@ namespace Core.Inventory
     /// </summary>
     public class OpenableInventoryItemDataStoreService : IOpenableInventory
     {
-        public delegate void OnInventoryUpdate(int slot, IItemStack itemStack);
+        public delegate void InventoryUpdate(int slot, IItemStack itemStack);
 
         private readonly List<IItemStack> _inventory;
 
         private readonly ItemStackFactory _itemStackFactory;
 
-        private readonly OnInventoryUpdate _onInventoryUpdate;
+        private readonly InventoryUpdate _onInventoryUpdate;
 
-        public OpenableInventoryItemDataStoreService(OnInventoryUpdate onInventoryUpdate,
+        public OpenableInventoryItemDataStoreService(InventoryUpdate onInventoryUpdate,
             ItemStackFactory itemStackFactory, int slotNumber)
         {
             _itemStackFactory = itemStackFactory;
@@ -132,7 +132,8 @@ namespace Core.Inventory
         /// </summary>
         public IItemStack InsertItemWithPrioritySlot(IItemStack itemStack, int[] prioritySlots)
         {
-            return InventoryInsertItem.InsertItemWithPrioritySlot(itemStack, _inventory, _itemStackFactory, prioritySlots, InvokeEvent);
+            return InventoryInsertItem.InsertItemWithPrioritySlot(itemStack, _inventory, _itemStackFactory,
+                prioritySlots, InvokeEvent);
         }
 
         public IItemStack InsertItemWithPrioritySlot(int itemId, int count, int[] prioritySlots)

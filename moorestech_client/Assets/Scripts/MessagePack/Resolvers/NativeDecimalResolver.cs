@@ -9,9 +9,9 @@ namespace MessagePack.Resolvers
     public sealed class NativeDecimalResolver : IFormatterResolver
     {
         /// <summary>
-        /// The singleton instance that can be used.
+        ///     The singleton instance that can be used.
         /// </summary>
-        public static readonly NativeDecimalResolver Instance = new NativeDecimalResolver();
+        public static readonly NativeDecimalResolver Instance = new();
 
         private NativeDecimalResolver()
         {
@@ -24,14 +24,9 @@ namespace MessagePack.Resolvers
 
         private static object GetFormatterHelper(Type t)
         {
-            if (t == typeof(Decimal))
-            {
+            if (t == typeof(decimal))
                 return NativeDecimalFormatter.Instance;
-            }
-            else if (t == typeof(Decimal?))
-            {
-                return new StaticNullableFormatter<Decimal>(NativeDecimalFormatter.Instance);
-            }
+            if (t == typeof(decimal?)) return new StaticNullableFormatter<decimal>(NativeDecimalFormatter.Instance);
 
             return null;
         }

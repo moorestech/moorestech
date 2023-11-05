@@ -7,9 +7,9 @@ using UnityEngine;
 
 public class ServerStarter : MonoBehaviour
 {
-    Thread _serverUpdateThread;
-    Thread _gameUpdateThread;
-    CancellationTokenSource _autoSaveToken;
+    private Thread _serverUpdateThread;
+    private Thread _gameUpdateThread;
+    private CancellationTokenSource _autoSaveToken;
     void Start()
     {
         (_serverUpdateThread,_gameUpdateThread,_autoSaveToken) = StartServer.Start(new string[]{});

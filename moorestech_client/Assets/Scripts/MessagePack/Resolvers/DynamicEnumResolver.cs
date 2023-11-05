@@ -4,7 +4,6 @@
 #if !(UNITY_2018_3_OR_NEWER && NET_STANDARD_2_0)
 
 using System;
-using System.Buffers;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
@@ -14,20 +13,20 @@ using MessagePack.Internal;
 namespace MessagePack.Resolvers
 {
     /// <summary>
-    /// EnumResolver by dynamic code generation, serialized underlying type.
+    ///     EnumResolver by dynamic code generation, serialized underlying type.
     /// </summary>
     public sealed class DynamicEnumResolver : IFormatterResolver
     {
         /// <summary>
-        /// The singleton instance that can be used.
+        ///     The singleton instance that can be used.
         /// </summary>
-        public static readonly DynamicEnumResolver Instance = new DynamicEnumResolver();
+        public static readonly DynamicEnumResolver Instance = new();
 
         private const string ModuleName = "MessagePack.Resolvers.DynamicEnumResolver";
 
         private static readonly Lazy<DynamicAssembly> DynamicAssembly;
 
-        private static int nameSequence = 0;
+        private static int nameSequence;
 
         private DynamicEnumResolver()
         {
@@ -56,53 +55,45 @@ namespace MessagePack.Resolvers
 
             static FormatterCache()
             {
-                TypeInfo ti = typeof(T).GetTypeInfo();
+                var ti = typeof(T).GetTypeInfo();
                 if (ti.IsNullable())
                 {
                     // build underlying type and use wrapped formatter.
                     ti = ti.GenericTypeArguments[0].GetTypeInfo();
-                    if (!ti.IsEnum)
-                    {
-                        return;
-                    }
+                    if (!ti.IsEnum) return;
 
-                    var innerFormatter = DynamicEnumResolver.Instance.GetFormatterDynamic(ti.AsType());
-                    if (innerFormatter == null)
-                    {
-                        return;
-                    }
+                    var innerFormatter = Instance.GetFormatterDynamic(ti.AsType());
+                    if (innerFormatter == null) return;
 
-                    Formatter = (IMessagePackFormatter<T>)Activator.CreateInstance(typeof(StaticNullableFormatter<>).MakeGenericType(ti.AsType()), new object[] { innerFormatter });
-                    return;
-                }
-                else if (!ti.IsEnum)
-                {
+                    Formatter = (IMessagePackFormatter<T>)Activator.CreateInstance(typeof(StaticNullableFormatter<>).MakeGenericType(ti.AsType()), innerFormatter);
                     return;
                 }
 
-                TypeInfo formatterTypeInfo = BuildType(typeof(T));
+                if (!ti.IsEnum) return;
+
+                var formatterTypeInfo = BuildType(typeof(T));
                 Formatter = (IMessagePackFormatter<T>)Activator.CreateInstance(formatterTypeInfo.AsType());
             }
         }
 
         private static TypeInfo BuildType(Type enumType)
         {
-            Type underlyingType = Enum.GetUnderlyingType(enumType);
-            Type formatterType = typeof(IMessagePackFormatter<>).MakeGenericType(enumType);
+            var underlyingType = Enum.GetUnderlyingType(enumType);
+            var formatterType = typeof(IMessagePackFormatter<>).MakeGenericType(enumType);
 
             using (MonoProtection.EnterRefEmitLock())
             {
-                TypeBuilder typeBuilder = DynamicAssembly.Value.DefineType("MessagePack.Formatters." + enumType.FullName.Replace(".", "_") + "Formatter" + Interlocked.Increment(ref nameSequence), TypeAttributes.Public | TypeAttributes.Sealed, null, new[] { formatterType });
+                var typeBuilder = DynamicAssembly.Value.DefineType("MessagePack.Formatters." + enumType.FullName.Replace(".", "_") + "Formatter" + Interlocked.Increment(ref nameSequence), TypeAttributes.Public | TypeAttributes.Sealed, null, new[] { formatterType });
 
                 // void Serialize(ref MessagePackWriter writer, T value, MessagePackSerializerOptions options);
                 {
-                    MethodBuilder method = typeBuilder.DefineMethod(
+                    var method = typeBuilder.DefineMethod(
                         "Serialize",
                         MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.Virtual,
                         null,
-                        new Type[] { typeof(MessagePackWriter).MakeByRefType(), enumType, typeof(MessagePackSerializerOptions) });
+                        new[] { typeof(MessagePackWriter).MakeByRefType(), enumType, typeof(MessagePackSerializerOptions) });
 
-                    ILGenerator il = method.GetILGenerator();
+                    var il = method.GetILGenerator();
                     il.Emit(OpCodes.Ldarg_1);
                     il.Emit(OpCodes.Ldarg_2);
                     il.Emit(OpCodes.Call, typeof(MessagePackWriter).GetRuntimeMethod(nameof(MessagePackWriter.Write), new[] { underlyingType }));
@@ -111,13 +102,13 @@ namespace MessagePack.Resolvers
 
                 // T Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options);
                 {
-                    MethodBuilder method = typeBuilder.DefineMethod(
+                    var method = typeBuilder.DefineMethod(
                         "Deserialize",
                         MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.Virtual,
                         enumType,
-                        new Type[] { typeof(MessagePackReader).MakeByRefType(), typeof(MessagePackSerializerOptions) });
+                        new[] { typeof(MessagePackReader).MakeByRefType(), typeof(MessagePackSerializerOptions) });
 
-                    ILGenerator il = method.GetILGenerator();
+                    var il = method.GetILGenerator();
                     il.Emit(OpCodes.Ldarg_1);
                     il.Emit(OpCodes.Call, typeof(MessagePackReader).GetRuntimeMethod("Read" + underlyingType.Name, Type.EmptyTypes));
                     il.Emit(OpCodes.Ret);

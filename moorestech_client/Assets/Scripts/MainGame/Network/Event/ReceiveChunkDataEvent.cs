@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using UnityEngine;
@@ -16,22 +15,21 @@ namespace MainGame.Network.Event
             await UniTask.SwitchToMainThread();
             OnChunkUpdateEvent?.Invoke(properties);
         }
-        
+
         internal async UniTask InvokeBlockUpdateEvent(BlockUpdateEventProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnBlockUpdateEvent?.Invoke(properties);
         }
     }
-    
-    
+
 
     public class ChunkUpdateEventProperties
     {
-        public readonly Vector2Int ChunkPos;
-        public readonly int[,] BlockIds;
         public readonly BlockDirection[,] BlockDirections;
-        
+        public readonly int[,] BlockIds;
+        public readonly Vector2Int ChunkPos;
+
         public readonly int[,] MapTileIds;
 
         public ChunkUpdateEventProperties(Vector2Int chunkPos, int[,] blockIds, BlockDirection[,] blockDirections, int[,] mapTileIds)
@@ -45,14 +43,14 @@ namespace MainGame.Network.Event
 
     public class BlockUpdateEventProperties
     {
-        public readonly Vector2Int BlockPos;
-        public readonly  int BlockId;
         public readonly BlockDirection BlockDirection;
+        public readonly int BlockId;
+        public readonly Vector2Int BlockPos;
 
         public BlockUpdateEventProperties(Vector2Int blockPos, int blockId, BlockDirection blockDirection)
         {
-            this.BlockPos = blockPos;
-            this.BlockId = blockId;
+            BlockPos = blockPos;
+            BlockId = blockId;
             BlockDirection = blockDirection;
         }
     }

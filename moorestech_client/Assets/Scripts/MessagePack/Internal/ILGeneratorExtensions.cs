@@ -29,45 +29,41 @@ namespace MessagePack.Internal
         {
             this.il = il;
             this.i = i;
-            TypeInfo ti = type.GetTypeInfo();
-            this.@ref = (ti.IsClass || ti.IsInterface || ti.IsAbstract) ? false : true;
+            var ti = type.GetTypeInfo();
+            @ref = ti.IsClass || ti.IsInterface || ti.IsAbstract ? false : true;
         }
 
         public void EmitLoad()
         {
-            if (this.@ref)
-            {
-                this.il.EmitLdarga(this.i);
-            }
+            if (@ref)
+                il.EmitLdarga(i);
             else
-            {
-                this.il.EmitLdarg(this.i);
-            }
+                il.EmitLdarg(i);
         }
 
         public void EmitLdarg()
         {
-            this.il.EmitLdarg(this.i);
+            il.EmitLdarg(i);
         }
 
         public void EmitLdarga()
         {
-            this.il.EmitLdarga(this.i);
+            il.EmitLdarga(i);
         }
 
         public void EmitStore()
         {
-            this.il.EmitStarg(this.i);
+            il.EmitStarg(i);
         }
     }
 
     /// <summary>
-    /// Provides optimized generation code and helpers.
+    ///     Provides optimized generation code and helpers.
     /// </summary>
     internal static class ILGeneratorExtensions
     {
         /// <summary>
-        /// Loads the local variable at a specific index onto the evaluation stack.
+        ///     Loads the local variable at a specific index onto the evaluation stack.
         /// </summary>
         public static void EmitLdloc(this ILGenerator il, int index)
         {
@@ -87,13 +83,9 @@ namespace MessagePack.Internal
                     break;
                 default:
                     if (index <= 255)
-                    {
                         il.Emit(OpCodes.Ldloc_S, (byte)index);
-                    }
                     else
-                    {
                         il.Emit(OpCodes.Ldloc, (short)index);
-                    }
 
                     break;
             }
@@ -105,7 +97,8 @@ namespace MessagePack.Internal
         }
 
         /// <summary>
-        /// Pops the current value from the top of the evaluation stack and stores it in a the local variable list at a specified index.
+        ///     Pops the current value from the top of the evaluation stack and stores it in a the local variable list at a
+        ///     specified index.
         /// </summary>
         public static void EmitStloc(this ILGenerator il, int index)
         {
@@ -125,13 +118,9 @@ namespace MessagePack.Internal
                     break;
                 default:
                     if (index <= 255)
-                    {
                         il.Emit(OpCodes.Stloc_S, (byte)index);
-                    }
                     else
-                    {
                         il.Emit(OpCodes.Stloc, (short)index);
-                    }
 
                     break;
             }
@@ -143,18 +132,14 @@ namespace MessagePack.Internal
         }
 
         /// <summary>
-        /// Loads the address of the local variable at a specific index onto the evaluation statck.
+        ///     Loads the address of the local variable at a specific index onto the evaluation statck.
         /// </summary>
         public static void EmitLdloca(this ILGenerator il, int index)
         {
             if (index <= 255)
-            {
                 il.Emit(OpCodes.Ldloca_S, (byte)index);
-            }
             else
-            {
                 il.Emit(OpCodes.Ldloca, (short)index);
-            }
         }
 
         public static void EmitLdloca(this ILGenerator il, LocalBuilder local)
@@ -178,7 +163,7 @@ namespace MessagePack.Internal
         }
 
         /// <summary>
-        /// Pushes a supplied value of type int32 onto the evaluation stack as an int32.
+        ///     Pushes a supplied value of type int32 onto the evaluation stack as an int32.
         /// </summary>
         public static void EmitLdc_I4(this ILGenerator il, int value)
         {
@@ -216,13 +201,9 @@ namespace MessagePack.Internal
                     break;
                 default:
                     if (value >= -128 && value <= 127)
-                    {
                         il.Emit(OpCodes.Ldc_I4_S, (sbyte)value);
-                    }
                     else
-                    {
                         il.Emit(OpCodes.Ldc_I4, value);
-                    }
 
                     break;
             }
@@ -231,21 +212,14 @@ namespace MessagePack.Internal
         public static void EmitUnboxOrCast(this ILGenerator il, Type type)
         {
             if (type.GetTypeInfo().IsValueType)
-            {
                 il.Emit(OpCodes.Unbox_Any, type);
-            }
             else
-            {
                 il.Emit(OpCodes.Castclass, type);
-            }
         }
 
         public static void EmitBoxOrDoNothing(this ILGenerator il, Type type)
         {
-            if (type.GetTypeInfo().IsValueType)
-            {
-                il.Emit(OpCodes.Box, type);
-            }
+            if (type.GetTypeInfo().IsValueType) il.Emit(OpCodes.Box, type);
         }
 
         public static void EmitLdarg(this ILGenerator il, int index)
@@ -266,13 +240,9 @@ namespace MessagePack.Internal
                     break;
                 default:
                     if (index <= 255)
-                    {
                         il.Emit(OpCodes.Ldarg_S, (byte)index);
-                    }
                     else
-                    {
                         il.Emit(OpCodes.Ldarg, index);
-                    }
 
                     break;
             }
@@ -286,48 +256,33 @@ namespace MessagePack.Internal
         public static void EmitLdarga(this ILGenerator il, int index)
         {
             if (index <= 255)
-            {
                 il.Emit(OpCodes.Ldarga_S, (byte)index);
-            }
             else
-            {
                 il.Emit(OpCodes.Ldarga, index);
-            }
         }
 
         public static void EmitStarg(this ILGenerator il, int index)
         {
             if (index <= 255)
-            {
                 il.Emit(OpCodes.Starg_S, (byte)index);
-            }
             else
-            {
                 il.Emit(OpCodes.Starg, index);
-            }
         }
 
         /// <summary>
-        /// Helper for Pop op.
+        ///     Helper for Pop op.
         /// </summary>
         public static void EmitPop(this ILGenerator il, int count)
         {
-            for (int i = 0; i < count; i++)
-            {
-                il.Emit(OpCodes.Pop);
-            }
+            for (var i = 0; i < count; i++) il.Emit(OpCodes.Pop);
         }
 
         public static void EmitCall(this ILGenerator il, MethodInfo methodInfo)
         {
             if (methodInfo.IsFinal || !methodInfo.IsVirtual)
-            {
                 il.Emit(OpCodes.Call, methodInfo);
-            }
             else
-            {
                 il.Emit(OpCodes.Callvirt, methodInfo);
-            }
         }
 
         public static void EmitLdfld(this ILGenerator il, FieldInfo fieldInfo)
@@ -364,18 +319,18 @@ namespace MessagePack.Internal
 
         public static void EmitThrowNotimplemented(this ILGenerator il)
         {
-            il.Emit(OpCodes.Newobj, typeof(System.NotImplementedException).GetTypeInfo().DeclaredConstructors.First(x => x.GetParameters().Length == 0));
+            il.Emit(OpCodes.Newobj, typeof(NotImplementedException).GetTypeInfo().DeclaredConstructors.First(x => x.GetParameters().Length == 0));
             il.Emit(OpCodes.Throw);
         }
 
         /// <summary>for  var i = 0, i ..., i++. </summary>
         public static void EmitIncrementFor(this ILGenerator il, LocalBuilder conditionGreater, Action<LocalBuilder> emitBody)
         {
-            Label loopBegin = il.DefineLabel();
-            Label condtionLabel = il.DefineLabel();
+            var loopBegin = il.DefineLabel();
+            var condtionLabel = il.DefineLabel();
 
             // var i = 0
-            LocalBuilder forI = il.DeclareLocal(typeof(int));
+            var forI = il.DeclareLocal(typeof(int));
             il.EmitLdc_I4(0);
             il.EmitStloc(forI);
             il.Emit(OpCodes.Br, condtionLabel);

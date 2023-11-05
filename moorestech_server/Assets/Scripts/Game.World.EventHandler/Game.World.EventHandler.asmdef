@@ -1,4 +1,10 @@
 {
-    "name": "Game.World.EventHandler",
-    "references":[ "GUID:3f86db3577a904d96af7d79e35e4c83a", "GUID:559e05852f4834e6b836e9c5499e87db", "GUID:2871082d8d45d429d803cf997b57b7cf", "GUID:b4ebdac6a645a4d17bdc4a92ea336424", "GUID:edae0479a52bf4ddb8d67d9ceb84c31e" ]
+  "name": "Game.World.EventHandler",
+  "references": [
+    "GUID:3f86db3577a904d96af7d79e35e4c83a",
+    "GUID:559e05852f4834e6b836e9c5499e87db",
+    "GUID:2871082d8d45d429d803cf997b57b7cf",
+    "GUID:b4ebdac6a645a4d17bdc4a92ea336424",
+    "GUID:edae0479a52bf4ddb8d67d9ceb84c31e"
+  ]
 }

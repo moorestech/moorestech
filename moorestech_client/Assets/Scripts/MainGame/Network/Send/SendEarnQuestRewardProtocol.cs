@@ -7,11 +7,11 @@ namespace MainGame.Network.Send
 {
     public class SendEarnQuestRewardProtocol
     {
-        private readonly ISocketSender _socketSender;
         private readonly int _playerId;
+        private readonly ISocketSender _socketSender;
 
-        
-        public SendEarnQuestRewardProtocol(PlayerConnectionSetting playerConnectionSetting,ISocketSender socketSender)
+
+        public SendEarnQuestRewardProtocol(PlayerConnectionSetting playerConnectionSetting, ISocketSender socketSender)
         {
             _socketSender = socketSender;
             _playerId = playerConnectionSetting.PlayerId;
@@ -20,7 +20,7 @@ namespace MainGame.Network.Send
         public void Send(string questId)
         {
             _socketSender.Send(MessagePackSerializer.Serialize(new EarnQuestRewardMessagePack(
-                _playerId,questId)).ToList());
+                _playerId, questId)).ToList());
         }
     }
 }

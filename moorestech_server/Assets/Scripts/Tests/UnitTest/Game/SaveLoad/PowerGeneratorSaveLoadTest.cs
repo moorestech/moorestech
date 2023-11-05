@@ -1,5 +1,3 @@
-
-using System;
 using System.Reflection;
 using Core.Inventory;
 using Core.Item;
@@ -10,7 +8,7 @@ using Game.Block.Interface.BlockConfig;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game.SaveLoad
@@ -22,7 +20,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void PowerGeneratorTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var fuelSlotCount =
@@ -66,7 +65,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             //燃料スロットの検証
             Assert.AreEqual(fuelItemStacks.GetSlotSize(), loadedFuelItemStacks.GetSlotSize());
-            for (var i = 0; i < fuelSlotCount; i++) Assert.AreEqual(fuelItemStacks.Inventory[i], loadedFuelItemStacks.Inventory[i]);
+            for (var i = 0; i < fuelSlotCount; i++)
+                Assert.AreEqual(fuelItemStacks.Inventory[i], loadedFuelItemStacks.Inventory[i]);
         }
     }
 }

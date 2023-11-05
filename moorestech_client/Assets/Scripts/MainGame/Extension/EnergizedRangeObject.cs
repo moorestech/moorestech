@@ -7,7 +7,7 @@ namespace MainGame.Extension
         public void SetRange(int range)
         {
             var y = transform.localScale.y;
-            transform.localScale = new Vector3(range, y , range);
+            transform.localScale = new Vector3(range, y, range);
         }
     }
 }

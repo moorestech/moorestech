@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using MainGame.Basic;
 using MainGame.Network;
@@ -15,43 +14,46 @@ namespace MainGame.Control.UI.PauseMenu
     public class BackToMainMenu : MonoBehaviour
     {
         [SerializeField] private Button backToMainMenuButton;
-        private ISocketSender _socketSender;
-        private ServerProcessSetting _serverProcessSetting;
         private SendSaveProtocol _sendSaveProtocol;
+        private ServerProcessSetting _serverProcessSetting;
+        private ISocketSender _socketSender;
+
+        private void Start()
+        {
+            backToMainMenuButton.onClick.AddListener(Back);
+        }
+
+        private void OnDestroy()
+        {
+            Disconnect();
+        }
+
+        private void OnApplicationQuit()
+        {
+            Disconnect();
+        }
 
         [Inject]
-        public void Construct(ISocketSender socketSender,ServerProcessSetting serverProcessSetting,SendSaveProtocol sendSaveProtocol)
+        public void Construct(ISocketSender socketSender, ServerProcessSetting serverProcessSetting, SendSaveProtocol sendSaveProtocol)
         {
             _sendSaveProtocol = sendSaveProtocol;
             _socketSender = socketSender;
             _serverProcessSetting = serverProcessSetting;
         }
-        
-        void Start()
-        {
-            backToMainMenuButton.onClick.AddListener(Back);
-        }
 
-        void Back()
+        private void Back()
         {
             Disconnect();
             SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
         }
-
-        private void OnDestroy() { Disconnect(); }
-        private void OnApplicationQuit() { Disconnect(); }
 
 
         private void Disconnect()
         {
             _sendSaveProtocol.Send();
             Thread.Sleep(50);
-            if (_serverProcessSetting.isLocal)
-            {
-                _serverProcessSetting.localServerProcess.Kill();
-            }
+            if (_serverProcessSetting.isLocal) _serverProcessSetting.localServerProcess.Kill();
             _socketSender.Close();
         }
-
     }
 }

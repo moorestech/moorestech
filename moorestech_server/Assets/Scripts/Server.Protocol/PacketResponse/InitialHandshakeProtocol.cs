@@ -41,7 +41,7 @@ namespace Server.Protocol.PacketResponse
             {
                 //プレイヤーがいるのでセーブされた座標を返す
                 var pos = _entitiesDatastore.GetPosition(playerId);
-                return new Vector2MessagePack(pos.X, pos.Z);
+                return new Vector2MessagePack(pos.x, pos.z);
             }
 
             var playerEntity = _entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, playerId);
@@ -49,8 +49,8 @@ namespace Server.Protocol.PacketResponse
 
 
             //プレイヤーのデータがなかったのでスポーン地点を取得する
-            var x = _worldSettingsDatastore.WorldSpawnPoint.X;
-            var y = _worldSettingsDatastore.WorldSpawnPoint.Y;
+            var x = _worldSettingsDatastore.WorldSpawnPoint.x;
+            var y = _worldSettingsDatastore.WorldSpawnPoint.y;
             return new Vector2MessagePack(x, y);
         }
     }

@@ -8,12 +8,10 @@ namespace Game.Quest.Config
     [JsonObject("SpaceAssets")]
     internal class QuestConfigJsonData
     {
+        [JsonProperty("Id")] private string _id;
         [JsonProperty("Category")] public string Category;
 
         [JsonProperty("Description")] public string Description;
-
-
-        [JsonProperty("Id")] private string Id;
 
         [JsonIgnore] public string ModId;
 
@@ -35,6 +33,6 @@ namespace Game.Quest.Config
         [JsonProperty("UIPosY")] public float UiPosY;
 
         //クエストIDだけだと被るかもしれないのでmodIdとquestIdを結合する
-        public string QuestId => ModId + ":" + Id;
+        public string QuestId => ModId + ":" + _id;
     }
 }

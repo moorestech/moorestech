@@ -1,6 +1,6 @@
 using Game.World.Interface.Event;
 
-namespace World.Event
+namespace Game.World.Event
 {
     public class BlockPlaceEvent : IBlockPlaceEvent
     {

@@ -1,5 +1,3 @@
-
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Ore;
@@ -10,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest
@@ -23,7 +21,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var PlayerId = 0;
             var oreId = 0;
 
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var oreConfig = serviceProvider.GetService<IOreConfig>();
             var seed = serviceProvider.GetService<Seed>();
 

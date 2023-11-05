@@ -25,7 +25,8 @@ namespace Game.Block.Blocks.Machine
 
         protected VanillaMachineBase(int blockId, int entityId, long blockHash,
             VanillaMachineBlockInventory vanillaMachineBlockInventory,
-            VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess, ItemStackFactory itemStackFactory)
+            VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess,
+            ItemStackFactory itemStackFactory)
         {
             BlockId = blockId;
             _vanillaMachineBlockInventory = vanillaMachineBlockInventory;

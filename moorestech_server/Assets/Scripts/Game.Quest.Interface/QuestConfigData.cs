@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using Core.Item;
-using Core.Util;
+using UnityEngine;
 
 namespace Game.Quest.Interface
 {
     public class QuestConfigData
     {
-        public QuestConfigData(string modId, string questId, List<QuestConfigData> prerequisiteQuests, string questCategory, QuestPrerequisiteType questPrerequisiteType, string questType, string questName, string questDescription, CoreVector2 uiPosition, List<IItemStack> rewardItemStacks, string questParameter)
+        public QuestConfigData(string modId, string questId, List<QuestConfigData> prerequisiteQuests,
+            string questCategory, QuestPrerequisiteType questPrerequisiteType, string questType, string questName,
+            string questDescription, Vector2 uiPosition, List<IItemStack> rewardItemStacks, string questParameter)
         {
             ModId = modId;
             QuestId = questId;
@@ -29,7 +31,7 @@ namespace Game.Quest.Interface
         public string QuestType { get; }
         public string QuestName { get; }
         public string QuestDescription { get; }
-        public CoreVector2 UiPosition { get; }
+        public Vector2 UiPosition { get; }
         public List<IItemStack> RewardItemStacks { get; }
         public string QuestParameter { get; }
     }

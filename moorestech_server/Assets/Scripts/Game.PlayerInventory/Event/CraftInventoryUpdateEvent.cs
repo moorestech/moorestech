@@ -1,7 +1,7 @@
 using Game.PlayerInventory.Interface.Event;
 using static Game.PlayerInventory.Interface.Event.ICraftInventoryUpdateEvent;
 
-namespace PlayerInventory.Event
+namespace Game.PlayerInventory.Event
 {
     public class CraftInventoryUpdateEvent : ICraftInventoryUpdateEvent
     {

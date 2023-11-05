@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Core.Util;
-using Game.Base;
 using Game.Block;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface.BlockConfig;
@@ -8,6 +6,7 @@ using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
 using Game.World.Interface.DataStore;
 using Server.Protocol.PacketResponse.Const;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util
 {
@@ -16,23 +15,26 @@ namespace Server.Protocol.PacketResponse.Util
     /// </summary>
     public static class CollectBeltConveyorItems
     {
-        public static List<IEntity> CollectItem(List<CoreVector2Int> collectChunks, IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
+        public static List<IEntity> CollectItem(List<Vector2Int> collectChunks,
+            IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
-            foreach (var collectChunk in collectChunks) result.AddRange(CollectItemFromChunk(collectChunk, worldBlockDatastore, blockConfig, entityFactory));
+            foreach (var collectChunk in collectChunks)
+                result.AddRange(CollectItemFromChunk(collectChunk, worldBlockDatastore, blockConfig, entityFactory));
 
             return result;
         }
 
 
-        private static List<IEntity> CollectItemFromChunk(CoreVector2Int chunk, IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
+        private static List<IEntity> CollectItemFromChunk(Vector2Int chunk,
+            IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
             for (var i = 0; i < ChunkResponseConst.ChunkSize; i++)
             for (var j = 0; j < ChunkResponseConst.ChunkSize; j++)
             {
-                var x = i + chunk.X;
-                var y = j + chunk.Y;
+                var x = i + chunk.x;
+                var y = j + chunk.y;
 
                 if (!worldBlockDatastore.TryGetBlock(x, y, out var block)) continue;
 
@@ -42,14 +44,16 @@ namespace Server.Protocol.PacketResponse.Util
 
                 var direction = worldBlockDatastore.GetBlockDirection(x, y);
 
-                result.AddRange(CollectItemFromBeltConveyor(entityFactory, (VanillaBeltConveyor)block, x, y, direction));
+                result.AddRange(CollectItemFromBeltConveyor(entityFactory, (VanillaBeltConveyor)block, x, y,
+                    direction));
             }
 
             return result;
         }
 
 
-        private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory, VanillaBeltConveyor vanillaBeltConveyor, int x, int y, BlockDirection blockDirection)
+        private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory,
+            VanillaBeltConveyor vanillaBeltConveyor, int x, int y, BlockDirection blockDirection)
         {
             var result = new List<IEntity>();
             lock (vanillaBeltConveyor.InventoryItems)
@@ -57,7 +61,8 @@ namespace Server.Protocol.PacketResponse.Util
                 foreach (var beltConveyorItem in vanillaBeltConveyor.InventoryItems)
                 {
                     //残り時間をどこまで進んだかに変換するために 1- する
-                    var parent = 1 - (float)(beltConveyorItem.RemainingTime / vanillaBeltConveyor.TimeOfItemEnterToExit);
+                    var parent =
+                        1 - (float)(beltConveyorItem.RemainingTime / vanillaBeltConveyor.TimeOfItemEnterToExit);
                     float entityX = x;
                     float entityY = y;
                     switch (blockDirection)
@@ -81,9 +86,10 @@ namespace Server.Protocol.PacketResponse.Util
                     }
 
                     //Unity側ではZ軸がサーバーのY軸になるため変換する
-                    var position = new ServerVector3(entityX, 0, entityY);
+                    var position = new Vector3(entityX, 0, entityY);
 
-                    var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, beltConveyorItem.ItemInstanceId, position);
+                    var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem,
+                        beltConveyorItem.ItemInstanceId, position);
                     itemEntity.SetState(beltConveyorItem.ItemId, 1);
 
                     result.Add(itemEntity);

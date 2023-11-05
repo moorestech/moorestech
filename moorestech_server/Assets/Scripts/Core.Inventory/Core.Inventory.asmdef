@@ -1,4 +1,6 @@
 {
-    "name": "Core.Inventory",
-    "references":[ "GUID:d10205307f59843dba7c8a22b322ecd8" ]
+  "name": "Core.Inventory",
+  "references": [
+    "GUID:d10205307f59843dba7c8a22b322ecd8"
+  ]
 }

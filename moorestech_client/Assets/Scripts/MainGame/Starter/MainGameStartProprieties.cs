@@ -6,9 +6,9 @@ namespace MainGame.Starter
     {
         public readonly bool isLocal;
         public readonly Process localServerProcess;
+        public readonly int playerId;
         public readonly string serverIp;
         public readonly int serverPort;
-        public readonly int playerId;
 
         public MainGameStartProprieties(bool isLocal, Process localServerProcess, string serverIp, int serverPort, int playerId)
         {

@@ -14,14 +14,8 @@ namespace MainGame.UnityView.UI.UIState
 
         public UIStateEnum GetNext()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.QuestUI.GetKeyDown)
-            {
-                return UIStateEnum.GameScreen;
-            }
-            if (InputManager.UI.OpenInventory.GetKeyDown)
-            {
-                return UIStateEnum.PlayerInventory;
-            }
+            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.QuestUI.GetKeyDown) return UIStateEnum.GameScreen;
+            if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
 
             return UIStateEnum.Current;
         }

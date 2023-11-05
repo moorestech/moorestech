@@ -16,7 +16,8 @@ using Game.Block.Interface.State;
 
 namespace Game.Block.Blocks.PowerGenerator
 {
-    public abstract class VanillaPowerGeneratorBase : IBlock, IEnergyGenerator, IBlockInventory, IUpdatable, IOpenableInventory
+    public abstract class VanillaPowerGeneratorBase : IBlock, IEnergyGenerator, IBlockInventory, IUpdatable,
+        IOpenableInventory
     {
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
 
@@ -39,7 +40,8 @@ namespace Game.Block.Blocks.PowerGenerator
 
             BlockHash = data.BlockHash;
             _blockInventoryUpdate = data.BlockInventoryUpdate as BlockOpenableInventoryUpdateEvent;
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, data.ItemStackFactory, data.FuelItemSlot);
+            _itemDataStoreService =
+                new OpenableInventoryItemDataStoreService(InvokeEvent, data.ItemStackFactory, data.FuelItemSlot);
             GameUpdater.RegisterUpdater(this);
         }
 
@@ -52,7 +54,8 @@ namespace Game.Block.Blocks.PowerGenerator
             var slot = 0;
             for (var i = 2; i < split.Length; i += 2)
             {
-                _itemDataStoreService.SetItem(slot, data.ItemStackFactory.Create(long.Parse(split[i]), int.Parse(split[i + 1])));
+                _itemDataStoreService.SetItem(slot,
+                    data.ItemStackFactory.Create(long.Parse(split[i]), int.Parse(split[i + 1])));
                 slot++;
             }
         }
@@ -67,7 +70,8 @@ namespace Game.Block.Blocks.PowerGenerator
             //フォーマット
             //_fuelItemId,_remainingFuelTime,_fuelItemId1,_fuelItemCount1,_fuelItemId2,_fuelItemCount2,_fuelItemId3,_fuelItemCount3...
             var saveState = $"{_fuelItemId},{_remainingFuelTime}";
-            foreach (var itemStack in _itemDataStoreService.Inventory) saveState += $",{itemStack.ItemHash},{itemStack.Count}";
+            foreach (var itemStack in _itemDataStoreService.Inventory)
+                saveState += $",{itemStack.ItemHash},{itemStack.Count}";
 
             return saveState;
         }

@@ -6,7 +6,7 @@ namespace Server.Util
     {
         public static List<byte> Convert(List<bool> bits)
         {
-            var i = 0;
+            int i;
             byte result = 0;
             var bytes = new List<byte>();
             for (i = 0; i < bits.Count; i++)

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Game.Base;
 using Game.Entity.Interface;
+using UnityEngine;
 
 namespace Game.Entity
 {
@@ -31,23 +31,6 @@ namespace Game.Entity
             return _entities[instanceId];
         }
 
-        public void SetPosition(long instanceId, ServerVector3 position)
-        {
-            if (_entities.TryGetValue(instanceId, out var entity))
-            {
-                entity.SetPosition(position);
-                return;
-            }
-
-            throw new Exception("Entity not found " + instanceId);
-        }
-
-        public ServerVector3 GetPosition(long instanceId)
-        {
-            if (_entities.TryGetValue(instanceId, out var entity)) return entity.Position;
-            throw new Exception("Entity not found " + instanceId);
-        }
-
         public List<SaveEntityData> GetSaveBlockDataList()
         {
             var saveData = new List<SaveEntityData>();
@@ -67,9 +50,26 @@ namespace Game.Entity
                 var entity = _entityFactory.CreateEntity(save.Type, save.InstanceId);
                 _entities.Add(entity.InstanceId, entity);
 
-                var pos = new ServerVector3(save.X, save.Y, save.Z);
+                var pos = new Vector3(save.X, save.Y, save.Z);
                 SetPosition(save.InstanceId, pos);
             }
+        }
+
+        public void SetPosition(long instanceId, Vector3 position)
+        {
+            if (_entities.TryGetValue(instanceId, out var entity))
+            {
+                entity.SetPosition(position);
+                return;
+            }
+
+            throw new Exception("Entity not found " + instanceId);
+        }
+
+        public Vector3 GetPosition(long instanceId)
+        {
+            if (_entities.TryGetValue(instanceId, out var entity)) return entity.Position;
+            throw new Exception("Entity not found " + instanceId);
         }
     }
 }

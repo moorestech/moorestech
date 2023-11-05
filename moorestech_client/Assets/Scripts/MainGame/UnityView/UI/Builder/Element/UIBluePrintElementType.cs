@@ -1,9 +1,10 @@
 namespace MainGame.UnityView.UI.Builder.Element
 {
-    public enum UIBluePrintElementType{
+    public enum UIBluePrintElementType
+    {
         OneSlot,
         ArraySlot,
         ProgressArrow,
-        Text,
+        Text
     }
 }

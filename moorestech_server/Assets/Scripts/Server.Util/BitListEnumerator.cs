@@ -5,19 +5,19 @@ namespace Server.Util
 {
     public class BitListEnumerator
     {
-        private readonly int[] BIT_MASK = { 128, 64, 32, 16, 8, 4, 2, 1 };
-        private readonly List<byte> bytesList;
-        private int index;
+        private readonly int[] _bitMask = { 128, 64, 32, 16, 8, 4, 2, 1 };
+        private readonly List<byte> _bytesList;
+        private int _index;
 
         public BitListEnumerator(List<byte> bytes)
         {
-            bytesList = bytes;
+            _bytesList = bytes;
         }
 
         public bool MoveNextToBit()
         {
-            var r = bytesList[index / 8] & BIT_MASK[index % 8];
-            index++;
+            var r = _bytesList[_index / 8] & _bitMask[_index % 8];
+            _index++;
             if (r == 0)
                 return false;
             return true;

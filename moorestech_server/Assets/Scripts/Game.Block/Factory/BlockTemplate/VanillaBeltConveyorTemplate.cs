@@ -18,7 +18,8 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock New(BlockConfigData param, int entityId, long blockHash)
         {
             var beltConveyor = param.Param as BeltConveyorConfigParam;
-            return new VanillaBeltConveyor(param.BlockId, entityId, blockHash, _itemStackFactory, beltConveyor.BeltConveyorItemNum,
+            return new VanillaBeltConveyor(param.BlockId, entityId, blockHash, _itemStackFactory,
+                beltConveyor.BeltConveyorItemNum,
                 beltConveyor.TimeOfItemEnterToExit);
         }
 

@@ -7,7 +7,8 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
 {
     public static class InventoryItemMoveService
     {
-        public static void Move(ItemStackFactory itemStackFactory, IOpenableInventory fromInventory, int fromSlot, IOpenableInventory toInventory, int toSlot, int itemCount)
+        public static void Move(ItemStackFactory itemStackFactory, IOpenableInventory fromInventory, int fromSlot,
+            IOpenableInventory toInventory, int toSlot, int itemCount)
         {
             try
             {
@@ -18,7 +19,8 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
                 //TODO ログ基盤に入れる
                 var fromInventoryName = fromInventory.GetType().Name;
                 var toInventoryName = toInventory.GetType().Name;
-                Debug.Log($"InventoryItemMoveService.Move: \n {e.Message} \n fromInventory={fromInventoryName} fromSlot={fromSlot} toInventory={toInventoryName} toSlot={toSlot} itemCount={itemCount}  \n {e.StackTrace}");
+                Debug.Log(
+                    $"InventoryItemMoveService.Move: \n {e.Message} \n fromInventory={fromInventoryName} fromSlot={fromSlot} toInventory={toInventoryName} toSlot={toSlot} itemCount={itemCount}  \n {e.StackTrace}");
             }
             catch (Exception e)
             {
@@ -26,7 +28,8 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             }
         }
 
-        private static void ExecuteMove(ItemStackFactory itemStackFactory, IOpenableInventory fromInventory, int fromSlot, IOpenableInventory toInventory, int toSlot, int itemCount)
+        private static void ExecuteMove(ItemStackFactory itemStackFactory, IOpenableInventory fromInventory,
+            int fromSlot, IOpenableInventory toInventory, int toSlot, int itemCount)
         {
             //移動元と移動先のスロットが同じ場合は移動しない
             if (fromInventory.GetHashCode() == toInventory.GetHashCode() && fromSlot == toSlot) return;

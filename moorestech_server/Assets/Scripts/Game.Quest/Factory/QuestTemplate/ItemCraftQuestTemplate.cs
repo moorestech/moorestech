@@ -20,12 +20,15 @@ namespace Game.Quest.Factory.QuestTemplate
 
         public IQuest CreateQuest(QuestConfigData questConfig, List<IQuest> preRequestQuests)
         {
-            return new ItemCraftQuest(questConfig, _craftingEvent, GetCraftItem(questConfig.QuestParameter), preRequestQuests);
+            return new ItemCraftQuest(questConfig, _craftingEvent, GetCraftItem(questConfig.QuestParameter),
+                preRequestQuests);
         }
 
-        public IQuest LoadQuest(QuestConfigData questConfig, bool isCompleted, bool isRewarded, List<IQuest> preRequestQuests)
+        public IQuest LoadQuest(QuestConfigData questConfig, bool isCompleted, bool isRewarded,
+            List<IQuest> preRequestQuests)
         {
-            return new ItemCraftQuest(questConfig, _craftingEvent, isCompleted, isRewarded, GetCraftItem(questConfig.QuestParameter), preRequestQuests);
+            return new ItemCraftQuest(questConfig, _craftingEvent, isCompleted, isRewarded,
+                GetCraftItem(questConfig.QuestParameter), preRequestQuests);
         }
 
         private int GetCraftItem(string parameter)

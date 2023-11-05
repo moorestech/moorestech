@@ -1,12 +1,10 @@
-
-using System;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game.SaveLoad
@@ -18,7 +16,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void SaveLoadTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var blockHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(ChestBlockId).BlockHash;

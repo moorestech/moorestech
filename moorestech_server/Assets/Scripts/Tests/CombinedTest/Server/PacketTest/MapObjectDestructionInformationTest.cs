@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Game.MapObject.Interface;
@@ -7,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -16,7 +15,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void GetMapObjectTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
 
 
@@ -25,12 +25,14 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             var responseArray = packet.GetPacketResponse(MapObjectDestructionInformationProtocol())[0];
-            var response = MessagePackSerializer.Deserialize<ResponseMapObjectDestructionInformationMessagePack>(responseArray.ToArray());
+            var response =
+                MessagePackSerializer.Deserialize<ResponseMapObjectDestructionInformationMessagePack>(
+                    responseArray.ToArray());
 
             foreach (var mapObject in mapObjectDatastore.MapObjects)
             {
                 var responseObject =
-                    response.MapObjects.Find(m => m.Instanceid == mapObject.InstanceId);
+                    response.MapObjects.Find(m => m.InstanceId == mapObject.InstanceId);
                 Assert.AreEqual(mapObject.IsDestroyed, responseObject.IsDestroyed);
             }
         }

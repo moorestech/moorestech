@@ -15,16 +15,19 @@ namespace MainGame.UnityView.UI.UIState
 
         public UIStateEnum GetNext()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown)
-            {
-                return UIStateEnum.GameScreen;
-            }
+            if (InputManager.UI.CloseUI.GetKeyDown) return UIStateEnum.GameScreen;
 
             return UIStateEnum.Current;
         }
 
-        public void OnEnter(UIStateEnum lastStateEnum) { _pauseMenu.gameObject.SetActive(true); }
+        public void OnEnter(UIStateEnum lastStateEnum)
+        {
+            _pauseMenu.gameObject.SetActive(true);
+        }
 
-        public void OnExit() { _pauseMenu.gameObject.SetActive(false); }
+        public void OnExit()
+        {
+            _pauseMenu.gameObject.SetActive(false);
+        }
     }
 }

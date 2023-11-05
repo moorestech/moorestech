@@ -1,5 +1,4 @@
-﻿using System;
-using MainGame.Network.Send;
+﻿using MainGame.Network.Send;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
@@ -11,15 +10,15 @@ namespace MainGame.Control.UI.PauseMenu
         [SerializeField] private Button saveButton;
         private SendSaveProtocol _sendSaveProtocol;
 
+        private void Start()
+        {
+            saveButton.onClick.AddListener(_sendSaveProtocol.Send);
+        }
+
         [Inject]
         public void Construct(SendSaveProtocol sendSaveProtocol)
         {
             _sendSaveProtocol = sendSaveProtocol;
-        }
-
-        private void Start()
-        {
-            saveButton.onClick.AddListener(_sendSaveProtocol.Send);
         }
     }
 }

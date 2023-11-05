@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using Core.ConfigJson;
 using Core.Const;
 using Core.Item.Config;
-using Core.Util;
 using Game.Block.Config.LoadConfig;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
+using UnityEngine;
 
 namespace Game.Block.Config
 {
@@ -19,10 +19,12 @@ namespace Game.Block.Config
 
         public BlockConfig(ConfigJsonList configJson, IItemConfig itemConfig)
         {
-            _blockConfigList = new BlockConfigJsonLoad(itemConfig).LoadFromJsons(configJson.BlockConfigs, configJson.SortedModIds);
+            _blockConfigList =
+                new BlockConfigJsonLoad(itemConfig).LoadFromJsons(configJson.BlockConfigs, configJson.SortedModIds);
             foreach (var blockConfig in _blockConfigList)
             {
-                if (_bockHashToConfig.ContainsKey(blockConfig.BlockHash)) throw new Exception("ブロック名 " + blockConfig.Name + " は重複しています。");
+                if (_bockHashToConfig.ContainsKey(blockConfig.BlockHash))
+                    throw new Exception("ブロック名 " + blockConfig.Name + " は重複しています。");
 
                 _bockHashToConfig.Add(blockConfig.BlockHash, blockConfig);
 
@@ -51,7 +53,7 @@ namespace Game.Block.Config
                 0,
                 VanillaBlockType.Block,
                 new NullBlockConfigParam(),
-                ItemConst.EmptyItemId, new ModelTransform(), new CoreVector2Int(1,1));
+                ItemConst.EmptyItemId, new ModelTransform(), new Vector2Int(1, 1));
         }
 
         public BlockConfigData GetBlockConfig(long blockHash)

@@ -38,22 +38,133 @@ namespace MessagePack.LZ4
     /// <summary>Safe LZ4 codec.</summary>
     internal partial class LZ4Codec
     {
-#region Helper
+        #region Helper
 
         [Conditional("DEBUG")]
         private static void Assert(bool condition, string errorMessage)
         {
-            if (!condition)
-            {
-                throw new ArgumentException(errorMessage);
-            }
+            if (!condition) throw new ArgumentException(errorMessage);
 
             Debug.Assert(condition, errorMessage);
         }
 
-#endregion
+        #endregion
 
-#region Byte manipulation
+        /// <summary>Encodes the specified input.</summary>
+        /// <param name="input">The input.</param>
+        /// <param name="inputOffset">The input offset.</param>
+        /// <param name="inputLength">Length of the input.</param>
+        /// <param name="output">The output.</param>
+        /// <param name="outputOffset">The output offset.</param>
+        /// <param name="outputLength">Length of the output.</param>
+        /// <returns>Number of bytes written.</returns>
+        public static int Encode32Safe(
+            byte[] input,
+            int inputOffset,
+            int inputLength,
+            byte[] output,
+            int outputOffset,
+            int outputLength)
+        {
+            CheckArguments(input, inputOffset, inputLength, output, outputOffset, outputLength);
+            if (outputLength == 0) return 0;
+
+            if (inputLength < LZ4_64KLIMIT)
+            {
+                var hashTable = HashTablePool.GetUShortHashTablePool();
+                return LZ4_compress64kCtx_safe32(hashTable, input, output, inputOffset, outputOffset, inputLength, outputLength);
+            }
+            else
+            {
+                var hashTable = HashTablePool.GetIntHashTablePool();
+                return LZ4_compressCtx_safe32(hashTable, input, output, inputOffset, outputOffset, inputLength, outputLength);
+            }
+        }
+
+        /// <summary>Encodes the specified input.</summary>
+        /// <param name="input">The input.</param>
+        /// <param name="inputOffset">The input offset.</param>
+        /// <param name="inputLength">Length of the input.</param>
+        /// <param name="output">The output.</param>
+        /// <param name="outputOffset">The output offset.</param>
+        /// <param name="outputLength">Length of the output.</param>
+        /// <returns>Number of bytes written.</returns>
+        public static int Encode64Safe(
+            byte[] input,
+            int inputOffset,
+            int inputLength,
+            byte[] output,
+            int outputOffset,
+            int outputLength)
+        {
+            CheckArguments(input, inputOffset, inputLength, output, outputOffset, outputLength);
+            if (outputLength == 0) return 0;
+
+            if (inputLength < LZ4_64KLIMIT)
+            {
+                var hashTable = HashTablePool.GetUShortHashTablePool();
+                return LZ4_compress64kCtx_safe64(hashTable, input, output, inputOffset, outputOffset, inputLength, outputLength);
+            }
+            else
+            {
+                var hashTable = HashTablePool.GetIntHashTablePool();
+                return LZ4_compressCtx_safe64(hashTable, input, output, inputOffset, outputOffset, inputLength, outputLength);
+            }
+        }
+
+        /// <summary>Decodes the specified input.</summary>
+        /// <param name="input">The input.</param>
+        /// <param name="inputOffset">The input offset.</param>
+        /// <param name="inputLength">Length of the input.</param>
+        /// <param name="output">The output.</param>
+        /// <param name="outputOffset">The output offset.</param>
+        /// <param name="outputLength">Length of the output.</param>
+        /// <returns>Number of bytes written.</returns>
+        public static int Decode32Safe(
+            byte[] input,
+            int inputOffset,
+            int inputLength,
+            byte[] output,
+            int outputOffset,
+            int outputLength)
+        {
+            CheckArguments(input, inputOffset, inputLength, output, outputOffset, outputLength);
+
+            if (outputLength == 0) return 0;
+
+            var length = LZ4_uncompress_safe32(input, output, inputOffset, outputOffset, outputLength);
+            if (length != inputLength) throw new MessagePackSerializationException("LZ4 block is corrupted, or invalid length has been given.");
+
+            return outputLength;
+        }
+
+        /// <summary>Decodes the specified input.</summary>
+        /// <param name="input">The input.</param>
+        /// <param name="inputOffset">The input offset.</param>
+        /// <param name="inputLength">Length of the input.</param>
+        /// <param name="output">The output.</param>
+        /// <param name="outputOffset">The output offset.</param>
+        /// <param name="outputLength">Length of the output.</param>
+        /// <returns>Number of bytes written.</returns>
+        public static int Decode64Safe(
+            byte[] input,
+            int inputOffset,
+            int inputLength,
+            byte[] output,
+            int outputOffset,
+            int outputLength)
+        {
+            CheckArguments(input, inputOffset, inputLength, output, outputOffset, outputLength);
+
+            if (outputLength == 0) return 0;
+
+            var length = LZ4_uncompress_safe64(input, output, inputOffset, outputOffset, outputLength);
+            if (length != inputLength) throw new MessagePackSerializationException("LZ4 block is corrupted, or invalid length has been given.");
+
+            return outputLength;
+        }
+
+        #region Byte manipulation
 
         internal static void Poke2(byte[] buffer, int offset, ushort value)
         {
@@ -64,14 +175,14 @@ namespace MessagePack.LZ4
         internal static ushort Peek2(byte[] buffer, int offset)
         {
             // NOTE: It's faster than BitConverter.ToUInt16 (suprised? me too)
-            return (ushort)(((uint)buffer[offset]) | ((uint)buffer[offset + 1] << 8));
+            return (ushort)(buffer[offset] | ((uint)buffer[offset + 1] << 8));
         }
 
         internal static uint Peek4(byte[] buffer, int offset)
         {
             // NOTE: It's faster than BitConverter.ToUInt32 (suprised? me too)
             return
-                ((uint)buffer[offset]) |
+                buffer[offset] |
                 ((uint)buffer[offset + 1] << 8) |
                 ((uint)buffer[offset + 2] << 16) |
                 ((uint)buffer[offset + 3] << 24);
@@ -81,12 +192,12 @@ namespace MessagePack.LZ4
         {
             // return Peek4(buffer, offset1) ^ Peek4(buffer, offset2);
             var value1 =
-                ((uint)buffer[offset1]) |
+                buffer[offset1] |
                 ((uint)buffer[offset1 + 1] << 8) |
                 ((uint)buffer[offset1 + 2] << 16) |
                 ((uint)buffer[offset1 + 3] << 24);
             var value2 =
-                ((uint)buffer[offset2]) |
+                buffer[offset2] |
                 ((uint)buffer[offset2 + 1] << 8) |
                 ((uint)buffer[offset2 + 2] << 16) |
                 ((uint)buffer[offset2 + 3] << 24);
@@ -97,7 +208,7 @@ namespace MessagePack.LZ4
         {
             // return Peek8(buffer, offset1) ^ Peek8(buffer, offset2);
             var value1 =
-                ((ulong)buffer[offset1]) |
+                buffer[offset1] |
                 ((ulong)buffer[offset1 + 1] << 8) |
                 ((ulong)buffer[offset1 + 2] << 16) |
                 ((ulong)buffer[offset1 + 3] << 24) |
@@ -106,7 +217,7 @@ namespace MessagePack.LZ4
                 ((ulong)buffer[offset1 + 6] << 48) |
                 ((ulong)buffer[offset1 + 7] << 56);
             var value2 =
-                ((ulong)buffer[offset2]) |
+                buffer[offset2] |
                 ((ulong)buffer[offset2 + 1] << 8) |
                 ((ulong)buffer[offset2 + 2] << 16) |
                 ((ulong)buffer[offset2 + 3] << 24) |
@@ -120,10 +231,7 @@ namespace MessagePack.LZ4
         private static bool Equal2(byte[] buffer, int offset1, int offset2)
         {
             // return Peek2(buffer, offset1) == Peek2(buffer, offset2);
-            if (buffer[offset1] != buffer[offset2])
-            {
-                return false;
-            }
+            if (buffer[offset1] != buffer[offset2]) return false;
 
             return buffer[offset1 + 1] == buffer[offset2 + 1];
         }
@@ -131,27 +239,18 @@ namespace MessagePack.LZ4
         private static bool Equal4(byte[] buffer, int offset1, int offset2)
         {
             // return Peek4(buffer, offset1) == Peek4(buffer, offset2);
-            if (buffer[offset1] != buffer[offset2])
-            {
-                return false;
-            }
+            if (buffer[offset1] != buffer[offset2]) return false;
 
-            if (buffer[offset1 + 1] != buffer[offset2 + 1])
-            {
-                return false;
-            }
+            if (buffer[offset1 + 1] != buffer[offset2 + 1]) return false;
 
-            if (buffer[offset1 + 2] != buffer[offset2 + 2])
-            {
-                return false;
-            }
+            if (buffer[offset1 + 2] != buffer[offset2 + 2]) return false;
 
             return buffer[offset1 + 3] == buffer[offset2 + 3];
         }
 
-#endregion
+        #endregion
 
-#region Byte block copy
+        #region Byte block copy
 
         private static void Copy4(byte[] buf, int src, int dst)
         {
@@ -211,10 +310,7 @@ namespace MessagePack.LZ4
                     dst_0 += 4;
                 }
 
-                while (len-- > 0)
-                {
-                    dst[dst_0++] = src[src_0++];
-                }
+                while (len-- > 0) dst[dst_0++] = src[src_0++];
             }
         }
 
@@ -257,10 +353,7 @@ namespace MessagePack.LZ4
                     dst_0 += 4;
                 }
 
-                while (len-- > 0)
-                {
-                    dst[dst_0++] = src[src_0++];
-                }
+                while (len-- > 0) dst[dst_0++] = src[src_0++];
             }
 
             return len;
@@ -290,8 +383,7 @@ namespace MessagePack.LZ4
                     src += diff;
                     dst += diff;
                     len -= diff;
-                }
-                while (len >= diff);
+                } while (len >= diff);
             }
 
             // apparently (tested) this is an overkill
@@ -320,147 +412,12 @@ namespace MessagePack.LZ4
                 len -= 4;
             }
 
-            while (len-- > 0)
-            {
-                buffer[dst++] = buffer[src++];
-            }
+            while (len-- > 0) buffer[dst++] = buffer[src++];
 
             return length; // done
         }
 
-#endregion
-
-        /// <summary>Encodes the specified input.</summary>
-        /// <param name="input">The input.</param>
-        /// <param name="inputOffset">The input offset.</param>
-        /// <param name="inputLength">Length of the input.</param>
-        /// <param name="output">The output.</param>
-        /// <param name="outputOffset">The output offset.</param>
-        /// <param name="outputLength">Length of the output.</param>
-        /// <returns>Number of bytes written.</returns>
-        public static int Encode32Safe(
-            byte[] input,
-            int inputOffset,
-            int inputLength,
-            byte[] output,
-            int outputOffset,
-            int outputLength)
-        {
-            CheckArguments(input, inputOffset, inputLength, output, outputOffset, outputLength);
-            if (outputLength == 0)
-            {
-                return 0;
-            }
-
-            if (inputLength < LZ4_64KLIMIT)
-            {
-                var hashTable = HashTablePool.GetUShortHashTablePool();
-                return LZ4_compress64kCtx_safe32(hashTable, input, output, inputOffset, outputOffset, inputLength, outputLength);
-            }
-            else
-            {
-                var hashTable = HashTablePool.GetIntHashTablePool();
-                return LZ4_compressCtx_safe32(hashTable, input, output, inputOffset, outputOffset, inputLength, outputLength);
-            }
-        }
-
-        /// <summary>Encodes the specified input.</summary>
-        /// <param name="input">The input.</param>
-        /// <param name="inputOffset">The input offset.</param>
-        /// <param name="inputLength">Length of the input.</param>
-        /// <param name="output">The output.</param>
-        /// <param name="outputOffset">The output offset.</param>
-        /// <param name="outputLength">Length of the output.</param>
-        /// <returns>Number of bytes written.</returns>
-        public static int Encode64Safe(
-            byte[] input,
-            int inputOffset,
-            int inputLength,
-            byte[] output,
-            int outputOffset,
-            int outputLength)
-        {
-            CheckArguments(input, inputOffset, inputLength, output, outputOffset, outputLength);
-            if (outputLength == 0)
-            {
-                return 0;
-            }
-
-            if (inputLength < LZ4_64KLIMIT)
-            {
-                var hashTable = HashTablePool.GetUShortHashTablePool();
-                return LZ4_compress64kCtx_safe64(hashTable, input, output, inputOffset, outputOffset, inputLength, outputLength);
-            }
-            else
-            {
-                var hashTable = HashTablePool.GetIntHashTablePool();
-                return LZ4_compressCtx_safe64(hashTable, input, output, inputOffset, outputOffset, inputLength, outputLength);
-            }
-        }
-
-        /// <summary>Decodes the specified input.</summary>
-        /// <param name="input">The input.</param>
-        /// <param name="inputOffset">The input offset.</param>
-        /// <param name="inputLength">Length of the input.</param>
-        /// <param name="output">The output.</param>
-        /// <param name="outputOffset">The output offset.</param>
-        /// <param name="outputLength">Length of the output.</param>
-        /// <returns>Number of bytes written.</returns>
-        public static int Decode32Safe(
-            byte[] input,
-            int inputOffset,
-            int inputLength,
-            byte[] output,
-            int outputOffset,
-            int outputLength)
-        {
-            CheckArguments(input, inputOffset, inputLength, output, outputOffset, outputLength);
-
-            if (outputLength == 0)
-            {
-                return 0;
-            }
-
-            var length = LZ4_uncompress_safe32(input, output, inputOffset, outputOffset, outputLength);
-            if (length != inputLength)
-            {
-                throw new MessagePackSerializationException("LZ4 block is corrupted, or invalid length has been given.");
-            }
-
-            return outputLength;
-        }
-
-        /// <summary>Decodes the specified input.</summary>
-        /// <param name="input">The input.</param>
-        /// <param name="inputOffset">The input offset.</param>
-        /// <param name="inputLength">Length of the input.</param>
-        /// <param name="output">The output.</param>
-        /// <param name="outputOffset">The output offset.</param>
-        /// <param name="outputLength">Length of the output.</param>
-        /// <returns>Number of bytes written.</returns>
-        public static int Decode64Safe(
-            byte[] input,
-            int inputOffset,
-            int inputLength,
-            byte[] output,
-            int outputOffset,
-            int outputLength)
-        {
-            CheckArguments(input, inputOffset, inputLength, output, outputOffset, outputLength);
-
-            if (outputLength == 0)
-            {
-                return 0;
-            }
-
-            var length = LZ4_uncompress_safe64(input, output, inputOffset, outputOffset, outputLength);
-            if (length != inputLength)
-            {
-                throw new MessagePackSerializationException("LZ4 block is corrupted, or invalid length has been given.");
-            }
-
-            return outputLength;
-        }
+        #endregion
     }
 }
 

@@ -7,17 +7,16 @@ namespace MainGame.Network.Send.SocketUtil
 {
     public class SocketInstanceCreate
     {
-        public Socket SocketInstance { get; }
-
         private readonly IPEndPoint _remoteEndPoint;
+
         public SocketInstanceCreate(ConnectionServerConfig config)
         {
             //IPアドレスやポートを設定
             IPAddress ipAddress = null;
-            if (IPAddress.TryParse(config.IP,out ipAddress))
+            if (IPAddress.TryParse(config.IP, out ipAddress))
             {
             }
-            else if(IsUrl(config.IP))
+            else if (IsUrl(config.IP))
             {
                 ipAddress = Dns.GetHostEntry(config.IP).AddressList[0].MapToIPv4();
             }
@@ -26,28 +25,27 @@ namespace MainGame.Network.Send.SocketUtil
                 Debug.LogError("IP解析失敗");
                 return;
             }
+
             //ソケットを作成
             _remoteEndPoint = new IPEndPoint(ipAddress, config.Port);
             SocketInstance = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
         }
-        
+
+        public Socket SocketInstance { get; }
+
         public IPEndPoint GetRemoteEndPoint()
         {
             return _remoteEndPoint;
         }
-        
-        
-        private static bool IsUrl( string input )
+
+
+        private static bool IsUrl(string input)
         {
-            if ( string.IsNullOrEmpty( input ) )
-            {
-                return false;
-            }
-            return Regex.IsMatch( 
-                input, 
-                @"[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+$" 
+            if (string.IsNullOrEmpty(input)) return false;
+            return Regex.IsMatch(
+                input,
+                @"[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+$"
             );
         }
-        
     }
 }

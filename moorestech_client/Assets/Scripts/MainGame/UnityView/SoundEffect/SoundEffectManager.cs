@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace MainGame.UnityView.SoundEffect
 {
     /// <summary>
-    /// TODO 仮のSE専用マネージャ 将来的な作り変えを意識しつつ、とりあえずこれで実装する
+    ///     TODO 仮のSE専用マネージャ 将来的な作り変えを意識しつつ、とりあえずこれで実装する
     /// </summary>
     public class SoundEffectManager : MonoBehaviour
     {
@@ -14,16 +13,16 @@ namespace MainGame.UnityView.SoundEffect
         [SerializeField] private AudioClip destroyTreeSound;
         [SerializeField] private AudioClip destroyBushSound;
         [SerializeField] private AudioClip placeBlockSound;
-        
+
         [SerializeField] private AudioSource audioSource;
-        
+
         private readonly Dictionary<SoundEffectType, AudioClip> _soundEffectTypeToAudioClip = new();
-        
+
         /// <summary>
-        /// サウンド関係はstaticの方がべんりかな、、って思うけど、改善したほうがいいような気もする
+        ///     サウンド関係はstaticの方がべんりかな、、って思うけど、改善したほうがいいような気もする
         /// </summary>
         public static SoundEffectManager Instance { get; private set; }
-        
+
         private void Awake()
         {
             _soundEffectTypeToAudioClip.Add(SoundEffectType.DestroyBlock, destroyBlockSound);
@@ -31,23 +30,22 @@ namespace MainGame.UnityView.SoundEffect
             _soundEffectTypeToAudioClip.Add(SoundEffectType.DestroyTree, destroyTreeSound);
             _soundEffectTypeToAudioClip.Add(SoundEffectType.DestroyBush, destroyBushSound);
             _soundEffectTypeToAudioClip.Add(SoundEffectType.PlaceBlock, placeBlockSound);
-            
+
             Instance = this;
         }
-        
+
         public void PlaySoundEffect(SoundEffectType soundEffectType)
         {
             audioSource.PlayOneShot(_soundEffectTypeToAudioClip[soundEffectType]);
         }
-        
     }
-    
+
     public enum SoundEffectType
     {
         DestroyBlock,
         DestroyStone,
         DestroyTree,
         DestroyBush,
-        PlaceBlock,
+        PlaceBlock
     }
 }

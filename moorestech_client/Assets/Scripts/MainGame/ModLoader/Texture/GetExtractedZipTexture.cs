@@ -1,21 +1,17 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace MainGame.ModLoader.Texture
 {
     //TODO 成功か失敗かと理由を返すようにする　ログ出力は使う側が行う
     public static class GetExtractedZipTexture
     {
-        public static Texture2D Get(string extractedModDirectory,string path)
+        public static Texture2D Get(string extractedModDirectory, string path)
         {
             //TODO ログ基盤
             var imgPath = Path.Combine(extractedModDirectory, path);
-            
+
             //そのパスにファイルがあるかを確認
             if (!File.Exists(imgPath))
             {

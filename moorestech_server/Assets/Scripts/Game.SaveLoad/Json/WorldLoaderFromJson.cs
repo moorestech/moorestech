@@ -4,13 +4,13 @@ using Game.Entity.Interface;
 using Game.MapObject.Interface;
 using Game.PlayerInventory.Interface;
 using Game.Quest.Interface;
-using Game.Save.Interface;
-using Game.Save.Json.WorldVersions;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json.WorldVersions;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace Game.Save.Json
+namespace Game.SaveLoad.Json
 {
     public class WorldLoaderFromJson : IWorldSaveDataLoader
     {
@@ -25,7 +25,9 @@ namespace Game.Save.Json
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
 
         public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore,
-            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IQuestDataStore questDataStore, IWorldSettingsDatastore worldSettingsDatastore, IMapObjectDatastore mapObjectDatastore, MapConfigFile mapConfigFile)
+            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore,
+            IQuestDataStore questDataStore, IWorldSettingsDatastore worldSettingsDatastore,
+            IMapObjectDatastore mapObjectDatastore, MapConfigFile mapConfigFile)
         {
             _saveJsonFileName = saveJsonFileName;
             _worldBlockDatastore = worldBlockDatastore;
@@ -53,7 +55,8 @@ namespace Game.Save.Json
                     //TODO ログ基盤
                     Debug.Log("セーブデータが破損していたか古いバージョンでした。Discordサーバー ( https://discord.gg/ekFYmY3rDP ) にて連絡をお願いします。");
                     Debug.Log($"セーブファイルパス {_saveJsonFileName.FullSaveFilePath}");
-                    throw new Exception($"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
+                    throw new Exception(
+                        $"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
                 }
             }
 

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Core.Item;
 using Game.Quest.Interface;
@@ -13,7 +12,8 @@ namespace Game.Quest.Config
     /// </summary>
     internal static class QuestLoadConfig
     {
-        public static (Dictionary<string, List<string>> ModIdToQuests, Dictionary<string, QuestConfigData> QuestIdToQuestConfigs) LoadConfig(ItemStackFactory itemStackFactory, Dictionary<string, string> blockJsons)
+        public static (Dictionary<string, List<string>> ModIdToQuests, Dictionary<string, QuestConfigData>
+            QuestIdToQuestConfigs) LoadConfig(ItemStackFactory itemStackFactory, Dictionary<string, string> blockJsons)
         {
             var questIdConfig = CreateQuestIdConfig(itemStackFactory, blockJsons);
             var modIdToQuests = CreateModIdToQuestId(questIdConfig);
@@ -21,7 +21,8 @@ namespace Game.Quest.Config
             return (modIdToQuests, questIdConfig);
         }
 
-        private static Dictionary<string, QuestConfigData> CreateQuestIdConfig(ItemStackFactory itemStackFactory, Dictionary<string, string> blockJsons)
+        private static Dictionary<string, QuestConfigData> CreateQuestIdConfig(ItemStackFactory itemStackFactory,
+            Dictionary<string, string> blockJsons)
         {
             Dictionary<string, QuestConfigData> alreadyMadeConfigs = new();
             var jsonQuestConfig = LoadJsonToQuestConfigJsonData(blockJsons);
@@ -32,11 +33,13 @@ namespace Game.Quest.Config
                 if (alreadyMadeConfigs.ContainsKey(jsonConfig.QuestId)) continue;
 
                 //前提クエストを探索、作成
-                var prerequisiteQuests = AssemblyPrerequisiteQuests(itemStackFactory, jsonConfig, new List<string>(), alreadyMadeConfigs, jsonQuestConfig);
+                var prerequisiteQuests = AssemblyPrerequisiteQuests(itemStackFactory, jsonConfig, new List<string>(),
+                    alreadyMadeConfigs, jsonQuestConfig);
 
                 //探索した結果前提クエストのなかに組み込まれていた場合はスルーする（おそらく前提クエストでループが発生した時これがtrueになる）
                 if (alreadyMadeConfigs.ContainsKey(jsonConfig.QuestId)) continue;
-                alreadyMadeConfigs.Add(jsonConfig.QuestId, jsonConfig.ToQuestConfigData(prerequisiteQuests, itemStackFactory));
+                alreadyMadeConfigs.Add(jsonConfig.QuestId,
+                    jsonConfig.ToQuestConfigData(prerequisiteQuests, itemStackFactory));
             }
 
             return alreadyMadeConfigs;
@@ -52,13 +55,17 @@ namespace Game.Quest.Config
         /// <param name="alreadyMadeConfigs">事前に作られたクエストの流用のために、すでに作られたクエストの辞書を渡す。再帰中に新しく作った場合は</param>
         /// <param name="keyQuestIdJsonConfigs"></param>
         /// <returns></returns>
-        private static List<QuestConfigData> AssemblyPrerequisiteQuests(ItemStackFactory itemStackFactory, QuestConfigJsonData questConfigJsonData, List<string> detectLoopLog, Dictionary<string, QuestConfigData> alreadyMadeConfigs, Dictionary<string, QuestConfigJsonData> keyQuestIdJsonConfigs)
+        private static List<QuestConfigData> AssemblyPrerequisiteQuests(ItemStackFactory itemStackFactory,
+            QuestConfigJsonData questConfigJsonData, List<string> detectLoopLog,
+            Dictionary<string, QuestConfigData> alreadyMadeConfigs,
+            Dictionary<string, QuestConfigJsonData> keyQuestIdJsonConfigs)
         {
             //ループがないかチェックする
             if (detectLoopLog.Contains(questConfigJsonData.QuestId))
             {
                 //TODO 例外を出力す方法を考える
-                Debug.Log("[ConfigLoadLog] ModId:" + questConfigJsonData.ModId + "の前提クエストにループがありました。前提クエストをチェックしてください。　クエストId:" + questConfigJsonData.QuestId);
+                Debug.Log("[ConfigLoadLog] ModId:" + questConfigJsonData.ModId +
+                          "の前提クエストにループがありました。前提クエストをチェックしてください。　クエストId:" + questConfigJsonData.QuestId);
                 return new List<QuestConfigData>();
             }
 
@@ -80,13 +87,16 @@ namespace Game.Quest.Config
                 if (!keyQuestIdJsonConfigs.TryGetValue(prerequisiteId, out var prerequisiteJsonConfig))
                 {
                     //TODO 例外を出力す方法を考える
-                    Debug.Log("[ConfigLoadLog] ModId:" + questConfigJsonData.ModId + "のクエスト " + questConfigJsonData.QuestId + "の前提クエストに存在しないクエストIDが渡されました。　存在しないクエストId:" + prerequisiteId);
+                    Debug.Log("[ConfigLoadLog] ModId:" + questConfigJsonData.ModId + "のクエスト " +
+                              questConfigJsonData.QuestId + "の前提クエストに存在しないクエストIDが渡されました。　存在しないクエストId:" +
+                              prerequisiteId);
                     continue;
                 }
 
 
                 //再帰を使って前提クエストの前提クエストを取得
-                var newPrerequisiteQuests = AssemblyPrerequisiteQuests(itemStackFactory, prerequisiteJsonConfig, detectLoopLog, alreadyMadeConfigs, keyQuestIdJsonConfigs);
+                var newPrerequisiteQuests = AssemblyPrerequisiteQuests(itemStackFactory, prerequisiteJsonConfig,
+                    detectLoopLog, alreadyMadeConfigs, keyQuestIdJsonConfigs);
                 //前提クエストを作成
                 var newRequestQuest = prerequisiteJsonConfig.ToQuestConfigData(newPrerequisiteQuests, itemStackFactory);
                 //前提クエストリストと辞書に登録
@@ -103,7 +113,8 @@ namespace Game.Quest.Config
         /// </summary>
         /// <param name="questJsons">modIdとJsonの辞書</param>
         /// <returns>クエストIDがキーの辞書</returns>
-        private static Dictionary<string, QuestConfigJsonData> LoadJsonToQuestConfigJsonData(Dictionary<string, string> questJsons)
+        private static Dictionary<string, QuestConfigJsonData> LoadJsonToQuestConfigJsonData(
+            Dictionary<string, string> questJsons)
         {
             var keyQuestIdConfigs = new Dictionary<string, QuestConfigJsonData>();
 
@@ -130,7 +141,8 @@ namespace Game.Quest.Config
             return keyQuestIdConfigs;
         }
 
-        private static Dictionary<string, List<string>> CreateModIdToQuestId(Dictionary<string, QuestConfigData> alreadyMadeConfigs)
+        private static Dictionary<string, List<string>> CreateModIdToQuestId(
+            Dictionary<string, QuestConfigData> alreadyMadeConfigs)
         {
             Dictionary<string, List<string>> modIdToQuests = new();
 

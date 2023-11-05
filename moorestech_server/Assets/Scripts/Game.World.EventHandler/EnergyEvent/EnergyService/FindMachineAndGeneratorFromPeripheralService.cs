@@ -3,7 +3,7 @@ using Core.EnergySystem.Electric;
 using Game.Block.Config.LoadConfig.Param;
 using Game.World.Interface.DataStore;
 
-namespace Game.World.EventHandler.Service
+namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
     public static class FindMachineAndGeneratorFromPeripheralService
     {

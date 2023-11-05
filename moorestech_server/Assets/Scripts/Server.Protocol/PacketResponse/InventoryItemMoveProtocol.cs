@@ -6,7 +6,6 @@ using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUitl;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 
@@ -34,9 +33,11 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload.ToArray());
 
-            var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.X, data.FromInventory.Y);
+            var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.X,
+                data.FromInventory.Y);
             if (fromInventory == null) return new List<List<byte>>();
-            var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.X, data.ToInventory.Y);
+            var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.X,
+                data.ToInventory.Y);
             if (toInventory == null) return new List<List<byte>>();
 
             var fromSlot = data.FromInventory.Slot;
@@ -73,8 +74,9 @@ namespace Server.Protocol.PacketResponse
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
                     break;
                 case ItemMoveInventoryType.BlockInventory:
-                    inventory = _worldBlockDatastore.ExistsComponentBlock<IOpenableInventory>(x, y) ? _worldBlockDatastore.GetBlock<IOpenableInventory>(x, y) : null;
-                    ;
+                    inventory = _worldBlockDatastore.ExistsComponentBlock<IOpenableInventory>(x, y)
+                        ? _worldBlockDatastore.GetBlock<IOpenableInventory>(x, y)
+                        : null;
                     break;
             }
 
@@ -91,7 +93,8 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public InventoryItemMoveProtocolMessagePack(int playerId, int count, ItemMoveType itemMoveType, FromItemMoveInventoryInfo fromInventory, ToItemMoveInventoryInfo toInventory)
+        public InventoryItemMoveProtocolMessagePack(int playerId, int count, ItemMoveType itemMoveType,
+            FromItemMoveInventoryInfo fromInventory, ToItemMoveInventoryInfo toInventory)
         {
             Tag = InventoryItemMoveProtocol.Tag;
             PlayerId = playerId;
@@ -140,7 +143,8 @@ namespace Server.Protocol.PacketResponse
         [Obsolete("シリアライズ用の値です。InventoryTypeを使用してください。")]
         public int InventoryId { get; set; }
 
-        public ItemMoveInventoryType InventoryType => (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), InventoryId);
+        public ItemMoveInventoryType InventoryType =>
+            (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), InventoryId);
 
 
         public int Slot { get; set; }

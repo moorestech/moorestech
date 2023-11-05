@@ -8,10 +8,10 @@ namespace MooresNovel
     public class VisualNovelManager : MonoBehaviour
     {
         [SerializeField] private MooresNovelAssets assetsData;
-        
+
         [SerializeField] private Image transitionImage;
         [SerializeField] private Image backgroundImage;
-        
+
         [SerializeField] private TMP_Text nameText;
         [SerializeField] private TMP_Text mainText;
         [SerializeField] private Image characterImage;
@@ -20,11 +20,11 @@ namespace MooresNovel
         {
             gameObject.SetActive(enable);
         }
+
         public async UniTask ExecuteVisualNovel(string key)
         {
             var script = assetsData.GetScenario(key);
             foreach (var novelEvent in script.CreateScenario())
-            {
                 switch (novelEvent.EventType)
                 {
                     case MooresNovelEventType.Line:
@@ -46,8 +46,6 @@ namespace MooresNovel
                         await UniTask.Delay(1000);
                         break;
                 }
-            }
         }
-        
     }
 }

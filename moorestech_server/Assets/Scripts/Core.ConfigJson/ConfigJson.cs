@@ -11,7 +11,8 @@ namespace Core.ConfigJson
         public readonly string OreConfigJson;
         public readonly string QuestConfigJson;
 
-        public ConfigJson(string modName, string itemJson, string blockConfigJson, string machineRecipeConfigJson, string craftRecipeConfigJson, string oreConfigJson, string questConfigJson)
+        public ConfigJson(string modName, string itemJson, string blockConfigJson, string machineRecipeConfigJson,
+            string craftRecipeConfigJson, string oreConfigJson, string questConfigJson)
         {
             ItemConfigJson = itemJson;
             BlockConfigJson = blockConfigJson;

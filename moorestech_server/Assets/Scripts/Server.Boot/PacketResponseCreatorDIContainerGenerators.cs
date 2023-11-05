@@ -22,6 +22,8 @@ using Game.Entity;
 using Game.Entity.Interface;
 using Game.MapObject;
 using Game.MapObject.Interface;
+using Game.PlayerInventory;
+using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest;
@@ -30,25 +32,23 @@ using Game.Quest.Event;
 using Game.Quest.Factory;
 using Game.Quest.Interface;
 using Game.Quest.Interface.Event;
-using Game.Save.Interface;
-using Game.Save.Json;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
+using Game.World.DataStore;
+using Game.World.DataStore.WorldSettings;
+using Game.World.Event;
 using Game.World.EventHandler.EnergyEvent;
+using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.EventHandler.InventoryEvent;
-using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 using Game.WorldMap;
 using Game.WorldMap.EventListener;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
-using PlayerInventory;
-using PlayerInventory.Event;
 using Server.Event;
 using Server.Event.EventReceive;
 using Server.Protocol;
-using World.DataStore;
-using World.DataStore.WorldSettings;
-using World.Event;
 
 namespace Server.Boot
 {
@@ -83,7 +83,9 @@ namespace Server.Boot
             services.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IBlockInventoryOpenStateDataStore, BlockInventoryOpenStateDataStore>();
-            services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
+            services
+                .AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>,
+                    WorldEnergySegmentDatastore<EnergySegment>>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IOreConfig, OreConfig>();
             services.AddSingleton<VeinGenerator, VeinGenerator>();
@@ -126,7 +128,9 @@ namespace Server.Boot
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect>();
             services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect>();
 
-            services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
+            services
+                .AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator,
+                    IElectricPole>>();
 
             services.AddSingleton<SetMiningItemToMiner>();
             services.AddSingleton<QuestCompletedToSendEventPacket>();
@@ -150,7 +154,9 @@ namespace Server.Boot
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();
 
-            serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
+            serviceProvider
+                .GetService<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator,
+                    IElectricPole>>();
 
             serviceProvider.GetService<SetMiningItemToMiner>();
             serviceProvider.GetService<QuestCompletedToSendEventPacket>();

@@ -8,7 +8,11 @@ namespace Game.Crafting.Interface
         public bool IsCreatable(IReadOnlyList<IItemStack> craftingItems);
         public IItemStack GetResult(IReadOnlyList<IItemStack> craftingItems);
         public CraftingConfigData GetCraftingConfigData(IReadOnlyList<IItemStack> craftingItems);
-        public int CalcAllCraftItemNum(IReadOnlyList<IItemStack> craftingItems, IReadOnlyList<IItemStack> mainInventoryItems);
-        public int CalcOneStackCraftItemNum(IReadOnlyList<IItemStack> craftingItems, IReadOnlyList<IItemStack> mainInventoryItems);
+
+        public int CalcAllCraftItemNum(IReadOnlyList<IItemStack> craftingItems,
+            IReadOnlyList<IItemStack> mainInventoryItems);
+
+        public int CalcOneStackCraftItemNum(IReadOnlyList<IItemStack> craftingItems,
+            IReadOnlyList<IItemStack> mainInventoryItems);
     }
 }

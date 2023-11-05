@@ -1,4 +1,3 @@
-
 using System;
 using Core.EnergySystem;
 using Core.Item;
@@ -13,20 +12,21 @@ using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module;
-using Test.Module.TestMod;
+using Tests.Module;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Core
 {
     public class MinerMiningTest
     {
-        private readonly int MinerId = UnitTestModBlockId.MinerId;
+        private const int MinerId = UnitTestModBlockId.MinerId;
 
         //一定時間たったら鉱石が出るテスト
         [Test]
         public void MiningTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var oreConfig = serviceProvider.GetService<IOreConfig>();
@@ -37,7 +37,8 @@ namespace Tests.CombinedTest.Core
             var miningTime = minerBlockConfigParam.OreSettings[0].MiningTime;
             var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.OreSettings[0].OreId);
 
-            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, itemStackFactory, new BlockOpenableInventoryUpdateEvent()));
+            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount,
+                itemStackFactory, new BlockOpenableInventoryUpdateEvent()));
             miner.SetMiningItem(miningItemId, miningTime);
 
             var dummyInventory = new DummyBlockInventory(itemStackFactory);
@@ -48,12 +49,12 @@ namespace Tests.CombinedTest.Core
             segment.AddEnergyConsumer(miner);
             segment.AddGenerator(new TestElectricGenerator(10000, 10));
 
-            var MineEndTime = DateTime.Now.AddMilliseconds(miningTime);
+            var mineEndTime = DateTime.Now.AddMilliseconds(miningTime);
 
 
             //テストコードの準備完了
             //鉱石1個分の採掘時間待機
-            while (MineEndTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
+            while (mineEndTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
 
             //鉱石1個が出力されているかチェック
             Assert.AreEqual(miningItemId, dummyInventory.InsertedItems[0].Id);
@@ -63,8 +64,8 @@ namespace Tests.CombinedTest.Core
             ((IBlockInventory)miner).RemoveOutputConnector(dummyInventory);
 
             //鉱石2個分の採掘時間待機
-            MineEndTime = DateTime.Now.AddMilliseconds(miningTime * 2);
-            while (MineEndTime.AddSeconds(0.02).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
+            mineEndTime = DateTime.Now.AddMilliseconds(miningTime * 2);
+            while (mineEndTime.AddSeconds(0.02).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
 
             miner.Update();
             //鉱石2個が残っているかチェック

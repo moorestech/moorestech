@@ -16,27 +16,24 @@ namespace MessagePack.Formatters
 
         public ExpandoObject Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.TryReadNil())
-            {
-                return null;
-            }
+            if (reader.TryReadNil()) return null;
 
             var result = new ExpandoObject();
-            int count = reader.ReadMapHeader();
+            var count = reader.ReadMapHeader();
             if (count > 0)
             {
-                IFormatterResolver resolver = options.Resolver;
-                IMessagePackFormatter<string> keyFormatter = resolver.GetFormatterWithVerify<string>();
-                IMessagePackFormatter<object> valueFormatter = resolver.GetFormatterWithVerify<object>();
+                var resolver = options.Resolver;
+                var keyFormatter = resolver.GetFormatterWithVerify<string>();
+                var valueFormatter = resolver.GetFormatterWithVerify<object>();
                 IDictionary<string, object> dictionary = result;
 
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    for (int i = 0; i < count; i++)
+                    for (var i = 0; i < count; i++)
                     {
-                        string key = keyFormatter.Deserialize(ref reader, options);
-                        object value = valueFormatter.Deserialize(ref reader, options);
+                        var key = keyFormatter.Deserialize(ref reader, options);
+                        var value = valueFormatter.Deserialize(ref reader, options);
                         dictionary.Add(key, value);
                     }
                 }

@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Linq;
-
 using MessagePack;
 using Server.Protocol.PacketResponse;
 
@@ -18,7 +16,7 @@ namespace MainGame.Network.Send
         public void Send(int x, int y)
         {
             _socketSender.Send(MessagePackSerializer.Serialize(new RequestBlockInventoryRequestProtocolMessagePack(
-                x,y)).ToList());
+                x, y)).ToList());
         }
     }
 }

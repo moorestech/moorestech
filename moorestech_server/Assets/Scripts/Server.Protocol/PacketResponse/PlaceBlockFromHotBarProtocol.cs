@@ -33,7 +33,8 @@ namespace Server.Protocol.PacketResponse
 
 
             var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(data.Slot);
-            var item = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory.GetItem(inventorySlot);
+            var item = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory
+                .GetItem(inventorySlot);
 
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
             if (!_itemIdToBlockId.CanConvert(item.Id)) return new List<List<byte>>();
@@ -58,7 +59,8 @@ namespace Server.Protocol.PacketResponse
 
             //アイテムを減らし、セットする
             item = item.SubItem(1);
-            _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory.SetItem(inventorySlot, item);
+            _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory
+                .SetItem(inventorySlot, item);
 
 
             return new List<List<byte>>();

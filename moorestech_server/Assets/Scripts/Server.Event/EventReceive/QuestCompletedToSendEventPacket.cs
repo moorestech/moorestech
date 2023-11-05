@@ -11,7 +11,8 @@ namespace Server.Event.EventReceive
 
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public QuestCompletedToSendEventPacket(IQuestCompletedEvent questCompletedEvent, EventProtocolProvider eventProtocolProvider)
+        public QuestCompletedToSendEventPacket(IQuestCompletedEvent questCompletedEvent,
+            EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
             questCompletedEvent.SubscribeCompletedId(OnQuestCompleted);

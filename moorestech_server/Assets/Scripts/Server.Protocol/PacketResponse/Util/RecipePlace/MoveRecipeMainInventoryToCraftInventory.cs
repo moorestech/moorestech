@@ -16,7 +16,8 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
         /// <param name="main">収集元となるインベントリ</param>
         /// <param name="craft">設置先となるインベントリ</param>
         /// <param name="moveItem">実際に移動するアイテム</param>
-        public static void Move(ItemStackFactory itemStackFactory, IOpenableInventory main, IOpenableInventory craft, IItemStack[] moveItem)
+        public static void Move(ItemStackFactory itemStackFactory, IOpenableInventory main, IOpenableInventory craft,
+            IItemStack[] moveItem)
         {
             for (var i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
             {
@@ -38,7 +39,8 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
         /// <param name="itemStackFactory"></param>
         /// <param name="moveItem"></param>
         /// <param name="main"></param>
-        private static void CollectAndMoveItem(ItemStackFactory itemStackFactory, IItemStack moveItem, IOpenableInventory main)
+        private static void CollectAndMoveItem(ItemStackFactory itemStackFactory, IItemStack moveItem,
+            IOpenableInventory main)
         {
             var collectedItem = itemStackFactory.CreatEmpty();
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)

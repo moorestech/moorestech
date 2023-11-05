@@ -1,7 +1,6 @@
 using System;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using MainGame.Network.Send.SocketUtil;
@@ -9,16 +8,13 @@ using MessagePack;
 using Server.Util;
 using UniRx;
 using UnityEngine;
-using VContainer.Unity;
 
 namespace MainGame.Network
 {
     public class ConnectionServer
     {
-        public IObservable<Unit> OnDisconnect => _onDisconnect;
-        private readonly Subject<Unit> _onDisconnect = new();
-
         private readonly AllReceivePacketAnalysisService _allReceivePacketAnalysisService;
+        private readonly Subject<Unit> _onDisconnect = new();
         private readonly SocketInstanceCreate _socketInstanceCreate;
 
 
@@ -32,12 +28,14 @@ namespace MainGame.Network
             Task.Run(Connect);
         }
 
+        public IObservable<Unit> OnDisconnect => _onDisconnect;
+
 
         private async Task Connect()
         {
             //サーバーに接続する前に全体の処理を待つ
             await Task.Delay(2000);
-            
+
             Debug.Log("サーバーに接続します");
             //接続を試行する
             try
@@ -50,10 +48,10 @@ namespace MainGame.Network
                 Debug.LogError($"Message {e.Message} StackTrace {e.StackTrace}");
                 return;
             }
-            
+
             Debug.Log("サーバーに接続しました");
             var buffer = new byte[4096];
-            
+
             var parser = new PacketBufferParser();
             try
             {
@@ -69,27 +67,17 @@ namespace MainGame.Network
 
                     //解析をしてunity viewに送る
                     var packets = parser.Parse(buffer, length);
-                    foreach (var packet in packets)
-                    {
-                        _allReceivePacketAnalysisService.Analysis(packet);
-                    }
+                    foreach (var packet in packets) _allReceivePacketAnalysisService.Analysis(packet);
                 }
-
             }
             catch (Exception e)
             {
                 Debug.LogError("エラーによりサーバーから切断されました");
                 Debug.LogError($"Message {e.Message} StackTrace {e.StackTrace}");
-                if (_socketInstanceCreate.SocketInstance.Connected)
-                {
-                    _socketInstanceCreate.SocketInstance.Close();
-                }
+                if (_socketInstanceCreate.SocketInstance.Connected) _socketInstanceCreate.SocketInstance.Close();
 
                 var packetsStr = new StringBuilder();
-                foreach (var @byte in buffer)
-                {
-                    packetsStr.Append($"{@byte:X2}" + " ");
-                }
+                foreach (var @byte in buffer) packetsStr.Append($"{@byte:X2}" + " ");
 
 
                 try
@@ -110,7 +98,7 @@ namespace MainGame.Network
                 InvokeDisconnect().Forget();
             }
         }
-        
+
         private async UniTask InvokeDisconnect()
         {
             await UniTask.SwitchToMainThread();

@@ -1,13 +1,10 @@
-
-using System;
-using Game.Base;
 using Game.Entity.Interface;
-using Game.Save.Interface;
-using Game.Save.Json;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game.SaveLoad
@@ -17,7 +14,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void EntitySaveTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
             var entityFactory = serviceProvider.GetService<IEntityFactory>();
@@ -25,12 +23,12 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             //セーブ用のエンティ追加
             var entity1 = entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, 10);
-            var entityPosition = new ServerVector3(1, 2, 3);
+            var entityPosition = new Vector3(1, 2, 3);
             entity1.SetPosition(entityPosition);
             entitiesDatastore.Add(entity1);
 
             var entity2 = entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, 30);
-            var entityPosition2 = new ServerVector3(4, 5, 6);
+            var entityPosition2 = new Vector3(4, 5, 6);
             entity2.SetPosition(entityPosition2);
             entitiesDatastore.Add(entity2);
 
@@ -40,7 +38,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             Debug.Log(json);
 
             //ロードの実行
-            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, loadServiceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
 
 

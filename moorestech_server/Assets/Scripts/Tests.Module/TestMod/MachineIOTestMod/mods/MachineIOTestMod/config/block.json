@@ -5,8 +5,8 @@
       "type": "Machine",
       "itemModId": "Test Author 2:testMod2",
       "itemName": "Test1",
-      "width" : 1,
-      "height" : 1,
+      "width": 1,
+      "height": 1,
       "param": {
         "inputSlot": 100,
         "outputSlot": 100,
@@ -18,8 +18,8 @@
       "type": "Machine",
       "itemModId": "Test Author 2:testMod2",
       "itemName": "Test2",
-      "width" : 1,
-      "height" : 1,
+      "width": 1,
+      "height": 1,
       "param": {
         "inputSlot": 100,
         "outputSlot": 100,
@@ -31,8 +31,8 @@
       "type": "Machine",
       "itemModId": "Test Author 2:testMod2",
       "itemName": "Test3",
-      "width" : 1,
-      "height" : 1,
+      "width": 1,
+      "height": 1,
       "param": {
         "inputSlot": 100,
         "outputSlot": 100,

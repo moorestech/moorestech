@@ -11,12 +11,12 @@ namespace MessagePack.Resolvers
     public sealed class DynamicEnumAsStringResolver : IFormatterResolver
     {
         /// <summary>
-        /// The singleton instance that can be used.
+        ///     The singleton instance that can be used.
         /// </summary>
         public static readonly DynamicEnumAsStringResolver Instance;
 
         /// <summary>
-        /// A <see cref="MessagePackSerializerOptions"/> instance with this formatter pre-configured.
+        ///     A <see cref="MessagePackSerializerOptions" /> instance with this formatter pre-configured.
         /// </summary>
         public static readonly MessagePackSerializerOptions Options;
 
@@ -41,32 +41,24 @@ namespace MessagePack.Resolvers
 
             static FormatterCache()
             {
-                TypeInfo ti = typeof(T).GetTypeInfo();
+                var ti = typeof(T).GetTypeInfo();
 
                 if (ti.IsNullable())
                 {
                     // build underlying type and use wrapped formatter.
                     ti = ti.GenericTypeArguments[0].GetTypeInfo();
-                    if (!ti.IsEnum)
-                    {
-                        return;
-                    }
+                    if (!ti.IsEnum) return;
 
-                    var innerFormatter = DynamicEnumAsStringResolver.Instance.GetFormatterDynamic(ti.AsType());
-                    if (innerFormatter == null)
-                    {
-                        return;
-                    }
+                    var innerFormatter = Instance.GetFormatterDynamic(ti.AsType());
+                    if (innerFormatter == null) return;
 
-                    Formatter = (IMessagePackFormatter<T>)Activator.CreateInstance(typeof(StaticNullableFormatter<>).MakeGenericType(ti.AsType()), new object[] { innerFormatter });
-                    return;
-                }
-                else if (!ti.IsEnum)
-                {
+                    Formatter = (IMessagePackFormatter<T>)Activator.CreateInstance(typeof(StaticNullableFormatter<>).MakeGenericType(ti.AsType()), innerFormatter);
                     return;
                 }
 
-                Formatter = (IMessagePackFormatter<T>)(object)new EnumAsStringFormatter<T>();
+                if (!ti.IsEnum) return;
+
+                Formatter = new EnumAsStringFormatter<T>();
             }
         }
     }

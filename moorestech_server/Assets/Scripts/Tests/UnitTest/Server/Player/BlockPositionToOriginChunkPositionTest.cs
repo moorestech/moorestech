@@ -1,4 +1,3 @@
-
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.Const;
 

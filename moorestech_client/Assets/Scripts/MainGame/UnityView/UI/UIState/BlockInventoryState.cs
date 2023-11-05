@@ -13,19 +13,16 @@ namespace MainGame.UnityView.UI.UIState
 {
     public class BlockInventoryState : IUIState
     {
-        private readonly BlockInventoryObjectCreator _blockInventory;
-        private readonly CraftRecipeItemListViewer _craftRecipeItemListViewer;
-        
-        private readonly ItemRecipePresenter _itemRecipePresenter;
-        
         private readonly IBlockClickDetect _blockClickDetect;
+        private readonly BlockInventoryObjectCreator _blockInventory;
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
+        private readonly CraftRecipeItemListViewer _craftRecipeItemListViewer;
+
+        private readonly ItemRecipePresenter _itemRecipePresenter;
         private readonly SinglePlayInterface _singlePlayInterface;
-        public event Action<Vector2Int> OnOpenBlockInventory;
-        public event Action OnCloseBlockInventory;
 
         public BlockInventoryState(BlockInventoryObjectCreator blockInventory,
-            CraftRecipeItemListViewer craftRecipeItemListViewer,ItemRecipePresenter itemRecipePresenter,IBlockClickDetect blockClickDetect,ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,SinglePlayInterface singlePlayInterface)
+            CraftRecipeItemListViewer craftRecipeItemListViewer, ItemRecipePresenter itemRecipePresenter, IBlockClickDetect blockClickDetect, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, SinglePlayInterface singlePlayInterface)
         {
             _craftRecipeItemListViewer = craftRecipeItemListViewer;
             _itemRecipePresenter = itemRecipePresenter;
@@ -38,52 +35,42 @@ namespace MainGame.UnityView.UI.UIState
 
         public UIStateEnum GetNext()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown)
-            {
-                return UIStateEnum.GameScreen;
-            }
+            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.GameScreen;
 
-            if (_itemRecipePresenter.IsClicked)
-            {
-                return UIStateEnum.RecipeViewer;
-            }
+            if (_itemRecipePresenter.IsClicked) return UIStateEnum.RecipeViewer;
 
             return UIStateEnum.Current;
         }
 
         public void OnEnter(UIStateEnum lastStateEnum)
         {
-            
-            if (!_blockClickDetect.TryGetCursorOnBlockPosition(out var blockPos))
-            {
-                Debug.LogError("開いたブロックの座標が取得できませんでした。UIステートに不具合があります。");
-            }
-            
+            if (!_blockClickDetect.TryGetCursorOnBlockPosition(out var blockPos)) Debug.LogError("開いたブロックの座標が取得できませんでした。UIステートに不具合があります。");
+
             OnOpenBlockInventory?.Invoke(blockPos);
-            
+
             //UIのオブジェクトをオンにする
             _craftRecipeItemListViewer.gameObject.SetActive(true);
             _blockInventory.gameObject.SetActive(true);
 
-            
+
             //ブロックインベントリのビューを設定する
-            if (!_chunkBlockGameObjectDataStore.ContainsBlockGameObject(blockPos))return;
+            if (!_chunkBlockGameObjectDataStore.ContainsBlockGameObject(blockPos)) return;
 
             var id = _chunkBlockGameObjectDataStore.GetBlockGameObject(blockPos).BlockId;
             var config = _singlePlayInterface.BlockConfig.GetBlockConfig(id);
-            
+
             switch (config.Type)
             {
                 case VanillaBlockType.Chest:
                 {
                     var configParam = config.Param as ChestConfigParam;
-                    _blockInventory.SetOneSlotInventory(config.Name,configParam.ChestItemNum,blockPos);
+                    _blockInventory.SetOneSlotInventory(config.Name, configParam.ChestItemNum, blockPos);
                     break;
                 }
                 case VanillaBlockType.Miner:
                 {
                     var configParam = config.Param as MinerBlockConfigParam;
-                    _blockInventory.SetMinerInventory(config.Name,configParam.OutputSlot,blockPos);
+                    _blockInventory.SetMinerInventory(config.Name, configParam.OutputSlot, blockPos);
                     break;
                 }
                 case VanillaBlockType.Generator:
@@ -95,7 +82,7 @@ namespace MainGame.UnityView.UI.UIState
                 case VanillaBlockType.Machine:
                 {
                     var configParam = config.Param as MachineBlockConfigParam;
-                    _blockInventory.SetIOSlotInventory(config.Name,configParam.InputSlot,configParam.OutputSlot,blockPos);
+                    _blockInventory.SetIOSlotInventory(config.Name, configParam.InputSlot, configParam.OutputSlot, blockPos);
                     break;
                 }
             }
@@ -104,9 +91,12 @@ namespace MainGame.UnityView.UI.UIState
         public void OnExit()
         {
             OnCloseBlockInventory?.Invoke();
-            
+
             _blockInventory.gameObject.SetActive(false);
             _craftRecipeItemListViewer.gameObject.SetActive(false);
         }
+
+        public event Action<Vector2Int> OnOpenBlockInventory;
+        public event Action OnCloseBlockInventory;
     }
 }

@@ -10,17 +10,17 @@ namespace MessagePack.Internal
 {
     internal static class ReflectionExtensions
     {
-        public static bool IsNullable(this System.Reflection.TypeInfo type)
+        public static bool IsNullable(this TypeInfo type)
         {
-            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(System.Nullable<>);
+            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
         }
 
-        public static bool IsPublic(this System.Reflection.TypeInfo type)
+        public static bool IsPublic(this TypeInfo type)
         {
             return type.IsPublic;
         }
 
-        public static bool IsAnonymous(this System.Reflection.TypeInfo type)
+        public static bool IsAnonymous(this TypeInfo type)
         {
             return type.Namespace == null
                    && type.IsSealed
@@ -30,12 +30,12 @@ namespace MessagePack.Internal
                    && type.IsDefined(typeof(CompilerGeneratedAttribute), false);
         }
 
-        public static bool IsIndexer(this System.Reflection.PropertyInfo propertyInfo)
+        public static bool IsIndexer(this PropertyInfo propertyInfo)
         {
             return propertyInfo.GetIndexParameters().Length > 0;
         }
 
-        public static bool IsConstructedGenericType(this System.Reflection.TypeInfo type)
+        public static bool IsConstructedGenericType(this TypeInfo type)
         {
             return type.AsType().IsConstructedGenericType;
         }

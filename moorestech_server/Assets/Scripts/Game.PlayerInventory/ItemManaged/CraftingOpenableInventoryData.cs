@@ -3,11 +3,11 @@ using System.Collections.ObjectModel;
 using Core.Inventory;
 using Core.Item;
 using Game.Crafting.Interface;
+using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
-using PlayerInventory.Event;
 
-namespace PlayerInventory.ItemManaged
+namespace Game.PlayerInventory.ItemManaged
 {
     public class CraftingOpenableInventoryData : ICraftingOpenableInventory
     {
@@ -23,7 +23,9 @@ namespace PlayerInventory.ItemManaged
         private readonly int _playerId;
 
         public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory, IIsCreatableJudgementService isCreatableJudgementService, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData, CraftingEvent craftingEvent)
+            ItemStackFactory itemStackFactory, IIsCreatableJudgementService isCreatableJudgementService,
+            MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData,
+            CraftingEvent craftingEvent)
         {
             _playerId = playerId;
 
@@ -37,8 +39,12 @@ namespace PlayerInventory.ItemManaged
                 itemStackFactory, PlayerInventoryConst.CraftingSlotSize);
         }
 
-        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent, ItemStackFactory itemStackFactory, IIsCreatableJudgementService isCreatableJudgementService, List<IItemStack> itemStacks, MainOpenableInventoryData mainOpenableInventoryData, GrabInventoryData grabInventoryData, CraftingEvent craftingEvent) :
-            this(playerId, craftInventoryUpdateEvent, itemStackFactory, isCreatableJudgementService, mainOpenableInventoryData, grabInventoryData, craftingEvent)
+        public CraftingOpenableInventoryData(int playerId, CraftInventoryUpdateEvent craftInventoryUpdateEvent,
+            ItemStackFactory itemStackFactory, IIsCreatableJudgementService isCreatableJudgementService,
+            List<IItemStack> itemStacks, MainOpenableInventoryData mainOpenableInventoryData,
+            GrabInventoryData grabInventoryData, CraftingEvent craftingEvent) :
+            this(playerId, craftInventoryUpdateEvent, itemStackFactory, isCreatableJudgementService,
+                mainOpenableInventoryData, grabInventoryData, craftingEvent)
         {
             for (var i = 0; i < itemStacks.Count; i++) _openableInventoryService.SetItemWithoutEvent(i, itemStacks[i]);
         }
@@ -48,7 +54,9 @@ namespace PlayerInventory.ItemManaged
 
         public IItemStack GetCreatableItem()
         {
-            return　IsCreatable() ? _isCreatableJudgementService.GetResult(CraftingItems) : _itemStackFactory.CreatEmpty();
+            return　IsCreatable()
+                ? _isCreatableJudgementService.GetResult(CraftingItems)
+                : _itemStackFactory.CreatEmpty();
         }
 
         public bool IsCreatable()
@@ -82,7 +90,8 @@ namespace PlayerInventory.ItemManaged
 
         public void AllCraft()
         {
-            var craftNum = _isCreatableJudgementService.CalcAllCraftItemNum(CraftingItems, _mainOpenableInventoryData.Items);
+            var craftNum =
+                _isCreatableJudgementService.CalcAllCraftItemNum(CraftingItems, _mainOpenableInventoryData.Items);
             var result = _isCreatableJudgementService.GetResult(CraftingItems);
             for (var i = 0; i < craftNum; i++) _mainOpenableInventoryData.InsertItem(result);
             ConsumptionCraftItem(craftNum, CraftingItems);
@@ -94,7 +103,8 @@ namespace PlayerInventory.ItemManaged
 
         public void OneStackCraft()
         {
-            var craftNum = _isCreatableJudgementService.CalcOneStackCraftItemNum(CraftingItems, _mainOpenableInventoryData.Items);
+            var craftNum =
+                _isCreatableJudgementService.CalcOneStackCraftItemNum(CraftingItems, _mainOpenableInventoryData.Items);
             var result = _isCreatableJudgementService.GetResult(CraftingItems);
             for (var i = 0; i < craftNum; i++) _mainOpenableInventoryData.InsertItem(result);
             ConsumptionCraftItem(craftNum, CraftingItems);
@@ -116,7 +126,8 @@ namespace PlayerInventory.ItemManaged
                     if (craftConfig.CraftItemInfos[j].IsRemain) continue;
 
                     //クラフトしたアイテムを消費する
-                    var subItem = _openableInventoryService.Inventory[j].SubItem(craftConfig.CraftItemInfos[j].ItemStack.Count);
+                    var subItem = _openableInventoryService.Inventory[j]
+                        .SubItem(craftConfig.CraftItemInfos[j].ItemStack.Count);
                     //インベントリにセット
                     _openableInventoryService.SetItem(j, subItem);
                 }
@@ -183,7 +194,8 @@ namespace PlayerInventory.ItemManaged
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
-            _craftInventoryUpdateEvent.OnInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(_playerId, slot, itemStack));
+            _craftInventoryUpdateEvent.OnInventoryUpdateInvoke(
+                new PlayerInventoryUpdateEventProperties(_playerId, slot, itemStack));
         }
 
         #endregion

@@ -1,5 +1,3 @@
-
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Core.Item;
@@ -7,7 +5,7 @@ using Game.Block.Blocks.BeltConveyor;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game.SaveLoad
@@ -17,7 +15,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void SaveLoadTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemsStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var belt = new VanillaBeltConveyor(1, 10, 1, itemsStackFactory, 4, 4000);

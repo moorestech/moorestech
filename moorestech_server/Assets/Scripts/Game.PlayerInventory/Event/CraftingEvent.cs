@@ -1,7 +1,7 @@
 using System;
 using Game.PlayerInventory.Interface.Event;
 
-namespace PlayerInventory.Event
+namespace Game.PlayerInventory.Event
 {
     public class CraftingEvent : ICraftingEvent
     {

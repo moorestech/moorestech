@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Reflection;
 using Core.Item;
@@ -9,7 +8,7 @@ using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Core
 {
@@ -20,7 +19,8 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void MinerTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
@@ -48,9 +48,11 @@ namespace Tests.CombinedTest.Core
 
             var miner = worldBlockDatastore.GetBlock(x, y) as VanillaMinerBase;
             //リフレクションでidを取得する
-            var miningItems = (List<IItemStack>)typeof(VanillaMinerBase).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(miner);
+            var miningItems = (List<IItemStack>)typeof(VanillaMinerBase)
+                .GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(miner);
 
-            var defaultMiningTime = (int)typeof(VanillaMinerBase).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance)
+            var defaultMiningTime = (int)typeof(VanillaMinerBase)
+                .GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(miner);
 
 

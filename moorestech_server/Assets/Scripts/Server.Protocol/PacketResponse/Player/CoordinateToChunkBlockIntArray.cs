@@ -1,7 +1,7 @@
-﻿using Core.Util;
-using Game.World.Interface.DataStore;
+﻿using Game.World.Interface.DataStore;
 using Game.WorldMap;
 using Server.Protocol.PacketResponse.Const;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Player
 {
@@ -13,10 +13,10 @@ namespace Server.Protocol.PacketResponse.Player
         /// <param name="coreVector2Int"></param>
         /// <param name="worldBlockDatastore"></param>
         /// <returns></returns>
-        public static int[,] GetBlockIdsInChunk(CoreVector2Int coreVector2Int, IWorldBlockDatastore worldBlockDatastore)
+        public static int[,] GetBlockIdsInChunk(Vector2Int coreVector2Int, IWorldBlockDatastore worldBlockDatastore)
         {
             //その座標のチャンクの原点
-            var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coreVector2Int.X, coreVector2Int.Y);
+            var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coreVector2Int.x, coreVector2Int.y);
 
             var blocks = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
 
@@ -29,9 +29,10 @@ namespace Server.Protocol.PacketResponse.Player
             return blocks;
         }
 
-        public static int[,] GetBlockDirectionInChunk(CoreVector2Int coreVector2Int, IWorldBlockDatastore worldBlockDatastore)
+        public static int[,] GetBlockDirectionInChunk(Vector2Int coreVector2Int,
+            IWorldBlockDatastore worldBlockDatastore)
         {
-            var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coreVector2Int.X, coreVector2Int.Y);
+            var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coreVector2Int.x, coreVector2Int.y);
 
             var blockDirections = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
 
@@ -50,10 +51,10 @@ namespace Server.Protocol.PacketResponse.Player
         /// <param name="coreVector2Int"></param>
         /// <param name="worldMapTile"></param>
         /// <returns></returns>
-        public static int[,] GetMapIdsInChunk(CoreVector2Int coreVector2Int, WorldMapTile worldMapTile)
+        public static int[,] GetMapIdsInChunk(Vector2Int coreVector2Int, WorldMapTile worldMapTile)
         {
             //その座標のチャンクの原点
-            var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coreVector2Int.X, coreVector2Int.Y);
+            var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coreVector2Int.x, coreVector2Int.y);
 
             var blocks = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
 

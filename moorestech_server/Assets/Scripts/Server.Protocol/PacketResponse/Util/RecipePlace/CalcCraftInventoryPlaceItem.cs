@@ -19,20 +19,23 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
         /// <param name="recipe">実際におくレシピ</param>
         /// <param name="mainInventoryRequiredItemCount">メインインベントリに何個アイテムがあるかチェックする</param>
         /// <returns>実際にクラフトインベントリにおくアイテム</returns>
-        public static IItemStack[] Calc(ItemStackFactory itemStackFactory, IItemConfig itemConfig, ItemMessagePack[] recipe, Dictionary<int, int> mainInventoryRequiredItemCount)
+        public static IItemStack[] Calc(ItemStackFactory itemStackFactory, IItemConfig itemConfig,
+            ItemMessagePack[] recipe, Dictionary<int, int> mainInventoryRequiredItemCount)
         {
             //そのアイテムIDが必要なスロットがいくつあるか求める
             var requiredItemSlotCount = CalcRequiredItemSlotCount(recipe);
 
 
             //そのスロットに入るアイテム数を計算する
-            var craftInventoryPlaceItem = CraftInventoryPlaceItemWithoutReminder(recipe, itemStackFactory, itemConfig, mainInventoryRequiredItemCount, requiredItemSlotCount);
+            var craftInventoryPlaceItem = CraftInventoryPlaceItemWithoutReminder(recipe, itemStackFactory, itemConfig,
+                mainInventoryRequiredItemCount, requiredItemSlotCount);
 
 
             //あまり分を足す
             //アイテムIDのループを回し、一番最初にそのアイテムIDが入っているスロットを探す
             //そのスロットにあまりを入れる
-            return CalcPlaceItemReminder(requiredItemSlotCount, craftInventoryPlaceItem, mainInventoryRequiredItemCount, itemConfig, itemStackFactory);
+            return CalcPlaceItemReminder(requiredItemSlotCount, craftInventoryPlaceItem, mainInventoryRequiredItemCount,
+                itemConfig, itemStackFactory);
         }
 
 
@@ -68,7 +71,9 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
         /// <param name="mainInventoryRequiredItemCount">アイテムを均等に分配するためのメインインベントリにあるアイテム数のデータ</param>
         /// <param name="requiredItemSlotCount">均等に分配するために何個スロットがあるかのデータ</param>
         /// <returns>あまりを考慮しない場合のアイテム配置</returns>
-        private static IItemStack[] CraftInventoryPlaceItemWithoutReminder(ItemMessagePack[] recipe, ItemStackFactory itemStackFactory, IItemConfig itemConfig, Dictionary<int, int> mainInventoryRequiredItemCount, Dictionary<int, int> requiredItemSlotCount)
+        private static IItemStack[] CraftInventoryPlaceItemWithoutReminder(ItemMessagePack[] recipe,
+            ItemStackFactory itemStackFactory, IItemConfig itemConfig,
+            Dictionary<int, int> mainInventoryRequiredItemCount, Dictionary<int, int> requiredItemSlotCount)
         {
             var craftInventoryPlaceItem = new IItemStack[PlayerInventoryConst.CraftingSlotSize];
             for (var i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
@@ -103,7 +108,9 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
         /// <param name="itemConfig"></param>
         /// <param name="itemStackFactory"></param>
         /// <returns></returns>
-        private static IItemStack[] CalcPlaceItemReminder(Dictionary<int, int> requiredItemSlotCount, IItemStack[] craftInventoryPlaceItem, Dictionary<int, int> mainInventoryRequiredItemCount, IItemConfig itemConfig, ItemStackFactory itemStackFactory)
+        private static IItemStack[] CalcPlaceItemReminder(Dictionary<int, int> requiredItemSlotCount,
+            IItemStack[] craftInventoryPlaceItem, Dictionary<int, int> mainInventoryRequiredItemCount,
+            IItemConfig itemConfig, ItemStackFactory itemStackFactory)
         {
             //あまり分を足す
             //アイテムIDのループを回し、一番最初にそのアイテムIDが入っているスロットを探す

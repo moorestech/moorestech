@@ -3,7 +3,7 @@
     public enum UIStateEnum
     {
         Current,
-        
+
         GameScreen,
         PlayerInventory,
         BlockInventory,
@@ -11,6 +11,6 @@
         DeleteBar,
         BlockPlace,
         RecipeViewer,
-        QuestViewer,
+        QuestViewer
     }
 }
