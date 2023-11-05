@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +13,7 @@ using Game.Block.Interface.RecipeConfig;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Core
 {
@@ -24,7 +23,8 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void ItemProcessingOutputTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.MachineIoTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.MachineIoTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
@@ -33,7 +33,8 @@ namespace Tests.CombinedTest.Core
 
 
             var block = (VanillaMachineBase)blockFactory.Create(recipe.BlockId, 1);
-            foreach (var inputItem in recipe.ItemInputs) block.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
+            foreach (var inputItem in recipe.ItemInputs)
+                block.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
 
 
             var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
@@ -50,19 +51,20 @@ namespace Tests.CombinedTest.Core
 
         public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBase machineBase)
         {
-            var _vanillaMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
-                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(machineBase);
-            var _vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventory)
+            var vanillaMachineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
+                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(machineBase);
+            var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(_vanillaMachineInventory);
-            var _vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventory)
+                .GetValue(vanillaMachineInventory);
+            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventory)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(_vanillaMachineInventory);
+                .GetValue(vanillaMachineInventory);
 
-            var inputSlot = _vanillaMachineInputInventory.InputSlot.Where(i => i.Count != 0).ToList();
+            var inputSlot = vanillaMachineInputInventory.InputSlot.Where(i => i.Count != 0).ToList();
             inputSlot.Sort((a, b) => a.Id - b.Id);
 
-            var outputSlot = _vanillaMachineOutputInventory.OutputSlot.Where(i => i.Count != 0).ToList();
+            var outputSlot = vanillaMachineOutputInventory.OutputSlot.Where(i => i.Count != 0).ToList();
             outputSlot.Sort((a, b) => a.Id - b.Id);
 
             return (inputSlot, outputSlot);

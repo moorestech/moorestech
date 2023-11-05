@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,42 +6,43 @@ using Core.Item;
 using Core.Item.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Core.Generate
 {
     public static class MachineIoGenerate
     {
-        public static MachineIOTest[] MachineIoTestCase(recipe recipe, int seed)
+        public static MachineIOTest[] MachineIoTestCase(Recipe recipe, int seed)
         {
             var testCase = new List<MachineIOTest>();
 
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
-            var recipes = recipe.recipes;
+            var recipes = recipe.Recipes;
             foreach (var r in recipes)
             {
                 //必要量だけ入れる
                 testCase.Add(new MachineIOTest(
                     itemStackFactory,
-                    r.input,
-                    r.output,
-                    CreateEmptyItemStacksList.Create(r.input.Length, itemStackFactory),
+                    r.Input,
+                    r.Output,
+                    CreateEmptyItemStacksList.Create(r.Input.Length, itemStackFactory),
                     r.BlockID,
-                    r.time,
+                    r.Time,
                     1));
 
 
                 var random = new Random(seed);
 
                 //inputにランダムな量増減する
-                var input = r.input.Select(rInput => new inputitem(rInput.id, rInput.count)).ToList();
+                var input = r.Input.Select(rInput => new InputItem(rInput.ID, rInput.Count)).ToList();
 
                 //ランダムな数足す
-                input.ForEach(i => i.count += random.Next(0, i.count * 10));
-                var remainder = new List<inputitem>();
-                remainder.AddRange(input.Select(i => new inputitem(i.id, i.count)));
+                input.ForEach(i => i.Count += random.Next(0, i.Count * 10));
+                var remainder = new List<InputItem>();
+                remainder.AddRange(input.Select(i => new InputItem(i.ID, i.Count)));
 
                 var cnt = 0;
                 var continue_ = true;
@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Core.Generate
                 while (continue_)
                 {
                     for (var j = 0; j < remainder.Count; j++)
-                        if (remainder[j].count < r.input[j].count)
+                        if (remainder[j].Count < r.Input[j].Count)
                         {
                             continue_ = false;
                             break;
@@ -58,17 +58,17 @@ namespace Tests.CombinedTest.Core.Generate
 
                     if (!continue_) break;
 
-                    for (var j = 0; j < remainder.Count; j++) remainder[j].count -= r.input[j].count;
+                    for (var j = 0; j < remainder.Count; j++) remainder[j].Count -= r.Input[j].Count;
 
                     if (continue_) cnt++;
                 }
 
                 //出力アイテムもクラフト回数分倍にする
-                var output = MachineIOTest.Convart(r.output, itemStackFactory)
+                var output = MachineIOTest.Convart(r.Output, itemStackFactory)
                     .Select(i => i = itemStackFactory.Create(i.Id, i.Count * cnt)).ToList();
                 //インプットアイテム数を増やしたテストケース
                 testCase.Add(new MachineIOTest(itemStackFactory, input.ToArray(), output, remainder.ToArray(),
-                    r.BlockID, r.time, cnt));
+                    r.BlockID, r.Time, cnt));
             }
 
             return testCase.ToArray();
@@ -78,47 +78,47 @@ namespace Tests.CombinedTest.Core.Generate
         {
             public int BlockId;
             public int CraftCnt;
-            public List<IItemStack> input;
-            public List<IItemStack> inputRemainder;
-            public List<IItemStack> output;
-            public int time;
+            public List<IItemStack> Input;
+            public List<IItemStack> InputRemainder;
+            public List<IItemStack> Output;
+            public int Time;
 
-            public MachineIOTest(ItemStackFactory itemStackFactory, inputitem[] input, outputitem[] output,
+            public MachineIOTest(ItemStackFactory itemStackFactory, InputItem[] input, OutputItem[] output,
                 List<IItemStack> inputRemainder, int blockId, int time, int craftCnt)
             {
                 BlockId = blockId;
-                this.input = Convart(input, itemStackFactory);
-                this.output = Convart(output, itemStackFactory);
-                this.inputRemainder = inputRemainder;
-                this.time = time;
+                Input = Convart(input, itemStackFactory);
+                Output = Convart(output, itemStackFactory);
+                InputRemainder = inputRemainder;
+                Time = time;
                 CraftCnt = craftCnt;
             }
 
-            public MachineIOTest(ItemStackFactory itemStackFactory, inputitem[] input, List<IItemStack> output,
-                inputitem[] inputRemainder, int blockId, int time, int craftCnt)
+            public MachineIOTest(ItemStackFactory itemStackFactory, InputItem[] input, List<IItemStack> output,
+                InputItem[] inputRemainder, int blockId, int time, int craftCnt)
             {
                 BlockId = blockId;
-                this.input = Convart(input, itemStackFactory);
-                this.output = output;
-                this.inputRemainder = Convart(inputRemainder, itemStackFactory);
-                this.time = time;
+                Input = Convart(input, itemStackFactory);
+                Output = output;
+                InputRemainder = Convart(inputRemainder, itemStackFactory);
+                Time = time;
                 CraftCnt = craftCnt;
             }
 
-            public static List<IItemStack> Convart(inputitem[] input, ItemStackFactory itemStackFactory)
+            public static List<IItemStack> Convart(InputItem[] input, ItemStackFactory itemStackFactory)
             {
                 var r = new List<IItemStack>();
-                foreach (var i in input) r.Add(itemStackFactory.Create(i.id, i.count));
+                foreach (var i in input) r.Add(itemStackFactory.Create(i.ID, i.Count));
 
                 var a = r.Where(i => i.Count != 0).ToList();
                 a.Sort((a, b) => a.Id - b.Id);
                 return a.ToList();
             }
 
-            public static List<IItemStack> Convart(outputitem[] output, ItemStackFactory itemStackFactory)
+            public static List<IItemStack> Convart(OutputItem[] output, ItemStackFactory itemStackFactory)
             {
                 var r = new List<IItemStack>();
-                foreach (var o in output) r.Add(itemStackFactory.Create(o.id, o.count));
+                foreach (var o in output) r.Add(itemStackFactory.Create(o.ID, o.Count));
 
                 var a = r.Where(i => i.Id != BlockConst.EmptyBlockId).ToList();
                 a.Sort((a, b) => a.Id - b.Id);

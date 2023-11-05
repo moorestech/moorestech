@@ -1,14 +1,12 @@
-
-using System;
 using System.Reflection;
 using Game.Block.Interface;
-using Game.Save.Interface;
-using Game.Save.Json;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Game
@@ -21,7 +19,8 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void SaveJsonAndLoadTest()
         {
-            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, saveServiceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
@@ -39,7 +38,8 @@ namespace Tests.CombinedTest.Game
             saveServiceProvider.GetService<IWorldSaveDataSaver>().Save();
 
 
-            var (_, loadServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, loadServiceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
 
             //テスト用にファイル名を変更
@@ -71,7 +71,8 @@ namespace Tests.CombinedTest.Game
         private void ChangeFilePath(SaveJsonFileName instance, string fileName)
         {
             // バッキングフィールドを取得する
-            var fieldInfo = typeof(SaveJsonFileName).GetField("<FullSaveFilePath>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+            var fieldInfo = typeof(SaveJsonFileName).GetField("<FullSaveFilePath>k__BackingField",
+                BindingFlags.Instance | BindingFlags.NonPublic);
 
             // バッキングフィールドの値を更新する
             fieldInfo.SetValue(instance, fileName);

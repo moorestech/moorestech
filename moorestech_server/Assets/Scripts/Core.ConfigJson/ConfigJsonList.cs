@@ -45,8 +45,10 @@ namespace Core.ConfigJson
             {
                 if (configs[key].ItemConfigJson != string.Empty) ItemConfigs.Add(key, configs[key].ItemConfigJson);
                 if (configs[key].BlockConfigJson != string.Empty) BlockConfigs.Add(key, configs[key].BlockConfigJson);
-                if (configs[key].MachineRecipeConfigJson != string.Empty) SortedMachineRecipeConfigJsonList.Add(configs[key].MachineRecipeConfigJson);
-                if (configs[key].CraftRecipeConfigJson != string.Empty) SortedCraftRecipeConfigJsonList.Add(configs[key].CraftRecipeConfigJson);
+                if (configs[key].MachineRecipeConfigJson != string.Empty)
+                    SortedMachineRecipeConfigJsonList.Add(configs[key].MachineRecipeConfigJson);
+                if (configs[key].CraftRecipeConfigJson != string.Empty)
+                    SortedCraftRecipeConfigJsonList.Add(configs[key].CraftRecipeConfigJson);
                 if (configs[key].OreConfigJson != string.Empty) OreConfigs.Add(key, configs[key].OreConfigJson);
                 if (configs[key].QuestConfigJson != string.Empty) QuestConfigs.Add(key, configs[key].QuestConfigJson);
             }

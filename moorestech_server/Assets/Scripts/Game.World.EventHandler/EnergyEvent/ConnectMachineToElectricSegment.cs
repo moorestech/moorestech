@@ -3,7 +3,7 @@ using Core.EnergySystem.Electric;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
-using Game.World.EventHandler.Service;
+using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 
@@ -27,7 +27,8 @@ namespace Game.World.EventHandler.EnergyEvent
         public ConnectMachineToElectricSegment(IBlockPlaceEvent blockPlaceEvent,
             IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
             IBlockConfig blockConfig,
-            MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange, IWorldBlockDatastore worldBlockDatastore)
+            MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange,
+            IWorldBlockDatastore worldBlockDatastore)
         {
             _worldEnergySegmentDatastore = worldEnergySegmentDatastore;
             _blockConfig = blockConfig;
@@ -39,8 +40,8 @@ namespace Game.World.EventHandler.EnergyEvent
         private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
         {
             //設置されたブロックが電柱だった時の処理
-            var x = blockPlaceEvent.CoreVector2Int.X;
-            var y = blockPlaceEvent.CoreVector2Int.Y;
+            var x = blockPlaceEvent.CoreVector2Int.x;
+            var y = blockPlaceEvent.CoreVector2Int.y;
 
             //設置されたブロックが発電機か機械以外はスルー処理
             if (!IsElectricMachine(x, y)) return;
@@ -87,7 +88,8 @@ namespace Game.World.EventHandler.EnergyEvent
             var segment = _worldEnergySegmentDatastore.GetEnergySegment(pole);
             if (_worldBlockDatastore.ExistsComponentBlock<TGenerator>(machineX, machineY))
                 segment.AddGenerator(_worldBlockDatastore.GetBlock<TGenerator>(machineX, machineY));
-            else if (_worldBlockDatastore.ExistsComponentBlock<TConsumer>(machineX, machineY)) segment.AddEnergyConsumer(_worldBlockDatastore.GetBlock<TConsumer>(machineX, machineY));
+            else if (_worldBlockDatastore.ExistsComponentBlock<TConsumer>(machineX, machineY))
+                segment.AddEnergyConsumer(_worldBlockDatastore.GetBlock<TConsumer>(machineX, machineY));
         }
     }
 }

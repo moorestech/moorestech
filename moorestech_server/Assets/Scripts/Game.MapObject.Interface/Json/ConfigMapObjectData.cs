@@ -1,5 +1,5 @@
-﻿using Game.Base;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Game.MapObject.Interface.Json
 {
@@ -16,6 +16,6 @@ namespace Game.MapObject.Interface.Json
         [JsonProperty("y")] public float Y;
         [JsonProperty("z")] public float Z;
 
-        public ServerVector3 Position => new(X, Y, Z);
+        public Vector3 Position => new(X, Y, Z);
     }
 }

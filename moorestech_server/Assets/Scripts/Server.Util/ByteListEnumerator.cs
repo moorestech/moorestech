@@ -7,7 +7,7 @@ namespace Server.Util
     public class ByteListEnumerator
     {
         private readonly List<byte> _payload;
-        private int index;
+        private int _index;
 
         public ByteListEnumerator(List<byte> payload)
         {
@@ -16,13 +16,13 @@ namespace Server.Util
 
         public byte MoveNextToGetByte()
         {
-            return _payload[index++];
+            return _payload[_index++];
         }
 
         public int MoveNextToGetInt()
         {
             var b = new List<byte>();
-            for (var i = 0; i < 4; i++) b.Add(_payload[index++]);
+            for (var i = 0; i < 4; i++) b.Add(_payload[_index++]);
 
             if (BitConverter.IsLittleEndian) b.Reverse();
 
@@ -34,7 +34,7 @@ namespace Server.Util
         public short MoveNextToGetShort()
         {
             var b = new List<byte>();
-            for (var i = 0; i < 2; i++) b.Add(_payload[index++]);
+            for (var i = 0; i < 2; i++) b.Add(_payload[_index++]);
 
             if (BitConverter.IsLittleEndian) b.Reverse();
 
@@ -46,7 +46,7 @@ namespace Server.Util
         public float MoveNextToGetFloat()
         {
             var b = new List<byte>();
-            for (var i = 0; i < 4; i++) b.Add(_payload[index++]);
+            for (var i = 0; i < 4; i++) b.Add(_payload[_index++]);
 
             if (BitConverter.IsLittleEndian) b.Reverse();
 
@@ -67,11 +67,11 @@ namespace Server.Util
 
             var b = new List<byte>();
             if (byteNum == 0)
-                while (index < b.Count)
-                    b.Add(_payload[index++]);
+                while (_index < b.Count)
+                    b.Add(_payload[_index++]);
             else
                 for (var i = 0; i < byteNum; i++)
-                    b.Add(_payload[index++]);
+                    b.Add(_payload[_index++]);
 
             return Encoding.UTF8.GetString(b.ToArray());
         }

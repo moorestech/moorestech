@@ -13,9 +13,11 @@ namespace Game.Block.RecipeConfig
         private readonly List<MachineRecipeData> _recipedatas;
 
         //IDからレシピデータを取得する
-        public MachineRecipeConfig(IBlockConfig blockConfig, ItemStackFactory itemStackFactory, ConfigJsonList configJson)
+        public MachineRecipeConfig(IBlockConfig blockConfig, ItemStackFactory itemStackFactory,
+            ConfigJsonList configJson)
         {
-            _recipedatas = new MachineRecipeJsonLoad().LoadConfig(blockConfig, itemStackFactory, configJson.SortedMachineRecipeConfigJsonList);
+            _recipedatas = new MachineRecipeJsonLoad().LoadConfig(blockConfig, itemStackFactory,
+                configJson.SortedMachineRecipeConfigJsonList);
 
             _recipeDataCache = new Dictionary<string, MachineRecipeData>();
             _recipedatas.ToList().ForEach(recipe =>

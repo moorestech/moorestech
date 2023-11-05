@@ -38,7 +38,8 @@ namespace Core.EnergySystem
             if (1 < powerRate) powerRate = 1;
 
             //エネルギーを供給
-            foreach (var key in _consumers.Keys) _consumers[key].SupplyEnergy((int)(_consumers[key].RequestEnergy * powerRate));
+            foreach (var key in _consumers.Keys)
+                _consumers[key].SupplyEnergy((int)(_consumers[key].RequestEnergy * powerRate));
         }
 
         public void AddEnergyConsumer(IEnergyConsumer energyConsumer)

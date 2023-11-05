@@ -1,6 +1,6 @@
-using Core.Util;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;
+using UnityEngine;
 
 namespace Game.World.Interface.Event
 {
@@ -8,9 +8,9 @@ namespace Game.World.Interface.Event
     {
         public readonly IBlock Block;
         public readonly BlockDirection BlockDirection;
-        public readonly CoreVector2Int CoreVector2Int;
+        public readonly Vector2Int CoreVector2Int;
 
-        public BlockPlaceEventProperties(CoreVector2Int coreVector2Int, IBlock block, BlockDirection blockDirection)
+        public BlockPlaceEventProperties(Vector2Int coreVector2Int, IBlock block, BlockDirection blockDirection)
         {
             CoreVector2Int = coreVector2Int;
             Block = block;

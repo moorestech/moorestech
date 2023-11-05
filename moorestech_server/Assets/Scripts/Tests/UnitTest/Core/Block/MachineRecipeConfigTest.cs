@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
@@ -6,9 +5,9 @@ using Game.Block.Interface.RecipeConfig;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
-namespace Tests.UnitTest.Game.Block
+namespace Tests.UnitTest.Core.Block
 {
     public class MachineRecipeConfigTest
     {
@@ -18,7 +17,8 @@ namespace Tests.UnitTest.Game.Block
         [SetUp]
         public void Setup()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             _machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
         }

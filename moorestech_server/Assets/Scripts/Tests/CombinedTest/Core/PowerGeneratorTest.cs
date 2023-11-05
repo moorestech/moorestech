@@ -1,4 +1,3 @@
-
 using System;
 using System.Reflection;
 using Core.Const;
@@ -11,7 +10,7 @@ using Game.Block.Interface.BlockConfig;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Core
 {
@@ -24,7 +23,8 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void UseFuelTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var powerGenerator = blockFactory.Create(PowerGeneratorId, 10) as VanillaPowerGeneratorBase;
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
@@ -85,11 +85,14 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void InfinityGeneratorTet()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
-            var powerGenerator = blockFactory.Create(UnitTestModBlockId.InfinityGeneratorId, 10) as VanillaPowerGeneratorBase;
+            var powerGenerator =
+                blockFactory.Create(UnitTestModBlockId.InfinityGeneratorId, 10) as VanillaPowerGeneratorBase;
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
-            var generatorConfigParam = blockConfig.GetBlockConfig(UnitTestModBlockId.InfinityGeneratorId).Param as PowerGeneratorConfigParam;
+            var generatorConfigParam =
+                blockConfig.GetBlockConfig(UnitTestModBlockId.InfinityGeneratorId).Param as PowerGeneratorConfigParam;
 
             //1回目のループ
             GameUpdater.Update();

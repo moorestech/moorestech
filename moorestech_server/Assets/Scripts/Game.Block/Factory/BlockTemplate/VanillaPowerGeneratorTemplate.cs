@@ -22,7 +22,9 @@ namespace Game.Block.Factory.BlockTemplate
 
         private readonly NewGenerator _newGenerator;
 
-        public VanillaPowerGeneratorTemplate(ItemStackFactory itemStackFactory, IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEven, NewGenerator newGenerator, LoadGenerator loadGenerator)
+        public VanillaPowerGeneratorTemplate(ItemStackFactory itemStackFactory,
+            IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEven, NewGenerator newGenerator,
+            LoadGenerator loadGenerator)
         {
             _itemStackFactory = itemStackFactory;
             _blockInventoryUpdateEven = blockInventoryUpdateEven;
@@ -34,7 +36,8 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var generatorParam = param.Param as PowerGeneratorConfigParam;
             return _newGenerator(new VanillaPowerGeneratorProperties(
-                param.BlockId, entityId, blockHash, generatorParam.FuelSlot, generatorParam.IsInfinityPower, generatorParam.InfinityPower, _itemStackFactory,
+                param.BlockId, entityId, blockHash, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
+                generatorParam.InfinityPower, _itemStackFactory,
                 generatorParam.FuelSettings, _blockInventoryUpdateEven));
         }
 
@@ -42,7 +45,8 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var generatorParam = param.Param as PowerGeneratorConfigParam;
             return _loadGenerator(new VanillaPowerGeneratorProperties(
-                param.BlockId, entityId, blockHash, generatorParam.FuelSlot, generatorParam.IsInfinityPower, generatorParam.InfinityPower, _itemStackFactory,
+                param.BlockId, entityId, blockHash, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
+                generatorParam.InfinityPower, _itemStackFactory,
                 generatorParam.FuelSettings, _blockInventoryUpdateEven), state);
         }
     }
@@ -59,7 +63,9 @@ namespace Game.Block.Factory.BlockTemplate
         public readonly bool IsInfinityPower;
         public readonly ItemStackFactory ItemStackFactory;
 
-        public VanillaPowerGeneratorProperties(int blockId, int entityId, long blockHash, int fuelItemSlot, bool isInfinityPower, int infinityPower, ItemStackFactory itemStackFactory, Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate)
+        public VanillaPowerGeneratorProperties(int blockId, int entityId, long blockHash, int fuelItemSlot,
+            bool isInfinityPower, int infinityPower, ItemStackFactory itemStackFactory,
+            Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate)
         {
             BlockId = blockId;
             EntityId = entityId;

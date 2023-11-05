@@ -2,7 +2,6 @@ using Core.EnergySystem;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
-using Game.World.EventHandler.Service;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 
@@ -34,13 +33,15 @@ namespace Game.World.EventHandler.EnergyEvent
             _worldBlockDatastore = worldBlockDatastore;
             blockRemoveEvent.Subscribe(OnBlockRemove);
 
-            _dependencyContainer = new EnergyServiceDependencyContainer<TSegment>(worldEnergySegmentDatastore, worldBlockDatastore, blockConfig);
+            _dependencyContainer =
+                new EnergyServiceDependencyContainer<TSegment>(worldEnergySegmentDatastore, worldBlockDatastore,
+                    blockConfig);
         }
 
         private void OnBlockRemove(BlockRemoveEventProperties blockRemoveEvent)
         {
-            var x = blockRemoveEvent.CoreVector2Int.X;
-            var y = blockRemoveEvent.CoreVector2Int.Y;
+            var x = blockRemoveEvent.CoreVector2Int.x;
+            var y = blockRemoveEvent.CoreVector2Int.y;
 
             //電柱かどうか判定
             //電柱だったら接続範囲内周りにある電柱を取得する
@@ -49,7 +50,8 @@ namespace Game.World.EventHandler.EnergyEvent
 
             //接続範囲内の電柱を取得
             var electricPoles = FindElectricPoleFromPeripheralService.Find(
-                x, y, _blockConfig.GetBlockConfig(blockRemoveEvent.Block.BlockId).Param as ElectricPoleConfigParam, _worldBlockDatastore);
+                x, y, _blockConfig.GetBlockConfig(blockRemoveEvent.Block.BlockId).Param as ElectricPoleConfigParam,
+                _worldBlockDatastore);
 
             //削除した電柱のセグメントを取得
             var removedSegment = _worldEnergySegmentDatastore.GetEnergySegment(removedElectricPole);
@@ -64,11 +66,13 @@ namespace Game.World.EventHandler.EnergyEvent
                     return;
                 //周りの電柱が1つの時
                 case 1:
-                    DisconnectOneElectricPoleFromSegmentService<TSegment, TConsumer, TGenerator, TTransformer>.Disconnect(removedElectricPole, _dependencyContainer);
+                    DisconnectOneElectricPoleFromSegmentService<TSegment, TConsumer, TGenerator, TTransformer>
+                        .Disconnect(removedElectricPole, _dependencyContainer);
                     return;
                 //周りの電柱が2つ以上の時
                 case >= 2:
-                    DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment, TConsumer, TGenerator, TTransformer>.Disconnect(removedElectricPole, _dependencyContainer);
+                    DisconnectTwoOrMoreElectricPoleFromSegmentService<TSegment, TConsumer, TGenerator, TTransformer>
+                        .Disconnect(removedElectricPole, _dependencyContainer);
                     break;
             }
         }

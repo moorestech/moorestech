@@ -13,10 +13,14 @@ namespace Game.World.EventHandler.InventoryEvent
     public class BlockPlaceEventToBlockInventoryConnect
     {
         private readonly IBlockConfig _blockConfig;
-        private readonly Dictionary<string, IoConnectionData> _ioConnectionDataDictionary = VanillaBlockInventoryConnectionData.IoConnectionData;
+
+        private readonly Dictionary<string, IoConnectionData> _ioConnectionDataDictionary =
+            VanillaBlockInventoryConnectionData.IoConnectionData;
+
         private readonly IWorldBlockDatastore _worldBlockDatastore;
 
-        public BlockPlaceEventToBlockInventoryConnect(IBlockPlaceEvent blockPlaceEvent, IBlockConfig blockConfig, IWorldBlockDatastore worldBlockDatastore)
+        public BlockPlaceEventToBlockInventoryConnect(IBlockPlaceEvent blockPlaceEvent, IBlockConfig blockConfig,
+            IWorldBlockDatastore worldBlockDatastore)
         {
             _blockConfig = blockConfig;
             _worldBlockDatastore = worldBlockDatastore;
@@ -30,8 +34,8 @@ namespace Game.World.EventHandler.InventoryEvent
         private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
         {
             var connectOffsetBlockPositions = new List<(int, int)> { (1, 0), (-1, 0), (0, 1), (0, -1) };
-            var x = blockPlaceEvent.CoreVector2Int.X;
-            var y = blockPlaceEvent.CoreVector2Int.Y;
+            var x = blockPlaceEvent.CoreVector2Int.x;
+            var y = blockPlaceEvent.CoreVector2Int.y;
 
             foreach (var (offsetX, offsetY) in connectOffsetBlockPositions)
             {
@@ -80,7 +84,8 @@ namespace Game.World.EventHandler.InventoryEvent
 
 
             //接続元の接続可能リストに接続先がなかったら終了
-            if (!_ioConnectionDataDictionary[sourceBlockType].ConnectableBlockType.Contains(destinationBlockType)) return;
+            if (!_ioConnectionDataDictionary[sourceBlockType].ConnectableBlockType
+                    .Contains(destinationBlockType)) return;
 
 
             //接続元から接続先へのブロックの距離を取得

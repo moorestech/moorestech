@@ -1,5 +1,5 @@
 ﻿using System;
-using Game.Base;
+using UnityEngine;
 
 namespace Game.MapObject.Interface
 {
@@ -27,7 +27,7 @@ namespace Game.MapObject.Interface
         /// <summary>
         ///     オブジェクトが存在する座標
         /// </summary>
-        ServerVector3 Position { get; }
+        Vector3 Position { get; }
 
         /// <summary>
         ///     獲得したとき入手できるアイテム

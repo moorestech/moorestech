@@ -17,7 +17,8 @@ using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.Miner
 {
-    public abstract class VanillaMinerBase : IBlock, IEnergyConsumer, IBlockInventory, IUpdatable, IMiner, IOpenableInventory
+    public abstract class VanillaMinerBase : IBlock, IEnergyConsumer, IBlockInventory, IUpdatable, IMiner,
+        IOpenableInventory
     {
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly List<IBlockInventory> _connectInventory = new();
@@ -34,7 +35,8 @@ namespace Game.Block.Blocks.Miner
         private List<IItemStack> _miningItems = new();
         private int _remainingMillSecond = int.MaxValue;
 
-        protected VanillaMinerBase(int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
+        protected VanillaMinerBase(int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount,
+            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -44,14 +46,18 @@ namespace Game.Block.Blocks.Miner
             _itemStackFactory = itemStackFactory;
             _blockInventoryUpdate = openableInventoryUpdateEvent;
 
-            _openableInventoryItemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlotCount);
+            _openableInventoryItemDataStoreService =
+                new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlotCount);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
 
             GameUpdater.RegisterUpdater(this);
         }
 
-        protected VanillaMinerBase(string saveData, int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
-            : this(blockId, entityId, blockHash, requestPower, outputSlotCount, itemStackFactory, openableInventoryUpdateEvent)
+        protected VanillaMinerBase(string saveData, int blockId, int entityId, long blockHash, int requestPower,
+            int outputSlotCount, ItemStackFactory itemStackFactory,
+            BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
+            : this(blockId, entityId, blockHash, requestPower, outputSlotCount, itemStackFactory,
+                openableInventoryUpdateEvent)
         {
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var split = saveData.Split(',');
@@ -64,7 +70,8 @@ namespace Game.Block.Blocks.Miner
                 inventoryItems.Add(_itemStackFactory.Create(itemHash, itemCount));
             }
 
-            for (var i = 0; i < inventoryItems.Count; i++) _openableInventoryItemDataStoreService.SetItem(i, inventoryItems[i]);
+            for (var i = 0; i < inventoryItems.Count; i++)
+                _openableInventoryItemDataStoreService.SetItem(i, inventoryItems[i]);
         }
 
         public int EntityId { get; }
@@ -76,7 +83,8 @@ namespace Game.Block.Blocks.Miner
         {
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var saveState = $"{_remainingMillSecond}";
-            foreach (var itemStack in _openableInventoryItemDataStoreService.Items) saveState += $",{itemStack.ItemHash},{itemStack.Count}";
+            foreach (var itemStack in _openableInventoryItemDataStoreService.Items)
+                saveState += $",{itemStack.ItemHash},{itemStack.Count}";
 
             return saveState;
         }
@@ -186,7 +194,8 @@ namespace Game.Block.Blocks.Miner
         {
             var processingRate = 1 - (float)_remainingMillSecond / _defaultMiningTime;
             OnBlockStateChange?.Invoke(new ChangedBlockState(_currentState.ToStr(), _lastMinerState.ToStr(),
-                JsonConvert.SerializeObject(new CommonMachineBlockStateChangeData(_currentPower, RequestEnergy, processingRate))));
+                JsonConvert.SerializeObject(
+                    new CommonMachineBlockStateChangeData(_currentPower, RequestEnergy, processingRate))));
         }
 
 
@@ -201,7 +210,8 @@ namespace Game.Block.Blocks.Miner
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
-            _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack));
+            _blockInventoryUpdate.OnInventoryUpdateInvoke(
+                new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack));
         }
 
 

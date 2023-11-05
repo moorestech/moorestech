@@ -17,7 +17,8 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
         ///     isPlaceable:設置可能かどうか　mainInventoryRequiredItemCount:レシピに使用するアイテムのうち、メインインベントリにあるアイテム数 key itemId value
         ///     itemCount
         /// </returns>
-        public static (bool isPlaceable, Dictionary<int, int> mainInventoryRequiredItemCount) IsPlaceable(IOpenableInventory mainInventory, ItemMessagePack[] recipeItem)
+        public static (bool isPlaceable, Dictionary<int, int> mainInventoryRequiredItemCount) IsPlaceable(
+            IOpenableInventory mainInventory, ItemMessagePack[] recipeItem)
         {
             //必要なアイテムがMainインベントリにあるかチェックするための必要アイテム数辞書を作成
             var requiredItemCount = CreateRequiredItemCount(recipeItem);
@@ -29,9 +30,11 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
             //アイテム数が足りているかチェックする
             foreach (var item in requiredItemCount)
             {
-                if (!mainInventoryRequiredItemCount.ContainsKey(item.Key)) return (false, mainInventoryRequiredItemCount);
+                if (!mainInventoryRequiredItemCount.ContainsKey(item.Key))
+                    return (false, mainInventoryRequiredItemCount);
 
-                if (mainInventoryRequiredItemCount[item.Key] < item.Value) return (false, mainInventoryRequiredItemCount);
+                if (mainInventoryRequiredItemCount[item.Key] < item.Value)
+                    return (false, mainInventoryRequiredItemCount);
             }
 
             return (true, mainInventoryRequiredItemCount);
@@ -62,7 +65,8 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
         /// <param name="mainInventory">メインインベントリ</param>
         /// <param name="requiredItemCount">必要なアイテムIDかどうかをチェックする用</param>
         /// <returns>key アイテムID value メインインベントリに入ってる合計アイテム数</returns>
-        private static Dictionary<int, int> CreateMainInventoryRequiredItemCount(IOpenableInventory mainInventory, IReadOnlyDictionary<int, int> requiredItemCount)
+        private static Dictionary<int, int> CreateMainInventoryRequiredItemCount(IOpenableInventory mainInventory,
+            IReadOnlyDictionary<int, int> requiredItemCount)
         {
             var mainInventoryRequiredItemCount = new Dictionary<int, int>();
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)

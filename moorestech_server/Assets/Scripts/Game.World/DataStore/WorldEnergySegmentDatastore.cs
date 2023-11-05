@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using Core.EnergySystem;
 using Game.World.Interface.DataStore;
 
-namespace World.DataStore
+namespace Game.World.DataStore
 {
-    public class WorldEnergySegmentDatastore<TSegment> : IWorldEnergySegmentDatastore<TSegment> where TSegment : EnergySegment, new()
+    public class WorldEnergySegmentDatastore<TSegment> : IWorldEnergySegmentDatastore<TSegment>
+        where TSegment : EnergySegment, new()
     {
         private readonly List<TSegment> _segmentDictionary = new();
 
@@ -41,7 +42,6 @@ namespace World.DataStore
         public void RemoveEnergySegment(TSegment energySegment)
         {
             _segmentDictionary.Remove(energySegment);
-            energySegment = null;
         }
 
         public int GetEnergySegmentListCount()

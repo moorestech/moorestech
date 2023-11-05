@@ -46,7 +46,11 @@ namespace Game.World.EventHandler.InventoryEvent
                     new ConnectDirection[] { new(-1, 0), new(0, 1), new(0, -1) },
                     //北向きに出力する
                     new ConnectDirection[] { new(1, 0) },
-                    new[] { VanillaBlockType.Machine, VanillaBlockType.Chest, VanillaBlockType.Generator, VanillaBlockType.Miner, VanillaBlockType.BeltConveyor })
+                    new[]
+                    {
+                        VanillaBlockType.Machine, VanillaBlockType.Chest, VanillaBlockType.Generator,
+                        VanillaBlockType.Miner, VanillaBlockType.BeltConveyor
+                    })
             }
         };
     }
@@ -62,7 +66,8 @@ namespace Game.World.EventHandler.InventoryEvent
         public readonly ConnectDirection[] InputConnector;
         public readonly ConnectDirection[] OutputConnector;
 
-        public IoConnectionData(ConnectDirection[] inputConnector, ConnectDirection[] outputConnector, string[] connectableBlockType)
+        public IoConnectionData(ConnectDirection[] inputConnector, ConnectDirection[] outputConnector,
+            string[] connectableBlockType)
         {
             InputConnector = inputConnector;
             OutputConnector = outputConnector;

@@ -1,6 +1,6 @@
 using Game.Paths;
 
-namespace Game.Save.Json
+namespace Game.SaveLoad.Json
 {
     /// <summary>
     ///     JSONでセーブするさいのファイル名を指定するクラス

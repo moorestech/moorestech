@@ -9,12 +9,12 @@ namespace Server.Util
     /// </summary>
     public class PacketBufferParser
     {
+        private readonly List<byte> _packetLengthBytes = new();
         private List<byte> _continuationFromLastTimeBytes = new();
 
         private bool _isGettingLength;
         private int _nextPacketLengthOffset;
         private int _packetLength;
-        private readonly List<byte> _packetLengthBytes = new();
         private int _remainingHeaderLength;
 
         public List<List<byte>> Parse(byte[] packet, int length)
@@ -63,7 +63,10 @@ namespace Server.Util
                 }
 
                 //パケットの長さ分だけデータを取得
-                for (var i = 0; i < _packetLength && actualStartPacketDataIndex < length; actualStartPacketDataIndex++, i++) _continuationFromLastTimeBytes.Add(packet[actualStartPacketDataIndex]);
+                for (var i = 0;
+                     i < _packetLength && actualStartPacketDataIndex < length;
+                     actualStartPacketDataIndex++, i++)
+                    _continuationFromLastTimeBytes.Add(packet[actualStartPacketDataIndex]);
 
                 result.Add(_continuationFromLastTimeBytes);
                 //受信したパケットに対する応答を返す
@@ -76,7 +79,7 @@ namespace Server.Util
 
         private bool TryGetLength(byte[] bytes, int startIndex, out int payloadLength, out int headerLength)
         {
-            var headerBytes = new List<byte>();
+            List<byte> headerBytes;
             if (_isGettingLength)
             {
                 headerLength = _remainingHeaderLength;

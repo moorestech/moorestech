@@ -10,7 +10,8 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:removeBlock";
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public RemoveBlockToSetEventPacket(IBlockRemoveEvent blockRemoveEvent, EventProtocolProvider eventProtocolProvider)
+        public RemoveBlockToSetEventPacket(IBlockRemoveEvent blockRemoveEvent,
+            EventProtocolProvider eventProtocolProvider)
         {
             blockRemoveEvent.Subscribe(ReceivedEvent);
             _eventProtocolProvider = eventProtocolProvider;
@@ -22,8 +23,7 @@ namespace Server.Event.EventReceive
 
 
             var payload = MessagePackSerializer.Serialize(new RemoveBlockEventMessagePack(
-                c.X, c.Y)).ToList();
-            ;
+                c.x, c.y)).ToList();
 
 
             _eventProtocolProvider.AddBroadcastEvent(payload);

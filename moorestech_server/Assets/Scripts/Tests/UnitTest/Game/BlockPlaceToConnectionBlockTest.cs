@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -14,7 +13,7 @@ using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Game
 {
@@ -34,7 +33,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void BeltConveyorConnectMachineTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
@@ -91,7 +91,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void MachineConnectToBeltConveyorTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
@@ -129,7 +130,8 @@ namespace Tests.UnitTest.Game
             //繋がっているコネクターの中身を確認
             var _connectInventoryItem =
                 connectInventory.Select(item => ((VanillaBeltConveyor)item).EntityId).ToList();
-            foreach (var beltConveyor in beltConveyors) Assert.True(_connectInventoryItem.Contains(beltConveyor.EntityId));
+            foreach (var beltConveyor in beltConveyors)
+                Assert.True(_connectInventoryItem.Contains(beltConveyor.EntityId));
 
             //ベルトコンベアを削除する
             world.RemoveBlock(1, 0);
@@ -151,7 +153,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void BeltConveyorToChestConnectTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
@@ -173,9 +176,11 @@ namespace Tests.UnitTest.Game
             BeltConveyorPlaceAndCheckConnector(1, 0, BlockDirection.West, vanillaChest, blockFactory, world);
         }
 
-        private void BeltConveyorPlaceAndCheckConnector(int beltConveyorX, int beltConveyorY, BlockDirection direction, VanillaChest targetChest, IBlockFactory blockFactory, IWorldBlockDatastore world)
+        private void BeltConveyorPlaceAndCheckConnector(int beltConveyorX, int beltConveyorY, BlockDirection direction,
+            VanillaChest targetChest, IBlockFactory blockFactory, IWorldBlockDatastore world)
         {
-            var northBeltConveyor = (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create());
+            var northBeltConveyor =
+                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create());
             world.AddBlock(northBeltConveyor, beltConveyorX, beltConveyorY, direction);
             var connector = (VanillaChest)typeof(VanillaBeltConveyor)
                 .GetField("_connector", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(northBeltConveyor);
@@ -189,7 +194,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void NotConnectableBlockTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 

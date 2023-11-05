@@ -1,4 +1,4 @@
-using Game.Base;
+using UnityEngine;
 
 namespace Game.Entity.Interface
 {
@@ -7,10 +7,10 @@ namespace Game.Entity.Interface
         long InstanceId { get; }
         string EntityType { get; }
 
-        ServerVector3 Position { get; }
+        Vector3 Position { get; }
 
         string State { get; }
 
-        void SetPosition(ServerVector3 serverVector3);
+        void SetPosition(Vector3 serverVector3);
     }
 }

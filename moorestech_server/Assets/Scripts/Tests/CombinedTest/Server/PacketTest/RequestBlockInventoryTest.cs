@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
@@ -10,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -25,7 +24,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void MachineInventoryRequest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
 
@@ -36,7 +36,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine, 5, 10, BlockDirection.North);
 
             //レスポンスの取得
-            var data = MessagePackSerializer.Deserialize<BlockInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(5, 10))[0].ToArray());
+            var data = MessagePackSerializer.Deserialize<BlockInventoryResponseProtocolMessagePack>(
+                packet.GetPacketResponse(RequestBlock(5, 10))[0].ToArray());
 
             Assert.AreEqual(InputSlotNum + OutPutSlotNum, data.ItemIds.Length); // slot num
 

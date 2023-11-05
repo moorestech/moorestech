@@ -16,7 +16,8 @@ namespace Game.Quest.Factory
         public QuestFactory(IQuestConfig questConfig, ItemStackFactory itemStackFactory, ICraftingEvent craftingEvent)
         {
             //クエストのテンプレート一覧の作成
-            _questTemplates.Add(VanillaQuestTypes.ItemCraftQuestType, new ItemCraftQuestTemplate(itemStackFactory, craftingEvent));
+            _questTemplates.Add(VanillaQuestTypes.ItemCraftQuestType,
+                new ItemCraftQuestTemplate(itemStackFactory, craftingEvent));
 
             _questConfig = questConfig;
         }
@@ -71,7 +72,8 @@ namespace Game.Quest.Factory
 
         private IQuest CreateQuest(QuestConfigData questConfig, List<IQuest> preRequestQuest)
         {
-            if (_questTemplates.ContainsKey(questConfig.QuestType)) return _questTemplates[questConfig.QuestType].CreateQuest(questConfig, preRequestQuest);
+            if (_questTemplates.TryGetValue(questConfig.QuestType, out var template))
+                return template.CreateQuest(questConfig, preRequestQuest);
             //TODO ログ取得基盤に入れるようにする
             throw new ArgumentException("[QuestFactory]指定されたクエストタイプ:" + questConfig.QuestType + "は存在しません。");
         }

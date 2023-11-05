@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Game.MapObject.Interface;
@@ -8,7 +7,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -19,7 +18,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void MapObjectDestroyToEventTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
 
             var response = packetResponse.GetPacketResponse(EventRequestData());
@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             response = packetResponse.GetPacketResponse(EventRequestData());
             Assert.AreEqual(1, response.Count);
             var data = MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(response[0].ToArray());
-            Assert.AreEqual(MapObjectUpdateEventMessagePack.OnDestroyEventType, data.EventType);
+            Assert.AreEqual(MapObjectUpdateEventMessagePack.DestroyEventType, data.EventType);
             Assert.AreEqual(mapObject.InstanceId, data.InstanceId);
         }
 

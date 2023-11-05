@@ -20,7 +20,8 @@ namespace Game.Block.Factory
         public IBlock Create(int blockId, int entityId)
         {
             var config = _blockConfig.GetBlockConfig(blockId);
-            if (_blockTypesDictionary.ContainsKey(config.Type)) return _blockTypesDictionary[config.Type].New(config, entityId, config.BlockHash);
+            if (_blockTypesDictionary.ContainsKey(config.Type))
+                return _blockTypesDictionary[config.Type].New(config, entityId, config.BlockHash);
 
             throw new Exception("Block type not found :" + config.Type);
         }
@@ -28,7 +29,8 @@ namespace Game.Block.Factory
         public IBlock Load(long blockHash, int entityId, string state)
         {
             var config = _blockConfig.GetBlockConfig(blockHash);
-            if (_blockTypesDictionary.ContainsKey(config.Type)) return _blockTypesDictionary[config.Type].Load(config, entityId, config.BlockHash, state);
+            if (_blockTypesDictionary.ContainsKey(config.Type))
+                return _blockTypesDictionary[config.Type].Load(config, entityId, config.BlockHash, state);
 
             throw new Exception("Block type not found :" + config.Type);
         }

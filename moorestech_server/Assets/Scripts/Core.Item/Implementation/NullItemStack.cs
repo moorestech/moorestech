@@ -1,4 +1,6 @@
-﻿using Core.Const;
+﻿#nullable enable
+using System;
+using Core.Const;
 using Core.Item.Util;
 
 namespace Core.Item.Implementation
@@ -47,8 +49,18 @@ namespace Core.Item.Implementation
 
         public override bool Equals(object? obj)
         {
-            if (typeof(NullItemStack) != obj.GetType()) return false;
+            if (typeof(NullItemStack) != obj?.GetType()) return false;
             return ((NullItemStack)obj).Id == Id && ((NullItemStack)obj).Count == Count;
+        }
+
+        protected bool Equals(NullItemStack other)
+        {
+            return Equals(_itemStackFactory, other._itemStackFactory) && ItemInstanceId == other.ItemInstanceId;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(_itemStackFactory, ItemInstanceId);
         }
 
         public override string ToString()

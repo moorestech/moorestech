@@ -1,5 +1,3 @@
-
-using System;
 using System.IO;
 using System.Runtime.Serialization.Json;
 using NUnit.Framework;
@@ -21,7 +19,7 @@ namespace Tests.CombinedTest.Core.Generate
 
             // データをJSON形式にシリアル化して、メモリーストリームに出力する。
             var st = new MemoryStream(); // メモリーストリームを作成
-            var serializer = new DataContractJsonSerializer(typeof(recipe)); // シリアライザーを作成
+            var serializer = new DataContractJsonSerializer(typeof(Recipe)); // シリアライザーを作成
             serializer.WriteObject(st, recipe); // シリアライザーで出力
 
             // メモリーストリームの内容をコンソールに出力する。

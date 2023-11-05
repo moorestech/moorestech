@@ -15,7 +15,8 @@ namespace Server.Event.EventReceive
 
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public ChangeBlockStateEventPacket(EventProtocolProvider eventProtocolProvider, IWorldBlockDatastore worldBlockDatastore)
+        public ChangeBlockStateEventPacket(EventProtocolProvider eventProtocolProvider,
+            IWorldBlockDatastore worldBlockDatastore)
         {
             _eventProtocolProvider = eventProtocolProvider;
             worldBlockDatastore.OnBlockStateChange += ChangeState;

@@ -6,13 +6,15 @@ using Game.Quest.Interface;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
 
-namespace Game.Save.Json.WorldVersions
+namespace Game.SaveLoad.Json.WorldVersions
 {
     public class WorldSaveAllInfoV1
     {
         [JsonProperty("worldVersion")] public int WorldVersion = 1;
 
-        public WorldSaveAllInfoV1(List<SaveBlockData> world, List<SaveInventoryData> inventory, List<SaveEntityData> entities, Dictionary<int, List<SaveQuestData>> quests, WorldSettingSaveData setting, List<SaveMapObjectData> mapObjects)
+        public WorldSaveAllInfoV1(List<SaveBlockData> world, List<SaveInventoryData> inventory,
+            List<SaveEntityData> entities, Dictionary<int, List<SaveQuestData>> quests, WorldSettingSaveData setting,
+            List<SaveMapObjectData> mapObjects)
         {
             World = world;
             Inventory = inventory;

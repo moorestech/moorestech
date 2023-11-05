@@ -1,10 +1,7 @@
-
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
 using Core.Ore;
-using Core.Util;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
@@ -16,26 +13,31 @@ using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.MessagePack;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
+using UnityEngine;
+using Random = System.Random;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
     public class PlayerCoordinateSendProtocolTest
     {
+        public const int Block_1x4_Id = 9;
+
         [Test]
         public void SimpleChunkResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             //1回のレスポンスのテスト
             packetResponse.GetPacketResponse(GetHandshakePacket(10));
             var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(10, 0, 0))
                 .Select(PayloadToBlock).Where(p => p is not null).ToList();
 
             Assert.AreEqual(25, response.Count());
-            var ans = new List<CoreVector2Int>();
+            var ans = new List<Vector2Int>();
             for (var i = -40; i <= 40; i += ChunkResponseConst.ChunkSize)
             for (var j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
-                ans.Add(new CoreVector2Int(i, j));
+                ans.Add(new Vector2Int(i, j));
 
             foreach (var r in response)
             {
@@ -68,21 +70,19 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(25, response.Count());
         }
 
-
-        public const int Block_1x4_Id = 9;
-        
         //ブロックを設置するテスト
         [Test]
         public void PlaceBlockToChunkResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
             //ブロックの設置
             var b = blockFactory.Create(Block_1x4_Id, 1);
             worldBlock.AddBlock(b, 0, 0, BlockDirection.North);
-            
+
             packetResponse.GetPacketResponse(GetHandshakePacket(20));
 
             var bytes = packetResponse.GetPacketResponse(PlayerCoordinatePayload(20, 0, 0));
@@ -90,10 +90,10 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             Assert.AreEqual(25, response.Count());
-            var ans = new List<CoreVector2Int>();
+            var ans = new List<Vector2Int>();
             for (var i = -40; i <= 40; i += ChunkResponseConst.ChunkSize)
             for (var j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
-                ans.Add(new CoreVector2Int(i, j));
+                ans.Add(new Vector2Int(i, j));
 
             foreach (var r in response)
             {
@@ -103,14 +103,10 @@ namespace Tests.CombinedTest.Server.PacketTest
                 //ブロックの確認
                 for (var i = 0; i < r.Blocks.GetLength(0); i++)
                 for (var j = 0; j < r.Blocks.GetLength(1); j++)
-                    if (i == 0 && j == 0 && c == new CoreVector2Int(0,0))
-                    {
+                    if (i == 0 && j == 0 && c == new Vector2Int(0, 0))
                         Assert.AreEqual(Block_1x4_Id, r.Blocks[i, j]);
-                    }
                     else
-                    {
-                        Assert.AreEqual(BlockConst.EmptyBlockId, r.Blocks[i, j]);            
-                    }
+                        Assert.AreEqual(BlockConst.EmptyBlockId, r.Blocks[i, j]);
             }
         }
 
@@ -118,7 +114,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void RandomPlaceBlockToChunkResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
@@ -147,10 +144,10 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             //検証
             Assert.AreEqual(25, response.Count());
-            var ans = new List<CoreVector2Int>();
+            var ans = new List<Vector2Int>();
             for (var i = -40; i <= 40; i += ChunkResponseConst.ChunkSize)
             for (var j = -40; j <= 40; j += ChunkResponseConst.ChunkSize)
-                ans.Add(new CoreVector2Int(i, j));
+                ans.Add(new Vector2Int(i, j));
 
             foreach (var r in response)
             {
@@ -161,10 +158,11 @@ namespace Tests.CombinedTest.Server.PacketTest
                 for (var i = 0; i < r.Blocks.GetLength(0); i++)
                 for (var j = 0; j < r.Blocks.GetLength(1); j++)
                 {
-                    var id = worldBlock.GetOriginPosBlock(c.X + i, c.Y + j)?.Block.BlockId ?? BlockConst.EmptyBlockId;
+                    var id = worldBlock.GetOriginPosBlock(c.x + i, c.y + j)?.Block.BlockId ?? BlockConst.EmptyBlockId;
                     Assert.AreEqual(id, r.Blocks[i, j]);
 
-                    var direction = worldBlock.GetOriginPosBlock(c.X + i, c.Y + j)?.BlockDirection ?? BlockDirection.North;
+                    var direction = worldBlock.GetOriginPosBlock(c.x + i, c.y + j)?.BlockDirection ??
+                                    BlockDirection.North;
                     Assert.AreEqual(direction, r.BlockDirections[i, j]);
                 }
             }
@@ -174,11 +172,12 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void TileMapResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
             var worldMapTile = serviceProvider.GetService<WorldMapTile>();
 
-            var veinCoordinate = new CoreVector2Int(0, 0);
+            var veinCoordinate = new Vector2Int(0, 0);
 
             //10000*10000 ブロックの中から鉱石があるチャンクを探す
             for (var i = 0; i < 1000; i++)
@@ -186,20 +185,21 @@ namespace Tests.CombinedTest.Server.PacketTest
             {
                 var id = veinGenerator.GetOreId(i, j);
                 if (OreConst.NoneOreId == id) continue;
-                veinCoordinate = new CoreVector2Int(i, j);
+                veinCoordinate = new Vector2Int(i, j);
             }
 
             //鉱石がある座標のチャンクを取得
             packetResponse.GetPacketResponse(GetHandshakePacket(25));
-            var response = packetResponse.GetPacketResponse(PlayerCoordinatePayload(25, veinCoordinate.X, veinCoordinate.Y))
+            var response = packetResponse
+                .GetPacketResponse(PlayerCoordinatePayload(25, veinCoordinate.x, veinCoordinate.y))
                 .Select(PayloadToBlock).Where(p => p is not null).ToList();
 
 
             //正しく鉱石IDが帰ってきているかチェックする
             foreach (var r in response)
             {
-                var x = r.ChunkOrigin.X;
-                var y = r.ChunkOrigin.Y;
+                var x = r.ChunkOrigin.x;
+                var y = r.ChunkOrigin.y;
                 for (var i = 0; i < ChunkResponseConst.ChunkSize; i++)
                 for (var j = 0; j < ChunkResponseConst.ChunkSize; j++)
                     //マップタイルと実際の返信を検証する
@@ -211,7 +211,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private List<byte> PlayerCoordinatePayload(int playerId, float x, float y)
         {
-            return MessagePackSerializer.Serialize(new PlayerCoordinateSendProtocolMessagePack(playerId, x, y)).ToList();
+            return MessagePackSerializer.Serialize(new PlayerCoordinateSendProtocolMessagePack(playerId, x, y))
+                .ToList();
         }
 
 
@@ -228,17 +229,18 @@ namespace Tests.CombinedTest.Server.PacketTest
             if (data.Tag == PlayerCoordinateSendProtocol.EntityDataTag) return null;
 
 
-            return new ChunkData(new CoreVector2Int(data.ChunkX, data.ChunkY), data.BlockIds, data.MapTileIds, data.BlockDirect);
+            return new ChunkData(new Vector2Int(data.ChunkX, data.ChunkY), data.BlockIds, data.MapTileIds,
+                data.BlockDirect);
         }
 
         private class ChunkData
         {
             public readonly BlockDirection[,] BlockDirections;
             public readonly int[,] Blocks;
-            public readonly CoreVector2Int ChunkOrigin;
+            public readonly Vector2Int ChunkOrigin;
             public readonly int[,] MapTiles;
 
-            public ChunkData(CoreVector2Int chunkOrigin, int[,] blocks, int[,] mapTiles, int[,] blockDirections)
+            public ChunkData(Vector2Int chunkOrigin, int[,] blocks, int[,] mapTiles, int[,] blockDirections)
             {
                 Blocks = blocks;
                 ChunkOrigin = chunkOrigin;

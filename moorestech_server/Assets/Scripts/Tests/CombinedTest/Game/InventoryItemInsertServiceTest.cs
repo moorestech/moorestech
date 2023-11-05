@@ -1,11 +1,10 @@
-
 using Core.Item.Config;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse.Util.InventoryService;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Game
 {
@@ -17,10 +16,13 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void InsertTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
-            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).CraftingOpenableInventory;
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0)
+                .MainOpenableInventory;
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0)
+                .CraftingOpenableInventory;
 
             //インベントリの設定
             mainInventory.SetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0), 1, 10);
@@ -48,10 +50,13 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void FullItemInsert()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
-            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).CraftingOpenableInventory;
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0)
+                .MainOpenableInventory;
+            var craftInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0)
+                .CraftingOpenableInventory;
             var id1MaxStack = serviceProvider.GetService<IItemConfig>().GetItemConfig(1).MaxStack;
 
             //インベントリをアイテムで満たす

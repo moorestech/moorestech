@@ -12,7 +12,8 @@ namespace Game.World.EventHandler.InventoryEvent
     {
         private readonly IWorldBlockDatastore _worldBlockDatastore;
 
-        public BlockRemoveEventToBlockInventoryDisconnect(IBlockRemoveEvent blockRemoveEvent, IWorldBlockDatastore worldBlockDatastore)
+        public BlockRemoveEventToBlockInventoryDisconnect(IBlockRemoveEvent blockRemoveEvent,
+            IWorldBlockDatastore worldBlockDatastore)
         {
             _worldBlockDatastore = worldBlockDatastore;
             blockRemoveEvent.Subscribe(OnRemoveBlock);
@@ -20,11 +21,11 @@ namespace Game.World.EventHandler.InventoryEvent
 
         private void OnRemoveBlock(BlockRemoveEventProperties blockRemoveEvent)
         {
-            var x = blockRemoveEvent.CoreVector2Int.X;
-            var y = blockRemoveEvent.CoreVector2Int.Y;
+            var x = blockRemoveEvent.CoreVector2Int.x;
+            var y = blockRemoveEvent.CoreVector2Int.y;
 
             //削除されたブロックがIBlockInventoryでない場合、処理を終了する
-            if (!(blockRemoveEvent.Block is IBlockInventory)) return;
+            if (blockRemoveEvent.Block is not IBlockInventory block) return;
 
 
             //削除されたブロックの東西南北にあるブロックインベントリを削除する
@@ -35,7 +36,7 @@ namespace Game.World.EventHandler.InventoryEvent
                 if (_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(x + offsetX, y + offsetY))
                     //そのブロックの接続を削除する
                     _worldBlockDatastore.GetBlock<IBlockInventory>(x + offsetX, y + offsetY)
-                        .RemoveOutputConnector((IBlockInventory)blockRemoveEvent.Block);
+                        .RemoveOutputConnector(block);
         }
     }
 }

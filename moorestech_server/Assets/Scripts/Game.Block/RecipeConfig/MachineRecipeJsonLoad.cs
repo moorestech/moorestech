@@ -9,7 +9,8 @@ namespace Game.Block.RecipeConfig
 {
     internal class MachineRecipeJsonLoad
     {
-        internal List<MachineRecipeData> LoadConfig(IBlockConfig blockConfig, ItemStackFactory itemStackFactory, List<string> configJsons)
+        internal List<MachineRecipeData> LoadConfig(IBlockConfig blockConfig, ItemStackFactory itemStackFactory,
+            List<string> configJsons)
         {
             var recipes = new List<MachineRecipeData>();
             foreach (var json in configJsons) recipes.AddRange(Load(blockConfig, itemStackFactory, json));
@@ -26,13 +27,15 @@ namespace Game.Block.RecipeConfig
             var r = data.ToList().Select((r, index) =>
             {
                 var inputItem =
-                    r.ItemInputs.ToList().Select(item => itemStackFactory.Create(item.ModId, item.ItemName, item.Count)).ToList();
+                    r.ItemInputs.ToList().Select(item => itemStackFactory.Create(item.ModId, item.ItemName, item.Count))
+                        .ToList();
 
 
                 inputItem = inputItem.OrderBy(i => i.Id).ToList();
 
                 var outputs =
-                    r.ItemOutputs.Select(r => new ItemOutput(itemStackFactory.Create(r.ModId, r.ItemName, r.Count), r.Percent));
+                    r.ItemOutputs.Select(r =>
+                        new ItemOutput(itemStackFactory.Create(r.ModId, r.ItemName, r.Count), r.Percent));
 
                 var modId = r.BlockModId;
                 var blockName = r.BlockName;

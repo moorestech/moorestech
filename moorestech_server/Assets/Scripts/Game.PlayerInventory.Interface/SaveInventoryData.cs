@@ -43,12 +43,15 @@ namespace Game.PlayerInventory.Interface
             PlayerId = playerId;
         }
 
-        public (List<IItemStack> mainInventory, List<IItemStack> craftInventory, IItemStack grabItem) GetPlayerInventoryData(ItemStackFactory itemStackFactory)
+        public (List<IItemStack> mainInventory, List<IItemStack> craftInventory, IItemStack grabItem)
+            GetPlayerInventoryData(ItemStackFactory itemStackFactory)
         {
             var mainItemStack = new List<IItemStack>();
-            for (var i = 0; i < MainItemId.Count; i++) mainItemStack.Add(itemStackFactory.Create(MainItemId[i], MainItemCount[i]));
+            for (var i = 0; i < MainItemId.Count; i++)
+                mainItemStack.Add(itemStackFactory.Create(MainItemId[i], MainItemCount[i]));
             var craftItemStack = new List<IItemStack>();
-            for (var i = 0; i < CraftItemId.Count; i++) craftItemStack.Add(itemStackFactory.Create(CraftItemId[i], CraftItemCount[i]));
+            for (var i = 0; i < CraftItemId.Count; i++)
+                craftItemStack.Add(itemStackFactory.Create(CraftItemId[i], CraftItemCount[i]));
             return (mainItemStack, craftItemStack, itemStackFactory.Create(GrabItemId, GrabItemCount));
         }
     }

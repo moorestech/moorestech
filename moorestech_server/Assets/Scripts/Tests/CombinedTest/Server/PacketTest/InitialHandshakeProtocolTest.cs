@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using Game.World.Interface.DataStore;
@@ -7,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -18,14 +17,16 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void SpawnCoordinateTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             //ワールド設定情報を初期化
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize();
 
             //最初のハンドシェイクを実行
             var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId))[0];
-            var handShakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
+            var handShakeResponse =
+                MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
             //スポーンポイントは0,0近くの鉄鉱石になるので、今のところはマジックナンバーでテストする
             //SEEDが変わると変換するので、その設定が追加されたら変更する
             Assert.AreEqual(2, handShakeResponse.PlayerPos.X);
@@ -38,7 +39,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             //再度ハンドシェイクを実行して座標が変更されていることを確認
             response = packet.GetPacketResponse(GetHandshakePacket(PlayerId))[0];
-            handShakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
+            handShakeResponse =
+                MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
             Assert.AreEqual(100, handShakeResponse.PlayerPos.X);
             Assert.AreEqual(-100, handShakeResponse.PlayerPos.Y);
         }

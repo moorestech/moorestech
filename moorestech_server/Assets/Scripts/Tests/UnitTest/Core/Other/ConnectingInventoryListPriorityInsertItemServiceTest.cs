@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using Core.Item;
 using Game.Block.BlockInventory;
@@ -6,8 +5,8 @@ using Game.Block.Blocks.Service;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module;
-using Test.Module.TestMod;
+using Tests.Module;
+using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Core.Other
 {
@@ -19,7 +18,8 @@ namespace Tests.UnitTest.Core.Other
         [Test]
         public void Test()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var inventoryList = new List<IBlockInventory>();

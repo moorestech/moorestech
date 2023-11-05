@@ -1,4 +1,3 @@
-
 using System;
 using Core.Item;
 using Core.Update;
@@ -11,7 +10,7 @@ using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Core
 {
@@ -50,7 +49,8 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void BeltConveyorOutputChestLogicTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();

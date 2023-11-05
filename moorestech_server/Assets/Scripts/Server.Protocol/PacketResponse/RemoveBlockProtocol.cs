@@ -66,7 +66,8 @@ namespace Server.Protocol.PacketResponse
 
 
             //ブロック内のアイテムを全てインベントリに入れ、ブロックもインベントリに入れれた時だけブロックを削除する
-            if (isNotRemainItem && remainBlockItem.Equals(_itemStackFactory.CreatEmpty())) _worldBlockDatastore.RemoveBlock(data.X, data.Y);
+            if (isNotRemainItem && remainBlockItem.Equals(_itemStackFactory.CreatEmpty()))
+                _worldBlockDatastore.RemoveBlock(data.X, data.Y);
 
             return new List<List<byte>>();
         }

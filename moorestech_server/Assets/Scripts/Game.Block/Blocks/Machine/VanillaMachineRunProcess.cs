@@ -34,7 +34,8 @@ namespace Game.Block.Blocks.Machine
         public VanillaMachineRunProcess(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            ProcessState currentState, double remainingMillSecond, MachineRecipeData processingRecipeData, int requestPower)
+            ProcessState currentState, double remainingMillSecond, MachineRecipeData processingRecipeData,
+            int requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
@@ -71,7 +72,8 @@ namespace Game.Block.Blocks.Machine
                 var processingRate = 1 - (float)RemainingMillSecond / _processingRecipeData.Time;
                 OnChangeState?.Invoke(
                     new ChangedBlockState(CurrentState.ToStr(), _lastState.ToStr(),
-                        JsonConvert.SerializeObject(new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate))));
+                        JsonConvert.SerializeObject(
+                            new CommonMachineBlockStateChangeData(_currentPower, RequestPower, processingRate))));
                 _lastState = CurrentState;
             }
         }

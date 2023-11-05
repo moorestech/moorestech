@@ -28,24 +28,33 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(VanillaBlockType.Block, new VanillaDefaultBlock());
             BlockTypesDictionary.Add(VanillaBlockType.BeltConveyor, new VanillaBeltConveyorTemplate(itemStackFactory));
             BlockTypesDictionary.Add(VanillaBlockType.ElectricPole, new VanillaElectricPoleTemplate());
-            BlockTypesDictionary.Add(VanillaBlockType.Chest, new VanillaChestTemplate(itemStackFactory, blockInventoryEvent));
+            BlockTypesDictionary.Add(VanillaBlockType.Chest,
+                new VanillaChestTemplate(itemStackFactory, blockInventoryEvent));
 
-            BlockTypesDictionary.Add(VanillaBlockType.Machine, new VanillaMachineTemplate(machineRecipeConfig, itemStackFactory, blockInventoryEvent,
+            BlockTypesDictionary.Add(VanillaBlockType.Machine, new VanillaMachineTemplate(machineRecipeConfig,
+                itemStackFactory, blockInventoryEvent,
                 data => new VanillaElectricMachine(data)));
-            BlockTypesDictionary.Add(VanillaBlockType.Generator, new VanillaPowerGeneratorTemplate(itemStackFactory, blockInventoryUpdateEvent,
-                data => new VanillaElectricGenerator(data), (data, state) => new VanillaElectricGenerator(data, state)));
-            BlockTypesDictionary.Add(VanillaBlockType.Miner, new VanillaMinerTemplate(itemStackFactory, blockInventoryEvent,
+            BlockTypesDictionary.Add(VanillaBlockType.Generator, new VanillaPowerGeneratorTemplate(itemStackFactory,
+                blockInventoryUpdateEvent,
+                data => new VanillaElectricGenerator(data),
+                (data, state) => new VanillaElectricGenerator(data, state)));
+            BlockTypesDictionary.Add(VanillaBlockType.Miner, new VanillaMinerTemplate(itemStackFactory,
+                blockInventoryEvent,
                 data => new VanillaElectricMiner(data), data => new VanillaElectricMiner(data)));
 
 
-            BlockTypesDictionary.Add(VanillaBlockType.GearMachine, new VanillaMachineTemplate(machineRecipeConfig, itemStackFactory, blockInventoryEvent,
+            BlockTypesDictionary.Add(VanillaBlockType.GearMachine, new VanillaMachineTemplate(machineRecipeConfig,
+                itemStackFactory, blockInventoryEvent,
                 data => new VanillaGearMachine(data)));
-            BlockTypesDictionary.Add(VanillaBlockType.GearGenerator, new VanillaPowerGeneratorTemplate(itemStackFactory, blockInventoryUpdateEvent,
+            BlockTypesDictionary.Add(VanillaBlockType.GearGenerator, new VanillaPowerGeneratorTemplate(itemStackFactory,
+                blockInventoryUpdateEvent,
                 data => new VanillaGearGenerator(data), (data, state) => new VanillaGearGenerator(data, state)));
-            BlockTypesDictionary.Add(VanillaBlockType.GearMiner, new VanillaMinerTemplate(itemStackFactory, blockInventoryEvent,
+            BlockTypesDictionary.Add(VanillaBlockType.GearMiner, new VanillaMinerTemplate(itemStackFactory,
+                blockInventoryEvent,
                 data => new VanillaGearMiner(data), data => new VanillaGearMiner(data)));
 
-            BlockTypesDictionary.Add(VanillaBlockType.GearEnergyTransformer, new VanillaGearEnergyTransformerTemplate());
+            BlockTypesDictionary.Add(VanillaBlockType.GearEnergyTransformer,
+                new VanillaGearEnergyTransformerTemplate());
         }
     }
 }

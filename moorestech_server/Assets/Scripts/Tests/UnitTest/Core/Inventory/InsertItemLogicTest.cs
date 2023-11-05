@@ -1,10 +1,9 @@
-
 using Core.Inventory;
 using Core.Item;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Core.Inventory
 {
@@ -16,7 +15,8 @@ namespace Tests.UnitTest.Core.Inventory
         [Test]
         public void InsertItemWithPrioritySlotTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var itemStackFactory = serviceProvider.GetRequiredService<ItemStackFactory>();
 

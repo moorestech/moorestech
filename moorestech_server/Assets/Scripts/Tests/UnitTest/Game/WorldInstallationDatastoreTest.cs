@@ -1,4 +1,3 @@
-
 using System;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
@@ -7,7 +6,7 @@ using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Game
 {
@@ -18,7 +17,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void RegisteredDataCoordinateFromFetchTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var random = new Random(131513);
@@ -40,7 +40,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void AlreadyRegisteredEntityIdSecondTimeFailTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var entityId = CreateBlockEntityId.Create();
@@ -55,7 +56,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void AlreadyCoordinateSecondTimeFailTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) =
+                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var i = CreateMachine(1, CreateBlockEntityId.Create());
@@ -70,7 +72,8 @@ namespace Tests.UnitTest.Game
         {
             if (_blockFactory == null)
             {
-                var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                var (_, serviceProvider) =
+                    new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
                 _blockFactory = serviceProvider.GetService<IBlockFactory>();
             }
 

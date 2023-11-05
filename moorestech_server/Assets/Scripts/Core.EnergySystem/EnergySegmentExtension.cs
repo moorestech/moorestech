@@ -17,7 +17,8 @@ namespace Core.EnergySystem
                 foreach (var consumer in electric.Consumers) newSegment.AddEnergyConsumer(consumer.Value);
 
                 //エネルギー輸送の結合
-                foreach (var transformer in electric.EnergyTransformers) newSegment.AddEnergyTransformer(transformer.Value);
+                foreach (var transformer in electric.EnergyTransformers)
+                    newSegment.AddEnergyTransformer(transformer.Value);
             }
 
             return newSegment;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using Core.Const;
 using Core.Item.Config;
 using Core.Item.Util;
@@ -20,13 +21,16 @@ namespace Core.Item.Implementation
 
             if (count < 1) throw new ArgumentOutOfRangeException();
 
-            if (itemConfig.GetItemConfig(id).MaxStack < count) throw new ArgumentOutOfRangeException("アイテムスタック数の最大値を超えています ID:" + id + " Count:" + count + " MaxStack:" + itemConfig.GetItemConfig(id).MaxStack);
+            if (itemConfig.GetItemConfig(id).MaxStack < count)
+                throw new ArgumentOutOfRangeException("アイテムスタック数の最大値を超えています ID:" + id + " Count:" + count +
+                                                      " MaxStack:" + itemConfig.GetItemConfig(id).MaxStack);
 
             Id = id;
             Count = count;
         }
 
-        public ItemStack(int id, int count, IItemConfig itemConfig, ItemStackFactory itemStackFactory, long instanceId) : this(id, count, itemConfig, itemStackFactory)
+        public ItemStack(int id, int count, IItemConfig itemConfig, ItemStackFactory itemStackFactory, long instanceId)
+            : this(id, count, itemConfig, itemStackFactory)
         {
             ItemInstanceId = instanceId;
         }
@@ -91,8 +95,20 @@ namespace Core.Item.Implementation
 
         public override bool Equals(object? obj)
         {
-            if (typeof(ItemStack) != obj.GetType()) return false;
+            if (typeof(ItemStack) != obj?.GetType()) return false;
             return ((ItemStack)obj).Id == Id && ((ItemStack)obj).Count == Count;
+        }
+
+        protected bool Equals(ItemStack other)
+        {
+            return Equals(_itemConfig, other._itemConfig) && Equals(_itemStackFactory, other._itemStackFactory) &&
+                   Id == other.Id && Count == other.Count && ItemHash == other.ItemHash &&
+                   ItemInstanceId == other.ItemInstanceId;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(_itemConfig, _itemStackFactory, Id, Count, ItemHash, ItemInstanceId);
         }
 
         public override string ToString()

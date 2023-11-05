@@ -2,11 +2,11 @@ using Game.Entity.Interface;
 using Game.MapObject.Interface;
 using Game.PlayerInventory.Interface;
 using Game.Quest.Interface;
-using Game.Save.Json.WorldVersions;
+using Game.SaveLoad.Json.WorldVersions;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
 
-namespace Game.Save.Json
+namespace Game.SaveLoad.Json
 {
     public class AssembleSaveJsonText
     {
@@ -18,7 +18,9 @@ namespace Game.Save.Json
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
 
         public AssembleSaveJsonText(IPlayerInventoryDataStore inventoryDataStore,
-            IWorldBlockDatastore worldBlockDatastore, IEntitiesDatastore entitiesDatastore, IQuestDataStore questDataStore, IWorldSettingsDatastore worldSettingsDatastore, IMapObjectDatastore mapObjectDatastore)
+            IWorldBlockDatastore worldBlockDatastore, IEntitiesDatastore entitiesDatastore,
+            IQuestDataStore questDataStore, IWorldSettingsDatastore worldSettingsDatastore,
+            IMapObjectDatastore mapObjectDatastore)
         {
             _inventoryDataStore = inventoryDataStore;
             _worldBlockDatastore = worldBlockDatastore;
