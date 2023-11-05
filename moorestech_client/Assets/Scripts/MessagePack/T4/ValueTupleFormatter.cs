@@ -5,7 +5,6 @@
  * CHANGE THE .tt FILE INSTEAD. */
 
 using System;
-using System.Buffers;
 
 #pragma warning disable SA1649 // File name should match first type name
 
@@ -17,36 +16,28 @@ namespace MessagePack.Formatters
         {
             writer.WriteArrayHeader(1);
 
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             resolver.GetFormatterWithVerify<T1>().Serialize(ref writer, value.Item1, options);
         }
 
         public ValueTuple<T1> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
+            if (reader.IsNil) throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+
+            var count = reader.ReadArrayHeader();
+            if (count != 1) throw new MessagePackSerializationException("Invalid ValueTuple count");
+
+            var resolver = options.Resolver;
+            options.Security.DepthStep(ref reader);
+            try
             {
-                throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+                var item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
+
+                return new ValueTuple<T1>(item1);
             }
-            else
+            finally
             {
-                var count = reader.ReadArrayHeader();
-                if (count != 1)
-                {
-                    throw new MessagePackSerializationException("Invalid ValueTuple count");
-                }
-
-                IFormatterResolver resolver = options.Resolver;
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    T1 item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
-
-                    return new ValueTuple<T1>(item1);
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
+                reader.Depth--;
             }
         }
     }
@@ -57,38 +48,30 @@ namespace MessagePack.Formatters
         {
             writer.WriteArrayHeader(2);
 
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             resolver.GetFormatterWithVerify<T1>().Serialize(ref writer, value.Item1, options);
             resolver.GetFormatterWithVerify<T2>().Serialize(ref writer, value.Item2, options);
         }
 
         public ValueTuple<T1, T2> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
+            if (reader.IsNil) throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+
+            var count = reader.ReadArrayHeader();
+            if (count != 2) throw new MessagePackSerializationException("Invalid ValueTuple count");
+
+            var resolver = options.Resolver;
+            options.Security.DepthStep(ref reader);
+            try
             {
-                throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+                var item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
+                var item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
+
+                return new ValueTuple<T1, T2>(item1, item2);
             }
-            else
+            finally
             {
-                var count = reader.ReadArrayHeader();
-                if (count != 2)
-                {
-                    throw new MessagePackSerializationException("Invalid ValueTuple count");
-                }
-
-                IFormatterResolver resolver = options.Resolver;
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    T1 item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
-
-                    return new ValueTuple<T1, T2>(item1, item2);
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
+                reader.Depth--;
             }
         }
     }
@@ -99,7 +82,7 @@ namespace MessagePack.Formatters
         {
             writer.WriteArrayHeader(3);
 
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             resolver.GetFormatterWithVerify<T1>().Serialize(ref writer, value.Item1, options);
             resolver.GetFormatterWithVerify<T2>().Serialize(ref writer, value.Item2, options);
             resolver.GetFormatterWithVerify<T3>().Serialize(ref writer, value.Item3, options);
@@ -107,32 +90,24 @@ namespace MessagePack.Formatters
 
         public ValueTuple<T1, T2, T3> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
+            if (reader.IsNil) throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+
+            var count = reader.ReadArrayHeader();
+            if (count != 3) throw new MessagePackSerializationException("Invalid ValueTuple count");
+
+            var resolver = options.Resolver;
+            options.Security.DepthStep(ref reader);
+            try
             {
-                throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+                var item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
+                var item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
+                var item3 = resolver.GetFormatterWithVerify<T3>().Deserialize(ref reader, options);
+
+                return new ValueTuple<T1, T2, T3>(item1, item2, item3);
             }
-            else
+            finally
             {
-                var count = reader.ReadArrayHeader();
-                if (count != 3)
-                {
-                    throw new MessagePackSerializationException("Invalid ValueTuple count");
-                }
-
-                IFormatterResolver resolver = options.Resolver;
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    T1 item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
-                    T3 item3 = resolver.GetFormatterWithVerify<T3>().Deserialize(ref reader, options);
-
-                    return new ValueTuple<T1, T2, T3>(item1, item2, item3);
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
+                reader.Depth--;
             }
         }
     }
@@ -143,7 +118,7 @@ namespace MessagePack.Formatters
         {
             writer.WriteArrayHeader(4);
 
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             resolver.GetFormatterWithVerify<T1>().Serialize(ref writer, value.Item1, options);
             resolver.GetFormatterWithVerify<T2>().Serialize(ref writer, value.Item2, options);
             resolver.GetFormatterWithVerify<T3>().Serialize(ref writer, value.Item3, options);
@@ -152,33 +127,25 @@ namespace MessagePack.Formatters
 
         public ValueTuple<T1, T2, T3, T4> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
+            if (reader.IsNil) throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+
+            var count = reader.ReadArrayHeader();
+            if (count != 4) throw new MessagePackSerializationException("Invalid ValueTuple count");
+
+            var resolver = options.Resolver;
+            options.Security.DepthStep(ref reader);
+            try
             {
-                throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+                var item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
+                var item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
+                var item3 = resolver.GetFormatterWithVerify<T3>().Deserialize(ref reader, options);
+                var item4 = resolver.GetFormatterWithVerify<T4>().Deserialize(ref reader, options);
+
+                return new ValueTuple<T1, T2, T3, T4>(item1, item2, item3, item4);
             }
-            else
+            finally
             {
-                var count = reader.ReadArrayHeader();
-                if (count != 4)
-                {
-                    throw new MessagePackSerializationException("Invalid ValueTuple count");
-                }
-
-                IFormatterResolver resolver = options.Resolver;
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    T1 item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
-                    T3 item3 = resolver.GetFormatterWithVerify<T3>().Deserialize(ref reader, options);
-                    T4 item4 = resolver.GetFormatterWithVerify<T4>().Deserialize(ref reader, options);
-
-                    return new ValueTuple<T1, T2, T3, T4>(item1, item2, item3, item4);
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
+                reader.Depth--;
             }
         }
     }
@@ -189,7 +156,7 @@ namespace MessagePack.Formatters
         {
             writer.WriteArrayHeader(5);
 
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             resolver.GetFormatterWithVerify<T1>().Serialize(ref writer, value.Item1, options);
             resolver.GetFormatterWithVerify<T2>().Serialize(ref writer, value.Item2, options);
             resolver.GetFormatterWithVerify<T3>().Serialize(ref writer, value.Item3, options);
@@ -199,34 +166,26 @@ namespace MessagePack.Formatters
 
         public ValueTuple<T1, T2, T3, T4, T5> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
+            if (reader.IsNil) throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+
+            var count = reader.ReadArrayHeader();
+            if (count != 5) throw new MessagePackSerializationException("Invalid ValueTuple count");
+
+            var resolver = options.Resolver;
+            options.Security.DepthStep(ref reader);
+            try
             {
-                throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+                var item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
+                var item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
+                var item3 = resolver.GetFormatterWithVerify<T3>().Deserialize(ref reader, options);
+                var item4 = resolver.GetFormatterWithVerify<T4>().Deserialize(ref reader, options);
+                var item5 = resolver.GetFormatterWithVerify<T5>().Deserialize(ref reader, options);
+
+                return new ValueTuple<T1, T2, T3, T4, T5>(item1, item2, item3, item4, item5);
             }
-            else
+            finally
             {
-                var count = reader.ReadArrayHeader();
-                if (count != 5)
-                {
-                    throw new MessagePackSerializationException("Invalid ValueTuple count");
-                }
-
-                IFormatterResolver resolver = options.Resolver;
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    T1 item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
-                    T3 item3 = resolver.GetFormatterWithVerify<T3>().Deserialize(ref reader, options);
-                    T4 item4 = resolver.GetFormatterWithVerify<T4>().Deserialize(ref reader, options);
-                    T5 item5 = resolver.GetFormatterWithVerify<T5>().Deserialize(ref reader, options);
-
-                    return new ValueTuple<T1, T2, T3, T4, T5>(item1, item2, item3, item4, item5);
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
+                reader.Depth--;
             }
         }
     }
@@ -237,7 +196,7 @@ namespace MessagePack.Formatters
         {
             writer.WriteArrayHeader(6);
 
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             resolver.GetFormatterWithVerify<T1>().Serialize(ref writer, value.Item1, options);
             resolver.GetFormatterWithVerify<T2>().Serialize(ref writer, value.Item2, options);
             resolver.GetFormatterWithVerify<T3>().Serialize(ref writer, value.Item3, options);
@@ -248,35 +207,27 @@ namespace MessagePack.Formatters
 
         public ValueTuple<T1, T2, T3, T4, T5, T6> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
+            if (reader.IsNil) throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+
+            var count = reader.ReadArrayHeader();
+            if (count != 6) throw new MessagePackSerializationException("Invalid ValueTuple count");
+
+            var resolver = options.Resolver;
+            options.Security.DepthStep(ref reader);
+            try
             {
-                throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+                var item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
+                var item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
+                var item3 = resolver.GetFormatterWithVerify<T3>().Deserialize(ref reader, options);
+                var item4 = resolver.GetFormatterWithVerify<T4>().Deserialize(ref reader, options);
+                var item5 = resolver.GetFormatterWithVerify<T5>().Deserialize(ref reader, options);
+                var item6 = resolver.GetFormatterWithVerify<T6>().Deserialize(ref reader, options);
+
+                return new ValueTuple<T1, T2, T3, T4, T5, T6>(item1, item2, item3, item4, item5, item6);
             }
-            else
+            finally
             {
-                var count = reader.ReadArrayHeader();
-                if (count != 6)
-                {
-                    throw new MessagePackSerializationException("Invalid ValueTuple count");
-                }
-
-                IFormatterResolver resolver = options.Resolver;
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    T1 item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
-                    T3 item3 = resolver.GetFormatterWithVerify<T3>().Deserialize(ref reader, options);
-                    T4 item4 = resolver.GetFormatterWithVerify<T4>().Deserialize(ref reader, options);
-                    T5 item5 = resolver.GetFormatterWithVerify<T5>().Deserialize(ref reader, options);
-                    T6 item6 = resolver.GetFormatterWithVerify<T6>().Deserialize(ref reader, options);
-
-                    return new ValueTuple<T1, T2, T3, T4, T5, T6>(item1, item2, item3, item4, item5, item6);
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
+                reader.Depth--;
             }
         }
     }
@@ -287,7 +238,7 @@ namespace MessagePack.Formatters
         {
             writer.WriteArrayHeader(7);
 
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             resolver.GetFormatterWithVerify<T1>().Serialize(ref writer, value.Item1, options);
             resolver.GetFormatterWithVerify<T2>().Serialize(ref writer, value.Item2, options);
             resolver.GetFormatterWithVerify<T3>().Serialize(ref writer, value.Item3, options);
@@ -299,36 +250,28 @@ namespace MessagePack.Formatters
 
         public ValueTuple<T1, T2, T3, T4, T5, T6, T7> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
+            if (reader.IsNil) throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+
+            var count = reader.ReadArrayHeader();
+            if (count != 7) throw new MessagePackSerializationException("Invalid ValueTuple count");
+
+            var resolver = options.Resolver;
+            options.Security.DepthStep(ref reader);
+            try
             {
-                throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+                var item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
+                var item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
+                var item3 = resolver.GetFormatterWithVerify<T3>().Deserialize(ref reader, options);
+                var item4 = resolver.GetFormatterWithVerify<T4>().Deserialize(ref reader, options);
+                var item5 = resolver.GetFormatterWithVerify<T5>().Deserialize(ref reader, options);
+                var item6 = resolver.GetFormatterWithVerify<T6>().Deserialize(ref reader, options);
+                var item7 = resolver.GetFormatterWithVerify<T7>().Deserialize(ref reader, options);
+
+                return new ValueTuple<T1, T2, T3, T4, T5, T6, T7>(item1, item2, item3, item4, item5, item6, item7);
             }
-            else
+            finally
             {
-                var count = reader.ReadArrayHeader();
-                if (count != 7)
-                {
-                    throw new MessagePackSerializationException("Invalid ValueTuple count");
-                }
-
-                IFormatterResolver resolver = options.Resolver;
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    T1 item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
-                    T3 item3 = resolver.GetFormatterWithVerify<T3>().Deserialize(ref reader, options);
-                    T4 item4 = resolver.GetFormatterWithVerify<T4>().Deserialize(ref reader, options);
-                    T5 item5 = resolver.GetFormatterWithVerify<T5>().Deserialize(ref reader, options);
-                    T6 item6 = resolver.GetFormatterWithVerify<T6>().Deserialize(ref reader, options);
-                    T7 item7 = resolver.GetFormatterWithVerify<T7>().Deserialize(ref reader, options);
-
-                    return new ValueTuple<T1, T2, T3, T4, T5, T6, T7>(item1, item2, item3, item4, item5, item6, item7);
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
+                reader.Depth--;
             }
         }
     }
@@ -340,7 +283,7 @@ namespace MessagePack.Formatters
         {
             writer.WriteArrayHeader(8);
 
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             resolver.GetFormatterWithVerify<T1>().Serialize(ref writer, value.Item1, options);
             resolver.GetFormatterWithVerify<T2>().Serialize(ref writer, value.Item2, options);
             resolver.GetFormatterWithVerify<T3>().Serialize(ref writer, value.Item3, options);
@@ -353,37 +296,29 @@ namespace MessagePack.Formatters
 
         public ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
+            if (reader.IsNil) throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+
+            var count = reader.ReadArrayHeader();
+            if (count != 8) throw new MessagePackSerializationException("Invalid ValueTuple count");
+
+            var resolver = options.Resolver;
+            options.Security.DepthStep(ref reader);
+            try
             {
-                throw new MessagePackSerializationException("Data is Nil, ValueTuple can not be null.");
+                var item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
+                var item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
+                var item3 = resolver.GetFormatterWithVerify<T3>().Deserialize(ref reader, options);
+                var item4 = resolver.GetFormatterWithVerify<T4>().Deserialize(ref reader, options);
+                var item5 = resolver.GetFormatterWithVerify<T5>().Deserialize(ref reader, options);
+                var item6 = resolver.GetFormatterWithVerify<T6>().Deserialize(ref reader, options);
+                var item7 = resolver.GetFormatterWithVerify<T7>().Deserialize(ref reader, options);
+                var item8 = resolver.GetFormatterWithVerify<TRest>().Deserialize(ref reader, options);
+
+                return new ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>(item1, item2, item3, item4, item5, item6, item7, item8);
             }
-            else
+            finally
             {
-                var count = reader.ReadArrayHeader();
-                if (count != 8)
-                {
-                    throw new MessagePackSerializationException("Invalid ValueTuple count");
-                }
-
-                IFormatterResolver resolver = options.Resolver;
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    T1 item1 = resolver.GetFormatterWithVerify<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatterWithVerify<T2>().Deserialize(ref reader, options);
-                    T3 item3 = resolver.GetFormatterWithVerify<T3>().Deserialize(ref reader, options);
-                    T4 item4 = resolver.GetFormatterWithVerify<T4>().Deserialize(ref reader, options);
-                    T5 item5 = resolver.GetFormatterWithVerify<T5>().Deserialize(ref reader, options);
-                    T6 item6 = resolver.GetFormatterWithVerify<T6>().Deserialize(ref reader, options);
-                    T7 item7 = resolver.GetFormatterWithVerify<T7>().Deserialize(ref reader, options);
-                    TRest item8 = resolver.GetFormatterWithVerify<TRest>().Deserialize(ref reader, options);
-
-                    return new ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>(item1, item2, item3, item4, item5, item6, item7, item8);
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
+                reader.Depth--;
             }
         }
     }

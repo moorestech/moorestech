@@ -1,10 +1,9 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace MainGame.Basic
 {
     /// <summary>
-    /// 0を基準としたサーバーの座標値を、0.5をプラスして、オブジェクトなどの座標の左端を0,0に合わせるように変換する
+    ///     0を基準としたサーバーの座標値を、0.5をプラスして、オブジェクトなどの座標の左端を0,0に合わせるように変換する
     /// </summary>
     public static class WorldObjectOffsetConverter
     {

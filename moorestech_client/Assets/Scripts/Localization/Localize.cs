@@ -12,21 +12,22 @@ namespace Localization
 {
     public static class Localize
     {
+        private const string DefaultLanguageCode = "english";
+        private const int StartLocalizeTextIndex = 2;
+
         /// <summary>
-        /// ローカライズ用のテキストが入っている
-        /// Key : 国コード
-        /// Value : キーとテキストのペア
+        ///     ローカライズ用のテキストが入っている
+        ///     Key : 国コード
+        ///     Value : キーとテキストのペア
         /// </summary>
         private static readonly Dictionary<string, Dictionary<string, string>> localizeDictionary = new();
 
-        public static IObservable<Unit> OnLanguageChanged => _onLanguageChangedSubject;
         private static readonly Subject<Unit> _onLanguageChangedSubject = new();
+
+        public static IObservable<Unit> OnLanguageChanged => _onLanguageChangedSubject;
 
         public static string CurrentLanguageCode { get; private set; }
         public static List<string> LanguageCodes => localizeDictionary.Keys.ToList();
-
-        private const string DefaultLanguageCode = "english";
-        private const int StartLocalizeTextIndex = 2;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
@@ -38,7 +39,7 @@ namespace Localization
             var csvFilePath = Path.Combine(ServerConst.ServerDirectory, "config", "localization.csv");
 
             var languageCodes = new List<string>();
-            bool isFirstRow = true;
+            var isFirstRow = true;
 
             using var reader = new StreamReader(csvFilePath);
             using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
@@ -53,31 +54,24 @@ namespace Localization
                         languageCodes.Add(field);
                         localizeDictionary.Add(field, new Dictionary<string, string>());
                     }
+
                     isFirstRow = false;
                     continue;
                 }
 
                 var keyAndValues = new List<string>();
-                for (var i = 0; csv.TryGetField<string>(i, out var field); i++)
-                {
-                    keyAndValues.Add(field);
-                }
+                for (var i = 0; csv.TryGetField<string>(i, out var field); i++) keyAndValues.Add(field);
 
                 var key = keyAndValues[0];
                 for (var i = StartLocalizeTextIndex; i < keyAndValues.Count; i++)
-                {
                     //外部ソースから取得したテキストには改行コードが\nとして入っているので、それを\nに変換
-                    localizeDictionary[languageCodes[i-2]].Add(key, keyAndValues[i].Replace("\\n", "\n"));
-                }
+                    localizeDictionary[languageCodes[i - 2]].Add(key, keyAndValues[i].Replace("\\n", "\n"));
             }
         }
 
         public static string Get(string key)
         {
-            if (localizeDictionary[CurrentLanguageCode].TryGetValue(key, out var value))
-            {
-                return value;
-            }
+            if (localizeDictionary[CurrentLanguageCode].TryGetValue(key, out var value)) return value;
             return $"[Localize] Key : {key} is not found";
         }
 

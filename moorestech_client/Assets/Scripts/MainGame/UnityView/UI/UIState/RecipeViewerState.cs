@@ -6,14 +6,14 @@ namespace MainGame.UnityView.UI.UIState
 {
     public class RecipeViewState : IUIState
     {
-        private readonly RecipeViewerObject _recipeViewerObject;
         private readonly CraftRecipeItemListViewer _craftRecipeItemListViewer;
+        private readonly RecipeViewerObject _recipeViewerObject;
 
-        private bool _isRecipePlaceButton = false;
+        private bool _isRecipePlaceButton;
 
         private UIStateEnum _lastInventoryUI;
 
-        public RecipeViewState(RecipeViewerObject recipeViewerObject,CraftRecipeItemListViewer craftRecipeItemListViewer,RecipePlaceButton recipePlaceButton)
+        public RecipeViewState(RecipeViewerObject recipeViewerObject, CraftRecipeItemListViewer craftRecipeItemListViewer, RecipePlaceButton recipePlaceButton)
         {
             _craftRecipeItemListViewer = craftRecipeItemListViewer;
             _recipeViewerObject = recipeViewerObject;
@@ -22,15 +22,9 @@ namespace MainGame.UnityView.UI.UIState
 
         public UIStateEnum GetNext()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown)
-            {
-                return _lastInventoryUI;
-            }
+            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown) return _lastInventoryUI;
 
-            if (_isRecipePlaceButton)
-            {
-                return UIStateEnum.PlayerInventory;
-            }
+            if (_isRecipePlaceButton) return UIStateEnum.PlayerInventory;
 
             return UIStateEnum.Current;
         }
@@ -39,10 +33,7 @@ namespace MainGame.UnityView.UI.UIState
         {
             _isRecipePlaceButton = false;
             //連続してレシピをクリックされたとき(前回もRecipeViewerだった時)は_lastInventoryUIにデータを入れない
-            if (lastStateEnum != UIStateEnum.RecipeViewer)
-            {
-                _lastInventoryUI = lastStateEnum;
-            }
+            if (lastStateEnum != UIStateEnum.RecipeViewer) _lastInventoryUI = lastStateEnum;
             _craftRecipeItemListViewer.gameObject.SetActive(true);
             _recipeViewerObject.gameObject.SetActive(true);
         }

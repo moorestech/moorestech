@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Runtime.InteropServices;
 using static System.IO.Path;
 
@@ -30,27 +29,19 @@ namespace GameConst
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
                     RuntimeInformation.ProcessArchitecture == Architecture.X64)
-                {
                     return Combine(DotnetRuntimeDir, "win-x64", DotnetRuntimeBinaryName + ".exe");
-                }
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) &&
                     RuntimeInformation.ProcessArchitecture == Architecture.X64)
-                {
-                    return Combine(DotnetRuntimeDir,"osx-x64",DotnetRuntimeBinaryName);
-                }
+                    return Combine(DotnetRuntimeDir, "osx-x64", DotnetRuntimeBinaryName);
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) &&
                     RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
-                {
-                    return Combine(DotnetRuntimeDir,"osx-arm64",DotnetRuntimeBinaryName);
-                }
+                    return Combine(DotnetRuntimeDir, "osx-arm64", DotnetRuntimeBinaryName);
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) &&
                     RuntimeInformation.ProcessArchitecture == Architecture.X64)
-                {
-                    return Combine(DotnetRuntimeDir,"linux-x64",DotnetRuntimeBinaryName);
-                }
-                
+                    return Combine(DotnetRuntimeDir, "linux-x64", DotnetRuntimeBinaryName);
+
                 throw new Exception("Unsupported OS");
             }
         }

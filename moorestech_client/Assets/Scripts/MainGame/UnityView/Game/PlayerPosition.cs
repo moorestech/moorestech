@@ -1,12 +1,12 @@
-﻿using System;
-using StarterAssets;
+﻿using StarterAssets;
 using UnityEngine;
 
 namespace MainGame.UnityView.Game
 {
-    public class PlayerPosition : MonoBehaviour,IPlayerPosition
+    public class PlayerPosition : MonoBehaviour, IPlayerPosition
     {
         [SerializeField] private ThirdPersonController controller;
+
         public Vector2 GetPlayerPosition()
         {
             var position = transform.position;
@@ -14,8 +14,8 @@ namespace MainGame.UnityView.Game
         }
 
         /// <summary>
-        /// 注意：アップデートのタイミングによってはThirdPersonController.csによる戻しが発生する可能性がある
-        /// セットしても位置が変わらなかった時はThirdPersonController.csをオフにして位置がセットできているか試してください
+        ///     注意：アップデートのタイミングによってはThirdPersonController.csによる戻しが発生する可能性がある
+        ///     セットしても位置が変わらなかった時はThirdPersonController.csをオフにして位置がセットできているか試してください
         /// </summary>
         /// <param name="vector2"></param>
         public void SetPlayerPosition(Vector2 vector2)

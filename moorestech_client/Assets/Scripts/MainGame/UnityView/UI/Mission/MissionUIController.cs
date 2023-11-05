@@ -11,7 +11,7 @@ namespace MainGame.UnityView.UI.Mission
 
         [SerializeField] private MissionBarUIElement missionBarUIPrefab;
         [SerializeField] private RectTransform missionBarParent;
-        
+
         private readonly List<MissionBar> _sortedPriorityMissions = new();
 
         public void SetMissionList(List<MissionBase> missionDataList)
@@ -19,12 +19,13 @@ namespace MainGame.UnityView.UI.Mission
             foreach (var missionData in missionDataList)
             {
                 var missionBar = Instantiate(missionBarUIPrefab, missionBarParent);
-                
-                missionBar.SetMissionNameKey(missionData.MissionNameKey,missionData.MissionNameAddContents);
+
+                missionBar.SetMissionNameKey(missionData.MissionNameKey, missionData.MissionNameAddContents);
                 missionData.OnDone.Subscribe(_ => SetDaneMissionBar(missionBar).Forget()).AddTo(this);
-                
+
                 _sortedPriorityMissions.Add(new MissionBar(missionBar, missionData));
             }
+
             _sortedPriorityMissions.Sort((a, b) => b.MissionBase.Priority - a.MissionBase.Priority);
             UpdateDisplayMission();
         }
@@ -38,42 +39,33 @@ namespace MainGame.UnityView.UI.Mission
 
 
         /// <summary>
-        /// プライオリティの高いミッションから順に表示する
+        ///     プライオリティの高いミッションから順に表示する
         /// </summary>
         private void UpdateDisplayMission()
         {
             //全てのミッションをオフに
-            foreach (var missionBar in _sortedPriorityMissions)
-            {
-                missionBar.MissionBarUIElement.SetActive(false);
-            }
-            
+            foreach (var missionBar in _sortedPriorityMissions) missionBar.MissionBarUIElement.SetActive(false);
+
             //プライオリティの高いミッションから表示する数分だけ表示する
             //もし完了していたら表示しない
             var displayedBarCount = 0;
             foreach (var missionBar in _sortedPriorityMissions)
             {
-                if (missionBar.MissionBase.IsDone)
-                {
-                    continue;
-                }
-                
+                if (missionBar.MissionBase.IsDone) continue;
+
                 displayedBarCount++;
-                if (DisplayMissionCount < displayedBarCount)
-                {
-                    break;
-                }
-                
+                if (DisplayMissionCount < displayedBarCount) break;
+
                 missionBar.MissionBarUIElement.SetActive(true);
             }
         }
     }
 
-    class MissionBar
+    internal class MissionBar
     {
         public readonly MissionBarUIElement MissionBarUIElement;
         public readonly MissionBase MissionBase;
-        
+
         public MissionBar(MissionBarUIElement missionBarUIElement, MissionBase missionBase)
         {
             MissionBarUIElement = missionBarUIElement;

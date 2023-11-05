@@ -14,19 +14,6 @@ namespace InputSystem
     [DisplayStringFormat("{select0}/{select1}/{select2}/{select3}/{select4}/{select5}/{select6}/{select7}/{select8}")]
     public class HotBarKeyBoardComposite : InputBindingComposite<int>
     {
-#if UNITY_EDITOR
-        static HotBarKeyBoardComposite()
-        {
-            Initialize();
-        }
-#endif
-
-        [RuntimeInitializeOnLoadMethod]
-        static void Initialize()
-        {
-            UnityEngine.InputSystem.InputSystem.RegisterBindingComposite<HotBarKeyBoardComposite>();
-        }
-
         [InputControl(layout = "Button")] public int select0 = 1;
         [InputControl(layout = "Button")] public int select1 = 2;
         [InputControl(layout = "Button")] public int select2 = 3;
@@ -36,6 +23,18 @@ namespace InputSystem
         [InputControl(layout = "Button")] public int select6 = 7;
         [InputControl(layout = "Button")] public int select7 = 8;
         [InputControl(layout = "Button")] public int select8 = 9;
+#if UNITY_EDITOR
+        static HotBarKeyBoardComposite()
+        {
+            Initialize();
+        }
+#endif
+
+        [RuntimeInitializeOnLoadMethod]
+        private static void Initialize()
+        {
+            UnityEngine.InputSystem.InputSystem.RegisterBindingComposite<HotBarKeyBoardComposite>();
+        }
 
         public override int ReadValue(ref InputBindingCompositeContext context)
         {
@@ -48,7 +47,7 @@ namespace InputSystem
             if (context.ReadValueAsButton(select6)) return select6;
             if (context.ReadValueAsButton(select7)) return select7;
             if (context.ReadValueAsButton(select8)) return select8;
-            
+
             return 0;
         }
     }

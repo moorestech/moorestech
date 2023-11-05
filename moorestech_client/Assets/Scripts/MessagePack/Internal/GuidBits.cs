@@ -9,173 +9,145 @@ namespace MessagePack.Internal
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
     internal struct GuidBits
     {
-        [FieldOffset(0)]
-        public readonly Guid Value;
+        [FieldOffset(0)] public readonly Guid Value;
 
-        [FieldOffset(0)]
-        public readonly byte Byte0;
-        [FieldOffset(1)]
-        public readonly byte Byte1;
-        [FieldOffset(2)]
-        public readonly byte Byte2;
-        [FieldOffset(3)]
-        public readonly byte Byte3;
-        [FieldOffset(4)]
-        public readonly byte Byte4;
-        [FieldOffset(5)]
-        public readonly byte Byte5;
-        [FieldOffset(6)]
-        public readonly byte Byte6;
-        [FieldOffset(7)]
-        public readonly byte Byte7;
-        [FieldOffset(8)]
-        public readonly byte Byte8;
-        [FieldOffset(9)]
-        public readonly byte Byte9;
-        [FieldOffset(10)]
-        public readonly byte Byte10;
-        [FieldOffset(11)]
-        public readonly byte Byte11;
-        [FieldOffset(12)]
-        public readonly byte Byte12;
-        [FieldOffset(13)]
-        public readonly byte Byte13;
-        [FieldOffset(14)]
-        public readonly byte Byte14;
-        [FieldOffset(15)]
-        public readonly byte Byte15;
+        [FieldOffset(0)] public readonly byte Byte0;
+        [FieldOffset(1)] public readonly byte Byte1;
+        [FieldOffset(2)] public readonly byte Byte2;
+        [FieldOffset(3)] public readonly byte Byte3;
+        [FieldOffset(4)] public readonly byte Byte4;
+        [FieldOffset(5)] public readonly byte Byte5;
+        [FieldOffset(6)] public readonly byte Byte6;
+        [FieldOffset(7)] public readonly byte Byte7;
+        [FieldOffset(8)] public readonly byte Byte8;
+        [FieldOffset(9)] public readonly byte Byte9;
+        [FieldOffset(10)] public readonly byte Byte10;
+        [FieldOffset(11)] public readonly byte Byte11;
+        [FieldOffset(12)] public readonly byte Byte12;
+        [FieldOffset(13)] public readonly byte Byte13;
+        [FieldOffset(14)] public readonly byte Byte14;
+        [FieldOffset(15)] public readonly byte Byte15;
 
         // string.Join(", ", Enumerable.Range(0, 256).Select(x => (int)BitConverter.ToString(new byte[] { (byte)x }).ToLower()[0]))
-        private static ReadOnlySpan<byte> GetByteToHexStringHigh() => new byte[256] { 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 };
+        private static ReadOnlySpan<byte> GetByteToHexStringHigh()
+        {
+            return new byte[256] { 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 52, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 54, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 };
+        }
 
         // string.Join(", ", Enumerable.Range(0, 256).Select(x => (int)BitConverter.ToString(new byte[] { (byte)x }).ToLower()[1]))
-        private static ReadOnlySpan<byte> GetByteToHexStringLow() => new byte[256] { 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102 };
+        private static ReadOnlySpan<byte> GetByteToHexStringLow()
+        {
+            return new byte[256] { 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102 };
+        }
 
         public GuidBits(ref Guid value)
         {
-            this = default(GuidBits);
-            this.Value = value;
+            this = default;
+            Value = value;
         }
 
         // 4-pattern, lower/upper and '-' or no
         public GuidBits(ReadOnlySpan<byte> utf8string)
         {
-            this = default(GuidBits);
+            this = default;
 
             // 32
             if (utf8string.Length == 32)
             {
                 if (BitConverter.IsLittleEndian)
                 {
-                    this.Byte0 = Parse(utf8string, 6);
-                    this.Byte1 = Parse(utf8string, 4);
-                    this.Byte2 = Parse(utf8string, 2);
-                    this.Byte3 = Parse(utf8string, 0);
+                    Byte0 = Parse(utf8string, 6);
+                    Byte1 = Parse(utf8string, 4);
+                    Byte2 = Parse(utf8string, 2);
+                    Byte3 = Parse(utf8string, 0);
 
-                    this.Byte4 = Parse(utf8string, 10);
-                    this.Byte5 = Parse(utf8string, 8);
+                    Byte4 = Parse(utf8string, 10);
+                    Byte5 = Parse(utf8string, 8);
 
-                    this.Byte6 = Parse(utf8string, 14);
-                    this.Byte7 = Parse(utf8string, 12);
+                    Byte6 = Parse(utf8string, 14);
+                    Byte7 = Parse(utf8string, 12);
                 }
                 else
                 {
-                    this.Byte0 = Parse(utf8string, 0);
-                    this.Byte1 = Parse(utf8string, 2);
-                    this.Byte2 = Parse(utf8string, 4);
-                    this.Byte3 = Parse(utf8string, 6);
+                    Byte0 = Parse(utf8string, 0);
+                    Byte1 = Parse(utf8string, 2);
+                    Byte2 = Parse(utf8string, 4);
+                    Byte3 = Parse(utf8string, 6);
 
-                    this.Byte4 = Parse(utf8string, 8);
-                    this.Byte5 = Parse(utf8string, 10);
+                    Byte4 = Parse(utf8string, 8);
+                    Byte5 = Parse(utf8string, 10);
 
-                    this.Byte6 = Parse(utf8string, 12);
-                    this.Byte7 = Parse(utf8string, 14);
+                    Byte6 = Parse(utf8string, 12);
+                    Byte7 = Parse(utf8string, 14);
                 }
 
-                this.Byte8 = Parse(utf8string, 16);
-                this.Byte9 = Parse(utf8string, 18);
+                Byte8 = Parse(utf8string, 16);
+                Byte9 = Parse(utf8string, 18);
 
-                this.Byte10 = Parse(utf8string, 20);
-                this.Byte11 = Parse(utf8string, 22);
-                this.Byte12 = Parse(utf8string, 24);
-                this.Byte13 = Parse(utf8string, 26);
-                this.Byte14 = Parse(utf8string, 28);
-                this.Byte15 = Parse(utf8string, 30);
+                Byte10 = Parse(utf8string, 20);
+                Byte11 = Parse(utf8string, 22);
+                Byte12 = Parse(utf8string, 24);
+                Byte13 = Parse(utf8string, 26);
+                Byte14 = Parse(utf8string, 28);
+                Byte15 = Parse(utf8string, 30);
                 return;
             }
-            else if (utf8string.Length == 36)
+
+            if (utf8string.Length == 36)
             {
                 // '-' => 45
                 if (BitConverter.IsLittleEndian)
                 {
-                    this.Byte0 = Parse(utf8string, 6);
-                    this.Byte1 = Parse(utf8string, 4);
-                    this.Byte2 = Parse(utf8string, 2);
-                    this.Byte3 = Parse(utf8string, 0);
+                    Byte0 = Parse(utf8string, 6);
+                    Byte1 = Parse(utf8string, 4);
+                    Byte2 = Parse(utf8string, 2);
+                    Byte3 = Parse(utf8string, 0);
 
-                    if (utf8string[8] != '-')
-                    {
-                        goto ERROR;
-                    }
+                    if (utf8string[8] != '-') goto ERROR;
 
-                    this.Byte4 = Parse(utf8string, 11);
-                    this.Byte5 = Parse(utf8string, 9);
+                    Byte4 = Parse(utf8string, 11);
+                    Byte5 = Parse(utf8string, 9);
 
-                    if (utf8string[13] != '-')
-                    {
-                        goto ERROR;
-                    }
+                    if (utf8string[13] != '-') goto ERROR;
 
-                    this.Byte6 = Parse(utf8string, 16);
-                    this.Byte7 = Parse(utf8string, 14);
+                    Byte6 = Parse(utf8string, 16);
+                    Byte7 = Parse(utf8string, 14);
                 }
                 else
                 {
-                    this.Byte0 = Parse(utf8string, 0);
-                    this.Byte1 = Parse(utf8string, 2);
-                    this.Byte2 = Parse(utf8string, 4);
-                    this.Byte3 = Parse(utf8string, 6);
+                    Byte0 = Parse(utf8string, 0);
+                    Byte1 = Parse(utf8string, 2);
+                    Byte2 = Parse(utf8string, 4);
+                    Byte3 = Parse(utf8string, 6);
 
-                    if (utf8string[8] != '-')
-                    {
-                        goto ERROR;
-                    }
+                    if (utf8string[8] != '-') goto ERROR;
 
-                    this.Byte4 = Parse(utf8string, 9);
-                    this.Byte5 = Parse(utf8string, 11);
+                    Byte4 = Parse(utf8string, 9);
+                    Byte5 = Parse(utf8string, 11);
 
-                    if (utf8string[13] != '-')
-                    {
-                        goto ERROR;
-                    }
+                    if (utf8string[13] != '-') goto ERROR;
 
-                    this.Byte6 = Parse(utf8string, 14);
-                    this.Byte7 = Parse(utf8string, 16);
+                    Byte6 = Parse(utf8string, 14);
+                    Byte7 = Parse(utf8string, 16);
                 }
 
-                if (utf8string[18] != '-')
-                {
-                    goto ERROR;
-                }
+                if (utf8string[18] != '-') goto ERROR;
 
-                this.Byte8 = Parse(utf8string, 19);
-                this.Byte9 = Parse(utf8string, 21);
+                Byte8 = Parse(utf8string, 19);
+                Byte9 = Parse(utf8string, 21);
 
-                if (utf8string[23] != '-')
-                {
-                    goto ERROR;
-                }
+                if (utf8string[23] != '-') goto ERROR;
 
-                this.Byte10 = Parse(utf8string, 24);
-                this.Byte11 = Parse(utf8string, 26);
-                this.Byte12 = Parse(utf8string, 28);
-                this.Byte13 = Parse(utf8string, 30);
-                this.Byte14 = Parse(utf8string, 32);
-                this.Byte15 = Parse(utf8string, 34);
+                Byte10 = Parse(utf8string, 24);
+                Byte11 = Parse(utf8string, 26);
+                Byte12 = Parse(utf8string, 28);
+                Byte13 = Parse(utf8string, 30);
+                Byte14 = Parse(utf8string, 32);
+                Byte15 = Parse(utf8string, 34);
                 return;
             }
 
-ERROR:
+            ERROR:
             throw new MessagePackSerializationException("Invalid Guid Pattern.");
         }
 
@@ -184,7 +156,7 @@ ERROR:
 #endif
         private static byte Parse(ReadOnlySpan<byte> bytes, int highOffset)
         {
-            return unchecked((byte)((SwitchParse(bytes[highOffset]) * 16) + SwitchParse(bytes[highOffset + 1])));
+            return unchecked((byte)(SwitchParse(bytes[highOffset]) * 16 + SwitchParse(bytes[highOffset + 1])));
         }
 
 #if !UNITY_2018_3_OR_NEWER
@@ -317,78 +289,78 @@ ERROR:
             if (BitConverter.IsLittleEndian)
             {
                 // int(_a)
-                buffer[6] = high[this.Byte0];
-                buffer[7] = low[this.Byte0];
-                buffer[4] = high[this.Byte1];
-                buffer[5] = low[this.Byte1];
-                buffer[2] = high[this.Byte2];
-                buffer[3] = low[this.Byte2];
-                buffer[0] = high[this.Byte3];
-                buffer[1] = low[this.Byte3];
+                buffer[6] = high[Byte0];
+                buffer[7] = low[Byte0];
+                buffer[4] = high[Byte1];
+                buffer[5] = low[Byte1];
+                buffer[2] = high[Byte2];
+                buffer[3] = low[Byte2];
+                buffer[0] = high[Byte3];
+                buffer[1] = low[Byte3];
 
                 buffer[8] = (byte)'-';
 
                 // short(_b)
-                buffer[11] = high[this.Byte4];
-                buffer[12] = low[this.Byte4];
-                buffer[9] = high[this.Byte5];
-                buffer[10] = low[this.Byte5];
+                buffer[11] = high[Byte4];
+                buffer[12] = low[Byte4];
+                buffer[9] = high[Byte5];
+                buffer[10] = low[Byte5];
 
                 buffer[13] = (byte)'-';
 
                 // short(_c)
-                buffer[16] = high[this.Byte6];
-                buffer[17] = low[this.Byte6];
-                buffer[14] = high[this.Byte7];
-                buffer[15] = low[this.Byte7];
+                buffer[16] = high[Byte6];
+                buffer[17] = low[Byte6];
+                buffer[14] = high[Byte7];
+                buffer[15] = low[Byte7];
             }
             else
             {
-                buffer[0] = high[this.Byte0];
-                buffer[1] = low[this.Byte0];
-                buffer[2] = high[this.Byte1];
-                buffer[3] = low[this.Byte1];
-                buffer[4] = high[this.Byte2];
-                buffer[5] = low[this.Byte2];
-                buffer[6] = high[this.Byte3];
-                buffer[7] = low[this.Byte3];
+                buffer[0] = high[Byte0];
+                buffer[1] = low[Byte0];
+                buffer[2] = high[Byte1];
+                buffer[3] = low[Byte1];
+                buffer[4] = high[Byte2];
+                buffer[5] = low[Byte2];
+                buffer[6] = high[Byte3];
+                buffer[7] = low[Byte3];
 
                 buffer[8] = (byte)'-';
 
-                buffer[9] = high[this.Byte4];
-                buffer[10] = low[this.Byte4];
-                buffer[11] = high[this.Byte5];
-                buffer[12] = low[this.Byte5];
+                buffer[9] = high[Byte4];
+                buffer[10] = low[Byte4];
+                buffer[11] = high[Byte5];
+                buffer[12] = low[Byte5];
 
                 buffer[13] = (byte)'-';
 
-                buffer[14] = high[this.Byte6];
-                buffer[15] = low[this.Byte6];
-                buffer[16] = high[this.Byte7];
-                buffer[17] = low[this.Byte7];
+                buffer[14] = high[Byte6];
+                buffer[15] = low[Byte6];
+                buffer[16] = high[Byte7];
+                buffer[17] = low[Byte7];
             }
 
             buffer[18] = (byte)'-';
 
-            buffer[19] = high[this.Byte8];
-            buffer[20] = low[this.Byte8];
-            buffer[21] = high[this.Byte9];
-            buffer[22] = low[this.Byte9];
+            buffer[19] = high[Byte8];
+            buffer[20] = low[Byte8];
+            buffer[21] = high[Byte9];
+            buffer[22] = low[Byte9];
 
             buffer[23] = (byte)'-';
 
-            buffer[24] = high[this.Byte10];
-            buffer[25] = low[this.Byte10];
-            buffer[26] = high[this.Byte11];
-            buffer[27] = low[this.Byte11];
-            buffer[28] = high[this.Byte12];
-            buffer[29] = low[this.Byte12];
-            buffer[30] = high[this.Byte13];
-            buffer[31] = low[this.Byte13];
-            buffer[32] = high[this.Byte14];
-            buffer[33] = low[this.Byte14];
-            buffer[34] = high[this.Byte15];
-            buffer[35] = low[this.Byte15];
+            buffer[24] = high[Byte10];
+            buffer[25] = low[Byte10];
+            buffer[26] = high[Byte11];
+            buffer[27] = low[Byte11];
+            buffer[28] = high[Byte12];
+            buffer[29] = low[Byte12];
+            buffer[30] = high[Byte13];
+            buffer[31] = low[Byte13];
+            buffer[32] = high[Byte14];
+            buffer[33] = low[Byte14];
+            buffer[34] = high[Byte15];
+            buffer[35] = low[Byte15];
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using MainGame.Network.Event;
@@ -21,11 +22,11 @@ namespace MainGame.Network.Receive.EventPacket
             var data = MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(packet.ToArray());
             switch (data.EventType)
             {
-                case MapObjectUpdateEventMessagePack.OnDestroyEventType:
+                case MapObjectUpdateEventMessagePack.DestroyEventType:
                     _mapObjectUpdateEvent.InvokeOnDestroyMapObject(new MapObjectProperties(data.InstanceId, true)).Forget();
                     break;
                 default:
-                    throw new System.Exception("MapObjectUpdateEventProtocol: EventTypeが不正か実装されていません");
+                    throw new Exception("MapObjectUpdateEventProtocol: EventTypeが不正か実装されていません");
             }
         }
     }

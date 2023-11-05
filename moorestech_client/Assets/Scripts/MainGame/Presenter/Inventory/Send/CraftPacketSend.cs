@@ -9,10 +9,14 @@ namespace MainGame.Presenter.Inventory.Send
     {
         private readonly SendCraftProtocol _sendCraftProtocol;
 
-        public CraftPacketSend(CraftInventoryObjectCreator craftInventoryObjectCreator,SendCraftProtocol sendCraftProtocol)
+        public CraftPacketSend(CraftInventoryObjectCreator craftInventoryObjectCreator, SendCraftProtocol sendCraftProtocol)
         {
             _sendCraftProtocol = sendCraftProtocol;
             craftInventoryObjectCreator.OnResultSlotClick += OnCraft;
+        }
+
+        public void Initialize()
+        {
         }
 
         private void OnCraft()
@@ -28,10 +32,8 @@ namespace MainGame.Presenter.Inventory.Send
                 _sendCraftProtocol.SendOneStackCraft();
                 return;
             }
-            
+
             _sendCraftProtocol.SendOneCraft();
         }
-
-        public void Initialize() { }
     }
 }

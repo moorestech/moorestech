@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using UnityEngine;
 
 namespace MainGame.Network.Event
 {
-    public class ReceiveBlockInventoryEvent 
+    public class ReceiveBlockInventoryEvent
     {
         public event Action<BlockInventorySlotUpdateProperties> OnBlockInventorySlotUpdate;
         public event Action<SettingBlockInventoryProperties> OnSettingBlockInventory;
@@ -17,9 +16,7 @@ namespace MainGame.Network.Event
             await UniTask.SwitchToMainThread();
             OnSettingBlockInventory?.Invoke(properties);
         }
-        
-        
-        
+
 
         internal async UniTask InvokeBlockInventorySlotUpdate(BlockInventorySlotUpdateProperties properties)
         {
@@ -30,10 +27,10 @@ namespace MainGame.Network.Event
 
     public class BlockInventorySlotUpdateProperties
     {
+        public readonly int Count;
+        public readonly int Id;
         public readonly Vector2Int Position;
         public readonly int Slot;
-        public readonly int Id;
-        public readonly int Count;
 
         public BlockInventorySlotUpdateProperties(Vector2Int position, int slot, int id, int count)
         {
@@ -46,13 +43,13 @@ namespace MainGame.Network.Event
 
     public class SettingBlockInventoryProperties
     {
-        public readonly  List<ItemStack> ItemStacks;
         public readonly int BlockId;
+        public readonly List<ItemStack> ItemStacks;
 
         public SettingBlockInventoryProperties(List<ItemStack> itemStacks, int blockId)
         {
             ItemStacks = itemStacks;
-            this.BlockId = blockId;
+            BlockId = blockId;
         }
     }
 }

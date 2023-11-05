@@ -4,45 +4,47 @@
 using System;
 using System.Buffers;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MessagePack.LZ4;
-using Nerdbank.Streams;
 
 namespace MessagePack
 {
     /// <summary>
-    /// High-Level API of MessagePack for C#.
+    ///     High-Level API of MessagePack for C#.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "Each overload has sufficiently unique required parameters.")]
+    [SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "Each overload has sufficiently unique required parameters.")]
     public static partial class MessagePackSerializer
     {
         private const int LZ4NotCompressionSizeInLz4BlockType = 64;
         private const int MaxHintSize = 1024 * 1024;
 
         /// <summary>
-        /// Gets or sets the default set of options to use when not explicitly specified for a method call.
+        ///     A thread-local, recyclable array that may be used for short bursts of code.
         /// </summary>
-        /// <value>The default value is <see cref="MessagePackSerializerOptions.Standard"/>.</value>
+        [ThreadStatic] private static byte[] scratchArray;
+
+        private static readonly LZ4Transform LZ4CodecEncode = LZ4Codec.Encode;
+        private static readonly LZ4Transform LZ4CodecDecode = LZ4Codec.Decode;
+
+        /// <summary>
+        ///     Gets or sets the default set of options to use when not explicitly specified for a method call.
+        /// </summary>
+        /// <value>The default value is <see cref="MessagePackSerializerOptions.Standard" />.</value>
         /// <remarks>
-        /// This is an AppDomain or process-wide setting.
-        /// If you're writing a library, you should NOT set or rely on this property but should instead pass
-        /// in <see cref="MessagePackSerializerOptions.Standard"/> (or the required options) explicitly to every method call
-        /// to guarantee appropriate behavior in any application.
-        /// If you are an app author, realize that setting this property impacts the entire application so it should only be
-        /// set once, and before any use of <see cref="MessagePackSerializer"/> occurs.
+        ///     This is an AppDomain or process-wide setting.
+        ///     If you're writing a library, you should NOT set or rely on this property but should instead pass
+        ///     in <see cref="MessagePackSerializerOptions.Standard" /> (or the required options) explicitly to every method call
+        ///     to guarantee appropriate behavior in any application.
+        ///     If you are an app author, realize that setting this property impacts the entire application so it should only be
+        ///     set once, and before any use of <see cref="MessagePackSerializer" /> occurs.
         /// </remarks>
         public static MessagePackSerializerOptions DefaultOptions { get; set; } = MessagePackSerializerOptions.Standard;
 
         /// <summary>
-        /// A thread-local, recyclable array that may be used for short bursts of code.
-        /// </summary>
-        [ThreadStatic]
-        private static byte[] scratchArray;
-
-        /// <summary>
-        /// Serializes a given value with the specified buffer writer.
+        ///     Serializes a given value with the specified buffer writer.
         /// </summary>
         /// <param name="writer">The buffer writer to serialize with.</param>
         /// <param name="value">The value to serialize.</param>
@@ -53,14 +55,14 @@ namespace MessagePack
         {
             var fastWriter = new MessagePackWriter(writer)
             {
-                CancellationToken = cancellationToken,
+                CancellationToken = cancellationToken
             };
             Serialize(ref fastWriter, value, options);
             fastWriter.Flush();
         }
 
         /// <summary>
-        /// Serializes a given value with the specified buffer writer.
+        ///     Serializes a given value with the specified buffer writer.
         /// </summary>
         /// <param name="writer">The buffer writer to serialize with.</param>
         /// <param name="value">The value to serialize.</param>
@@ -69,29 +71,22 @@ namespace MessagePack
         public static void Serialize<T>(ref MessagePackWriter writer, T value, MessagePackSerializerOptions options = null)
         {
             options = options ?? DefaultOptions;
-            bool originalOldSpecValue = writer.OldSpec;
-            if (options.OldSpec.HasValue)
-            {
-                writer.OldSpec = options.OldSpec.Value;
-            }
+            var originalOldSpecValue = writer.OldSpec;
+            if (options.OldSpec.HasValue) writer.OldSpec = options.OldSpec.Value;
 
             try
             {
                 if (options.Compression.IsCompression() && !PrimitiveChecker<T>.IsMessagePackFixedSizePrimitive)
-                {
                     using (var scratchRental = options.SequencePool.Rent())
                     {
                         var scratch = scratchRental.Value;
-                        MessagePackWriter scratchWriter = writer.Clone(scratch);
+                        var scratchWriter = writer.Clone(scratch);
                         options.Resolver.GetFormatterWithVerify<T>().Serialize(ref scratchWriter, value, options);
                         scratchWriter.Flush();
                         ToLZ4BinaryCore(scratch, ref writer, options.Compression);
                     }
-                }
                 else
-                {
                     options.Resolver.GetFormatterWithVerify<T>().Serialize(ref writer, value, options);
-                }
             }
             catch (Exception ex)
             {
@@ -104,7 +99,7 @@ namespace MessagePack
         }
 
         /// <summary>
-        /// Serializes a given value with the specified buffer writer.
+        ///     Serializes a given value with the specified buffer writer.
         /// </summary>
         /// <param name="value">The value to serialize.</param>
         /// <param name="options">The options. Use <c>null</c> to use default options.</param>
@@ -113,23 +108,20 @@ namespace MessagePack
         /// <exception cref="MessagePackSerializationException">Thrown when any error occurs during serialization.</exception>
         public static byte[] Serialize<T>(T value, MessagePackSerializerOptions options = null, CancellationToken cancellationToken = default)
         {
-            byte[] array = scratchArray;
-            if (array == null)
-            {
-                scratchArray = array = new byte[65536];
-            }
+            var array = scratchArray;
+            if (array == null) scratchArray = array = new byte[65536];
 
             options = options ?? DefaultOptions;
             var msgpackWriter = new MessagePackWriter(options.SequencePool, array)
             {
-                CancellationToken = cancellationToken,
+                CancellationToken = cancellationToken
             };
             Serialize(ref msgpackWriter, value, options);
             return msgpackWriter.FlushAndGetArray();
         }
 
         /// <summary>
-        /// Serializes a given value to the specified stream.
+        ///     Serializes a given value to the specified stream.
         /// </summary>
         /// <param name="stream">The stream to serialize to.</param>
         /// <param name="value">The value to serialize.</param>
@@ -141,13 +133,13 @@ namespace MessagePack
             options = options ?? DefaultOptions;
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (SequencePool.Rental sequenceRental = options.SequencePool.Rent())
+            using (var sequenceRental = options.SequencePool.Rent())
             {
-                Serialize<T>(sequenceRental.Value, value, options, cancellationToken);
+                Serialize(sequenceRental.Value, value, options, cancellationToken);
 
                 try
                 {
-                    foreach (ReadOnlyMemory<byte> segment in sequenceRental.Value.AsReadOnlySequence)
+                    foreach (var segment in sequenceRental.Value.AsReadOnlySequence)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         stream.Write(segment.Span);
@@ -161,7 +153,7 @@ namespace MessagePack
         }
 
         /// <summary>
-        /// Serializes a given value to the specified stream.
+        ///     Serializes a given value to the specified stream.
         /// </summary>
         /// <param name="stream">The stream to serialize to.</param>
         /// <param name="value">The value to serialize.</param>
@@ -174,13 +166,13 @@ namespace MessagePack
             options = options ?? DefaultOptions;
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (SequencePool.Rental sequenceRental = options.SequencePool.Rent())
+            using (var sequenceRental = options.SequencePool.Rent())
             {
-                Serialize<T>(sequenceRental.Value, value, options, cancellationToken);
+                Serialize(sequenceRental.Value, value, options, cancellationToken);
 
                 try
                 {
-                    foreach (ReadOnlyMemory<byte> segment in sequenceRental.Value.AsReadOnlySequence)
+                    foreach (var segment in sequenceRental.Value.AsReadOnlySequence)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         await stream.WriteAsync(segment, cancellationToken).ConfigureAwait(false);
@@ -194,7 +186,7 @@ namespace MessagePack
         }
 
         /// <summary>
-        /// Deserializes a value of a given type from a sequence of bytes.
+        ///     Deserializes a value of a given type from a sequence of bytes.
         /// </summary>
         /// <typeparam name="T">The type of value to deserialize.</typeparam>
         /// <param name="byteSequence">The sequence to deserialize from.</param>
@@ -206,13 +198,13 @@ namespace MessagePack
         {
             var reader = new MessagePackReader(byteSequence)
             {
-                CancellationToken = cancellationToken,
+                CancellationToken = cancellationToken
             };
             return Deserialize<T>(ref reader, options);
         }
 
         /// <summary>
-        /// Deserializes a value of a given type from a sequence of bytes.
+        ///     Deserializes a value of a given type from a sequence of bytes.
         /// </summary>
         /// <typeparam name="T">The type of value to deserialize.</typeparam>
         /// <param name="reader">The reader to deserialize from.</param>
@@ -226,25 +218,19 @@ namespace MessagePack
             try
             {
                 if (options.Compression.IsCompression())
-                {
                     using (var msgPackUncompressedRental = options.SequencePool.Rent())
                     {
                         var msgPackUncompressed = msgPackUncompressedRental.Value;
                         if (TryDecompress(ref reader, msgPackUncompressed))
                         {
-                            MessagePackReader uncompressedReader = reader.Clone(msgPackUncompressed.AsReadOnlySequence);
+                            var uncompressedReader = reader.Clone(msgPackUncompressed.AsReadOnlySequence);
                             return options.Resolver.GetFormatterWithVerify<T>().Deserialize(ref uncompressedReader, options);
                         }
-                        else
-                        {
-                            return options.Resolver.GetFormatterWithVerify<T>().Deserialize(ref reader, options);
-                        }
+
+                        return options.Resolver.GetFormatterWithVerify<T>().Deserialize(ref reader, options);
                     }
-                }
-                else
-                {
-                    return options.Resolver.GetFormatterWithVerify<T>().Deserialize(ref reader, options);
-                }
+
+                return options.Resolver.GetFormatterWithVerify<T>().Deserialize(ref reader, options);
             }
             catch (Exception ex)
             {
@@ -253,7 +239,7 @@ namespace MessagePack
         }
 
         /// <summary>
-        /// Deserializes a value of a given type from a sequence of bytes.
+        ///     Deserializes a value of a given type from a sequence of bytes.
         /// </summary>
         /// <typeparam name="T">The type of value to deserialize.</typeparam>
         /// <param name="buffer">The buffer to deserialize from.</param>
@@ -265,13 +251,13 @@ namespace MessagePack
         {
             var reader = new MessagePackReader(buffer)
             {
-                CancellationToken = cancellationToken,
+                CancellationToken = cancellationToken
             };
             return Deserialize<T>(ref reader, options);
         }
 
         /// <summary>
-        /// Deserializes a value of a given type from a sequence of bytes.
+        ///     Deserializes a value of a given type from a sequence of bytes.
         /// </summary>
         /// <typeparam name="T">The type of value to deserialize.</typeparam>
         /// <param name="buffer">The memory to deserialize from.</param>
@@ -279,10 +265,13 @@ namespace MessagePack
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The deserialized value.</returns>
         /// <exception cref="MessagePackSerializationException">Thrown when any error occurs during deserialization.</exception>
-        public static T Deserialize<T>(ReadOnlyMemory<byte> buffer, out int bytesRead, CancellationToken cancellationToken = default) => Deserialize<T>(buffer, options: null, out bytesRead, cancellationToken);
+        public static T Deserialize<T>(ReadOnlyMemory<byte> buffer, out int bytesRead, CancellationToken cancellationToken = default)
+        {
+            return Deserialize<T>(buffer, null, out bytesRead, cancellationToken);
+        }
 
         /// <summary>
-        /// Deserializes a value of a given type from a sequence of bytes.
+        ///     Deserializes a value of a given type from a sequence of bytes.
         /// </summary>
         /// <typeparam name="T">The type of value to deserialize.</typeparam>
         /// <param name="buffer">The memory to deserialize from.</param>
@@ -295,37 +284,36 @@ namespace MessagePack
         {
             var reader = new MessagePackReader(buffer)
             {
-                CancellationToken = cancellationToken,
+                CancellationToken = cancellationToken
             };
-            T result = Deserialize<T>(ref reader, options);
+            var result = Deserialize<T>(ref reader, options);
             bytesRead = buffer.Slice(0, (int)reader.Consumed).Length;
             return result;
         }
 
         /// <summary>
-        /// Deserializes the entire content of a <see cref="Stream"/>.
+        ///     Deserializes the entire content of a <see cref="Stream" />.
         /// </summary>
         /// <typeparam name="T">The type of value to deserialize.</typeparam>
         /// <param name="stream">
-        /// The stream to deserialize from.
-        /// The entire stream will be read, and the first msgpack token deserialized will be returned.
-        /// If <see cref="Stream.CanSeek"/> is true on the stream, its position will be set to just after the last deserialized byte.
+        ///     The stream to deserialize from.
+        ///     The entire stream will be read, and the first msgpack token deserialized will be returned.
+        ///     If <see cref="Stream.CanSeek" /> is true on the stream, its position will be set to just after the last
+        ///     deserialized byte.
         /// </param>
         /// <param name="options">The options. Use <c>null</c> to use default options.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The deserialized value.</returns>
         /// <exception cref="MessagePackSerializationException">Thrown when any error occurs during deserialization.</exception>
         /// <remarks>
-        /// If multiple top-level msgpack data structures are expected on the stream, use <see cref="MessagePackStreamReader"/> instead.
+        ///     If multiple top-level msgpack data structures are expected on the stream, use
+        ///     <see cref="MessagePackStreamReader" /> instead.
         /// </remarks>
         public static T Deserialize<T>(Stream stream, MessagePackSerializerOptions options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? DefaultOptions;
 
-            if (TryDeserializeFromMemoryStream(stream, options, cancellationToken, out T result))
-            {
-                return result;
-            }
+            if (TryDeserializeFromMemoryStream(stream, options, cancellationToken, out T result)) return result;
 
             using (var sequenceRental = options.SequencePool.Rent())
             {
@@ -336,11 +324,10 @@ namespace MessagePack
                     do
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        Span<byte> span = sequence.GetSpan(stream.CanSeek ? (int)Math.Min(MaxHintSize, stream.Length - stream.Position) : 0);
+                        var span = sequence.GetSpan(stream.CanSeek ? (int)Math.Min(MaxHintSize, stream.Length - stream.Position) : 0);
                         bytesRead = stream.Read(span);
                         sequence.Advance(bytesRead);
-                    }
-                    while (bytesRead > 0);
+                    } while (bytesRead > 0);
                 }
                 catch (Exception ex)
                 {
@@ -352,29 +339,28 @@ namespace MessagePack
         }
 
         /// <summary>
-        /// Deserializes the entire content of a <see cref="Stream"/>.
+        ///     Deserializes the entire content of a <see cref="Stream" />.
         /// </summary>
         /// <typeparam name="T">The type of value to deserialize.</typeparam>
         /// <param name="stream">
-        /// The stream to deserialize from.
-        /// The entire stream will be read, and the first msgpack token deserialized will be returned.
-        /// If <see cref="Stream.CanSeek"/> is true on the stream, its position will be set to just after the last deserialized byte.
+        ///     The stream to deserialize from.
+        ///     The entire stream will be read, and the first msgpack token deserialized will be returned.
+        ///     If <see cref="Stream.CanSeek" /> is true on the stream, its position will be set to just after the last
+        ///     deserialized byte.
         /// </param>
         /// <param name="options">The options. Use <c>null</c> to use default options.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The deserialized value.</returns>
         /// <exception cref="MessagePackSerializationException">Thrown when any error occurs during deserialization.</exception>
         /// <remarks>
-        /// If multiple top-level msgpack data structures are expected on the stream, use <see cref="MessagePackStreamReader"/> instead.
+        ///     If multiple top-level msgpack data structures are expected on the stream, use
+        ///     <see cref="MessagePackStreamReader" /> instead.
         /// </remarks>
         public static async ValueTask<T> DeserializeAsync<T>(Stream stream, MessagePackSerializerOptions options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? DefaultOptions;
 
-            if (TryDeserializeFromMemoryStream(stream, options, cancellationToken, out T result))
-            {
-                return result;
-            }
+            if (TryDeserializeFromMemoryStream(stream, options, cancellationToken, out T result)) return result;
 
             using (var sequenceRental = options.SequencePool.Rent())
             {
@@ -384,11 +370,10 @@ namespace MessagePack
                     int bytesRead;
                     do
                     {
-                        Memory<byte> memory = sequence.GetMemory(stream.CanSeek ? (int)Math.Min(MaxHintSize, stream.Length - stream.Position) : 0);
+                        var memory = sequence.GetMemory(stream.CanSeek ? (int)Math.Min(MaxHintSize, stream.Length - stream.Position) : 0);
                         bytesRead = await stream.ReadAsync(memory, cancellationToken).ConfigureAwait(false);
                         sequence.Advance(bytesRead);
-                    }
-                    while (bytesRead > 0);
+                    } while (bytesRead > 0);
                 }
                 catch (Exception ex)
                 {
@@ -399,17 +384,12 @@ namespace MessagePack
             }
         }
 
-        private delegate int LZ4Transform(ReadOnlySpan<byte> input, Span<byte> output);
-
-        private static readonly LZ4Transform LZ4CodecEncode = LZ4Codec.Encode;
-        private static readonly LZ4Transform LZ4CodecDecode = LZ4Codec.Decode;
-
         private static bool TryDeserializeFromMemoryStream<T>(Stream stream, MessagePackSerializerOptions options, CancellationToken cancellationToken, out T result)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (stream is MemoryStream ms && ms.TryGetBuffer(out ArraySegment<byte> streamBuffer))
+            if (stream is MemoryStream ms && ms.TryGetBuffer(out var streamBuffer))
             {
-                result = Deserialize<T>(streamBuffer.AsMemory(checked((int)ms.Position)), options, out int bytesRead, cancellationToken);
+                result = Deserialize<T>(streamBuffer.AsMemory(checked((int)ms.Position)), options, out var bytesRead, cancellationToken);
 
                 // Emulate that we had actually "read" from the stream.
                 ms.Seek(bytesRead, SeekOrigin.Current);
@@ -422,21 +402,18 @@ namespace MessagePack
 
         private static T DeserializeFromSequenceAndRewindStreamIfPossible<T>(Stream streamToRewind, MessagePackSerializerOptions options, ReadOnlySequence<byte> sequence, CancellationToken cancellationToken)
         {
-            if (streamToRewind is null)
-            {
-                throw new ArgumentNullException(nameof(streamToRewind));
-            }
+            if (streamToRewind is null) throw new ArgumentNullException(nameof(streamToRewind));
 
             var reader = new MessagePackReader(sequence)
             {
-                CancellationToken = cancellationToken,
+                CancellationToken = cancellationToken
             };
-            T result = Deserialize<T>(ref reader, options);
+            var result = Deserialize<T>(ref reader, options);
 
             if (streamToRewind.CanSeek && !reader.End)
             {
                 // Reverse the stream as many bytes as we left unread.
-                int bytesNotRead = checked((int)reader.Sequence.Slice(reader.Position).Length);
+                var bytesNotRead = checked((int)reader.Sequence.Slice(reader.Position).Length);
                 streamToRewind.Seek(-bytesNotRead, SeekOrigin.Current);
             }
 
@@ -444,12 +421,12 @@ namespace MessagePack
         }
 
         /// <summary>
-        /// Performs LZ4 compression or decompression.
+        ///     Performs LZ4 compression or decompression.
         /// </summary>
         /// <param name="input">The input for the operation.</param>
         /// <param name="output">The buffer to write the result of the operation.</param>
         /// <param name="lz4Operation">The LZ4 codec transformation.</param>
-        /// <returns>The number of bytes written to the <paramref name="output"/>.</returns>
+        /// <returns>The number of bytes written to the <paramref name="output" />.</returns>
         private static int LZ4Operation(in ReadOnlySequence<byte> input, Span<byte> output, LZ4Transform lz4Operation)
         {
             ReadOnlySpan<byte> inputSpan;
@@ -471,10 +448,7 @@ namespace MessagePack
             }
             finally
             {
-                if (rentedInputArray != null)
-                {
-                    ArrayPool<byte>.Shared.Return(rentedInputArray);
-                }
+                if (rentedInputArray != null) ArrayPool<byte>.Shared.Return(rentedInputArray);
             }
         }
 
@@ -485,23 +459,23 @@ namespace MessagePack
                 // Try to find LZ4Block
                 if (reader.NextMessagePackType == MessagePackType.Extension)
                 {
-                    MessagePackReader peekReader = reader.CreatePeekReader();
-                    ExtensionHeader header = peekReader.ReadExtensionFormatHeader();
+                    var peekReader = reader.CreatePeekReader();
+                    var header = peekReader.ReadExtensionFormatHeader();
                     if (header.TypeCode == ThisLibraryExtensionTypeCodes.Lz4Block)
                     {
                         // Read the extension using the original reader, so we "consume" it.
-                        ExtensionResult extension = reader.ReadExtensionFormat();
+                        var extension = reader.ReadExtensionFormat();
                         var extReader = new MessagePackReader(extension.Data);
 
                         // The first part of the extension payload is a MessagePack-encoded Int32 that
                         // tells us the length the data will be AFTER decompression.
-                        int uncompressedLength = extReader.ReadInt32();
+                        var uncompressedLength = extReader.ReadInt32();
 
                         // The rest of the payload is the compressed data itself.
-                        ReadOnlySequence<byte> compressedData = extReader.Sequence.Slice(extReader.Position);
+                        var compressedData = extReader.Sequence.Slice(extReader.Position);
 
-                        Span<byte> uncompressedSpan = writer.GetSpan(uncompressedLength).Slice(0, uncompressedLength);
-                        int actualUncompressedLength = LZ4Operation(compressedData, uncompressedSpan, LZ4CodecDecode);
+                        var uncompressedSpan = writer.GetSpan(uncompressedLength).Slice(0, uncompressedLength);
+                        var actualUncompressedLength = LZ4Operation(compressedData, uncompressedSpan, LZ4CodecDecode);
                         Debug.Assert(actualUncompressedLength == uncompressedLength, "Unexpected length of uncompressed data.");
                         writer.Advance(actualUncompressedLength);
                         return true;
@@ -511,11 +485,11 @@ namespace MessagePack
                 // Try to find LZ4BlockArray
                 if (reader.NextMessagePackType == MessagePackType.Array)
                 {
-                    MessagePackReader peekReader = reader.CreatePeekReader();
+                    var peekReader = reader.CreatePeekReader();
                     var arrayLength = peekReader.ReadArrayHeader();
                     if (arrayLength != 0 && peekReader.NextMessagePackType == MessagePackType.Extension)
                     {
-                        ExtensionHeader header = peekReader.ReadExtensionFormatHeader();
+                        var header = peekReader.ReadExtensionFormatHeader();
                         if (header.TypeCode == ThisLibraryExtensionTypeCodes.Lz4BlockArray)
                         {
                             // switch peekReader as original reader.
@@ -526,16 +500,13 @@ namespace MessagePack
                             var uncompressedLengths = ArrayPool<int>.Shared.Rent(sequenceCount);
                             try
                             {
-                                for (int i = 0; i < sequenceCount; i++)
-                                {
-                                    uncompressedLengths[i] = reader.ReadInt32();
-                                }
+                                for (var i = 0; i < sequenceCount; i++) uncompressedLengths[i] = reader.ReadInt32();
 
-                                for (int i = 0; i < sequenceCount; i++)
+                                for (var i = 0; i < sequenceCount; i++)
                                 {
                                     var uncompressedLength = uncompressedLengths[i];
                                     var lz4Block = reader.ReadBytes();
-                                    Span<byte> uncompressedSpan = writer.GetSpan(uncompressedLength).Slice(0, uncompressedLength);
+                                    var uncompressedSpan = writer.GetSpan(uncompressedLength).Slice(0, uncompressedLength);
                                     var actualUncompressedLength = LZ4Operation(lz4Block.Value, uncompressedSpan, LZ4CodecDecode);
                                     Debug.Assert(actualUncompressedLength == uncompressedLength, "Unexpected length of uncompressed data.");
                                     writer.Advance(actualUncompressedLength);
@@ -569,7 +540,7 @@ namespace MessagePack
                 var lz4Span = ArrayPool<byte>.Shared.Rent(maxCompressedLength);
                 try
                 {
-                    int lz4Length = LZ4Operation(msgpackUncompressedData, lz4Span, LZ4CodecEncode);
+                    var lz4Length = LZ4Operation(msgpackUncompressedData, lz4Span, LZ4CodecEncode);
 
                     const int LengthOfUncompressedDataSizeHeader = 5;
                     writer.WriteExtensionFormatHeader(new ExtensionHeader(ThisLibraryExtensionTypeCodes.Lz4Block, LengthOfUncompressedDataSizeHeader + (uint)lz4Length));
@@ -595,17 +566,14 @@ namespace MessagePack
                 writer.WriteArrayHeader(sequenceCount + 1);
                 writer.WriteExtensionFormatHeader(new ExtensionHeader(ThisLibraryExtensionTypeCodes.Lz4BlockArray, extHeaderSize));
                 {
-                    foreach (var item in msgpackUncompressedData)
-                    {
-                        writer.Write(item.Length);
-                    }
+                    foreach (var item in msgpackUncompressedData) writer.Write(item.Length);
                 }
 
                 foreach (var item in msgpackUncompressedData)
                 {
                     var maxCompressedLength = LZ4Codec.MaximumOutputLength(item.Length);
                     var lz4Span = writer.GetSpan(maxCompressedLength + 5);
-                    int lz4Length = LZ4Codec.Encode(item.Span, lz4Span.Slice(5, lz4Span.Length - 5));
+                    var lz4Length = LZ4Codec.Encode(item.Span, lz4Span.Slice(5, lz4Span.Length - 5));
                     WriteBin32Header((uint)lz4Length, lz4Span);
                     writer.Advance(lz4Length + 5);
                 }
@@ -619,21 +587,12 @@ namespace MessagePack
         private static int GetUInt32WriteSize(uint value)
         {
             if (value <= MessagePackRange.MaxFixPositiveInt)
-            {
                 return 1;
-            }
-            else if (value <= byte.MaxValue)
-            {
+            if (value <= byte.MaxValue)
                 return 2;
-            }
-            else if (value <= ushort.MaxValue)
-            {
+            if (value <= ushort.MaxValue)
                 return 3;
-            }
-            else
-            {
-                return 5;
-            }
+            return 5;
         }
 
         private static void WriteBin32Header(uint value, Span<byte> span)
@@ -650,6 +609,25 @@ namespace MessagePack
             }
         }
 
+        private static bool IsMessagePackFixedSizePrimitiveTypeHelper(Type type)
+        {
+            return type == typeof(short)
+                   || type == typeof(int)
+                   || type == typeof(long)
+                   || type == typeof(ushort)
+                   || type == typeof(uint)
+                   || type == typeof(ulong)
+                   || type == typeof(float)
+                   || type == typeof(double)
+                   || type == typeof(bool)
+                   || type == typeof(byte)
+                   || type == typeof(sbyte)
+                   || type == typeof(char)
+                ;
+        }
+
+        private delegate int LZ4Transform(ReadOnlySpan<byte> input, Span<byte> output);
+
         private static class PrimitiveChecker<T>
         {
             public static readonly bool IsMessagePackFixedSizePrimitive;
@@ -658,23 +636,6 @@ namespace MessagePack
             {
                 IsMessagePackFixedSizePrimitive = IsMessagePackFixedSizePrimitiveTypeHelper(typeof(T));
             }
-        }
-
-        private static bool IsMessagePackFixedSizePrimitiveTypeHelper(Type type)
-        {
-            return type == typeof(short)
-                || type == typeof(int)
-                || type == typeof(long)
-                || type == typeof(ushort)
-                || type == typeof(uint)
-                || type == typeof(ulong)
-                || type == typeof(float)
-                || type == typeof(double)
-                || type == typeof(bool)
-                || type == typeof(byte)
-                || type == typeof(sbyte)
-                || type == typeof(char)
-            ;
         }
     }
 }

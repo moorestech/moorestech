@@ -6,7 +6,7 @@
         public readonly bool IsRewardEarnbable;
         public readonly bool IsRewarded;
 
-        public QuestProgressData(bool isComplete,bool isRewarded, bool isRewardEarnbable) 
+        public QuestProgressData(bool isComplete, bool isRewarded, bool isRewardEarnbable)
         {
             IsRewarded = isRewarded;
             IsRewardEarnbable = isRewardEarnbable;

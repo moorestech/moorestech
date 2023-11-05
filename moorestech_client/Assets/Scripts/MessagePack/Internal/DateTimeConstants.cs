@@ -9,6 +9,6 @@ namespace MessagePack.Internal
     {
         internal const long BclSecondsAtUnixEpoch = 62135596800;
         internal const int NanosecondsPerTick = 100;
-        internal static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        internal static readonly DateTime UnixEpoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
     }
 }

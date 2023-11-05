@@ -10,28 +10,28 @@ namespace MainGame.Presenter.Block
     {
         private readonly WorldMapTileGameObjectDataStore _worldMapTileGameObjectDataStore;
 
-        public WorldMapTilePresenter(ReceiveChunkDataEvent receiveChunkDataEvent,WorldMapTileGameObjectDataStore worldMapTileGameObjectDataStore)
+        public WorldMapTilePresenter(ReceiveChunkDataEvent receiveChunkDataEvent, WorldMapTileGameObjectDataStore worldMapTileGameObjectDataStore)
         {
             _worldMapTileGameObjectDataStore = worldMapTileGameObjectDataStore;
             receiveChunkDataEvent.OnChunkUpdateEvent += OnChunkUpdate;
+        }
+
+        public void Initialize()
+        {
         }
 
 
         private void OnChunkUpdate(ChunkUpdateEventProperties properties)
         {
             var chunkPos = properties.ChunkPos;
-            
-            for (int i = 0; i < ChunkConstant.ChunkSize; i++)
+
+            for (var i = 0; i < ChunkConstant.ChunkSize; i++)
+            for (var j = 0; j < ChunkConstant.ChunkSize; j++)
             {
-                for (int j = 0; j < ChunkConstant.ChunkSize; j++)
-                {
-                    var pos = chunkPos + new Vector2Int(i, j);
-                    var id = properties.MapTileIds[i, j];
-                    _worldMapTileGameObjectDataStore.GameObjectBlockPlace(pos,id);
-                }
+                var pos = chunkPos + new Vector2Int(i, j);
+                var id = properties.MapTileIds[i, j];
+                _worldMapTileGameObjectDataStore.GameObjectBlockPlace(pos, id);
             }
         }
-
-        public void Initialize() { }
     }
 }

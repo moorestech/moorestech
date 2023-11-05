@@ -13,133 +13,132 @@ using MessagePack.Internal;
 namespace MessagePack
 {
     /// <summary>
-    /// Settings related to security, particularly relevant when deserializing data from untrusted sources.
+    ///     Settings related to security, particularly relevant when deserializing data from untrusted sources.
     /// </summary>
     public class MessagePackSecurity
     {
         /// <summary>
-        /// Gets an instance preconfigured with settings that omit all protections. Useful for deserializing fully-trusted and valid msgpack sequences.
+        ///     Gets an instance preconfigured with settings that omit all protections. Useful for deserializing fully-trusted and
+        ///     valid msgpack sequences.
         /// </summary>
-        public static readonly MessagePackSecurity TrustedData = new MessagePackSecurity();
+        public static readonly MessagePackSecurity TrustedData = new();
 
         /// <summary>
-        /// Gets an instance preconfigured with protections applied with reasonable settings for deserializing untrusted msgpack sequences.
+        ///     Gets an instance preconfigured with protections applied with reasonable settings for deserializing untrusted
+        ///     msgpack sequences.
         /// </summary>
-        public static readonly MessagePackSecurity UntrustedData = new MessagePackSecurity
+        public static readonly MessagePackSecurity UntrustedData = new()
         {
             HashCollisionResistant = true,
-            MaximumObjectGraphDepth = 500,
+            MaximumObjectGraphDepth = 500
         };
 
         private readonly ObjectFallbackEqualityComparer objectFallbackEqualityComparer;
 
         private MessagePackSecurity()
         {
-            this.objectFallbackEqualityComparer = new ObjectFallbackEqualityComparer(this);
+            objectFallbackEqualityComparer = new ObjectFallbackEqualityComparer(this);
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MessagePackSecurity"/> class
-        /// with properties copied from a provided template.
+        ///     Initializes a new instance of the <see cref="MessagePackSecurity" /> class
+        ///     with properties copied from a provided template.
         /// </summary>
         /// <param name="copyFrom">The template to copy from.</param>
         protected MessagePackSecurity(MessagePackSecurity copyFrom)
             : this()
         {
-            if (copyFrom is null)
-            {
-                throw new ArgumentNullException(nameof(copyFrom));
-            }
+            if (copyFrom is null) throw new ArgumentNullException(nameof(copyFrom));
 
-            this.HashCollisionResistant = copyFrom.HashCollisionResistant;
-            this.MaximumObjectGraphDepth = copyFrom.MaximumObjectGraphDepth;
+            HashCollisionResistant = copyFrom.HashCollisionResistant;
+            MaximumObjectGraphDepth = copyFrom.MaximumObjectGraphDepth;
         }
 
         /// <summary>
-        /// Gets a value indicating whether data to be deserialized is untrusted and thus should not be allowed to create
-        /// dictionaries or other hash-based collections unless the hashed type has a hash collision resistant implementation available.
-        /// This can mitigate some denial of service attacks when deserializing untrusted code.
+        ///     Gets a value indicating whether data to be deserialized is untrusted and thus should not be allowed to create
+        ///     dictionaries or other hash-based collections unless the hashed type has a hash collision resistant implementation
+        ///     available.
+        ///     This can mitigate some denial of service attacks when deserializing untrusted code.
         /// </summary>
         /// <value>
-        /// The value is <c>false</c> for <see cref="TrustedData"/> and <c>true</c> for <see cref="UntrustedData"/>.
+        ///     The value is <c>false</c> for <see cref="TrustedData" /> and <c>true</c> for <see cref="UntrustedData" />.
         /// </value>
         public bool HashCollisionResistant { get; private set; }
 
         /// <summary>
-        /// Gets the maximum depth of an object graph that may be deserialized.
+        ///     Gets the maximum depth of an object graph that may be deserialized.
         /// </summary>
         /// <remarks>
-        /// <para>
-        /// This value can be reduced to avoid a stack overflow that would crash the process when deserializing a msgpack sequence designed to cause deep recursion.
-        /// A very short callstack on a thread with 1MB of total stack space might deserialize ~2000 nested arrays before crashing due to a stack overflow.
-        /// Since stack space occupied may vary by the kind of object deserialized, a conservative value for this property to defend against stack overflow attacks might be 500.
-        /// </para>
+        ///     <para>
+        ///         This value can be reduced to avoid a stack overflow that would crash the process when deserializing a msgpack
+        ///         sequence designed to cause deep recursion.
+        ///         A very short callstack on a thread with 1MB of total stack space might deserialize ~2000 nested arrays before
+        ///         crashing due to a stack overflow.
+        ///         Since stack space occupied may vary by the kind of object deserialized, a conservative value for this property
+        ///         to defend against stack overflow attacks might be 500.
+        ///     </para>
         /// </remarks>
         public int MaximumObjectGraphDepth { get; private set; } = int.MaxValue;
 
         /// <summary>
-        /// Gets a copy of these options with the <see cref="MaximumObjectGraphDepth"/> property set to a new value.
+        ///     Gets a copy of these options with the <see cref="MaximumObjectGraphDepth" /> property set to a new value.
         /// </summary>
-        /// <param name="maximumObjectGraphDepth">The new value for the <see cref="MaximumObjectGraphDepth"/> property.</param>
+        /// <param name="maximumObjectGraphDepth">The new value for the <see cref="MaximumObjectGraphDepth" /> property.</param>
         /// <returns>The new instance; or the original if the value is unchanged.</returns>
         public MessagePackSecurity WithMaximumObjectGraphDepth(int maximumObjectGraphDepth)
         {
-            if (this.MaximumObjectGraphDepth == maximumObjectGraphDepth)
-            {
-                return this;
-            }
+            if (MaximumObjectGraphDepth == maximumObjectGraphDepth) return this;
 
-            var clone = this.Clone();
+            var clone = Clone();
             clone.MaximumObjectGraphDepth = maximumObjectGraphDepth;
             return clone;
         }
 
         /// <summary>
-        /// Gets a copy of these options with the <see cref="HashCollisionResistant"/> property set to a new value.
+        ///     Gets a copy of these options with the <see cref="HashCollisionResistant" /> property set to a new value.
         /// </summary>
-        /// <param name="hashCollisionResistant">The new value for the <see cref="HashCollisionResistant"/> property.</param>
+        /// <param name="hashCollisionResistant">The new value for the <see cref="HashCollisionResistant" /> property.</param>
         /// <returns>The new instance; or the original if the value is unchanged.</returns>
         public MessagePackSecurity WithHashCollisionResistant(bool hashCollisionResistant)
         {
-            if (this.HashCollisionResistant == hashCollisionResistant)
-            {
-                return this;
-            }
+            if (HashCollisionResistant == hashCollisionResistant) return this;
 
-            var clone = this.Clone();
+            var clone = Clone();
             clone.HashCollisionResistant = hashCollisionResistant;
             return clone;
         }
 
         /// <summary>
-        /// Gets an <see cref="IEqualityComparer{T}"/> that is suitable to use with a hash-based collection.
+        ///     Gets an <see cref="IEqualityComparer{T}" /> that is suitable to use with a hash-based collection.
         /// </summary>
         /// <typeparam name="T">The type of key that will be hashed in the collection.</typeparam>
-        /// <returns>The <see cref="IEqualityComparer{T}"/> to use.</returns>
+        /// <returns>The <see cref="IEqualityComparer{T}" /> to use.</returns>
         /// <remarks>
-        /// When <see cref="HashCollisionResistant"/> is active, this will be a collision resistant instance which may reject certain key types.
-        /// When <see cref="HashCollisionResistant"/> is not active, this will be <see cref="EqualityComparer{T}.Default"/>.
+        ///     When <see cref="HashCollisionResistant" /> is active, this will be a collision resistant instance which may reject
+        ///     certain key types.
+        ///     When <see cref="HashCollisionResistant" /> is not active, this will be <see cref="EqualityComparer{T}.Default" />.
         /// </remarks>
         public IEqualityComparer<T> GetEqualityComparer<T>()
         {
-            return this.HashCollisionResistant ? GetHashCollisionResistantEqualityComparer<T>() : EqualityComparer<T>.Default;
+            return HashCollisionResistant ? GetHashCollisionResistantEqualityComparer<T>() : EqualityComparer<T>.Default;
         }
 
         /// <summary>
-        /// Gets an <see cref="IEqualityComparer"/> that is suitable to use with a hash-based collection.
+        ///     Gets an <see cref="IEqualityComparer" /> that is suitable to use with a hash-based collection.
         /// </summary>
-        /// <returns>The <see cref="IEqualityComparer"/> to use.</returns>
+        /// <returns>The <see cref="IEqualityComparer" /> to use.</returns>
         /// <remarks>
-        /// When <see cref="HashCollisionResistant"/> is active, this will be a collision resistant instance which may reject certain key types.
-        /// When <see cref="HashCollisionResistant"/> is not active, this will be <see cref="EqualityComparer{T}.Default"/>.
+        ///     When <see cref="HashCollisionResistant" /> is active, this will be a collision resistant instance which may reject
+        ///     certain key types.
+        ///     When <see cref="HashCollisionResistant" /> is not active, this will be <see cref="EqualityComparer{T}.Default" />.
         /// </remarks>
         public IEqualityComparer GetEqualityComparer()
         {
-            return this.HashCollisionResistant ? GetHashCollisionResistantEqualityComparer() : EqualityComparer<object>.Default;
+            return HashCollisionResistant ? GetHashCollisionResistantEqualityComparer() : EqualityComparer<object>.Default;
         }
 
         /// <summary>
-        /// Returns a hash collision resistant equality comparer.
+        ///     Returns a hash collision resistant equality comparer.
         /// </summary>
         /// <typeparam name="T">The type of key that will be hashed in the collection.</typeparam>
         /// <returns>A hash collision resistant equality comparer.</returns>
@@ -148,7 +147,7 @@ namespace MessagePack
             IEqualityComparer<T> result = null;
             if (typeof(T).GetTypeInfo().IsEnum)
             {
-                Type underlyingType = typeof(T).GetTypeInfo().GetEnumUnderlyingType();
+                var underlyingType = typeof(T).GetTypeInfo().GetEnumUnderlyingType();
                 result =
                     underlyingType == typeof(sbyte) ? CollisionResistantHasher<T>.Instance :
                     underlyingType == typeof(byte) ? CollisionResistantHasher<T>.Instance :
@@ -185,7 +184,7 @@ namespace MessagePack
                     typeof(T) == typeof(Guid) ? (IEqualityComparer<T>)GuidEqualityComparer.Instance :
                     typeof(T) == typeof(DateTime) ? (IEqualityComparer<T>)DateTimeEqualityComparer.Instance :
                     typeof(T) == typeof(DateTimeOffset) ? (IEqualityComparer<T>)DateTimeOffsetEqualityComparer.Instance :
-                    typeof(T) == typeof(object) ? (IEqualityComparer<T>)this.objectFallbackEqualityComparer :
+                    typeof(T) == typeof(object) ? (IEqualityComparer<T>)objectFallbackEqualityComparer :
                     null;
             }
 
@@ -196,99 +195,120 @@ namespace MessagePack
         }
 
         /// <summary>
-        /// Checks the depth of the deserializing graph and increments it by 1.
+        ///     Checks the depth of the deserializing graph and increments it by 1.
         /// </summary>
         /// <param name="reader">The reader that is involved in deserialization.</param>
         /// <remarks>
-        /// Callers should decrement <see cref="MessagePackReader.Depth"/> after exiting that edge in the graph.
+        ///     Callers should decrement <see cref="MessagePackReader.Depth" /> after exiting that edge in the graph.
         /// </remarks>
-        /// <exception cref="InsufficientExecutionStackException">Thrown if <see cref="MessagePackReader.Depth"/> is already at or exceeds <see cref="MaximumObjectGraphDepth"/>.</exception>
+        /// <exception cref="InsufficientExecutionStackException">
+        ///     Thrown if <see cref="MessagePackReader.Depth" /> is already at or
+        ///     exceeds <see cref="MaximumObjectGraphDepth" />.
+        /// </exception>
         /// <remarks>
-        /// Rather than wrap the body of every <see cref="IMessagePackFormatter{T}.Deserialize"/> method,
-        /// this should wrap *calls* to these methods. They need not appear in pure "thunk" methods that simply delegate the deserialization to another formatter.
-        /// In this way, we can avoid repeatedly incrementing and decrementing the counter when deserializing each element of a collection.
+        ///     Rather than wrap the body of every <see cref="IMessagePackFormatter{T}.Deserialize" /> method,
+        ///     this should wrap *calls* to these methods. They need not appear in pure "thunk" methods that simply delegate the
+        ///     deserialization to another formatter.
+        ///     In this way, we can avoid repeatedly incrementing and decrementing the counter when deserializing each element of a
+        ///     collection.
         /// </remarks>
         public void DepthStep(ref MessagePackReader reader)
         {
-            if (reader.Depth >= this.MaximumObjectGraphDepth)
-            {
-                throw new InsufficientExecutionStackException($"This msgpack sequence has an object graph that exceeds the maximum depth allowed of {MaximumObjectGraphDepth}.");
-            }
+            if (reader.Depth >= MaximumObjectGraphDepth) throw new InsufficientExecutionStackException($"This msgpack sequence has an object graph that exceeds the maximum depth allowed of {MaximumObjectGraphDepth}.");
 
             reader.Depth++;
         }
 
         /// <summary>
-        /// Returns a hash collision resistant equality comparer.
+        ///     Returns a hash collision resistant equality comparer.
         /// </summary>
         /// <returns>A hash collision resistant equality comparer.</returns>
-        protected virtual IEqualityComparer GetHashCollisionResistantEqualityComparer() => (IEqualityComparer)this.GetHashCollisionResistantEqualityComparer<object>();
+        protected virtual IEqualityComparer GetHashCollisionResistantEqualityComparer()
+        {
+            return (IEqualityComparer)GetHashCollisionResistantEqualityComparer<object>();
+        }
 
         /// <summary>
-        /// Creates a new instance that is a copy of this one.
+        ///     Creates a new instance that is a copy of this one.
         /// </summary>
         /// <remarks>
-        /// Derived types should override this method to instantiate their own derived type.
+        ///     Derived types should override this method to instantiate their own derived type.
         /// </remarks>
-        protected virtual MessagePackSecurity Clone() => new MessagePackSecurity(this);
+        protected virtual MessagePackSecurity Clone()
+        {
+            return new MessagePackSecurity(this);
+        }
 
         /// <summary>
-        /// A hash collision resistant implementation of <see cref="IEqualityComparer{T}"/>.
+        ///     A hash collision resistant implementation of <see cref="IEqualityComparer{T}" />.
         /// </summary>
         /// <typeparam name="T">The type of key that will be hashed.</typeparam>
         private class CollisionResistantHasher<T> : IEqualityComparer<T>, IEqualityComparer
         {
-            internal static readonly CollisionResistantHasher<T> Instance = new CollisionResistantHasher<T>();
+            internal static readonly CollisionResistantHasher<T> Instance = new();
 
-            public bool Equals(T x, T y) => EqualityComparer<T>.Default.Equals(x, y);
+            bool IEqualityComparer.Equals(object x, object y)
+            {
+                return ((IEqualityComparer)EqualityComparer<T>.Default).Equals(x, y);
+            }
 
-            bool IEqualityComparer.Equals(object x, object y) => ((IEqualityComparer)EqualityComparer<T>.Default).Equals(x, y);
+            public int GetHashCode(object obj)
+            {
+                return GetHashCode((T)obj);
+            }
 
-            public int GetHashCode(object obj) => this.GetHashCode((T)obj);
+            public bool Equals(T x, T y)
+            {
+                return EqualityComparer<T>.Default.Equals(x, y);
+            }
 
-            public virtual int GetHashCode(T value) => HashCode.Combine(value);
+            public virtual int GetHashCode(T value)
+            {
+                return HashCode.Combine(value);
+            }
         }
 
         /// <summary>
-        /// A special hash-resistent equality comparer that defers picking the actual implementation
-        /// till it can check the runtime type of each value to be hashed.
+        ///     A special hash-resistent equality comparer that defers picking the actual implementation
+        ///     till it can check the runtime type of each value to be hashed.
         /// </summary>
         private class ObjectFallbackEqualityComparer : IEqualityComparer<object>, IEqualityComparer
         {
-            private static readonly Lazy<MethodInfo> GetHashCollisionResistantEqualityComparerOpenGenericMethod = new Lazy<MethodInfo>(() => typeof(MessagePackSecurity).GetTypeInfo().DeclaredMethods.Single(m => m.Name == nameof(MessagePackSecurity.GetHashCollisionResistantEqualityComparer) && m.IsGenericMethod));
+            private static readonly Lazy<MethodInfo> GetHashCollisionResistantEqualityComparerOpenGenericMethod = new(() => typeof(MessagePackSecurity).GetTypeInfo().DeclaredMethods.Single(m => m.Name == nameof(GetHashCollisionResistantEqualityComparer) && m.IsGenericMethod));
+            private readonly ThreadsafeTypeKeyHashTable<IEqualityComparer> equalityComparerCache = new();
             private readonly MessagePackSecurity security;
-            private readonly ThreadsafeTypeKeyHashTable<IEqualityComparer> equalityComparerCache = new ThreadsafeTypeKeyHashTable<IEqualityComparer>();
 
             internal ObjectFallbackEqualityComparer(MessagePackSecurity security)
             {
                 this.security = security ?? throw new ArgumentNullException(nameof(security));
             }
 
-            bool IEqualityComparer<object>.Equals(object x, object y) => EqualityComparer<object>.Default.Equals(x, y);
+            bool IEqualityComparer.Equals(object x, object y)
+            {
+                return ((IEqualityComparer)EqualityComparer<object>.Default).Equals(x, y);
+            }
 
-            bool IEqualityComparer.Equals(object x, object y) => ((IEqualityComparer)EqualityComparer<object>.Default).Equals(x, y);
+            bool IEqualityComparer<object>.Equals(object x, object y)
+            {
+                return EqualityComparer<object>.Default.Equals(x, y);
+            }
 
             public int GetHashCode(object value)
             {
-                if (value is null)
-                {
-                    return 0;
-                }
+                if (value is null) return 0;
 
-                Type valueType = value.GetType();
+                var valueType = value.GetType();
 
                 // Take care to avoid recursion.
                 if (valueType == typeof(object))
-                {
                     // We can trust object.GetHashCode() to be collision resistant.
                     return value.GetHashCode();
-                }
 
-                if (!equalityComparerCache.TryGetValue(valueType, out IEqualityComparer equalityComparer))
+                if (!equalityComparerCache.TryGetValue(valueType, out var equalityComparer))
                 {
                     try
                     {
-                        equalityComparer = (IEqualityComparer)GetHashCollisionResistantEqualityComparerOpenGenericMethod.Value.MakeGenericMethod(valueType).Invoke(this.security, Array.Empty<object>());
+                        equalityComparer = (IEqualityComparer)GetHashCollisionResistantEqualityComparerOpenGenericMethod.Value.MakeGenericMethod(valueType).Invoke(security, Array.Empty<object>());
                     }
                     catch (TargetInvocationException ex)
                     {
@@ -304,76 +324,67 @@ namespace MessagePack
 
         private class UInt64EqualityComparer : CollisionResistantHasher<ulong>
         {
-            internal static new readonly UInt64EqualityComparer Instance = new UInt64EqualityComparer();
+            internal new static readonly UInt64EqualityComparer Instance = new();
 
-            public override int GetHashCode(ulong value) => HashCode.Combine((uint)(value >> 32), unchecked((uint)value));
+            public override int GetHashCode(ulong value)
+            {
+                return HashCode.Combine((uint)(value >> 32), unchecked((uint)value));
+            }
         }
 
         private class Int64EqualityComparer : CollisionResistantHasher<long>
         {
-            internal static new readonly Int64EqualityComparer Instance = new Int64EqualityComparer();
+            internal new static readonly Int64EqualityComparer Instance = new();
 
-            public override int GetHashCode(long value) => HashCode.Combine((int)(value >> 32), unchecked((int)value));
+            public override int GetHashCode(long value)
+            {
+                return HashCode.Combine((int)(value >> 32), unchecked((int)value));
+            }
         }
 
         private class SingleEqualityComparer : CollisionResistantHasher<float>
         {
-            internal static new readonly SingleEqualityComparer Instance = new SingleEqualityComparer();
+            internal new static readonly SingleEqualityComparer Instance = new();
 
             public override unsafe int GetHashCode(float value)
             {
                 // Special check for 0.0 so that the hash of 0.0 and -0.0 will equal.
-                if (value == 0.0f)
-                {
-                    return HashCode.Combine(0);
-                }
+                if (value == 0.0f) return HashCode.Combine(0);
 
                 // Standardize on the binary representation of NaN prior to hashing.
-                if (float.IsNaN(value))
-                {
-                    value = float.NaN;
-                }
+                if (float.IsNaN(value)) value = float.NaN;
 
-                long l = *(long*)&value;
+                var l = *(long*)&value;
                 return HashCode.Combine((int)(l >> 32), unchecked((int)l));
             }
         }
 
         private class DoubleEqualityComparer : CollisionResistantHasher<double>
         {
-            internal static new readonly DoubleEqualityComparer Instance = new DoubleEqualityComparer();
+            internal new static readonly DoubleEqualityComparer Instance = new();
 
             public override unsafe int GetHashCode(double value)
             {
                 // Special check for 0.0 so that the hash of 0.0 and -0.0 will equal.
-                if (value == 0.0)
-                {
-                    return HashCode.Combine(0);
-                }
+                if (value == 0.0) return HashCode.Combine(0);
 
                 // Standardize on the binary representation of NaN prior to hashing.
-                if (double.IsNaN(value))
-                {
-                    value = double.NaN;
-                }
+                if (double.IsNaN(value)) value = double.NaN;
 
-                long l = *(long*)&value;
+                var l = *(long*)&value;
                 return HashCode.Combine((int)(l >> 32), unchecked((int)l));
             }
         }
 
         private class GuidEqualityComparer : CollisionResistantHasher<Guid>
         {
-            internal static new readonly GuidEqualityComparer Instance = new GuidEqualityComparer();
+            internal new static readonly GuidEqualityComparer Instance = new();
 
             public override unsafe int GetHashCode(Guid value)
             {
                 var hash = default(HashCode);
-                int* pGuid = (int*)&value;
-                for (int i = 0; i < sizeof(Guid) / sizeof(int); i++)
-                {
-                    hash.Add(pGuid[i]);
-                }
+                var pGuid = (int*)&value;
+                for (var i = 0; i < sizeof(Guid) / sizeof(int); i++) hash.Add(pGuid[i]);
 
                 return hash.ToHashCode();
             }
@@ -381,7 +392,7 @@ namespace MessagePack
 
         private class StringEqualityComparer : CollisionResistantHasher<string>
         {
-            internal static new readonly StringEqualityComparer Instance = new StringEqualityComparer();
+            internal new static readonly StringEqualityComparer Instance = new();
 
             public override int GetHashCode(string value)
             {
@@ -390,10 +401,7 @@ namespace MessagePack
                 return value?.GetHashCode() ?? 0;
 #else
                 var hash = default(HashCode);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    hash.Add(value[i]);
-                }
+                for (var i = 0; i < value.Length; i++) hash.Add(value[i]);
 
                 return hash.ToHashCode();
 #endif
@@ -402,16 +410,22 @@ namespace MessagePack
 
         private class DateTimeEqualityComparer : CollisionResistantHasher<DateTime>
         {
-            internal static new readonly DateTimeEqualityComparer Instance = new DateTimeEqualityComparer();
+            internal new static readonly DateTimeEqualityComparer Instance = new();
 
-            public override unsafe int GetHashCode(DateTime value) => HashCode.Combine((int)(value.Ticks >> 32), unchecked((int)value.Ticks), value.Kind);
+            public override int GetHashCode(DateTime value)
+            {
+                return HashCode.Combine((int)(value.Ticks >> 32), unchecked((int)value.Ticks), value.Kind);
+            }
         }
 
         private class DateTimeOffsetEqualityComparer : CollisionResistantHasher<DateTimeOffset>
         {
-            internal static new readonly DateTimeOffsetEqualityComparer Instance = new DateTimeOffsetEqualityComparer();
+            internal new static readonly DateTimeOffsetEqualityComparer Instance = new();
 
-            public override unsafe int GetHashCode(DateTimeOffset value) => HashCode.Combine((int)(value.UtcTicks >> 32), unchecked((int)value.UtcTicks));
+            public override int GetHashCode(DateTimeOffset value)
+            {
+                return HashCode.Combine((int)(value.UtcTicks >> 32), unchecked((int)value.UtcTicks));
+            }
         }
     }
 }

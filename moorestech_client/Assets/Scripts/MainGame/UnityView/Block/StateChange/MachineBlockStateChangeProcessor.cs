@@ -7,14 +7,8 @@ using UnityEngine;
 
 namespace MainGame.UnityView.Block.StateChange
 {
-    public class MachineBlockStateChangeProcessor : MonoBehaviour,IBlockStateChangeProcessor
+    public class MachineBlockStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {
-        #region Resources
-
-        private static AudioClip _machineSoundClip;
-        private static GameObject _machineEffectPrefab;
-        #endregion
-        
         private AudioSource _audioSource;
         private ParticleSystem _machineEffect;
         private float _processingRate;
@@ -41,7 +35,7 @@ namespace MainGame.UnityView.Block.StateChange
         public void OnChangeState(string currentState, string previousState, string currentStateData)
         {
             var data = JsonConvert.DeserializeObject<CommonMachineBlockStateChangeData>(currentStateData);
-            _processingRate = data.ProcessingRate;
+            _processingRate = data.processingRate;
             switch (currentState)
             {
                 case VanillaMachineBlockStateConst.ProcessingState:
@@ -50,6 +44,7 @@ namespace MainGame.UnityView.Block.StateChange
                         _machineEffect.Play();
                         _audioSource.Play();
                     }
+
                     break;
                 case VanillaMachineBlockStateConst.IdleState:
                     _audioSource.Stop();
@@ -59,5 +54,12 @@ namespace MainGame.UnityView.Block.StateChange
                     throw new ArgumentOutOfRangeException(nameof(currentState), currentState, null);
             }
         }
+
+        #region Resources
+
+        private static AudioClip _machineSoundClip;
+        private static GameObject _machineEffectPrefab;
+
+        #endregion
     }
 }

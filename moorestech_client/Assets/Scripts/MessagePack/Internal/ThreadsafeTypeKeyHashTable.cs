@@ -3,23 +3,24 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 #pragma warning disable SA1649 // File name should match first type name
 
 namespace MessagePack.Internal
 {
     /// <summary>
-    /// A dictionary where <see cref="Type"/> is the key, and a configurable <typeparamref name="TValue"/> type
-    /// that is thread-safe to read and write, allowing concurrent reads and exclusive writes.
+    ///     A dictionary where <see cref="Type" /> is the key, and a configurable <typeparamref name="TValue" /> type
+    ///     that is thread-safe to read and write, allowing concurrent reads and exclusive writes.
     /// </summary>
     /// <typeparam name="TValue">The type of value stored in the dictionary.</typeparam>
     internal class ThreadsafeTypeKeyHashTable<TValue>
     {
+        private readonly float loadFactor;
+
+        private readonly object writerLock = new();
         private Entry[] buckets;
         private int size; // only use in writer lock
-
-        private readonly object writerLock = new object();
-        private readonly float loadFactor;
 
         // IEqualityComparer.Equals is overhead if key only Type, don't use it.
         //// readonly IEqualityComparer<TKey> comparer;
@@ -27,62 +28,56 @@ namespace MessagePack.Internal
         public ThreadsafeTypeKeyHashTable(int capacity = 4, float loadFactor = 0.75f)
         {
             var tableSize = CalculateCapacity(capacity, loadFactor);
-            this.buckets = new Entry[tableSize];
+            buckets = new Entry[tableSize];
             this.loadFactor = loadFactor;
         }
 
         public bool TryAdd(Type key, TValue value)
         {
-            return this.TryAdd(key, _ => value); // create lambda capture
+            return TryAdd(key, _ => value); // create lambda capture
         }
 
         public bool TryAdd(Type key, Func<Type, TValue> valueFactory)
         {
-            return this.TryAddInternal(key, valueFactory, out TValue _);
+            return TryAddInternal(key, valueFactory, out var _);
         }
 
         private bool TryAddInternal(Type key, Func<Type, TValue> valueFactory, out TValue resultingValue)
         {
-            lock (this.writerLock)
+            lock (writerLock)
             {
-                var nextCapacity = CalculateCapacity(this.size + 1, this.loadFactor);
+                var nextCapacity = CalculateCapacity(size + 1, loadFactor);
 
-                if (this.buckets.Length < nextCapacity)
+                if (buckets.Length < nextCapacity)
                 {
                     // rehash
                     var nextBucket = new Entry[nextCapacity];
-                    for (int i = 0; i < this.buckets.Length; i++)
+                    for (var i = 0; i < buckets.Length; i++)
                     {
-                        Entry e = this.buckets[i];
+                        var e = buckets[i];
                         while (e != null)
                         {
                             var newEntry = new Entry { Key = e.Key, Value = e.Value, Hash = e.Hash };
-                            this.AddToBuckets(nextBucket, key, newEntry, null, out resultingValue);
+                            AddToBuckets(nextBucket, key, newEntry, null, out resultingValue);
                             e = e.Next;
                         }
                     }
 
                     // add entry(if failed to add, only do resize)
-                    var successAdd = this.AddToBuckets(nextBucket, key, null, valueFactory, out resultingValue);
+                    var successAdd = AddToBuckets(nextBucket, key, null, valueFactory, out resultingValue);
 
                     // replace field(threadsafe for read)
-                    VolatileWrite(ref this.buckets, nextBucket);
+                    VolatileWrite(ref buckets, nextBucket);
 
-                    if (successAdd)
-                    {
-                        this.size++;
-                    }
+                    if (successAdd) size++;
 
                     return successAdd;
                 }
                 else
                 {
                     // add entry(insert last is thread safe for read)
-                    var successAdd = this.AddToBuckets(this.buckets, key, null, valueFactory, out resultingValue);
-                    if (successAdd)
-                    {
-                        this.size++;
-                    }
+                    var successAdd = AddToBuckets(buckets, key, null, valueFactory, out resultingValue);
+                    if (successAdd) size++;
 
                     return successAdd;
                 }
@@ -91,7 +86,7 @@ namespace MessagePack.Internal
 
         private bool AddToBuckets(Entry[] buckets, Type newKey, Entry newEntryOrNull, Func<Type, TValue> valueFactory, out TValue resultingValue)
         {
-            var h = (newEntryOrNull != null) ? newEntryOrNull.Hash : newKey.GetHashCode();
+            var h = newEntryOrNull != null ? newEntryOrNull.Hash : newKey.GetHashCode();
             if (buckets[h & (buckets.Length - 1)] == null)
             {
                 if (newEntryOrNull != null)
@@ -107,7 +102,7 @@ namespace MessagePack.Internal
             }
             else
             {
-                Entry searchLastEntry = buckets[h & (buckets.Length - 1)];
+                var searchLastEntry = buckets[h & (buckets.Length - 1)];
                 while (true)
                 {
                     if (searchLastEntry.Key == newKey)
@@ -142,9 +137,9 @@ namespace MessagePack.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValue(Type key, out TValue value)
         {
-            Entry[] table = this.buckets;
+            var table = buckets;
             var hash = key.GetHashCode();
-            Entry entry = table[hash & table.Length - 1];
+            var entry = table[hash & (table.Length - 1)];
 
             while (entry != null)
             {
@@ -157,35 +152,26 @@ namespace MessagePack.Internal
                 entry = entry.Next;
             }
 
-            value = default(TValue);
+            value = default;
             return false;
         }
 
         public TValue GetOrAdd(Type key, Func<Type, TValue> valueFactory)
         {
             TValue v;
-            if (this.TryGetValue(key, out v))
-            {
-                return v;
-            }
+            if (TryGetValue(key, out v)) return v;
 
-            this.TryAddInternal(key, valueFactory, out v);
+            TryAddInternal(key, valueFactory, out v);
             return v;
         }
 
         private static int CalculateCapacity(int collectionSize, float loadFactor)
         {
-            var initialCapacity = (int)(((float)collectionSize) / loadFactor);
+            var initialCapacity = (int)(collectionSize / loadFactor);
             var capacity = 1;
-            while (capacity < initialCapacity)
-            {
-                capacity <<= 1;
-            }
+            while (capacity < initialCapacity) capacity <<= 1;
 
-            if (capacity < 8)
-            {
-                return 8;
-            }
+            if (capacity < 8) return 8;
 
             return capacity;
         }
@@ -195,7 +181,7 @@ namespace MessagePack.Internal
 #if !UNITY_2018_3_OR_NEWER
             System.Threading.Volatile.Write(ref location, value);
 #elif UNITY_2018_3_OR_NEWER || NET_4_6
-            System.Threading.Volatile.Write(ref location, value);
+            Volatile.Write(ref location, value);
 #else
             System.Threading.Thread.MemoryBarrier();
             location = value;
@@ -207,7 +193,7 @@ namespace MessagePack.Internal
 #if !UNITY_2018_3_OR_NEWER
             System.Threading.Volatile.Write(ref location, value);
 #elif UNITY_2018_3_OR_NEWER || NET_4_6
-            System.Threading.Volatile.Write(ref location, value);
+            Volatile.Write(ref location, value);
 #else
             System.Threading.Thread.MemoryBarrier();
             location = value;
@@ -216,23 +202,16 @@ namespace MessagePack.Internal
 
         private class Entry
         {
-#pragma warning disable SA1401 // Fields should be private
-            internal Type Key;
-            internal TValue Value;
-            internal int Hash;
-            internal Entry Next;
-#pragma warning restore SA1401 // Fields should be private
-
             // debug only
             public override string ToString()
             {
-                return this.Key + "(" + this.Count() + ")";
+                return Key + "(" + Count() + ")";
             }
 
             private int Count()
             {
                 var count = 1;
-                Entry n = this;
+                var n = this;
                 while (n.Next != null)
                 {
                     count++;
@@ -241,6 +220,12 @@ namespace MessagePack.Internal
 
                 return count;
             }
+#pragma warning disable SA1401 // Fields should be private
+            internal Type Key;
+            internal TValue Value;
+            internal int Hash;
+            internal Entry Next;
+#pragma warning restore SA1401 // Fields should be private
         }
     }
 }

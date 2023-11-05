@@ -3,11 +3,10 @@ using Cysharp.Threading.Tasks;
 using MainGame.Network.Event;
 using MessagePack;
 using Server.Event.EventReceive;
-using UnityEngine;
 
 namespace MainGame.Network.Receive.EventPacket
 {
-    public class BlockStateChangeEventProtocol : IAnalysisEventPacket 
+    public class BlockStateChangeEventProtocol : IAnalysisEventPacket
     {
         private readonly ReceiveBlockStateChangeEvent _receiveBlockStateChangeEvent;
 
@@ -20,10 +19,10 @@ namespace MainGame.Network.Receive.EventPacket
         {
             var data = MessagePackSerializer
                 .Deserialize<ChangeBlockStateEventMessagePack>(packet.ToArray());
-            
+
 
             _receiveBlockStateChangeEvent.InvokeReceiveBlockStateChange(new BlockStateChangeProperties(
-                data.CurrentState,data.PreviousState,data.CurrentStateJsonData,data.Position)).Forget();
+                data.CurrentState, data.PreviousState, data.CurrentStateJsonData, data.Position)).Forget();
         }
     }
 }

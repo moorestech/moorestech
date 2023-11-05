@@ -10,24 +10,27 @@ namespace MessagePack
 #else
     public
 #endif
-    struct ExtensionHeader : IEquatable<ExtensionHeader>
+        struct ExtensionHeader : IEquatable<ExtensionHeader>
     {
-        public sbyte TypeCode { get; private set; }
+        public sbyte TypeCode { get; }
 
-        public uint Length { get; private set; }
+        public uint Length { get; }
 
         public ExtensionHeader(sbyte typeCode, uint length)
         {
-            this.TypeCode = typeCode;
-            this.Length = length;
+            TypeCode = typeCode;
+            Length = length;
         }
 
         public ExtensionHeader(sbyte typeCode, int length)
         {
-            this.TypeCode = typeCode;
-            this.Length = (uint)length;
+            TypeCode = typeCode;
+            Length = (uint)length;
         }
 
-        public bool Equals(ExtensionHeader other) => this.TypeCode == other.TypeCode && this.Length == other.Length;
+        public bool Equals(ExtensionHeader other)
+        {
+            return TypeCode == other.TypeCode && Length == other.Length;
+        }
     }
 }

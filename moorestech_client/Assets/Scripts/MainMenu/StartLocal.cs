@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 using Cysharp.Threading.Tasks;
 using GameConst;
 using MainGame.Basic;
@@ -15,14 +13,15 @@ namespace MainMenu
     public class StartLocal : MonoBehaviour
     {
         [SerializeField] private Button startLocalButton;
-            
+
+        private Process _serverProcess;
+
 
         private void Start()
         {
             startLocalButton.onClick.AddListener(() => StartLocalServer().Forget());
         }
 
-        private Process _serverProcess;
         private async UniTask StartLocalServer()
         {
             _serverProcess = new Process();
@@ -30,7 +29,7 @@ namespace MainMenu
             _serverProcess.StartInfo.Arguments = $"\"{ServerConst.ServerDllPath}\"";
             _serverProcess.StartInfo.UseShellExecute = true;
             _serverProcess.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-            
+
             Debug.Log($"Start Server Runtime : {ServerConst.DotnetRuntimePath} Arguments : {ServerConst.ServerDllPath}");
             _serverProcess.Start();
             await UniTask.Delay(1000);
@@ -48,20 +47,19 @@ namespace MainMenu
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;
             SceneManager.LoadScene(SceneConstant.MainGameSceneName);
         }
-        
+
         private void OnMainGameSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             SceneManager.sceneLoaded -= OnMainGameSceneLoaded;
-            var starter = GameObject.FindObjectOfType<MainGameStarter>();
+            var starter = FindObjectOfType<MainGameStarter>();
 
             var isLocal = true;
-            
+
             starter.SetProperty(new MainGameStartProprieties(
-                isLocal,_serverProcess,
+                isLocal, _serverProcess,
                 ServerConst.LocalServerIp,
                 ServerConst.LocalServerPort,
                 PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey)));
         }
-        
     }
 }

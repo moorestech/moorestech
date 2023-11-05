@@ -8,15 +8,12 @@ namespace MainGame.UnityView.UI.UIState
     public class PlayerInventoryState : IUIState
     {
         private readonly CraftInventoryObjectCreator _craftInventory;
-        
+
         private readonly CraftRecipeItemListViewer _craftRecipeItemListViewer;
         private readonly ItemRecipePresenter _itemRecipePresenter;
 
-
-        public event Action OnOpenInventory;
-
         public PlayerInventoryState(CraftInventoryObjectCreator craftInventory,
-            CraftRecipeItemListViewer craftRecipeItemListViewer,ItemRecipePresenter itemRecipePresenter)
+            CraftRecipeItemListViewer craftRecipeItemListViewer, ItemRecipePresenter itemRecipePresenter)
         {
             _craftInventory = craftInventory;
             _craftRecipeItemListViewer = craftRecipeItemListViewer;
@@ -27,15 +24,9 @@ namespace MainGame.UnityView.UI.UIState
 
         public UIStateEnum GetNext()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown)
-            {
-                return UIStateEnum.GameScreen;
-            }
+            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.GameScreen;
 
-            if (_itemRecipePresenter.IsClicked)
-            {
-                return UIStateEnum.RecipeViewer;
-            }
+            if (_itemRecipePresenter.IsClicked) return UIStateEnum.RecipeViewer;
 
             return UIStateEnum.Current;
         }
@@ -45,7 +36,7 @@ namespace MainGame.UnityView.UI.UIState
             _craftInventory.gameObject.SetActive(true);
             _craftInventory.SetCraftInventory();
             _craftRecipeItemListViewer.gameObject.SetActive(true);
-            
+
             OnOpenInventory?.Invoke();
         }
 
@@ -54,5 +45,8 @@ namespace MainGame.UnityView.UI.UIState
             _craftInventory.gameObject.SetActive(false);
             _craftRecipeItemListViewer.gameObject.SetActive(false);
         }
+
+
+        public event Action OnOpenInventory;
     }
 }

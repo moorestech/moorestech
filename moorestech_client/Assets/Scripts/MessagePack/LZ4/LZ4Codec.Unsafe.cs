@@ -41,10 +41,7 @@ namespace MessagePack.LZ4
         /// <returns>Number of bytes written.</returns>
         public static unsafe int Encode(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            if (output.Length == 0)
-            {
-                throw new MessagePackSerializationException("Output is empty.");
-            }
+            if (output.Length == 0) throw new MessagePackSerializationException("Output is empty.");
 
             fixed (byte* inputPtr = input)
             fixed (byte* outputPtr = output)
@@ -55,29 +52,17 @@ namespace MessagePack.LZ4
                     fixed (ushort* hash1 = &uHashTable[0])
                     {
                         if (IntPtr.Size == 4)
-                        {
                             return LZ4_compress64kCtx_32(hash1, inputPtr, outputPtr, input.Length, output.Length);
-                        }
-                        else
-                        {
-                            return LZ4_compress64kCtx_64(hash1, inputPtr, outputPtr, input.Length, output.Length);
-                        }
+                        return LZ4_compress64kCtx_64(hash1, inputPtr, outputPtr, input.Length, output.Length);
                     }
                 }
-                else
+
+                var bHashTable = HashTablePool.GetUIntHashTablePool();
+                fixed (uint* hash2 = &bHashTable[0])
                 {
-                    var bHashTable = HashTablePool.GetUIntHashTablePool();
-                    fixed (uint* hash2 = &bHashTable[0])
-                    {
-                        if (IntPtr.Size == 4)
-                        {
-                            return LZ4_compressCtx_32(hash2, inputPtr, outputPtr, input.Length, output.Length);
-                        }
-                        else
-                        {
-                            return LZ4_compressCtx_64(hash2, inputPtr, outputPtr, input.Length, output.Length);
-                        }
-                    }
+                    if (IntPtr.Size == 4)
+                        return LZ4_compressCtx_32(hash2, inputPtr, outputPtr, input.Length, output.Length);
+                    return LZ4_compressCtx_64(hash2, inputPtr, outputPtr, input.Length, output.Length);
                 }
             }
         }
@@ -88,28 +73,18 @@ namespace MessagePack.LZ4
         /// <returns>Number of bytes written.</returns>
         public static unsafe int Decode(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            if (output.Length == 0)
-            {
-                throw new MessagePackSerializationException("Output is empty.");
-            }
+            if (output.Length == 0) throw new MessagePackSerializationException("Output is empty.");
 
             fixed (byte* inputPtr = input)
             fixed (byte* outputPtr = output)
             {
                 int length;
                 if (IntPtr.Size == 4)
-                {
                     length = LZ4_uncompress_32(inputPtr, outputPtr, output.Length);
-                }
                 else
-                {
                     length = LZ4_uncompress_64(inputPtr, outputPtr, output.Length);
-                }
 
-                if (length != input.Length)
-                {
-                    throw new MessagePackSerializationException("LZ4 block is corrupted, or invalid length has been given.");
-                }
+                if (length != input.Length) throw new MessagePackSerializationException("LZ4 block is corrupted, or invalid length has been given.");
 
                 return output.Length;
             }

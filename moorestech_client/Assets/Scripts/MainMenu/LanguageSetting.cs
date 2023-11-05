@@ -1,5 +1,4 @@
-﻿using System;
-using Localization;
+﻿using Localization;
 using TMPro;
 using UnityEngine;
 

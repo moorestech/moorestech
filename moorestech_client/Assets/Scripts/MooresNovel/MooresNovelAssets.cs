@@ -18,40 +18,27 @@ namespace MooresNovel
         public NovelCharacterSpriteData GetCharacter(string characterKey)
         {
             foreach (var character in characters)
-            {
                 if (character.Key == characterKey)
-                {
                     return character;
-                }
-            }
             Debug.LogError("キャラクターのKeyがありません key:" + characterKey);
             return null;
         }
-        
+
         public NovelBackgroundSpriteData GetBackground(string backgroundKey)
         {
             foreach (var background in backgrounds)
-            {
                 if (background.Key == backgroundKey)
-                {
                     return background;
-                }
-            }
             Debug.LogError("背景のKeyがありません key:" + backgroundKey);
             return null;
         }
-        
 
 
         public MooresNovelScenario GetScenario(string key)
         {
             foreach (var eventScript in eventScripts)
-            {
                 if (eventScript.Key == key)
-                {
                     return eventScript;
-                }
-            }
             Debug.LogError("スクリプトのKeyがありません key:" + key);
             return null;
         }
@@ -61,8 +48,8 @@ namespace MooresNovel
     public class MooresNovelScenario
     {
         [SerializeField] private string key;
-        public string Key => key;
         [SerializeField] private TextAsset scenarioCsv;
+        public string Key => key;
 
         public List<IMooresNovelEvent> CreateScenario()
         {
@@ -76,7 +63,7 @@ namespace MooresNovel
                     var characterKey = csv.GetField<string>(1);
                     var backgroundKey = csv.GetField<string>(2);
                     var text = csv.GetField<string>(3);
-                    result.Add(new MooresNovelLine(characterKey, text,backgroundKey));
+                    result.Add(new MooresNovelLine(characterKey, text, backgroundKey));
                 }
                 else if (type == MooresNovelEventType.Transition.ToString())
                 {
@@ -86,7 +73,6 @@ namespace MooresNovel
                 {
                     Debug.LogError("csvの1列目が不正です type:" + type);
                 }
-                
             }
 
             return result;
@@ -97,12 +83,11 @@ namespace MooresNovel
     {
         public MooresNovelEventType EventType { get; }
     }
-    
+
     public class MooresNovelLine : IMooresNovelEvent
     {
-        public MooresNovelEventType EventType => MooresNovelEventType.Line;
-        public readonly string CharacterKey;
         public readonly string BackgroundKey;
+        public readonly string CharacterKey;
         public readonly string Text;
 
         public MooresNovelLine(string characterKey, string text, string backgroundKey)
@@ -111,6 +96,8 @@ namespace MooresNovel
             Text = text;
             BackgroundKey = backgroundKey;
         }
+
+        public MooresNovelEventType EventType => MooresNovelEventType.Line;
     }
 
     public class MoresNovelTranslation : IMooresNovelEvent
@@ -121,18 +108,18 @@ namespace MooresNovel
     public enum MooresNovelEventType
     {
         Line,
-        Transition,
+        Transition
     }
-    
-        
+
+
     [Serializable]
     public class NovelCharacterSpriteData
     {
         [SerializeField] private string name;
-        public string Name => name;
         [SerializeField] private string key;
-        public string Key => key;
         [SerializeField] private Sprite characterSprite;
+        public string Name => name;
+        public string Key => key;
         public Sprite CharacterSprite => characterSprite;
     }
 
@@ -140,9 +127,8 @@ namespace MooresNovel
     public class NovelBackgroundSpriteData
     {
         [SerializeField] private string key;
-        public string Key => key;
         [SerializeField] private Sprite characterSprite;
+        public string Key => key;
         public Sprite CharacterSprite => characterSprite;
     }
-
 }

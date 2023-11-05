@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Game.Quest.Config;
 using Game.Quest.Interface;
 using MainGame.Basic.Quest;
 using MainGame.UnityView.UI.Inventory.Element;
@@ -13,68 +12,61 @@ namespace MainGame.UnityView.UI.Quest
     {
         [SerializeField] private QuestCategoryButton QuestCategoryButtonPrefab;
         [SerializeField] private QuestTab QuestTabPrefab;
-        
+
         [SerializeField] private RectTransform QuestCategoryButtonContainer;
         [SerializeField] private RectTransform QuestTabParent;
 
         private readonly Dictionary<string, QuestTab> questTabs = new();
         private IQuestConfig _questConfig;
 
-        public event Action<string> OnGetReward; 
+        public event Action<string> OnGetReward;
 
 
         [Inject]
-        public void Construct(IQuestConfig questConfig,ItemImages itemImages)
+        public void Construct(IQuestConfig questConfig, ItemImages itemImages)
         {
             _questConfig = questConfig;
-            
+
             string firstCategory = null;
             foreach (var quests in questConfig.GetQuestListEachCategory())
             {
                 firstCategory ??= quests.Key;
-                
+
                 var questButton = Instantiate(QuestCategoryButtonPrefab, QuestCategoryButtonContainer);
-                questButton.SetCategory(quests.Key,OnPushQuestButton);
+                questButton.SetCategory(quests.Key, OnPushQuestButton);
                 questButton.name = quests.Key + " Button";
-                
+
                 var questTab = Instantiate(QuestTabPrefab, QuestTabParent);
-                questTab.SetQuests(quests.Value,itemImages,s => OnGetReward?.Invoke(s));
+                questTab.SetQuests(quests.Value, itemImages, s => OnGetReward?.Invoke(s));
                 questTab.SetActive(false);
                 questTab.name = quests.Key + " Tab";
-                
+
                 questTabs.Add(quests.Key, questTab);
             }
 
-            if (firstCategory != null)
-            {
-                questTabs[firstCategory].SetActive(true);   
-            }
+            if (firstCategory != null) questTabs[firstCategory].SetActive(true);
         }
 
         private void OnPushQuestButton(string category)
         {
-            foreach (var tab in questTabs.Values)
-            {
-                tab.SetActive(false);
-            }
+            foreach (var tab in questTabs.Values) tab.SetActive(false);
             questTabs[category].SetActive(true);
         }
 
 
         /// <summary>
-        /// クエストIDごとの進捗を設定する
+        ///     クエストIDごとの進捗を設定する
         /// </summary>
         /// <param name="questProgress"></param>
-        public void SetQuestProgress(Dictionary<string,QuestProgressData> questProgress)
+        public void SetQuestProgress(Dictionary<string, QuestProgressData> questProgress)
         {
             foreach (var quest in questProgress)
             {
                 //カテゴリを取得
                 var cat = _questConfig.GetQuestConfig(quest.Key).QuestCategory;
                 //クエストタブに進捗を設定
-                questTabs[cat].SetQuestProgress(quest.Key,quest.Value);
+                questTabs[cat].SetQuestProgress(quest.Key, quest.Value);
             }
         }
-        
     }
 }

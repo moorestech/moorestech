@@ -10,7 +10,7 @@ namespace MainGame.Basic
         South,
         West
     }
-    
+
     public static class BlockDirectionAngle
     {
         public static Quaternion GetRotation(BlockDirection direction)

@@ -5,7 +5,6 @@
  * CHANGE THE .tt FILE INSTEAD. */
 
 #if !UNITY_2018_3_OR_NEWER
-
 using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;

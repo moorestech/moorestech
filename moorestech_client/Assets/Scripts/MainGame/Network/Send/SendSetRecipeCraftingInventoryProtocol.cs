@@ -10,10 +10,10 @@ namespace MainGame.Network.Send
 {
     public class SendSetRecipeCraftingInventoryProtocol
     {
-        private readonly ISocketSender _socketSender;
         private readonly int _playerId;
+        private readonly ISocketSender _socketSender;
 
-        public SendSetRecipeCraftingInventoryProtocol(ISocketSender socketSender,PlayerConnectionSetting playerConnectionSetting)
+        public SendSetRecipeCraftingInventoryProtocol(ISocketSender socketSender, PlayerConnectionSetting playerConnectionSetting)
         {
             _socketSender = socketSender;
             _playerId = playerConnectionSetting.PlayerId;
@@ -22,15 +22,12 @@ namespace MainGame.Network.Send
         public void Send(List<ItemStack> recipeItem)
         {
             var sendItem = new ItemMessagePack[PlayerInventoryConstant.CraftingSlotSize];
-            for (int i = 0; i < sendItem.Length; i++)
-            {
-                sendItem[i] = new ItemMessagePack(recipeItem[i].ID,recipeItem[i].Count);
-            }
-            
-            
+            for (var i = 0; i < sendItem.Length; i++) sendItem[i] = new ItemMessagePack(recipeItem[i].ID, recipeItem[i].Count);
+
+
             _socketSender.Send(MessagePackSerializer.Serialize(
-                new SetRecipeCraftingInventoryProtocolMessagePack(_playerId,sendItem)
-                ).ToList());
+                new SetRecipeCraftingInventoryProtocolMessagePack(_playerId, sendItem)
+            ).ToList());
         }
     }
 }

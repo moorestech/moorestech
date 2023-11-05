@@ -4,10 +4,10 @@ using UnityEngine.UI;
 
 namespace MainGame.UnityView.UI.Builder.Unity
 {
-    public class UIBuilderProgressArrowObject : MonoBehaviour,IUIBuilderObject
+    public class UIBuilderProgressArrowObject : MonoBehaviour, IUIBuilderObject
     {
         [SerializeField] private Image arrowBlack;
-        
+
         public IUIBluePrintElement BluePrintElement { get; private set; }
         public RectTransform RectTransform { get; private set; }
 

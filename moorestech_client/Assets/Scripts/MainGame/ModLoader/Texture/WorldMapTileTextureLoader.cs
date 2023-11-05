@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Ore.Config;
-using Cysharp.Threading.Tasks;
 using Mod.Loader;
 using SinglePlay;
 using UnityEngine;
@@ -11,7 +10,8 @@ namespace MainGame.ModLoader.Texture
     public static class WorldMapTileTextureLoader
     {
         private const string TextureDirectory = "assets/maptile/";
-        public static List<Material> GetMapTileMaterial(string modDirectory,SinglePlayInterface singlePlayInterface,Material baseMaterial)
+
+        public static List<Material> GetMapTileMaterial(string modDirectory, SinglePlayInterface singlePlayInterface, Material baseMaterial)
         {
             var materials = new List<Material>();
             var mods = new ModsResource(modDirectory);
@@ -21,14 +21,14 @@ namespace MainGame.ModLoader.Texture
                 var oreIDs = singlePlayInterface.OreConfig.GetOreIds(mod.Value.ModMetaJson.ModId);
                 var oreConfigs = oreIDs.Select(singlePlayInterface.OreConfig.Get).ToList();
 
-                materials.AddRange( GetTextures(oreConfigs,mod.Value,baseMaterial));
+                materials.AddRange(GetTextures(oreConfigs, mod.Value, baseMaterial));
             }
 
             return materials;
         }
 
 
-        private static List<Material> GetTextures(List<OreConfigData> oreConfigs,global::Mod.Loader.Mod mod,Material baseMaterial)
+        private static List<Material> GetTextures(List<OreConfigData> oreConfigs, Mod.Loader.Mod mod, Material baseMaterial)
         {
             var resultMaterial = new List<Material>();
             foreach (var config in oreConfigs)

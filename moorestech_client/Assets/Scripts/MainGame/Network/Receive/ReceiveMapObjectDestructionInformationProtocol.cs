@@ -6,7 +6,7 @@ using Server.Protocol.PacketResponse;
 
 namespace MainGame.Network.Receive
 {
-    public class ReceiveMapObjectDestructionInformationProtocol: IAnalysisPacket
+    public class ReceiveMapObjectDestructionInformationProtocol : IAnalysisPacket
     {
         private readonly ReceiveUpdateMapObjectEvent _updateMapObjectEvent;
 
@@ -21,11 +21,8 @@ namespace MainGame.Network.Receive
             var data = MessagePackSerializer.Deserialize<ResponseMapObjectDestructionInformationMessagePack>(packet.ToArray());
 
             var mapObjectEvent = new List<MapObjectProperties>();
-            foreach (var mapObject in data.MapObjects)
-            {
-                mapObjectEvent.Add(new MapObjectProperties(mapObject.Instanceid,mapObject.IsDestroyed));
-            }
-            
+            foreach (var mapObject in data.MapObjects) mapObjectEvent.Add(new MapObjectProperties(mapObject.InstanceId, mapObject.IsDestroyed));
+
             _updateMapObjectEvent.InvokeReceiveMapObjectInformation(mapObjectEvent).Forget();
         }
     }
