@@ -277,6 +277,34 @@
                     "z": 1
                 }
             }
+        },
+        {
+            "name": "wooden chest",
+            "type": "Chest",
+            "itemModId": "sakastudio:moorestechAlphaMod",
+            "itemName": "wooden chest",
+            "width": 1,
+            "height": 1,
+            "param": {
+                "slot": 5
+            },
+            "modelTransform": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                }
+            }
         }
     ]
 }

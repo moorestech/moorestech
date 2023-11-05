@@ -1446,5 +1446,68 @@
             "modId": "sakastudio:moorestechAlphaMod",
             "count": 1
         }
+    },
+    {
+        "items": [
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": null,
+                "modId": null,
+                "count": 0,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            },
+            {
+                "itemName": "wood",
+                "modId": "sakastudio:moorestechAlphaMod",
+                "count": 1,
+                "isRemain": false
+            }
+        ],
+        "result": {
+            "itemName": "wooden chest",
+            "modId": "sakastudio:moorestechAlphaMod",
+            "count": 1
+        }
     }
 ]

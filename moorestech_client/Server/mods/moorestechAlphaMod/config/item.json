@@ -213,5 +213,10 @@
         "name": "iron blade",
         "maxStacks": 100,
         "imagePath": "assets/item/iron blade.png"
+    },
+    {
+        "name": "wooden chest",
+        "maxStacks": 100,
+        "imagePath": "assets/item/wooden chest.png"
     }
 ]
