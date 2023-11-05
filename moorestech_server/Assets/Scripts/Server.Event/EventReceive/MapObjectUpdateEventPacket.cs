@@ -26,7 +26,7 @@ namespace Server.Event.EventReceive
         private void OnDestroyMapObject(IMapObject mapObject)
         {
             var data = MessagePackSerializer.Serialize(new MapObjectUpdateEventMessagePack(
-                MapObjectUpdateEventMessagePack.OnDestroyEventType, mapObject.InstanceId
+                MapObjectUpdateEventMessagePack.DestroyEventType, mapObject.InstanceId
             )).ToList();
             _eventProtocolProvider.AddBroadcastEvent(data);
         }
@@ -35,7 +35,7 @@ namespace Server.Event.EventReceive
     [MessagePackObject(true)]
     public class MapObjectUpdateEventMessagePack : EventProtocolMessagePackBase
     {
-        public const string OnDestroyEventType = "destroy";
+        public const string DestroyEventType = "destroy";
 
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

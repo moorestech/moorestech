@@ -27,7 +27,7 @@ namespace Game.Quest
 
         public IReadOnlyList<IQuest> GetPlayerQuestProgress(int playerId)
         {
-            if (_quests.ContainsKey(playerId)) return _quests[playerId];
+            if (_quests.TryGetValue(playerId, out var progress)) return progress;
 
             //新しいプレイヤーなので新しいクエストの作成
             var newQuests = _questFactory.CreateQuests();

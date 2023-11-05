@@ -13,7 +13,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Util;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server
 {

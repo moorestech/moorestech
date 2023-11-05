@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Game.Save.Interface
+namespace Game.SaveLoad.Interface
 {
     public class MapConfigFile
     {

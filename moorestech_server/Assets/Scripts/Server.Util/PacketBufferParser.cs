@@ -79,7 +79,7 @@ namespace Server.Util
 
         private bool TryGetLength(byte[] bytes, int startIndex, out int payloadLength, out int headerLength)
         {
-            var headerBytes = new List<byte>();
+            List<byte> headerBytes;
             if (_isGettingLength)
             {
                 headerLength = _remainingHeaderLength;

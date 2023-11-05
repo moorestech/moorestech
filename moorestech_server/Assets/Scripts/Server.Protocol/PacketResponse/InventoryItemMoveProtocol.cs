@@ -6,7 +6,6 @@ using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUitl;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 
@@ -78,7 +77,6 @@ namespace Server.Protocol.PacketResponse
                     inventory = _worldBlockDatastore.ExistsComponentBlock<IOpenableInventory>(x, y)
                         ? _worldBlockDatastore.GetBlock<IOpenableInventory>(x, y)
                         : null;
-                    ;
                     break;
             }
 

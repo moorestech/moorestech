@@ -5,7 +5,7 @@ namespace Game.Block.Interface.RecipeConfig
 {
     public interface IMachineRecipeConfig
     {
-        public MachineRecipeData GetRecipeData(int BlockId, IReadOnlyList<IItemStack> inputItem);
+        public MachineRecipeData GetRecipeData(int blockId, IReadOnlyList<IItemStack> inputItem);
         public MachineRecipeData GetEmptyRecipeData();
         public MachineRecipeData GetRecipeData(int id);
 

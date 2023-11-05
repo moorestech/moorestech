@@ -1,11 +1,11 @@
 using Game.Quest.Interface;
 using Game.Quest.QuestEntity;
-using Game.Save.Interface;
-using Game.Save.Json;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game.SaveLoad

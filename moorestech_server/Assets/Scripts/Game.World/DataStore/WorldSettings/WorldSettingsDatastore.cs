@@ -2,7 +2,7 @@ using Core.Util;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
 
-namespace World.DataStore.WorldSettings
+namespace Game.World.DataStore.WorldSettings
 {
     /// <summary>
     ///     ワールドの基本的な設定を保持します

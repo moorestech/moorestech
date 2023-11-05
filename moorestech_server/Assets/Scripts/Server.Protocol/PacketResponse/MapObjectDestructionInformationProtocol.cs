@@ -70,11 +70,11 @@ namespace Server.Protocol.PacketResponse
 
         public MapObjectDestructionInformationData(int instanceId, bool isDestroyed)
         {
-            Instanceid = instanceId;
+            InstanceId = instanceId;
             IsDestroyed = isDestroyed;
         }
 
-        public int Instanceid { get; set; }
+        public int InstanceId { get; set; }
         public bool IsDestroyed { get; set; }
     }
 }

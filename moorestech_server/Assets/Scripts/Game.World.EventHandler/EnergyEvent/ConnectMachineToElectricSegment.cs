@@ -3,7 +3,7 @@ using Core.EnergySystem.Electric;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
-using Game.World.EventHandler.Service;
+using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 

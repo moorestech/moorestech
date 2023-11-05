@@ -9,7 +9,7 @@ namespace Server.Protocol.PacketResponse.Player
     {
         private const int RequestPlayerIntervalMilliSeconds = 5000;
 
-        private CoreVector2Int _lastCoreVector2Int = new() { X = int.MaxValue, Y = int.MaxValue };
+        private CoreVector2Int _lastCoreVector2Int = new(int.MaxValue, int.MaxValue);
         private DateTime _lastGetTime = DateTime.MinValue;
 
         public List<CoreVector2Int> GetResponseChunkCoordinates(CoreVector2Int coreVector2Int)
@@ -18,7 +18,7 @@ namespace Server.Protocol.PacketResponse.Player
             //サーバー側では前回との差分しか返さないようになってしまう
             //そのため、前回の取得から5000ミリ秒以上経過している場合は、前回座標のリセットを行う
             if (_lastGetTime.AddMilliseconds(RequestPlayerIntervalMilliSeconds) < DateTime.Now)
-                _lastCoreVector2Int = new CoreVector2Int { X = int.MaxValue, Y = int.MaxValue };
+                _lastCoreVector2Int = new CoreVector2Int(int.MaxValue, int.MaxValue);
 
             _lastGetTime = DateTime.Now;
 

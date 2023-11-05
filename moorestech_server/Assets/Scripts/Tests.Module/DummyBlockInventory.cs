@@ -5,7 +5,7 @@ using Core.Item;
 using Core.Item.Util;
 using Game.Block.BlockInventory;
 
-namespace Test.Module
+namespace Tests.Module
 {
     public class DummyBlockInventory : IBlockInventory
     {

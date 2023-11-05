@@ -6,11 +6,11 @@ using Core.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.State;
+using Game.World.Event;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
-using World.Event;
 
-namespace World.DataStore
+namespace Game.World.DataStore
 {
     /// <summary>
     ///     ワールドに存在するブロックとその座標の対応づけを行います。

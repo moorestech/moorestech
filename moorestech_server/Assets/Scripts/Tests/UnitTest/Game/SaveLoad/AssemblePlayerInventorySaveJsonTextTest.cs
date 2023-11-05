@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using Core.Item;
 using Game.PlayerInventory.Interface;
-using Game.Save.Interface;
-using Game.Save.Json;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {

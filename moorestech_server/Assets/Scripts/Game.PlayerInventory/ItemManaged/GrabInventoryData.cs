@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Inventory;
 using Core.Item;
+using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface.Event;
-using PlayerInventory.Event;
 
-namespace PlayerInventory.ItemManaged
+namespace Game.PlayerInventory.ItemManaged
 {
     public class GrabInventoryData : IOpenableInventory
     {

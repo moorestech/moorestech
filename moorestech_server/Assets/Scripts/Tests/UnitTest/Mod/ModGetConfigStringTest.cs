@@ -1,7 +1,7 @@
 using System.IO;
 using Mod.Config;
 using NUnit.Framework;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Mod
 {

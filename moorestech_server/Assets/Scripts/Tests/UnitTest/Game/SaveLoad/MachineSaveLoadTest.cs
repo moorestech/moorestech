@@ -5,14 +5,14 @@ using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Interface;
-using Game.Save.Interface;
-using Game.Save.Json;
+using Game.PlayerInventory;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using PlayerInventory;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 using UnityEngine;
 using Assert = UnityEngine.Assertions.Assert;
 

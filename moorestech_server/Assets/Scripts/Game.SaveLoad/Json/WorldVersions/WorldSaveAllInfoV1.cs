@@ -6,7 +6,7 @@ using Game.Quest.Interface;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
 
-namespace Game.Save.Json.WorldVersions
+namespace Game.SaveLoad.Json.WorldVersions
 {
     public class WorldSaveAllInfoV1
     {

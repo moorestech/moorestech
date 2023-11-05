@@ -83,7 +83,7 @@ namespace Game.Crafting
         public IItemStack GetResult(IReadOnlyList<IItemStack> craftingItems)
         {
             var key = GetCraftingConfigCacheKey(craftingItems);
-            if (_craftingConfigDataCache.ContainsKey(key)) return _craftingConfigDataCache[key].Result;
+            if (_craftingConfigDataCache.TryGetValue(key, out var value)) return value.Result;
 
             throw new Exception("クラフト可能なアイテムがありません。この関数を使用する前にIsCreatableを使用してください。");
         }
@@ -91,7 +91,7 @@ namespace Game.Crafting
         public CraftingConfigData GetCraftingConfigData(IReadOnlyList<IItemStack> craftingItems)
         {
             var key = GetCraftingConfigCacheKey(craftingItems);
-            if (_craftingConfigDataCache.ContainsKey(key)) return _craftingConfigDataCache[key];
+            if (_craftingConfigDataCache.TryGetValue(key, out var data)) return data;
 
             return _nullCraftingConfigData;
         }
@@ -137,7 +137,6 @@ namespace Game.Crafting
             //アイテムが足りないなどの理由で最大個数に到達しない場合は最大クラフト回数を使用する
             if (maxCraftItemNum < oneStackMaxCraftNum) oneStackMaxCraftNum = maxCraftItemNum;
             return MainInventoryCanInsertNum(oneStackMaxCraftNum, resultItem, mainInventoryItems);
-            ;
         }
 
         private int MainInventoryCanInsertNum(int maxNum, IItemStack insertItem,

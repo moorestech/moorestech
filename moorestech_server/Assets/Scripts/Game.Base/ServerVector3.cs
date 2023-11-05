@@ -1,10 +1,10 @@
 ﻿namespace Game.Base
 {
-    public struct ServerVector3
+    public readonly struct ServerVector3
     {
-        public float X;
-        public float Y;
-        public float Z;
+        public readonly float X;
+        public readonly float Y;
+        public readonly float Z;
 
         public ServerVector3(float x, float y, float z)
         {

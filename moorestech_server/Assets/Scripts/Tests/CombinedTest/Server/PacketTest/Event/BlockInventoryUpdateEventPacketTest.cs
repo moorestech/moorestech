@@ -10,7 +10,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -126,7 +126,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         private List<byte> GetEventPacket()
         {
             return MessagePackSerializer.Serialize(new EventProtocolMessagePack(PlayerId)).ToList();
-            ;
         }
     }
 }

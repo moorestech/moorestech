@@ -153,7 +153,7 @@ namespace Mod.Loader
                     }
                 }
             }
-            catch (ReflectionTypeLoadException e)
+            catch (ReflectionTypeLoadException)
             {
                 //クライアント側でエラーが出るので、ここでキャッチしておく
             }

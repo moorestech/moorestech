@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Core.EnergySystem;
 using Game.World.Interface.DataStore;
 
-namespace Game.World.EventHandler.Service
+namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
     public static class ElectricSegmentMergeService
     {

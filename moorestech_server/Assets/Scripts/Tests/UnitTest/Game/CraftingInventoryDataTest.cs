@@ -1,14 +1,14 @@
 using Core.Item;
 using Core.Item.Config;
 using Game.Crafting.Interface;
+using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
+using Game.PlayerInventory.ItemManaged;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using PlayerInventory.Event;
-using PlayerInventory.ItemManaged;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Game
 {

@@ -1,13 +1,13 @@
 using System.Reflection;
+using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest.Interface;
 using Game.Quest.Interface.Extension;
 using Game.Quest.QuestEntity;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using PlayerInventory.Event;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Game.Quest
 {

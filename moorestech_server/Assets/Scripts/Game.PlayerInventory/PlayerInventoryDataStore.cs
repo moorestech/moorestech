@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using Core.Item;
 using Game.Crafting.Interface;
+using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
-using PlayerInventory.Event;
-using PlayerInventory.ItemManaged;
+using Game.PlayerInventory.ItemManaged;
 
-namespace PlayerInventory
+namespace Game.PlayerInventory
 {
     /// <summary>
     ///     プレイヤーインベントリのデータを扱います。

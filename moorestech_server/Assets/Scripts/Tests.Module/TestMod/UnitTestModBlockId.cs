@@ -1,4 +1,4 @@
-namespace Test.Module.TestMod
+namespace Tests.Module.TestMod
 {
     public class UnitTestModBlockId
     {

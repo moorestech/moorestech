@@ -12,17 +12,17 @@ namespace Game.Block.Interface.State
         ///     必要な電力に対してどの程度電力が来ているかを表す
         ///     アニメーションを再生する速度に利用する
         /// </summary>
-        public float PowerRate;
+        public float powerRate;
 
         /// <summary>
         ///     アイテムの作成がどれくらい進んでいるかを表す
         /// </summary>
-        public float ProcessingRate;
+        public float processingRate;
 
         public CommonMachineBlockStateChangeData(float currentPower, float requestPower, float processingRate)
         {
-            PowerRate = requestPower == 0 ? 1.0f : currentPower / requestPower;
-            ProcessingRate = processingRate;
+            powerRate = requestPower == 0 ? 1.0f : currentPower / requestPower;
+            this.processingRate = processingRate;
         }
     }
 }

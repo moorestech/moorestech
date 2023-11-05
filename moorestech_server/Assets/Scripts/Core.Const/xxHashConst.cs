@@ -3,6 +3,7 @@ namespace Core.Const
     /// <summary>
     ///     鉱石生成に使うxxHashの定数
     /// </summary>
+    // ReSharper disable once InconsistentNaming
     public class xxHashConst
     {
         /// <summary>

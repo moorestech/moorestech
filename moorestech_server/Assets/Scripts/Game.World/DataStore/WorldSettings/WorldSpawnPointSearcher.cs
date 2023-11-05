@@ -1,7 +1,7 @@
 using Core.Util;
 using Game.WorldMap;
 
-namespace World.DataStore.WorldSettings
+namespace Game.World.DataStore.WorldSettings
 {
     public static class WorldSpawnPointSearcher
     {

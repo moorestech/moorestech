@@ -2,9 +2,9 @@ using Core.EnergySystem;
 using Core.EnergySystem.Electric;
 using Core.Update;
 using NUnit.Framework;
-using Test.Module;
+using Tests.Module;
 
-namespace Tests.UnitTest.Game.Block
+namespace Tests.UnitTest.Core.Block
 {
     public class ElectricSegmentTest
     {

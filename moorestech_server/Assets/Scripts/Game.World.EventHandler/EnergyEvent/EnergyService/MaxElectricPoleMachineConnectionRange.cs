@@ -2,7 +2,7 @@ using Game.Block;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
 
-namespace Game.World.EventHandler.Service
+namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
     public class MaxElectricPoleMachineConnectionRange
     {

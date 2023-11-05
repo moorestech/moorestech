@@ -46,7 +46,7 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<PlayerCoordinateSendProtocolMessagePack>(payload.ToArray());
 
             //新しいプレイヤーの情報ならDictionaryに追加する
-            if (!_responses.ContainsKey(data.PlayerId)) _responses.Add(data.PlayerId, new PlayerCoordinateToResponse());
+            _responses.TryAdd(data.PlayerId, new PlayerCoordinateToResponse());
             //プレイヤーの座標を更新する
             var newPosition = new ServerVector3(data.X, 0, data.Y);
             _entitiesDatastore.SetPosition(data.PlayerId, newPosition);

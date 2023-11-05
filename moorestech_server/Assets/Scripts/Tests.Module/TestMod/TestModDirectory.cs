@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Test.Module.TestMod
+namespace Tests.Module.TestMod
 {
     public class TestModDirectory
     {

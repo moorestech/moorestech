@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks;
+using Game.World.Event;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,9 +10,8 @@ using Server.Boot;
 using Server.Event;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 using UnityEngine;
-using World.Event;
 using Random = System.Random;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event

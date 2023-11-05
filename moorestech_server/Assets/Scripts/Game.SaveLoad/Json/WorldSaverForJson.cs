@@ -1,7 +1,7 @@
 using System.IO;
-using Game.Save.Interface;
+using Game.SaveLoad.Interface;
 
-namespace Game.Save.Json
+namespace Game.SaveLoad.Json
 {
     public class WorldSaverForJson : IWorldSaveDataSaver
     {

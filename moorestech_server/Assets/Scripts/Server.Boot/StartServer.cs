@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Update;
-using Game.Save.Interface;
+using Game.SaveLoad.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Base;
 using Mod.Loader;
@@ -15,7 +15,7 @@ namespace Server.Boot
 {
     public static class StartServer
     {
-        private const int argsCount = 1;
+        private const int ArgsCount = 1;
 
 
         private static string DebugServerDirectory =>

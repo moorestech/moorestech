@@ -2,7 +2,7 @@ using Core.Const;
 using Game.Block.Interface;
 using NUnit.Framework;
 
-namespace Tests.UnitTest.Game.Block
+namespace Tests.UnitTest.Core.Block
 {
     public class NullBlockTest
     {

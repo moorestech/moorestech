@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -57,7 +57,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, changeStateData.Position.Y);
 
             var detailChangeData = changeStateData.GetStateDat<CommonMachineBlockStateChangeData>();
-            Assert.AreEqual(1.0f, detailChangeData.PowerRate);
+            Assert.AreEqual(1.0f, detailChangeData.powerRate);
         }
     }
 }

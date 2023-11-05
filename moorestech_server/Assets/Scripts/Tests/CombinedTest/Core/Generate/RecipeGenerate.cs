@@ -6,98 +6,98 @@ namespace Tests.CombinedTest.Core.Generate
 {
     public static class RecipeGenerate
     {
-        public static recipe MakeRecipe(int seed, int recipeNum)
+        public static Recipe MakeRecipe(int seed, int recipeNum)
         {
             var random = new Random(seed);
-            var recipes = new List<recipes>();
-            for (var i = 0; i < recipeNum; i++) recipes.Add(new recipes(random));
+            var recipes = new List<Recipes>();
+            for (var i = 0; i < recipeNum; i++) recipes.Add(new Recipes(random));
 
-            return new recipe(recipes.ToArray());
+            return new Recipe(recipes.ToArray());
         }
     }
 
     [DataContract]
-    public class recipe
+    public class Recipe
     {
-        [DataMember(Name = "recipes")] public recipes[] recipes;
+        [DataMember(Name = "recipes")] public Recipes[] Recipes;
 
-        public recipe(recipes[] recipes)
+        public Recipe(Recipes[] recipes)
         {
-            this.recipes = recipes;
+            Recipes = recipes;
         }
     }
 
     [DataContract]
-    public class recipes
+    public class Recipes
     {
         [DataMember(Name = "BlockID")] public int BlockID;
-        [DataMember(Name = "input")] public inputitem[] input;
-        [DataMember(Name = "output")] public outputitem[] output;
-        [DataMember(Name = "time")] public int time;
+        [DataMember(Name = "input")] public InputItem[] Input;
+        [DataMember(Name = "output")] public OutputItem[] Output;
+        [DataMember(Name = "time")] public int Time;
 
-        public recipes(Random r)
+        public Recipes(Random r)
         {
-            var inputnum = r.Next(1, 11);
-            var tmpInput = new List<inputitem>();
-            for (var i = 0; i < inputnum; i++)
+            var inputNumber = r.Next(1, 11);
+            var tmpInput = new List<InputItem>();
+            for (var i = 0; i < inputNumber; i++)
             {
                 //IDが重複するときはIDを変更
-                var id = 0;
+                int id;
                 do
                 {
                     id = r.Next(1, 1001);
-                } while (tmpInput.Find(x => x.id == id) != null);
+                } while (tmpInput.Find(x => x.ID == id) != null);
 
-                tmpInput.Add(new inputitem(id, r.Next(1, 101)));
+                tmpInput.Add(new InputItem(id, r.Next(1, 101)));
             }
 
-            input = tmpInput.ToArray();
+            Input = tmpInput.ToArray();
 
 
             var outputnum = r.Next(1, 11);
-            var tmpOutput = new List<outputitem>();
+            var tmpOutput = new List<OutputItem>();
             for (var i = 0; i < outputnum; i++)
             {
                 //IDが重複するときはIDを変更
                 var id = r.Next(1, 1001);
-                while (tmpOutput.Find(x => x.id == id) != null) id = r.Next(1, 1001);
+                while (tmpOutput.Find(x => x.ID == id) != null) id = r.Next(1, 1001);
 
-                tmpOutput.Add(new outputitem(id, r.Next(1, 101), 1));
+                tmpOutput.Add(new OutputItem(id, r.Next(1, 101), 1));
             }
 
-            output = tmpOutput.ToArray();
+            Output = tmpOutput.ToArray();
 
 
             BlockID = r.Next(0, 101);
-            time = r.Next(1, 4) * 1000;
+            Time = r.Next(1, 4) * 1000;
         }
     }
 
     [DataContract]
-    public class inputitem
+    public class InputItem
     {
-        [DataMember(Name = "count")] public int count;
-        [DataMember(Name = "id")] public int id;
+        [DataMember(Name = "count")] public int Count;
+        [DataMember(Name = "id")] public int ID;
 
-        public inputitem(int id, int count)
+        public InputItem(int id, int count)
         {
-            this.id = id;
-            this.count = count;
+            this.ID = id;
+            this.Count = count;
         }
     }
 
     [DataContract]
-    public class outputitem
+    public class OutputItem
     {
-        [DataMember(Name = "count")] public int count;
-        [DataMember(Name = "id")] public int id;
-        [DataMember(Name = "percent")] public double percent;
+        [DataMember(Name = "count")] public int Count;
+        [DataMember(Name = "id")] public int ID;
+        [DataMember(Name = "percent")] public double Percent;
 
-        public outputitem(int id, int count, double percent)
+        public OutputItem(int id, int count, double percent)
         {
-            this.id = id;
-            this.count = count;
-            this.percent = percent;
+            this.ID = id;
+            this.Count = count;
+            this.Percent = percent;
         }
     }
 }

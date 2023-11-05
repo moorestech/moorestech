@@ -18,7 +18,7 @@ namespace Server.Event.EventReceive
         private readonly IBlockInventoryOpenStateDataStore _inventoryOpenStateDataStore;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
 
-        private DateTime now = DateTime.Now;
+        private DateTime _now = DateTime.Now;
 
         public OpenableBlockInventoryUpdateToSetEventPacket(
             EventProtocolProvider eventProtocolProvider, IBlockInventoryOpenStateDataStore inventoryOpenStateDataStore,

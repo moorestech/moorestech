@@ -1,17 +1,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface.Event;
 using Game.Quest.Interface;
 using Game.Quest.QuestEntity;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using PlayerInventory.Event;
 using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {

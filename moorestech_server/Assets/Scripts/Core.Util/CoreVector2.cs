@@ -1,9 +1,9 @@
 namespace Core.Util
 {
-    public struct CoreVector2
+    public readonly struct CoreVector2
     {
-        public float X;
-        public float Y;
+        public readonly float X;
+        public readonly float Y;
 
         public CoreVector2(float x = 0, float y = 0)
         {

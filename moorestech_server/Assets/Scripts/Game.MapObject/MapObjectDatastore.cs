@@ -4,7 +4,8 @@ using System.IO;
 using System.Linq;
 using Game.MapObject.Interface;
 using Game.MapObject.Interface.Json;
-using Game.Save.Interface;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 using Newtonsoft.Json;
 
 namespace Game.MapObject
@@ -44,14 +45,14 @@ namespace Game.MapObject
         public void LoadAndCreateObject(List<SaveMapObjectData> jsonMapObjectDataList)
         {
             foreach (var data in jsonMapObjectDataList)
-                if (_mapObjects.TryGetValue(data.InstanceId, out var loadedMapObject))
+                if (_mapObjects.TryGetValue(data.instanceId, out var loadedMapObject))
                 {
-                    if (data.IsDestroyed) loadedMapObject.Destroy();
+                    if (data.isDestroyed) loadedMapObject.Destroy();
                 }
                 else
                 {
                     var mapObject =
-                        _mapObjectFactory.Create(data.InstanceId, data.Type, data.Position, data.IsDestroyed);
+                        _mapObjectFactory.Create(data.instanceId, data.type, data.Position, data.isDestroyed);
                     mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
                 }
         }

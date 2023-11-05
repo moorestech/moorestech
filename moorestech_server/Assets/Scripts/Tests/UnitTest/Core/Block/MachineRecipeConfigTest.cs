@@ -5,9 +5,9 @@ using Game.Block.Interface.RecipeConfig;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
-namespace Tests.UnitTest.Game.Block
+namespace Tests.UnitTest.Core.Block
 {
     public class MachineRecipeConfigTest
     {

@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
-using Test.Module.TestMod;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             foreach (var mapObject in mapObjectDatastore.MapObjects)
             {
                 var responseObject =
-                    response.MapObjects.Find(m => m.Instanceid == mapObject.InstanceId);
+                    response.MapObjects.Find(m => m.InstanceId == mapObject.InstanceId);
                 Assert.AreEqual(mapObject.IsDestroyed, responseObject.IsDestroyed);
             }
         }

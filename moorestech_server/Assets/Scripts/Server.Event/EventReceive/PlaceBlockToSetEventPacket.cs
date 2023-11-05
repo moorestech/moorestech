@@ -24,7 +24,6 @@ namespace Server.Event.EventReceive
             var payload = MessagePackSerializer.Serialize(new PlaceBlockEventMessagePack(
                 c.X, c.Y, blockId, (int)blockPlaceEventProperties.BlockDirection
             )).ToList();
-            ;
 
             _eventProtocolProvider.AddBroadcastEvent(payload);
         }
