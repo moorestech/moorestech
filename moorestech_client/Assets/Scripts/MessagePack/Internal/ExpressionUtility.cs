@@ -11,16 +11,13 @@ namespace MessagePack.Internal
     {
         private static MethodInfo GetMethodInfoCore(LambdaExpression expression)
         {
-            if (expression == null)
-            {
-                throw new ArgumentNullException("expression");
-            }
+            if (expression == null) throw new ArgumentNullException("expression");
 
             return (expression.Body as MethodCallExpression).Method;
         }
 
         /// <summary>
-        /// Get MethodInfo from Expression for Static(with result) method.
+        ///     Get MethodInfo from Expression for Static(with result) method.
         /// </summary>
         public static MethodInfo GetMethodInfo<T>(Expression<Func<T>> expression)
         {
@@ -28,7 +25,7 @@ namespace MessagePack.Internal
         }
 
         /// <summary>
-        /// Get MethodInfo from Expression for Static(void) method.
+        ///     Get MethodInfo from Expression for Static(void) method.
         /// </summary>
         public static MethodInfo GetMethodInfo(Expression<Action> expression)
         {
@@ -36,7 +33,7 @@ namespace MessagePack.Internal
         }
 
         /// <summary>
-        /// Get MethodInfo from Expression for Instance(with result) method.
+        ///     Get MethodInfo from Expression for Instance(with result) method.
         /// </summary>
         public static MethodInfo GetMethodInfo<T, TR>(Expression<Func<T, TR>> expression)
         {
@@ -44,7 +41,7 @@ namespace MessagePack.Internal
         }
 
         /// <summary>
-        /// Get MethodInfo from Expression for Instance(void) method.
+        ///     Get MethodInfo from Expression for Instance(void) method.
         /// </summary>
         public static MethodInfo GetMethodInfo<T>(Expression<Action<T>> expression)
         {
@@ -54,7 +51,7 @@ namespace MessagePack.Internal
         // WithArgument(for ref, out) helper
 
         /// <summary>
-        /// Get MethodInfo from Expression for Instance(with result) method.
+        ///     Get MethodInfo from Expression for Instance(with result) method.
         /// </summary>
         public static MethodInfo GetMethodInfo<T, TArg1, TR>(Expression<Func<T, TArg1, TR>> expression)
         {
@@ -63,10 +60,7 @@ namespace MessagePack.Internal
 
         private static MemberInfo GetMemberInfoCore<T>(Expression<T> source)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException("source");
-            }
+            if (source == null) throw new ArgumentNullException("source");
 
             var memberExpression = source.Body as MemberExpression;
             return memberExpression.Member;

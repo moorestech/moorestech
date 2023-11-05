@@ -8,12 +8,12 @@ namespace MainGame.UnityView.UI.CraftRecipe
     {
         [SerializeField] private Button placeButton;
         [SerializeField] private ItemRecipePresenter itemRecipePresenter;
-        
-        public event Action<ViewerRecipeData> OnClick;
 
         private void Awake()
         {
             placeButton.onClick.AddListener(() => OnClick?.Invoke(itemRecipePresenter.CurrentViewerRecipeData));
         }
+
+        public event Action<ViewerRecipeData> OnClick;
     }
 }

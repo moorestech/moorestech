@@ -8,9 +8,9 @@ namespace MainGame.Presenter.Inventory.Receive
 {
     public class BlockInventoryViewPresenter : IInitializable
     {
-        private readonly ReceiveBlockInventoryEvent receiveBlockInventoryEvent;
-        private readonly PlayerInventoryViewModelController _playerInventoryViewModelController;
         private readonly PlayerInventoryViewModel _playerInventoryViewModel;
+        private readonly PlayerInventoryViewModelController _playerInventoryViewModelController;
+        private readonly ReceiveBlockInventoryEvent receiveBlockInventoryEvent;
 
         public BlockInventoryViewPresenter(ReceiveBlockInventoryEvent receiveBlockInventoryEvent,
             PlayerInventoryViewModelController playerInventoryViewModelController,
@@ -22,6 +22,10 @@ namespace MainGame.Presenter.Inventory.Receive
             receiveBlockInventoryEvent.OnBlockInventorySlotUpdate += BlockInventoryUpdate;
         }
 
+        public void Initialize()
+        {
+        }
+
         public void SettingBlockInventory(SettingBlockInventoryProperties properties)
         {
             //サブインベントリの内容を設定する
@@ -30,12 +34,12 @@ namespace MainGame.Presenter.Inventory.Receive
             _playerInventoryViewModel.SetSubInventory(subInventory);
 
             //イベントの発火
-            for (int i = 0; i < properties.ItemStacks.Count; i++)
+            for (var i = 0; i < properties.ItemStacks.Count; i++)
             {
                 //viewのUIにインベントリが更新されたことを通知する
                 var id = properties.ItemStacks[i].ID;
                 var count = properties.ItemStacks[i].Count;
-                _playerInventoryViewModelController.SetInventoryItem(PlayerInventoryConstant.MainInventorySize + i,id,count);
+                _playerInventoryViewModelController.SetInventoryItem(PlayerInventoryConstant.MainInventorySize + i, id, count);
             }
         }
 
@@ -44,10 +48,8 @@ namespace MainGame.Presenter.Inventory.Receive
             var slot = properties.Slot;
             var id = properties.Id;
             var count = properties.Count;
-            
-            _playerInventoryViewModelController.SetInventoryItem(PlayerInventoryConstant.MainInventorySize + slot,id,count);
-        }
 
-        public void Initialize() { }
+            _playerInventoryViewModelController.SetInventoryItem(PlayerInventoryConstant.MainInventorySize + slot, id, count);
+        }
     }
 }

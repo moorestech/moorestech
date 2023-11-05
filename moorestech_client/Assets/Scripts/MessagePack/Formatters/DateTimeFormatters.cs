@@ -8,11 +8,11 @@ using System;
 namespace MessagePack.Formatters
 {
     /// <summary>
-    /// Serialize by .NET native DateTime binary format.
+    ///     Serialize by .NET native DateTime binary format.
     /// </summary>
     public sealed class NativeDateTimeFormatter : IMessagePackFormatter<DateTime>
     {
-        public static readonly NativeDateTimeFormatter Instance = new NativeDateTimeFormatter();
+        public static readonly NativeDateTimeFormatter Instance = new();
 
         public void Serialize(ref MessagePackWriter writer, DateTime value, MessagePackSerializerOptions options)
         {
@@ -29,7 +29,7 @@ namespace MessagePack.Formatters
 
     public sealed class NativeDateTimeArrayFormatter : IMessagePackFormatter<DateTime[]>
     {
-        public static readonly NativeDateTimeArrayFormatter Instance = new NativeDateTimeArrayFormatter();
+        public static readonly NativeDateTimeArrayFormatter Instance = new();
 
         public void Serialize(ref MessagePackWriter writer, DateTime[] value, MessagePackSerializerOptions options)
         {
@@ -40,28 +40,19 @@ namespace MessagePack.Formatters
             else
             {
                 writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i].ToBinary());
-                }
+                for (var i = 0; i < value.Length; i++) writer.Write(value[i].ToBinary());
             }
         }
 
         public DateTime[] Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.TryReadNil())
-            {
-                return null;
-            }
+            if (reader.TryReadNil()) return null;
 
             var len = reader.ReadArrayHeader();
-            if (len == 0)
-            {
-                return Array.Empty<DateTime>();
-            }
+            if (len == 0) return Array.Empty<DateTime>();
 
             var array = new DateTime[len];
-            for (int i = 0; i < array.Length; i++)
+            for (var i = 0; i < array.Length; i++)
             {
                 var dateData = reader.ReadInt64();
                 array[i] = DateTime.FromBinary(dateData);

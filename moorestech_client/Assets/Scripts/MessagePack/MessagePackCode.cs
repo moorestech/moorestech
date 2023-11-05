@@ -1,21 +1,17 @@
 ﻿// Copyright (c) All contributors. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace MessagePack
 {
     /// <summary>
-    /// https://github.com/msgpack/msgpack/blob/master/spec.md#serialization-type-to-format-conversion.
+    ///     https://github.com/msgpack/msgpack/blob/master/spec.md#serialization-type-to-format-conversion.
     /// </summary>
 #if MESSAGEPACK_INTERNAL
     internal
 #else
     public
 #endif
-    enum MessagePackType : byte
+        enum MessagePackType : byte
     {
         Unknown = 0,
 
@@ -27,11 +23,11 @@ namespace MessagePack
         Binary = 6,
         Array = 7,
         Map = 8,
-        Extension = 9,
+        Extension = 9
     }
 
     /// <summary>
-    /// The core type codes as defined by msgpack.
+    ///     The core type codes as defined by msgpack.
     /// </summary>
     /// <seealso href="https://github.com/msgpack/msgpack/blob/master/spec.md#overview" />
 #if MESSAGEPACK_INTERNAL
@@ -39,7 +35,7 @@ namespace MessagePack
 #else
     public
 #endif
-    static class MessagePackCode
+        static class MessagePackCode
     {
         public const byte MinFixInt = 0x00; // 0
         public const byte MaxFixInt = 0x7f; // 127
@@ -198,7 +194,8 @@ namespace MessagePack
         }
 
         /// <summary>
-        /// Checks whether a given messagepack code represents an integer that might include a sign (i.e. might be a negative number).
+        ///     Checks whether a given messagepack code represents an integer that might include a sign (i.e. might be a negative
+        ///     number).
         /// </summary>
         /// <param name="code">The messagepack code.</param>
         /// <returns>A boolean value.</returns>
@@ -218,14 +215,14 @@ namespace MessagePack
     }
 
     /// <summary>
-    /// The officially defined messagepack extension type codes.
+    ///     The officially defined messagepack extension type codes.
     /// </summary>
 #if MESSAGEPACK_INTERNAL
     internal
 #else
     public
 #endif
-    static class ReservedMessagePackExtensionTypeCode
+        static class ReservedMessagePackExtensionTypeCode
     {
         public const sbyte DateTime = -1;
     }
@@ -235,7 +232,7 @@ namespace MessagePack
 #else
     public
 #endif
-    static class MessagePackRange
+        static class MessagePackRange
     {
         public const int MinFixNegativeInt = -32;
         public const int MaxFixNegativeInt = -1;

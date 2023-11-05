@@ -6,40 +6,34 @@ using UniRx;
 
 namespace MainGame.Presenter.Mission.Missions
 {
-    public class GetItemMission : MissionBase 
+    public class GetItemMission : MissionBase
     {
-        private int _gotItemCount = 0;
-        
-        public GetItemMission(int priority, string itemName,int count,string missionNameKey,IItemConfig itemConfig,MainInventoryViewPresenter mainInventoryViewPresenter) : 
-            base(priority, missionNameKey,itemName,count.ToString())
+        private int _gotItemCount;
+
+        public GetItemMission(int priority, string itemName, int count, string missionNameKey, IItemConfig itemConfig, MainInventoryViewPresenter mainInventoryViewPresenter) :
+            base(priority, missionNameKey, itemName, count.ToString())
         {
-            Initialize(itemName,count,itemConfig,mainInventoryViewPresenter);
+            Initialize(itemName, count, itemConfig, mainInventoryViewPresenter);
         }
-        
-        
-        public GetItemMission(int priority, string itemName,int count,IItemConfig itemConfig,MainInventoryViewPresenter mainInventoryViewPresenter) : 
-            base(priority, $"GetItemMission",itemName,count.ToString())
+
+
+        public GetItemMission(int priority, string itemName, int count, IItemConfig itemConfig, MainInventoryViewPresenter mainInventoryViewPresenter) :
+            base(priority, "GetItemMission", itemName, count.ToString())
         {
-            Initialize(itemName,count,itemConfig,mainInventoryViewPresenter);
+            Initialize(itemName, count, itemConfig, mainInventoryViewPresenter);
         }
-        
-        
-        private void Initialize(string itemName,int count,IItemConfig itemConfig,MainInventoryViewPresenter mainInventoryViewPresenter)
+
+
+        private void Initialize(string itemName, int count, IItemConfig itemConfig, MainInventoryViewPresenter mainInventoryViewPresenter)
         {
             var itemId = itemConfig.GetItemId(AlphaMod.ModId, itemName);
             mainInventoryViewPresenter.OnUpdateInventory.Subscribe(invItem =>
             {
-                if (base.IsDone)
-                {
-                    return;
-                }
+                if (IsDone) return;
                 if (invItem.item.ID != itemId) return;
-                
-                _gotItemCount +=  invItem.item.Count;
-                if (count <= _gotItemCount)
-                {
-                    base.Done();
-                }
+
+                _gotItemCount += invItem.item.Count;
+                if (count <= _gotItemCount) Done();
             });
         }
 

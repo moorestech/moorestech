@@ -2,9 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Buffers;
-using MessagePack;
 using MessagePack.Formatters;
+using UnityEngine;
 
 #pragma warning disable SA1312 // variable naming
 #pragma warning disable SA1402 // one type per file
@@ -12,26 +11,23 @@ using MessagePack.Formatters;
 
 namespace MessagePack.Unity
 {
-    public sealed class Vector2Formatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.Vector2>
+    public sealed class Vector2Formatter : IMessagePackFormatter<Vector2>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.Vector2 value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Vector2 value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(2);
             writer.Write(value.x);
             writer.Write(value.y);
         }
 
-        public global::UnityEngine.Vector2 Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public Vector2 Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
 
             var length = reader.ReadArrayHeader();
             var x = default(float);
             var y = default(float);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -48,14 +44,14 @@ namespace MessagePack.Unity
                 }
             }
 
-            var result = new global::UnityEngine.Vector2(x, y);
+            var result = new Vector2(x, y);
             return result;
         }
     }
 
-    public sealed class Vector3Formatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.Vector3>
+    public sealed class Vector3Formatter : IMessagePackFormatter<Vector3>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.Vector3 value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Vector3 value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(3);
             writer.Write(value.x);
@@ -63,18 +59,15 @@ namespace MessagePack.Unity
             writer.Write(value.z);
         }
 
-        public global::UnityEngine.Vector3 Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public Vector3 Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
 
             var length = reader.ReadArrayHeader();
             var x = default(float);
             var y = default(float);
             var z = default(float);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -94,14 +87,14 @@ namespace MessagePack.Unity
                 }
             }
 
-            var result = new global::UnityEngine.Vector3(x, y, z);
+            var result = new Vector3(x, y, z);
             return result;
         }
     }
 
-    public sealed class Vector4Formatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.Vector4>
+    public sealed class Vector4Formatter : IMessagePackFormatter<Vector4>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.Vector4 value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Vector4 value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(4);
             writer.Write(value.x);
@@ -110,19 +103,16 @@ namespace MessagePack.Unity
             writer.Write(value.w);
         }
 
-        public global::UnityEngine.Vector4 Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public Vector4 Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
 
             var length = reader.ReadArrayHeader();
             var x = default(float);
             var y = default(float);
             var z = default(float);
             var w = default(float);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -145,14 +135,14 @@ namespace MessagePack.Unity
                 }
             }
 
-            var result = new global::UnityEngine.Vector4(x, y, z, w);
+            var result = new Vector4(x, y, z, w);
             return result;
         }
     }
 
-    public sealed class QuaternionFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.Quaternion>
+    public sealed class QuaternionFormatter : IMessagePackFormatter<Quaternion>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.Quaternion value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Quaternion value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(4);
             writer.Write(value.x);
@@ -161,19 +151,16 @@ namespace MessagePack.Unity
             writer.Write(value.w);
         }
 
-        public global::UnityEngine.Quaternion Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public Quaternion Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
 
             var length = reader.ReadArrayHeader();
             var x = default(float);
             var y = default(float);
             var z = default(float);
             var w = default(float);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -196,14 +183,14 @@ namespace MessagePack.Unity
                 }
             }
 
-            var result = new global::UnityEngine.Quaternion(x, y, z, w);
+            var result = new Quaternion(x, y, z, w);
             return result;
         }
     }
 
-    public sealed class ColorFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.Color>
+    public sealed class ColorFormatter : IMessagePackFormatter<Color>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.Color value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Color value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(4);
             writer.Write(value.r);
@@ -212,19 +199,16 @@ namespace MessagePack.Unity
             writer.Write(value.a);
         }
 
-        public global::UnityEngine.Color Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public Color Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
 
             var length = reader.ReadArrayHeader();
             var r = default(float);
             var g = default(float);
             var b = default(float);
             var a = default(float);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -247,42 +231,39 @@ namespace MessagePack.Unity
                 }
             }
 
-            var result = new global::UnityEngine.Color(r, g, b, a);
+            var result = new Color(r, g, b, a);
             return result;
         }
     }
 
-    public sealed class BoundsFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.Bounds>
+    public sealed class BoundsFormatter : IMessagePackFormatter<Bounds>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.Bounds value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Bounds value, MessagePackSerializerOptions options)
         {
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             writer.WriteArrayHeader(2);
-            resolver.GetFormatterWithVerify<global::UnityEngine.Vector3>().Serialize(ref writer, value.center, options);
-            resolver.GetFormatterWithVerify<global::UnityEngine.Vector3>().Serialize(ref writer, value.size, options);
+            resolver.GetFormatterWithVerify<Vector3>().Serialize(ref writer, value.center, options);
+            resolver.GetFormatterWithVerify<Vector3>().Serialize(ref writer, value.size, options);
         }
 
-        public global::UnityEngine.Bounds Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public Bounds Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
 
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             var length = reader.ReadArrayHeader();
-            var center = default(global::UnityEngine.Vector3);
-            var size = default(global::UnityEngine.Vector3);
-            for (int i = 0; i < length; i++)
+            var center = default(Vector3);
+            var size = default(Vector3);
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
                 {
                     case 0:
-                        center = resolver.GetFormatterWithVerify<global::UnityEngine.Vector3>().Deserialize(ref reader, options);
+                        center = resolver.GetFormatterWithVerify<Vector3>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        size = resolver.GetFormatterWithVerify<global::UnityEngine.Vector3>().Deserialize(ref reader, options);
+                        size = resolver.GetFormatterWithVerify<Vector3>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -290,14 +271,14 @@ namespace MessagePack.Unity
                 }
             }
 
-            var result = new global::UnityEngine.Bounds(center, size);
+            var result = new Bounds(center, size);
             return result;
         }
     }
 
-    public sealed class RectFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.Rect>
+    public sealed class RectFormatter : IMessagePackFormatter<Rect>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.Rect value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Rect value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(4);
             writer.Write(value.x);
@@ -306,19 +287,16 @@ namespace MessagePack.Unity
             writer.Write(value.height);
         }
 
-        public global::UnityEngine.Rect Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public Rect Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
 
             var length = reader.ReadArrayHeader();
             var x = default(float);
             var y = default(float);
             var width = default(float);
             var height = default(float);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -341,41 +319,41 @@ namespace MessagePack.Unity
                 }
             }
 
-            var result = new global::UnityEngine.Rect(x, y, width, height);
+            var result = new Rect(x, y, width, height);
             return result;
         }
     }
 
     // additional
-    public sealed class WrapModeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.WrapMode>
+    public sealed class WrapModeFormatter : IMessagePackFormatter<WrapMode>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.WrapMode value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, WrapMode value, MessagePackSerializerOptions options)
         {
             writer.Write((int)value);
         }
 
-        public global::UnityEngine.WrapMode Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public WrapMode Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            return (global::UnityEngine.WrapMode)reader.ReadInt32();
+            return (WrapMode)reader.ReadInt32();
         }
     }
 
-    public sealed class GradientModeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.GradientMode>
+    public sealed class GradientModeFormatter : IMessagePackFormatter<GradientMode>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.GradientMode value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, GradientMode value, MessagePackSerializerOptions options)
         {
             writer.Write((int)value);
         }
 
-        public global::UnityEngine.GradientMode Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public GradientMode Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            return (global::UnityEngine.GradientMode)reader.ReadInt32();
+            return (GradientMode)reader.ReadInt32();
         }
     }
 
-    public sealed class KeyframeFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.Keyframe>
+    public sealed class KeyframeFormatter : IMessagePackFormatter<Keyframe>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.Keyframe value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Keyframe value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(4);
             writer.Write(value.time);
@@ -384,19 +362,16 @@ namespace MessagePack.Unity
             writer.Write(value.outTangent);
         }
 
-        public global::UnityEngine.Keyframe Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public Keyframe Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
 
             var length = reader.ReadArrayHeader();
             var __time__ = default(float);
             var __value__ = default(float);
             var __inTangent__ = default(float);
             var __outTangent__ = default(float);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -419,7 +394,7 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = new global::UnityEngine.Keyframe(__time__, __value__, __inTangent__, __outTangent__);
+            var ____result = new Keyframe(__time__, __value__, __inTangent__, __outTangent__);
             ____result.time = __time__;
             ____result.value = __value__;
             ____result.inTangent = __inTangent__;
@@ -428,9 +403,9 @@ namespace MessagePack.Unity
         }
     }
 
-    public sealed class AnimationCurveFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.AnimationCurve>
+    public sealed class AnimationCurveFormatter : IMessagePackFormatter<AnimationCurve>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.AnimationCurve value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, AnimationCurve value, MessagePackSerializerOptions options)
         {
             if (value == null)
             {
@@ -438,38 +413,35 @@ namespace MessagePack.Unity
                 return;
             }
 
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             writer.WriteArrayHeader(3);
-            resolver.GetFormatterWithVerify<global::UnityEngine.Keyframe[]>().Serialize(ref writer, value.keys, options);
-            resolver.GetFormatterWithVerify<global::UnityEngine.WrapMode>().Serialize(ref writer, value.postWrapMode, options);
-            resolver.GetFormatterWithVerify<global::UnityEngine.WrapMode>().Serialize(ref writer, value.preWrapMode, options);
+            resolver.GetFormatterWithVerify<Keyframe[]>().Serialize(ref writer, value.keys, options);
+            resolver.GetFormatterWithVerify<WrapMode>().Serialize(ref writer, value.postWrapMode, options);
+            resolver.GetFormatterWithVerify<WrapMode>().Serialize(ref writer, value.preWrapMode, options);
         }
 
-        public global::UnityEngine.AnimationCurve Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public AnimationCurve Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                return null;
-            }
+            if (reader.IsNil) return null;
 
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             var length = reader.ReadArrayHeader();
-            var __keys__ = default(global::UnityEngine.Keyframe[]);
-            var __postWrapMode__ = default(global::UnityEngine.WrapMode);
-            var __preWrapMode__ = default(global::UnityEngine.WrapMode);
-            for (int i = 0; i < length; i++)
+            var __keys__ = default(Keyframe[]);
+            var __postWrapMode__ = default(WrapMode);
+            var __preWrapMode__ = default(WrapMode);
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
                 {
                     case 0:
-                        __keys__ = resolver.GetFormatterWithVerify<global::UnityEngine.Keyframe[]>().Deserialize(ref reader, options);
+                        __keys__ = resolver.GetFormatterWithVerify<Keyframe[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        __postWrapMode__ = resolver.GetFormatterWithVerify<global::UnityEngine.WrapMode>().Deserialize(ref reader, options);
+                        __postWrapMode__ = resolver.GetFormatterWithVerify<WrapMode>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        __preWrapMode__ = resolver.GetFormatterWithVerify<global::UnityEngine.WrapMode>().Deserialize(ref reader, options);
+                        __preWrapMode__ = resolver.GetFormatterWithVerify<WrapMode>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -477,7 +449,7 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = new global::UnityEngine.AnimationCurve();
+            var ____result = new AnimationCurve();
             ____result.keys = __keys__;
             ____result.postWrapMode = __postWrapMode__;
             ____result.preWrapMode = __preWrapMode__;
@@ -485,9 +457,9 @@ namespace MessagePack.Unity
         }
     }
 
-    public sealed class Matrix4x4Formatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.Matrix4x4>
+    public sealed class Matrix4x4Formatter : IMessagePackFormatter<Matrix4x4>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.Matrix4x4 value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Matrix4x4 value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(16);
             writer.Write(value.m00);
@@ -508,12 +480,9 @@ namespace MessagePack.Unity
             writer.Write(value.m33);
         }
 
-        public global::UnityEngine.Matrix4x4 Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public Matrix4x4 Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
 
             var length = reader.ReadArrayHeader();
             var __m00__ = default(float);
@@ -532,7 +501,7 @@ namespace MessagePack.Unity
             var __m13__ = default(float);
             var __m23__ = default(float);
             var __m33__ = default(float);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -591,7 +560,7 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = default(global::UnityEngine.Matrix4x4);
+            var ____result = default(Matrix4x4);
             ____result.m00 = __m00__;
             ____result.m10 = __m10__;
             ____result.m20 = __m20__;
@@ -612,33 +581,30 @@ namespace MessagePack.Unity
         }
     }
 
-    public sealed class GradientColorKeyFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.GradientColorKey>
+    public sealed class GradientColorKeyFormatter : IMessagePackFormatter<GradientColorKey>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.GradientColorKey value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, GradientColorKey value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(2);
-            options.Resolver.GetFormatterWithVerify<global::UnityEngine.Color>().Serialize(ref writer, value.color, options);
+            options.Resolver.GetFormatterWithVerify<Color>().Serialize(ref writer, value.color, options);
             writer.Write(value.time);
         }
 
-        public global::UnityEngine.GradientColorKey Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public GradientColorKey Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
 
             var length = reader.ReadArrayHeader();
-            var __color__ = default(global::UnityEngine.Color);
+            var __color__ = default(Color);
             var __time__ = default(float);
-            IFormatterResolver resolver = options.Resolver;
-            for (int i = 0; i < length; i++)
+            var resolver = options.Resolver;
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
                 {
                     case 0:
-                        __color__ = resolver.GetFormatterWithVerify<global::UnityEngine.Color>().Deserialize(ref reader, options);
+                        __color__ = resolver.GetFormatterWithVerify<Color>().Deserialize(ref reader, options);
                         break;
                     case 1:
                         __time__ = reader.ReadSingle();
@@ -649,33 +615,30 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = new global::UnityEngine.GradientColorKey(__color__, __time__);
+            var ____result = new GradientColorKey(__color__, __time__);
             ____result.color = __color__;
             ____result.time = __time__;
             return ____result;
         }
     }
 
-    public sealed class GradientAlphaKeyFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.GradientAlphaKey>
+    public sealed class GradientAlphaKeyFormatter : IMessagePackFormatter<GradientAlphaKey>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.GradientAlphaKey value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, GradientAlphaKey value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(2);
             writer.Write(value.alpha);
             writer.Write(value.time);
         }
 
-        public global::UnityEngine.GradientAlphaKey Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public GradientAlphaKey Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
 
             var length = reader.ReadArrayHeader();
             var __alpha__ = default(float);
             var __time__ = default(float);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -692,16 +655,16 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = new global::UnityEngine.GradientAlphaKey(__alpha__, __time__);
+            var ____result = new GradientAlphaKey(__alpha__, __time__);
             ____result.alpha = __alpha__;
             ____result.time = __time__;
             return ____result;
         }
     }
 
-    public sealed class GradientFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.Gradient>
+    public sealed class GradientFormatter : IMessagePackFormatter<Gradient>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.Gradient value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Gradient value, MessagePackSerializerOptions options)
         {
             if (value == null)
             {
@@ -709,38 +672,35 @@ namespace MessagePack.Unity
                 return;
             }
 
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             writer.WriteArrayHeader(3);
-            resolver.GetFormatterWithVerify<global::UnityEngine.GradientColorKey[]>().Serialize(ref writer, value.colorKeys, options);
-            resolver.GetFormatterWithVerify<global::UnityEngine.GradientAlphaKey[]>().Serialize(ref writer, value.alphaKeys, options);
-            resolver.GetFormatterWithVerify<global::UnityEngine.GradientMode>().Serialize(ref writer, value.mode, options);
+            resolver.GetFormatterWithVerify<GradientColorKey[]>().Serialize(ref writer, value.colorKeys, options);
+            resolver.GetFormatterWithVerify<GradientAlphaKey[]>().Serialize(ref writer, value.alphaKeys, options);
+            resolver.GetFormatterWithVerify<GradientMode>().Serialize(ref writer, value.mode, options);
         }
 
-        public global::UnityEngine.Gradient Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public Gradient Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                return null;
-            }
+            if (reader.IsNil) return null;
 
-            IFormatterResolver resolver = options.Resolver;
+            var resolver = options.Resolver;
             var length = reader.ReadArrayHeader();
-            var __colorKeys__ = default(global::UnityEngine.GradientColorKey[]);
-            var __alphaKeys__ = default(global::UnityEngine.GradientAlphaKey[]);
-            var __mode__ = default(global::UnityEngine.GradientMode);
-            for (int i = 0; i < length; i++)
+            var __colorKeys__ = default(GradientColorKey[]);
+            var __alphaKeys__ = default(GradientAlphaKey[]);
+            var __mode__ = default(GradientMode);
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
                 {
                     case 0:
-                        __colorKeys__ = resolver.GetFormatterWithVerify<global::UnityEngine.GradientColorKey[]>().Deserialize(ref reader, options);
+                        __colorKeys__ = resolver.GetFormatterWithVerify<GradientColorKey[]>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        __alphaKeys__ = resolver.GetFormatterWithVerify<global::UnityEngine.GradientAlphaKey[]>().Deserialize(ref reader, options);
+                        __alphaKeys__ = resolver.GetFormatterWithVerify<GradientAlphaKey[]>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        __mode__ = resolver.GetFormatterWithVerify<global::UnityEngine.GradientMode>().Deserialize(ref reader, options);
+                        __mode__ = resolver.GetFormatterWithVerify<GradientMode>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -748,7 +708,7 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = new global::UnityEngine.Gradient();
+            var ____result = new Gradient();
             ____result.colorKeys = __colorKeys__;
             ____result.alphaKeys = __alphaKeys__;
             ____result.mode = __mode__;
@@ -756,9 +716,9 @@ namespace MessagePack.Unity
         }
     }
 
-    public sealed class Color32Formatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.Color32>
+    public sealed class Color32Formatter : IMessagePackFormatter<Color32>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.Color32 value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Color32 value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(4);
             writer.Write(value.r);
@@ -767,19 +727,16 @@ namespace MessagePack.Unity
             writer.Write(value.a);
         }
 
-        public global::UnityEngine.Color32 Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public Color32 Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
 
             var length = reader.ReadArrayHeader();
             var __r__ = default(byte);
             var __g__ = default(byte);
             var __b__ = default(byte);
             var __a__ = default(byte);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -802,7 +759,7 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = new global::UnityEngine.Color32(__r__, __g__, __b__, __a__);
+            var ____result = new Color32(__r__, __g__, __b__, __a__);
             ____result.r = __r__;
             ____result.g = __g__;
             ____result.b = __b__;
@@ -811,9 +768,9 @@ namespace MessagePack.Unity
         }
     }
 
-    public sealed class RectOffsetFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.RectOffset>
+    public sealed class RectOffsetFormatter : IMessagePackFormatter<RectOffset>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.RectOffset value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, RectOffset value, MessagePackSerializerOptions options)
         {
             if (value == null)
             {
@@ -828,19 +785,16 @@ namespace MessagePack.Unity
             writer.Write(value.bottom);
         }
 
-        public global::UnityEngine.RectOffset Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public RectOffset Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                return null;
-            }
+            if (reader.IsNil) return null;
 
             var length = reader.ReadArrayHeader();
             var __left__ = default(int);
             var __right__ = default(int);
             var __top__ = default(int);
             var __bottom__ = default(int);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -863,7 +817,7 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = new global::UnityEngine.RectOffset();
+            var ____result = new RectOffset();
             ____result.left = __left__;
             ____result.right = __right__;
             ____result.top = __top__;
@@ -872,24 +826,21 @@ namespace MessagePack.Unity
         }
     }
 
-    public sealed class LayerMaskFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.LayerMask>
+    public sealed class LayerMaskFormatter : IMessagePackFormatter<LayerMask>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.LayerMask value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, LayerMask value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(1);
             writer.Write(value.value);
         }
 
-        public global::UnityEngine.LayerMask Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+        public LayerMask Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
 
             var length = reader.ReadArrayHeader();
             var __value__ = default(int);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -903,30 +854,28 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = default(global::UnityEngine.LayerMask);
+            var ____result = default(LayerMask);
             ____result.value = __value__;
             return ____result;
         }
     }
 #if UNITY_2017_2_OR_NEWER
-    public sealed class Vector2IntFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.Vector2Int>
+    public sealed class Vector2IntFormatter : IMessagePackFormatter<Vector2Int>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.Vector2Int value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Vector2Int value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(2);
             writer.WriteInt32(value.x);
             writer.WriteInt32(value.y);
         }
-        public global::UnityEngine.Vector2Int Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+
+        public Vector2Int Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
             var length = reader.ReadArrayHeader();
             var __x__ = default(int);
             var __y__ = default(int);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -943,33 +892,31 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = new global::UnityEngine.Vector2Int(__x__, __y__);
+            var ____result = new Vector2Int(__x__, __y__);
             ____result.x = __x__;
             ____result.y = __y__;
             return ____result;
         }
     }
 
-    public sealed class Vector3IntFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.Vector3Int>
+    public sealed class Vector3IntFormatter : IMessagePackFormatter<Vector3Int>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.Vector3Int value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Vector3Int value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(3);
             writer.WriteInt32(value.x);
             writer.WriteInt32(value.y);
             writer.WriteInt32(value.z);
         }
-        public global::UnityEngine.Vector3Int Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+
+        public Vector3Int Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
             var length = reader.ReadArrayHeader();
             var __x__ = default(int);
             var __y__ = default(int);
             var __z__ = default(int);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -989,7 +936,7 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = new global::UnityEngine.Vector3Int(__x__, __y__, __z__);
+            var ____result = new Vector3Int(__x__, __y__, __z__);
             ____result.x = __x__;
             ____result.y = __y__;
             ____result.z = __z__;
@@ -997,24 +944,22 @@ namespace MessagePack.Unity
         }
     }
 
-    public sealed class RangeIntFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.RangeInt>
+    public sealed class RangeIntFormatter : IMessagePackFormatter<RangeInt>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.RangeInt value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, RangeInt value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(2);
             writer.WriteInt32(value.start);
             writer.WriteInt32(value.length);
         }
-        public global::UnityEngine.RangeInt Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+
+        public RangeInt Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
             var length = reader.ReadArrayHeader();
             var __start__ = default(int);
             var __length__ = default(int);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -1031,16 +976,16 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = new global::UnityEngine.RangeInt(__start__, __length__);
+            var ____result = new RangeInt(__start__, __length__);
             ____result.start = __start__;
             ____result.length = __length__;
             return ____result;
         }
     }
 
-    public sealed class RectIntFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.RectInt>
+    public sealed class RectIntFormatter : IMessagePackFormatter<RectInt>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.RectInt value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, RectInt value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(4);
             writer.WriteInt32(value.x);
@@ -1048,18 +993,16 @@ namespace MessagePack.Unity
             writer.WriteInt32(value.width);
             writer.WriteInt32(value.height);
         }
-        public global::UnityEngine.RectInt Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+
+        public RectInt Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
             var length = reader.ReadArrayHeader();
             var __x__ = default(int);
             var __y__ = default(int);
             var __width__ = default(int);
             var __height__ = default(int);
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
@@ -1082,7 +1025,7 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = new global::UnityEngine.RectInt(__x__, __y__, __width__, __height__);
+            var ____result = new RectInt(__x__, __y__, __width__, __height__);
             ____result.x = __x__;
             ____result.y = __y__;
             ____result.width = __width__;
@@ -1091,33 +1034,31 @@ namespace MessagePack.Unity
         }
     }
 
-    public sealed class BoundsIntFormatter : global::MessagePack.Formatters.IMessagePackFormatter<global::UnityEngine.BoundsInt>
+    public sealed class BoundsIntFormatter : IMessagePackFormatter<BoundsInt>
     {
-        public void Serialize(ref MessagePackWriter writer, global::UnityEngine.BoundsInt value, global::MessagePack.MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, BoundsInt value, MessagePackSerializerOptions options)
         {
             writer.WriteArrayHeader(2);
-            options.Resolver.GetFormatterWithVerify<global::UnityEngine.Vector3Int>().Serialize(ref writer, value.position, options);
-            options.Resolver.GetFormatterWithVerify<global::UnityEngine.Vector3Int>().Serialize(ref writer, value.size, options);
+            options.Resolver.GetFormatterWithVerify<Vector3Int>().Serialize(ref writer, value.position, options);
+            options.Resolver.GetFormatterWithVerify<Vector3Int>().Serialize(ref writer, value.size, options);
         }
-        public global::UnityEngine.BoundsInt Deserialize(ref MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
+
+        public BoundsInt Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.IsNil)
-            {
-                throw new InvalidOperationException("typecode is null, struct not supported");
-            }
+            if (reader.IsNil) throw new InvalidOperationException("typecode is null, struct not supported");
             var length = reader.ReadArrayHeader();
-            var __position__ = default(global::UnityEngine.Vector3Int);
-            var __size__ = default(global::UnityEngine.Vector3Int);
-            for (int i = 0; i < length; i++)
+            var __position__ = default(Vector3Int);
+            var __size__ = default(Vector3Int);
+            for (var i = 0; i < length; i++)
             {
                 var key = i;
                 switch (key)
                 {
                     case 0:
-                        __position__ = options.Resolver.GetFormatterWithVerify<global::UnityEngine.Vector3Int>().Deserialize(ref reader, options);
+                        __position__ = options.Resolver.GetFormatterWithVerify<Vector3Int>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        __size__ = options.Resolver.GetFormatterWithVerify<global::UnityEngine.Vector3Int>().Deserialize(ref reader, options);
+                        __size__ = options.Resolver.GetFormatterWithVerify<Vector3Int>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -1125,7 +1066,7 @@ namespace MessagePack.Unity
                 }
             }
 
-            var ____result = new global::UnityEngine.BoundsInt(__position__, __size__);
+            var ____result = new BoundsInt(__position__, __size__);
             ____result.position = __position__;
             ____result.size = __size__;
             return ____result;

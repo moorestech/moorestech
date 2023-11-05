@@ -26,22 +26,30 @@ namespace MessagePack.Internal
             AssemblyBuilderAccess builderAccess = AssemblyBuilderAccess.RunAndSave;
             this.moduleName = moduleName;
 #else
-            AssemblyBuilderAccess builderAccess = AssemblyBuilderAccess.RunAndCollect;
+            var builderAccess = AssemblyBuilderAccess.RunAndCollect;
 #endif
-            this.assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(moduleName), builderAccess);
-            this.moduleBuilder = this.assemblyBuilder.DefineDynamicModule(moduleName + ".dll");
+            assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(moduleName), builderAccess);
+            moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleName + ".dll");
         }
 
         /* requires lock on mono environment. see: https://github.com/neuecc/MessagePack-CSharp/issues/161 */
 
-        public TypeBuilder DefineType(string name, TypeAttributes attr) => this.moduleBuilder.DefineType(name, attr);
+        public TypeBuilder DefineType(string name, TypeAttributes attr)
+        {
+            return moduleBuilder.DefineType(name, attr);
+        }
 
-        public TypeBuilder DefineType(string name, TypeAttributes attr, Type parent) => this.moduleBuilder.DefineType(name, attr, parent);
+        public TypeBuilder DefineType(string name, TypeAttributes attr, Type parent)
+        {
+            return moduleBuilder.DefineType(name, attr, parent);
+        }
 
-        public TypeBuilder DefineType(string name, TypeAttributes attr, Type parent, Type[] interfaces) => this.moduleBuilder.DefineType(name, attr, parent, interfaces);
+        public TypeBuilder DefineType(string name, TypeAttributes attr, Type parent, Type[] interfaces)
+        {
+            return moduleBuilder.DefineType(name, attr, parent, interfaces);
+        }
 
 #if NETFRAMEWORK
-
         public AssemblyBuilder Save()
         {
             this.assemblyBuilder.Save(this.moduleName + ".dll");

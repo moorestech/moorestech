@@ -1,24 +1,23 @@
 ﻿// Copyright (c) All contributors. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
+using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
+using MessagePack.Internal;
 
 namespace MessagePack.Formatters
 {
     /// <summary>
-    /// This formatter can serialize any value whose static type is <see cref="object"/>
-    /// for which another resolver can provide a formatter for the runtime type.
-    /// Its deserialization is limited to forwarding all calls to the <see cref="PrimitiveObjectFormatter"/>.
+    ///     This formatter can serialize any value whose static type is <see cref="object" />
+    ///     for which another resolver can provide a formatter for the runtime type.
+    ///     Its deserialization is limited to forwarding all calls to the <see cref="PrimitiveObjectFormatter" />.
     /// </summary>
     public sealed class DynamicObjectTypeFallbackFormatter : IMessagePackFormatter<object>
     {
         public static readonly IMessagePackFormatter<object> Instance = new DynamicObjectTypeFallbackFormatter();
 
-        private delegate void SerializeMethod(object dynamicFormatter, ref MessagePackWriter writer, object value, MessagePackSerializerOptions options);
-
-        private static readonly Internal.ThreadsafeTypeKeyHashTable<SerializeMethod> SerializerDelegates = new Internal.ThreadsafeTypeKeyHashTable<SerializeMethod>();
+        private static readonly ThreadsafeTypeKeyHashTable<SerializeMethod> SerializerDelegates = new();
 
         private DynamicObjectTypeFallbackFormatter()
         {
@@ -32,8 +31,8 @@ namespace MessagePack.Formatters
                 return;
             }
 
-            Type type = value.GetType();
-            TypeInfo ti = type.GetTypeInfo();
+            var type = value.GetType();
+            var ti = type.GetTypeInfo();
 
             if (type == typeof(object))
             {
@@ -43,30 +42,27 @@ namespace MessagePack.Formatters
             }
 
             if (PrimitiveObjectFormatter.IsSupportedType(type, ti, value))
-            {
-                if (!(value is System.Collections.IDictionary || value is System.Collections.ICollection))
+                if (!(value is IDictionary || value is ICollection))
                 {
                     PrimitiveObjectFormatter.Instance.Serialize(ref writer, value, options);
                     return;
                 }
-            }
 
-            object formatter = options.Resolver.GetFormatterDynamicWithVerify(type);
-            if (!SerializerDelegates.TryGetValue(type, out SerializeMethod serializerDelegate))
-            {
+            var formatter = options.Resolver.GetFormatterDynamicWithVerify(type);
+            if (!SerializerDelegates.TryGetValue(type, out var serializerDelegate))
                 lock (SerializerDelegates)
                 {
                     if (!SerializerDelegates.TryGetValue(type, out serializerDelegate))
                     {
-                        Type formatterType = typeof(IMessagePackFormatter<>).MakeGenericType(type);
-                        ParameterExpression param0 = Expression.Parameter(typeof(object), "formatter");
-                        ParameterExpression param1 = Expression.Parameter(typeof(MessagePackWriter).MakeByRefType(), "writer");
-                        ParameterExpression param2 = Expression.Parameter(typeof(object), "value");
-                        ParameterExpression param3 = Expression.Parameter(typeof(MessagePackSerializerOptions), "options");
+                        var formatterType = typeof(IMessagePackFormatter<>).MakeGenericType(type);
+                        var param0 = Expression.Parameter(typeof(object), "formatter");
+                        var param1 = Expression.Parameter(typeof(MessagePackWriter).MakeByRefType(), "writer");
+                        var param2 = Expression.Parameter(typeof(object), "value");
+                        var param3 = Expression.Parameter(typeof(MessagePackSerializerOptions), "options");
 
-                        MethodInfo serializeMethodInfo = formatterType.GetRuntimeMethod("Serialize", new[] { typeof(MessagePackWriter).MakeByRefType(), type, typeof(MessagePackSerializerOptions) });
+                        var serializeMethodInfo = formatterType.GetRuntimeMethod("Serialize", new[] { typeof(MessagePackWriter).MakeByRefType(), type, typeof(MessagePackSerializerOptions) });
 
-                        MethodCallExpression body = Expression.Call(
+                        var body = Expression.Call(
                             Expression.Convert(param0, formatterType),
                             serializeMethodInfo,
                             param1,
@@ -78,7 +74,6 @@ namespace MessagePack.Formatters
                         SerializerDelegates.TryAdd(type, serializerDelegate);
                     }
                 }
-            }
 
             serializerDelegate(formatter, ref writer, value, options);
         }
@@ -87,5 +82,7 @@ namespace MessagePack.Formatters
         {
             return PrimitiveObjectFormatter.Instance.Deserialize(ref reader, options);
         }
+
+        private delegate void SerializeMethod(object dynamicFormatter, ref MessagePackWriter writer, object value, MessagePackSerializerOptions options);
     }
 }

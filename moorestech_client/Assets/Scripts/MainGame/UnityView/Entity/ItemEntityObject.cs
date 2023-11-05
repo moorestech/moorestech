@@ -1,4 +1,3 @@
-using System;
 using MainGame.Basic.Server;
 using UnityEngine;
 
@@ -6,35 +5,16 @@ namespace MainGame.UnityView.Entity
 {
     public class ItemEntityObject : MonoBehaviour, IEntityObject
     {
+        private const float Interval = NetworkConst.UpdateIntervalSeconds;
         [SerializeField] private MeshRenderer meshRenderer;
         [SerializeField] private Material itemMaterial;
-
-        private const float Interval = NetworkConst.UpdateIntervalSeconds;
-        
-        private Vector3 _targetPosition;
         private float _linerTime;
+
+        private Vector3 _targetPosition;
 
         private void Awake()
         {
             _targetPosition = transform.position;
-        }
-
-        public void SetTexture(Texture texture)
-        {
-            var material = new Material(itemMaterial) {mainTexture = texture};
-            meshRenderer.material = material;
-        }
-        
-        public void SetDirectPosition(Vector3 position)
-        {
-            _targetPosition = position;
-            transform.position = position;
-        }
-
-        public void SetInterpolationPosition(Vector3 position)
-        {
-            _targetPosition = position;
-            _linerTime = 0;
         }
 
         //Linerでポジションを補完させる
@@ -47,9 +27,27 @@ namespace MainGame.UnityView.Entity
             _linerTime += Time.deltaTime;
         }
 
+        public void SetDirectPosition(Vector3 position)
+        {
+            _targetPosition = position;
+            transform.position = position;
+        }
+
+        public void SetInterpolationPosition(Vector3 position)
+        {
+            _targetPosition = position;
+            _linerTime = 0;
+        }
+
         public void Destroy()
         {
             Destroy(gameObject);
+        }
+
+        public void SetTexture(Texture texture)
+        {
+            var material = new Material(itemMaterial) { mainTexture = texture };
+            meshRenderer.material = material;
         }
     }
 }

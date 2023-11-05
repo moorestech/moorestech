@@ -10,7 +10,7 @@ namespace MessagePack.Unity
 {
     public class UnityResolver : IFormatterResolver
     {
-        public static readonly UnityResolver Instance = new UnityResolver();
+        public static readonly UnityResolver Instance = new();
 
         private UnityResolver()
         {
@@ -34,7 +34,7 @@ namespace MessagePack.Unity
 
     internal static class UnityResolveryResolverGetFormatterHelper
     {
-        private static readonly Dictionary<Type, object> FormatterMap = new Dictionary<Type, object>()
+        private static readonly Dictionary<Type, object> FormatterMap = new()
         {
             // standard
             { typeof(Vector2), new Vector2Formatter() },
@@ -85,103 +85,103 @@ namespace MessagePack.Unity
             { typeof(List<Rect?>), new ListFormatter<Rect?>() },
 
             // new
-            { typeof(AnimationCurve),     new AnimationCurveFormatter() },
-            { typeof(RectOffset),         new RectOffsetFormatter() },
-            { typeof(Gradient),           new GradientFormatter() },
-            { typeof(WrapMode),           new WrapModeFormatter() },
-            { typeof(GradientMode),       new GradientModeFormatter() },
-            { typeof(Keyframe),           new KeyframeFormatter() },
-            { typeof(Matrix4x4),          new Matrix4x4Formatter() },
-            { typeof(GradientColorKey),   new GradientColorKeyFormatter() },
-            { typeof(GradientAlphaKey),   new GradientAlphaKeyFormatter() },
-            { typeof(Color32),            new Color32Formatter() },
-            { typeof(LayerMask),          new LayerMaskFormatter() },
-            { typeof(WrapMode?),          new StaticNullableFormatter<WrapMode>(new WrapModeFormatter()) },
-            { typeof(GradientMode?),      new StaticNullableFormatter<GradientMode>(new GradientModeFormatter()) },
-            { typeof(Keyframe?),          new StaticNullableFormatter<Keyframe>(new KeyframeFormatter()) },
-            { typeof(Matrix4x4?),         new StaticNullableFormatter<Matrix4x4>(new Matrix4x4Formatter()) },
-            { typeof(GradientColorKey?),  new StaticNullableFormatter<GradientColorKey>(new GradientColorKeyFormatter()) },
-            { typeof(GradientAlphaKey?),  new StaticNullableFormatter<GradientAlphaKey>(new GradientAlphaKeyFormatter()) },
-            { typeof(Color32?),           new StaticNullableFormatter<Color32>(new Color32Formatter()) },
-            { typeof(LayerMask?),         new StaticNullableFormatter<LayerMask>(new LayerMaskFormatter()) },
+            { typeof(AnimationCurve), new AnimationCurveFormatter() },
+            { typeof(RectOffset), new RectOffsetFormatter() },
+            { typeof(Gradient), new GradientFormatter() },
+            { typeof(WrapMode), new WrapModeFormatter() },
+            { typeof(GradientMode), new GradientModeFormatter() },
+            { typeof(Keyframe), new KeyframeFormatter() },
+            { typeof(Matrix4x4), new Matrix4x4Formatter() },
+            { typeof(GradientColorKey), new GradientColorKeyFormatter() },
+            { typeof(GradientAlphaKey), new GradientAlphaKeyFormatter() },
+            { typeof(Color32), new Color32Formatter() },
+            { typeof(LayerMask), new LayerMaskFormatter() },
+            { typeof(WrapMode?), new StaticNullableFormatter<WrapMode>(new WrapModeFormatter()) },
+            { typeof(GradientMode?), new StaticNullableFormatter<GradientMode>(new GradientModeFormatter()) },
+            { typeof(Keyframe?), new StaticNullableFormatter<Keyframe>(new KeyframeFormatter()) },
+            { typeof(Matrix4x4?), new StaticNullableFormatter<Matrix4x4>(new Matrix4x4Formatter()) },
+            { typeof(GradientColorKey?), new StaticNullableFormatter<GradientColorKey>(new GradientColorKeyFormatter()) },
+            { typeof(GradientAlphaKey?), new StaticNullableFormatter<GradientAlphaKey>(new GradientAlphaKeyFormatter()) },
+            { typeof(Color32?), new StaticNullableFormatter<Color32>(new Color32Formatter()) },
+            { typeof(LayerMask?), new StaticNullableFormatter<LayerMask>(new LayerMaskFormatter()) },
 
             // new + array
-            { typeof(AnimationCurve[]),     new ArrayFormatter<AnimationCurve>() },
-            { typeof(RectOffset[]),         new ArrayFormatter<RectOffset>() },
-            { typeof(Gradient[]),           new ArrayFormatter<Gradient>() },
-            { typeof(WrapMode[]),           new ArrayFormatter<WrapMode>() },
-            { typeof(GradientMode[]),       new ArrayFormatter<GradientMode>() },
-            { typeof(Keyframe[]),           new ArrayFormatter<Keyframe>() },
-            { typeof(Matrix4x4[]),          new ArrayFormatter<Matrix4x4>() },
-            { typeof(GradientColorKey[]),   new ArrayFormatter<GradientColorKey>() },
-            { typeof(GradientAlphaKey[]),   new ArrayFormatter<GradientAlphaKey>() },
-            { typeof(Color32[]),            new ArrayFormatter<Color32>() },
-            { typeof(LayerMask[]),          new ArrayFormatter<LayerMask>() },
-            { typeof(WrapMode?[]),          new ArrayFormatter<WrapMode?>() },
-            { typeof(GradientMode?[]),      new ArrayFormatter<GradientMode?>() },
-            { typeof(Keyframe?[]),          new ArrayFormatter<Keyframe?>() },
-            { typeof(Matrix4x4?[]),         new ArrayFormatter<Matrix4x4?>() },
-            { typeof(GradientColorKey?[]),  new ArrayFormatter<GradientColorKey?>() },
-            { typeof(GradientAlphaKey?[]),  new ArrayFormatter<GradientAlphaKey?>() },
-            { typeof(Color32?[]),           new ArrayFormatter<Color32?>() },
-            { typeof(LayerMask?[]),         new ArrayFormatter<LayerMask?>() },
+            { typeof(AnimationCurve[]), new ArrayFormatter<AnimationCurve>() },
+            { typeof(RectOffset[]), new ArrayFormatter<RectOffset>() },
+            { typeof(Gradient[]), new ArrayFormatter<Gradient>() },
+            { typeof(WrapMode[]), new ArrayFormatter<WrapMode>() },
+            { typeof(GradientMode[]), new ArrayFormatter<GradientMode>() },
+            { typeof(Keyframe[]), new ArrayFormatter<Keyframe>() },
+            { typeof(Matrix4x4[]), new ArrayFormatter<Matrix4x4>() },
+            { typeof(GradientColorKey[]), new ArrayFormatter<GradientColorKey>() },
+            { typeof(GradientAlphaKey[]), new ArrayFormatter<GradientAlphaKey>() },
+            { typeof(Color32[]), new ArrayFormatter<Color32>() },
+            { typeof(LayerMask[]), new ArrayFormatter<LayerMask>() },
+            { typeof(WrapMode?[]), new ArrayFormatter<WrapMode?>() },
+            { typeof(GradientMode?[]), new ArrayFormatter<GradientMode?>() },
+            { typeof(Keyframe?[]), new ArrayFormatter<Keyframe?>() },
+            { typeof(Matrix4x4?[]), new ArrayFormatter<Matrix4x4?>() },
+            { typeof(GradientColorKey?[]), new ArrayFormatter<GradientColorKey?>() },
+            { typeof(GradientAlphaKey?[]), new ArrayFormatter<GradientAlphaKey?>() },
+            { typeof(Color32?[]), new ArrayFormatter<Color32?>() },
+            { typeof(LayerMask?[]), new ArrayFormatter<LayerMask?>() },
 
             // new + list
-            { typeof(List<AnimationCurve>),     new ListFormatter<AnimationCurve>() },
-            { typeof(List<RectOffset>),         new ListFormatter<RectOffset>() },
-            { typeof(List<Gradient>),           new ListFormatter<Gradient>() },
-            { typeof(List<WrapMode>),           new ListFormatter<WrapMode>() },
-            { typeof(List<GradientMode>),       new ListFormatter<GradientMode>() },
-            { typeof(List<Keyframe>),           new ListFormatter<Keyframe>() },
-            { typeof(List<Matrix4x4>),          new ListFormatter<Matrix4x4>() },
-            { typeof(List<GradientColorKey>),   new ListFormatter<GradientColorKey>() },
-            { typeof(List<GradientAlphaKey>),   new ListFormatter<GradientAlphaKey>() },
-            { typeof(List<Color32>),            new ListFormatter<Color32>() },
-            { typeof(List<LayerMask>),          new ListFormatter<LayerMask>() },
-            { typeof(List<WrapMode?>),          new ListFormatter<WrapMode?>() },
-            { typeof(List<GradientMode?>),      new ListFormatter<GradientMode?>() },
-            { typeof(List<Keyframe?>),          new ListFormatter<Keyframe?>() },
-            { typeof(List<Matrix4x4?>),         new ListFormatter<Matrix4x4?>() },
-            { typeof(List<GradientColorKey?>),  new ListFormatter<GradientColorKey?>() },
-            { typeof(List<GradientAlphaKey?>),  new ListFormatter<GradientAlphaKey?>() },
-            { typeof(List<Color32?>),           new ListFormatter<Color32?>() },
-            { typeof(List<LayerMask?>),         new ListFormatter<LayerMask?>() },
+            { typeof(List<AnimationCurve>), new ListFormatter<AnimationCurve>() },
+            { typeof(List<RectOffset>), new ListFormatter<RectOffset>() },
+            { typeof(List<Gradient>), new ListFormatter<Gradient>() },
+            { typeof(List<WrapMode>), new ListFormatter<WrapMode>() },
+            { typeof(List<GradientMode>), new ListFormatter<GradientMode>() },
+            { typeof(List<Keyframe>), new ListFormatter<Keyframe>() },
+            { typeof(List<Matrix4x4>), new ListFormatter<Matrix4x4>() },
+            { typeof(List<GradientColorKey>), new ListFormatter<GradientColorKey>() },
+            { typeof(List<GradientAlphaKey>), new ListFormatter<GradientAlphaKey>() },
+            { typeof(List<Color32>), new ListFormatter<Color32>() },
+            { typeof(List<LayerMask>), new ListFormatter<LayerMask>() },
+            { typeof(List<WrapMode?>), new ListFormatter<WrapMode?>() },
+            { typeof(List<GradientMode?>), new ListFormatter<GradientMode?>() },
+            { typeof(List<Keyframe?>), new ListFormatter<Keyframe?>() },
+            { typeof(List<Matrix4x4?>), new ListFormatter<Matrix4x4?>() },
+            { typeof(List<GradientColorKey?>), new ListFormatter<GradientColorKey?>() },
+            { typeof(List<GradientAlphaKey?>), new ListFormatter<GradientAlphaKey?>() },
+            { typeof(List<Color32?>), new ListFormatter<Color32?>() },
+            { typeof(List<LayerMask?>), new ListFormatter<LayerMask?>() },
 
             // unity 2017.2
 #if UNITY_2017_2_OR_NEWER
 
-            {typeof(Vector2Int),         new Vector2IntFormatter()},
-            {typeof(Vector3Int),         new Vector3IntFormatter()},
-            {typeof(RangeInt),           new RangeIntFormatter()},
-            {typeof(RectInt),            new RectIntFormatter()},
-            {typeof(BoundsInt),          new BoundsIntFormatter()},
-            {typeof(Vector2Int?),        new StaticNullableFormatter<Vector2Int>(new Vector2IntFormatter())},
-            {typeof(Vector3Int?),        new StaticNullableFormatter<Vector3Int>(new Vector3IntFormatter())},
-            {typeof(RangeInt?),          new StaticNullableFormatter<RangeInt>(new RangeIntFormatter())},
-            {typeof(RectInt?),           new StaticNullableFormatter<RectInt>(new RectIntFormatter())},
-            {typeof(BoundsInt?),         new StaticNullableFormatter<BoundsInt>(new BoundsIntFormatter())},
+            { typeof(Vector2Int), new Vector2IntFormatter() },
+            { typeof(Vector3Int), new Vector3IntFormatter() },
+            { typeof(RangeInt), new RangeIntFormatter() },
+            { typeof(RectInt), new RectIntFormatter() },
+            { typeof(BoundsInt), new BoundsIntFormatter() },
+            { typeof(Vector2Int?), new StaticNullableFormatter<Vector2Int>(new Vector2IntFormatter()) },
+            { typeof(Vector3Int?), new StaticNullableFormatter<Vector3Int>(new Vector3IntFormatter()) },
+            { typeof(RangeInt?), new StaticNullableFormatter<RangeInt>(new RangeIntFormatter()) },
+            { typeof(RectInt?), new StaticNullableFormatter<RectInt>(new RectIntFormatter()) },
+            { typeof(BoundsInt?), new StaticNullableFormatter<BoundsInt>(new BoundsIntFormatter()) },
             // unity 2017.2 + array
-            {typeof(Vector2Int[]),       new ArrayFormatter<Vector2Int>()},
-            {typeof(Vector3Int[]),       new ArrayFormatter<Vector3Int>()},
-            {typeof(RangeInt[]),         new ArrayFormatter<RangeInt>()},
-            {typeof(RectInt[]),          new ArrayFormatter<RectInt>()},
-            {typeof(BoundsInt[]),        new ArrayFormatter<BoundsInt>()},
-            {typeof(Vector2Int?[]),      new ArrayFormatter<Vector2Int?>()},
-            {typeof(Vector3Int?[]),      new ArrayFormatter<Vector3Int?>()},
-            {typeof(RangeInt?[]),        new ArrayFormatter<RangeInt?>()},
-            {typeof(RectInt?[]),         new ArrayFormatter<RectInt?>()},
-            {typeof(BoundsInt?[]),       new ArrayFormatter<BoundsInt?>()},
+            { typeof(Vector2Int[]), new ArrayFormatter<Vector2Int>() },
+            { typeof(Vector3Int[]), new ArrayFormatter<Vector3Int>() },
+            { typeof(RangeInt[]), new ArrayFormatter<RangeInt>() },
+            { typeof(RectInt[]), new ArrayFormatter<RectInt>() },
+            { typeof(BoundsInt[]), new ArrayFormatter<BoundsInt>() },
+            { typeof(Vector2Int?[]), new ArrayFormatter<Vector2Int?>() },
+            { typeof(Vector3Int?[]), new ArrayFormatter<Vector3Int?>() },
+            { typeof(RangeInt?[]), new ArrayFormatter<RangeInt?>() },
+            { typeof(RectInt?[]), new ArrayFormatter<RectInt?>() },
+            { typeof(BoundsInt?[]), new ArrayFormatter<BoundsInt?>() },
             // unity 2017.2 + list
-            {typeof(List<Vector2Int>),       new ListFormatter<Vector2Int>()},
-            {typeof(List<Vector3Int>),       new ListFormatter<Vector3Int>()},
-            {typeof(List<RangeInt>),         new ListFormatter<RangeInt>()},
-            {typeof(List<RectInt>),          new ListFormatter<RectInt>()},
-            {typeof(List<BoundsInt>),        new ListFormatter<BoundsInt>()},
-            {typeof(List<Vector2Int?>),      new ListFormatter<Vector2Int?>()},
-            {typeof(List<Vector3Int?>),      new ListFormatter<Vector3Int?>()},
-            {typeof(List<RangeInt?>),        new ListFormatter<RangeInt?>()},
-            {typeof(List<RectInt?>),         new ListFormatter<RectInt?>()},
-            {typeof(List<BoundsInt?>),       new ListFormatter<BoundsInt?>()},
+            { typeof(List<Vector2Int>), new ListFormatter<Vector2Int>() },
+            { typeof(List<Vector3Int>), new ListFormatter<Vector3Int>() },
+            { typeof(List<RangeInt>), new ListFormatter<RangeInt>() },
+            { typeof(List<RectInt>), new ListFormatter<RectInt>() },
+            { typeof(List<BoundsInt>), new ListFormatter<BoundsInt>() },
+            { typeof(List<Vector2Int?>), new ListFormatter<Vector2Int?>() },
+            { typeof(List<Vector3Int?>), new ListFormatter<Vector3Int?>() },
+            { typeof(List<RangeInt?>), new ListFormatter<RangeInt?>() },
+            { typeof(List<RectInt?>), new ListFormatter<RectInt?>() },
+            { typeof(List<BoundsInt?>), new ListFormatter<BoundsInt?>() },
 
 #endif
         };
@@ -189,10 +189,7 @@ namespace MessagePack.Unity
         internal static object GetFormatter(Type t)
         {
             object formatter;
-            if (FormatterMap.TryGetValue(t, out formatter))
-            {
-                return formatter;
-            }
+            if (FormatterMap.TryGetValue(t, out formatter)) return formatter;
 
             return null;
         }

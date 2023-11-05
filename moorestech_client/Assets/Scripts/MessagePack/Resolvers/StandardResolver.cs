@@ -5,23 +5,25 @@ using System.Linq;
 using MessagePack.Formatters;
 using MessagePack.Internal;
 using MessagePack.Resolvers;
+using MessagePack.Unity;
 
 #pragma warning disable SA1403 // File may only contain a single namespace
 
 namespace MessagePack.Resolvers
 {
     /// <summary>
-    /// Default composited resolver, builtin -> attribute -> dynamic enum -> dynamic generic -> dynamic union -> dynamic object -> primitive.
+    ///     Default composited resolver, builtin -> attribute -> dynamic enum -> dynamic generic -> dynamic union -> dynamic
+    ///     object -> primitive.
     /// </summary>
     public sealed class StandardResolver : IFormatterResolver
     {
         /// <summary>
-        /// The singleton instance that can be used.
+        ///     The singleton instance that can be used.
         /// </summary>
         public static readonly StandardResolver Instance;
 
         /// <summary>
-        /// A <see cref="MessagePackSerializerOptions"/> instance with this formatter pre-configured.
+        ///     A <see cref="MessagePackSerializerOptions" /> instance with this formatter pre-configured.
         /// </summary>
         public static readonly MessagePackSerializerOptions Options;
 
@@ -64,9 +66,9 @@ namespace MessagePack.Resolvers
                 }
                 else
                 {
-                    foreach (IFormatterResolver item in Resolvers)
+                    foreach (var item in Resolvers)
                     {
-                        IMessagePackFormatter<T> f = item.GetFormatter<T>();
+                        var f = item.GetFormatter<T>();
                         if (f != null)
                         {
                             Formatter = f;
@@ -81,12 +83,12 @@ namespace MessagePack.Resolvers
     public sealed class ContractlessStandardResolver : IFormatterResolver
     {
         /// <summary>
-        /// The singleton instance that can be used.
+        ///     The singleton instance that can be used.
         /// </summary>
         public static readonly ContractlessStandardResolver Instance;
 
         /// <summary>
-        /// A <see cref="MessagePackSerializerOptions"/> instance with this formatter pre-configured.
+        ///     A <see cref="MessagePackSerializerOptions" /> instance with this formatter pre-configured.
         /// </summary>
         public static readonly MessagePackSerializerOptions Options;
 
@@ -130,9 +132,9 @@ namespace MessagePack.Resolvers
                 }
                 else
                 {
-                    foreach (IFormatterResolver item in Resolvers)
+                    foreach (var item in Resolvers)
                     {
-                        IMessagePackFormatter<T> f = item.GetFormatter<T>();
+                        var f = item.GetFormatter<T>();
                         if (f != null)
                         {
                             Formatter = f;
@@ -147,12 +149,12 @@ namespace MessagePack.Resolvers
     public sealed class StandardResolverAllowPrivate : IFormatterResolver
     {
         /// <summary>
-        /// The singleton instance that can be used.
+        ///     The singleton instance that can be used.
         /// </summary>
         public static readonly StandardResolverAllowPrivate Instance;
 
         /// <summary>
-        /// A <see cref="MessagePackSerializerOptions"/> instance with this formatter pre-configured.
+        ///     A <see cref="MessagePackSerializerOptions" /> instance with this formatter pre-configured.
         /// </summary>
         public static readonly MessagePackSerializerOptions Options;
 
@@ -195,9 +197,9 @@ namespace MessagePack.Resolvers
                 }
                 else
                 {
-                    foreach (IFormatterResolver item in Resolvers)
+                    foreach (var item in Resolvers)
                     {
-                        IMessagePackFormatter<T> f = item.GetFormatter<T>();
+                        var f = item.GetFormatter<T>();
                         if (f != null)
                         {
                             Formatter = f;
@@ -212,12 +214,12 @@ namespace MessagePack.Resolvers
     public sealed class ContractlessStandardResolverAllowPrivate : IFormatterResolver
     {
         /// <summary>
-        /// The singleton instance that can be used.
+        ///     The singleton instance that can be used.
         /// </summary>
         public static readonly ContractlessStandardResolverAllowPrivate Instance;
 
         /// <summary>
-        /// A <see cref="MessagePackSerializerOptions"/> instance with this formatter pre-configured.
+        ///     A <see cref="MessagePackSerializerOptions" /> instance with this formatter pre-configured.
         /// </summary>
         public static readonly MessagePackSerializerOptions Options;
 
@@ -261,9 +263,9 @@ namespace MessagePack.Resolvers
                 }
                 else
                 {
-                    foreach (IFormatterResolver item in Resolvers)
+                    foreach (var item in Resolvers)
                     {
-                        IMessagePackFormatter<T> f = item.GetFormatter<T>();
+                        var f = item.GetFormatter<T>();
                         if (f != null)
                         {
                             Formatter = f;
@@ -280,13 +282,13 @@ namespace MessagePack.Internal
 {
     internal static class StandardResolverHelper
     {
-        public static readonly IFormatterResolver[] DefaultResolvers = new IFormatterResolver[]
+        public static readonly IFormatterResolver[] DefaultResolvers =
         {
             BuiltinResolver.Instance, // Try Builtin
             AttributeFormatterResolver.Instance, // Try use [MessagePackFormatter]
 
 #if UNITY_2018_3_OR_NEWER
-            MessagePack.Unity.UnityResolver.Instance,
+            UnityResolver.Instance,
 #else
             ImmutableCollection.ImmutableCollectionResolver.Instance,
             CompositeResolver.Create(ExpandoObjectFormatter.Instance),

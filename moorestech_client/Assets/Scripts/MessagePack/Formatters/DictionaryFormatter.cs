@@ -5,7 +5,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reflection;
 
 #pragma warning disable SA1649 // File name should match first type name
 
@@ -24,9 +23,9 @@ namespace MessagePack.Formatters
             }
             else
             {
-                IFormatterResolver resolver = options.Resolver;
-                IMessagePackFormatter<TKey> keyFormatter = resolver.GetFormatterWithVerify<TKey>();
-                IMessagePackFormatter<TValue> valueFormatter = resolver.GetFormatterWithVerify<TValue>();
+                var resolver = options.Resolver;
+                var keyFormatter = resolver.GetFormatterWithVerify<TKey>();
+                var valueFormatter = resolver.GetFormatterWithVerify<TValue>();
 
                 int count;
                 {
@@ -39,25 +38,21 @@ namespace MessagePack.Formatters
                     {
                         var col2 = value as IReadOnlyCollection<KeyValuePair<TKey, TValue>>;
                         if (col2 != null)
-                        {
                             count = col2.Count;
-                        }
                         else
-                        {
                             throw new MessagePackSerializationException("DictionaryFormatterBase's TDictionary supports only ICollection<KVP> or IReadOnlyCollection<KVP>");
-                        }
                     }
                 }
 
                 writer.WriteMapHeader(count);
 
-                TEnumerator e = this.GetSourceEnumerator(value);
+                var e = GetSourceEnumerator(value);
                 try
                 {
                     while (e.MoveNext())
                     {
                         writer.CancellationToken.ThrowIfCancellationRequested();
-                        KeyValuePair<TKey, TValue> item = e.Current;
+                        var item = e.Current;
                         keyFormatter.Serialize(ref writer, item.Key, options);
                         valueFormatter.Serialize(ref writer, item.Value, options);
                     }
@@ -71,39 +66,34 @@ namespace MessagePack.Formatters
 
         public TDictionary Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.TryReadNil())
+            if (reader.TryReadNil()) return default;
+
+            var resolver = options.Resolver;
+            var keyFormatter = resolver.GetFormatterWithVerify<TKey>();
+            var valueFormatter = resolver.GetFormatterWithVerify<TValue>();
+
+            var len = reader.ReadMapHeader();
+
+            var dict = Create(len, options);
+            options.Security.DepthStep(ref reader);
+            try
             {
-                return default(TDictionary);
+                for (var i = 0; i < len; i++)
+                {
+                    reader.CancellationToken.ThrowIfCancellationRequested();
+                    var key = keyFormatter.Deserialize(ref reader, options);
+
+                    var value = valueFormatter.Deserialize(ref reader, options);
+
+                    Add(dict, i, key, value, options);
+                }
             }
-            else
+            finally
             {
-                IFormatterResolver resolver = options.Resolver;
-                IMessagePackFormatter<TKey> keyFormatter = resolver.GetFormatterWithVerify<TKey>();
-                IMessagePackFormatter<TValue> valueFormatter = resolver.GetFormatterWithVerify<TValue>();
-
-                var len = reader.ReadMapHeader();
-
-                TIntermediate dict = this.Create(len, options);
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    for (int i = 0; i < len; i++)
-                    {
-                        reader.CancellationToken.ThrowIfCancellationRequested();
-                        TKey key = keyFormatter.Deserialize(ref reader, options);
-
-                        TValue value = valueFormatter.Deserialize(ref reader, options);
-
-                        this.Add(dict, i, key, value, options);
-                    }
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
-
-                return this.Complete(dict);
+                reader.Depth--;
             }
+
+            return Complete(dict);
         }
 
         // abstraction for serialize
@@ -283,7 +273,7 @@ namespace MessagePack.Formatters
         }
     }
 
-    public sealed class ConcurrentDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, System.Collections.Concurrent.ConcurrentDictionary<TKey, TValue>>
+    public sealed class ConcurrentDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, ConcurrentDictionary<TKey, TValue>>
     {
         protected override void Add(ConcurrentDictionary<TKey, TValue> collection, int index, TKey key, TValue value, MessagePackSerializerOptions options)
         {

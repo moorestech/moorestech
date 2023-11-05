@@ -2,21 +2,22 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Linq; // require UNITY_2018_3_OR_NEWER
-using System.Reflection;
+using System.Linq;
 using MessagePack.Formatters;
+
+// require UNITY_2018_3_OR_NEWER
 
 namespace MessagePack.Resolvers
 {
     /// <summary>
-    /// Get formatter from <see cref="MessagePackFormatterAttribute"/>.
+    ///     Get formatter from <see cref="MessagePackFormatterAttribute" />.
     /// </summary>
     public sealed class AttributeFormatterResolver : IFormatterResolver
     {
         /// <summary>
-        /// The singleton instance that can be used.
+        ///     The singleton instance that can be used.
         /// </summary>
-        public static readonly AttributeFormatterResolver Instance = new AttributeFormatterResolver();
+        public static readonly AttributeFormatterResolver Instance = new();
 
         private AttributeFormatterResolver()
         {
@@ -38,25 +39,15 @@ namespace MessagePack.Resolvers
 #else
                 MessagePackFormatterAttribute attr = typeof(T).GetTypeInfo().GetCustomAttribute<MessagePackFormatterAttribute>();
 #endif
-                if (attr == null)
-                {
-                    return;
-                }
+                if (attr == null) return;
 
                 var formatterType = attr.FormatterType;
-                if (formatterType.IsGenericType && !formatterType.IsConstructedGenericType)
-                {
-                    formatterType = formatterType.MakeGenericType(typeof(T).GetGenericArguments());
-                }
+                if (formatterType.IsGenericType && !formatterType.IsConstructedGenericType) formatterType = formatterType.MakeGenericType(typeof(T).GetGenericArguments());
 
                 if (attr.Arguments == null)
-                {
                     Formatter = (IMessagePackFormatter<T>)Activator.CreateInstance(formatterType);
-                }
                 else
-                {
                     Formatter = (IMessagePackFormatter<T>)Activator.CreateInstance(formatterType, attr.Arguments);
-                }
             }
         }
     }

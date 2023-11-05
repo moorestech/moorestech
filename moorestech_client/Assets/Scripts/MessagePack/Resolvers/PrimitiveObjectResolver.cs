@@ -8,12 +8,12 @@ namespace MessagePack.Resolvers
     public sealed class PrimitiveObjectResolver : IFormatterResolver
     {
         /// <summary>
-        /// The singleton instance that can be used.
+        ///     The singleton instance that can be used.
         /// </summary>
         public static readonly PrimitiveObjectResolver Instance;
 
         /// <summary>
-        /// A <see cref="MessagePackSerializerOptions"/> instance with this formatter pre-configured.
+        ///     A <see cref="MessagePackSerializerOptions" /> instance with this formatter pre-configured.
         /// </summary>
         public static readonly MessagePackSerializerOptions Options;
 
@@ -38,8 +38,8 @@ namespace MessagePack.Resolvers
 
             static FormatterCache()
             {
-                Formatter = (typeof(T) == typeof(object))
-                    ? (IMessagePackFormatter<T>)(object)PrimitiveObjectFormatter.Instance
+                Formatter = typeof(T) == typeof(object)
+                    ? (IMessagePackFormatter<T>)PrimitiveObjectFormatter.Instance
                     : null;
             }
         }

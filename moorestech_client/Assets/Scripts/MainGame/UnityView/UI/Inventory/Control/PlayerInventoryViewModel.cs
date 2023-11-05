@@ -11,55 +11,48 @@ using UnityEngine;
 namespace MainGame.UnityView.UI.Inventory.Control
 {
     /// <summary>
-    /// プレイヤーの操作に応じてローカルでもっておくインベントリのアイテムリスト
-    /// 実際のインベントリとのラグを軽減するためのキャッシュ機構で、実際のインベントリを更新するパケットが到着したら適宜入れ替える（ロールバックを発生させる）
+    ///     プレイヤーの操作に応じてローカルでもっておくインベントリのアイテムリスト
+    ///     実際のインベントリとのラグを軽減するためのキャッシュ機構で、実際のインベントリを更新するパケットが到着したら適宜入れ替える（ロールバックを発生させる）
     /// </summary>
     public class PlayerInventoryViewModel : IEnumerable<IItemStack>
     {
+        private readonly ItemStackFactory _itemStackFactory;
+
         /// <summary>
-        /// クライアント側のメインインベントリのキャッシュ
-        /// シフトを押してアイテムを分割しておく時など、サーバーとの同期を取る前の段階でのインベントリの状態を保持する
+        ///     クライアント側のメインインベントリのキャッシュ
+        ///     シフトを押してアイテムを分割しておく時など、サーバーとの同期を取る前の段階でのインベントリの状態を保持する
         /// </summary>
         private readonly List<IItemStack> _mainInventory;
-        public IReadOnlyList<IItemStack> MainInventory => _mainInventory;
-        /// <summary>
-        /// <see cref="_mainInventory"/>と同じ理由でキャッシュしている
-        /// サブインベントリはクラフトの時もあればブロックの時もあって、直接セットする必要があるのでreadonlyにしていない
-        /// </summary>
-        private List<IItemStack> _subInventory = new();
-        private readonly ItemStackFactory _itemStackFactory;
-        
+
         //TODO item configを外部に公開しているのちょっとどうかと思う 隣人のなんとか違反
         public readonly IItemConfig ItemConfig;
-        public event Action OnInventoryUpdate;
-        public int Count => _mainInventory.Count + _subInventory.Count;
+
+        /// <summary>
+        ///     <see cref="_mainInventory" />と同じ理由でキャッシュしている
+        ///     サブインベントリはクラフトの時もあればブロックの時もあって、直接セットする必要があるのでreadonlyにしていない
+        /// </summary>
+        private List<IItemStack> _subInventory = new();
 
 
         public PlayerInventoryViewModel(SinglePlayInterface single)
         {
             _itemStackFactory = single.ItemStackFactory;
             ItemConfig = single.ItemConfig;
-            
+
             _mainInventory = new List<IItemStack>();
-            for (int i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
-            {
-                _mainInventory.Add(_itemStackFactory.CreatEmpty());
-            }
+            for (var i = 0; i < PlayerInventoryConstant.MainInventorySize; i++) _mainInventory.Add(_itemStackFactory.CreatEmpty());
         }
+
+        public IReadOnlyList<IItemStack> MainInventory => _mainInventory;
+        public int Count => _mainInventory.Count + _subInventory.Count;
 
         public IItemStack this[int index]
         {
             get
             {
-                if (index < _mainInventory.Count)
-                {
-                    return _mainInventory[index];
-                }
+                if (index < _mainInventory.Count) return _mainInventory[index];
                 var subIndex = index - _mainInventory.Count;
-                if (subIndex < _subInventory.Count)
-                {
-                    return _subInventory[index - _mainInventory.Count];
-                }
+                if (subIndex < _subInventory.Count) return _subInventory[index - _mainInventory.Count];
                 Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + index);
                 return _itemStackFactory.CreatEmpty();
             }
@@ -77,15 +70,9 @@ namespace MainGame.UnityView.UI.Inventory.Control
                     _subInventory[subIndex] = value;
                     return;
                 }
-                Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + index); 
-            }
-        }
 
-        
-        public void SetSubInventory(List<ItemStack> subInventory)
-        {
-            _subInventory = subInventory.ToIItemStackList(_itemStackFactory);
-            OnInventoryUpdate?.Invoke();
+                Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + index);
+            }
         }
 
         public IEnumerator<IItemStack> GetEnumerator()
@@ -99,6 +86,15 @@ namespace MainGame.UnityView.UI.Inventory.Control
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        public event Action OnInventoryUpdate;
+
+
+        public void SetSubInventory(List<ItemStack> subInventory)
+        {
+            _subInventory = subInventory.ToIItemStackList(_itemStackFactory);
+            OnInventoryUpdate?.Invoke();
         }
     }
 }

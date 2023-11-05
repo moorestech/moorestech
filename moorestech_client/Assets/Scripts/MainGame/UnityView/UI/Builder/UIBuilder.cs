@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using MainGame.UnityView.UI.Builder.BluePrint;
 using MainGame.UnityView.UI.Builder.Element;
 using MainGame.UnityView.UI.Builder.Unity;
@@ -10,7 +9,7 @@ using UnityEngine.UI;
 namespace MainGame.UnityView.UI.Builder
 {
     /// <summary>
-    /// サブインベントリを構築するブループリントを受け取り、実際のGameObjectのUIを構築する
+    ///     サブインベントリを構築するブループリントを受け取り、実際のGameObjectのUIを構築する
     /// </summary>
     public class UIBuilder : MonoBehaviour
     {
@@ -18,19 +17,18 @@ namespace MainGame.UnityView.UI.Builder
         [SerializeField] private UIBuilderItemSlotArrayObject UIBuilderItemSlotArrayObjectPrefab;
         [SerializeField] private UIBuilderTextObject UIBuilderTextObjectPrefab;
         [SerializeField] private UIBuilderProgressArrowObject UIBuilderProgressArrowObjectPrefab;
-        
+
         /// <summary>
-        /// ブループリントからそのオブジェクトを生成する
+        ///     ブループリントからそのオブジェクトを生成する
         /// </summary>
         /// <param name="inventoryViewBluePrint">構築するUIのブループリント</param>
         /// <param name="parent">作成するオブジェクトの親</param>
         /// <returns>インベントリのスロットのオブジェクト,　スロット以外のオブジェクト（テキストなど）</returns>
-        public List<IUIBuilderObject> CreateSlots(IInventoryViewBluePrint inventoryViewBluePrint,Transform parent)
+        public List<IUIBuilderObject> CreateSlots(IInventoryViewBluePrint inventoryViewBluePrint, Transform parent)
         {
             var uiObjects = new List<IUIBuilderObject>();
 
             foreach (var element in inventoryViewBluePrint.Elements)
-            {
                 switch (element.ElementElementType)
                 {
                     //TODO サイズの設定方法とArrayの設定について考える必要がある
@@ -49,7 +47,7 @@ namespace MainGame.UnityView.UI.Builder
                     default:
                         throw new ArgumentOutOfRangeException(element.ElementElementType + " の実装がありません");
                 }
-            }
+
             return uiObjects;
         }
 
@@ -57,32 +55,32 @@ namespace MainGame.UnityView.UI.Builder
         {
             var text = Instantiate(UIBuilderTextObjectPrefab.gameObject, parent).GetComponent<UIBuilderTextObject>();
             text.Initialize(element);
-            
+
             var rect = text.GetComponent<RectTransform>();
             rect.SetAnchor(AnchorPresets.MiddleCenter);
             rect.anchoredPosition = element.RectPosition;
             rect.rotation = Quaternion.Euler(element.Rotation);
             rect.sizeDelta = element.RectSize;
-            
-            text.SetText(element.DefaultText,element.FontSize);
+
+            text.SetText(element.DefaultText, element.FontSize);
 
             return text;
         }
 
 
-        private UIBuilderItemSlotObject CreateOneSlot(UIBluePrintItemSlot uiBluePrintItemSlot,Transform parent)
+        private UIBuilderItemSlotObject CreateOneSlot(UIBluePrintItemSlot uiBluePrintItemSlot, Transform parent)
         {
             var slot = Instantiate(UIBuilderItemSlotObjectPrefab, parent);
             //intefaceの定義の関係でこうしている
             slot.Initialize(uiBluePrintItemSlot);
             slot.SetSlotOptions(uiBluePrintItemSlot.Options);
-            
+
             var rect = slot.GetComponent<RectTransform>();
             rect.SetAnchor(AnchorPresets.MiddleCenter);
             rect.anchoredPosition = uiBluePrintItemSlot.RectPosition;
             rect.rotation = Quaternion.Euler(uiBluePrintItemSlot.Rotation);
             rect.sizeDelta = uiBluePrintItemSlot.RectSize;
-            
+
 
             return slot;
         }
@@ -92,13 +90,13 @@ namespace MainGame.UnityView.UI.Builder
         {
             var slot = Instantiate(UIBuilderItemSlotArrayObjectPrefab, parent);
             slot.Initialize(uiBluePrintItemSlotArray);
-            
+
             var slotSize = UIBuilderItemSlotObjectPrefab.GetComponent<RectTransform>().sizeDelta;
             slot.GetComponent<GridLayoutGroup>().cellSize = slotSize;
-                
+
             //TODO ArrayだけRectTransformの設定が特殊だからこうしている　設計を考える必要あり
             //TODO Arrayっていう概念をなくして拡張メソッド的なので定義できるようにするのもあり
-            
+
             var rect = slot.GetComponent<RectTransform>();
             rect.SetAnchor(AnchorPresets.MiddleCenter);
             rect.anchoredPosition = uiBluePrintItemSlotArray.RectPosition;
@@ -113,7 +111,7 @@ namespace MainGame.UnityView.UI.Builder
         {
             var arrow = Instantiate(UIBuilderProgressArrowObjectPrefab, parent);
             arrow.Initialize(uiBluePrintProgressArrow);
-            
+
             var rect = arrow.GetComponent<RectTransform>();
             rect.SetAnchor(AnchorPresets.MiddleCenter);
             rect.anchoredPosition = uiBluePrintProgressArrow.RectPosition;
@@ -122,6 +120,5 @@ namespace MainGame.UnityView.UI.Builder
 
             return arrow;
         }
-
     }
 }

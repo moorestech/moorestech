@@ -1,12 +1,10 @@
-﻿using System;
-using GameConst;
+﻿using GameConst;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace MainMenu
 {
     /// <summary>
-    /// プレイヤーIDがセットされてないときに、プレイヤーIDセットする
+    ///     プレイヤーIDがセットされてないときに、プレイヤーIDセットする
     /// </summary>
     public class SetPlayerId : MonoBehaviour
     {
@@ -15,7 +13,7 @@ namespace MainMenu
             if (!PlayerPrefs.HasKey(PlayerPrefsKeys.PlayerIdKey))
             {
                 //プレイヤーIDをランダムに生成して設定
-                PlayerPrefs.SetInt(PlayerPrefsKeys.PlayerIdKey,Random.Range(2,Int32.MaxValue));
+                PlayerPrefs.SetInt(PlayerPrefsKeys.PlayerIdKey, Random.Range(2, int.MaxValue));
                 PlayerPrefs.Save();
             }
         }

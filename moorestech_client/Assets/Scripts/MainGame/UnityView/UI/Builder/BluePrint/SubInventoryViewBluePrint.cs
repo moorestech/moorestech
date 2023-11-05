@@ -5,10 +5,10 @@ namespace MainGame.UnityView.UI.Builder.BluePrint
 {
     public class SubInventoryViewBluePrint : IInventoryViewBluePrint
     {
-        public List<UIBluePrintItemSlot> OneSlots = new();
         public List<UIBluePrintItemSlotArray> ArraySlots = new();
-        public List<UIBluePrintText> TextElements = new();
+        public List<UIBluePrintItemSlot> OneSlots = new();
         public List<UIBluePrintProgressArrow> ProgressArrows = new();
+        public List<UIBluePrintText> TextElements = new();
 
         public List<IUIBluePrintElement> Elements
         {
@@ -19,7 +19,7 @@ namespace MainGame.UnityView.UI.Builder.BluePrint
                 list.AddRange(ArraySlots);
                 list.AddRange(TextElements);
                 list.AddRange(ProgressArrows);
-                list.Sort((a,b) => b.Priority - a.Priority);
+                list.Sort((a, b) => b.Priority - a.Priority);
                 return list;
             }
         }

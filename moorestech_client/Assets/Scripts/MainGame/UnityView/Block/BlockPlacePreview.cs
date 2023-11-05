@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MainGame.UnityView.Block
 {
-    public class BlockPlacePreview : MonoBehaviour,IBlockPlacePreview
+    public class BlockPlacePreview : MonoBehaviour, IBlockPlacePreview
     {
         public void SetPreview(Vector2Int vector2Int, BlockDirection blockDirection)
         {

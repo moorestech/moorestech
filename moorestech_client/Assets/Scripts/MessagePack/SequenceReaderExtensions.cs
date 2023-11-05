@@ -13,29 +13,26 @@ using System.Runtime.InteropServices;
 
 namespace MessagePack
 {
-    internal static partial class SequenceReaderExtensions
+    internal static class SequenceReaderExtensions
     {
         /// <summary>
-        /// Try to read the given type out of the buffer if possible. Warning: this is dangerous to use with arbitrary
-        /// structs- see remarks for full details.
+        ///     Try to read the given type out of the buffer if possible. Warning: this is dangerous to use with arbitrary
+        ///     structs- see remarks for full details.
         /// </summary>
         /// <remarks>
-        /// IMPORTANT: The read is a straight copy of bits. If a struct depends on specific state of its members to
-        /// behave correctly this can lead to exceptions, etc. If reading endian specific integers, use the explicit
-        /// overloads such as <see cref="TryReadBigEndian(ref SequenceReader{byte}, out short)"/>.
+        ///     IMPORTANT: The read is a straight copy of bits. If a struct depends on specific state of its members to
+        ///     behave correctly this can lead to exceptions, etc. If reading endian specific integers, use the explicit
+        ///     overloads such as <see cref="TryReadBigEndian(ref SequenceReader{byte}, out short)" />.
         /// </remarks>
         /// <returns>
-        /// True if successful. <paramref name="value"/> will be default if failed (due to lack of space).
+        ///     True if successful. <paramref name="value" /> will be default if failed (due to lack of space).
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static unsafe bool TryRead<T>(ref this SequenceReader<byte> reader, out T value)
             where T : unmanaged
         {
-            ReadOnlySpan<byte> span = reader.UnreadSpan;
-            if (span.Length < sizeof(T))
-            {
-                return TryReadMultisegment(ref reader, out value);
-            }
+            var span = reader.UnreadSpan;
+            if (span.Length < sizeof(T)) return TryReadMultisegment(ref reader, out value);
 
             value = Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(span));
             reader.Advance(sizeof(T));
@@ -43,7 +40,6 @@ namespace MessagePack
         }
 
 #if UNITY_ANDROID
-
         /// <summary>
         /// In Android 32bit device(armv7) + IL2CPP does not work correctly on Unsafe.ReadUnaligned.
         /// Perhaps it is about memory alignment bug of Unity's IL2CPP VM.
@@ -73,7 +69,7 @@ namespace MessagePack
 
             // Not enough data in the current segment, try to peek for the data we need.
             T buffer = default;
-            Span<byte> tempSpan = new Span<byte>(&buffer, sizeof(T));
+            var tempSpan = new Span<byte>(&buffer, sizeof(T));
 
             if (!reader.TryCopyTo(tempSpan))
             {
@@ -87,7 +83,6 @@ namespace MessagePack
         }
 
 #if UNITY_ANDROID
-
         private static unsafe bool TryReadMultisegment(ref SequenceReader<byte> reader, out long value)
         {
             Debug.Assert(reader.UnreadSpan.Length < sizeof(long), "reader.UnreadSpan.Length < sizeof(long)");
@@ -110,7 +105,7 @@ namespace MessagePack
 #endif
 
         /// <summary>
-        /// Reads an <see cref="sbyte"/> from the next position in the sequence.
+        ///     Reads an <see cref="sbyte" /> from the next position in the sequence.
         /// </summary>
         /// <param name="reader">The reader to read from.</param>
         /// <param name="value">Receives the value read.</param>
@@ -128,23 +123,20 @@ namespace MessagePack
         }
 
         /// <summary>
-        /// Reads an <see cref="Int16"/> as big endian.
+        ///     Reads an <see cref="short" /> as big endian.
         /// </summary>
-        /// <returns>False if there wasn't enough data for an <see cref="Int16"/>.</returns>
+        /// <returns>False if there wasn't enough data for an <see cref="short" />.</returns>
         public static bool TryReadBigEndian(ref this SequenceReader<byte> reader, out short value)
         {
-            if (!BitConverter.IsLittleEndian)
-            {
-                return reader.TryRead(out value);
-            }
+            if (!BitConverter.IsLittleEndian) return reader.TryRead(out value);
 
             return TryReadReverseEndianness(ref reader, out value);
         }
 
         /// <summary>
-        /// Reads an <see cref="UInt16"/> as big endian.
+        ///     Reads an <see cref="ushort" /> as big endian.
         /// </summary>
-        /// <returns>False if there wasn't enough data for an <see cref="UInt16"/>.</returns>
+        /// <returns>False if there wasn't enough data for an <see cref="ushort" />.</returns>
         public static bool TryReadBigEndian(ref this SequenceReader<byte> reader, out ushort value)
         {
             if (TryReadBigEndian(ref reader, out short shortValue))
@@ -169,23 +161,20 @@ namespace MessagePack
         }
 
         /// <summary>
-        /// Reads an <see cref="Int32"/> as big endian.
+        ///     Reads an <see cref="int" /> as big endian.
         /// </summary>
-        /// <returns>False if there wasn't enough data for an <see cref="Int32"/>.</returns>
+        /// <returns>False if there wasn't enough data for an <see cref="int" />.</returns>
         public static bool TryReadBigEndian(ref this SequenceReader<byte> reader, out int value)
         {
-            if (!BitConverter.IsLittleEndian)
-            {
-                return reader.TryRead(out value);
-            }
+            if (!BitConverter.IsLittleEndian) return reader.TryRead(out value);
 
             return TryReadReverseEndianness(ref reader, out value);
         }
 
         /// <summary>
-        /// Reads an <see cref="UInt32"/> as big endian.
+        ///     Reads an <see cref="uint" /> as big endian.
         /// </summary>
-        /// <returns>False if there wasn't enough data for an <see cref="UInt32"/>.</returns>
+        /// <returns>False if there wasn't enough data for an <see cref="uint" />.</returns>
         public static bool TryReadBigEndian(ref this SequenceReader<byte> reader, out uint value)
         {
             if (TryReadBigEndian(ref reader, out int intValue))
@@ -210,23 +199,20 @@ namespace MessagePack
         }
 
         /// <summary>
-        /// Reads an <see cref="Int64"/> as big endian.
+        ///     Reads an <see cref="long" /> as big endian.
         /// </summary>
-        /// <returns>False if there wasn't enough data for an <see cref="Int64"/>.</returns>
+        /// <returns>False if there wasn't enough data for an <see cref="long" />.</returns>
         public static bool TryReadBigEndian(ref this SequenceReader<byte> reader, out long value)
         {
-            if (!BitConverter.IsLittleEndian)
-            {
-                return reader.TryRead(out value);
-            }
+            if (!BitConverter.IsLittleEndian) return reader.TryRead(out value);
 
             return TryReadReverseEndianness(ref reader, out value);
         }
 
         /// <summary>
-        /// Reads an <see cref="UInt64"/> as big endian.
+        ///     Reads an <see cref="ulong" /> as big endian.
         /// </summary>
-        /// <returns>False if there wasn't enough data for an <see cref="UInt64"/>.</returns>
+        /// <returns>False if there wasn't enough data for an <see cref="ulong" />.</returns>
         public static bool TryReadBigEndian(ref this SequenceReader<byte> reader, out ulong value)
         {
             if (TryReadBigEndian(ref reader, out long longValue))
@@ -251,9 +237,9 @@ namespace MessagePack
         }
 
         /// <summary>
-        /// Reads a <see cref="Single"/> as big endian.
+        ///     Reads a <see cref="float" /> as big endian.
         /// </summary>
-        /// <returns>False if there wasn't enough data for a <see cref="Single"/>.</returns>
+        /// <returns>False if there wasn't enough data for a <see cref="float" />.</returns>
         public static unsafe bool TryReadBigEndian(ref this SequenceReader<byte> reader, out float value)
         {
             if (TryReadBigEndian(ref reader, out int intValue))
@@ -267,9 +253,9 @@ namespace MessagePack
         }
 
         /// <summary>
-        /// Reads a <see cref="Double"/> as big endian.
+        ///     Reads a <see cref="double" /> as big endian.
         /// </summary>
-        /// <returns>False if there wasn't enough data for a <see cref="Double"/>.</returns>
+        /// <returns>False if there wasn't enough data for a <see cref="double" />.</returns>
         public static unsafe bool TryReadBigEndian(ref this SequenceReader<byte> reader, out double value)
         {
             if (TryReadBigEndian(ref reader, out long longValue))

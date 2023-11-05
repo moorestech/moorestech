@@ -2,14 +2,13 @@
 using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.Network.Event;
-
 using MessagePack;
 using Server.Event.EventReceive;
 using UnityEngine;
 
 namespace MainGame.Network.Receive.EventPacket
 {
-    public class BlockRemoveEventProtocol : IAnalysisEventPacket 
+    public class BlockRemoveEventProtocol : IAnalysisEventPacket
     {
         private readonly ReceiveChunkDataEvent receiveChunkDataEvents;
 
@@ -20,13 +19,12 @@ namespace MainGame.Network.Receive.EventPacket
 
         public void Analysis(List<byte> packet)
         {
-            
             var data = MessagePackSerializer
                 .Deserialize<RemoveBlockEventMessagePack>(packet.ToArray());
-            
-            
+
+
             receiveChunkDataEvents.InvokeBlockUpdateEvent(
-                new BlockUpdateEventProperties(new Vector2Int(data.X,data.Y),BlockConstant.NullBlockId,BlockDirection.North)).Forget();
+                new BlockUpdateEventProperties(new Vector2Int(data.X, data.Y), BlockConstant.NullBlockId, BlockDirection.North)).Forget();
         }
     }
 }

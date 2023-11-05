@@ -7,10 +7,10 @@ namespace MainGame.UnityView.UI.UIState
 {
     public class BlockPlaceState : IUIState
     {
-        private readonly SelectHotBarView _selectHotBarView;
         private readonly IBlockClickDetect _blockClickDetect;
+        private readonly SelectHotBarView _selectHotBarView;
 
-        public BlockPlaceState(SelectHotBarView selectHotBarView,IBlockClickDetect blockClickDetect)
+        public BlockPlaceState(SelectHotBarView selectHotBarView, IBlockClickDetect blockClickDetect)
         {
             _selectHotBarView = selectHotBarView;
             _blockClickDetect = blockClickDetect;
@@ -18,27 +18,12 @@ namespace MainGame.UnityView.UI.UIState
 
         public UIStateEnum GetNext()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown)
-            {
-                return UIStateEnum.GameScreen;
-            }
-            if (InputManager.UI.BlockDelete.GetKeyDown)
-            {
-                return UIStateEnum.DeleteBar;
-            }
-            if (InputManager.UI.OpenInventory.GetKeyDown)
-            {
-                return UIStateEnum.PlayerInventory;
-            }
-            if (InputManager.UI.OpenMenu.GetKeyDown)
-            {
-                return UIStateEnum.PauseMenu;
-            }
-            if (IsClickOpenableBlock())
-            {
-                return UIStateEnum.BlockInventory;
-            }
-            
+            if (InputManager.UI.CloseUI.GetKeyDown) return UIStateEnum.GameScreen;
+            if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
+            if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
+            if (InputManager.UI.OpenMenu.GetKeyDown) return UIStateEnum.PauseMenu;
+            if (IsClickOpenableBlock()) return UIStateEnum.BlockInventory;
+
             return UIStateEnum.Current;
         }
 
@@ -51,13 +36,10 @@ namespace MainGame.UnityView.UI.UIState
         {
             _selectHotBarView.SetActiveSelectHotBar(false);
         }
-        
+
         private bool IsClickOpenableBlock()
         {
-            if (_blockClickDetect.TryGetClickBlock(out var block))
-            {
-                return block.GetComponent<OpenableInventoryBlock>();
-            }
+            if (_blockClickDetect.TryGetClickBlock(out var block)) return block.GetComponent<OpenableInventoryBlock>();
 
             return false;
         }

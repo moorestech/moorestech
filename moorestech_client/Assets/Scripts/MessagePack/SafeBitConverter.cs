@@ -28,7 +28,10 @@ namespace MessagePack
 #endif
         }
 
-        internal static ulong ToUInt64(ReadOnlySpan<byte> value) => unchecked((ulong)ToInt64(value));
+        internal static ulong ToUInt64(ReadOnlySpan<byte> value)
+        {
+            return unchecked((ulong)ToInt64(value));
+        }
 
         internal static ushort ToUInt16(ReadOnlySpan<byte> value)
         {

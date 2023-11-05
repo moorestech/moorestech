@@ -14,12 +14,14 @@ namespace MainGame.Presenter.Inventory.Send
             playerInventoryState.OnOpenInventory += OpenInventory;
         }
 
+        public void Initialize()
+        {
+        }
+
         private void OpenInventory()
         {
             //インベントリの取得パケットの送信
             _requestPlayerInventoryProtocol.Send();
         }
-        public void Initialize() { }
-    
     }
 }

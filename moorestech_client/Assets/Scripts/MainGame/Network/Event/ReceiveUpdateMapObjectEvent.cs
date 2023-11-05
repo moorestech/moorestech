@@ -15,25 +15,24 @@ namespace MainGame.Network.Event
             await UniTask.SwitchToMainThread();
             OnDestroyMapObject?.Invoke(properties);
         }
-        
-        
+
+
         internal async UniTask InvokeReceiveMapObjectInformation(List<MapObjectProperties> properties)
         {
             await UniTask.SwitchToMainThread();
             OnReceiveMapObjectInformation?.Invoke(properties);
         }
-            
     }
 
     public class MapObjectProperties
     {
-        public int InstanceId { get; }
-        public bool IsDestroyed { get; }
         public MapObjectProperties(int instanceId, bool isDestroyed)
         {
             InstanceId = instanceId;
             IsDestroyed = isDestroyed;
         }
 
+        public int InstanceId { get; }
+        public bool IsDestroyed { get; }
     }
 }

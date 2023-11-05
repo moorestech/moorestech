@@ -7,30 +7,37 @@ using System.Threading;
 namespace MessagePack
 {
     /// <summary>
-    /// Special behavior for running on the mono runtime.
+    ///     Special behavior for running on the mono runtime.
     /// </summary>
     internal struct MonoProtection
     {
         /// <summary>
-        /// Gets a value indicating whether the mono runtime is executing this code.
+        ///     Gets a value indicating whether the mono runtime is executing this code.
         /// </summary>
         internal static bool IsRunningOnMono => Type.GetType("Mono.Runtime") != null;
 
         /// <summary>
-        /// A lock that we enter on mono when generating dynamic types.
+        ///     A lock that we enter on mono when generating dynamic types.
         /// </summary>
-        private static readonly object RefEmitLock = new object();
+        private static readonly object RefEmitLock = new();
 
         /// <summary>
-        /// The method to call within the expression of a <c>using</c> statement whose block surrounds all Ref.Emit code.
+        ///     The method to call within the expression of a <c>using</c> statement whose block surrounds all Ref.Emit code.
         /// </summary>
         /// <returns>The value to be disposed of to exit the Ref.Emit lock.</returns>
         /// <remarks>
-        /// This is a no-op except when running on Mono.
-        /// <see href="https://github.com/mono/mono/issues/20369#issuecomment-690316456">Mono's implementation of Ref.Emit is not thread-safe</see> so we have to lock around all use of it
-        /// when using that runtime.
+        ///     This is a no-op except when running on Mono.
+        ///     <see href="https://github.com/mono/mono/issues/20369#issuecomment-690316456">
+        ///         Mono's implementation of Ref.Emit is
+        ///         not thread-safe
+        ///     </see>
+        ///     so we have to lock around all use of it
+        ///     when using that runtime.
         /// </remarks>
-        internal static MonoProtectionDisposal EnterRefEmitLock() => IsRunningOnMono ? new MonoProtectionDisposal(RefEmitLock) : default;
+        internal static MonoProtectionDisposal EnterRefEmitLock()
+        {
+            return IsRunningOnMono ? new MonoProtectionDisposal(RefEmitLock) : default;
+        }
     }
 
     internal struct MonoProtectionDisposal : IDisposable
@@ -45,10 +52,7 @@ namespace MessagePack
 
         public void Dispose()
         {
-            if (this.lockObject is object)
-            {
-                Monitor.Exit(this.lockObject);
-            }
+            if (lockObject is object) Monitor.Exit(lockObject);
         }
     }
 }

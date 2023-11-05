@@ -6,14 +6,14 @@ using VContainer;
 namespace MainGame.Presenter.Inventory.Receive
 {
     /// <summary>
-    /// プレイヤーインベントリのGrabbedItem（インベントリでスロットをクリックしたときにマウスカーソルについてくる画像）の画像や数字の更新を行います
+    ///     プレイヤーインベントリのGrabbedItem（インベントリでスロットをクリックしたときにマウスカーソルについてくる画像）の画像や数字の更新を行います
     /// </summary>
     public class GrabbedItemImagePresenter : MonoBehaviour
     {
         private PlayerInventoryViewModelController _playerInventoryViewModel;
 
         [Inject]
-        public void Construct(ReceiveGrabInventoryEvent receiveGrabInventoryEvent,PlayerInventoryViewModelController playerInventoryViewModel)
+        public void Construct(ReceiveGrabInventoryEvent receiveGrabInventoryEvent, PlayerInventoryViewModelController playerInventoryViewModel)
         {
             receiveGrabInventoryEvent.OnGrabInventoryUpdateEvent += UpdateGrabbedItemImage;
             _playerInventoryViewModel = playerInventoryViewModel;
@@ -23,7 +23,7 @@ namespace MainGame.Presenter.Inventory.Receive
         {
             var id = properties.ItemStack.ID;
             var count = properties.ItemStack.Count;
-            _playerInventoryViewModel.SetGrabInventoryItem(id,count);
+            _playerInventoryViewModel.SetGrabInventoryItem(id, count);
         }
     }
 }

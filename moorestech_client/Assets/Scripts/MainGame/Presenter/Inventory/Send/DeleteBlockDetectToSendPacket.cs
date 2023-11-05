@@ -21,12 +21,12 @@ namespace MainGame.Presenter.Inventory.Send
 
         public void Tick()
         {
-            if (_uiStateControl.CurrentState == UIStateEnum.DeleteBar && 
+            if (_uiStateControl.CurrentState == UIStateEnum.DeleteBar &&
                 _blockClickDetect.TryGetClickBlockPosition(out var position))
             {
-                _sendBlockRemoveProtocol.Send(position.x,position.y);
+                _sendBlockRemoveProtocol.Send(position.x, position.y);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.DestroyBlock);
-            }   
+            }
         }
     }
 }

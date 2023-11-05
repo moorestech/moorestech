@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 
@@ -17,8 +16,7 @@ namespace MainGame.Network.Event
             await UniTask.SwitchToMainThread();
             OnMainInventoryUpdateEvent?.Invoke(properties);
         }
-        
-        
+
 
         internal async UniTask InvokeMainInventorySlotUpdate(MainInventorySlotUpdateProperties properties)
         {
@@ -26,13 +24,12 @@ namespace MainGame.Network.Event
             OnMainInventorySlotUpdateEvent?.Invoke(properties);
         }
     }
-    
-    
+
 
     public class MainInventoryUpdateProperties
     {
-        public readonly int PlayerId;
         public readonly List<ItemStack> ItemStacks;
+        public readonly int PlayerId;
 
         public MainInventoryUpdateProperties(int playerId, List<ItemStack> itemStacks)
         {
@@ -43,8 +40,8 @@ namespace MainGame.Network.Event
 
     public class MainInventorySlotUpdateProperties
     {
-        public readonly int SlotId;
         public readonly ItemStack ItemStack;
+        public readonly int SlotId;
 
         public MainInventorySlotUpdateProperties(int slotId, ItemStack itemStack)
         {

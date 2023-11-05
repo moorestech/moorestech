@@ -1,21 +1,21 @@
 using System;
-using System.Management.Instrumentation;
 using UnityEngine.InputSystem;
 
 namespace MainGame.UnityView.Control
 {
     public static class InputManager
     {
-        public static PayerInputManager Player => player ??= new PayerInputManager(Instance);
         private static PayerInputManager player;
-            
-        public static PlayableInputManager Playable => playable ??= new PlayableInputManager(Instance);
         private static PlayableInputManager playable;
+        private static UIInputManager ui;
+        private static MoorestechInputSettings _instance;
+        public static PayerInputManager Player => player ??= new PayerInputManager(Instance);
+
+        public static PlayableInputManager Playable => playable ??= new PlayableInputManager(Instance);
 
         public static UIInputManager UI => ui ??= new UIInputManager(Instance);
-        private static UIInputManager ui;
-        
-        
+
+
         private static MoorestechInputSettings Instance
         {
             get
@@ -25,18 +25,17 @@ namespace MainGame.UnityView.Control
                     _instance = new MoorestechInputSettings();
                     _instance.Enable();
                 }
-                
+
                 return _instance;
             }
         }
-        private static MoorestechInputSettings _instance;
     }
 
     public class PayerInputManager
     {
-        public readonly InputKey Move;
-        public readonly InputKey Look;
         public readonly InputKey Jump;
+        public readonly InputKey Look;
+        public readonly InputKey Move;
         public readonly InputKey Sprint;
 
         public PayerInputManager(MoorestechInputSettings settings)
@@ -50,10 +49,10 @@ namespace MainGame.UnityView.Control
 
     public class PlayableInputManager
     {
+        public readonly InputKey BlockPlaceRotation;
+        public readonly InputKey ClickPosition;
         public readonly InputKey ScreenLeftClick;
         public readonly InputKey ScreenRightClick;
-        public readonly InputKey ClickPosition;
-        public readonly InputKey BlockPlaceRotation;
 
         public PlayableInputManager(MoorestechInputSettings settings)
         {
@@ -66,18 +65,18 @@ namespace MainGame.UnityView.Control
 
     public class UIInputManager
     {
-        public readonly InputKey OpenMenu;
-        public readonly InputKey CloseUI;
-        public readonly InputKey OpenInventory;
-        public readonly InputKey InventoryItemOnePut;
-        public readonly InputKey InventoryItemHalve;
-        public readonly InputKey HotBar;
-        public readonly InputKey SwitchHotBar;
-        public readonly InputKey BlockDelete;
         public readonly InputKey AllCraft;
-        public readonly InputKey OneStackCraft;
-        public readonly InputKey QuestUI;
+        public readonly InputKey BlockDelete;
+        public readonly InputKey CloseUI;
+        public readonly InputKey HotBar;
+        public readonly InputKey InventoryItemHalve;
+        public readonly InputKey InventoryItemOnePut;
         public readonly InputKey ItemDirectMove;
+        public readonly InputKey OneStackCraft;
+        public readonly InputKey OpenInventory;
+        public readonly InputKey OpenMenu;
+        public readonly InputKey QuestUI;
+        public readonly InputKey SwitchHotBar;
 
         public UIInputManager(MoorestechInputSettings settings)
         {
@@ -94,28 +93,32 @@ namespace MainGame.UnityView.Control
             QuestUI = new InputKey(settings.UI.QuestUI);
             ItemDirectMove = new InputKey(settings.UI.ItemDirectMove);
         }
-    } 
+    }
+
     public class InputKey
     {
         private readonly InputAction _inputAction;
-        
-        public event Action OnGetKeyDown;
-        public event Action OnGetKey;
-        public event Action OnGetKeyUp;
-        
-        public bool GetKeyDown => _inputAction.WasPressedThisFrame();
-        public bool GetKey => _inputAction.IsPressed();
-        public bool GetKeyUp => _inputAction.WasReleasedThisFrame();
-        
-        public TValue ReadValue<TValue>() where TValue : struct => _inputAction.ReadValue<TValue>();
-        
-        
+
+
         public InputKey(InputAction key)
         {
             _inputAction = key;
             key.started += _ => { OnGetKeyDown?.Invoke(); };
             key.performed += _ => { OnGetKey?.Invoke(); };
             key.canceled += _ => { OnGetKeyUp?.Invoke(); };
+        }
+
+        public bool GetKeyDown => _inputAction.WasPressedThisFrame();
+        public bool GetKey => _inputAction.IsPressed();
+        public bool GetKeyUp => _inputAction.WasReleasedThisFrame();
+
+        public event Action OnGetKeyDown;
+        public event Action OnGetKey;
+        public event Action OnGetKeyUp;
+
+        public TValue ReadValue<TValue>() where TValue : struct
+        {
+            return _inputAction.ReadValue<TValue>();
         }
     }
 }

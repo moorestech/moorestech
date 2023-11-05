@@ -15,8 +15,7 @@ namespace MainGame.Network.Event
             await UniTask.SwitchToMainThread();
             OnCraftingInventorySlotUpdate?.Invoke(properties);
         }
-        
-        
+
 
         internal async UniTask InvokeCraftingInventoryUpdate(CraftingInventoryUpdateProperties properties)
         {
@@ -24,14 +23,14 @@ namespace MainGame.Network.Event
             OnCraftingInventoryUpdate?.Invoke(properties);
         }
     }
-    
-    
+
+
     public class CraftingInventoryUpdateProperties
     {
-        public readonly int PlayerId;
-        public readonly List<ItemStack> ItemStacks;
-        public readonly ItemStack ResultItemStack;
         public readonly bool CanCraft;
+        public readonly List<ItemStack> ItemStacks;
+        public readonly int PlayerId;
+        public readonly ItemStack ResultItemStack;
 
         public CraftingInventoryUpdateProperties(int playerId, bool canCraft, List<ItemStack> itemStacks, ItemStack resultItemStack)
         {
@@ -44,12 +43,12 @@ namespace MainGame.Network.Event
 
     public class CraftingInventorySlotUpdateProperties
     {
-        public readonly int SlotId;
+        public readonly bool CanCraft;
         public readonly ItemStack ItemStack;
         public readonly ItemStack ResultItemStack;
-        public readonly bool CanCraft;
+        public readonly int SlotId;
 
-        public CraftingInventorySlotUpdateProperties(int slotId, ItemStack itemStack,ItemStack resultItemStack,bool canCraft)
+        public CraftingInventorySlotUpdateProperties(int slotId, ItemStack itemStack, ItemStack resultItemStack, bool canCraft)
         {
             SlotId = slotId;
             ItemStack = itemStack;

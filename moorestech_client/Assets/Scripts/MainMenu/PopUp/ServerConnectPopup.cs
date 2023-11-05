@@ -1,5 +1,4 @@
-﻿using System;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,11 +11,11 @@ namespace MainMenu.PopUp
 
         private void Start()
         {
-            closeButton.onClick.AddListener(() => 
+            closeButton.onClick.AddListener(() =>
                 gameObject.SetActive(false)
-                );
+            );
         }
-        
+
         public void SetText(string text)
         {
             gameObject.SetActive(true);

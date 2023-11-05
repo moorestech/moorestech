@@ -11,24 +11,24 @@ namespace MessagePack
 #else
     public
 #endif
-    struct ExtensionResult
+        struct ExtensionResult
     {
         public ExtensionResult(sbyte typeCode, Memory<byte> data)
         {
-            this.TypeCode = typeCode;
-            this.Data = new ReadOnlySequence<byte>(data);
+            TypeCode = typeCode;
+            Data = new ReadOnlySequence<byte>(data);
         }
 
         public ExtensionResult(sbyte typeCode, ReadOnlySequence<byte> data)
         {
-            this.TypeCode = typeCode;
-            this.Data = data;
+            TypeCode = typeCode;
+            Data = data;
         }
 
-        public sbyte TypeCode { get; private set; }
+        public sbyte TypeCode { get; }
 
-        public ReadOnlySequence<byte> Data { get; private set; }
+        public ReadOnlySequence<byte> Data { get; }
 
-        public ExtensionHeader Header => new ExtensionHeader(this.TypeCode, (uint)this.Data.Length);
+        public ExtensionHeader Header => new(TypeCode, (uint)Data.Length);
     }
 }
