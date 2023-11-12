@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Game.Block;
+using Game.Block.Interface.BlockConfig;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Block.StateChange;
@@ -18,12 +19,14 @@ namespace MainGame.UnityView.Block
     public class BlockGameObjectFactory
     {
         private readonly BlockGameObject _nothingIndexBlockObject;
+        private readonly IBlockConfig _blockConfig;
         private List<BlockData> _blockObjectList;
 
         public BlockGameObjectFactory(ModDirectory modDirectory, BlockGameObject nothingIndexBlockObject, SinglePlayInterface singlePlayInterface)
         {
             Init(modDirectory, singlePlayInterface).Forget();
             _nothingIndexBlockObject = nothingIndexBlockObject;
+            _blockConfig = singlePlayInterface.BlockConfig;
         }
 
         public event Action OnLoadFinished;
@@ -37,17 +40,18 @@ namespace MainGame.UnityView.Block
             OnLoadFinished?.Invoke();
         }
 
-        public BlockGameObject CreateBlock(int blockId, Vector3 position, Quaternion rotation, Transform parent, Vector2Int blockPosition)
+        public BlockGameObject CreateBlock(int blockId, Vector3 position, Quaternion rotation,Vector3 scale ,Transform parent, Vector2Int blockPosition)
         {
             //ブロックIDは1から始まるので、オブジェクトのリストインデックスマイナス１する
             var blockConfigIndex = blockId - 1;
+            var blockConfig = _blockConfig.GetBlockConfig(blockId);
 
             if (blockConfigIndex < 0 || _blockObjectList.Count <= blockConfigIndex)
             {
                 //ブロックIDがないのでない時用のブロックを作る
                 Debug.LogWarning("Not Id " + blockConfigIndex);
                 var nothing = Object.Instantiate(_nothingIndexBlockObject, position, rotation, parent);
-                nothing.Initialize(blockId, blockPosition, new NullBlockStateChangeProcessor());
+                nothing.Initialize(blockConfig, blockPosition, new NullBlockStateChangeProcessor());
                 return nothing.GetComponent<BlockGameObject>();
             }
 
@@ -56,8 +60,10 @@ namespace MainGame.UnityView.Block
             var blockType = _blockObjectList[blockConfigIndex].Type;
 
             var block = Object.Instantiate(_blockObjectList[blockConfigIndex].BlockObject, position, rotation, parent);
+            block.transform.localScale = scale;
+            
             block.gameObject.SetActive(true);
-            block.Initialize(blockId, blockPosition, GetBlockStateChangeProcessor(block, blockType));
+            block.Initialize(blockConfig, blockPosition, GetBlockStateChangeProcessor(block, blockType));
 
             //ブロックが開けるものの場合はそのコンポーネントを付与する
             if (IsOpenableInventory(blockType)) block.gameObject.AddComponent<OpenableInventoryBlock>();
