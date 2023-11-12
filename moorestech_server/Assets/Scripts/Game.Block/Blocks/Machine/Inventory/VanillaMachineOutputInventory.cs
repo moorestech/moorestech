@@ -8,10 +8,11 @@ using Game.Block.Blocks.Service;
 using Game.Block.Event;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
+using UniRx;
 
 namespace Game.Block.Blocks.Machine.Inventory
 {
-    public class VanillaMachineOutputInventory : IUpdatable
+    public class VanillaMachineOutputInventory
     {
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly List<IBlockInventory> _connectInventory = new();
@@ -30,13 +31,13 @@ namespace Game.Block.Blocks.Machine.Inventory
             _itemDataStoreService =
                 new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlot);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
-            GameUpdater.RegisterUpdater(this);
+            GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
 
         public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;
 
-        public void Update()
+        private void Update()
         {
             InsertConnectInventory();
         }
