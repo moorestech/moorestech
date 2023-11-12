@@ -2,7 +2,7 @@
     "name": "Core.Update",
     "rootNamespace": "",
     "references": [
-        ""
+        "UniRx"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

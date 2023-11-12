@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using Core.Update;
+using UniRx;
 
 namespace Core.EnergySystem
 {
     /// <summary>
     ///     そのエネルギーの供給、配分を行うシステム
     /// </summary>
-    public class EnergySegment : IUpdatable
+    public class EnergySegment
     {
         private readonly Dictionary<int, IEnergyConsumer> _consumers = new();
         private readonly Dictionary<int, IEnergyTransformer> _energyTransformers = new();
@@ -14,7 +15,7 @@ namespace Core.EnergySystem
 
         public EnergySegment()
         {
-            GameUpdater.RegisterUpdater(this);
+            GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
         public IReadOnlyDictionary<int, IEnergyConsumer> Consumers => _consumers;
@@ -23,7 +24,7 @@ namespace Core.EnergySystem
 
         public IReadOnlyDictionary<int, IEnergyTransformer> EnergyTransformers => _energyTransformers;
 
-        public void Update()
+        private void Update()
         {
             //供給されてる合計エネルギー量の算出
             var powers = 0;
