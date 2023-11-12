@@ -10,10 +10,11 @@ using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
+using UniRx;
 
 namespace Game.Block.Blocks.Chest
 {
-    public class VanillaChest : IBlock, IBlockInventory, IOpenableInventory, IUpdatable
+    public class VanillaChest : IBlock, IBlockInventory, IOpenableInventory
     {
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
 
@@ -31,7 +32,7 @@ namespace Game.Block.Blocks.Chest
 
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, slotNum);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
-            GameUpdater.RegisterUpdater(this);
+            GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
         public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum,
@@ -130,7 +131,7 @@ namespace Game.Block.Blocks.Chest
         }
 
 
-        public void Update()
+        private void Update()
         {
             for (var i = 0; i < _itemDataStoreService.Inventory.Count; i++)
                 _itemDataStoreService.SetItem(i,
