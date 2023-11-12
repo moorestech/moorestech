@@ -1,16 +1,9 @@
 ﻿using System;
+using Game.World.Interface.DataStore;
 using UnityEngine;
 
 namespace MainGame.Basic
 {
-    public enum BlockDirection
-    {
-        North,
-        East,
-        South,
-        West
-    }
-
     public static class BlockDirectionAngle
     {
         public static Quaternion GetRotation(BlockDirection direction)

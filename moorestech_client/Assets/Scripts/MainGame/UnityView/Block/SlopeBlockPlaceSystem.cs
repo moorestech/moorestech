@@ -1,5 +1,6 @@
 using System;
 using Game.World.Interface.DataStore;
+using MainGame.Basic;
 using UnityEngine;
 
 namespace MainGame.UnityView.Block
@@ -57,15 +58,9 @@ namespace MainGame.UnityView.Block
 
         private static Quaternion GetRotation(BlockDirection blockDirection, float blockAngle,bool isFrontUp)
         {
-            blockAngle = isFrontUp ? blockAngle : -blockAngle;
-            return blockDirection switch
-            {
-                BlockDirection.North => Quaternion.Euler(-blockAngle, 0,0 ),
-                BlockDirection.East => Quaternion.Euler(-blockAngle, 90, 0),
-                BlockDirection.South => Quaternion.Euler(-blockAngle, 180, 0),
-                BlockDirection.West => Quaternion.Euler(-blockAngle, 270, 0),
-                _ => throw new ArgumentOutOfRangeException(nameof(blockDirection), blockDirection, null)
-            };
+            blockAngle = isFrontUp ? -blockAngle : blockAngle;
+            var defaultAngle = BlockDirectionAngle.GetRotation(blockDirection).eulerAngles;
+            return Quaternion.Euler(blockAngle, defaultAngle.y, defaultAngle.z);
         }
     }
 }
