@@ -1,18 +1,19 @@
 using Core.Update;
+using UniRx;
 
 namespace Mod.Base
 {
-    public abstract class MoorestechServerModEntryPoint : IUpdatable
+    public abstract class MoorestechServerModEntryPoint
     {
         public MoorestechServerModEntryPoint()
         {
-            GameUpdater.RegisterUpdater(this);
+            GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
         /// <summary>
         ///     ゲームがアップデートされるたびに呼ばれます。
         /// </summary>
-        public void Update()
+        private void Update()
         {
         }
 

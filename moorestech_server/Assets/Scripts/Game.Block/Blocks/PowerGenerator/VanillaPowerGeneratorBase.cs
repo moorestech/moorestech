@@ -13,11 +13,11 @@ using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
+using UniRx;
 
 namespace Game.Block.Blocks.PowerGenerator
 {
-    public abstract class VanillaPowerGeneratorBase : IBlock, IEnergyGenerator, IBlockInventory, IUpdatable,
-        IOpenableInventory
+    public abstract class VanillaPowerGeneratorBase : IBlock, IEnergyGenerator, IBlockInventory, IOpenableInventory
     {
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
 
@@ -42,7 +42,7 @@ namespace Game.Block.Blocks.PowerGenerator
             _blockInventoryUpdate = data.BlockInventoryUpdate as BlockOpenableInventoryUpdateEvent;
             _itemDataStoreService =
                 new OpenableInventoryItemDataStoreService(InvokeEvent, data.ItemStackFactory, data.FuelItemSlot);
-            GameUpdater.RegisterUpdater(this);
+            GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
         protected VanillaPowerGeneratorBase(VanillaPowerGeneratorProperties data, string state) : this(data)
@@ -147,7 +147,7 @@ namespace Game.Block.Blocks.PowerGenerator
         }
 
 
-        public void Update()
+        private void Update()
         {
             //現在燃料を消費しているか判定
             //燃料が在る場合は燃料残り時間をUpdate時間分減らす

@@ -5,10 +5,11 @@ using Game.Block.Blocks.Util;
 using Game.Block.Interface.RecipeConfig;
 using Game.Block.Interface.State;
 using Newtonsoft.Json;
+using UniRx;
 
 namespace Game.Block.Blocks.Machine
 {
-    public class VanillaMachineRunProcess : IUpdatable
+    public class VanillaMachineRunProcess
     {
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
@@ -28,7 +29,7 @@ namespace Game.Block.Blocks.Machine
             _processingRecipeData = machineRecipeData;
             RequestPower = requestPower;
 
-            GameUpdater.RegisterUpdater(this);
+            GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
         public VanillaMachineRunProcess(
@@ -45,7 +46,7 @@ namespace Game.Block.Blocks.Machine
             RemainingMillSecond = remainingMillSecond;
             CurrentState = currentState;
 
-            GameUpdater.RegisterUpdater(this);
+            GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
         public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
@@ -54,7 +55,7 @@ namespace Game.Block.Blocks.Machine
 
         public int RecipeDataId => _processingRecipeData.RecipeId;
 
-        public void Update()
+        private void Update()
         {
             switch (CurrentState)
             {

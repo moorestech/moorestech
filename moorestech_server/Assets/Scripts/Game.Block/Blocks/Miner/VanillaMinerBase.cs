@@ -14,10 +14,11 @@ using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using Newtonsoft.Json;
+using UniRx;
 
 namespace Game.Block.Blocks.Miner
 {
-    public abstract class VanillaMinerBase : IBlock, IEnergyConsumer, IBlockInventory, IUpdatable, IMiner,
+    public abstract class VanillaMinerBase : IBlock, IEnergyConsumer, IBlockInventory, IMiner,
         IOpenableInventory
     {
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
@@ -50,7 +51,7 @@ namespace Game.Block.Blocks.Miner
                 new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlotCount);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
 
-            GameUpdater.RegisterUpdater(this);
+            GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
         protected VanillaMinerBase(string saveData, int blockId, int entityId, long blockHash, int requestPower,
@@ -131,7 +132,7 @@ namespace Game.Block.Blocks.Miner
             _remainingMillSecond = _defaultMiningTime;
         }
 
-        public void Update()
+        private void Update()
         {
             MinerProgressUpdate();
             CheckStateAndInvokeEventUpdate();

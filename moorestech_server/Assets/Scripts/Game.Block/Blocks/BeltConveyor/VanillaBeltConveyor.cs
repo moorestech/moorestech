@@ -6,13 +6,14 @@ using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
+using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
     /// <summary>
     ///     アイテムの搬出入とインベントリの管理を行う
     /// </summary>
-    public class VanillaBeltConveyor : IBlock, IUpdatable, IBlockInventory
+    public class VanillaBeltConveyor : IBlock, IBlockInventory
     {
         private readonly int _inventoryItemNum;
         private readonly List<BeltConveyorInventoryItem> _inventoryItems = new();
@@ -31,7 +32,7 @@ namespace Game.Block.Blocks.BeltConveyor
             TimeOfItemEnterToExit = timeOfItemEnterToExit;
             BlockHash = blockHash;
             _connector = new NullIBlockInventory(_itemStackFactory);
-            GameUpdater.RegisterUpdater(this);
+            GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
         public VanillaBeltConveyor(int blockId, int entityId, long blockHash, string state,
@@ -158,7 +159,7 @@ namespace Game.Block.Blocks.BeltConveyor
         ///     判定はUpdateで毎フレーム行われる
         ///     TODO 個々のマルチスレッド対応もいい感じにやりたい
         /// </summary>
-        public void Update()
+        private void Update()
         {
             lock (_inventoryItems)
             {
