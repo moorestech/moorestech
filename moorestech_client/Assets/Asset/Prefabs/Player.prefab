@@ -373,7 +373,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_CollideAgainst:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 513
   m_IgnoreTag: 
   m_TransparentLayers:
     serializedVersion: 2
@@ -1414,10 +1414,6 @@ PrefabInstance:
     - target: {fileID: 2278698718016225417, guid: 52649e1cc62aae947abd45eb4956a8ca, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2678359194264357046, guid: 52649e1cc62aae947abd45eb4956a8ca, type: 3}
-      propertyPath: GroundLayers.m_Bits
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
