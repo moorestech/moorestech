@@ -67,7 +67,8 @@ namespace Tests.CombinedTest.Core
             mineEndTime = DateTime.Now.AddMilliseconds(miningTime * 2);
             while (mineEndTime.AddSeconds(0.02).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
 
-            miner.Update();
+            typeof(VanillaMinerBase).GetMethod("Update")!.Invoke(miner, Array.Empty<object>());
+
             //鉱石2個が残っているかチェック
             var outputSlot = miner.Items[0];
             Assert.AreEqual(miningItemId, outputSlot.Id);
