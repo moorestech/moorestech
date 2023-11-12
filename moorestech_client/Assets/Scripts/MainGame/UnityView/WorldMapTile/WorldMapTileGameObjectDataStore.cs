@@ -24,7 +24,7 @@ namespace MainGame.UnityView.WorldMapTile
 
             var tile = Instantiate(
                 worldMapTileObject.MapTileObject,
-                new Vector3(tilePosition.x, 0, tilePosition.y).AddOffset(),
+                new Vector3(tilePosition.x, 0, tilePosition.y).AddBlockPlaceOffset(),
                 Quaternion.Euler(0, 0, 0), transform).GetComponent<MapTileObject>();
             tile.SetMaterial(tileId, _worldMapTileMaterials.GetMaterial(tileId));
 

@@ -7,7 +7,7 @@ namespace MainGame.Basic
     /// </summary>
     public static class WorldObjectOffsetConverter
     {
-        public static Vector3 AddOffset(this Vector3 vector3)
+        public static Vector3 AddBlockPlaceOffset(this Vector3 vector3)
         {
             return vector3 + new Vector3(0.5f, 0, 0.5f);
         }

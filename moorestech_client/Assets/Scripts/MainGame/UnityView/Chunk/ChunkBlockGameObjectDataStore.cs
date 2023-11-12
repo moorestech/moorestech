@@ -51,7 +51,7 @@ namespace MainGame.UnityView.Chunk
 
             //新しいブロックを設置
             //実際のブロックのモデルは+0.5した値が中心になる
-            var pos = new Vector3(blockPosition.x, 0, blockPosition.y).AddOffset();
+            var pos = new Vector3(blockPosition.x, 0, blockPosition.y).AddBlockPlaceOffset();
             var rot = BlockDirectionAngle.GetRotation(blockDirection);
             var block = _blockGameObjectFactory.CreateBlock(blockId, pos, rot, transform, blockPosition);
 
