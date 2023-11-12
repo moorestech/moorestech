@@ -46,7 +46,7 @@ namespace Game.Block.Blocks.Machine
             RemainingMillSecond = remainingMillSecond;
             CurrentState = currentState;
 
-            GameUpdater.RegisterUpdater(this);
+            GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
         public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
