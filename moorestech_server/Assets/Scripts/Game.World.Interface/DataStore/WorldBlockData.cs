@@ -17,7 +17,7 @@ namespace Game.World.Interface.DataStore
             Height = config.BlockSize.y;
             Width = config.BlockSize.x;
             
-            var maxPos = CalcMaxPos(new Vector2Int(originX, originY), blockDirection, config.BlockSize);
+            var maxPos = CalcBlockGridMaxPos(new Vector2Int(originX, originY), blockDirection, config.BlockSize);
             MaxX = maxPos.x;
             MaxY = maxPos.y;
         }
@@ -41,7 +41,12 @@ namespace Game.World.Interface.DataStore
         }
 
 
-        public static Vector2Int CalcMaxPos(Vector2Int originPos,BlockDirection direction,Vector2Int blockSize)
+        /// <summary>
+        /// サーバー側管理のブロックの最大座標を計算する
+        /// これはどのグリッドにブロックが存在しているかということに使われるため、サイズ 1,1 の場合、originとmaxの値はおなじになる
+        /// TODO これは命名も含めて修正したほうが良いかもしれない
+        /// </summary>
+        public static Vector2Int CalcBlockGridMaxPos(Vector2Int originPos,BlockDirection direction,Vector2Int blockSize)
         {
             var maxX = (direction is BlockDirection.North or BlockDirection.South
                 ? originPos.x + blockSize.x

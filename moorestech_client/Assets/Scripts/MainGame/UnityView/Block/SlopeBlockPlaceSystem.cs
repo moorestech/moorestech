@@ -35,9 +35,10 @@ namespace MainGame.UnityView.Block
             return (resultBlockPos, blockRotation, blockScale);
         }
 
-        public static Vector3 GetGroundPoint(Vector2 pos)
+        public static Vector3 GetGroundPoint(Vector2 pos,Color debugRayColor = default)
         {
             var checkRay = new Ray(new Vector3(pos.x,1000,pos.y), Vector3.down);
+            Debug.DrawRay(checkRay.origin, checkRay.direction * 1000, debugRayColor, 3);
             
             if (!Physics.Raycast(checkRay, out var checkHit, 1500, GroundLayerMask))
             {
@@ -46,15 +47,16 @@ namespace MainGame.UnityView.Block
             return checkHit.point;
         }
 
-        private static float GetBlockFourCornerMaxHeight(Vector2Int blockPos,BlockDirection blockDirection,Vector2Int blockSize)
+        public static float GetBlockFourCornerMaxHeight(Vector2Int blockPos,BlockDirection blockDirection,Vector2Int blockSize)
         {
-            var maxPos = WorldBlockData.CalcMaxPos(blockPos, blockDirection, blockSize);
+            var (minPos,maxPos) = blockPos.GetWorldBlockBoundingBox(blockDirection, blockSize);
+            Debug.Log(maxPos);
             var heights = new List<float>
             {
-                GetGroundPoint(new Vector2(blockPos.x, blockPos.y)).y,
-                GetGroundPoint(new Vector2(blockPos.x, maxPos.y)).y,
-                GetGroundPoint(new Vector2(maxPos.x, blockPos.y)).y,
-                GetGroundPoint(new Vector2(maxPos.x, maxPos.y)).y
+                GetGroundPoint(new Vector2(minPos.x, minPos.y),Color.red).y,
+                GetGroundPoint(new Vector2(minPos.x, maxPos.y),Color.magenta).y,
+                GetGroundPoint(new Vector2(maxPos.x, minPos.y),Color.cyan).y,
+                GetGroundPoint(new Vector2(maxPos.x, maxPos.y),Color.blue).y
             };
 
             return Mathf.Max(heights.ToArray());

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Game.World.Interface.DataStore;
+using UnityEngine;
 
 namespace MainGame.Basic
 {
@@ -18,6 +19,15 @@ namespace MainGame.Basic
         public static Vector2 AddBlockPlaceOffset(this Vector2Int vector2)
         {
             return vector2 + new Vector2(0.5f, 0.5f);
+        }
+
+        public static (Vector2 minPos, Vector2 maxPos) GetWorldBlockBoundingBox(this Vector2Int blockPos,BlockDirection blockDirection,Vector2Int blockSize)
+        {
+            var maxPos = WorldBlockData.CalcBlockGridMaxPos(blockPos, blockDirection, blockSize);
+            //これはグリッド上のどこか最大値化を表しているので、実際のバウンディングボックスにするために +1 する
+            maxPos += Vector2Int.one;
+            
+            return (blockPos,maxPos);
         }
     }
 }
