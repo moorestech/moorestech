@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using Game.Block.Config;
+using Game.Block.Interface.BlockConfig;
+using Game.World.Interface.DataStore;
 using MainGame.Basic;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Block;
+using SinglePlay;
 using UnityEngine;
 using VContainer;
 
@@ -12,15 +16,17 @@ namespace MainGame.UnityView.Chunk
     {
         private readonly Dictionary<Vector2Int, BlockGameObject> _blockObjectsDictionary = new();
         private BlockGameObjectFactory _blockGameObjectFactory;
+        private IBlockConfig _blockConfig;
 
         public IReadOnlyDictionary<Vector2Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
 
         public event Action<BlockGameObject> OnPlaceBlock;
 
         [Inject]
-        public void Construct(BlockGameObjectFactory blockGameObjectFactory)
+        public void Construct(BlockGameObjectFactory blockGameObjectFactory,SinglePlayInterface singlePlayInterface)
         {
             _blockGameObjectFactory = blockGameObjectFactory;
+            _blockConfig = singlePlayInterface.BlockConfig;
         }
 
 
@@ -50,10 +56,17 @@ namespace MainGame.UnityView.Chunk
 
 
             //新しいブロックを設置
-            //実際のブロックのモデルは+0.5した値が中心になる
-            var pos = new Vector3(blockPosition.x, 0, blockPosition.y).AddOffset();
-            var rot = BlockDirectionAngle.GetRotation(blockDirection);
-            var block = _blockGameObjectFactory.CreateBlock(blockId, pos, rot, transform, blockPosition);
+            var blockConfig = _blockConfig.GetBlockConfig(blockId);
+            var (pos,rot,scale) = SlopeBlockPlaceSystem.GetSlopeBeltConveyorTransform(blockPosition, blockDirection,blockConfig.BlockSize);
+
+            var blockType = blockConfig.Type;
+            if (!BlockSlopeDeformationType.IsDeformation(blockType))
+            {
+                rot = BlockDirectionAngle.GetRotation(blockDirection);
+                scale = Vector3.one;
+            }
+            
+            var block = _blockGameObjectFactory.CreateBlock(blockId, pos, rot,scale, transform, blockPosition);
 
             _blockObjectsDictionary.Add(blockPosition, block);
             OnPlaceBlock?.Invoke(block);

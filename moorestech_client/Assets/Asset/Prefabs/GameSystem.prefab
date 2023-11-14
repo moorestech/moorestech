@@ -4643,7 +4643,7 @@ Transform:
   - {fileID: 6507186845973413263}
   - {fileID: 8619491189927761611}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6110538852407209855
 MonoBehaviour:
@@ -5464,10 +5464,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8466354111555762101}
     m_Modifications:
-    - target: {fileID: 1552544441699423015, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
-      propertyPath: GroundLayers.m_Bits
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 3504028723181249556, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_RootOrder
       value: 5

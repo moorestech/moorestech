@@ -1,4 +1,7 @@
-﻿using StarterAssets;
+﻿using Game.World.Interface.DataStore;
+using MainGame.Basic;
+using MainGame.UnityView.Block;
+using StarterAssets;
 using UnityEngine;
 
 namespace MainGame.UnityView.Game
@@ -17,11 +20,11 @@ namespace MainGame.UnityView.Game
         ///     注意：アップデートのタイミングによってはThirdPersonController.csによる戻しが発生する可能性がある
         ///     セットしても位置が変わらなかった時はThirdPersonController.csをオフにして位置がセットできているか試してください
         /// </summary>
-        /// <param name="vector2"></param>
-        public void SetPlayerPosition(Vector2 vector2)
+        /// <param name="playerPos"></param>
+        public void SetPlayerPosition(Vector2 playerPos)
         {
-            //サーバー側は2次元なのでx,yだ、unityはy upなのでzにyを入れる
-            controller.Warp(new Vector3(vector2.x, transform.position.y, vector2.y));
+            var height = SlopeBlockPlaceSystem.GetGroundPoint(playerPos).y;
+            controller.Warp(new Vector3(playerPos.x, height, playerPos.y));
         }
 
         public void SetActive(bool active)
