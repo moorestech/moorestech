@@ -11,5 +11,13 @@ namespace MainGame.Basic
         {
             return vector3 + new Vector3(0.5f, 0, 0.5f);
         }
+        public static Vector2 AddBlockPlaceOffset(this Vector2 vector2)
+        {
+            return vector2 + new Vector2(0.5f, 0.5f);
+        }
+        public static Vector2 AddBlockPlaceOffset(this Vector2Int vector2)
+        {
+            return vector2 + new Vector2(0.5f, 0.5f);
+        }
     }
 }

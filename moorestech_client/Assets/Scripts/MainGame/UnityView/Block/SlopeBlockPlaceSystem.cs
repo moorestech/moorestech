@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.World.Interface.DataStore;
 using MainGame.Basic;
 using UnityEngine;
@@ -10,48 +11,64 @@ namespace MainGame.UnityView.Block
         
         public static readonly int GroundLayerMask = LayerMask.GetMask("Ground");
         
-        public static (Vector3 position, Quaternion rotation, Vector3 scale) GetSlopeBeltConveyorTransform(Vector3 position,BlockDirection blockDirection)
+        public static (Vector3 position, Quaternion rotation, Vector3 scale) GetSlopeBeltConveyorTransform(Vector2Int blockPosition,BlockDirection blockDirection,Vector2Int blockSize)
         {
-            var checkFrontPoint = GetRayOffset(blockDirection) + position;
-            var checkBackPoint = -GetRayOffset(blockDirection) + position;
-            
-            
-            var checkFrontRay = new Ray(new Vector3(checkFrontPoint.x,1000,checkFrontPoint.z), Vector3.down);
-            var checkBackRay = new Ray(new Vector3(checkBackPoint.x,1000,checkBackPoint.z), Vector3.down);
-            
-            if (!Physics.Raycast(checkFrontRay, out var checkFrontHit, 1500, GroundLayerMask) ||
-                !Physics.Raycast(checkBackRay, out var checkBackHit, 1500, GroundLayerMask))
-            {
-                throw new Exception("地面が見つかりませんでした");
-            }
-            
-            var frontPoint = checkFrontHit.point;
-            var backPoint = checkBackHit.point;
+            //実際のブロックのモデルは+0.5した値が中心になる
+            var blockObjectPos = blockPosition.AddBlockPlaceOffset();
+
+            var frontPoint = GetGroundPoint(GetBlockFrontRayOffset(blockDirection) + blockObjectPos);
+            var backPoint = GetGroundPoint(-GetBlockFrontRayOffset(blockDirection) + blockObjectPos);
             
             //斜辺の長さを求める
             var hypotenuse = Vector3.Distance(frontPoint, backPoint);
             //高さを求める
             var height = Mathf.Abs(frontPoint.y - backPoint.y);
-            var blockY = (frontPoint.y + backPoint.y) / 2;
+            var blockY = GetBlockFourCornerMaxHeight(blockPosition, blockDirection, blockSize);
             //角度を求める
             var blockAngle = Mathf.Asin(height / hypotenuse) * Mathf.Rad2Deg;
             
             
-            var blockPosition = new Vector3(position.x,blockY + 0.3f,position.z);
+            var resultBlockPos = new Vector3(blockObjectPos.x,blockY + 0.3f,blockObjectPos.y);
             var blockRotation = GetRotation(blockDirection, blockAngle,frontPoint.y > backPoint.y);
             var blockScale = new Vector3(1, 1, hypotenuse);
             
-            return (blockPosition, blockRotation, blockScale);
+            return (resultBlockPos, blockRotation, blockScale);
         }
 
-        private static Vector3 GetRayOffset(BlockDirection blockDirection)
+        public static Vector3 GetGroundPoint(Vector2 pos)
+        {
+            var checkRay = new Ray(new Vector3(pos.x,1000,pos.y), Vector3.down);
+            
+            if (!Physics.Raycast(checkRay, out var checkHit, 1500, GroundLayerMask))
+            {
+                throw new Exception("地面が見つかりませんでした");
+            }
+            return checkHit.point;
+        }
+
+        private static float GetBlockFourCornerMaxHeight(Vector2Int blockPos,BlockDirection blockDirection,Vector2Int blockSize)
+        {
+            var maxPos = WorldBlockData.CalcMaxPos(blockPos, blockDirection, blockSize);
+            var heights = new List<float>
+            {
+                GetGroundPoint(new Vector2(blockPos.x, blockPos.y)).y,
+                GetGroundPoint(new Vector2(blockPos.x, maxPos.y)).y,
+                GetGroundPoint(new Vector2(maxPos.x, blockPos.y)).y,
+                GetGroundPoint(new Vector2(maxPos.x, maxPos.y)).y
+            };
+
+            return Mathf.Max(heights.ToArray());
+        }
+        
+        
+        private static Vector2 GetBlockFrontRayOffset(BlockDirection blockDirection)
         {
             return blockDirection switch
             {
-                BlockDirection.North => new Vector3(0, 0, 0.5f),
-                BlockDirection.East => new Vector3(0.5f, 0, 0),
-                BlockDirection.South => new Vector3(0, 0, -0.5f),
-                BlockDirection.West => new Vector3(-0.5f, 0, 0),
+                BlockDirection.North => new Vector2(0, 0.5f),
+                BlockDirection.East => new Vector2(0.5f, 0),
+                BlockDirection.South => new Vector2(0, -0.5f),
+                BlockDirection.West => new Vector2(-0.5f, 0),
                 _ => throw new ArgumentOutOfRangeException(nameof(blockDirection), blockDirection, null)
             };
         }

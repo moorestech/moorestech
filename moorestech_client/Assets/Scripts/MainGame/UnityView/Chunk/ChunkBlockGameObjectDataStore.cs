@@ -56,11 +56,10 @@ namespace MainGame.UnityView.Chunk
 
 
             //新しいブロックを設置
-            //実際のブロックのモデルは+0.5した値が中心になる
-            var (pos,rot,scale) = 
-                SlopeBlockPlaceSystem.GetSlopeBeltConveyorTransform(new Vector3(blockPosition.x, 0, blockPosition.y).AddBlockPlaceOffset(), blockDirection);
+            var blockConfig = _blockConfig.GetBlockConfig(blockId);
+            var (pos,rot,scale) = SlopeBlockPlaceSystem.GetSlopeBeltConveyorTransform(blockPosition, blockDirection,blockConfig.BlockSize);
 
-            var blockType = _blockConfig.GetBlockConfig(blockId).Type;
+            var blockType = blockConfig.Type;
             if (!BlockSlopeDeformationType.IsDeformation(blockType))
             {
                 rot = BlockDirectionAngle.GetRotation(blockDirection);
