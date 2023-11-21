@@ -21,6 +21,9 @@ https://github.com/aspnet/DependencyInjection
 CsvHelper
 https://github.com/JoshClose/CsvHelper
 
+AllSkyFree_Godot
+https://github.com/rpgwhitelock/AllSkyFree_Godot
+
 
 ### フォントラインセンスに関する表記
 
