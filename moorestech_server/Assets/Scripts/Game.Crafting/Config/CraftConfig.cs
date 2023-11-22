@@ -20,5 +20,10 @@ namespace Game.Crafting.Config
         {
             return _configDataList;
         }
+
+        public CraftingConfigData GetCraftingConfigData(int index)
+        {
+            return _configDataList[index];
+        }
     }
 }
