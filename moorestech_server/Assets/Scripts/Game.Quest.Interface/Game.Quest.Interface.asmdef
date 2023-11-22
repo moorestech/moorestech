@@ -1,7 +1,17 @@
 {
-  "name": "Game.Quest.Interface",
-  "references": [
-    "GUID:b4ebdac6a645a4d17bdc4a92ea336424",
-    "GUID:d10205307f59843dba7c8a22b322ecd8"
-  ]
+    "name": "Game.Quest.Interface",
+    "rootNamespace": "",
+    "references": [
+        "Core.Util",
+        "Core.Item"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

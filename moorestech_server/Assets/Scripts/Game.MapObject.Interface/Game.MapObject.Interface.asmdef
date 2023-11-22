@@ -1,6 +1,16 @@
 {
-  "name": "Game.MapObject.Interface",
-  "references": [
-    "GUID:0d1775a337cb34cc1b26e6341a565140"
-  ]
+    "name": "Game.MapObject.Interface",
+    "rootNamespace": "",
+    "references": [
+        "Game.Base"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

@@ -1,6 +1,17 @@
 {
-  "name": "Game.Crafting.Interface",
-  "references": [
-    "GUID:d10205307f59843dba7c8a22b322ecd8"
-  ]
+    "name": "Game.Crafting.Interface",
+    "rootNamespace": "",
+    "references": [
+        "Core.Item",
+        "Core.Inventory"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

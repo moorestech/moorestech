@@ -1,6 +1,16 @@
 {
-  "name": "Core.Inventory",
-  "references": [
-    "GUID:d10205307f59843dba7c8a22b322ecd8"
-  ]
+    "name": "Core.Inventory",
+    "rootNamespace": "",
+    "references": [
+        "Core.Item"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

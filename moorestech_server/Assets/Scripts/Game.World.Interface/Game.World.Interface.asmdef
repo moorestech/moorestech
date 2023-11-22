@@ -1,8 +1,18 @@
 {
-  "name": "Game.World.Interface",
-  "references": [
-    "GUID:559e05852f4834e6b836e9c5499e87db",
-    "GUID:b4ebdac6a645a4d17bdc4a92ea336424",
-    "GUID:3f86db3577a904d96af7d79e35e4c83a"
-  ]
+    "name": "Game.World.Interface",
+    "rootNamespace": "",
+    "references": [
+        "Game.Block.Interface",
+        "Core.Util",
+        "Core.EnergySystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

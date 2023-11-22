@@ -1,7 +1,9 @@
 {
     "name": "Core.Block",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        ""
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

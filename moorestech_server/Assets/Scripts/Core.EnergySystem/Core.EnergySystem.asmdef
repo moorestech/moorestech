@@ -2,8 +2,8 @@
     "name": "Core.EnergySystem",
     "rootNamespace": "",
     "references": [
-        "GUID:2e65bd1131a2144bca9461c5f24dc755",
-        "GUID:560b04d1a97f54a4e82edc0cbbb69285"
+        "Core.Update",
+        "UniRx"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

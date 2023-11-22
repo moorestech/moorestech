@@ -1,7 +1,17 @@
 {
-  "name": "Core.Item",
-  "references": [
-    "GUID:83870f06bca35461788c2966a6590389",
-    "GUID:ef51da6ab00ef46f19c50828f3a7b5a0"
-  ]
+    "name": "Core.Item",
+    "rootNamespace": "",
+    "references": [
+        "Core.Const",
+        "Core.ConfigJson"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

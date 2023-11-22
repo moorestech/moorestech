@@ -1,8 +1,18 @@
 {
-  "name": "Game.Block.Interface",
-  "references": [
-    "GUID:d10205307f59843dba7c8a22b322ecd8",
-    "GUID:b4ebdac6a645a4d17bdc4a92ea336424",
-    "GUID:83870f06bca35461788c2966a6590389"
-  ]
+    "name": "Game.Block.Interface",
+    "rootNamespace": "",
+    "references": [
+        "Core.Item",
+        "Core.Util",
+        "Core.Const"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

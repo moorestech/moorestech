@@ -1,3 +1,16 @@
 {
-  "name": "Game.SaveLoad.Interface"
+    "name": "Game.SaveLoad.Interface",
+    "rootNamespace": "",
+    "references": [
+        ""
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

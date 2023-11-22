@@ -1,11 +1,21 @@
 {
-  "name": "Game.WorldMap",
-  "references": [
-    "GUID:35168c5f509904049bcb1ff65a87c5f6",
-    "GUID:559e05852f4834e6b836e9c5499e87db",
-    "GUID:2871082d8d45d429d803cf997b57b7cf",
-    "GUID:edae0479a52bf4ddb8d67d9ceb84c31e",
-    "GUID:b4ebdac6a645a4d17bdc4a92ea336424",
-    "GUID:5efec4d4f1aaa41d8bdb9fb1532319b1"
-  ]
+    "name": "Game.WorldMap",
+    "rootNamespace": "",
+    "references": [
+        "Core.Ore",
+        "Game.Block.Interface",
+        "Game.World.Interface",
+        "Game.Block",
+        "Core.Util",
+        "ClassLibrary"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
