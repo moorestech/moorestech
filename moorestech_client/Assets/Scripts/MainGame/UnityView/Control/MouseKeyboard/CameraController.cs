@@ -1,4 +1,5 @@
-﻿using Cinemachine;
+﻿using System;
+using Cinemachine;
 using UnityEngine;
 
 namespace MainGame.UnityView.Control.MouseKeyboard
@@ -33,10 +34,20 @@ namespace MainGame.UnityView.Control.MouseKeyboard
                 var delta = currentClickedPosition - _lastClickedPosition;
                 _lastClickedPosition = currentClickedPosition;
 
-                var currentRotation = transform.rotation.eulerAngles;
-                currentRotation.x -= delta.y * sensitivity.y;
-                currentRotation.y += delta.x * sensitivity.x;
-                transform.rotation = Quaternion.Euler(currentRotation);
+                var rotation = transform.rotation.eulerAngles;
+                rotation.x -= delta.y * sensitivity.y;
+                if (90 < rotation.x && rotation.x < 180)
+                {
+                    rotation.x = 90;
+                }
+                else if (180 < rotation.x && rotation.x < 270)
+                {
+                    rotation.x = 270;
+                }
+                
+                rotation.y += delta.x * sensitivity.x;
+                rotation.z = 0;
+                transform.rotation = Quaternion.Euler(rotation);
             }
         }
     }
