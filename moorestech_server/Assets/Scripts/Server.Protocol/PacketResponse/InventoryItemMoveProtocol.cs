@@ -67,9 +67,6 @@ namespace Server.Protocol.PacketResponse
                 case ItemMoveInventoryType.MainInventory:
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory;
                     break;
-                case ItemMoveInventoryType.CraftInventory:
-                    inventory = _playerInventoryDataStore.GetInventoryData(playerId).CraftingOpenableInventory;
-                    break;
                 case ItemMoveInventoryType.GrabInventory:
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
                     break;

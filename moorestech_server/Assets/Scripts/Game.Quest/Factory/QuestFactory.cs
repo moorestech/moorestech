@@ -13,11 +13,11 @@ namespace Game.Quest.Factory
         private readonly IQuestConfig _questConfig;
         private readonly Dictionary<string, IQuestTemplate> _questTemplates =　new();
 
-        public QuestFactory(IQuestConfig questConfig, ItemStackFactory itemStackFactory, ICraftingEvent craftingEvent)
+        public QuestFactory(IQuestConfig questConfig, ItemStackFactory itemStackFactory)
         {
             //クエストのテンプレート一覧の作成
             _questTemplates.Add(VanillaQuestTypes.ItemCraftQuestType,
-                new ItemCraftQuestTemplate(itemStackFactory, craftingEvent));
+                new ItemCraftQuestTemplate(itemStackFactory));
 
             _questConfig = questConfig;
         }

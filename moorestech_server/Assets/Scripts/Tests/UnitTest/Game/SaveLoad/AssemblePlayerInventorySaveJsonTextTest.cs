@@ -41,8 +41,6 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             //メインアイテムをセットする
             foreach (var item in mainItems) inventory.MainOpenableInventory.SetItem(item.Key, item.Value);
-            //クラフトアイテムをセットする
-            foreach (var item in craftItems) inventory.CraftingOpenableInventory.SetItem(item.Key, item.Value);
 
 
             //セーブする
@@ -68,18 +66,6 @@ namespace Tests.UnitTest.Game.SaveLoad
                 Assert.AreEqual(itemStackFactory.CreatEmpty(), loadedPlayerInventory.MainOpenableInventory.GetItem(i));
             }
 
-            //クラフトのインベントリのチェック
-            for (var i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
-            {
-                if (craftItems.ContainsKey(i))
-                {
-                    Assert.AreEqual(craftItems[i], loadedPlayerInventory.CraftingOpenableInventory.GetItem(i));
-                    continue;
-                }
-
-                Assert.AreEqual(itemStackFactory.CreatEmpty(),
-                    loadedPlayerInventory.CraftingOpenableInventory.GetItem(i));
-            }
         }
 
         /// <summary>

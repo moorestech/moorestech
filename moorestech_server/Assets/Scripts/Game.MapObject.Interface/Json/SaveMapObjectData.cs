@@ -29,6 +29,7 @@ namespace Game.MapObject.Interface.Json
             z = mapObject.Position.z;
         }
 
+        [JsonIgnore]
         public Vector3 Position => new(x, y, z);
     }
 }
