@@ -9,25 +9,23 @@ namespace Game.Quest.Factory.QuestTemplate
 {
     public class ItemCraftQuestTemplate : IQuestTemplate
     {
-        private readonly ICraftingEvent _craftingEvent;
         private readonly ItemStackFactory _itemStackFactory;
 
-        public ItemCraftQuestTemplate(ItemStackFactory itemStackFactory, ICraftingEvent craftingEvent)
+        public ItemCraftQuestTemplate(ItemStackFactory itemStackFactory)
         {
             _itemStackFactory = itemStackFactory;
-            _craftingEvent = craftingEvent;
         }
 
         public IQuest CreateQuest(QuestConfigData questConfig, List<IQuest> preRequestQuests)
         {
-            return new ItemCraftQuest(questConfig, _craftingEvent, GetCraftItem(questConfig.QuestParameter),
+            return new ItemCraftQuest(questConfig,  GetCraftItem(questConfig.QuestParameter),
                 preRequestQuests);
         }
 
         public IQuest LoadQuest(QuestConfigData questConfig, bool isCompleted, bool isRewarded,
             List<IQuest> preRequestQuests)
         {
-            return new ItemCraftQuest(questConfig, _craftingEvent, isCompleted, isRewarded,
+            return new ItemCraftQuest(questConfig,  isCompleted, isRewarded,
                 GetCraftItem(questConfig.QuestParameter), preRequestQuests);
         }
 

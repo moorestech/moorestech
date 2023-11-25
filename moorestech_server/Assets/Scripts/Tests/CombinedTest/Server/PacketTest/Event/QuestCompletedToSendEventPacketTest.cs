@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -25,7 +26,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packetResponse, serviceProvider) =
                 new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var questDataStore = serviceProvider.GetService<IQuestDataStore>();
-            var craftingEvent = (CraftingEvent)serviceProvider.GetService<ICraftingEvent>();
 
             var response = packetResponse.GetPacketResponse(EventRequestData());
             //イベントがないことを確認する
@@ -39,11 +39,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //クラフト対象のアイテムをリフレクションで取得
             var questItemId = (int)itemCraftQuest.GetType()
                 .GetField("_questItemId", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(itemCraftQuest);
-            //リフレクションでメソッドを取得、実行
-            var method = typeof(CraftingEvent).GetMethod("InvokeEvent", BindingFlags.NonPublic | BindingFlags.Instance);
-            //クラフトイベントを発火することで擬似的にクラフトを再現する
-            method.Invoke(craftingEvent, new object?[] { questItemId, 1 });
 
+            //TODO アイテムのクラフトが必要
+            throw new NotImplementedException();
 
             //クエストクリアのイベントがあることを確かめる
             response = packetResponse.GetPacketResponse(EventRequestData());

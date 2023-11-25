@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.Linq;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
@@ -51,6 +52,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             //インベントリにアイテムがあることを確認
             var resultItem = craftConfig.Result;
             //アイテムのインサートはホットバーから優先的にアイテムが入るので、ホットバーのインデックスをチェックする
+            
+            //TODO Grabインベントリに入っていることをテストする
+            throw new NotImplementedException();
+            
             var hotBarSlot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
             Assert.AreEqual(resultItem.Id, playerInventoryData.MainOpenableInventory.GetItem(hotBarSlot).Id);
             Assert.AreEqual(resultItem.Count, playerInventoryData.MainOpenableInventory.GetItem(hotBarSlot).Count);
@@ -87,6 +92,19 @@ namespace Tests.CombinedTest.Server.PacketTest
                 }
             }
             Assert.Pass();
+        }
+
+        [Test]
+        public void ItemFullToCnantCraftTest()
+        {
+            //TODO アイテムが満杯の時にクラフトできないテスト
+            throw new NotImplementedException();
+        }
+
+        public void GrabInventoryFukllTocanNotCraftTest()
+        {
+            //TODO Garbインベントリが満杯の時にクラフトできないテスト
+            throw new NotImplementedException();
         }
     }
 }

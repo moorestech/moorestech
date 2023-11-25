@@ -77,7 +77,6 @@ namespace Server.Boot
 
 
             //ゲームプレイに必要なクラスのインスタンスを生成
-            services.AddSingleton<IIsCreatableJudgementService, IsCreatableJudgementService>();
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
             services.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
@@ -112,15 +111,12 @@ namespace Server.Boot
             services.AddSingleton<IBlockRemoveEvent, BlockRemoveEvent>();
             services.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
-            services.AddSingleton<ICraftInventoryUpdateEvent, CraftInventoryUpdateEvent>();
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
-            services.AddSingleton<ICraftingEvent, CraftingEvent>();
             services.AddSingleton<IQuestCompletedEvent, QuestCompletedEvent>();
 
             //イベントレシーバーを登録
             services.AddSingleton<ChangeBlockStateEventPacket>();
             services.AddSingleton<MainInventoryUpdateToSetEventPacket>();
-            services.AddSingleton<CraftingInventoryUpdateToSetEventPacket>();
             services.AddSingleton<OpenableBlockInventoryUpdateToSetEventPacket>();
             services.AddSingleton<GrabInventoryUpdateToSetEventPacket>();
             services.AddSingleton<PlaceBlockToSetEventPacket>();
@@ -128,9 +124,7 @@ namespace Server.Boot
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect>();
             services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect>();
 
-            services
-                .AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator,
-                    IElectricPole>>();
+            services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
 
             services.AddSingleton<SetMiningItemToMiner>();
             services.AddSingleton<QuestCompletedToSendEventPacket>();
@@ -146,7 +140,6 @@ namespace Server.Boot
             //イベントレシーバーをインスタンス化する
             //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
             serviceProvider.GetService<MainInventoryUpdateToSetEventPacket>();
-            serviceProvider.GetService<CraftingInventoryUpdateToSetEventPacket>();
             serviceProvider.GetService<OpenableBlockInventoryUpdateToSetEventPacket>();
             serviceProvider.GetService<GrabInventoryUpdateToSetEventPacket>();
             serviceProvider.GetService<PlaceBlockToSetEventPacket>();

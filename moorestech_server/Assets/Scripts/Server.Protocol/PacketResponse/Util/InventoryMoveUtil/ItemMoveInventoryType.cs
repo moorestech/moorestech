@@ -3,7 +3,6 @@
     public enum ItemMoveInventoryType
     {
         MainInventory,
-        CraftInventory,
         GrabInventory,
         BlockInventory
     }

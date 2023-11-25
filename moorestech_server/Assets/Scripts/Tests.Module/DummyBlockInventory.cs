@@ -4,6 +4,7 @@ using Core.Const;
 using Core.Item;
 using Core.Item.Util;
 using Game.Block.BlockInventory;
+using UnityEngine;
 
 namespace Tests.Module
 {

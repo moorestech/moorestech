@@ -11,18 +11,17 @@ namespace Game.Quest.QuestEntity
         private readonly int _questItemId;
 
 
-        public ItemCraftQuest(QuestConfigData quest, ICraftingEvent craftingEvent, int questItemId,
+        public ItemCraftQuest(QuestConfigData quest,  int questItemId,
             List<IQuest> preRequestQuests)
         {
             QuestConfig = quest;
             _questItemId = questItemId;
             PreRequestQuests = preRequestQuests;
-            craftingEvent.Subscribe(OnItemCraft);
         }
 
-        public ItemCraftQuest(QuestConfigData quest, ICraftingEvent craftingEvent, bool isCompleted,
+        public ItemCraftQuest(QuestConfigData quest,  bool isCompleted,
             bool isEarnedReward, int questItemId, List<IQuest> preRequestQuests)
-            : this(quest, craftingEvent, questItemId, preRequestQuests)
+            : this(quest,  questItemId, preRequestQuests)
         {
             IsCompleted = isCompleted;
             IsEarnedReward = isEarnedReward;

@@ -13,28 +13,19 @@ namespace Game.PlayerInventory
     /// </summary>
     public class PlayerInventoryDataStore : IPlayerInventoryDataStore
     {
-        private readonly CraftingEvent _craftingEvent;
-        private readonly CraftInventoryUpdateEvent _craftInventoryUpdateEvent;
         private readonly GrabInventoryUpdateEvent _grabInventoryUpdateEvent;
-        private readonly IIsCreatableJudgementService _isCreatableJudgementService;
 
         private readonly ItemStackFactory _itemStackFactory;
         private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
         private readonly Dictionary<int, PlayerInventoryData> _playerInventoryData = new();
 
-        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent,
-            ICraftInventoryUpdateEvent craftInventoryUpdateEvent,
-            ItemStackFactory itemStackFactory, IIsCreatableJudgementService isCreatableJudgementService,
-            IGrabInventoryUpdateEvent grabInventoryUpdateEvent, ICraftingEvent craftingEvent)
+        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent, ItemStackFactory itemStackFactory, IGrabInventoryUpdateEvent grabInventoryUpdateEvent)
         {
             //イベントの呼び出しをアセンブリに隠蔽するため、インターフェースをキャストします。
             _mainInventoryUpdateEvent = (MainInventoryUpdateEvent)mainInventoryUpdateEvent;
-            _craftInventoryUpdateEvent = (CraftInventoryUpdateEvent)craftInventoryUpdateEvent;
             _grabInventoryUpdateEvent = (GrabInventoryUpdateEvent)grabInventoryUpdateEvent;
-            _craftingEvent = (CraftingEvent)craftingEvent;
 
             _itemStackFactory = itemStackFactory;
-            _isCreatableJudgementService = isCreatableJudgementService;
         }
 
         public PlayerInventoryData GetInventoryData(int playerId)
@@ -43,10 +34,8 @@ namespace Game.PlayerInventory
             {
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, _itemStackFactory);
-                var craft = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent, _itemStackFactory,
-                    _isCreatableJudgementService, main, grab, _craftingEvent);
 
-                _playerInventoryData.Add(playerId, new PlayerInventoryData(main, craft, grab));
+                _playerInventoryData.Add(playerId, new PlayerInventoryData(main, grab));
             }
 
             return _playerInventoryData[playerId];
@@ -79,16 +68,11 @@ namespace Game.PlayerInventory
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,
                     mainItems);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, _itemStackFactory, grabItem);
-                var craftingInventory = new CraftingOpenableInventoryData(playerId, _craftInventoryUpdateEvent,
-                    _itemStackFactory, _isCreatableJudgementService, craftItems, main, grab, _craftingEvent);
 
-                var playerInventory = new PlayerInventoryData(main, craftingInventory, grab);
+                var playerInventory = new PlayerInventoryData(main, grab);
 
                 //インベントリの追加を行う　既にあるなら置き換える
-                if (_playerInventoryData.ContainsKey(playerId))
-                    _playerInventoryData[playerId] = playerInventory;
-                else
-                    _playerInventoryData.Add(playerId, playerInventory);
+                _playerInventoryData[playerId] = playerInventory;
             }
         }
     }

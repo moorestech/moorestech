@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface.Event;
@@ -25,7 +26,6 @@ namespace Tests.UnitTest.Game.Quest
                 new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var questDataStore = serviceProvider.GetService<IQuestDataStore>();
-            var craftEvent = serviceProvider.GetService<ICraftingEvent>();
 
             var test1Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "QuestAuthor:forQuestTest:Test1");
             var test2Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "QuestAuthor:forQuestTest:Test2");
@@ -39,14 +39,14 @@ namespace Tests.UnitTest.Game.Quest
             //前提クエストが１つしかないクエストが正しくクリア、クリアにならないことをテストする
 
             //クエスト2のアイテムクラフトイベントをInvoke
-            InvokeCraftEventWithReflection(craftEvent, GetQuestIdWithReflection(test2Quest));
+            InvokeCraftEventWithReflection(GetQuestIdWithReflection(test2Quest));
 
             //この段階ではまだクエスト2が合格しているが報酬受け取りができない事をテスト
             Assert.False(test2Quest.IsRewardEarnable());
             Assert.True(test2Quest.IsCompleted);
 
             //前提クエストのクエスト1のクリア
-            InvokeCraftEventWithReflection(craftEvent, GetQuestIdWithReflection(test1Quest));
+            InvokeCraftEventWithReflection(GetQuestIdWithReflection(test1Quest));
             //クエスト1がクリアしたことをテスト
             Assert.True(test1Quest.IsCompleted);
             Assert.True(test1Quest.IsRewardEarnable());
@@ -65,7 +65,6 @@ namespace Tests.UnitTest.Game.Quest
                 new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var questDataStore = serviceProvider.GetService<IQuestDataStore>();
-            var craftEvent = serviceProvider.GetService<ICraftingEvent>();
 
             var test1Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "QuestAuthor:forQuestTest:Test1");
             var test2Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "QuestAuthor:forQuestTest:Test2");
@@ -79,20 +78,20 @@ namespace Tests.UnitTest.Game.Quest
 
 
             //And条件のクエストをクリア
-            InvokeCraftEventWithReflection(craftEvent, GetQuestIdWithReflection(testAndPreRequestQuest));
+            InvokeCraftEventWithReflection(GetQuestIdWithReflection(testAndPreRequestQuest));
 
             //クリアはしているが報酬は受け取れないテスト
             Assert.True(testAndPreRequestQuest.IsCompleted);
             Assert.False(testAndPreRequestQuest.IsRewardEarnable());
 
             //クエスト1をクリア
-            InvokeCraftEventWithReflection(craftEvent, GetQuestIdWithReflection(test1Quest));
+            InvokeCraftEventWithReflection(GetQuestIdWithReflection(test1Quest));
 
             //AND条件のクエストはまだ報酬受け取りは出来ないテスト
             Assert.False(testAndPreRequestQuest.IsRewardEarnable());
 
             //クエスト2をクリア
-            InvokeCraftEventWithReflection(craftEvent, GetQuestIdWithReflection(test2Quest));
+            InvokeCraftEventWithReflection(GetQuestIdWithReflection(test2Quest));
 
             //AND条件クエストが報酬受け取り可能になるテスト
             Assert.True(testAndPreRequestQuest.IsRewardEarnable());
@@ -108,7 +107,6 @@ namespace Tests.UnitTest.Game.Quest
                 new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var questDataStore = serviceProvider.GetService<IQuestDataStore>();
-            var craftEvent = serviceProvider.GetService<ICraftingEvent>();
 
             var test1Quest = (ItemCraftQuest)questDataStore.GetQuestData(PlayerId, "QuestAuthor:forQuestTest:Test1");
             var testOrPreRequestQuest =
@@ -120,14 +118,14 @@ namespace Tests.UnitTest.Game.Quest
 
 
             //Or条件のクエストをクリア
-            InvokeCraftEventWithReflection(craftEvent, GetQuestIdWithReflection(testOrPreRequestQuest));
+            InvokeCraftEventWithReflection(GetQuestIdWithReflection(testOrPreRequestQuest));
 
             //クリアはしているが報酬は受け取れないテスト
             Assert.True(testOrPreRequestQuest.IsCompleted);
             Assert.False(testOrPreRequestQuest.IsRewardEarnable());
 
             //クエスト1をクリア
-            InvokeCraftEventWithReflection(craftEvent, GetQuestIdWithReflection(test1Quest));
+            InvokeCraftEventWithReflection(GetQuestIdWithReflection(test1Quest));
 
             //Or条件のクエストなので報酬受け取りは出来るテスト
             Assert.True(testOrPreRequestQuest.IsRewardEarnable());
@@ -136,12 +134,10 @@ namespace Tests.UnitTest.Game.Quest
         /// <summary>
         ///     アイテムクラフトのイベントを無理やり発火する
         /// </summary>
-        private void InvokeCraftEventWithReflection(ICraftingEvent craftingEvent, int itemId)
+        private void InvokeCraftEventWithReflection(int itemId)
         {
-            //リフレクションでメソッドを取得、実行
-            var method = typeof(CraftingEvent).GetMethod("InvokeEvent", BindingFlags.NonPublic | BindingFlags.Instance);
-            //クラフトイベントを発火することで擬似的にクラフトを再現する
-            method.Invoke(craftingEvent, new object?[] { itemId, 1 });
+            //TODO　クエスト関連は後でまとめて削除する
+            throw new Exception("TODO クエスト関係を全て消す");
         }
 
         private int GetQuestIdWithReflection(ItemCraftQuest itemCraftQuest)

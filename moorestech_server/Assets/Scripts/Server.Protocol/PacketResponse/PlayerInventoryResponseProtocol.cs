@@ -44,24 +44,9 @@ namespace Server.Protocol.PacketResponse
                 playerInventory.GrabInventory.GetItem(0).Count);
 
 
-            //クラフトインベントリのアイテムを設定
-            var craftItems = new List<ItemMessagePack>();
-            for (var i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
-            {
-                var id = playerInventory.CraftingOpenableInventory.GetItem(i).Id;
-                var count = playerInventory.CraftingOpenableInventory.GetItem(i).Count;
-                craftItems.Add(new ItemMessagePack(id, count));
-            }
-
-            //クラフト結果のアイテムを設定
-            var craftItem = new ItemMessagePack(
-                playerInventory.CraftingOpenableInventory.GetCreatableItem().Id,
-                playerInventory.CraftingOpenableInventory.GetCreatableItem().Count);
-
-            var isCreatable = playerInventory.CraftingOpenableInventory.IsCreatable();
 
             var response = MessagePackSerializer.Serialize(new PlayerInventoryResponseProtocolMessagePack(
-                data.PlayerId, mainItems.ToArray(), grabItem, craftItems.ToArray(), craftItem, isCreatable));
+                data.PlayerId, mainItems.ToArray(), grabItem));
 
 
             return new List<List<byte>> { response.ToList() };
@@ -98,26 +83,6 @@ namespace Server.Protocol.PacketResponse
                                         playerInventory.GrabInventory.GetItem(0).Count + "  ");
             }
 
-
-            if (isExportCraft)
-            {
-                inventoryStr.AppendLine();
-                inventoryStr.AppendLine("Craft Inventory");
-                //クラフトインベントリのアイテムを設定
-                for (var i = 0; i < PlayerInventoryConst.CraftingSlotSize; i++)
-                {
-                    var id = playerInventory.CraftingOpenableInventory.GetItem(i).Id;
-                    var count = playerInventory.CraftingOpenableInventory.GetItem(i).Count;
-
-                    inventoryStr.Append(id + " " + count + "  ");
-                    if ((i + 1) % PlayerInventoryConst.CraftingInventoryColumns == 0) inventoryStr.AppendLine();
-                }
-
-                inventoryStr.AppendLine("Craft Result Item");
-                inventoryStr.AppendLine(playerInventory.CraftingOpenableInventory.GetCreatableItem().Id + " " +
-                                        playerInventory.CraftingOpenableInventory.GetCreatableItem().Count + "  ");
-            }
-
             Debug.Log(inventoryStr);
         }
     }
@@ -150,25 +115,17 @@ namespace Server.Protocol.PacketResponse
         }
 
 
-        public PlayerInventoryResponseProtocolMessagePack(int playerId, ItemMessagePack[] main, ItemMessagePack grab,
-            ItemMessagePack[] craft, ItemMessagePack craftResult, bool isCreatable)
+        public PlayerInventoryResponseProtocolMessagePack(int playerId, ItemMessagePack[] main, ItemMessagePack grab)
         {
             Tag = PlayerInventoryResponseProtocol.Tag;
             PlayerId = playerId;
             Main = main;
             Grab = grab;
-            Craft = craft;
-            CraftResult = craftResult;
-            IsCreatable = isCreatable;
         }
 
         public int PlayerId { get; set; }
 
         public ItemMessagePack[] Main { get; set; }
         public ItemMessagePack Grab { get; set; }
-
-        public ItemMessagePack[] Craft { get; set; }
-        public ItemMessagePack CraftResult { get; set; }
-        public bool IsCreatable { get; set; }
     }
 }
