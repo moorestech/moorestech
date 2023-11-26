@@ -6,7 +6,6 @@ using Game.Block.Config.Service;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.RecipeConfig;
 using Game.Crafting.Interface;
-using Game.Quest.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot;
 
@@ -25,7 +24,6 @@ namespace SinglePlay
         public readonly ItemStackFactory ItemStackFactory;
         public readonly IMachineRecipeConfig MachineRecipeConfig;
         public readonly IOreConfig OreConfig;
-        public readonly IQuestConfig QuestConfig;
 
 
         public SinglePlayInterface(string configPath)
@@ -39,7 +37,6 @@ namespace SinglePlay
             BlockConfig = serviceProvider.GetService<IBlockConfig>();
             ConfigJsonList = serviceProvider.GetService<ConfigJsonList>();
             OreConfig = serviceProvider.GetService<IOreConfig>();
-            QuestConfig = serviceProvider.GetService<IQuestConfig>();
             ItemIdToBlockId = serviceProvider.GetService<ItemIdToBlockId>();
         }
     }

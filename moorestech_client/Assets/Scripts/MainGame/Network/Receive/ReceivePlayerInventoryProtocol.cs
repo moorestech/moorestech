@@ -12,14 +12,12 @@ namespace MainGame.Network.Receive
     /// </summary>
     public class ReceivePlayerInventoryProtocol : IAnalysisPacket
     {
-        private readonly ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent;
         private readonly ReceiveGrabInventoryEvent receiveGrabInventoryEvent;
         private readonly ReceiveMainInventoryEvent receiveMainInventoryEvent;
 
-        public ReceivePlayerInventoryProtocol(ReceiveMainInventoryEvent receiveMainInventoryEvent, ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent, ReceiveGrabInventoryEvent receiveGrabInventoryEvent)
+        public ReceivePlayerInventoryProtocol(ReceiveMainInventoryEvent receiveMainInventoryEvent, ReceiveGrabInventoryEvent receiveGrabInventoryEvent)
         {
             this.receiveMainInventoryEvent = receiveMainInventoryEvent;
-            this.receiveCraftingInventoryEvent = receiveCraftingInventoryEvent;
             this.receiveGrabInventoryEvent = receiveGrabInventoryEvent;
         }
 
@@ -47,18 +45,6 @@ namespace MainGame.Network.Receive
             var grabItem = new ItemStack(data.Grab.Id, data.Grab.Count);
             receiveGrabInventoryEvent.OnGrabInventoryUpdateEventInvoke(new GrabInventoryUpdateEventProperties(grabItem)).Forget();
 
-
-            //craft inventory items
-            var craftItems = new List<ItemStack>();
-            for (var i = 0; i < PlayerInventoryConstant.CraftingSlotSize; i++)
-            {
-                var item = data.Craft[i];
-                craftItems.Add(new ItemStack(item.Id, item.Count));
-            }
-
-            var resultItem = new ItemStack(data.CraftResult.Id, data.CraftResult.Count);
-            receiveCraftingInventoryEvent.InvokeCraftingInventoryUpdate(
-                new CraftingInventoryUpdateProperties(data.PlayerId, data.IsCreatable, craftItems, resultItem)).Forget();
         }
     }
 }

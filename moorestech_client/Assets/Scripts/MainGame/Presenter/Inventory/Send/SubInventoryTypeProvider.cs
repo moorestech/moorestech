@@ -27,7 +27,6 @@ namespace MainGame.Presenter.Inventory.Send
             CurrentSubInventory = state switch
             {
                 //プレイヤーインベントリを開いているということは、サブインベントリはCraftInventoryなのでそれを設定する
-                UIStateEnum.PlayerInventory => ItemMoveInventoryType.CraftInventory,
                 UIStateEnum.BlockInventory => ItemMoveInventoryType.BlockInventory,
                 _ => CurrentSubInventory
             };

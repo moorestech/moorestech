@@ -11,14 +11,12 @@ namespace MainGame.Network.Receive
         private readonly Dictionary<string, IAnalysisEventPacket> _eventPacket = new();
 
         //TODO ここはDIコンテナを渡すほうがいいのでは
-        public ReceiveEventProtocol(ReceiveChunkDataEvent receiveChunkDataEvent, ReceiveMainInventoryEvent receiveMainInventoryEvent,
-            ReceiveCraftingInventoryEvent receiveCraftingInventoryEvent, ReceiveBlockInventoryEvent receiveBlockInventoryEvent, ReceiveGrabInventoryEvent receiveGrabInventoryEvent, ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent, ReceiveUpdateMapObjectEvent receiveUpdateMapObjectEvent)
+        public ReceiveEventProtocol(ReceiveChunkDataEvent receiveChunkDataEvent, ReceiveMainInventoryEvent receiveMainInventoryEvent, ReceiveBlockInventoryEvent receiveBlockInventoryEvent, ReceiveGrabInventoryEvent receiveGrabInventoryEvent, ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent, ReceiveUpdateMapObjectEvent receiveUpdateMapObjectEvent)
         {
             _eventPacket.Add(PlaceBlockToSetEventPacket.EventTag, new BlockPlaceEventProtocol(receiveChunkDataEvent));
             _eventPacket.Add(MainInventoryUpdateToSetEventPacket.EventTag, new MainInventorySlotEventProtocol(receiveMainInventoryEvent));
             _eventPacket.Add(OpenableBlockInventoryUpdateToSetEventPacket.EventTag, new BlockInventorySlotUpdateEventProtocol(receiveBlockInventoryEvent));
             _eventPacket.Add(RemoveBlockToSetEventPacket.EventTag, new BlockRemoveEventProtocol(receiveChunkDataEvent));
-            _eventPacket.Add(CraftingInventoryUpdateToSetEventPacket.EventTag, new CraftingInventorySlotEventProtocol(receiveCraftingInventoryEvent));
             _eventPacket.Add(GrabInventoryUpdateToSetEventPacket.EventTag, new GrabInventoryUpdateEventProtocol(receiveGrabInventoryEvent));
             _eventPacket.Add(ChangeBlockStateEventPacket.EventTag, new BlockStateChangeEventProtocol(receiveBlockStateChangeEvent));
             _eventPacket.Add(MapObjectUpdateEventPacket.EventTag, new MapObjectUpdateEventProtocol(receiveUpdateMapObjectEvent));

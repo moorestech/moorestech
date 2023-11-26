@@ -22,7 +22,6 @@ using MainGame.Presenter.MapObject;
 using MainGame.Presenter.Mission;
 using MainGame.Presenter.PauseMenu;
 using MainGame.Presenter.Player;
-using MainGame.Presenter.Quest;
 using MainGame.Presenter.Tutorial;
 using MainGame.Presenter.Tutorial.ExecutableTutorials;
 using MainGame.UnityView.Block;
@@ -35,7 +34,6 @@ using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
-using MainGame.UnityView.UI.Quest;
 using MainGame.UnityView.UI.Tutorial;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.UI.UIState.UIObject;
@@ -77,7 +75,6 @@ namespace MainGame.Starter
         [SerializeField] private PlayerPosition playerPosition;
         [SerializeField] private SelectHotBarView selectHotBarView;
         [SerializeField] private ItemRecipeView itemRecipeView;
-        [SerializeField] private QuestUI questUI;
         [SerializeField] private RecipePlaceButton recipePlaceButton;
         [SerializeField] private MapObjectGetPresenter mapObjectGetPresenter;
 
@@ -131,7 +128,6 @@ namespace MainGame.Starter
             //シングルプレイ用のインスタンス
             var singlePlayInterface = new SinglePlayInterface(ServerConst.ServerDirectory);
             builder.RegisterInstance(singlePlayInterface);
-            builder.RegisterInstance(singlePlayInterface.QuestConfig);
             builder.RegisterInstance(singlePlayInterface.ItemConfig);
             builder.RegisterInstance(new ModDirectory(ServerConst.ServerModsDirectory));
 
@@ -147,7 +143,6 @@ namespace MainGame.Starter
             //パケット受け取りイベント
             builder.Register<ReceiveChunkDataEvent>(Lifetime.Singleton);
             builder.Register<ReceiveMainInventoryEvent>(Lifetime.Singleton);
-            builder.Register<ReceiveCraftingInventoryEvent>(Lifetime.Singleton);
             builder.Register<ReceiveBlockInventoryEvent>(Lifetime.Singleton);
             builder.Register<ReceiveGrabInventoryEvent>(Lifetime.Singleton);
             builder.Register<ReceiveInitialHandshakeProtocol>(Lifetime.Singleton); //初期接続時に受け取るプロトコル
@@ -166,15 +161,11 @@ namespace MainGame.Starter
             builder.Register<SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);
             builder.Register<RequestBlockInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendCommandProtocol>(Lifetime.Singleton);
-            builder.Register<SendCraftProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockInventoryOpenCloseControlProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockRemoveProtocol>(Lifetime.Singleton);
             builder.Register<SendMiningProtocol>(Lifetime.Singleton);
             builder.Register<SendSaveProtocol>(Lifetime.Singleton);
             builder.Register<InventoryMoveItemProtocol>(Lifetime.Singleton);
-            builder.Register<RequestQuestProgressProtocol>(Lifetime.Singleton);
-            builder.Register<SendEarnQuestRewardProtocol>(Lifetime.Singleton);
-            builder.Register<SendSetRecipeCraftingInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendGetMapObjectProtocolProtocol>(Lifetime.Singleton);
 
             //インベントリのUIコントロール
@@ -190,15 +181,11 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<WorldMapTilePresenter>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
             builder.Register<MainInventoryViewPresenter>(Lifetime.Singleton);
-            builder.RegisterEntryPoint<CraftingInventoryViewPresenter>();
             builder.RegisterEntryPoint<BlockInventoryViewPresenter>();
             builder.RegisterEntryPoint<BlockInventoryRequestPacketSend>();
             builder.RegisterEntryPoint<PlayerInventoryRequestPacketSend>();
             builder.RegisterEntryPoint<PlayerInventoryMoveItemPacketSend>();
-            builder.RegisterEntryPoint<CraftPacketSend>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
-            builder.RegisterEntryPoint<QuestUIPresenter>();
-            builder.RegisterEntryPoint<RecipeViewerItemPlacer>();
             builder.RegisterEntryPoint<DirectItemMovePacketSend>();
             builder.RegisterEntryPoint<BlockStateChangePresenter>();
 
@@ -245,7 +232,6 @@ namespace MainGame.Starter
             builder.RegisterComponent(selectHotBarControl);
             builder.RegisterComponent(selectHotBarView);
             builder.RegisterComponent(itemRecipeView);
-            builder.RegisterComponent(questUI);
             builder.RegisterComponent(highlightRecipeViewerItem);
             builder.RegisterComponent(gameUIHighlight);
 

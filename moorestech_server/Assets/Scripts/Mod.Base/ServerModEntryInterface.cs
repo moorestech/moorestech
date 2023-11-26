@@ -5,7 +5,6 @@ using Game.Block.Factory;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.RecipeConfig;
 using Game.Crafting.Interface;
-using Game.Quest.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol;
@@ -29,7 +28,6 @@ namespace Mod.Base
         /// </summary>
         public readonly PacketResponseCreator PacketResponseCreator;
 
-        public readonly IQuestConfig QuestConfig;
 
         /// <summary>
         ///     各種サービスを取得できるDIコンテナ
@@ -53,7 +51,6 @@ namespace Mod.Base
             ItemStackFactory = serviceProvider.GetRequiredService<ItemStackFactory>();
             BlockConfig = serviceProvider.GetRequiredService<IBlockConfig>();
             OreConfig = serviceProvider.GetRequiredService<IOreConfig>();
-            QuestConfig = serviceProvider.GetRequiredService<IQuestConfig>();
             BlockFactory = serviceProvider.GetRequiredService<BlockFactory>();
         }
     }
