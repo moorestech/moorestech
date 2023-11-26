@@ -1,6 +1,8 @@
 using System;
 using System.Data;
 using System.Linq;
+using Core.Item;
+using Core.Item.Config;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -49,16 +51,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
             
-            //インベントリにアイテムがあることを確認
+            //Grabインベントリにアイテムがあることを確認
             var resultItem = craftConfig.Result;
-            //アイテムのインサートはホットバーから優先的にアイテムが入るので、ホットバーのインデックスをチェックする
             
-            //TODO Grabインベントリに入っていることをテストする
-            throw new NotImplementedException();
-            
-            var hotBarSlot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
-            Assert.AreEqual(resultItem.Id, playerInventoryData.MainOpenableInventory.GetItem(hotBarSlot).Id);
-            Assert.AreEqual(resultItem.Count, playerInventoryData.MainOpenableInventory.GetItem(hotBarSlot).Count);
+            Assert.AreEqual(resultItem.Id, playerInventoryData.GrabInventory.GetItem(0).Id);
+            Assert.AreEqual(resultItem.Count, playerInventoryData.GrabInventory.GetItem(0).Count);
         }
 
         [Test]
@@ -95,12 +92,41 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void ItemFullToCnantCraftTest()
+        public void ItemFullToCanNotCraftTest()
         {
-            //TODO アイテムが満杯の時にクラフトできないテスト
-            throw new NotImplementedException();
+            //グラブインベントリのアイテムが満杯の時にクラフトできないテスト
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var playerInv = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigData(CraftRecipeId);
+            var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            
+            //必要なアイテムをインベントリに追加
+            for (var i = 0; i < craftConfig.CraftItems.Count; i++)
+            {
+                var item = craftConfig.CraftItems[i];
+                playerInv.MainOpenableInventory.SetItem(i,item);
+            }
+
+            //グラブインベントリにアイテムを追加
+            playerInv.GrabInventory.SetItem(0,itemStackFactory.Create(10,100));
+            
+            //クラフト実行
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
+            
+            //アイテムが維持されていることをテスト
+            Assert.AreEqual(10, playerInv.GrabInventory.GetItem(0).Id);
+            Assert.AreEqual(100, playerInv.GrabInventory.GetItem(0).Count);
+            
+            //プレイヤーインベントリ
+            for (int i = 0; i < craftConfig.CraftItems.Count; i++)
+            {
+                var item = craftConfig.CraftItems[i];
+                Assert.AreEqual(item.Id, playerInv.MainOpenableInventory.GetItem(i).Id);
+                Assert.AreEqual(item.Count, playerInv.MainOpenableInventory.GetItem(i).Count);
+            }
         }
 
+        [Test]
         public void GrabInventoryFukllTocanNotCraftTest()
         {
             //TODO Garbインベントリが満杯の時にクラフトできないテスト
