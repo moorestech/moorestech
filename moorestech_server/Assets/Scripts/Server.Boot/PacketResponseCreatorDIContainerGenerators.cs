@@ -15,7 +15,6 @@ using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
 using Game.Block.RecipeConfig;
-using Game.Crafting;
 using Game.Crafting.Config;
 using Game.Crafting.Interface;
 using Game.Entity;
@@ -26,12 +25,6 @@ using Game.PlayerInventory;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
-using Game.Quest;
-using Game.Quest.Config;
-using Game.Quest.Event;
-using Game.Quest.Factory;
-using Game.Quest.Interface;
-using Game.Quest.Interface.Event;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.World.DataStore;
@@ -82,9 +75,7 @@ namespace Server.Boot
             services.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IBlockInventoryOpenStateDataStore, BlockInventoryOpenStateDataStore>();
-            services
-                .AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>,
-                    WorldEnergySegmentDatastore<EnergySegment>>();
+            services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IOreConfig, OreConfig>();
             services.AddSingleton<VeinGenerator, VeinGenerator>();
@@ -92,9 +83,6 @@ namespace Server.Boot
             services.AddSingleton(new Seed(1337));
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>();
-            services.AddSingleton<IQuestDataStore, QuestDatastore>();
-            services.AddSingleton<IQuestConfig, QuestConfig>();
-            services.AddSingleton<QuestFactory, QuestFactory>();
 
             services.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
             services.AddSingleton<IMapObjectFactory, MapObjectFactory>();
@@ -112,7 +100,6 @@ namespace Server.Boot
             services.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
-            services.AddSingleton<IQuestCompletedEvent, QuestCompletedEvent>();
 
             //イベントレシーバーを登録
             services.AddSingleton<ChangeBlockStateEventPacket>();
@@ -127,7 +114,6 @@ namespace Server.Boot
             services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
 
             services.AddSingleton<SetMiningItemToMiner>();
-            services.AddSingleton<QuestCompletedToSendEventPacket>();
             services.AddSingleton<MapObjectUpdateEventPacket>();
 
             //データのセーブシステム
@@ -152,7 +138,6 @@ namespace Server.Boot
                     IElectricPole>>();
 
             serviceProvider.GetService<SetMiningItemToMiner>();
-            serviceProvider.GetService<QuestCompletedToSendEventPacket>();
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
 
