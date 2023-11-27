@@ -28,11 +28,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
             
-            //インベントリにアイテムがないことを確認
-            foreach(var item in playerInventoryData.MainOpenableInventory.Items)
-            {
-                Assert.AreEqual(0, item.Count);
-            }
+            //Grabインベントリにアイテムがないことを確認
+            
+            Assert.AreEqual(0, playerInventoryData.GrabInventory.GetItem(0).Id);
+            Assert.AreEqual(0, playerInventoryData.GrabInventory.GetItem(0).Count);
         }
         
         [Test]
@@ -80,6 +79,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
             
+            
+            //Grabインベントリにアイテムがないことを確認
+            var resultItem = craftConfig.Result;
+            
+            Assert.AreEqual(0, playerInventoryData.GrabInventory.GetItem(0).Id);
+            Assert.AreEqual(0, playerInventoryData.GrabInventory.GetItem(0).Count);
+            
             //インベントリに結果アイテムがないことを確認
             foreach(var item in playerInventoryData.MainOpenableInventory.Items)
             {
@@ -124,13 +130,6 @@ namespace Tests.CombinedTest.Server.PacketTest
                 Assert.AreEqual(item.Id, playerInv.MainOpenableInventory.GetItem(i).Id);
                 Assert.AreEqual(item.Count, playerInv.MainOpenableInventory.GetItem(i).Count);
             }
-        }
-
-        [Test]
-        public void GrabInventoryFukllTocanNotCraftTest()
-        {
-            //TODO Garbインベントリが満杯の時にクラフトできないテスト
-            throw new NotImplementedException();
         }
     }
 }
