@@ -6,7 +6,7 @@ namespace MainGame.UnityView.UI.UIState
     {
         private readonly Dictionary<UIStateEnum, IUIState> _stateDictionary = new();
 
-        public UIStateDictionary(GameScreenState gameScreenState, PlayerInventoryState playerInventoryState, BlockInventoryState blockInventoryState, PauseMenuState pauseMenuState, DeleteObjectInventoryState deleteObjectInventoryState, BlockPlaceState blockPlaceState, RecipeViewState recipeViewState, QuestViewerState questViewerState)
+        public UIStateDictionary(GameScreenState gameScreenState, PlayerInventoryState playerInventoryState, BlockInventoryState blockInventoryState, PauseMenuState pauseMenuState, DeleteObjectInventoryState deleteObjectInventoryState, BlockPlaceState blockPlaceState)
         {
             _stateDictionary.Add(UIStateEnum.GameScreen, gameScreenState);
             _stateDictionary.Add(UIStateEnum.PlayerInventory, playerInventoryState);
@@ -14,8 +14,6 @@ namespace MainGame.UnityView.UI.UIState
             _stateDictionary.Add(UIStateEnum.PauseMenu, pauseMenuState);
             _stateDictionary.Add(UIStateEnum.DeleteBar, deleteObjectInventoryState);
             _stateDictionary.Add(UIStateEnum.BlockPlace, blockPlaceState);
-            _stateDictionary.Add(UIStateEnum.RecipeViewer, recipeViewState);
-            _stateDictionary.Add(UIStateEnum.QuestViewer, questViewerState);
         }
 
         public IUIState GetState(UIStateEnum state)

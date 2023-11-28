@@ -4,7 +4,6 @@ using Game.Block.Config.LoadConfig.Param;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.Control.MouseKeyboard;
-using MainGame.UnityView.UI.CraftRecipe;
 using MainGame.UnityView.UI.UIState.UIObject;
 using SinglePlay;
 using UnityEngine;
@@ -16,16 +15,11 @@ namespace MainGame.UnityView.UI.UIState
         private readonly IBlockClickDetect _blockClickDetect;
         private readonly BlockInventoryObjectCreator _blockInventory;
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
-        private readonly CraftRecipeItemListViewer _craftRecipeItemListViewer;
 
-        private readonly ItemRecipePresenter _itemRecipePresenter;
         private readonly SinglePlayInterface _singlePlayInterface;
 
-        public BlockInventoryState(BlockInventoryObjectCreator blockInventory,
-            CraftRecipeItemListViewer craftRecipeItemListViewer, ItemRecipePresenter itemRecipePresenter, IBlockClickDetect blockClickDetect, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, SinglePlayInterface singlePlayInterface)
+        public BlockInventoryState(BlockInventoryObjectCreator blockInventory, IBlockClickDetect blockClickDetect, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, SinglePlayInterface singlePlayInterface)
         {
-            _craftRecipeItemListViewer = craftRecipeItemListViewer;
-            _itemRecipePresenter = itemRecipePresenter;
             _blockClickDetect = blockClickDetect;
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _singlePlayInterface = singlePlayInterface;
@@ -37,8 +31,6 @@ namespace MainGame.UnityView.UI.UIState
         {
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.GameScreen;
 
-            if (_itemRecipePresenter.IsClicked) return UIStateEnum.RecipeViewer;
-
             return UIStateEnum.Current;
         }
 
@@ -49,7 +41,6 @@ namespace MainGame.UnityView.UI.UIState
             OnOpenBlockInventory?.Invoke(blockPos);
 
             //UIのオブジェクトをオンにする
-            _craftRecipeItemListViewer.gameObject.SetActive(true);
             _blockInventory.gameObject.SetActive(true);
 
 
@@ -93,7 +84,6 @@ namespace MainGame.UnityView.UI.UIState
             OnCloseBlockInventory?.Invoke();
 
             _blockInventory.gameObject.SetActive(false);
-            _craftRecipeItemListViewer.gameObject.SetActive(false);
         }
 
         public event Action<Vector2Int> OnOpenBlockInventory;

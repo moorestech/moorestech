@@ -10,7 +10,5 @@
         PauseMenu,
         DeleteBar,
         BlockPlace,
-        RecipeViewer,
-        QuestViewer
     }
 }

@@ -22,19 +22,15 @@ using MainGame.Presenter.MapObject;
 using MainGame.Presenter.Mission;
 using MainGame.Presenter.PauseMenu;
 using MainGame.Presenter.Player;
-using MainGame.Presenter.Tutorial;
-using MainGame.Presenter.Tutorial.ExecutableTutorials;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Block.StateChange;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.Game;
-using MainGame.UnityView.UI.CraftRecipe;
 using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
-using MainGame.UnityView.UI.Tutorial;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.UI.UIState.UIObject;
 using MainGame.UnityView.WorldMapTile;
@@ -74,8 +70,6 @@ namespace MainGame.Starter
         [SerializeField] private SelectHotBarControl selectHotBarControl;
         [SerializeField] private PlayerPosition playerPosition;
         [SerializeField] private SelectHotBarView selectHotBarView;
-        [SerializeField] private ItemRecipeView itemRecipeView;
-        [SerializeField] private RecipePlaceButton recipePlaceButton;
         [SerializeField] private MapObjectGetPresenter mapObjectGetPresenter;
 
         [SerializeField] private GrabbedItemImagePresenter grabbedItemImagePresenter;
@@ -87,14 +81,8 @@ namespace MainGame.Starter
         [SerializeField] private CraftInventoryObjectCreator craftInventoryObjectCreator;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
-        [SerializeField] private RecipeViewerObject recipeViewerObject;
-        [SerializeField] private ItemRecipePresenter itemRecipePresenter;
-        [SerializeField] private CraftRecipeItemListViewer craftRecipeItemListViewer;
         [SerializeField] private PlayerInventoryPresenter playerInventoryPresenter;
         [SerializeField] private PlayerInventorySlots playerInventorySlots;
-        [SerializeField] private QuestViewerObject questViewerObject;
-        [SerializeField] private HighlightRecipeViewerItem highlightRecipeViewerItem;
-        [SerializeField] private GameUIHighlight gameUIHighlight;
 
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
@@ -106,7 +94,6 @@ namespace MainGame.Starter
 
         [SerializeField] private PlayerInventorySlotsInputControl playerInventorySlotsInputControl;
 
-        [SerializeField] private TutorialExecuter tutorialExecuter;
         [SerializeField] private MissionPresenter missionPresenter;
 
 
@@ -198,19 +185,11 @@ namespace MainGame.Starter
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
             builder.Register<DeleteObjectInventoryState>(Lifetime.Singleton);
             builder.Register<BlockPlaceState>(Lifetime.Singleton);
-            builder.Register<RecipeViewState>(Lifetime.Singleton);
-            builder.Register<QuestViewerState>(Lifetime.Singleton);
 
             //modからロードしてきたデータ
             builder.Register<ItemImages>(Lifetime.Singleton);
             builder.Register<WorldMapTileMaterials>(Lifetime.Singleton);
             builder.Register<BlockGameObjectFactory>(Lifetime.Singleton);
-
-            //チュートリアル関係
-            builder.RegisterComponent(tutorialExecuter);
-            builder.Register<_0_IronMiningTutorial>(Lifetime.Singleton);
-            builder.Register<_1_MinerCraftTutorial>(Lifetime.Singleton);
-
 
             //ScriptableObjectの登録
             builder.RegisterInstance(worldMapTileObject);
@@ -231,9 +210,6 @@ namespace MainGame.Starter
             builder.RegisterComponent(hotBarItemView);
             builder.RegisterComponent(selectHotBarControl);
             builder.RegisterComponent(selectHotBarView);
-            builder.RegisterComponent(itemRecipeView);
-            builder.RegisterComponent(highlightRecipeViewerItem);
-            builder.RegisterComponent(gameUIHighlight);
 
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(loadingFinishDetector);
@@ -241,15 +217,10 @@ namespace MainGame.Starter
             builder.RegisterComponent(blockInventoryObjectCreator);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
-            builder.RegisterComponent(recipeViewerObject);
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(networkDisconnectPresenter);
-            builder.RegisterComponent(itemRecipePresenter);
-            builder.RegisterComponent(craftRecipeItemListViewer);
             builder.RegisterComponent(playerInventorySlots);
-            builder.RegisterComponent(questViewerObject);
-            builder.RegisterComponent(recipePlaceButton);
             builder.RegisterComponent(mapObjectGetPresenter);
 
             builder.RegisterComponent(displayEnergizedRange);
