@@ -157,8 +157,8 @@ Material:
     - _noise_offset: 0
     - _noise_strength: 1
     m_Colors:
-    - _BaseColor: {r: 0.6431373, g: 0.4117647, b: 0.12941177, a: 1}
-    - _Color: {r: 0.6431373, g: 0.41176468, b: 0.12941173, a: 1}
+    - _BaseColor: {r: 0.07190526, g: 0.4245283, b: 0, a: 1}
+    - _Color: {r: 0.07190525, g: 0.42452827, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _MainColor: {r: 0, g: 0, b: 0, a: 0}
     - _ReafColor: {r: 0.44522727, g: 0.7735849, b: 0, a: 1}

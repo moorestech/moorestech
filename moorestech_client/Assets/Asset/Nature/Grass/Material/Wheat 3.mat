@@ -29,7 +29,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2000
+  m_CustomRenderQueue: 2450
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
@@ -155,7 +155,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _MainColor: {r: 0, g: 0, b: 0, a: 0}
-    - _ReafColor: {r: 0.9150943, g: 0.28920433, b: 0.60166556, a: 1}
+    - _ReafColor: {r: 0.46576637, g: 0.6132076, b: 0.1475169, a: 1}
     - _ReafTiling: {r: 1, g: 1, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _WindVector3Strength: {r: 1, g: 0, b: 1, a: 0}
