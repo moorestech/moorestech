@@ -114,7 +114,7 @@ Material:
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
     - _Cull: 2
-    - _Cutoff: 0.5
+    - _Cutoff: 0.28
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DisableDistanse: 2
@@ -157,8 +157,8 @@ Material:
     - _noise_offset: 0
     - _noise_strength: 1
     m_Colors:
-    - _BaseColor: {r: 0, g: 0.5568628, b: 0.77254903, a: 1}
-    - _Color: {r: 0, g: 0.5568628, b: 0.77254903, a: 1}
+    - _BaseColor: {r: 0.24697402, g: 0.6981132, b: 0.40567046, a: 1}
+    - _Color: {r: 0.24697399, g: 0.6981132, b: 0.40567043, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _MainColor: {r: 0, g: 0, b: 0, a: 0}
     - _ReafColor: {r: 0.44522727, g: 0.7735849, b: 0, a: 1}
