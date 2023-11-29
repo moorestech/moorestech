@@ -2,14 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block;
-using Game.Block.Blocks.Machine;
-using Game.Block.Interface.State;
-using MainGame.Basic.UI;
 using MainGame.Network.Event;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View.SubInventory;
 using MainGame.UnityView.UI.UIObjects;
-using Newtonsoft.Json;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory.View
@@ -17,7 +13,6 @@ namespace MainGame.UnityView.UI.Inventory.View
     public class PlayerInventorySlots : MonoBehaviour
     {
         [SerializeField] private List<UIBuilderItemSlotObject> mainInventorySlots;
-        [SerializeField] private Transform subInventorySlotsParent;
         private Vector2Int _blockPosition;
 
 
