@@ -13,18 +13,18 @@ namespace MainGame.UnityView.UI.UIState
     public class BlockInventoryState : IUIState
     {
         private readonly IBlockClickDetect _blockClickDetect;
-        private readonly BlockInventoryObjectCreator _blockInventory;
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
 
         private readonly SinglePlayInterface _singlePlayInterface;
+        private readonly BlockInventoryObject _blockInventoryObject;
 
-        public BlockInventoryState(BlockInventoryObjectCreator blockInventory, IBlockClickDetect blockClickDetect, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, SinglePlayInterface singlePlayInterface)
+        public BlockInventoryState(BlockInventoryObject blockInventoryObject, IBlockClickDetect blockClickDetect, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, SinglePlayInterface singlePlayInterface)
         {
             _blockClickDetect = blockClickDetect;
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _singlePlayInterface = singlePlayInterface;
-            _blockInventory = blockInventory;
-            blockInventory.gameObject.SetActive(false);
+            _blockInventoryObject = blockInventoryObject;
+            blockInventoryObject.SetActive(false);
         }
 
         public UIStateEnum GetNext()
@@ -41,7 +41,7 @@ namespace MainGame.UnityView.UI.UIState
             OnOpenBlockInventory?.Invoke(blockPos);
 
             //UIのオブジェクトをオンにする
-            _blockInventory.gameObject.SetActive(true);
+            _blockInventoryObject.SetActive(true);
 
 
             //ブロックインベントリのビューを設定する
@@ -55,25 +55,25 @@ namespace MainGame.UnityView.UI.UIState
                 case VanillaBlockType.Chest:
                 {
                     var configParam = config.Param as ChestConfigParam;
-                    _blockInventory.SetOneSlotInventory(config.Name, configParam.ChestItemNum, blockPos);
+                    _blockInventoryObject.SetBlockInventoryType(BlockInventoryType.Chest);
                     break;
                 }
                 case VanillaBlockType.Miner:
                 {
                     var configParam = config.Param as MinerBlockConfigParam;
-                    _blockInventory.SetMinerInventory(config.Name, configParam.OutputSlot, blockPos);
+                    _blockInventoryObject.SetBlockInventoryType(BlockInventoryType.Miner);
                     break;
                 }
                 case VanillaBlockType.Generator:
                 {
                     var configParam = config.Param as PowerGeneratorConfigParam;
-                    _blockInventory.SetOneSlotInventory(config.Name, configParam.FuelSlot, blockPos);
+                    _blockInventoryObject.SetBlockInventoryType(BlockInventoryType.Generator);
                     break;
                 }
                 case VanillaBlockType.Machine:
                 {
                     var configParam = config.Param as MachineBlockConfigParam;
-                    _blockInventory.SetIOSlotInventory(config.Name, configParam.InputSlot, configParam.OutputSlot, blockPos);
+                    _blockInventoryObject.SetBlockInventoryType(BlockInventoryType.Machine);
                     break;
                 }
             }
@@ -83,7 +83,7 @@ namespace MainGame.UnityView.UI.UIState
         {
             OnCloseBlockInventory?.Invoke();
 
-            _blockInventory.gameObject.SetActive(false);
+            _blockInventoryObject.SetActive(false);
         }
 
         public event Action<Vector2Int> OnOpenBlockInventory;

@@ -1,6 +1,6 @@
 using System;
 using MainGame.UnityView.Control;
-using MainGame.UnityView.UI.Builder.Unity;
+using MainGame.UnityView.UI.UIObjects;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory.View.HotBar

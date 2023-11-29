@@ -48,10 +48,7 @@ GameObject:
   - component: {fileID: 762520133390832205}
   - component: {fileID: 762520133390832204}
   - component: {fileID: 762520133390832203}
-  - component: {fileID: 762520133390832202}
   - component: {fileID: 6613772632020395576}
-  - component: {fileID: 7529795058843344099}
-  - component: {fileID: 2604913019008930894}
   m_Layer: 5
   m_Name: PlayerInventory
   m_TagString: Untagged
@@ -168,24 +165,7 @@ MonoBehaviour:
   - {fileID: 7988319833131427117}
   - {fileID: 7988319832578898156}
   - {fileID: 7988319832242711973}
-  uiBuilder: {fileID: 762520133390832202}
   subInventorySlotsParent: {fileID: 762520132811239563}
---- !u!114 &762520133390832202
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 762520133390832207}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ff73065abd547248e25202376589be0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  UIBuilderItemSlotObjectPrefab: {fileID: 7226362693378105453, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
-  UIBuilderItemSlotArrayObjectPrefab: {fileID: 2899649785497079085, guid: 5287158464c764ccfabb8c0b5176b16e, type: 3}
-  UIBuilderTextObjectPrefab: {fileID: 1130232090119242278, guid: 6db9ac18ec3b1438689300ec3cd4d7b5, type: 3}
-  UIBuilderProgressArrowObjectPrefab: {fileID: 4614944044410549802, guid: e66aee778cb8d5d489af89f8e7c66625, type: 3}
 --- !u!114 &6613772632020395576
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -198,32 +178,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2107544fb6a94656872abd8a095603b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &7529795058843344099
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 762520133390832207}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 21b40b126a134e9d9d52dafa69dacc34, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerInventorySlots: {fileID: 762520133390832203}
---- !u!114 &2604913019008930894
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 762520133390832207}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 309a33304c8441b08440ce8ee645364f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerInventorySlots: {fileID: 762520133390832203}
 --- !u!1 &3981481942162994541
 GameObject:
   m_ObjectHideFlags: 0
@@ -355,8 +309,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -205}
-  m_SizeDelta: {x: 910, y: 500}
+  m_AnchoredPosition: {x: 550, y: 0.000015259}
+  m_SizeDelta: {x: 584.9603, y: 500}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &4657748957928752938
 MonoBehaviour:
@@ -378,7 +332,7 @@ MonoBehaviour:
   m_ChildAlignment: 4
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 100, y: 100}
+  m_CellSize: {x: 60, y: 60}
   m_Spacing: {x: 0, y: 0}
   m_Constraint: 0
   m_ConstraintCount: 2

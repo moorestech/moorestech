@@ -77,8 +77,6 @@ namespace MainGame.Starter
 
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private LoadingFinishDetector loadingFinishDetector;
-        [SerializeField] private BlockInventoryObjectCreator blockInventoryObjectCreator;
-        [SerializeField] private CraftInventoryObjectCreator craftInventoryObjectCreator;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private PlayerInventoryPresenter playerInventoryPresenter;
@@ -213,8 +211,6 @@ namespace MainGame.Starter
 
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(loadingFinishDetector);
-            builder.RegisterComponent(craftInventoryObjectCreator);
-            builder.RegisterComponent(blockInventoryObjectCreator);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
             builder.RegisterComponent(saveButton);

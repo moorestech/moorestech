@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.UnityView.UI.Builder.Unity;
 using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.Element;
+using MainGame.UnityView.UI.UIObjects;
 using UnityEngine;
 using VContainer;
 
