@@ -28,17 +28,7 @@ namespace MainGame.UnityView.UI.Inventory.View
         private void Awake()
         {
             //メインインベントリのスロットのイベント登録
-            mainInventorySlots.Select((slot, index) => new { slot, index }).ToList().ForEach(slot =>
-            {
-                slot.slot.OnRightClickDown += _ => OnRightClickDown?.Invoke(slot.index);
-                slot.slot.OnLeftClickDown += _ => OnLeftClickDown?.Invoke(slot.index);
-                slot.slot.OnRightClickUp += _ => OnRightClickUp?.Invoke(slot.index);
-                slot.slot.OnLeftClickUp += _ => OnLeftClickUp?.Invoke(slot.index);
-                slot.slot.OnCursorEnter += _ => OnCursorEnter?.Invoke(slot.index);
-                slot.slot.OnCursorExit += _ => OnCursorExit?.Invoke(slot.index);
-                slot.slot.OnCursorMove += _ => OnCursorMove?.Invoke(slot.index);
-                slot.slot.OnDoubleClick += _ => OnDoubleClick?.Invoke(slot.index);
-            });
+
         }
 
         public event Action<int> OnRightClickDown;

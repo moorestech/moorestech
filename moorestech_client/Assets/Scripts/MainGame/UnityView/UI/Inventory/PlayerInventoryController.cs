@@ -1,36 +1,83 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ClassLibrary;
 using Core.Const;
 using Core.Item;
-using Cysharp.Threading.Tasks;
+using MainGame.Basic;
 using MainGame.UnityView.Control;
+using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.UIObjects;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using UniRx;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory
 {
     public class PlayerInventoryController : MonoBehaviour
     {
+        private readonly ItemStackFactory _itemStackFactory;
+        
         [SerializeField] private List<UIBuilderItemSlotObject> mainInventorySlotObjects;
         
         private ISubInventoryController _subInventoryController;
+        private List<IDisposable> _subInventorySlotUIEventUnsubscriber = new();
 
         private LocalPlayerInventoryDataController _playerInventory;
 
 
 
-        private bool IsGrabbed => _playerInventory.GrabInventory.Id == ItemConst.EmptyItemId;
+        private bool IsGrabItem => _playerInventory.GrabInventory.Id == ItemConst.EmptyItemId;
         
         
         private bool _isItemSplitDragging;
         private bool _isItemOneDragging;
-        
-        
+
+        private void Awake()
+        {
+            foreach (var mainInventorySlotObject in mainInventorySlotObjects)
+            {
+                mainInventorySlotObject.OnUIEvent.Subscribe(ItemSlotUIEvent);
+            }
+        }
+
         public void SetSubInventory(ISubInventoryController subInventoryController)
         {
+            foreach (var disposable in _subInventorySlotUIEventUnsubscriber)
+            {
+                disposable.Dispose();
+            }
+
+            _subInventorySlotUIEventUnsubscriber.Clear();
             _subInventoryController = subInventoryController;
+            foreach (var sub in _subInventoryController.SubInventorySlotObjects)
+            {
+                _subInventorySlotUIEventUnsubscriber.Add(sub.OnUIEvent.Subscribe(ItemSlotUIEvent));
+            }
+        }
+
+        private void ItemSlotUIEvent((UIBuilderItemSlotObject slotObject,ItemUIEventType itemUIEvent) eventProperty)
+        {
+            var (slotObject, itemUIEvent) = eventProperty;
+            var index = mainInventorySlotObjects.IndexOf(slotObject);
+            if (index == -1)
+                index = _subInventoryController.SubInventorySlotObjects.IndexOf(slotObject);
+
+            if (index == -1)
+            {
+                throw new Exception("slot index not found");
+            }
+            switch (itemUIEvent)
+            {
+                case ItemUIEventType.LeftClickDown: LeftClickDown(index); break;
+                case ItemUIEventType.RightClickDown: RightClickDown(index); break;
+                case ItemUIEventType.LeftClickUp: LeftClickUp(index); break;
+                case ItemUIEventType.RightClickUp: RightClickUp(index); break;
+                case ItemUIEventType.CursorEnter: CursorEnter(index); break;
+                case ItemUIEventType.DoubleClick: DoubleClick(index); break;
+                case ItemUIEventType.CursorExit: break;
+                case ItemUIEventType.CursorMove: break;
+                default: throw new ArgumentOutOfRangeException(nameof(itemUIEvent), itemUIEvent, null);
+            }
         }
         
         
@@ -42,10 +89,20 @@ namespace MainGame.UnityView.UI.Inventory
 
 
             IItemStack collectTargetItem;
-            if (IsGrabbed)
+            LocalMoveInventoryType fromType;
+            int fromSlot;
+            if (IsGrabItem)
+            {
                 collectTargetItem = _playerInventory.GrabInventory;
+                fromType = LocalMoveInventoryType.Grab;
+                fromSlot = 0;
+            }
             else
+            {
                 collectTargetItem = _playerInventory.AllInventoryItems[slotIndex];
+                fromType = LocalMoveInventoryType.Main;
+                fromSlot = slotIndex;
+            }
             
             
             var collectTargetSotIndex = _playerInventory.AllInventoryItems.
@@ -55,11 +112,10 @@ namespace MainGame.UnityView.UI.Inventory
                 Select(i => i.index).ToList();
             
             //一つのスロットに集める場合は集める先のスロットのインデックスをターゲットから除外する
-            if (!IsGrabbed)
+            if (!IsGrabItem)
             {
                 collectTargetSotIndex.Remove(slotIndex);
             }
-            LocalMoveInventoryType
             
             
             foreach (var index in collectTargetSotIndex)
@@ -68,120 +124,128 @@ namespace MainGame.UnityView.UI.Inventory
 
                 //アイテムを何個移したのかを計算
                 var collectItemCount = _playerInventory.AllInventoryItems[index].Count - added.RemainderItemStack.Count;
-                _playerInventory.MoveItem(
+                _playerInventory.MoveItem(fromType,fromSlot,LocalMoveInventoryType.Main,index,collectItemCount);
 
                 collectTargetItem = added.ProcessResultItemStack;
+                
+                
 
                 //足したあまりがあるということはスロットにそれ以上入らないということなので、ここで処理を終了する
                 if (added.RemainderItemStack.Count != 0) break;
             }
-            
-            
         }
+
+        //現在スプリットドラッグしているスロットのリスト
+        private readonly List<ItemSplitDragSlot> _itemSplitDraggedSlots = new();
 
         private void CursorEnter(int slotIndex)
         {
             if (_isItemSplitDragging)
+            {
+                if (!_playerInventory.AllInventoryItems[slotIndex].IsAllowedToAddWithRemain(_playerInventory.GrabInventory)) return;
+
+
+                //まだスロットをドラッグしてない時
+                if (!_itemSplitDraggedSlots.Exists(i => i.Slot == slotIndex))
+                    //ドラッグ中のアイテムに設定
+                    _itemSplitDraggedSlots.Add(new ItemSplitDragSlot(slotIndex, _playerInventory.AllInventoryItems[slotIndex]));
+
+                var grabItem = _playerInventory.GrabInventory;
+
+                //1スロットあたりのアイテム数
+                var dragItemCount = grabItem.Count / _itemSplitDraggedSlots.Count;
+                //余っているアイテム数
+                var remainItemNum = grabItem.Count - dragItemCount * _itemSplitDraggedSlots.Count;
+
+                foreach (var dragSlot in _itemSplitDraggedSlots)
+                {
+                    //ドラッグ中のスロットにアイテムを加算する
+                    var addedItem = dragSlot.BeforeDragItem.AddItem(_itemStackFactory.Create(grabItem.Id, dragItemCount));
+
+                    _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.Main, dragSlot.Slot, addedItem.ProcessResultItemStack.Count);
+                    //余ったアイテムを加算する
+                    remainItemNum += addedItem.RemainderItemStack.Count;
+                }
+
+                _playerInventory.SetGrabItem(_itemStackFactory.Create(grabItem.Id, remainItemNum));
+            }else if (_isItemOneDragging)
+            {
                 //ドラッグ中の時はマウスカーソルが乗ったスロットをドラッグされたと判定する
-                ItemSplitDragSlot(slotIndex);
-            else if (_isItemOneDragging)
                 PlaceOneItem(slotIndex);
+            }
         }
 
         private void RightClickUp(int slotIndex)
         {
-            if (_isItemSplitDragging) ItemOneDragEnd();
+            if (_isItemOneDragging)  _isItemOneDragging = false;
         }
 
         private void LeftClickUp(int slotIndex)
         {
             //左クリックを離したときはドラッグ中のスロットを解除する
-            if (_isItemSplitDragging) ItemSplitDragEndSlot(slotIndex);
+            if (_isItemSplitDragging)  _isItemSplitDragging = false;
         }
 
 
         private void RightClickDown(int slotIndex)
         {
-            if (IsGrabbed)
+            if (IsGrabItem)
+            {
                 //アイテムを持っている時に右クリックするとアイテム1個だけ置く処理
                 PlaceOneItem(slotIndex);
+            }
             else
+            {
                 //アイテムを持ってない時に右クリックするとアイテムを半分とる処理
-                GrabbedHalfItem(slotIndex);
+                
+                
+                //空スロットの時はアイテムを持たない
+                var item = _playerInventory.AllInventoryItems[slotIndex];
+                if (item.Id == ItemConstant.NullItemId) return;
+
+                var halfItemCount = item.Count / 2;
+                
+                _playerInventory.MoveItem(LocalMoveInventoryType.Main,slotIndex, LocalMoveInventoryType.Grab, 0, halfItemCount);
+            }
         }
 
         private void LeftClickDown(int slotIndex)
         {
-            if (IsGrabbed)
+            if (IsGrabItem)
             {
                 //アイテムを持っている時に左クリックするとアイテムを置くもしくは置き換える処理
-                PlaceItem(slotIndex);
+                var grabItemCount = _playerInventory.GrabInventory.Count;
+                _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.Main, slotIndex, grabItemCount);
                 return;
             }
 
             if (InputManager.UI.ItemDirectMove.GetKey)
+            {
                 //シフト（デフォルト）＋クリックでメイン、サブのアイテム移動を直接やる処理
-                DirectMoveItem(slotIndex);
+                _playerInventory.DirectMoveBetweenInventory(slotIndex);
+            }
             else
+            {
+                var slotItemCount = _playerInventory.AllInventoryItems[slotIndex].Count;
                 //アイテムを持ってない時に左クリックするとアイテムを取る処理
-                GrabbedItem(slotIndex);
-        }
-
-        private void GrabbedItem(int slotIndex)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void PlaceItem(int slotIndex)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        private void CollectGrabbedItem()
-        {
-            throw new NotImplementedException();
-        }
-
-        private void CollectSlotItem(int slotIndex)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void ItemSplitDragSlot(int slotIndex)
-        {
-            
+                _playerInventory.MoveItem(LocalMoveInventoryType.Main,slotIndex, LocalMoveInventoryType.Grab, 0, slotItemCount);
+            }
         }
 
         private void PlaceOneItem(int slotIndex)
         {
-            
-        }
-
-        private void ItemOneDragEnd()
-        {
-            
-        }
-        private void ItemSplitDragEndSlot(int slotIndex)
-        {
-            throw new NotImplementedException();
-        }
-        private void GrabbedHalfItem(int slotIndex)
-        {
-            throw new NotImplementedException();
-        }
-        
-        private void DirectMoveItem(int slotIndex)
-        {
-            throw new NotImplementedException();
-        }
-
-
-
-
-        private static void MoveItem(int fromSlot,ItemMoveInventoryType fromType,int toSlot,ItemMoveInventoryType toType)
-        {
-            
+            var oneItem = _itemStackFactory.Create(_playerInventory.GrabInventory.Id, 1);
+            var currentItem = _playerInventory.AllInventoryItems[slotIndex];
+                
+            //追加できない場合はスキップ
+            if (!currentItem.IsAllowedToAdd(oneItem))  return;
+                   
+            //アイテムを追加する
+            _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.Main, slotIndex, 1);
+                
+            //Grabインベントリがなくなったらドラッグを終了する
+            if(_playerInventory.GrabInventory.Count == 0)
+                _isItemOneDragging = false;
         }
     }
 }

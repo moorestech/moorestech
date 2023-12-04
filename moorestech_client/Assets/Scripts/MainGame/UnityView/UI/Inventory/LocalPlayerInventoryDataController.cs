@@ -15,6 +15,16 @@ namespace MainGame.UnityView.UI.Inventory
         {
             
         }
+
+        public void DirectMoveBetweenInventory(int moveFromSlot)
+        {
+            
+        }
+        
+        public void SetGrabItem(IItemStack itemStack)
+        {
+            
+        }
         
         
         public LocalPlayerInventoryDataController()

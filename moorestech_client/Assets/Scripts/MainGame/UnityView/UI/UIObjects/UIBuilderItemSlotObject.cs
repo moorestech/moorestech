@@ -4,6 +4,7 @@ using MainGame.Basic.UI;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Util;
 using TMPro;
+using UniRx;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -23,7 +24,7 @@ namespace MainGame.UnityView.UI.UIObjects
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (2 == eventData.clickCount && eventData.button == PointerEventData.InputButton.Left) OnDoubleClick?.Invoke(this);
+            if (2 == eventData.clickCount && eventData.button == PointerEventData.InputButton.Left) _onUIEvent.OnNext((this,ItemUIEventType.DoubleClick));
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -31,10 +32,10 @@ namespace MainGame.UnityView.UI.UIObjects
             switch (eventData.button)
             {
                 case PointerEventData.InputButton.Left:
-                    OnLeftClickDown?.Invoke(this);
+                    _onUIEvent.OnNext((this,ItemUIEventType.LeftClickDown));
                     break;
                 case PointerEventData.InputButton.Right:
-                    OnRightClickDown?.Invoke(this);
+                    _onUIEvent.OnNext((this,ItemUIEventType.RightClickDown));
                     break;
             }
         }
@@ -42,18 +43,18 @@ namespace MainGame.UnityView.UI.UIObjects
         public void OnPointerEnter(PointerEventData eventData)
         {
             _onPointing = true;
-            OnCursorEnter?.Invoke(this);
+            _onUIEvent.OnNext((this,ItemUIEventType.CursorEnter));
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             _onPointing = false;
-            OnCursorExit?.Invoke(this);
+            _onUIEvent.OnNext((this,ItemUIEventType.CursorExit));
         }
 
         public void OnPointerMove(PointerEventData eventData)
         {
-            OnCursorMove?.Invoke(this);
+            _onUIEvent.OnNext((this,ItemUIEventType.CursorMove));
         }
 
         public void OnPointerUp(PointerEventData eventData)
@@ -61,26 +62,13 @@ namespace MainGame.UnityView.UI.UIObjects
             switch (eventData.button)
             {
                 case PointerEventData.InputButton.Left:
-                    OnLeftClickUp?.Invoke(this);
+                    _onUIEvent.OnNext((this,ItemUIEventType.LeftClickUp));
                     break;
                 case PointerEventData.InputButton.Right:
-                    OnRightClickUp?.Invoke(this);
+                    _onUIEvent.OnNext((this,ItemUIEventType.RightClickUp));
                     break;
             }
         }
-
-
-        public event Action<UIBuilderItemSlotObject> OnRightClickDown;
-        public event Action<UIBuilderItemSlotObject> OnLeftClickDown;
-
-        public event Action<UIBuilderItemSlotObject> OnRightClickUp;
-        public event Action<UIBuilderItemSlotObject> OnLeftClickUp;
-        public event Action<UIBuilderItemSlotObject> OnCursorEnter;
-        public event Action<UIBuilderItemSlotObject> OnCursorExit;
-        public event Action<UIBuilderItemSlotObject> OnDoubleClick;
-        public event Action<UIBuilderItemSlotObject> OnCursorMove;
-
-
         public void SetItem(ItemViewData itemView, int count)
         {
             ItemViewData = itemView;
@@ -99,9 +87,26 @@ namespace MainGame.UnityView.UI.UIObjects
             }
         }
 
+        public IObservable<(UIBuilderItemSlotObject,ItemUIEventType)> OnUIEvent => _onUIEvent;
+        private readonly Subject<(UIBuilderItemSlotObject,ItemUIEventType)> _onUIEvent = new();
+
         public RectTransformReadonlyData GetRectTransformData()
         {
             return new RectTransformReadonlyData(transform as RectTransform);
         }
+    }
+
+    public enum ItemUIEventType
+    {
+        RightClickDown,
+        LeftClickDown,
+        RightClickUp,
+        LeftClickUp,
+        
+        CursorEnter,
+        CursorExit,
+        
+        DoubleClick,
+        CursorMove,
     }
 }
