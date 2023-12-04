@@ -49,6 +49,7 @@ namespace MainGame.UnityView.UI.Inventory
 
             _subInventorySlotUIEventUnsubscriber.Clear();
             _subInventoryController = subInventoryController;
+            _playerInventory.SetSubItem(subInventoryController);
             foreach (var sub in _subInventoryController.SubInventorySlotObjects)
             {
                 _subInventorySlotUIEventUnsubscriber.Add(sub.OnUIEvent.Subscribe(ItemSlotUIEvent));
@@ -99,13 +100,13 @@ namespace MainGame.UnityView.UI.Inventory
             }
             else
             {
-                collectTargetItem = _playerInventory.AllInventoryItems[slotIndex];
+                collectTargetItem = _playerInventory.InventoryItems[slotIndex];
                 fromType = LocalMoveInventoryType.Main;
                 fromSlot = slotIndex;
             }
             
             
-            var collectTargetSotIndex = _playerInventory.AllInventoryItems.
+            var collectTargetSotIndex = _playerInventory.InventoryItems.
                 Select((item, index) => new { item, index }).
                 Where(i => i.item.Id == collectTargetItem.Id).
                 OrderBy(i => i.item.Count).
@@ -120,10 +121,10 @@ namespace MainGame.UnityView.UI.Inventory
             
             foreach (var index in collectTargetSotIndex)
             {
-                var added = collectTargetItem.AddItem(_playerInventory.AllInventoryItems[index]);
+                var added = collectTargetItem.AddItem(_playerInventory.InventoryItems[index]);
 
                 //アイテムを何個移したのかを計算
-                var collectItemCount = _playerInventory.AllInventoryItems[index].Count - added.RemainderItemStack.Count;
+                var collectItemCount = _playerInventory.InventoryItems[index].Count - added.RemainderItemStack.Count;
                 _playerInventory.MoveItem(fromType,fromSlot,LocalMoveInventoryType.Main,index,collectItemCount);
 
                 collectTargetItem = added.ProcessResultItemStack;
@@ -142,13 +143,13 @@ namespace MainGame.UnityView.UI.Inventory
         {
             if (_isItemSplitDragging)
             {
-                if (!_playerInventory.AllInventoryItems[slotIndex].IsAllowedToAddWithRemain(_playerInventory.GrabInventory)) return;
+                if (!_playerInventory.InventoryItems[slotIndex].IsAllowedToAddWithRemain(_playerInventory.GrabInventory)) return;
 
 
                 //まだスロットをドラッグしてない時
                 if (!_itemSplitDraggedSlots.Exists(i => i.Slot == slotIndex))
                     //ドラッグ中のアイテムに設定
-                    _itemSplitDraggedSlots.Add(new ItemSplitDragSlot(slotIndex, _playerInventory.AllInventoryItems[slotIndex]));
+                    _itemSplitDraggedSlots.Add(new ItemSplitDragSlot(slotIndex, _playerInventory.InventoryItems[slotIndex]));
 
                 var grabItem = _playerInventory.GrabInventory;
 
@@ -200,7 +201,7 @@ namespace MainGame.UnityView.UI.Inventory
                 
                 
                 //空スロットの時はアイテムを持たない
-                var item = _playerInventory.AllInventoryItems[slotIndex];
+                var item = _playerInventory.InventoryItems[slotIndex];
                 if (item.Id == ItemConstant.NullItemId) return;
 
                 var halfItemCount = item.Count / 2;
@@ -226,7 +227,7 @@ namespace MainGame.UnityView.UI.Inventory
             }
             else
             {
-                var slotItemCount = _playerInventory.AllInventoryItems[slotIndex].Count;
+                var slotItemCount = _playerInventory.InventoryItems[slotIndex].Count;
                 //アイテムを持ってない時に左クリックするとアイテムを取る処理
                 _playerInventory.MoveItem(LocalMoveInventoryType.Main,slotIndex, LocalMoveInventoryType.Grab, 0, slotItemCount);
             }
@@ -235,7 +236,7 @@ namespace MainGame.UnityView.UI.Inventory
         private void PlaceOneItem(int slotIndex)
         {
             var oneItem = _itemStackFactory.Create(_playerInventory.GrabInventory.Id, 1);
-            var currentItem = _playerInventory.AllInventoryItems[slotIndex];
+            var currentItem = _playerInventory.InventoryItems[slotIndex];
                 
             //追加できない場合はスキップ
             if (!currentItem.IsAllowedToAdd(oneItem))  return;
