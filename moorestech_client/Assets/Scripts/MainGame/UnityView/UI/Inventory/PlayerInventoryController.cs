@@ -13,6 +13,9 @@ using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory
 {
+    /// <summary>
+    /// TODO フラグ管理をステートベースに変換する
+    /// </summary>
     public class PlayerInventoryController : MonoBehaviour
     {
         private readonly ItemStackFactory _itemStackFactory;
@@ -136,39 +139,12 @@ namespace MainGame.UnityView.UI.Inventory
             }
         }
 
-        //現在スプリットドラッグしているスロットのリスト
-        private readonly List<ItemSplitDragSlot> _itemSplitDraggedSlots = new();
 
         private void CursorEnter(int slotIndex)
         {
             if (_isItemSplitDragging)
             {
-                if (!_playerInventory.InventoryItems[slotIndex].IsAllowedToAddWithRemain(_playerInventory.GrabInventory)) return;
-
-
-                //まだスロットをドラッグしてない時
-                if (!_itemSplitDraggedSlots.Exists(i => i.Slot == slotIndex))
-                    //ドラッグ中のアイテムに設定
-                    _itemSplitDraggedSlots.Add(new ItemSplitDragSlot(slotIndex, _playerInventory.InventoryItems[slotIndex]));
-
-                var grabItem = _playerInventory.GrabInventory;
-
-                //1スロットあたりのアイテム数
-                var dragItemCount = grabItem.Count / _itemSplitDraggedSlots.Count;
-                //余っているアイテム数
-                var remainItemNum = grabItem.Count - dragItemCount * _itemSplitDraggedSlots.Count;
-
-                foreach (var dragSlot in _itemSplitDraggedSlots)
-                {
-                    //ドラッグ中のスロットにアイテムを加算する
-                    var addedItem = dragSlot.BeforeDragItem.AddItem(_itemStackFactory.Create(grabItem.Id, dragItemCount));
-
-                    _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.Main, dragSlot.Slot, addedItem.ProcessResultItemStack.Count);
-                    //余ったアイテムを加算する
-                    remainItemNum += addedItem.RemainderItemStack.Count;
-                }
-
-                _playerInventory.SetGrabItem(_itemStackFactory.Create(grabItem.Id, remainItemNum));
+                SplitDraggingItem(slotIndex,true);
             }else if (_isItemOneDragging)
             {
                 //ドラッグ中の時はマウスカーソルが乗ったスロットをドラッグされたと判定する
@@ -184,7 +160,12 @@ namespace MainGame.UnityView.UI.Inventory
         private void LeftClickUp(int slotIndex)
         {
             //左クリックを離したときはドラッグ中のスロットを解除する
-            if (_isItemSplitDragging)  _isItemSplitDragging = false;
+            if (_isItemSplitDragging)
+            {
+                SplitDraggingItem(slotIndex,true);
+                _itemSplitDraggedSlots.Clear();
+                _isItemSplitDragging = false;
+            }
         }
 
 
@@ -194,6 +175,7 @@ namespace MainGame.UnityView.UI.Inventory
             {
                 //アイテムを持っている時に右クリックするとアイテム1個だけ置く処理
                 PlaceOneItem(slotIndex);
+                _isItemOneDragging = true;
             }
             else
             {
@@ -215,8 +197,9 @@ namespace MainGame.UnityView.UI.Inventory
             if (IsGrabItem)
             {
                 //アイテムを持っている時に左クリックするとアイテムを置くもしくは置き換える処理
-                var grabItemCount = _playerInventory.GrabInventory.Count;
-                _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.Main, slotIndex, grabItemCount);
+                _isItemSplitDragging = true;
+                _grabInventoryBeforeDrag = _playerInventory.GrabInventory;
+                SplitDraggingItem(slotIndex,false);
                 return;
             }
 
@@ -232,6 +215,10 @@ namespace MainGame.UnityView.UI.Inventory
                 _playerInventory.MoveItem(LocalMoveInventoryType.Main,slotIndex, LocalMoveInventoryType.Grab, 0, slotItemCount);
             }
         }
+        
+        
+        
+        
 
         private void PlaceOneItem(int slotIndex)
         {
@@ -247,6 +234,43 @@ namespace MainGame.UnityView.UI.Inventory
             //Grabインベントリがなくなったらドラッグを終了する
             if(_playerInventory.GrabInventory.Count == 0)
                 _isItemOneDragging = false;
+        }
+
+        //現在スプリットドラッグしているスロットのリスト
+        private readonly List<ItemSplitDragSlot> _itemSplitDraggedSlots = new();
+        //ドラッグ中のアイテムをドラッグする前のGrabインベントリ
+        private IItemStack _grabInventoryBeforeDrag;
+        private void SplitDraggingItem(int slotIndex,bool isMoveSendData)
+        {
+            if (!_playerInventory.InventoryItems[slotIndex].IsAllowedToAddWithRemain(_playerInventory.GrabInventory)) return;
+
+            //まだスロットをドラッグしてない時
+            if (!_itemSplitDraggedSlots.Exists(i => i.Slot == slotIndex))
+                //ドラッグ中のアイテムに設定
+                _itemSplitDraggedSlots.Add(new ItemSplitDragSlot(slotIndex, _playerInventory.InventoryItems[slotIndex]));
+                
+            //一度Grabインベントリをリセットする
+            _playerInventory.SetGrabItem(_grabInventoryBeforeDrag);
+            var grabItem = _grabInventoryBeforeDrag;
+
+            //1スロットあたりのアイテム数
+            var dragItemCount = grabItem.Count / _itemSplitDraggedSlots.Count;
+            //余っているアイテム数
+            var remainItemNum = grabItem.Count - dragItemCount * _itemSplitDraggedSlots.Count;
+
+            foreach (var dragSlot in _itemSplitDraggedSlots)
+            {
+                //ドラッグ中のスロットにアイテムを加算する
+                var addedItem = dragSlot.BeforeDragItem.AddItem(_itemStackFactory.Create(grabItem.Id, dragItemCount));
+
+                _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.Main, dragSlot.Slot, addedItem.ProcessResultItemStack.Count,isMoveSendData);
+                //余ったアイテムを加算する
+                remainItemNum += addedItem.RemainderItemStack.Count;
+            }
+
+            //あまりのアイテムをGrabインベントリに設定する
+            _playerInventory.SetGrabItem(_itemStackFactory.Create(grabItem.Id, remainItemNum));
+
         }
     }
 }
