@@ -104,7 +104,7 @@ namespace MainGame.UnityView.UI.Inventory
             else
             {
                 collectTargetItem = _playerInventory.InventoryItems[slotIndex];
-                fromType = LocalMoveInventoryType.Main;
+                fromType = LocalMoveInventoryType.MainOrSub;
                 fromSlot = slotIndex;
             }
             
@@ -128,7 +128,7 @@ namespace MainGame.UnityView.UI.Inventory
 
                 //アイテムを何個移したのかを計算
                 var collectItemCount = _playerInventory.InventoryItems[index].Count - added.RemainderItemStack.Count;
-                _playerInventory.MoveItem(fromType,fromSlot,LocalMoveInventoryType.Main,index,collectItemCount);
+                _playerInventory.MoveItem(fromType,fromSlot,LocalMoveInventoryType.MainOrSub,index,collectItemCount);
 
                 collectTargetItem = added.ProcessResultItemStack;
                 
@@ -188,7 +188,7 @@ namespace MainGame.UnityView.UI.Inventory
 
                 var halfItemCount = item.Count / 2;
                 
-                _playerInventory.MoveItem(LocalMoveInventoryType.Main,slotIndex, LocalMoveInventoryType.Grab, 0, halfItemCount);
+                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub,slotIndex, LocalMoveInventoryType.Grab, 0, halfItemCount);
             }
         }
 
@@ -206,13 +206,13 @@ namespace MainGame.UnityView.UI.Inventory
             if (InputManager.UI.ItemDirectMove.GetKey)
             {
                 //シフト（デフォルト）＋クリックでメイン、サブのアイテム移動を直接やる処理
-                _playerInventory.DirectMoveBetweenInventory(slotIndex);
+                DirectMove(slotIndex);
             }
             else
             {
                 var slotItemCount = _playerInventory.InventoryItems[slotIndex].Count;
                 //アイテムを持ってない時に左クリックするとアイテムを取る処理
-                _playerInventory.MoveItem(LocalMoveInventoryType.Main,slotIndex, LocalMoveInventoryType.Grab, 0, slotItemCount);
+                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub,slotIndex, LocalMoveInventoryType.Grab, 0, slotItemCount);
             }
         }
         
@@ -229,7 +229,7 @@ namespace MainGame.UnityView.UI.Inventory
             if (!currentItem.IsAllowedToAdd(oneItem))  return;
                    
             //アイテムを追加する
-            _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.Main, slotIndex, 1);
+            _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.MainOrSub, slotIndex, 1);
                 
             //Grabインベントリがなくなったらドラッグを終了する
             if(_playerInventory.GrabInventory.Count == 0)
@@ -263,7 +263,7 @@ namespace MainGame.UnityView.UI.Inventory
                 //ドラッグ中のスロットにアイテムを加算する
                 var addedItem = dragSlot.BeforeDragItem.AddItem(_itemStackFactory.Create(grabItem.Id, dragItemCount));
 
-                _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.Main, dragSlot.Slot, addedItem.ProcessResultItemStack.Count,isMoveSendData);
+                _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.MainOrSub, dragSlot.Slot, addedItem.ProcessResultItemStack.Count,isMoveSendData);
                 //余ったアイテムを加算する
                 remainItemNum += addedItem.RemainderItemStack.Count;
             }
@@ -271,6 +271,22 @@ namespace MainGame.UnityView.UI.Inventory
             //あまりのアイテムをGrabインベントリに設定する
             _playerInventory.SetGrabItem(_itemStackFactory.Create(grabItem.Id, remainItemNum));
 
+        }
+
+
+        private void DirectMove(int slotIndex)
+        {
+             //そのスロットがメインインベントリかサブインベントリを判定する
+             var isMain = slotIndex < PlayerInventoryConstant.MainInventorySize;
+             
+             var startIndex = isMain ? 0 : PlayerInventoryConstant.MainInventorySize;
+             var endIndex = isMain ? PlayerInventoryConstant.MainInventorySize : PlayerInventoryConstant.MainInventorySize + _subInventoryController.SubInventorySlotCount;
+             for (int i = startIndex; i < endIndex; i++)
+             {
+                 _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub,slotIndex,LocalMoveInventoryType.MainOrSub, i, _playerInventory.InventoryItems[slotIndex].Count);
+                 //アイテムがなくなったら終了する
+                 if (_playerInventory.InventoryItems[slotIndex].Count == 0) break;
+             }
         }
     }
 }

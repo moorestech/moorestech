@@ -21,7 +21,6 @@ namespace MainGame.UnityView.UI.Inventory
             return GetEnumerator();
         }
         
-        
 
 
         public IItemStack this[int index]
