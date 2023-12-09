@@ -7,7 +7,7 @@ using Game.Block.Interface.BlockConfig;
 using Game.PlayerInventory.Interface;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Chunk;
-using MainGame.UnityView.UI.Inventory.Control;
+using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
 using SinglePlay;
@@ -28,20 +28,20 @@ namespace MainGame.Extension
         private IBlockConfig _blockConfig;
         private ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private ItemIdToBlockId _itemIdToBlockId;
-        private PlayerInventoryViewModel _playerInventoryViewModel;
+        private IInventoryItems _inventoryItems;
         private SelectHotBarControl _selectHotBarControl;
 
 
         private bool isBlockPlaceState;
 
         [Inject]
-        public void Construct(SinglePlayInterface singlePlayInterface, PlayerInventoryViewModel playerInventoryViewModel, SelectHotBarControl selectHotBarControl, UIStateControl uiStateControl, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
+        public void Construct(SinglePlayInterface singlePlayInterface, SelectHotBarControl selectHotBarControl, UIStateControl uiStateControl, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,IInventoryItems inventoryItems)
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _blockConfig = singlePlayInterface.BlockConfig;
             _itemIdToBlockId = singlePlayInterface.ItemIdToBlockId;
 
-            _playerInventoryViewModel = playerInventoryViewModel;
+            _inventoryItems = inventoryItems;
             _selectHotBarControl = selectHotBarControl;
 
             selectHotBarControl.OnSelectHotBar += OnSelectHotBar;
@@ -108,7 +108,7 @@ namespace MainGame.Extension
         private (bool isElectricalBlock, bool isPole) IsDisplay()
         {
             var hotBarSlot = _selectHotBarControl.SelectIndex;
-            var id = _playerInventoryViewModel[PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot)].Id;
+            var id = _inventoryItems[PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot)].Id;
 
             if (id == ItemConst.EmptyItemId) return (false, false);
             if (!_itemIdToBlockId.CanConvert(id)) return (false, false);

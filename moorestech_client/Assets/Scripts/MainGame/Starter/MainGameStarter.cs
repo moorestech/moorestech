@@ -15,11 +15,9 @@ using MainGame.Presenter.Block;
 using MainGame.Presenter.Command;
 using MainGame.Presenter.Entity;
 using MainGame.Presenter.Inventory;
-using MainGame.Presenter.Inventory.Receive;
 using MainGame.Presenter.Inventory.Send;
 using MainGame.Presenter.Loading;
 using MainGame.Presenter.MapObject;
-using MainGame.Presenter.Mission;
 using MainGame.Presenter.PauseMenu;
 using MainGame.Presenter.Player;
 using MainGame.UnityView.Block;
@@ -27,9 +25,7 @@ using MainGame.UnityView.Block.StateChange;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.Game;
-using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.Element;
-using MainGame.UnityView.UI.Inventory.View;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.UI.UIState.UIObject;
@@ -72,15 +68,12 @@ namespace MainGame.Starter
         [SerializeField] private SelectHotBarView selectHotBarView;
         [SerializeField] private MapObjectGetPresenter mapObjectGetPresenter;
 
-        [SerializeField] private GrabbedItemImagePresenter grabbedItemImagePresenter;
         [SerializeField] private EntitiesPresenter entitiesPresenter;
 
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private LoadingFinishDetector loadingFinishDetector;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
-        [SerializeField] private PlayerInventoryPresenter playerInventoryPresenter;
-        [SerializeField] private PlayerInventorySlots playerInventorySlots;
 
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
@@ -90,9 +83,7 @@ namespace MainGame.Starter
 
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange;
 
-        [SerializeField] private PlayerInventorySlotsInputControl playerInventorySlotsInputControl;
 
-        [SerializeField] private MissionPresenter missionPresenter;
 
 
         private IObjectResolver _resolver;
@@ -154,19 +145,13 @@ namespace MainGame.Starter
             builder.Register<SendGetMapObjectProtocolProtocol>(Lifetime.Singleton);
 
             //インベントリのUIコントロール
-            builder.Register<PlayerInventoryViewModel>(Lifetime.Singleton);
-            builder.Register<PlayerInventoryViewModelController>(Lifetime.Singleton);
             builder.Register<SubInventoryTypeProvider>(Lifetime.Singleton);
-            builder.RegisterComponent(playerInventorySlotsInputControl);
-            builder.RegisterComponent(playerInventoryPresenter);
 
             //プレゼンターアセンブリ
             builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<ChunkDataPresenter>();
             builder.RegisterEntryPoint<WorldMapTilePresenter>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
-            builder.Register<MainInventoryViewPresenter>(Lifetime.Singleton);
-            builder.RegisterEntryPoint<BlockInventoryViewPresenter>();
             builder.RegisterEntryPoint<BlockInventoryRequestPacketSend>();
             builder.RegisterEntryPoint<PlayerInventoryRequestPacketSend>();
             builder.RegisterEntryPoint<PlayerInventoryMoveItemPacketSend>();
@@ -203,7 +188,6 @@ namespace MainGame.Starter
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(groundPlane);
             builder.RegisterComponent(detectGroundClickToSendBlockPlacePacket);
-            builder.RegisterComponent(grabbedItemImagePresenter);
             builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarItemView);
             builder.RegisterComponent(selectHotBarControl);
@@ -216,7 +200,6 @@ namespace MainGame.Starter
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(networkDisconnectPresenter);
-            builder.RegisterComponent(playerInventorySlots);
             builder.RegisterComponent(mapObjectGetPresenter);
 
             builder.RegisterComponent(displayEnergizedRange);
@@ -242,8 +225,6 @@ namespace MainGame.Starter
             _resolver.Resolve<EntitiesPresenter>();
             _resolver.Resolve<ConnectionServer>();
             _resolver.Resolve<NetworkDisconnectPresenter>();
-
-            missionPresenter.Initialize(_resolver);
         }
 
         protected override void OnDestroy()

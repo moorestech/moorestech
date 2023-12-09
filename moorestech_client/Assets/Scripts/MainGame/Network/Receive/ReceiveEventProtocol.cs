@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using Core.Item;
 using MainGame.Network.Event;
 using MainGame.Network.Receive.EventPacket;
+using MainGame.UnityView.UI.Inventory;
 using MessagePack;
 using Server.Event.EventReceive;
 
@@ -11,13 +13,14 @@ namespace MainGame.Network.Receive
         private readonly Dictionary<string, IAnalysisEventPacket> _eventPacket = new();
 
         //TODO ここはDIコンテナを渡すほうがいいのでは
-        public ReceiveEventProtocol(ReceiveChunkDataEvent receiveChunkDataEvent, ReceiveMainInventoryEvent receiveMainInventoryEvent, ReceiveBlockInventoryEvent receiveBlockInventoryEvent, ReceiveGrabInventoryEvent receiveGrabInventoryEvent, ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent, ReceiveUpdateMapObjectEvent receiveUpdateMapObjectEvent)
+        public ReceiveEventProtocol(ReceiveChunkDataEvent receiveChunkDataEvent,  ReceiveBlockInventoryEvent receiveBlockInventoryEvent, ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent, ReceiveUpdateMapObjectEvent receiveUpdateMapObjectEvent,
+            LocalPlayerInventoryDataController localPlayerInventoryDataController, ItemStackFactory itemStackFactory,InventoryMainAndSubCombineItems inventoryMainAndSubCombineItems)
         {
             _eventPacket.Add(PlaceBlockToSetEventPacket.EventTag, new BlockPlaceEventProtocol(receiveChunkDataEvent));
-            _eventPacket.Add(MainInventoryUpdateToSetEventPacket.EventTag, new MainInventorySlotEventProtocol(receiveMainInventoryEvent));
+            _eventPacket.Add(MainInventoryUpdateToSetEventPacket.EventTag, new MainInventorySlotEventProtocol(itemStackFactory,inventoryMainAndSubCombineItems));
             _eventPacket.Add(OpenableBlockInventoryUpdateToSetEventPacket.EventTag, new BlockInventorySlotUpdateEventProtocol(receiveBlockInventoryEvent));
             _eventPacket.Add(RemoveBlockToSetEventPacket.EventTag, new BlockRemoveEventProtocol(receiveChunkDataEvent));
-            _eventPacket.Add(GrabInventoryUpdateToSetEventPacket.EventTag, new GrabInventoryUpdateEventProtocol(receiveGrabInventoryEvent));
+            _eventPacket.Add(GrabInventoryUpdateToSetEventPacket.EventTag, new GrabInventoryUpdateEventProtocol(localPlayerInventoryDataController,itemStackFactory));
             _eventPacket.Add(ChangeBlockStateEventPacket.EventTag, new BlockStateChangeEventProtocol(receiveBlockStateChangeEvent));
             _eventPacket.Add(MapObjectUpdateEventPacket.EventTag, new MapObjectUpdateEventProtocol(receiveUpdateMapObjectEvent));
         }

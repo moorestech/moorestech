@@ -2,20 +2,32 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Core.Item;
+using Core.Item.Config;
 using Core.Item.Util;
+using MainGame.Network.Send;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 
 namespace MainGame.UnityView.UI.Inventory
 {
-    //名前変えたい
+    //TODO 名前変えたい
     public class LocalPlayerInventoryDataController
     {
-        private readonly ItemStackFactory _itemStackFactory;
-        
         public IInventoryItems InventoryItems => _mainAndSubCombineItems;
         private readonly InventoryMainAndSubCombineItems _mainAndSubCombineItems;
-        
         public IItemStack GrabInventory { get; private set; }
+
+        
+        
+        
+        private readonly ItemStackFactory _itemStackFactory;
+        private readonly InventoryMoveItemProtocol _inventoryMoveItemProtocol;
+        
+        public LocalPlayerInventoryDataController(ItemStackFactory itemStackFactory,IItemConfig itemConfig,InventoryMoveItemProtocol inventoryMoveItemProtocol)
+        {
+            _mainAndSubCombineItems = new InventoryMainAndSubCombineItems(itemStackFactory,itemConfig);
+            _itemStackFactory = itemStackFactory;
+            _inventoryMoveItemProtocol = inventoryMoveItemProtocol;
+        }
 
         public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count,bool isMoveSendData = true)
         {
@@ -53,6 +65,13 @@ namespace MainGame.UnityView.UI.Inventory
             {
                 _mainAndSubCombineItems[fromSlot] = add.RemainderItemStack;
             }
+
+            
+            
+            if (isMoveSendData)
+            {
+                _inventoryMoveItemProtocol.Send(count, ItemMoveType.InsertSlot, new FromItemMoveInventoryInfo(from, fromSlot), new ToItemMoveInventoryInfo(to, toSlot));
+            }
         }
         
         public void SetGrabItem(IItemStack itemStack)
@@ -61,14 +80,10 @@ namespace MainGame.UnityView.UI.Inventory
         }
         
         
-        public LocalPlayerInventoryDataController()
-        {
-            _mainAndSubCombineItems = new InventoryMainAndSubCombineItems();
-        }
 
-        public void SetSubItem(ISubInventoryController subInventoryController)
+        public void SetSubItem(ISubInventory subInventory)
         {
-            
+            _mainAndSubCombineItems.SetSubInventory(subInventory.SubInventory);
         }
     }
 

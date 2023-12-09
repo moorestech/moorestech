@@ -13,15 +13,13 @@ namespace MainGame.Presenter.Block
         private readonly IBlockConfig _blockConfig;
 
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
-        private readonly PlayerInventorySlots _playerInventorySlots;
 
         private readonly ReceiveBlockStateChangeEvent _receiveBlockStateChangeEvent;
 
 
-        public BlockStateChangePresenter(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent, PlayerInventorySlots playerInventorySlots, SinglePlayInterface singlePlayInterface)
+        public BlockStateChangePresenter(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent, SinglePlayInterface singlePlayInterface)
         {
             _blockConfig = singlePlayInterface.BlockConfig;
-            _playerInventorySlots = playerInventorySlots;
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _receiveBlockStateChangeEvent = receiveBlockStateChangeEvent;
             _receiveBlockStateChangeEvent.OnStateChange += OnStateChange;
@@ -45,7 +43,6 @@ namespace MainGame.Presenter.Block
 
                 var blockConfig = _blockConfig.GetBlockConfig(blockObject.BlockId);
 
-                _playerInventorySlots.SetBlockState(stateChangeProperties, blockConfig.Type, pos);
             }
         }
     }

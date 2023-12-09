@@ -1,6 +1,5 @@
 using MainGame.Basic;
 using MainGame.Network.Send;
-using MainGame.UnityView.UI.Inventory.Control;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using VContainer.Unity;
 
@@ -12,12 +11,8 @@ namespace MainGame.Presenter.Inventory.Send
         private readonly SubInventoryTypeProvider _subInventoryTypeProvider;
 
 
-        public PlayerInventoryMoveItemPacketSend(PlayerInventoryViewModelController playerInventoryViewModelController, InventoryMoveItemProtocol inventoryMoveItem, SubInventoryTypeProvider subInventoryTypeProvider)
+        public PlayerInventoryMoveItemPacketSend(InventoryMoveItemProtocol inventoryMoveItem, SubInventoryTypeProvider subInventoryTypeProvider)
         {
-            playerInventoryViewModelController.OnItemSlotGrabbed += ItemSlotGrabbed;
-            playerInventoryViewModelController.OnItemSlotCollect += ItemSlotGrabbed;
-            playerInventoryViewModelController.OnGrabItemReplaced += ItemSlotGrabbed;
-            playerInventoryViewModelController.OnItemSlotAdded += ItemSlotAdded;
             _inventoryMoveItem = inventoryMoveItem;
             _subInventoryTypeProvider = subInventoryTypeProvider;
         }

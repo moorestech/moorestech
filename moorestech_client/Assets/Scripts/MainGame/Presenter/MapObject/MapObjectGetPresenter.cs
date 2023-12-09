@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System.Linq;
+using System.Threading;
+using Core.Item.Config;
 using Cysharp.Threading.Tasks;
 using Game.MapObject.Interface;
 using MainGame.Basic;
@@ -7,7 +9,6 @@ using MainGame.UnityView.Control;
 using MainGame.UnityView.MapObject;
 using MainGame.UnityView.SoundEffect;
 using MainGame.UnityView.UI.Inventory;
-using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.Util;
 using UnityEngine;
@@ -26,16 +27,16 @@ namespace MainGame.Presenter.MapObject
         private CancellationToken _gameObjectCancellationToken;
         private CancellationTokenSource _miningCancellationTokenSource = new();
 
-        private PlayerInventoryViewModel _playerInventoryViewModel;
+        private IInventoryItems _inventoryItems;
         private SendGetMapObjectProtocolProtocol _sendGetMapObjectProtocolProtocol;
         private UIStateControl _uiStateControl;
 
         [Inject]
-        public void Constructor(UIStateControl uiStateControl, SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol, PlayerInventoryViewModel playerInventoryViewModel)
+        public void Constructor(UIStateControl uiStateControl, SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol, IInventoryItems inventoryItems)
         {
             _uiStateControl = uiStateControl;
             _sendGetMapObjectProtocolProtocol = sendGetMapObjectProtocolProtocol;
-            _playerInventoryViewModel = playerInventoryViewModel;
+            _inventoryItems = inventoryItems;
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
 
             WhileUpdate().Forget();
@@ -63,7 +64,7 @@ namespace MainGame.Presenter.MapObject
             _miningCancellationTokenSource.Cancel();
             _miningCancellationTokenSource = new CancellationTokenSource();
 
-            var miningTime = GetMiningTime(forcesMapObject.MapObjectType, _playerInventoryViewModel);
+            var miningTime = GetMiningTime(forcesMapObject.MapObjectType);
 
             //マイニングバーのUIを表示するやつを設定
             miningObjectProgressbarPresenter.StartMining(miningTime, _miningCancellationTokenSource.Token).Forget();
@@ -138,12 +139,12 @@ namespace MainGame.Presenter.MapObject
         ///     採掘時間を取得する
         ///     採掘アイテムがインベントリにあれば早くなる
         /// </summary>
-        private static float GetMiningTime(string mapObjectType, PlayerInventoryViewModel playerInv)
+        private float GetMiningTime(string mapObjectType)
         {
-            var isStoneTool = playerInv.IsItemExist(AlphaMod.ModId, "stone tool");
-            var isStoneAx = playerInv.IsItemExist(AlphaMod.ModId, "stone ax");
-            var isIronAx = playerInv.IsItemExist(AlphaMod.ModId, "iron ax");
-            var isIronPickaxe = playerInv.IsItemExist(AlphaMod.ModId, "iron pickaxe");
+            var isStoneTool = _inventoryItems.IsItemExist(AlphaMod.ModId, "stone tool");
+            var isStoneAx = _inventoryItems.IsItemExist(AlphaMod.ModId, "stone ax");
+            var isIronAx = _inventoryItems.IsItemExist(AlphaMod.ModId, "iron ax");
+            var isIronPickaxe = _inventoryItems.IsItemExist(AlphaMod.ModId, "iron pickaxe");
 
             switch (mapObjectType)
             {

@@ -1,9 +1,13 @@
 ﻿using System.Collections.Generic;
+using Core.Item;
+using Core.Item.Config;
 using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.Network.Event;
+using MainGame.UnityView.UI.Inventory;
 using MessagePack;
 using Server.Protocol.PacketResponse;
+using SinglePlay;
 
 namespace MainGame.Network.Receive
 {
@@ -12,14 +16,19 @@ namespace MainGame.Network.Receive
     /// </summary>
     public class ReceivePlayerInventoryProtocol : IAnalysisPacket
     {
-        private readonly ReceiveGrabInventoryEvent receiveGrabInventoryEvent;
-        private readonly ReceiveMainInventoryEvent receiveMainInventoryEvent;
+        private readonly InventoryMainAndSubCombineItems _inventoryMainAndSubCombineItems;
+        private readonly LocalPlayerInventoryDataController _localPlayerInventoryDataController;
+        
+        private readonly ItemStackFactory _itemStackFactory;
 
-        public ReceivePlayerInventoryProtocol(ReceiveMainInventoryEvent receiveMainInventoryEvent, ReceiveGrabInventoryEvent receiveGrabInventoryEvent)
+        public ReceivePlayerInventoryProtocol(ItemStackFactory itemStackFactory, LocalPlayerInventoryDataController localPlayerInventoryDataController)
         {
-            this.receiveMainInventoryEvent = receiveMainInventoryEvent;
-            this.receiveGrabInventoryEvent = receiveGrabInventoryEvent;
+            _itemStackFactory = itemStackFactory;
+            _localPlayerInventoryDataController = localPlayerInventoryDataController;
+            _inventoryMainAndSubCombineItems = localPlayerInventoryDataController.InventoryItems as InventoryMainAndSubCombineItems;
         }
+        
+        
 
 
         public void Analysis(List<byte> packet)
@@ -33,18 +42,10 @@ namespace MainGame.Network.Receive
             {
                 var item = data.Main[i];
                 mainItems.Add(new ItemStack(item.Id, item.Count));
+                _inventoryMainAndSubCombineItems[i] = _itemStackFactory.Create(item.Id, item.Count);
             }
-
-            receiveMainInventoryEvent.InvokeMainInventoryUpdate(
-                new MainInventoryUpdateProperties(
-                    data.PlayerId,
-                    mainItems)).Forget();
-
-
-            //grab inventory items
-            var grabItem = new ItemStack(data.Grab.Id, data.Grab.Count);
-            receiveGrabInventoryEvent.OnGrabInventoryUpdateEventInvoke(new GrabInventoryUpdateEventProperties(grabItem)).Forget();
-
+            
+            _localPlayerInventoryDataController.SetGrabItem( _itemStackFactory.Create(data.Grab.Id, data.Grab.Count));
         }
     }
 }

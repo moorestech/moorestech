@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using MainGame.Basic;
-using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.UIObjects;
 using UnityEngine;
@@ -17,14 +16,15 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
 
 
         [Inject]
-        public void Construct(ItemImages itemImages, PlayerInventoryViewModelController playerInventoryViewModelController)
+        public void Construct(ItemImages itemImages)
         {
             _itemImages = itemImages;
-            playerInventoryViewModelController.OnSlotUpdate += OnInventoryUpdate;
+            OnInventoryUpdate(0, new ItemStack(0, 1));
         }
 
-        private void OnInventoryUpdate(int slot, ItemStack item)
+        public void OnInventoryUpdate(int slot, ItemStack item)
         {
+            throw new System.NotImplementedException();
             //スロットが一番下の段もしくはメインインベントリの範囲外の時はスルー
             var c = PlayerInventoryConstant.MainInventoryColumns;
             var r = PlayerInventoryConstant.MainInventoryRows;

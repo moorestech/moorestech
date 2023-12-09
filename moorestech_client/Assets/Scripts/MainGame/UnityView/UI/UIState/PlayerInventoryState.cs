@@ -1,5 +1,6 @@
 ﻿using System;
 using MainGame.UnityView.Control;
+using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.UIState.UIObject;
 
 namespace MainGame.UnityView.UI.UIState
@@ -7,6 +8,8 @@ namespace MainGame.UnityView.UI.UIState
     public class PlayerInventoryState : IUIState
     {
         private readonly CraftInventoryObject _craftInventory;
+        private readonly PlayerInventoryController _playerInventoryController;
+        
         public PlayerInventoryState(CraftInventoryObject craftInventory)
         {
             _craftInventory = craftInventory;
@@ -24,6 +27,7 @@ namespace MainGame.UnityView.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             _craftInventory.SetActive(true);
+            _playerInventoryController.SetSubInventory(new EmptySubInventory());
 
             OnOpenInventory?.Invoke();
         }

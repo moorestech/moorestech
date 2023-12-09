@@ -1,7 +1,10 @@
 using System.Collections.Generic;
+using Core.Item;
+using Core.Item.Config;
 using Cysharp.Threading.Tasks;
 using MainGame.Basic;
 using MainGame.Network.Event;
+using MainGame.UnityView.UI.Inventory;
 using MessagePack;
 using Server.Event.EventReceive;
 
@@ -9,11 +12,13 @@ namespace MainGame.Network.Receive.EventPacket
 {
     public class MainInventorySlotEventProtocol : IAnalysisEventPacket
     {
-        private readonly ReceiveMainInventoryEvent receiveMainInventoryEvent;
+        private readonly ItemStackFactory _itemStackFactory;
+        private readonly InventoryMainAndSubCombineItems _inventoryMainAndSubCombineItems;
 
-        public MainInventorySlotEventProtocol(ReceiveMainInventoryEvent receiveMainInventorySlotEvent)
+        public MainInventorySlotEventProtocol(ItemStackFactory itemStackFactory,InventoryMainAndSubCombineItems inventoryMainAndSubCombineItems)
         {
-            receiveMainInventoryEvent = receiveMainInventorySlotEvent;
+            _inventoryMainAndSubCombineItems = inventoryMainAndSubCombineItems;
+            _itemStackFactory = itemStackFactory;
         }
 
         public void Analysis(List<byte> packet)
@@ -21,9 +26,7 @@ namespace MainGame.Network.Receive.EventPacket
             var data = MessagePackSerializer
                 .Deserialize<MainInventoryUpdateEventMessagePack>(packet.ToArray());
 
-            receiveMainInventoryEvent.InvokeMainInventorySlotUpdate(
-                new MainInventorySlotUpdateProperties(
-                    data.Slot, new ItemStack(data.Item.Id, data.Item.Count))).Forget();
+            _inventoryMainAndSubCombineItems[data.Slot] = _itemStackFactory.Create(data.Item.Id, data.Item.Count);
         }
     }
 }

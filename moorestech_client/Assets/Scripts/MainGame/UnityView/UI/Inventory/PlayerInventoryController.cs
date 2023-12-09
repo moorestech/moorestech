@@ -6,7 +6,6 @@ using Core.Const;
 using Core.Item;
 using MainGame.Basic;
 using MainGame.UnityView.Control;
-using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.UIObjects;
 using UniRx;
 using UnityEngine;
@@ -22,7 +21,7 @@ namespace MainGame.UnityView.UI.Inventory
         
         [SerializeField] private List<UIBuilderItemSlotObject> mainInventorySlotObjects;
         
-        private ISubInventoryController _subInventoryController;
+        private ISubInventory _subInventory;
         private List<IDisposable> _subInventorySlotUIEventUnsubscriber = new();
 
         private LocalPlayerInventoryDataController _playerInventory;
@@ -43,7 +42,7 @@ namespace MainGame.UnityView.UI.Inventory
             }
         }
 
-        public void SetSubInventory(ISubInventoryController subInventoryController)
+        public void SetSubInventory(ISubInventory subInventory)
         {
             foreach (var disposable in _subInventorySlotUIEventUnsubscriber)
             {
@@ -51,9 +50,9 @@ namespace MainGame.UnityView.UI.Inventory
             }
 
             _subInventorySlotUIEventUnsubscriber.Clear();
-            _subInventoryController = subInventoryController;
-            _playerInventory.SetSubItem(subInventoryController);
-            foreach (var sub in _subInventoryController.SubInventorySlotObjects)
+            _subInventory = subInventory;
+            _playerInventory.SetSubItem(subInventory);
+            foreach (var sub in _subInventory.SubInventorySlotObjects)
             {
                 _subInventorySlotUIEventUnsubscriber.Add(sub.OnUIEvent.Subscribe(ItemSlotUIEvent));
             }
@@ -64,7 +63,7 @@ namespace MainGame.UnityView.UI.Inventory
             var (slotObject, itemUIEvent) = eventProperty;
             var index = mainInventorySlotObjects.IndexOf(slotObject);
             if (index == -1)
-                index = _subInventoryController.SubInventorySlotObjects.IndexOf(slotObject);
+                index = _subInventory.SubInventorySlotObjects.IndexOf(slotObject);
 
             if (index == -1)
             {
@@ -280,13 +279,25 @@ namespace MainGame.UnityView.UI.Inventory
              var isMain = slotIndex < PlayerInventoryConstant.MainInventorySize;
              
              var startIndex = isMain ? 0 : PlayerInventoryConstant.MainInventorySize;
-             var endIndex = isMain ? PlayerInventoryConstant.MainInventorySize : PlayerInventoryConstant.MainInventorySize + _subInventoryController.SubInventorySlotCount;
+             var endIndex = isMain ? PlayerInventoryConstant.MainInventorySize : PlayerInventoryConstant.MainInventorySize + _subInventory.SubInventorySlotCount;
              for (int i = startIndex; i < endIndex; i++)
              {
                  _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub,slotIndex,LocalMoveInventoryType.MainOrSub, i, _playerInventory.InventoryItems[slotIndex].Count);
                  //アイテムがなくなったら終了する
                  if (_playerInventory.InventoryItems[slotIndex].Count == 0) break;
              }
+        }
+    }
+
+    public class ItemSplitDragSlot
+    {
+        public int Slot { get; }
+        public IItemStack BeforeDragItem { get; }
+
+        public ItemSplitDragSlot(int slot, IItemStack beforeDragItem)
+        {
+            Slot = slot;
+            BeforeDragItem = beforeDragItem;
         }
     }
 }

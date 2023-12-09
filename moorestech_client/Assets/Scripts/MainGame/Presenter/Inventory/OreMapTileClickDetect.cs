@@ -5,7 +5,6 @@ using MainGame.Basic;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory;
-using MainGame.UnityView.UI.Inventory.Control;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.Util;
 using MainGame.UnityView.WorldMapTile;
@@ -34,20 +33,18 @@ namespace MainGame.Presenter.Inventory
 
         //TODO 用語の統一が出来てないのでOreConfigをMapTileConfigに変更する
         private IOreConfig _oreConfig;
-        private PlayerInventoryViewModel _playerInventoryViewModel;
+        private IInventoryItems _inventoryItems;
         private SendMiningProtocol _sendMiningProtocol;
         private UIStateControl _uiStateControl;
 
         [Inject]
-        public void Construct(Camera mainCamera, SendMiningProtocol sendMiningProtocol, UIStateControl uiStateControl, SinglePlayInterface singlePlayInterface, PlayerInventoryViewModel playerInventoryViewModel)
+        public void Construct(Camera mainCamera, SendMiningProtocol sendMiningProtocol, UIStateControl uiStateControl, SinglePlayInterface singlePlayInterface)
         {
             _mainCamera = mainCamera;
             _sendMiningProtocol = sendMiningProtocol;
             _uiStateControl = uiStateControl;
 
             _oreConfig = singlePlayInterface.OreConfig;
-
-            _playerInventoryViewModel = playerInventoryViewModel;
 
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
             WhileUpdate().Forget();
@@ -73,7 +70,7 @@ namespace MainGame.Presenter.Inventory
             _miningTokenSource.Cancel();
             _miningTokenSource = new CancellationTokenSource();
 
-            var miningTime = GetMiningTime(_playerInventoryViewModel);
+            var miningTime = GetMiningTime(_inventoryItems);
             miningObjectProgressbarPresenter.StartMining(miningTime, _miningTokenSource.Token).Forget();
 
             var isMiningCanceled = false;
@@ -140,10 +137,10 @@ namespace MainGame.Presenter.Inventory
         /// </summary>
         /// <param name="playerInventoryViewModel"></param>
         /// <returns></returns>
-        private static float GetMiningTime(PlayerInventoryViewModel playerInv)
+        private static float GetMiningTime(IInventoryItems inventoryItems)
         {
-            var stoneTool = playerInv.IsItemExist(AlphaMod.ModId, "stone tool");
-            var ironPickaxe = playerInv.IsItemExist(AlphaMod.ModId, "iron pickaxe");
+            var stoneTool = inventoryItems.IsItemExist(AlphaMod.ModId, "stone tool");
+            var ironPickaxe = inventoryItems.IsItemExist(AlphaMod.ModId, "iron pickaxe");
             if (ironPickaxe) return 3;
 
             if (stoneTool) return 7;

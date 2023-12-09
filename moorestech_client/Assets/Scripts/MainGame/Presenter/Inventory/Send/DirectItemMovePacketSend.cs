@@ -1,6 +1,5 @@
 using MainGame.Basic;
 using MainGame.Network.Send;
-using MainGame.UnityView.UI.Inventory.Control;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using VContainer.Unity;
 
@@ -12,15 +11,12 @@ namespace MainGame.Presenter.Inventory.Send
     public class DirectItemMovePacketSend : IInitializable
     {
         private readonly InventoryMoveItemProtocol _inventoryMoveItem;
-        private readonly PlayerInventoryViewModel _playerInventoryViewModel;
         private readonly SubInventoryTypeProvider _subInventoryTypeProvider;
 
-        public DirectItemMovePacketSend(InventoryMoveItemProtocol inventoryMoveItem, SubInventoryTypeProvider subInventoryTypeProvider, PlayerInventoryViewModel playerInventoryViewModel, PlayerInventorySlotsInputControl playerInventorySlotsInputControl)
+        public DirectItemMovePacketSend(InventoryMoveItemProtocol inventoryMoveItem, SubInventoryTypeProvider subInventoryTypeProvider)
         {
             _inventoryMoveItem = inventoryMoveItem;
             _subInventoryTypeProvider = subInventoryTypeProvider;
-            _playerInventoryViewModel = playerInventoryViewModel;
-            playerInventorySlotsInputControl.OnDirectMoveItem += ItemDirectMove;
         }
 
         public void Initialize()
@@ -52,8 +48,6 @@ namespace MainGame.Presenter.Inventory.Send
                 to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory);
             }
 
-            var count = _playerInventoryViewModel[slot].Count;
-            _inventoryMoveItem.Send(count, ItemMoveType.InsertSlot, from, to);
         }
     }
 }
