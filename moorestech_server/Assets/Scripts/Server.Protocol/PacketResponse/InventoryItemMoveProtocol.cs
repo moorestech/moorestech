@@ -90,16 +90,17 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public InventoryItemMoveProtocolMessagePack(int playerId, int count, ItemMoveType itemMoveType,
-            FromItemMoveInventoryInfo fromInventory, ToItemMoveInventoryInfo toInventory)
+        public InventoryItemMoveProtocolMessagePack(int playerId, int count, ItemMoveType itemMoveType, 
+            FromItemMoveInventoryInfo fromInventory,int fromSlot, 
+            ToItemMoveInventoryInfo toInventory,int toSlot)
         {
             Tag = InventoryItemMoveProtocol.Tag;
             PlayerId = playerId;
             Count = count;
 
             ItemMoveTypeId = (int)itemMoveType;
-            FromInventory = new ItemMoveInventoryInfoMessagePack(fromInventory);
-            ToInventory = new ItemMoveInventoryInfoMessagePack(toInventory);
+            FromInventory = new ItemMoveInventoryInfoMessagePack(fromInventory,fromSlot);
+            ToInventory = new ItemMoveInventoryInfoMessagePack(toInventory,toSlot);
         }
 
         public int PlayerId { get; set; }
@@ -119,20 +120,20 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public ItemMoveInventoryInfoMessagePack(FromItemMoveInventoryInfo info)
+        public ItemMoveInventoryInfoMessagePack(FromItemMoveInventoryInfo info,int slot)
         {
             //メッセージパックでenumは重いらしいのでintを使う
             InventoryId = (int)info.ItemMoveInventoryType;
-            Slot = info.Slot;
+            Slot = slot;
             X = info.X;
             Y = info.Y;
         }
 
-        public ItemMoveInventoryInfoMessagePack(ToItemMoveInventoryInfo info)
+        public ItemMoveInventoryInfoMessagePack(ToItemMoveInventoryInfo info,int slot)
         {
             //メッセージパックでenumは重いらしいのでintを使う
             InventoryId = (int)info.ItemMoveInventoryType;
-            Slot = info.Slot;
+            Slot = slot;
             X = info.X;
             Y = info.Y;
         }

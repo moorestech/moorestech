@@ -128,22 +128,23 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
         private List<byte> PlayerInventoryItemMove(bool toGrab, int inventorySlot, int itemCount)
         {
-            FromItemMoveInventoryInfo from;
-            ToItemMoveInventoryInfo to;
+            InventoryItemMoveProtocolMessagePack messagePack;
             if (toGrab)
             {
-                from = new FromItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, inventorySlot);
-                to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
+                var from = new FromItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory);
+                var to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory);
+                messagePack = new InventoryItemMoveProtocolMessagePack(PlayerId, itemCount, ItemMoveType.SwapSlot,
+                    from,inventorySlot, to,0);
             }
             else
             {
-                from = new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, 0);
-                to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, inventorySlot);
+                var from = new FromItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory);
+                var to = new ToItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory);
+                messagePack = new InventoryItemMoveProtocolMessagePack(PlayerId, itemCount, ItemMoveType.SwapSlot, 
+                    from,0, to,inventorySlot);
             }
 
-            return MessagePackSerializer.Serialize(
-                    new InventoryItemMoveProtocolMessagePack(PlayerId, itemCount, ItemMoveType.SwapSlot, from, to))
-                .ToList();
+            return MessagePackSerializer.Serialize(messagePack).ToList();
         }
     }
 }
