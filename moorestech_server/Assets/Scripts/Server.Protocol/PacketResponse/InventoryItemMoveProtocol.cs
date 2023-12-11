@@ -46,8 +46,7 @@ namespace Server.Protocol.PacketResponse
             {
                 case ItemMoveType.SwapSlot:
                     var toSlot = data.ToInventory.Slot;
-                    InventoryItemMoveService.Move(
-                        _itemStackFactory, fromInventory, fromSlot, toInventory, toSlot, data.Count);
+                    InventoryItemMoveService.Move(_itemStackFactory, fromInventory, fromSlot, toInventory, toSlot, data.Count);
                     break;
                 case ItemMoveType.InsertSlot:
                 {
@@ -91,15 +90,15 @@ namespace Server.Protocol.PacketResponse
         }
 
         public InventoryItemMoveProtocolMessagePack(int playerId, int count, ItemMoveType itemMoveType, 
-            FromItemMoveInventoryInfo fromInventory,int fromSlot, 
-            ToItemMoveInventoryInfo toInventory,int toSlot)
+            ItemMoveInventoryInfo inventory,int fromSlot, 
+            ItemMoveInventoryInfo toInventory,int toSlot)
         {
             Tag = InventoryItemMoveProtocol.Tag;
             PlayerId = playerId;
             Count = count;
 
             ItemMoveTypeId = (int)itemMoveType;
-            FromInventory = new ItemMoveInventoryInfoMessagePack(fromInventory,fromSlot);
+            FromInventory = new ItemMoveInventoryInfoMessagePack(inventory,fromSlot);
             ToInventory = new ItemMoveInventoryInfoMessagePack(toInventory,toSlot);
         }
 
@@ -120,16 +119,7 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public ItemMoveInventoryInfoMessagePack(FromItemMoveInventoryInfo info,int slot)
-        {
-            //メッセージパックでenumは重いらしいのでintを使う
-            InventoryId = (int)info.ItemMoveInventoryType;
-            Slot = slot;
-            X = info.X;
-            Y = info.Y;
-        }
-
-        public ItemMoveInventoryInfoMessagePack(ToItemMoveInventoryInfo info,int slot)
+        public ItemMoveInventoryInfoMessagePack(ItemMoveInventoryInfo info,int slot)
         {
             //メッセージパックでenumは重いらしいのでintを使う
             InventoryId = (int)info.ItemMoveInventoryType;

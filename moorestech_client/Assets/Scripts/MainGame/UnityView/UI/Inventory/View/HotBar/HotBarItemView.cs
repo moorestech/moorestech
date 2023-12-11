@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Core.Item;
 using MainGame.Basic;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.UIObjects;
@@ -12,19 +15,29 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
         [SerializeField] private List<UIBuilderItemSlotObject> hotBarSlots;
 
         private ItemImages _itemImages;
+        private IInventoryItems _inventoryItems;
+        
         public IReadOnlyList<UIBuilderItemSlotObject> Slots => hotBarSlots;
+        
 
 
         [Inject]
-        public void Construct(ItemImages itemImages)
+        public void Construct(ItemImages itemImages,IInventoryItems inventoryItems)
         {
             _itemImages = itemImages;
-            OnInventoryUpdate(0, new ItemStack(0, 1));
+            _inventoryItems = inventoryItems;
         }
 
-        public void OnInventoryUpdate(int slot, ItemStack item)
+        private void Update()
         {
-            throw new System.NotImplementedException();
+            for (int i = 0; i < _inventoryItems.Count(); i++)
+            {
+                UpdateHotBar(i, _inventoryItems[i]);
+            }
+        }
+
+        private void UpdateHotBar(int slot,IItemStack  item)
+        {
             //スロットが一番下の段もしくはメインインベントリの範囲外の時はスルー
             var c = PlayerInventoryConstant.MainInventoryColumns;
             var r = PlayerInventoryConstant.MainInventoryRows;
@@ -32,7 +45,7 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
 
             if (slot < startHotBarSlot || PlayerInventoryConstant.MainInventorySize <= slot) return;
 
-            var sprite = _itemImages.GetItemView(item.ID);
+            var sprite = _itemImages.GetItemView(item.Id);
             slot -= startHotBarSlot;
             hotBarSlots[slot].SetItem(sprite, item.Count);
         }

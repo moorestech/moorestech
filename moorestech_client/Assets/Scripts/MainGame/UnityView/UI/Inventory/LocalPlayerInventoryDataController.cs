@@ -2,10 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Core.Item;
-using Core.Item.Config;
 using Core.Item.Util;
+using Game.PlayerInventory.Interface;
 using MainGame.Network.Send;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using SinglePlay;
+using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory
 {
@@ -15,17 +17,16 @@ namespace MainGame.UnityView.UI.Inventory
         public IInventoryItems InventoryItems => _mainAndSubCombineItems;
         private readonly InventoryMainAndSubCombineItems _mainAndSubCombineItems;
         public IItemStack GrabInventory { get; private set; }
-
-        
         
         
         private readonly ItemStackFactory _itemStackFactory;
         private readonly InventoryMoveItemProtocol _inventoryMoveItemProtocol;
+        private ISubInventory _subInventory;
         
-        public LocalPlayerInventoryDataController(ItemStackFactory itemStackFactory,IItemConfig itemConfig,InventoryMoveItemProtocol inventoryMoveItemProtocol)
+        public LocalPlayerInventoryDataController(SinglePlayInterface singlePlayInterface,InventoryMoveItemProtocol inventoryMoveItemProtocol,IInventoryItems inventoryMainAndSubCombineItems)
         {
-            _mainAndSubCombineItems = new InventoryMainAndSubCombineItems(itemStackFactory,itemConfig);
-            _itemStackFactory = itemStackFactory;
+            _mainAndSubCombineItems = (InventoryMainAndSubCombineItems)inventoryMainAndSubCombineItems;
+            _itemStackFactory = singlePlayInterface.ItemStackFactory;
             _inventoryMoveItemProtocol = inventoryMoveItemProtocol;
         }
 
@@ -38,53 +39,78 @@ namespace MainGame.UnityView.UI.Inventory
                 _ => throw new ArgumentOutOfRangeException(nameof(from), from, null)
             };
 
-            if (fromInvItem.Count < count) throw new ArgumentException("移動するアイテムの数が多すぎます");
-            
-            var moveItem = _itemStackFactory.Create(fromInvItem.Id, count);
+            if (fromInvItem.Count < count) throw new ArgumentException($"移動するアイテムの数が多すぎます from:{from} fromSlot:{fromSlot} to:{to} toSlot:{toSlot} count:{count} fromInvItem.Count:{fromInvItem.Count}");
 
-            ItemProcessResult add;
-            switch (to)
-            {
-                case LocalMoveInventoryType.MainOrSub:
-                    add = fromInvItem.AddItem(moveItem);
-                    _mainAndSubCombineItems[toSlot] = add.ProcessResultItemStack;
-                    break;
-                case LocalMoveInventoryType.Grab:
-                    add = fromInvItem.AddItem(moveItem);
-                    GrabInventory = add.ProcessResultItemStack;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(to), to, null);
-            }
-            
-            
-            if (from == LocalMoveInventoryType.Grab)
-            {
-                GrabInventory = add.RemainderItemStack;
-            }else
-            {
-                _mainAndSubCombineItems[fromSlot] = add.RemainderItemStack;
-            }
+            SetInventory();
 
-            
-            
             if (isMoveSendData)
             {
-                _inventoryMoveItemProtocol.Send(count, ItemMoveType.InsertSlot, new FromItemMoveInventoryInfo(from, fromSlot), new ToItemMoveInventoryInfo(to, toSlot));
+                SendMoveItemData();
             }
+
+            #region InternalMethod
+            void SetInventory()
+            {
+                var moveItem = _itemStackFactory.Create(fromInvItem.Id, count);
+
+                ItemProcessResult add;
+                switch (to)
+                {
+                    case LocalMoveInventoryType.MainOrSub:
+                        add = fromInvItem.AddItem(moveItem);
+                        _mainAndSubCombineItems[toSlot] = add.ProcessResultItemStack;
+                        break;
+                    case LocalMoveInventoryType.Grab:
+                        add = fromInvItem.AddItem(moveItem);
+                        GrabInventory = add.ProcessResultItemStack;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(to), to, null);
+                }
+            
+                switch (from)
+                {
+                    case LocalMoveInventoryType.Grab:
+                        GrabInventory = add.RemainderItemStack;
+                        break;
+                    default:
+                        _mainAndSubCombineItems[fromSlot] = add.RemainderItemStack;
+                        break;
+                }
+            }
+            void SendMoveItemData()
+            {
+                ItemMoveInventoryInfo fromInfo;
+                ItemMoveInventoryInfo toInfo;
+                if (from == LocalMoveInventoryType.Grab)
+                {
+                    fromInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory);
+                    toInfo = toSlot < PlayerInventoryConst.MainInventorySize ? new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory) : _subInventory.ItemMoveInventoryInfo;
+                }
+                else
+                {
+                    fromInfo = fromSlot < PlayerInventoryConst.MainInventorySize ? new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory) : _subInventory.ItemMoveInventoryInfo;
+                    toInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory);
+                }
+            
+                Debug.Log($"from {from} fromSlot {fromSlot} to {to} toSlot {toSlot}");
+                _inventoryMoveItemProtocol.Send(count, ItemMoveType.InsertSlot, fromInfo,fromSlot, toInfo,toSlot);
+            }
+            #endregion
         }
         
         public void SetGrabItem(IItemStack itemStack)
         {
             GrabInventory = itemStack;
         }
-        
-        
-
         public void SetSubItem(ISubInventory subInventory)
         {
             _mainAndSubCombineItems.SetSubInventory(subInventory.SubInventory);
+            _subInventory = subInventory;
         }
+
+
+
     }
 
     public enum LocalMoveInventoryType

@@ -25,6 +25,7 @@ using MainGame.UnityView.Block.StateChange;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.Game;
+using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.View.HotBar;
 using MainGame.UnityView.UI.UIState;
@@ -74,6 +75,9 @@ namespace MainGame.Starter
         [SerializeField] private LoadingFinishDetector loadingFinishDetector;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
+        [SerializeField] private BlockInventoryObject blockInventoryObject;
+        [SerializeField] private CraftInventoryObject craftInventoryObject;
+        [SerializeField] private PlayerInventoryController playerInventoryController;
 
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
@@ -118,11 +122,8 @@ namespace MainGame.Starter
 
             //パケット受け取りイベント
             builder.Register<ReceiveChunkDataEvent>(Lifetime.Singleton);
-            builder.Register<ReceiveMainInventoryEvent>(Lifetime.Singleton);
             builder.Register<ReceiveBlockInventoryEvent>(Lifetime.Singleton);
-            builder.Register<ReceiveGrabInventoryEvent>(Lifetime.Singleton);
             builder.Register<ReceiveInitialHandshakeProtocol>(Lifetime.Singleton); //初期接続時に受け取るプロトコル
-            builder.Register<ReceiveQuestDataEvent>(Lifetime.Singleton);
             builder.Register<ReceiveEntitiesDataEvent>(Lifetime.Singleton);
             builder.Register<ReceiveBlockStateChangeEvent>(Lifetime.Singleton);
             builder.Register<ReceiveUpdateMapObjectEvent>(Lifetime.Singleton);
@@ -145,7 +146,8 @@ namespace MainGame.Starter
             builder.Register<SendGetMapObjectProtocolProtocol>(Lifetime.Singleton);
 
             //インベントリのUIコントロール
-            builder.Register<SubInventoryTypeProvider>(Lifetime.Singleton);
+            builder.Register<LocalPlayerInventoryDataController>(Lifetime.Singleton);
+            builder.Register<IInventoryItems,InventoryMainAndSubCombineItems>(Lifetime.Singleton);
 
             //プレゼンターアセンブリ
             builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();
@@ -154,9 +156,7 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
             builder.RegisterEntryPoint<BlockInventoryRequestPacketSend>();
             builder.RegisterEntryPoint<PlayerInventoryRequestPacketSend>();
-            builder.RegisterEntryPoint<PlayerInventoryMoveItemPacketSend>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
-            builder.RegisterEntryPoint<DirectItemMovePacketSend>();
             builder.RegisterEntryPoint<BlockStateChangePresenter>();
 
 
@@ -204,6 +204,9 @@ namespace MainGame.Starter
 
             builder.RegisterComponent(displayEnergizedRange);
             builder.RegisterComponent(entitiesPresenter);
+            builder.RegisterComponent(playerInventoryController);
+            builder.RegisterComponent(blockInventoryObject);
+            builder.RegisterComponent(craftInventoryObject);
 
 
             builder.RegisterComponent<IPlayerPosition>(playerPosition);

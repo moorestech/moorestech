@@ -10,11 +10,12 @@ namespace MainGame.UnityView.UI.UIState
         private readonly CraftInventoryObject _craftInventory;
         private readonly PlayerInventoryController _playerInventoryController;
         
-        public PlayerInventoryState(CraftInventoryObject craftInventory)
+        public PlayerInventoryState(CraftInventoryObject craftInventory,PlayerInventoryController playerInventoryController)
         {
             _craftInventory = craftInventory;
-
-            craftInventory.gameObject.SetActive(false);
+            _playerInventoryController = playerInventoryController;
+            
+            craftInventory.SetActive(false);
         }
 
         public UIStateEnum GetNext()
@@ -27,6 +28,7 @@ namespace MainGame.UnityView.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             _craftInventory.SetActive(true);
+            _playerInventoryController.SetActive(true);
             _playerInventoryController.SetSubInventory(new EmptySubInventory());
 
             OnOpenInventory?.Invoke();
@@ -35,6 +37,7 @@ namespace MainGame.UnityView.UI.UIState
         public void OnExit()
         {
             _craftInventory.SetActive(false);
+            _playerInventoryController.SetActive(false);
         }
 
 

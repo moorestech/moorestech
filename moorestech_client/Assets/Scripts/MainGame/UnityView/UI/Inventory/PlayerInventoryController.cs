@@ -6,9 +6,12 @@ using Core.Const;
 using Core.Item;
 using MainGame.Basic;
 using MainGame.UnityView.Control;
+using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.UIObjects;
+using SinglePlay;
 using UniRx;
 using UnityEngine;
+using VContainer;
 
 namespace MainGame.UnityView.UI.Inventory
 {
@@ -17,22 +20,29 @@ namespace MainGame.UnityView.UI.Inventory
     /// </summary>
     public class PlayerInventoryController : MonoBehaviour
     {
-        private readonly ItemStackFactory _itemStackFactory;
-        
         [SerializeField] private List<UIBuilderItemSlotObject> mainInventorySlotObjects;
+        [SerializeField] private UIBuilderItemSlotObject grabInventorySlotObject;
+        
+        private ItemStackFactory _itemStackFactory;
+        private LocalPlayerInventoryDataController _playerInventory;
         
         private ISubInventory _subInventory;
         private List<IDisposable> _subInventorySlotUIEventUnsubscriber = new();
-
-        private LocalPlayerInventoryDataController _playerInventory;
-
-
-
-        private bool IsGrabItem => _playerInventory.GrabInventory.Id == ItemConst.EmptyItemId;
-        
-        
         private bool _isItemSplitDragging;
         private bool _isItemOneDragging;
+        
+        
+        private ItemImages _itemImages;
+        
+        private bool IsGrabItem => _playerInventory.GrabInventory.Id != ItemConst.EmptyItemId;
+
+        [Inject]
+        public void Construct(SinglePlayInterface singlePlayInterface,LocalPlayerInventoryDataController playerInventory,ItemImages itemImages)
+        {
+            _itemStackFactory = singlePlayInterface.ItemStackFactory;
+            _playerInventory = playerInventory;
+            _itemImages = itemImages;
+        }
 
         private void Awake()
         {
@@ -239,6 +249,7 @@ namespace MainGame.UnityView.UI.Inventory
         private readonly List<ItemSplitDragSlot> _itemSplitDraggedSlots = new();
         //ドラッグ中のアイテムをドラッグする前のGrabインベントリ
         private IItemStack _grabInventoryBeforeDrag;
+
         private void SplitDraggingItem(int slotIndex,bool isMoveSendData)
         {
             if (!_playerInventory.InventoryItems[slotIndex].IsAllowedToAddWithRemain(_playerInventory.GrabInventory)) return;
@@ -261,8 +272,9 @@ namespace MainGame.UnityView.UI.Inventory
             {
                 //ドラッグ中のスロットにアイテムを加算する
                 var addedItem = dragSlot.BeforeDragItem.AddItem(_itemStackFactory.Create(grabItem.Id, dragItemCount));
+                var moveItemCount = addedItem.ProcessResultItemStack.Count - dragSlot.BeforeDragItem.Count;
 
-                _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.MainOrSub, dragSlot.Slot, addedItem.ProcessResultItemStack.Count,isMoveSendData);
+                _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.MainOrSub, dragSlot.Slot, moveItemCount,isMoveSendData);
                 //余ったアイテムを加算する
                 remainItemNum += addedItem.RemainderItemStack.Count;
             }
@@ -286,6 +298,29 @@ namespace MainGame.UnityView.UI.Inventory
                  //アイテムがなくなったら終了する
                  if (_playerInventory.InventoryItems[slotIndex].Count == 0) break;
              }
+        }
+        
+        public void SetActive(bool isActive)
+        {
+            gameObject.SetActive(isActive);
+        }
+
+
+        private void Update()
+        {
+            InventoryViewUpdate();
+        }
+        
+        private void InventoryViewUpdate()
+        {
+            for (int i = 0; i < _playerInventory.InventoryItems.Count; i++)
+            {
+                var item = _playerInventory.InventoryItems[i];
+                var sprite = _itemImages.GetItemView(item.Id);
+                mainInventorySlotObjects[i].SetItem(sprite, item.Count);
+            }
+            grabInventorySlotObject.SetActive(IsGrabItem);
+            grabInventorySlotObject.SetItem(_itemImages.GetItemView(_playerInventory.GrabInventory.Id), _playerInventory.GrabInventory.Count);
         }
     }
 

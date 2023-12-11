@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
 using Core.Item.Config;
+using Game.PlayerInventory.Interface;
+using SinglePlay;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory
@@ -10,6 +12,7 @@ namespace MainGame.UnityView.UI.Inventory
     public interface IInventoryItems : IEnumerable<IItemStack>
     {
         public IItemStack this[int index] { get; }
+        public int Count { get; }
         public bool IsItemExist(string modId, string itemName);
     }
     
@@ -20,11 +23,15 @@ namespace MainGame.UnityView.UI.Inventory
         private readonly ItemStackFactory _itemStackFactory;
         private readonly IItemConfig _itemConfig;
         
-        public InventoryMainAndSubCombineItems(ItemStackFactory itemStackFactory,IItemConfig itemConfig)
+        public InventoryMainAndSubCombineItems(SinglePlayInterface singlePlayInterface)
         {
-            _itemConfig = itemConfig;
-            _itemStackFactory = itemStackFactory;
+            _itemConfig = singlePlayInterface.ItemConfig;
+            _itemStackFactory = singlePlayInterface.ItemStackFactory;
             _mainInventory = new List<IItemStack>();
+            for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+            {
+                _mainInventory.Add(_itemStackFactory.CreatEmpty());
+            }
             _subInventory = new List<IItemStack>();
         }
         
@@ -47,6 +54,8 @@ namespace MainGame.UnityView.UI.Inventory
             _subInventory.AddRange(subInventory);
         }
 
+
+        public int Count => _mainInventory.Count + _subInventory.Count;
 
         public bool IsItemExist(string modId, string itemName)
         {

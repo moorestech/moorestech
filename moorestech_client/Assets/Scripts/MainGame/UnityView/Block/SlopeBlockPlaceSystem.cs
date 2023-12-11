@@ -50,7 +50,6 @@ namespace MainGame.UnityView.Block
         public static float GetBlockFourCornerMaxHeight(Vector2Int blockPos,BlockDirection blockDirection,Vector2Int blockSize)
         {
             var (minPos,maxPos) = blockPos.GetWorldBlockBoundingBox(blockDirection, blockSize);
-            Debug.Log(maxPos);
             var heights = new List<float>
             {
                 GetGroundPoint(new Vector2(minPos.x, minPos.y),Color.red).y,

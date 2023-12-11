@@ -86,6 +86,10 @@ namespace MainGame.UnityView.UI.UIObjects
                 uiEnterExplainerController.DisplayEnable(true);
             }
         }
+        public void SetActive(bool active)
+        {
+            gameObject.SetActive(active);
+        }
 
         public IObservable<(UIBuilderItemSlotObject,ItemUIEventType)> OnUIEvent => _onUIEvent;
         private readonly Subject<(UIBuilderItemSlotObject,ItemUIEventType)> _onUIEvent = new();
