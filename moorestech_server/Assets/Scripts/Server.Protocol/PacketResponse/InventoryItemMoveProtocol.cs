@@ -8,6 +8,7 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Protocol.PacketResponse.Util.InventoryService;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -33,11 +34,9 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload.ToArray());
 
-            var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.X,
-                data.FromInventory.Y);
+            var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.X, data.FromInventory.Y);
             if (fromInventory == null) return new List<List<byte>>();
-            var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.X,
-                data.ToInventory.Y);
+            var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.X, data.ToInventory.Y);
             if (toInventory == null) return new List<List<byte>>();
 
             var fromSlot = data.FromInventory.Slot;
@@ -49,10 +48,9 @@ namespace Server.Protocol.PacketResponse
                     InventoryItemMoveService.Move(_itemStackFactory, fromInventory, fromSlot, toInventory, toSlot, data.Count);
                     break;
                 case ItemMoveType.InsertSlot:
-                {
+                    //Debug.Log($"from:{data.FromInventory.InventoryType} fromSlot:{fromSlot} to:{data.ToInventory.InventoryType} to:{toSlot} count:{data.Count}");
                     InventoryItemInsertService.Insert(fromInventory, fromSlot, toInventory, data.Count);
                     break;
-                }
             }
 
             return new List<List<byte>>();
