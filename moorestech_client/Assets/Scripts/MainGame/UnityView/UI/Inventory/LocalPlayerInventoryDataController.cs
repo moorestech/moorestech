@@ -94,7 +94,7 @@ namespace MainGame.UnityView.UI.Inventory
                 }
             
                 Debug.Log($"from {from} fromSlot {fromSlot} to {to} toSlot {toSlot} count {count}");
-                _inventoryMoveItemProtocol.Send(count, ItemMoveType.InsertSlot, fromInfo,fromSlot, toInfo,toSlot);
+                _inventoryMoveItemProtocol.Send(count, ItemMoveType.SwapSlot, fromInfo,fromSlot, toInfo,toSlot);
             }
             #endregion
         }
