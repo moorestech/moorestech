@@ -45,10 +45,11 @@ namespace Server.Protocol.PacketResponse
             {
                 case ItemMoveType.SwapSlot:
                     var toSlot = data.ToInventory.Slot;
+                    Debug.Log($"Swap from:{data.FromInventory.InventoryType} fromSlot:{fromSlot} to:{data.ToInventory.InventoryType} to:{toSlot} count:{data.Count}");
                     InventoryItemMoveService.Move(_itemStackFactory, fromInventory, fromSlot, toInventory, toSlot, data.Count);
                     break;
                 case ItemMoveType.InsertSlot:
-                    //Debug.Log($"from:{data.FromInventory.InventoryType} fromSlot:{fromSlot} to:{data.ToInventory.InventoryType} to:{toSlot} count:{data.Count}");
+                    Debug.Log($"Insert from:{data.FromInventory.InventoryType} fromSlot:{fromSlot} to:{data.ToInventory.InventoryType} count:{data.Count}");
                     InventoryItemInsertService.Insert(fromInventory, fromSlot, toInventory, data.Count);
                     break;
             }

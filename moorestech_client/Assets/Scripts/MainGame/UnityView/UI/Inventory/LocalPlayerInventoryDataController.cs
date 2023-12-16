@@ -39,7 +39,10 @@ namespace MainGame.UnityView.UI.Inventory
                 _ => throw new ArgumentOutOfRangeException(nameof(from), from, null)
             };
 
-            if (fromInvItem.Count < count) throw new ArgumentException($"移動するアイテムの数が多すぎます from:{from} fromSlot:{fromSlot} to:{to} toSlot:{toSlot} count:{count} fromInvItem.Count:{fromInvItem.Count}");
+            if (fromInvItem.Count < count)
+            {
+                return;
+            }
 
             SetInventory();
 
@@ -51,50 +54,54 @@ namespace MainGame.UnityView.UI.Inventory
             #region InternalMethod
             void SetInventory()
             {
+                var toInvItem = to switch
+                {
+                    LocalMoveInventoryType.MainOrSub => InventoryItems[toSlot],
+                    LocalMoveInventoryType.Grab => GrabInventory,
+                    _ => throw new ArgumentOutOfRangeException(nameof(to), to, null)
+                };
                 var moveItem = _itemStackFactory.Create(fromInvItem.Id, count);
-
-                ItemProcessResult add;
+                
+                var add = toInvItem.AddItem(moveItem);
                 switch (to)
                 {
                     case LocalMoveInventoryType.MainOrSub:
-                        add = fromInvItem.AddItem(moveItem);
                         _mainAndSubCombineItems[toSlot] = add.ProcessResultItemStack;
                         break;
                     case LocalMoveInventoryType.Grab:
-                        add = fromInvItem.AddItem(moveItem);
                         GrabInventory = add.ProcessResultItemStack;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(to), to, null);
                 }
-            
+
+                var fromItemCount = fromInvItem.Count - count + add.RemainderItemStack.Count;
+                var fromItem = _itemStackFactory.Create(fromInvItem.Id, fromItemCount);
                 switch (from)
                 {
                     case LocalMoveInventoryType.Grab:
-                        GrabInventory = add.RemainderItemStack;
+                        GrabInventory = fromItem;
                         break;
                     default:
-                        _mainAndSubCombineItems[fromSlot] = add.RemainderItemStack;
+                        _mainAndSubCombineItems[fromSlot] = fromItem;
                         break;
                 }
             }
             void SendMoveItemData()
             {
-                ItemMoveInventoryInfo fromInfo;
-                ItemMoveInventoryInfo toInfo;
-                if (from == LocalMoveInventoryType.Grab)
-                {
-                    fromInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory);
-                    toInfo = toSlot < PlayerInventoryConst.MainInventorySize ? new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory) : _subInventory.ItemMoveInventoryInfo;
-                }
-                else
-                {
-                    fromInfo = fromSlot < PlayerInventoryConst.MainInventorySize ? new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory) : _subInventory.ItemMoveInventoryInfo;
-                    toInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory);
-                }
-            
-                Debug.Log($"from {from} fromSlot {fromSlot} to {to} toSlot {toSlot} count {count}");
+                var fromInfo = GetServerInventoryInfo(from,fromSlot);
+                var toInfo = GetServerInventoryInfo(to,toSlot);
                 _inventoryMoveItemProtocol.Send(count, ItemMoveType.SwapSlot, fromInfo,fromSlot, toInfo,toSlot);
+            }
+
+            ItemMoveInventoryInfo GetServerInventoryInfo(LocalMoveInventoryType localType,int localSlot)
+            {
+                return localType switch
+                {
+                    LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize ? new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory) : _subInventory.ItemMoveInventoryInfo,
+                    LocalMoveInventoryType.Grab => new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory),
+                    _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null)
+                }; 
             }
             #endregion
         }
@@ -103,14 +110,16 @@ namespace MainGame.UnityView.UI.Inventory
         {
             GrabInventory = itemStack;
         }
-        public void SetSubItem(ISubInventory subInventory)
+        public void SetMainItem(IItemStack itemStack,int slot)
+        {
+            _mainAndSubCombineItems[slot] = itemStack;
+        }
+        
+        public void SetSubInventory(ISubInventory subInventory)
         {
             _mainAndSubCombineItems.SetSubInventory(subInventory.SubInventory);
             _subInventory = subInventory;
         }
-
-
-
     }
 
     public enum LocalMoveInventoryType

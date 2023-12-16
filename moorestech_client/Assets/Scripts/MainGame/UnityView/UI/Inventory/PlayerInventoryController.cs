@@ -61,7 +61,7 @@ namespace MainGame.UnityView.UI.Inventory
 
             _subInventorySlotUIEventUnsubscriber.Clear();
             _subInventory = subInventory;
-            _playerInventory.SetSubItem(subInventory);
+            _playerInventory.SetSubInventory(subInventory);
             foreach (var sub in _subInventory.SubInventorySlotObjects)
             {
                 _subInventorySlotUIEventUnsubscriber.Add(sub.OnUIEvent.Subscribe(ItemSlotUIEvent));
@@ -129,15 +129,14 @@ namespace MainGame.UnityView.UI.Inventory
             {
                 collectTargetSotIndex.Remove(slotIndex);
             }
-            
-            
+
             foreach (var index in collectTargetSotIndex)
             {
                 var added = collectTargetItem.AddItem(_playerInventory.InventoryItems[index]);
 
                 //アイテムを何個移したのかを計算
                 var collectItemCount = _playerInventory.InventoryItems[index].Count - added.RemainderItemStack.Count;
-                _playerInventory.MoveItem(fromType,fromSlot,LocalMoveInventoryType.MainOrSub,index,collectItemCount);
+                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub,index,fromType,fromSlot,collectItemCount);
 
                 collectTargetItem = added.ProcessResultItemStack;
                 
@@ -153,7 +152,7 @@ namespace MainGame.UnityView.UI.Inventory
         {
             if (_isItemSplitDragging)
             {
-                SplitDraggingItem(slotIndex,true);
+                SplitDraggingItem(slotIndex,false);
             }else if (_isItemOneDragging)
             {
                 //ドラッグ中の時はマウスカーソルが乗ったスロットをドラッグされたと判定する
@@ -205,10 +204,20 @@ namespace MainGame.UnityView.UI.Inventory
         {
             if (IsGrabItem)
             {
-                //アイテムを持っている時に左クリックするとアイテムを置くもしくは置き換える処理
-                _isItemSplitDragging = true;
-                _grabInventoryBeforeDrag = _playerInventory.GrabInventory;
-                SplitDraggingItem(slotIndex,false);
+                var isSlotEmpty = _playerInventory.InventoryItems[slotIndex].Id == ItemConstant.NullItemId;
+
+                if (isSlotEmpty)
+                {
+                    //アイテムを持っている時に左クリックするとアイテムを置くもしくは置き換える処理
+                    _isItemSplitDragging = true;
+                    _grabInventoryBeforeDrag = _playerInventory.GrabInventory;
+                    SplitDraggingItem(slotIndex,false);
+                }
+                else
+                {
+                    _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.MainOrSub, slotIndex, _playerInventory.GrabInventory.Count);
+                }
+                    
                 return;
             }
 
@@ -254,19 +263,29 @@ namespace MainGame.UnityView.UI.Inventory
         {
             if (!_playerInventory.InventoryItems[slotIndex].IsAllowedToAddWithRemain(_playerInventory.GrabInventory)) return;
 
-            //まだスロットをドラッグしてない時
-            if (!_itemSplitDraggedSlots.Exists(i => i.Slot == slotIndex))
+            if (!_itemSplitDraggedSlots.Exists(i => i.Slot == slotIndex) && 
+                (_playerInventory.InventoryItems[slotIndex].Id == ItemConstant.NullItemId  || _playerInventory.InventoryItems[slotIndex].Id == _grabInventoryBeforeDrag.Id))
+            {
+                //まだスロットをドラッグしてない時 か アイテムがない時か、同じアイテムがあるとき
                 //ドラッグ中のアイテムに設定
                 _itemSplitDraggedSlots.Add(new ItemSplitDragSlot(slotIndex, _playerInventory.InventoryItems[slotIndex]));
+            }
                 
             //一度Grabインベントリをリセットする
             _playerInventory.SetGrabItem(_grabInventoryBeforeDrag);
-            var grabItem = _grabInventoryBeforeDrag;
+            foreach (var itemSplit in _itemSplitDraggedSlots)
+            {
+                _playerInventory.SetMainItem(itemSplit.BeforeDragItem,itemSplit.Slot);
+            }
+            
+            
+            var grabItem = _playerInventory.GrabInventory;
 
             //1スロットあたりのアイテム数
             var dragItemCount = grabItem.Count / _itemSplitDraggedSlots.Count;
             //余っているアイテム数
             var remainItemNum = grabItem.Count - dragItemCount * _itemSplitDraggedSlots.Count;
+            
 
             foreach (var dragSlot in _itemSplitDraggedSlots)
             {
@@ -278,10 +297,9 @@ namespace MainGame.UnityView.UI.Inventory
                 //余ったアイテムを加算する
                 remainItemNum += addedItem.RemainderItemStack.Count;
             }
-
+            
             //あまりのアイテムをGrabインベントリに設定する
             _playerInventory.SetGrabItem(_itemStackFactory.Create(grabItem.Id, remainItemNum));
-
         }
 
 
