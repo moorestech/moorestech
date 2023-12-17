@@ -3,6 +3,7 @@ using Core.Item;
 using MainGame.Network.Event;
 using MainGame.Network.Receive.EventPacket;
 using MainGame.UnityView.UI.Inventory;
+using MainGame.UnityView.UI.Inventory.Main;
 using MessagePack;
 using Server.Event.EventReceive;
 

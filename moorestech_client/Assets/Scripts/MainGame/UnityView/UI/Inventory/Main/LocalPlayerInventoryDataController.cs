@@ -1,15 +1,11 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Core.Item;
-using Core.Item.Util;
 using Game.PlayerInventory.Interface;
 using MainGame.Network.Send;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using SinglePlay;
-using UnityEngine;
 
-namespace MainGame.UnityView.UI.Inventory
+namespace MainGame.UnityView.UI.Inventory.Main
 {
     //TODO 名前変えたい
     public class LocalPlayerInventoryDataController

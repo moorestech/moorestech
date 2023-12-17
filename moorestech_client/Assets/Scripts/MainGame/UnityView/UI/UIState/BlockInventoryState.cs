@@ -5,6 +5,7 @@ using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.UI.Inventory;
+using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState.UIObject;
 using SinglePlay;
 using UnityEngine;

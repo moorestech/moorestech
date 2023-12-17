@@ -1,16 +1,18 @@
 ﻿using System;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory;
+using MainGame.UnityView.UI.Inventory.CraftSub;
+using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState.UIObject;
 
 namespace MainGame.UnityView.UI.UIState
 {
     public class PlayerInventoryState : IUIState
     {
-        private readonly CraftInventoryObject _craftInventory;
+        private readonly CraftInventoryView _craftInventory;
         private readonly PlayerInventoryController _playerInventoryController;
         
-        public PlayerInventoryState(CraftInventoryObject craftInventory,PlayerInventoryController playerInventoryController)
+        public PlayerInventoryState(CraftInventoryView craftInventory,PlayerInventoryController playerInventoryController)
         {
             _craftInventory = craftInventory;
             _playerInventoryController = playerInventoryController;

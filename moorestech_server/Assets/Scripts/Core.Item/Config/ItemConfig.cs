@@ -35,6 +35,8 @@ namespace Core.Item.Config
             }
         }
 
+        public IReadOnlyList<ItemConfigData> ItemConfigDataList => _itemConfigList;
+
         public ItemConfigData GetItemConfig(int id)
         {
             //0は何も持っていないことを表すので-1してListのindexにする
@@ -45,7 +47,7 @@ namespace Core.Item.Config
             if (id < _itemConfigList.Count) return _itemConfigList[id];
 
             //TODO ログ基盤に入れる
-            return new ItemConfigData("undefined id " + id, DefaultItemMaxCount, "mod is not found");
+            return new ItemConfigData("undefined id " + id, DefaultItemMaxCount, "mod is not found",id);
         }
 
         public ItemConfigData GetItemConfig(long itemHash)

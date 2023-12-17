@@ -9,6 +9,7 @@ using MainGame.UnityView.Control;
 using MainGame.UnityView.MapObject;
 using MainGame.UnityView.SoundEffect;
 using MainGame.UnityView.UI.Inventory;
+using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.Util;
 using UnityEngine;

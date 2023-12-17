@@ -16,7 +16,7 @@ namespace MainGame.Presenter.Entity
 
         private readonly Dictionary<long, (DateTime lastUpdate, IEntityObject objectEntity)> _entities = new();
 
-        private ItemImages _itemImages;
+        private ItemImageContainer _itemImageContainer;
 
 
         /// <summary>
@@ -37,9 +37,9 @@ namespace MainGame.Presenter.Entity
         }
 
         [Inject]
-        public void Construct(ReceiveEntitiesDataEvent receiveEntitiesDataEvent, ItemImages itemImages)
+        public void Construct(ReceiveEntitiesDataEvent receiveEntitiesDataEvent, ItemImageContainer itemImageContainer)
         {
-            _itemImages = itemImages;
+            _itemImageContainer = itemImageContainer;
             receiveEntitiesDataEvent.OnEntitiesUpdate += OnEntitiesUpdate;
         }
 
@@ -72,7 +72,7 @@ namespace MainGame.Presenter.Entity
 
 
                 var id = int.Parse(entityProperties.State.Split(',')[0]);
-                item.SetTexture(_itemImages.GetItemView(id).ItemTexture);
+                item.SetTexture(_itemImageContainer.GetItemView(id).ItemTexture);
                 return item;
             }
 

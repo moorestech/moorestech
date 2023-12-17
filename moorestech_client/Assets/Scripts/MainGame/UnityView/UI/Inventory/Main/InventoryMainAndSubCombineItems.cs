@@ -7,7 +7,7 @@ using Game.PlayerInventory.Interface;
 using SinglePlay;
 using UnityEngine;
 
-namespace MainGame.UnityView.UI.Inventory
+namespace MainGame.UnityView.UI.Inventory.Main
 {
     public interface IInventoryItems : IEnumerable<IItemStack>
     {

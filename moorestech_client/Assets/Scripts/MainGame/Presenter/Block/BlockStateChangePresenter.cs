@@ -1,7 +1,6 @@
 ﻿using Game.Block.Interface.BlockConfig;
 using MainGame.Network.Event;
 using MainGame.UnityView.Chunk;
-using MainGame.UnityView.UI.Inventory.View;
 using SinglePlay;
 using UnityEngine;
 using VContainer.Unity;

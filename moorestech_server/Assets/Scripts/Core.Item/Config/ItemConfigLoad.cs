@@ -30,7 +30,7 @@ namespace Core.Item.Config
                     if (itemConfigData == null) continue;
 
 
-                    var configList = itemConfigData.ToList().Select(c => new ItemConfigData(c, mod, xxHash));
+                    var configList = itemConfigData.ToList().Select(c => new ItemConfigData(c, mod, xxHash,itemConfigList.Count + 1));
                     itemConfigList.AddRange(configList);
                 }
                 catch (Exception e)
@@ -48,10 +48,12 @@ namespace Core.Item.Config
     {
         public readonly long ItemHash;
         public readonly string ModId;
+        public readonly int ItemId;
 
-        internal ItemConfigData(ItemConfigJsonData jsonData, string modId, IxxHash xxHash)
+        internal ItemConfigData(ItemConfigJsonData jsonData, string modId, IxxHash xxHash, int itemId)
         {
             ModId = modId;
+            ItemId = itemId;
             Name = jsonData.Name;
             MaxStack = jsonData.MaxStack;
             ImagePath = jsonData.ImagePath;
@@ -63,14 +65,12 @@ namespace Core.Item.Config
         /// <summary>
         ///     アイテムが定義されていないとき用のコンストラクタ
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="maxStack"></param>
-        /// <param name="modId"></param>
-        public ItemConfigData(string name, int maxStack, string modId)
+        public ItemConfigData(string name, int maxStack, string modId, int itemId)
         {
             Name = name;
             MaxStack = maxStack;
             ModId = modId;
+            ItemId = itemId;
         }
 
         public string Name { get; }

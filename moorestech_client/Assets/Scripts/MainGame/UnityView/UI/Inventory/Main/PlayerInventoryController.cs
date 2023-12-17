@@ -13,7 +13,7 @@ using UniRx;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.UnityView.UI.Inventory
+namespace MainGame.UnityView.UI.Inventory.Main
 {
     /// <summary>
     /// TODO フラグ管理をステートベースに変換する
@@ -32,23 +32,23 @@ namespace MainGame.UnityView.UI.Inventory
         private bool _isItemOneDragging;
         
         
-        private ItemImages _itemImages;
+        private ItemImageContainer _itemImageContainer;
         
         private bool IsGrabItem => _playerInventory.GrabInventory.Id != ItemConst.EmptyItemId;
 
         [Inject]
-        public void Construct(SinglePlayInterface singlePlayInterface,LocalPlayerInventoryDataController playerInventory,ItemImages itemImages)
+        public void Construct(SinglePlayInterface singlePlayInterface,LocalPlayerInventoryDataController playerInventory,ItemImageContainer itemImageContainer)
         {
             _itemStackFactory = singlePlayInterface.ItemStackFactory;
             _playerInventory = playerInventory;
-            _itemImages = itemImages;
+            _itemImageContainer = itemImageContainer;
         }
 
         private void Awake()
         {
             foreach (var mainInventorySlotObject in mainInventorySlotObjects)
             {
-                mainInventorySlotObject.OnUIEvent.Subscribe(ItemSlotUIEvent);
+                mainInventorySlotObject.OnPointerEvent.Subscribe(ItemSlotUIEvent);
             }
         }
 
@@ -64,7 +64,7 @@ namespace MainGame.UnityView.UI.Inventory
             _playerInventory.SetSubInventory(subInventory);
             foreach (var sub in _subInventory.SubInventorySlotObjects)
             {
-                _subInventorySlotUIEventUnsubscriber.Add(sub.OnUIEvent.Subscribe(ItemSlotUIEvent));
+                _subInventorySlotUIEventUnsubscriber.Add(sub.OnPointerEvent.Subscribe(ItemSlotUIEvent));
             }
         }
 
@@ -334,11 +334,11 @@ namespace MainGame.UnityView.UI.Inventory
             for (int i = 0; i < _playerInventory.InventoryItems.Count; i++)
             {
                 var item = _playerInventory.InventoryItems[i];
-                var sprite = _itemImages.GetItemView(item.Id);
-                mainInventorySlotObjects[i].SetItem(sprite, item.Count);
+                var sprite = _itemImageContainer.GetItemView(item.Id);
+                mainInventorySlotObjects[i].SetItem(sprite, item.Count,true);
             }
             grabInventorySlotObject.SetActive(IsGrabItem);
-            grabInventorySlotObject.SetItem(_itemImages.GetItemView(_playerInventory.GrabInventory.Id), _playerInventory.GrabInventory.Count);
+            grabInventorySlotObject.SetItem(_itemImageContainer.GetItemView(_playerInventory.GrabInventory.Id), _playerInventory.GrabInventory.Count,true);
         }
     }
 

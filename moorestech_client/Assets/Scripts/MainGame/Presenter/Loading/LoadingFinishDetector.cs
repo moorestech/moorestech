@@ -26,7 +26,7 @@ namespace MainGame.Presenter.Loading
         private IPlayerPosition _playerPosition;
 
         [Inject]
-        public void Construct(ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol, IPlayerPosition playerPosition, BlockGameObjectFactory blockGameObjectFactory, ItemImages itemImages, WorldMapTileMaterials worldMapTileMaterials)
+        public void Construct(ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol, IPlayerPosition playerPosition, BlockGameObjectFactory blockGameObjectFactory, ItemImageContainer itemImageContainer, WorldMapTileMaterials worldMapTileMaterials)
         {
             _loadingStopwatch.Start();
             _playerPosition = playerPosition;
@@ -35,7 +35,7 @@ namespace MainGame.Presenter.Loading
 
             receiveInitialHandshakeProtocol.OnFinishHandshake += OnFinishHandshake;
             blockGameObjectFactory.OnLoadFinished += FinishBlockModelLoading;
-            itemImages.OnLoadFinished += FinishItemTextureLoading;
+            itemImageContainer.OnLoadFinished += FinishItemTextureLoading;
             worldMapTileMaterials.OnLoadFinished += FinishMapTileTextureLoading;
         }
 

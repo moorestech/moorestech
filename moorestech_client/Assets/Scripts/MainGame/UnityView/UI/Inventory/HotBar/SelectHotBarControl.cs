@@ -4,7 +4,7 @@ using MainGame.UnityView.UI.UIObjects;
 using UniRx;
 using UnityEngine;
 
-namespace MainGame.UnityView.UI.Inventory.View.HotBar
+namespace MainGame.UnityView.UI.Inventory.HotBar
 {
     public class SelectHotBarControl : MonoBehaviour
     {
@@ -20,13 +20,7 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
         public void Start()
         {
             foreach (var slot in hotBarItemView.Slots)
-                slot.OnUIEvent.Subscribe(((UIBuilderItemSlotObject,ItemUIEventType type) t)=>
-                {
-                    if (t.type == ItemUIEventType.LeftClickDown)
-                    {
-                        ClickItem(slot);
-                    }
-                });
+                slot.OnLeftClickDown.Subscribe(ClickItem);
         }
 
         private void Update()

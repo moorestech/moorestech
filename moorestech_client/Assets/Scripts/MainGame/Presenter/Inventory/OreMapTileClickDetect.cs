@@ -5,6 +5,7 @@ using MainGame.Basic;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory;
+using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.Util;
 using MainGame.UnityView.WorldMapTile;

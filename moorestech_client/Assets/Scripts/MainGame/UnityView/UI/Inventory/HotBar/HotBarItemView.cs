@@ -1,20 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
 using MainGame.Basic;
 using MainGame.UnityView.UI.Inventory.Element;
+using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIObjects;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.UnityView.UI.Inventory.View.HotBar
+namespace MainGame.UnityView.UI.Inventory.HotBar
 {
     public class HotBarItemView : MonoBehaviour
     {
         [SerializeField] private List<UIBuilderItemSlotObject> hotBarSlots;
 
-        private ItemImages _itemImages;
+        private ItemImageContainer _itemImageContainer;
         private IInventoryItems _inventoryItems;
         
         public IReadOnlyList<UIBuilderItemSlotObject> Slots => hotBarSlots;
@@ -22,9 +22,9 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
 
 
         [Inject]
-        public void Construct(ItemImages itemImages,IInventoryItems inventoryItems)
+        public void Construct(ItemImageContainer itemImageContainer,IInventoryItems inventoryItems)
         {
-            _itemImages = itemImages;
+            _itemImageContainer = itemImageContainer;
             _inventoryItems = inventoryItems;
         }
 
@@ -45,9 +45,9 @@ namespace MainGame.UnityView.UI.Inventory.View.HotBar
 
             if (slot < startHotBarSlot || PlayerInventoryConstant.MainInventorySize <= slot) return;
 
-            var sprite = _itemImages.GetItemView(item.Id);
+            var viewData = _itemImageContainer.GetItemView(item.Id);
             slot -= startHotBarSlot;
-            hotBarSlots[slot].SetItem(sprite, item.Count);
+            hotBarSlots[slot].SetItem(viewData, item.Count,true);
         }
     }
 }

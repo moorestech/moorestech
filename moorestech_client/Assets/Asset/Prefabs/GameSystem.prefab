@@ -4591,7 +4591,7 @@ MonoBehaviour:
   pauseMenuObject: {fileID: 7499633600282642158}
   deleteBarObject: {fileID: 4640722214229418808}
   blockInventoryObject: {fileID: 8898167348514627761}
-  craftInventoryObject: {fileID: 1588134733947604669}
+  craftInventoryView: {fileID: 2779522200308272756}
   playerInventoryController: {fileID: 485462951067189742}
   blockPlacePreview: {fileID: 1584877711214233187}
   oreMapTileClickDetect: {fileID: 3488627204785912720}
@@ -4994,17 +4994,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b634b883477c458595ce5d71ab9d0774, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1588134733947604669 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3656290935524238043, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-  m_PrefabInstance: {fileID: 2645848407441091686}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f3f16e8613a7402c9a5ccb7d6ba06b25, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1797806254966188289 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4342849207216047463, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
@@ -5036,6 +5025,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8fd0717e2e2546ae808556b01eba1c8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2779522200308272756 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 154575586388402706, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 2645848407441091686}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23f78a41c07e4d8abcb4fbf2fa8db067, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &2969430433967882305 stripped

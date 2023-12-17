@@ -26,8 +26,10 @@ using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.Game;
 using MainGame.UnityView.UI.Inventory;
+using MainGame.UnityView.UI.Inventory.CraftSub;
 using MainGame.UnityView.UI.Inventory.Element;
-using MainGame.UnityView.UI.Inventory.View.HotBar;
+using MainGame.UnityView.UI.Inventory.HotBar;
+using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.UI.UIState.UIObject;
 using MainGame.UnityView.WorldMapTile;
@@ -76,7 +78,7 @@ namespace MainGame.Starter
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private BlockInventoryObject blockInventoryObject;
-        [SerializeField] private CraftInventoryObject craftInventoryObject;
+        [SerializeField] private CraftInventoryView craftInventoryView;
         [SerializeField] private PlayerInventoryController playerInventoryController;
 
         [SerializeField] private BlockPlacePreview blockPlacePreview;
@@ -170,7 +172,7 @@ namespace MainGame.Starter
             builder.Register<BlockPlaceState>(Lifetime.Singleton);
 
             //modからロードしてきたデータ
-            builder.Register<ItemImages>(Lifetime.Singleton);
+            builder.Register<ItemImageContainer>(Lifetime.Singleton);
             builder.Register<WorldMapTileMaterials>(Lifetime.Singleton);
             builder.Register<BlockGameObjectFactory>(Lifetime.Singleton);
 
@@ -206,7 +208,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(entitiesPresenter);
             builder.RegisterComponent(playerInventoryController);
             builder.RegisterComponent(blockInventoryObject);
-            builder.RegisterComponent(craftInventoryObject);
+            builder.RegisterComponent(craftInventoryView);
 
 
             builder.RegisterComponent<IPlayerPosition>(playerPosition);

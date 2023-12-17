@@ -5,7 +5,7 @@ using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.SoundEffect;
-using MainGame.UnityView.UI.Inventory.View.HotBar;
+using MainGame.UnityView.UI.Inventory.HotBar;
 using MainGame.UnityView.UI.UIState;
 using UnityEngine;
 using UnityEngine.EventSystems;

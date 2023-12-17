@@ -18,6 +18,7 @@ namespace Mod.Loader
 
         /// <summary>
         ///     Mod内に格納されているリソースをロードする
+        /// TODO これもコンストラクタに入れる
         /// </summary>
         public ModsResource(string modDirectory)
         {
