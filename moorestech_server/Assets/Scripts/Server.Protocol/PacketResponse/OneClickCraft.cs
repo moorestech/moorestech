@@ -44,7 +44,7 @@ namespace Server.Protocol.PacketResponse
             //クラフトに必要なアイテムを消費
             SubItem(mainInventory,craftConfig);
             //クラフト結果をプレイヤーインベントリに追加
-            playerInventory.GrabInventory.InsertItem(craftConfig.Result);
+            playerInventory.GrabInventory.InsertItem(craftConfig.ResultItem);
             
             
             return new List<List<byte>>();
@@ -57,7 +57,7 @@ namespace Server.Protocol.PacketResponse
             var currentGrabInventoryItem = grabInventory.GetItem(0);
             
             //grabInventoryにアイテムをインサートする
-            var insertItemResult = grabInventory.InsertItem(craftingConfigData.Result);
+            var insertItemResult = grabInventory.InsertItem(craftingConfigData.ResultItem);
             
             grabInventory.SetItem(0,currentGrabInventoryItem);
             

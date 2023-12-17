@@ -9,11 +9,11 @@ namespace Game.Crafting.Interface
 
 
         public readonly List<IItemStack> CraftItems;
-        public readonly IItemStack Result;
+        public readonly IItemStack ResultItem;
 
-        public CraftingConfigData(List<CraftingItemData> craftItemInfos, IItemStack result)
+        public CraftingConfigData(List<CraftingItemData> craftItemInfos, IItemStack resultItem)
         {
-            Result = result;
+            ResultItem = resultItem;
             CraftItemInfos = craftItemInfos;
             CraftItems = new List<IItemStack>();
             foreach (var craftItemInfo in craftItemInfos) CraftItems.Add(craftItemInfo.ItemStack);

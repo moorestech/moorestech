@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Core.ConfigJson;
 using Core.Item;
 using Game.Crafting.Interface;
@@ -19,6 +20,11 @@ namespace Game.Crafting.Config
         public IReadOnlyList<CraftingConfigData> GetCraftingConfigList()
         {
             return _configDataList;
+        }
+
+        public IReadOnlyList<CraftingConfigData> GetResultItemCraftingConfigList(int itemId)
+        {
+            return _configDataList.Where(configData => configData.ResultItem.Id == itemId).ToList();
         }
 
         public CraftingConfigData GetCraftingConfigData(int index)
