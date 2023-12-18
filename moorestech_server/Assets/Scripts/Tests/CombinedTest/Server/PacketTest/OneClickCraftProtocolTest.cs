@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
             
             //Grabインベントリにアイテムがあることを確認
-            var resultItem = craftConfig.Result;
+            var resultItem = craftConfig.ResultItem;
             
             Assert.AreEqual(resultItem.Id, playerInventoryData.GrabInventory.GetItem(0).Id);
             Assert.AreEqual(resultItem.Count, playerInventoryData.GrabInventory.GetItem(0).Count);
@@ -81,7 +81,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //Grabインベントリにアイテムがないことを確認
-            var resultItem = craftConfig.Result;
+            var resultItem = craftConfig.ResultItem;
             
             Assert.AreEqual(0, playerInventoryData.GrabInventory.GetItem(0).Id);
             Assert.AreEqual(0, playerInventoryData.GrabInventory.GetItem(0).Count);
@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //インベントリに結果アイテムがないことを確認
             foreach(var item in playerInventoryData.MainOpenableInventory.Items)
             {
-                if (item.Id == craftConfig.Result.Id)
+                if (item.Id == craftConfig.ResultItem.Id)
                 {
                     Assert.Fail();
                 }

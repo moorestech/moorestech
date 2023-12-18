@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Const;
 using Core.Item.Config;
 using Game.Crafting.Interface;
 using MainGame.UnityView.UI.Inventory.Element;
@@ -133,6 +134,7 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
                 prevRecipeButton.interactable = _currentCraftingConfigDataList.Count != 1;
                 nextRecipeButton.interactable = _currentCraftingConfigDataList.Count != 1;
                 recipeCountText.text = $"{_currentCraftingConfigIndex + 1}/{_currentCraftingConfigDataList.Count}";
+                craftButton.interactable = IsCraftable(craftingConfigData);
             }
             
 
@@ -142,17 +144,41 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
 
         /// <summary>
         /// そのレシピがクラフト可能かどうかを返す
+        /// この処理はある1つのレシピに対してのみ使い、一気にすべてのアイテムがクラフト可能かチェックするには<see cref="IsAllItemCraftable"/>を用いる
         /// </summary>
         private bool IsCraftable(CraftingConfigData craftingConfigData)
         {
+            var itemPerCount = new Dictionary<int, int>();
             foreach (var item in _inventoryItems)
             {
-                if (item.Id == craftingConfigData.ResultItem.Id && item.Count < craftingConfigData.ResultItem.Count) return false;
+                if (item.Id == ItemConst.EmptyItemId) continue;
+                if (itemPerCount.ContainsKey(item.Id))
+                {
+                    itemPerCount[item.Id] += item.Count;
+                }
+                else
+                {
+                    itemPerCount.Add(item.Id, item.Count);
+                }
             }
+            
+            foreach (var material in craftingConfigData.CraftItems)
+            {
+                if (!itemPerCount.ContainsKey(material.Id)) return false;
+                if (itemPerCount[material.Id] < material.Count) return false;
+            }
+
+            return true;
         }
-        
-        
-        
+
+
+        private Dictionary<int, bool> IsAllItemCraftable()
+        {
+            throw new NotImplementedException();
+        }
+
+
+
 
         public void SetActive(bool isActive)
         {
