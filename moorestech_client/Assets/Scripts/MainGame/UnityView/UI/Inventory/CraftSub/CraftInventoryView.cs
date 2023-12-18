@@ -35,7 +35,7 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
         private IItemConfig _itemConfig;
         private ICraftingConfig _craftingConfig;
         private ItemImageContainer _itemImageContainer;
-        private InventoryMainAndSubCombineItems _inventoryItems;
+        private IInventoryItems _inventoryItems;
         
         private IReadOnlyList<CraftingConfigData> _currentCraftingConfigDataList;
         private int _currentCraftingConfigIndex;
@@ -44,12 +44,12 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
 
 
         [Inject]
-        public void Construct(SinglePlayInterface singlePlay,ItemImageContainer itemImageContainer,InventoryMainAndSubCombineItems inventoryMainAndSubCombineItems)
+        public void Construct(SinglePlayInterface singlePlay,ItemImageContainer itemImageContainer,IInventoryItems inventoryItems)
         {
             _itemConfig = singlePlay.ItemConfig;
             _craftingConfig = singlePlay.CraftingConfig;
             _itemImageContainer = itemImageContainer;
-            _inventoryItems = inventoryMainAndSubCombineItems;
+            _inventoryItems = inventoryItems;
 
             foreach (var item in _itemConfig.ItemConfigDataList)
             {
