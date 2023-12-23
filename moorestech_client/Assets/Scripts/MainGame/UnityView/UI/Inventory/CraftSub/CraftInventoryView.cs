@@ -51,15 +51,19 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
             _inventoryItems = inventoryItems;
             _inventoryItems.OnItemChange.Subscribe(OnItemChange);
 
-            foreach (var item in _itemConfig.ItemConfigDataList)
+            itemImageContainer.OnLoadFinished += () =>
             {
-                var itemViewData = _itemImageContainer.GetItemView(item.ItemId);
+                foreach (var item in _itemConfig.ItemConfigDataList)
+                {
+                    var itemViewData = _itemImageContainer.GetItemView(item.ItemId);
                 
-                var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
-                itemSlotObject.SetItem(itemViewData, 0,false);
-                itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
-                _itemListObjects.Add(itemSlotObject);
-            }
+                    var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
+                    itemSlotObject.SetItem(itemViewData, 0,false);
+                    itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
+                    _itemListObjects.Add(itemSlotObject);
+                }
+            };
+
             nextRecipeButton.onClick.AddListener(() =>
             {
                 _currentCraftingConfigIndex++;

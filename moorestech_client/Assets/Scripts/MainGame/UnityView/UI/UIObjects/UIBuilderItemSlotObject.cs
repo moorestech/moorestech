@@ -140,7 +140,7 @@ namespace MainGame.UnityView.UI.UIObjects
             ItemViewData = itemView;
             image.sprite = itemView.ItemImage;
 
-            countText.text = displayCountText ? string.Empty : count.ToString();
+            countText.text = displayCountText ? count.ToString() : string.Empty;
 
             if (itemView.ItemId == ItemConst.EmptyItemId)
             {

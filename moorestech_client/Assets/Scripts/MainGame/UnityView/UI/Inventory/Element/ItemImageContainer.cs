@@ -26,6 +26,8 @@ namespace MainGame.UnityView.UI.Inventory.Element
             LoadTexture(modDirectory, singlePlayInterface).Forget();
         }
 
+        //TODO これを消す
+        [Obsolete("将来的には依存関係がすべて解決された時点で画像がロードされているようにしたいな、、")]
         public event Action OnLoadFinished;
 
         /// <summary>
