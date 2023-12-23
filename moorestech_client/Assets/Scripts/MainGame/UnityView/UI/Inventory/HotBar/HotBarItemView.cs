@@ -36,7 +36,7 @@ namespace MainGame.UnityView.UI.Inventory.HotBar
             }
         }
 
-        private void UpdateHotBar(int slot,IItemStack  item)
+        private void UpdateHotBar(int slot,IItemStack item)
         {
             //スロットが一番下の段もしくはメインインベントリの範囲外の時はスルー
             var c = PlayerInventoryConstant.MainInventoryColumns;

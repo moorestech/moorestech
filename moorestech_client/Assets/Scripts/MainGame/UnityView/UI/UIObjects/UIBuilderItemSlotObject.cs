@@ -15,6 +15,7 @@ namespace MainGame.UnityView.UI.UIObjects
     public class UIBuilderItemSlotObject : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler, IPointerMoveHandler
     {
         [SerializeField] private Image image;
+        [SerializeField] private Image grayOutImage;
         [SerializeField] private TMP_Text countText;
         [SerializeField] private UIEnterExplainerController uiEnterExplainerController;
         
@@ -154,6 +155,10 @@ namespace MainGame.UnityView.UI.UIObjects
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
+        }
+        public void SetGrayOut(bool isGrayOut)
+        {
+            grayOutImage.gameObject.SetActive(isGrayOut);
         }
 
 

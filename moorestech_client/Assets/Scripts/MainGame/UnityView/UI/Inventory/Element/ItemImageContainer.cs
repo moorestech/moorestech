@@ -36,7 +36,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
             //await BlockGlbLoader.GetBlockLoaderは同期処理になっているため、ここで1フレーム待って他のイベントが追加されるのを待つ
             await UniTask.WaitForFixedUpdate();
 
-            _itemImageList.Add(null); //id 0番は何もないことを表すのでnullを入れる
+            _itemImageList.Add(_nothingIndexItemImage); //id 0番は何もないことを表すのでnullを入れる
             
             var textures = ItemTextureLoader.GetItemTexture(modDirectory.Directory, singlePlayInterface);
             _itemImageList.AddRange(textures);
@@ -45,16 +45,16 @@ namespace MainGame.UnityView.UI.Inventory.Element
         }
 
 
-        public ItemViewData GetItemView(int index)
+        public ItemViewData GetItemView(int itemId)
         {
-            if (_itemImageList.Count <= index)
+            if (_itemImageList.Count <= itemId)
             {
-                Debug.Log("存在しないアイテムIDです。");
+                Debug.Log("存在しないアイテムIDです。" + itemId);
                 return _nothingIndexItemImage;
             }
             
 
-            return _itemImageList[index];
+            return _itemImageList[itemId];
         }
 
     }

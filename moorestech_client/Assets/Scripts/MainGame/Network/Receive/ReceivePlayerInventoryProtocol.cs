@@ -35,8 +35,13 @@ namespace MainGame.Network.Receive
         public void Analysis(List<byte> packet)
         {
             var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.ToArray());
+            SetItemData(data).Forget();
+        }
 
-
+        private async UniTask SetItemData(PlayerInventoryResponseProtocolMessagePack data)
+        {
+            await UniTask.SwitchToMainThread();
+            
             //main inventory items
             var mainItems = new List<ItemStack>();
             for (var i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)

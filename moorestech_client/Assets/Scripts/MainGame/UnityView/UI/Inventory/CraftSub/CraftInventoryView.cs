@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Core.Const;
 using Core.Item.Config;
@@ -6,7 +5,6 @@ using Game.Crafting.Interface;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIObjects;
-using Server.Protocol.PacketResponse;
 using SinglePlay;
 using TMPro;
 using UniRx;
@@ -26,7 +24,8 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
         private UIBuilderItemSlotObject _craftResultSlot;
         
         [SerializeField] private RectTransform itemListParent;
-        
+        private readonly List<UIBuilderItemSlotObject> _itemListObjects = new();
+
         [SerializeField] private Button craftButton;
         [SerializeField] private Button nextRecipeButton;
         [SerializeField] private Button prevRecipeButton;
@@ -50,6 +49,7 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
             _craftingConfig = singlePlay.CraftingConfig;
             _itemImageContainer = itemImageContainer;
             _inventoryItems = inventoryItems;
+            _inventoryItems.OnItemChange.Subscribe(OnItemChange);
 
             foreach (var item in _itemConfig.ItemConfigDataList)
             {
@@ -58,6 +58,7 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
                 var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
                 itemSlotObject.SetItem(itemViewData, 0,false);
                 itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
+                _itemListObjects.Add(itemSlotObject);
             }
             nextRecipeButton.onClick.AddListener(() =>
             {
@@ -82,6 +83,16 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
             _currentCraftingConfigIndex = 0;
             DisplayRecipe(0);
         }
+
+        private void OnItemChange(int slot)
+        {
+            var enableItem = IsAllItemCraftable();
+            foreach (var itemUI in _itemListObjects)
+            {
+                itemUI.SetGrayOut(enableItem.Contains(itemUI.ItemViewData.ItemId));
+            }
+        }
+        
 
         private void DisplayRecipe(int index)
         {
@@ -172,9 +183,38 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
         }
 
 
-        private Dictionary<int, bool> IsAllItemCraftable()
+        private HashSet<int> IsAllItemCraftable()
         {
-            throw new NotImplementedException();
+            var itemPerCount = new Dictionary<int, int>();
+            foreach (var item in _inventoryItems)
+            {
+                if (item.Id == ItemConst.EmptyItemId) continue;
+                if (itemPerCount.ContainsKey(item.Id))
+                {
+                    itemPerCount[item.Id] += item.Count;
+                }
+                else
+                {
+                    itemPerCount.Add(item.Id, item.Count);
+                }
+            }
+
+            var result = new HashSet<int>();
+
+            foreach (var configData in _craftingConfig.CraftingConfigList)
+            {
+                if (result.Contains(configData.ResultItem.Id)) continue; //すでにクラフト可能なアイテムならスキップ
+                
+                foreach (var material in configData.CraftItems)
+                {
+                    if (!itemPerCount.ContainsKey(material.Id)) continue;
+                    if (itemPerCount[material.Id] < material.Count) continue;
+                    
+                    result.Add(configData.ResultItem.Id);
+                }
+            }
+            
+            return result;
         }
 
 

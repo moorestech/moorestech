@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,6 +6,7 @@ using Core.Item;
 using Core.Item.Config;
 using Game.PlayerInventory.Interface;
 using SinglePlay;
+using UniRx;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory.Main
@@ -12,12 +14,18 @@ namespace MainGame.UnityView.UI.Inventory.Main
     public interface IInventoryItems : IEnumerable<IItemStack>
     {
         public IItemStack this[int index] { get; }
+        public IObservable<int> OnItemChange { get; }
+
         public int Count { get; }
         public bool IsItemExist(string modId, string itemName);
     }
     
     public class InventoryMainAndSubCombineItems : IInventoryItems
     {
+        public IObservable<int> OnItemChange => _onItemChange;
+        private readonly Subject<int> _onItemChange = new();
+
+
         private readonly List<IItemStack> _mainInventory;
         private readonly List<IItemStack> _subInventory;
         private readonly ItemStackFactory _itemStackFactory;
@@ -79,6 +87,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
                 if (index < _mainInventory.Count)
                 {
                     _mainInventory[index] = value;
+                    _onItemChange.OnNext(index);
                     return;
                 }
 
@@ -86,6 +95,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
                 if (subIndex < _subInventory.Count)
                 {
                     _subInventory[subIndex] = value;
+                    _onItemChange.OnNext(index);
                     return;
                 }
 
