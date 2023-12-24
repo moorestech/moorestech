@@ -47,7 +47,7 @@ namespace MainGame.UnityView.UI.Inventory.HotBar
 
             var viewData = _itemImageContainer.GetItemView(item.Id);
             slot -= startHotBarSlot;
-            hotBarSlots[slot].SetItem(viewData, item.Count,true);
+            hotBarSlots[slot].SetItem(viewData, item.Count);
         }
     }
 }

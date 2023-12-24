@@ -335,10 +335,10 @@ namespace MainGame.UnityView.UI.Inventory.Main
             {
                 var item = _playerInventory.InventoryItems[i];
                 var sprite = _itemImageContainer.GetItemView(item.Id);
-                mainInventorySlotObjects[i].SetItem(sprite, item.Count,true);
+                mainInventorySlotObjects[i].SetItem(sprite, item.Count);
             }
             grabInventorySlotObject.SetActive(IsGrabItem);
-            grabInventorySlotObject.SetItem(_itemImageContainer.GetItemView(_playerInventory.GrabInventory.Id), _playerInventory.GrabInventory.Count,true);
+            grabInventorySlotObject.SetItem(_itemImageContainer.GetItemView(_playerInventory.GrabInventory.Id), _playerInventory.GrabInventory.Count);
         }
     }
 

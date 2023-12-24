@@ -24,9 +24,15 @@ namespace MainGame.Network.Receive.EventPacket
 
         public void Analysis(List<byte> packet)
         {
-            var data = MessagePackSerializer
-                .Deserialize<MainInventoryUpdateEventMessagePack>(packet.ToArray());
+            var data = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(packet.ToArray());
 
+            SetItemData(data).Forget();
+        }
+        
+        private async UniTask SetItemData(MainInventoryUpdateEventMessagePack data)
+        {
+            await UniTask.SwitchToMainThread();
+            
             _inventoryMainAndSubCombineItems[data.Slot] = _itemStackFactory.Create(data.Item.Id, data.Item.Count);
         }
     }

@@ -58,7 +58,7 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
                     var itemViewData = _itemImageContainer.GetItemView(item.ItemId);
                 
                     var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
-                    itemSlotObject.SetItem(itemViewData, 0,false);
+                    itemSlotObject.SetItem(itemViewData, 0);
                     itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
                     _itemListObjects.Add(itemSlotObject);
                 }
@@ -93,14 +93,14 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
             var enableItem = IsAllItemCraftable();
             foreach (var itemUI in _itemListObjects)
             {
-                itemUI.SetGrayOut(enableItem.Contains(itemUI.ItemViewData.ItemId));
+                itemUI.SetGrayOut(!enableItem.Contains(itemUI.ItemViewData.ItemId));
             }
         }
         
 
         private void DisplayRecipe(int index)
         {
-            var craftingConfigData = _craftingConfig.GetCraftingConfigData(index);
+            var craftingConfigData = _currentCraftingConfigDataList[index];
             
             ClearSlotObject();
 
@@ -131,7 +131,7 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
                 {
                     var itemViewData = _itemImageContainer.GetItemView(material.Id);
                     var itemSlotObject = Instantiate(itemSlotObjectPrefab, craftMaterialParent);
-                    itemSlotObject.SetItem(itemViewData, material.Count, true);
+                    itemSlotObject.SetItem(itemViewData, material.Count);
                     itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
                     _craftMaterialSlotList.Add(itemSlotObject);
                 }
@@ -141,7 +141,7 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
             {
                 var itemViewData = _itemImageContainer.GetItemView(craftingConfigData.ResultItem.Id);
                 _craftResultSlot = Instantiate(itemSlotObjectPrefab, craftResultParent);
-                _craftResultSlot.SetItem(itemViewData, craftingConfigData.ResultItem.Count, true);
+                _craftResultSlot.SetItem(itemViewData, craftingConfigData.ResultItem.Count);
             }
 
             void UpdateButtonAndText()

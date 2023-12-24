@@ -135,12 +135,12 @@ namespace MainGame.UnityView.UI.UIObjects
                     break;
             }
         }
-        public void SetItem(ItemViewData itemView, int count,bool displayCountText)
+        public void SetItem(ItemViewData itemView, int count)
         {
             ItemViewData = itemView;
             image.sprite = itemView.ItemImage;
 
-            countText.text = displayCountText ? count.ToString() : string.Empty;
+            countText.text = count != 0? count.ToString() : string.Empty;
 
             if (itemView.ItemId == ItemConst.EmptyItemId)
             {
