@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
-namespace MainGame.UnityView.UI.Inventory.CraftSub
+namespace MainGame.UnityView.UI.Inventory.Sub
 {
     public class CraftInventoryView : MonoBehaviour
     {

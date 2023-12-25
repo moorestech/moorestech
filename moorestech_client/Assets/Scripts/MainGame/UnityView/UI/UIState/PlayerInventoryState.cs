@@ -1,8 +1,8 @@
 ﻿using System;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory;
-using MainGame.UnityView.UI.Inventory.CraftSub;
 using MainGame.UnityView.UI.Inventory.Main;
+using MainGame.UnityView.UI.Inventory.Sub;
 using MainGame.UnityView.UI.UIState.UIObject;
 
 namespace MainGame.UnityView.UI.UIState
