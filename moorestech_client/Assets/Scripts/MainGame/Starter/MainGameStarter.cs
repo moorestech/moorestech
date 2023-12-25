@@ -146,6 +146,7 @@ namespace MainGame.Starter
             builder.Register<SendSaveProtocol>(Lifetime.Singleton);
             builder.Register<InventoryMoveItemProtocol>(Lifetime.Singleton);
             builder.Register<SendGetMapObjectProtocolProtocol>(Lifetime.Singleton);
+            builder.Register<SendOneClickCraftProtocol>(Lifetime.Singleton);
 
             //インベントリのUIコントロール
             builder.Register<LocalPlayerInventoryDataController>(Lifetime.Singleton);

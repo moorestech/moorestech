@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Const;
 using Core.Item.Config;
 using Game.Crafting.Interface;
+using MainGame.Network.Send;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIObjects;
@@ -43,7 +44,7 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
 
 
         [Inject]
-        public void Construct(SinglePlayInterface singlePlay,ItemImageContainer itemImageContainer,IInventoryItems inventoryItems)
+        public void Construct(SinglePlayInterface singlePlay,ItemImageContainer itemImageContainer,IInventoryItems inventoryItems,SendOneClickCraftProtocol sendProtocol)
         {
             _itemConfig = singlePlay.ItemConfig;
             _craftingConfig = singlePlay.CraftingConfig;
@@ -63,6 +64,12 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
                     _itemListObjects.Add(itemSlotObject);
                 }
             };
+            
+            craftButton.onClick.AddListener(() =>
+            {
+                if (_currentCraftingConfigDataList.Count == 0) return;
+                sendProtocol.Send(_currentCraftingConfigDataList[_currentCraftingConfigIndex].RecipeId);
+            });
 
             nextRecipeButton.onClick.AddListener(() =>
             {
@@ -208,12 +215,18 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
             foreach (var configData in _craftingConfig.CraftingConfigList)
             {
                 if (result.Contains(configData.ResultItem.Id)) continue; //すでにクラフト可能なアイテムならスキップ
-                
+                var isCraftable = true;
                 foreach (var material in configData.CraftItems)
                 {
-                    if (!itemPerCount.ContainsKey(material.Id)) continue;
-                    if (itemPerCount[material.Id] < material.Count) continue;
-                    
+                    if (!itemPerCount.ContainsKey(material.Id) || itemPerCount[material.Id] < material.Count)
+                    {
+                        isCraftable = false;
+                        break;
+                    }
+                }
+
+                if (isCraftable)
+                {
                     result.Add(configData.ResultItem.Id);
                 }
             }
