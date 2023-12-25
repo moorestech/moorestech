@@ -150,7 +150,7 @@ GameObject:
   - component: {fileID: 7226362693378105453}
   - component: {fileID: 5725241490740468130}
   m_Layer: 5
-  m_Name: UIBuilderItemSlotObject
+  m_Name: ItemSlotObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

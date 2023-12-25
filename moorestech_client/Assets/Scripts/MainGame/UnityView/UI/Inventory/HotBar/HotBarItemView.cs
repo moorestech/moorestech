@@ -4,7 +4,6 @@ using Core.Item;
 using MainGame.Basic;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
-using MainGame.UnityView.UI.UIObjects;
 using UnityEngine;
 using VContainer;
 
@@ -12,12 +11,12 @@ namespace MainGame.UnityView.UI.Inventory.HotBar
 {
     public class HotBarItemView : MonoBehaviour
     {
-        [SerializeField] private List<UIBuilderItemSlotObject> hotBarSlots;
+        [SerializeField] private List<ItemSlotObject> hotBarSlots;
 
         private ItemImageContainer _itemImageContainer;
         private IInventoryItems _inventoryItems;
         
-        public IReadOnlyList<UIBuilderItemSlotObject> Slots => hotBarSlots;
+        public IReadOnlyList<ItemSlotObject> Slots => hotBarSlots;
         
 
 

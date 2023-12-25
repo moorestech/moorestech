@@ -1,6 +1,6 @@
 using System;
 using MainGame.UnityView.Control;
-using MainGame.UnityView.UI.UIObjects;
+using MainGame.UnityView.UI.Inventory.Element;
 using UniRx;
 using UnityEngine;
 
@@ -42,11 +42,11 @@ namespace MainGame.UnityView.UI.Inventory.HotBar
 
         public event Action<int> OnSelectHotBar;
 
-        private void ClickItem(UIBuilderItemSlotObject uiBuilderItemSlotObject)
+        private void ClickItem(ItemSlotObject itemSlotObject)
         {
             var slot = 0;
             for (var i = 0; i < hotBarItemView.Slots.Count; i++)
-                if (uiBuilderItemSlotObject == hotBarItemView.Slots[i])
+                if (itemSlotObject == hotBarItemView.Slots[i])
                     slot = i;
             SelectIndex = slot;
             _isClickedCount = 0;

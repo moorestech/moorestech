@@ -7,7 +7,6 @@ using Core.Item;
 using MainGame.Basic;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory.Element;
-using MainGame.UnityView.UI.UIObjects;
 using SinglePlay;
 using UniRx;
 using UnityEngine;
@@ -20,8 +19,8 @@ namespace MainGame.UnityView.UI.Inventory.Main
     /// </summary>
     public class PlayerInventoryController : MonoBehaviour
     {
-        [SerializeField] private List<UIBuilderItemSlotObject> mainInventorySlotObjects;
-        [SerializeField] private UIBuilderItemSlotObject grabInventorySlotObject;
+        [SerializeField] private List<ItemSlotObject> mainInventorySlotObjects;
+        [SerializeField] private ItemSlotObject grabInventorySlotObject;
         
         private ItemStackFactory _itemStackFactory;
         private LocalPlayerInventoryDataController _playerInventory;
@@ -68,7 +67,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
             }
         }
 
-        private void ItemSlotUIEvent((UIBuilderItemSlotObject slotObject,ItemUIEventType itemUIEvent) eventProperty)
+        private void ItemSlotUIEvent((ItemSlotObject slotObject,ItemUIEventType itemUIEvent) eventProperty)
         {
             var (slotObject, itemUIEvent) = eventProperty;
             var index = mainInventorySlotObjects.IndexOf(slotObject);

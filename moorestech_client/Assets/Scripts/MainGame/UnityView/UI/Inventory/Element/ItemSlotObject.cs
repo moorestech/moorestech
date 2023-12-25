@@ -2,7 +2,6 @@
 using Core.Const;
 using MainGame.Basic.UI;
 using MainGame.ModLoader.Texture;
-using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Util;
 using TMPro;
 using UniRx;
@@ -10,9 +9,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace MainGame.UnityView.UI.UIObjects
+namespace MainGame.UnityView.UI.Inventory.Element
 {
-    public class UIBuilderItemSlotObject : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler, IPointerMoveHandler
+    public class ItemSlotObject : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler, IPointerMoveHandler
     {
         [SerializeField] private Image image;
         [SerializeField] private Image grayOutImage;
@@ -25,27 +24,27 @@ namespace MainGame.UnityView.UI.UIObjects
 
         #region PointerEvents
 
-        public IObservable<(UIBuilderItemSlotObject,ItemUIEventType)> OnPointerEvent => _onPointerEvent;
-        private readonly Subject<(UIBuilderItemSlotObject,ItemUIEventType)> _onPointerEvent = new();
+        public IObservable<(ItemSlotObject,ItemUIEventType)> OnPointerEvent => _onPointerEvent;
+        private readonly Subject<(ItemSlotObject,ItemUIEventType)> _onPointerEvent = new();
         
-        public IObservable<UIBuilderItemSlotObject> OnRightClickDown => _onRightClickDown;
-        private readonly Subject<UIBuilderItemSlotObject> _onRightClickDown = new();
-        public IObservable<UIBuilderItemSlotObject> OnLeftClickDown => _onLeftClickDown;
-        private readonly Subject<UIBuilderItemSlotObject> _onLeftClickDown = new();
-        public IObservable<UIBuilderItemSlotObject> OnRightClickUp => _onRightClickUp;
-        private readonly Subject<UIBuilderItemSlotObject> _onRightClickUp = new();
-        public IObservable<UIBuilderItemSlotObject> OnLeftClickUp => _onLeftClickUp;
-        private readonly Subject<UIBuilderItemSlotObject> _onLeftClickUp = new();
-        public IObservable<UIBuilderItemSlotObject> OnCursorEnter => _onCursorEnter;
-        private readonly Subject<UIBuilderItemSlotObject> _onCursorEnter = new();
-        public IObservable<UIBuilderItemSlotObject> OnCursorExit => _onCursorExit;
-        private readonly Subject<UIBuilderItemSlotObject> _onCursorExit = new();
-        public IObservable<UIBuilderItemSlotObject> OnCursorMove => _onCursorMove;
-        private readonly Subject<UIBuilderItemSlotObject> _onCursorMove = new();
-        public IObservable<UIBuilderItemSlotObject> OnDoubleClick => _onDoubleClick;
-        private readonly Subject<UIBuilderItemSlotObject> _onDoubleClick = new();
+        public IObservable<ItemSlotObject> OnRightClickDown => _onRightClickDown;
+        private readonly Subject<ItemSlotObject> _onRightClickDown = new();
+        public IObservable<ItemSlotObject> OnLeftClickDown => _onLeftClickDown;
+        private readonly Subject<ItemSlotObject> _onLeftClickDown = new();
+        public IObservable<ItemSlotObject> OnRightClickUp => _onRightClickUp;
+        private readonly Subject<ItemSlotObject> _onRightClickUp = new();
+        public IObservable<ItemSlotObject> OnLeftClickUp => _onLeftClickUp;
+        private readonly Subject<ItemSlotObject> _onLeftClickUp = new();
+        public IObservable<ItemSlotObject> OnCursorEnter => _onCursorEnter;
+        private readonly Subject<ItemSlotObject> _onCursorEnter = new();
+        public IObservable<ItemSlotObject> OnCursorExit => _onCursorExit;
+        private readonly Subject<ItemSlotObject> _onCursorExit = new();
+        public IObservable<ItemSlotObject> OnCursorMove => _onCursorMove;
+        private readonly Subject<ItemSlotObject> _onCursorMove = new();
+        public IObservable<ItemSlotObject> OnDoubleClick => _onDoubleClick;
+        private readonly Subject<ItemSlotObject> _onDoubleClick = new();
         
-        private void OnInvokeOtherEvent((UIBuilderItemSlotObject,ItemUIEventType) data)
+        private void OnInvokeOtherEvent((ItemSlotObject,ItemUIEventType) data)
         {
             var type = data.Item2;
             var slot = data.Item1;

@@ -5,7 +5,6 @@ using Game.Crafting.Interface;
 using MainGame.Network.Send;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
-using MainGame.UnityView.UI.UIObjects;
 using SinglePlay;
 using TMPro;
 using UniRx;
@@ -17,15 +16,15 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
 {
     public class CraftInventoryView : MonoBehaviour
     {
-        [SerializeField] private UIBuilderItemSlotObject itemSlotObjectPrefab;
+        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         
         [SerializeField] private RectTransform craftMaterialParent;
-        private readonly List<UIBuilderItemSlotObject> _craftMaterialSlotList = new();
+        private readonly List<ItemSlotObject> _craftMaterialSlotList = new();
         [SerializeField] private RectTransform craftResultParent;
-        private UIBuilderItemSlotObject _craftResultSlot;
+        private ItemSlotObject _craftResultSlot;
         
         [SerializeField] private RectTransform itemListParent;
-        private readonly List<UIBuilderItemSlotObject> _itemListObjects = new();
+        private readonly List<ItemSlotObject> _itemListObjects = new();
 
         [SerializeField] private Button craftButton;
         [SerializeField] private Button nextRecipeButton;
@@ -86,7 +85,7 @@ namespace MainGame.UnityView.UI.Inventory.CraftSub
             
         }
 
-        private void OnClickItemList(UIBuilderItemSlotObject slot)
+        private void OnClickItemList(ItemSlotObject slot)
         {
             _currentCraftingConfigDataList = _craftingConfig.GetResultItemCraftingConfigList(slot.ItemViewData.ItemId);
             if (_currentCraftingConfigDataList.Count == 0) return;
