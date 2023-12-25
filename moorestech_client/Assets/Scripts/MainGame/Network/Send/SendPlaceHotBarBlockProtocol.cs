@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using Game.World.Interface.DataStore;
-using MainGame.Basic;
+using Constant;
 using MainGame.Network.Settings;
 using MessagePack;
 using Server.Protocol.PacketResponse;

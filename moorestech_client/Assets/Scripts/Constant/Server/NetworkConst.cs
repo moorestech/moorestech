@@ -1,4 +1,4 @@
-﻿namespace MainGame.Basic.Server
+﻿namespace Constant.Server
 {
     public class NetworkConst
     {

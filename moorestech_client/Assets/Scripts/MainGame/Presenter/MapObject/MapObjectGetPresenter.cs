@@ -3,7 +3,7 @@ using System.Threading;
 using Core.Item.Config;
 using Cysharp.Threading.Tasks;
 using Game.MapObject.Interface;
-using MainGame.Basic;
+using Constant;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.MapObject;

@@ -1,4 +1,4 @@
-﻿namespace MainGame.Basic
+﻿namespace Constant
 {
     public class SceneConstant
     {

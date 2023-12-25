@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Entity.Interface;
-using MainGame.Basic;
+using Constant;
 using MainGame.Network.Event;
 using MainGame.UnityView.Entity;
 using MainGame.UnityView.UI.Inventory.Element;

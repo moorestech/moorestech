@@ -2,7 +2,7 @@
 using Core.Item;
 using Core.Item.Config;
 using Cysharp.Threading.Tasks;
-using MainGame.Basic;
+using Constant;
 using MainGame.Network.Event;
 using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;

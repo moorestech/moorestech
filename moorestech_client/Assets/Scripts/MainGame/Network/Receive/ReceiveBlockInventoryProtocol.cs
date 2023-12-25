@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using MainGame.Basic;
+using Constant;
 using MainGame.Network.Event;
 using MessagePack;
 using Server.Protocol.PacketResponse;

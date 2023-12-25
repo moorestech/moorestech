@@ -1,7 +1,7 @@
 ﻿using Game.World.Interface.DataStore;
 using UnityEngine;
 
-namespace MainGame.Basic
+namespace Constant
 {
     /// <summary>
     ///     0を基準としたサーバーの座標値を、0.5をプラスして、オブジェクトなどの座標の左端を0,0に合わせるように変換する

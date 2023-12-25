@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Core.Const;
 using Core.Item.Config;
 using Cysharp.Threading.Tasks;
-using MainGame.Basic;
+using Constant;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Texture;
 using SinglePlay;

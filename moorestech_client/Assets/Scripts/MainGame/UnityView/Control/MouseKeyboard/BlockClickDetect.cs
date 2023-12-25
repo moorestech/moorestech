@@ -1,4 +1,4 @@
-using MainGame.Basic;
+using Constant;
 using MainGame.ModLoader.Glb;
 using UnityEngine;
 using UnityEngine.EventSystems;

@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 
-namespace MainGame.Editor
+namespace Editor
 {
     [CustomEditor(typeof(MapObjectGameObjectDatastore))]
     public class MapObjectGameObjectDatastoreEditor : UnityEditor.Editor

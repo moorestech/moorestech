@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Game.World.Interface.DataStore;
-using MainGame.Basic;
+using Constant;
 using MainGame.Network.Event;
 using MainGame.UnityView.Chunk;
 using UnityEngine;

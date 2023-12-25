@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Config;
-using MainGame.Basic;
+using Constant;
 using Mod.Loader;
 using SinglePlay;
 using UnityEngine;

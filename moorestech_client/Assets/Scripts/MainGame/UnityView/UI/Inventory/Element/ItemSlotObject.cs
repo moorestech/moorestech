@@ -1,6 +1,6 @@
 ﻿using System;
+using Constant.UI;
 using Core.Const;
-using MainGame.Basic.UI;
 using MainGame.ModLoader.Texture;
 using MainGame.UnityView.UI.Util;
 using TMPro;

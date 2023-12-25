@@ -1,4 +1,4 @@
-using MainGame.Basic.Server;
+using Constant.Server;
 using UnityEngine;
 
 namespace MainGame.UnityView.Entity

@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using Core.Ore;
 using Cysharp.Threading.Tasks;
-using MainGame.Basic;
+using Constant;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory;

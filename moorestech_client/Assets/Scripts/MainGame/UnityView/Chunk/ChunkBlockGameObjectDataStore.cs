@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Game.Block.Config;
 using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.DataStore;
-using MainGame.Basic;
+using Constant;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Block;
 using SinglePlay;

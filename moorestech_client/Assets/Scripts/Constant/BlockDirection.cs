@@ -2,7 +2,7 @@
 using Game.World.Interface.DataStore;
 using UnityEngine;
 
-namespace MainGame.Basic
+namespace Constant
 {
     public static class BlockDirectionAngle
     {

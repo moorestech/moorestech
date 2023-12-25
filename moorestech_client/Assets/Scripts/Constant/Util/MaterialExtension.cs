@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace MainGame.Basic.Util
+namespace Constant.Util
 {
     public static class MaterialExtension
     {

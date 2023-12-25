@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace MainGame.Basic
+namespace Constant
 {
     public static class ChunkConstant
     {

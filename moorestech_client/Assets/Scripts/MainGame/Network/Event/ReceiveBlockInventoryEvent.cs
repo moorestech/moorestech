@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using MainGame.Basic;
+using Constant;
 using UnityEngine;
 
 namespace MainGame.Network.Event

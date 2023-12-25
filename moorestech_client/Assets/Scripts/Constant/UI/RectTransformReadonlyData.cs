@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace MainGame.Basic.UI
+namespace Constant.UI
 {
     /// <summary>
     ///     RectTransformのデータは欲しいがアクセスはしたくない時に使う

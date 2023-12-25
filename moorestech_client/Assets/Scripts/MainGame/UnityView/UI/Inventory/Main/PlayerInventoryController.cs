@@ -4,7 +4,7 @@ using System.Linq;
 using ClassLibrary;
 using Core.Const;
 using Core.Item;
-using MainGame.Basic;
+using Constant;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory.Element;
 using SinglePlay;

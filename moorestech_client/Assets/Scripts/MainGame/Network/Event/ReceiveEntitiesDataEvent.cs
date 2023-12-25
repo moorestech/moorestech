@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using MainGame.Basic;
+using Constant;
 using Server.Protocol.PacketResponse.MessagePack;
 
 namespace MainGame.Network.Event

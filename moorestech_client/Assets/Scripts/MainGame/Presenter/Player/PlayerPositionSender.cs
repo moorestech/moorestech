@@ -1,4 +1,4 @@
-using MainGame.Basic.Server;
+using Constant.Server;
 using MainGame.Network.Receive;
 using MainGame.Network.Send;
 using MainGame.UnityView.Game;

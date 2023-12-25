@@ -1,5 +1,5 @@
 using System.Threading;
-using MainGame.Basic;
+using Constant;
 using MainGame.Network;
 using MainGame.Network.Send;
 using MainGame.Network.Settings;

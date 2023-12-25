@@ -1,4 +1,4 @@
-﻿using MainGame.Basic;
+﻿using Constant;
 using MainGame.Network.Event;
 using MainGame.UnityView.WorldMapTile;
 using UnityEngine;

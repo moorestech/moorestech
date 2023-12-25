@@ -1,5 +1,5 @@
 using Game.World.Interface.DataStore;
-using MainGame.Basic;
+using Constant;
 using MainGame.Network.Send;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;

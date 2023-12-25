@@ -2,8 +2,8 @@
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface.BlockConfig;
-using MainGame.Basic;
-using MainGame.Basic.Util;
+using Constant;
+using Constant.Util;
 using Mod.Loader;
 using SinglePlay;
 using UnityEngine;

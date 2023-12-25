@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Core.Item;
 using Cysharp.Threading.Tasks;
-using MainGame.Basic;
+using Constant;
 using MainGame.Network.Event;
 using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;

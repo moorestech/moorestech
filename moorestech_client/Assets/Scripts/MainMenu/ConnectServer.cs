@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using GameConst;
-using MainGame.Basic;
+using Constant;
 using MainGame.Starter;
 using MainMenu.PopUp;
 using TMPro;

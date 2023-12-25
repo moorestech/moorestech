@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Cysharp.Threading.Tasks;
 using GameConst;
-using MainGame.Basic;
+using Constant;
 using MainGame.Starter;
 using UnityEngine;
 using UnityEngine.SceneManagement;
