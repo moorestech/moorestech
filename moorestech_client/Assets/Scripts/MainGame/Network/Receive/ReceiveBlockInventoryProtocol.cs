@@ -1,35 +1,42 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using Constant;
-using MainGame.Network.Event;
+using Core.Item;
+using MainGame.UnityView.UI.Inventory.Sub;
 using MessagePack;
 using Server.Protocol.PacketResponse;
+using SinglePlay;
 
 namespace MainGame.Network.Receive
 {
     public class ReceiveBlockInventoryProtocol : IAnalysisPacket
     {
-        private readonly ReceiveBlockInventoryEvent receiveBlockInventoryEvent;
+        private readonly BlockInventoryView _blockInventoryView;
+        private readonly ItemStackFactory _itemStackFactory;
 
-        public ReceiveBlockInventoryProtocol(ReceiveBlockInventoryEvent receiveBlockInventoryEvent)
+
+        public ReceiveBlockInventoryProtocol(BlockInventoryView blockInventoryView,SinglePlayInterface singlePlayInterface)
         {
-            this.receiveBlockInventoryEvent = receiveBlockInventoryEvent;
+            _blockInventoryView = blockInventoryView;
+            _itemStackFactory = singlePlayInterface.ItemStackFactory;
         }
 
         public void Analysis(List<byte> packet)
         {
             var data = MessagePackSerializer.Deserialize<BlockInventoryResponseProtocolMessagePack>(packet.ToArray());
+            SetItem(data).Forget();
+        }
 
-
-            var items = new List<ItemStack>();
-            for (var i = 0; i < data.ItemCounts.Length; i++)
+        private async UniTask SetItem(BlockInventoryResponseProtocolMessagePack data)
+        {
+            await UniTask.SwitchToMainThread();
+            
+            var items = new List<IItemStack>();
+            for (int i = 0; i < data.ItemIds.Length; i++)
             {
-                var id = data.ItemIds[i];
-                var count = data.ItemCounts[i];
-                items.Add(new ItemStack(id, count));
+                items.Add(_itemStackFactory.Create(data.ItemIds[i], data.ItemCounts[i]));
             }
 
-            receiveBlockInventoryEvent.InvokeSettingBlock(new SettingBlockInventoryProperties(items, data.BlockId)).Forget();
+            _blockInventoryView.SetItemList(items);
         }
     }
 }

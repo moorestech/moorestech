@@ -77,7 +77,7 @@ namespace MainGame.Starter
         [SerializeField] private LoadingFinishDetector loadingFinishDetector;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
-        [SerializeField] private BlockInventoryObject blockInventoryObject;
+        [SerializeField] private BlockInventoryView blockInventoryView;
         [SerializeField] private CraftInventoryView craftInventoryView;
         [SerializeField] private PlayerInventoryController playerInventoryController;
 
@@ -124,7 +124,6 @@ namespace MainGame.Starter
 
             //パケット受け取りイベント
             builder.Register<ReceiveChunkDataEvent>(Lifetime.Singleton);
-            builder.Register<ReceiveBlockInventoryEvent>(Lifetime.Singleton);
             builder.Register<ReceiveInitialHandshakeProtocol>(Lifetime.Singleton); //初期接続時に受け取るプロトコル
             builder.Register<ReceiveEntitiesDataEvent>(Lifetime.Singleton);
             builder.Register<ReceiveBlockStateChangeEvent>(Lifetime.Singleton);
@@ -138,7 +137,7 @@ namespace MainGame.Starter
             builder.Register<SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
             builder.Register<RequestPlayerInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);
-            builder.Register<RequestBlockInventoryProtocol>(Lifetime.Singleton);
+            builder.Register<SendRequestBlockInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendCommandProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockInventoryOpenCloseControlProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockRemoveProtocol>(Lifetime.Singleton);
@@ -157,7 +156,6 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<ChunkDataPresenter>();
             builder.RegisterEntryPoint<WorldMapTilePresenter>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
-            builder.RegisterEntryPoint<BlockInventoryRequestPacketSend>();
             builder.RegisterEntryPoint<PlayerInventoryRequestPacketSend>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateChangePresenter>();
@@ -208,7 +206,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(displayEnergizedRange);
             builder.RegisterComponent(entitiesPresenter);
             builder.RegisterComponent(playerInventoryController);
-            builder.RegisterComponent(blockInventoryObject);
+            builder.RegisterComponent(blockInventoryView);
             builder.RegisterComponent(craftInventoryView);
 
 

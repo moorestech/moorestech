@@ -12,6 +12,7 @@ using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -80,7 +81,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, 5, 10),1,
+                new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, new Vector2Int(5, 10)),1,
                 new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory),0));
 
             //移っているかチェック
@@ -91,7 +92,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
                 new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory),0,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, 5, 10),1));
+                new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, new Vector2Int(5, 10)),1));
 
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1, 8), chest.GetItem(1));

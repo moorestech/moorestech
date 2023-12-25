@@ -4590,7 +4590,7 @@ MonoBehaviour:
   loadingFinishDetector: {fileID: 4819544141744569551}
   pauseMenuObject: {fileID: 7499633600282642158}
   deleteBarObject: {fileID: 4640722214229418808}
-  blockInventoryObject: {fileID: 8898167348514627761}
+  blockInventoryView: {fileID: 8898167348514627761}
   craftInventoryView: {fileID: 2779522200308272756}
   playerInventoryController: {fileID: 485462951067189742}
   blockPlacePreview: {fileID: 1584877711214233187}

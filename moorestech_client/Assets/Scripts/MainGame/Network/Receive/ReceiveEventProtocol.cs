@@ -4,6 +4,7 @@ using MainGame.Network.Event;
 using MainGame.Network.Receive.EventPacket;
 using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
+using MainGame.UnityView.UI.Inventory.Sub;
 using MessagePack;
 using Server.Event.EventReceive;
 
@@ -14,12 +15,12 @@ namespace MainGame.Network.Receive
         private readonly Dictionary<string, IAnalysisEventPacket> _eventPacket = new();
 
         //TODO ここはDIコンテナを渡すほうがいいのでは
-        public ReceiveEventProtocol(ReceiveChunkDataEvent receiveChunkDataEvent,  ReceiveBlockInventoryEvent receiveBlockInventoryEvent, ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent, ReceiveUpdateMapObjectEvent receiveUpdateMapObjectEvent,
+        public ReceiveEventProtocol(ReceiveChunkDataEvent receiveChunkDataEvent,BlockInventoryView blockInventoryView, ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent, ReceiveUpdateMapObjectEvent receiveUpdateMapObjectEvent,
             LocalPlayerInventoryDataController localPlayerInventoryDataController, ItemStackFactory itemStackFactory,InventoryMainAndSubCombineItems inventoryMainAndSubCombineItems)
         {
             _eventPacket.Add(PlaceBlockToSetEventPacket.EventTag, new BlockPlaceEventProtocol(receiveChunkDataEvent));
             _eventPacket.Add(MainInventoryUpdateToSetEventPacket.EventTag, new MainInventorySlotEventProtocol(itemStackFactory,inventoryMainAndSubCombineItems));
-            _eventPacket.Add(OpenableBlockInventoryUpdateToSetEventPacket.EventTag, new BlockInventorySlotUpdateEventProtocol(receiveBlockInventoryEvent));
+            _eventPacket.Add(OpenableBlockInventoryUpdateToSetEventPacket.EventTag, new BlockInventorySlotUpdateEventProtocol(blockInventoryView,itemStackFactory));
             _eventPacket.Add(RemoveBlockToSetEventPacket.EventTag, new BlockRemoveEventProtocol(receiveChunkDataEvent));
             _eventPacket.Add(GrabInventoryUpdateToSetEventPacket.EventTag, new GrabInventoryUpdateEventProtocol(localPlayerInventoryDataController,itemStackFactory));
             _eventPacket.Add(ChangeBlockStateEventPacket.EventTag, new BlockStateChangeEventProtocol(receiveBlockStateChangeEvent));

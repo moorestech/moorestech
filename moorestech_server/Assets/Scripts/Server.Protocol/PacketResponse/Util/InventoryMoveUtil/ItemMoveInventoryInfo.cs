@@ -1,4 +1,6 @@
-﻿namespace Server.Protocol.PacketResponse.Util.InventoryMoveUtil
+﻿using UnityEngine;
+
+namespace Server.Protocol.PacketResponse.Util.InventoryMoveUtil
 {
     public class ItemMoveInventoryInfo
     {
@@ -12,11 +14,11 @@
         /// <param name="itemMoveInventoryType">移動元のインベントリタイプ</param>
         /// <param name="x">ブロックインベントリの時は座標を指定する</param>
         /// <param name="y">ブロックインベントリの時は座標を指定する</param>
-        public ItemMoveInventoryInfo(ItemMoveInventoryType itemMoveInventoryType, int x = 0, int y = 0)
+        public ItemMoveInventoryInfo(ItemMoveInventoryType itemMoveInventoryType, Vector2Int blockPos = default)
         {
             ItemMoveInventoryType = itemMoveInventoryType;
-            X = x;
-            Y = y;
+            X = blockPos.x;
+            Y = blockPos.y;
         }
     }
 }

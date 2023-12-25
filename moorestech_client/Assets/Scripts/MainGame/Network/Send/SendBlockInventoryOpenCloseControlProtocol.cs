@@ -2,6 +2,7 @@
 using MainGame.Network.Settings;
 using MessagePack;
 using Server.Protocol.PacketResponse;
+using UnityEngine;
 
 namespace MainGame.Network.Send
 {
@@ -17,10 +18,10 @@ namespace MainGame.Network.Send
             _playerId = playerConnectionSetting.PlayerId;
         }
 
-        public void Send(int x, int y, bool isOpen)
+        public void Send(Vector2Int pos, bool isOpen)
         {
             _socketSender.Send(MessagePackSerializer.Serialize(new BlockInventoryOpenCloseProtocolMessagePack(
-                _playerId, x, y, isOpen)).ToList());
+                _playerId, pos.x, pos.y, isOpen)).ToList());
         }
     }
 }
