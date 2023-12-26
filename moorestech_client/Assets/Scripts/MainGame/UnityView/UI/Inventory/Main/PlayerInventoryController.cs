@@ -72,12 +72,13 @@ namespace MainGame.UnityView.UI.Inventory.Main
             var (slotObject, itemUIEvent) = eventProperty;
             var index = mainInventorySlotObjects.IndexOf(slotObject);
             if (index == -1)
-                index = _subInventory.SubInventorySlotObjects.IndexOf(slotObject);
+                index = mainInventorySlotObjects.Count + _subInventory.SubInventorySlotObjects.IndexOf(slotObject);
 
             if (index == -1)
             {
                 throw new Exception("slot index not found");
             }
+            Debug.Log(index);
             switch (itemUIEvent)
             {
                 case ItemUIEventType.LeftClickDown: LeftClickDown(index); break;
@@ -334,7 +335,16 @@ namespace MainGame.UnityView.UI.Inventory.Main
             {
                 var item = _playerInventory.InventoryItems[i];
                 var sprite = _itemImageContainer.GetItemView(item.Id);
-                mainInventorySlotObjects[i].SetItem(sprite, item.Count);
+
+                if (i < mainInventorySlotObjects.Count)
+                {
+                    mainInventorySlotObjects[i].SetItem(sprite,item.Count);
+                }
+                else
+                {
+                    var subIndex = i - mainInventorySlotObjects.Count;
+                    _subInventory.SubInventorySlotObjects[subIndex].SetItem(sprite,item.Count);
+                }
             }
             grabInventorySlotObject.SetActive(IsGrabItem);
             grabInventorySlotObject.SetItem(_itemImageContainer.GetItemView(_playerInventory.GrabInventory.Id), _playerInventory.GrabInventory.Count);

@@ -4,7 +4,9 @@ using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
 using MainGame.UnityView.UI.Inventory.Element;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using SinglePlay;
 using UnityEngine;
+using VContainer;
 
 namespace MainGame.UnityView.UI.Inventory.Sub
 {
@@ -32,6 +34,13 @@ namespace MainGame.UnityView.UI.Inventory.Sub
         
         private readonly List<ItemSlotObject> _blockItemSlotObjects = new();
         
+        private ItemStackFactory _itemStackFactory;
+        
+        [Inject]
+        public void Construct(SinglePlayInterface singlePlayInterface)
+        {
+            _itemStackFactory = singlePlayInterface.ItemStackFactory;
+        }
         
         public void SetActive(bool isActive)
         {
@@ -72,47 +81,60 @@ namespace MainGame.UnityView.UI.Inventory.Sub
 
             void Chest()
             {
+                var itemList = new List<IItemStack>();
                 var chestParam = (ChestConfigParam) param;
                 for (int i = 0; i < chestParam.ChestItemNum; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, chestItemParent);
                     _blockItemSlotObjects.Add(slotObject);
+                    itemList.Add(_itemStackFactory.CreatEmpty());
                 }
+                SetItemList(itemList);
             }
             
             void Miner()
             {
+                var itemList = new List<IItemStack>();
                 var minerParam = (MinerBlockConfigParam) param;
                 for (int i = 0; i < minerParam.OutputSlot; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, minerItemParent);
                     _blockItemSlotObjects.Add(slotObject);
+                    itemList.Add(_itemStackFactory.CreatEmpty());
                 }
+                SetItemList(itemList);
             }
             
             void Machine()
             {
+                var itemList = new List<IItemStack>();
                 var machineParam = (MachineBlockConfigParam) param;
                 for (int i = 0; i < machineParam.InputSlot; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, machineInputItemParent);
                     _blockItemSlotObjects.Add(slotObject);
+                    itemList.Add(_itemStackFactory.CreatEmpty());
                 }
                 for (int i = 0; i < machineParam.OutputSlot; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, machineOutputItemParent);
                     _blockItemSlotObjects.Add(slotObject);
+                    itemList.Add(_itemStackFactory.CreatEmpty());
                 }
+                SetItemList(itemList);
             }
             
             void Generator()
             {
+                var itemList = new List<IItemStack>();
                 var generatorParam = (PowerGeneratorConfigParam) param;
                 for (int i = 0; i < generatorParam.FuelSlot; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, powerGeneratorFuelItemParent);
                     _blockItemSlotObjects.Add(slotObject);
+                    itemList.Add(_itemStackFactory.CreatEmpty());
                 }
+                SetItemList(itemList);
             }
             
             #endregion

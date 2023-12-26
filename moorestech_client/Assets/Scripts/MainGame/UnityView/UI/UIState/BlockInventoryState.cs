@@ -52,19 +52,13 @@ namespace MainGame.UnityView.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             if (!_blockClickDetect.TryGetCursorOnBlockPosition(out _openBlockPos)) Debug.LogError("開いたブロックの座標が取得できませんでした。UIステートに不具合があります。");
+            if (!_chunkBlockGameObjectDataStore.ContainsBlockGameObject(_openBlockPos)) return;
 
             //サーバーのリクエスト
             _sendRequestBlockInventoryProtocol.Send(_openBlockPos);
             _blockInventoryOpenCloseControlProtocol.Send(_openBlockPos, true);
 
-            //UIのオブジェクトをオンにする
-            _blockInventoryView.SetActive(true);
-            _playerInventoryController.SetActive(true);
-            _playerInventoryController.SetSubInventory(_blockInventoryView);
-
             //ブロックインベントリのビューを設定する
-            if (!_chunkBlockGameObjectDataStore.ContainsBlockGameObject(_openBlockPos)) return;
-
             var id = _chunkBlockGameObjectDataStore.GetBlockGameObject(_openBlockPos).BlockId;
             var config = _singlePlayInterface.BlockConfig.GetBlockConfig(id);
             
@@ -78,6 +72,11 @@ namespace MainGame.UnityView.UI.UIState
             };
 
             _blockInventoryView.SetBlockInventoryType(type,_openBlockPos,config.Param);
+
+            //UIのオブジェクトをオンにする
+            _blockInventoryView.SetActive(true);
+            _playerInventoryController.SetActive(true);
+            _playerInventoryController.SetSubInventory(_blockInventoryView);
         }
 
         public void OnExit()
