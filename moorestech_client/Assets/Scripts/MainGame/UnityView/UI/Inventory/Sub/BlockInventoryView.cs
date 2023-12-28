@@ -14,7 +14,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
     {
         public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects => _blockItemSlotObjects;
         public List<IItemStack> SubInventory { get; private set;}
-        public int SubInventorySlotCount => _blockItemSlotObjects.Count;
+        public int Count => _blockItemSlotObjects.Count;
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; private set; }
         
         

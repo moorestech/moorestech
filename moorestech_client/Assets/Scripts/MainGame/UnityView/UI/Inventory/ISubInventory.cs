@@ -9,7 +9,7 @@ namespace MainGame.UnityView.UI.Inventory
     {
         public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects { get; }
         public List<IItemStack> SubInventory { get; }
-        public int SubInventorySlotCount { get; }
+        public int Count { get; }
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; }
     }
     
@@ -17,12 +17,12 @@ namespace MainGame.UnityView.UI.Inventory
     {
         public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects { get; }
         public List<IItemStack> SubInventory { get; }
-        public int SubInventorySlotCount { get; }
+        public int Count { get; }
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; }
         
         public EmptySubInventory()
         {
-            SubInventorySlotCount = 0;
+            Count = 0;
             SubInventorySlotObjects = new List<ItemSlotObject>();
             SubInventory = new List<IItemStack>();
             ItemMoveInventoryInfo = null;

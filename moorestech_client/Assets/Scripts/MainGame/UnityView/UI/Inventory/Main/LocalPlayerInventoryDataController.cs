@@ -113,7 +113,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
         
         public void SetSubInventory(ISubInventory subInventory)
         {
-            _mainAndSubCombineItems.SetSubInventory(subInventory.SubInventory);
+            _mainAndSubCombineItems.SetSubInventory(subInventory);
             _subInventory = subInventory;
         }
     }

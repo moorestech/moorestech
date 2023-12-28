@@ -78,7 +78,6 @@ namespace MainGame.UnityView.UI.Inventory.Main
             {
                 throw new Exception("slot index not found");
             }
-            Debug.Log(index);
             switch (itemUIEvent)
             {
                 case ItemUIEventType.LeftClickDown: LeftClickDown(index); break;
@@ -309,7 +308,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
              var isMain = slotIndex < PlayerInventoryConstant.MainInventorySize;
              
              var startIndex = isMain ? 0 : PlayerInventoryConstant.MainInventorySize;
-             var endIndex = isMain ? PlayerInventoryConstant.MainInventorySize : PlayerInventoryConstant.MainInventorySize + _subInventory.SubInventorySlotCount;
+             var endIndex = isMain ? PlayerInventoryConstant.MainInventorySize : PlayerInventoryConstant.MainInventorySize + _subInventory.Count;
              for (int i = startIndex; i < endIndex; i++)
              {
                  _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub,slotIndex,LocalMoveInventoryType.MainOrSub, i, _playerInventory.InventoryItems[slotIndex].Count);

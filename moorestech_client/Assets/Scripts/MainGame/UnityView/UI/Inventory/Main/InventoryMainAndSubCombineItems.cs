@@ -25,12 +25,12 @@ namespace MainGame.UnityView.UI.Inventory.Main
         public IObservable<int> OnItemChange => _onItemChange;
         private readonly Subject<int> _onItemChange = new();
 
-
         private readonly List<IItemStack> _mainInventory;
-        private readonly List<IItemStack> _subInventory;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly IItemConfig _itemConfig;
         
+        private ISubInventory _subInventory;
+
         public InventoryMainAndSubCombineItems(SinglePlayInterface singlePlayInterface)
         {
             _itemConfig = singlePlayInterface.ItemConfig;
@@ -40,14 +40,15 @@ namespace MainGame.UnityView.UI.Inventory.Main
             {
                 _mainInventory.Add(_itemStackFactory.CreatEmpty());
             }
-            _subInventory = new List<IItemStack>();
+
+            _subInventory = new EmptySubInventory();
         }
         
         public IEnumerator<IItemStack> GetEnumerator()
         {
             var merged = new List<IItemStack>();
             merged.AddRange(_mainInventory);
-            merged.AddRange(_subInventory);
+            merged.AddRange(_subInventory.SubInventory);
             return merged.GetEnumerator();
         }
 
@@ -56,10 +57,9 @@ namespace MainGame.UnityView.UI.Inventory.Main
             return GetEnumerator();
         }
         
-        public void SetSubInventory(IReadOnlyList<IItemStack> subInventory)
+        public void SetSubInventory(ISubInventory subInventory)
         {
-            _subInventory.Clear();
-            _subInventory.AddRange(subInventory);
+            _subInventory = subInventory;
         }
 
 
@@ -78,7 +78,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
             {
                 if (index < _mainInventory.Count) return _mainInventory[index];
                 var subIndex = index - _mainInventory.Count;
-                if (subIndex < _subInventory.Count) return _subInventory[index - _mainInventory.Count];
+                if (subIndex < _subInventory.Count) return _subInventory.SubInventory[index - _mainInventory.Count];
                 Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + index);
                 return _itemStackFactory.CreatEmpty();
             }
@@ -94,7 +94,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
                 var subIndex = index - _mainInventory.Count;
                 if (subIndex < _subInventory.Count)
                 {
-                    _subInventory[subIndex] = value;
+                    _subInventory.SubInventory[subIndex] = value;
                     _onItemChange.OnNext(index);
                     return;
                 }

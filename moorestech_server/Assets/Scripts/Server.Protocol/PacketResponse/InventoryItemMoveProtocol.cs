@@ -36,15 +36,23 @@ namespace Server.Protocol.PacketResponse
 
             var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.X, data.FromInventory.Y);
             if (fromInventory == null) return new List<List<byte>>();
+            
+            var fromSlot = data.FromInventory.Slot;
+            if (data.FromInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
+                fromSlot -= PlayerInventoryConst.MainInventorySize;
+            
+            
             var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.X, data.ToInventory.Y);
             if (toInventory == null) return new List<List<byte>>();
+            
+            var toSlot = data.ToInventory.Slot;
+            if (data.ToInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
+                toSlot -= PlayerInventoryConst.MainInventorySize;
 
-            var fromSlot = data.FromInventory.Slot;
-
+            
             switch (data.ItemMoveType)
             {
                 case ItemMoveType.SwapSlot:
-                    var toSlot = data.ToInventory.Slot;
                     Debug.Log($"Swap from:{data.FromInventory.InventoryType} fromSlot:{fromSlot} to:{data.ToInventory.InventoryType} to:{toSlot} count:{data.Count}");
                     InventoryItemMoveService.Move(_itemStackFactory, fromInventory, fromSlot, toInventory, toSlot, data.Count);
                     break;
