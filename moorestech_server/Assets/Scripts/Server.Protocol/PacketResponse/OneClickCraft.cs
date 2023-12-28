@@ -44,7 +44,7 @@ namespace Server.Protocol.PacketResponse
             //クラフトに必要なアイテムを消費
             SubItem(mainInventory,craftConfig);
             //クラフト結果をプレイヤーインベントリに追加
-            playerInventory.GrabInventory.InsertItem(craftConfig.ResultItem);
+            playerInventory.MainOpenableInventory.InsertItem(craftConfig.ResultItem);
             
             
             return new List<List<byte>>();

@@ -63,11 +63,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void BlockInventoryTest()
         {
-            var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0)
-                .GrabInventory;
+            var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
