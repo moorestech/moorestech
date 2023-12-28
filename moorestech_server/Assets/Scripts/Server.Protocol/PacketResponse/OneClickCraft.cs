@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Inventory;
+using Core.Item;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,22 +53,12 @@ namespace Server.Protocol.PacketResponse
         
         private static bool IsCraftable(IOpenableInventory mainInventory,IOpenableInventory grabInventory, CraftingConfigData craftingConfigData)
         {
-            #region grabInventoryに空きがあるか確認する
-            //今のgrabInventoryのアイテムを保存する
-            var currentGrabInventoryItem = grabInventory.GetItem(0);
-            
-            //grabInventoryにアイテムをインサートする
-            var insertItemResult = grabInventory.InsertItem(craftingConfigData.ResultItem);
-            
-            grabInventory.SetItem(0,currentGrabInventoryItem);
-            
-            //grabInventoryにアイテムがあったらクラフトできない
-            if (insertItemResult.Count != 0)
+            //クラフト結果のアイテムをインサートできるかどうかをチェックする
+            if (!mainInventory.InsertionCheck(new List<IItemStack>() { craftingConfigData.ResultItem }))
             {
                 return false;
             }
             
-            #endregion
             
             //クラフトに必要なアイテムを収集する
             //key itemId value count

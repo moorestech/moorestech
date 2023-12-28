@@ -28,10 +28,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
             
-            //Grabインベントリにアイテムがないことを確認
-            
-            Assert.AreEqual(0, playerInventoryData.GrabInventory.GetItem(0).Id);
-            Assert.AreEqual(0, playerInventoryData.GrabInventory.GetItem(0).Count);
+            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
+            Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Id);
+            Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Count);
         }
         
         [Test]
@@ -43,18 +42,19 @@ namespace Tests.CombinedTest.Server.PacketTest
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigData(CraftRecipeId);
             
             //必要なアイテムをインベントリに追加
-            foreach (var item in craftConfig.CraftItems)
+            for (var i = 0; i < craftConfig.CraftItems.Count; i++)
             {
-                playerInventoryData.MainOpenableInventory.InsertItem(item);
+                var item = craftConfig.CraftItems[i];
+                playerInventoryData.MainOpenableInventory.SetItem(i,item);
             }
-            
+
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
             
-            //Grabインベントリにアイテムがあることを確認
             var resultItem = craftConfig.ResultItem;
             
-            Assert.AreEqual(resultItem.Id, playerInventoryData.GrabInventory.GetItem(0).Id);
-            Assert.AreEqual(resultItem.Count, playerInventoryData.GrabInventory.GetItem(0).Count);
+            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
+            Assert.AreEqual(resultItem.Id, playerInventoryData.MainOpenableInventory.GetItem(slot).Id);
+            Assert.AreEqual(resultItem.Count, playerInventoryData.MainOpenableInventory.GetItem(slot).Count);
         }
 
         [Test]
@@ -66,35 +66,23 @@ namespace Tests.CombinedTest.Server.PacketTest
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigData(CraftRecipeId);
             
             //必要なアイテムをインベントリに追加
-            foreach (var item in craftConfig.CraftItems)
+            for (var i = 0; i < craftConfig.CraftItems.Count; i++)
             {
-                playerInventoryData.MainOpenableInventory.InsertItem(item);
+                var item = craftConfig.CraftItems[i];
+                playerInventoryData.MainOpenableInventory.SetItem(i,item);
             }
-            
-            //アイテムのインサートはホットバーから優先的にアイテムが入るので、ホットバーのインデックスをチェックする
-            var hotBarSlot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
+
             //一つのアイテムを消費
-            var oneSubItem = playerInventoryData.MainOpenableInventory.GetItem(hotBarSlot).SubItem(1);
-            playerInventoryData.MainOpenableInventory.SetItem(hotBarSlot,oneSubItem);
+            var oneSubItem = playerInventoryData.MainOpenableInventory.GetItem(0).SubItem(1);
+            playerInventoryData.MainOpenableInventory.SetItem(0,oneSubItem);
             
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
             
-            
-            //Grabインベントリにアイテムがないことを確認
-            var resultItem = craftConfig.ResultItem;
-            
-            Assert.AreEqual(0, playerInventoryData.GrabInventory.GetItem(0).Id);
-            Assert.AreEqual(0, playerInventoryData.GrabInventory.GetItem(0).Count);
-            
-            //インベントリに結果アイテムがないことを確認
-            foreach(var item in playerInventoryData.MainOpenableInventory.Items)
-            {
-                if (item.Id == craftConfig.ResultItem.Id)
-                {
-                    Assert.Fail();
-                }
-            }
-            Assert.Pass();
+            //アイテムがクラフトされていないことをテスト
+            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
+            Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Id);
+            Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Count);
+
         }
 
         [Test]
@@ -106,6 +94,15 @@ namespace Tests.CombinedTest.Server.PacketTest
             var craftConfig = serviceProvider.GetService<ICraftingConfig>().GetCraftingConfigData(CraftRecipeId);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             
+            
+            //不要なアテムを追加
+            for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+            {
+                var item = itemStackFactory.Create(10, 100);
+                playerInv.MainOpenableInventory.SetItem(i,item);
+            }
+            
+            
             //必要なアイテムをインベントリに追加
             for (var i = 0; i < craftConfig.CraftItems.Count; i++)
             {
@@ -113,17 +110,11 @@ namespace Tests.CombinedTest.Server.PacketTest
                 playerInv.MainOpenableInventory.SetItem(i,item);
             }
 
-            //グラブインベントリにアイテムを追加
-            playerInv.GrabInventory.SetItem(0,itemStackFactory.Create(10,100));
             
             //クラフト実行
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, CraftRecipeId)).ToList());
             
             //アイテムが維持されていることをテスト
-            Assert.AreEqual(10, playerInv.GrabInventory.GetItem(0).Id);
-            Assert.AreEqual(100, playerInv.GrabInventory.GetItem(0).Count);
-            
-            //プレイヤーインベントリ
             for (int i = 0; i < craftConfig.CraftItems.Count; i++)
             {
                 var item = craftConfig.CraftItems[i];
