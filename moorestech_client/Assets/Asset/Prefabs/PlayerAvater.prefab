@@ -8381,6 +8381,7 @@ GameObject:
   - component: {fileID: 6615062693593664847}
   - component: {fileID: 3143635752123191014}
   - component: {fileID: 4469494997905754324}
+  - component: {fileID: 34249581954388741}
   m_Layer: 8
   m_Name: PlayerAvater
   m_TagString: Player
@@ -8414,7 +8415,7 @@ Transform:
   - {fileID: 2278376472939703667}
   - {fileID: 2278436608642730545}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &2216567649510206473
 Animator:
@@ -8573,6 +8574,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 2678359194264357046}
+--- !u!114 &34249581954388741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2276303171222007775}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9185b0abbf0c4b25881c93d6a0407424, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerPosition: {fileID: 4469494997905754324}
 --- !u!1 &2276315137502841229
 GameObject:
   m_ObjectHideFlags: 0
