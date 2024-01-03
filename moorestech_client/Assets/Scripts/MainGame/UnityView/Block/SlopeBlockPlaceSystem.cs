@@ -42,7 +42,7 @@ namespace MainGame.UnityView.Block
             
             if (!Physics.Raycast(checkRay, out var checkHit, 1500, GroundLayerMask))
             {
-                throw new Exception("地面が見つかりませんでした");
+                throw new Exception("地面が見つかりませんでした pos:" + pos + " layer:" + GroundLayerMask);
             }
             return checkHit.point;
         }
