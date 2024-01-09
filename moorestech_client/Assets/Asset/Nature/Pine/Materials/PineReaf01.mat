@@ -92,7 +92,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 1
     - _Metallic: 0
-    - _MinDither: 2
+    - _MinDither: 0.56
     - _Mode: 0
     - _NormalStrength: 0
     - _OcclusionStrength: 1
