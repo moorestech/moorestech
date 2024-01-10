@@ -16,6 +16,7 @@ namespace Game.MapObject.Interface.Json
         [JsonProperty("y")] public float Y;
         [JsonProperty("z")] public float Z;
 
+        [JsonIgnore]
         public Vector3 Position => new(X, Y, Z);
     }
 }

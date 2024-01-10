@@ -48,7 +48,7 @@ public class MapObjectGameObjectDatastoreEditor : UnityEditor.Editor
         var json = JsonConvert.SerializeObject(mapObjectConfig, Formatting.Indented);
 
         //ダイアログを出して保存
-        var path = EditorUtility.SaveFilePanel("Save map object config", "", "mapObjects", "json");
+        var path = EditorUtility.SaveFilePanel("Save map object config", "../../Server/map/", "mapObjects", "json");
         if (path.Length != 0) File.WriteAllText(path, json);
     }
 }
