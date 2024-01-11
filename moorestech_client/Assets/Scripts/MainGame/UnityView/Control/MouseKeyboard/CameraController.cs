@@ -8,6 +8,9 @@ namespace MainGame.UnityView.Control.MouseKeyboard
     {
         [SerializeField] private CinemachineVirtualCamera virtualCamera;
         [SerializeField] private Vector2 sensitivity = Vector2.one;
+        
+        [SerializeField] private float cameraLerpSpeed = 0.1f;
+        
         private CinemachineFramingTransposer cinemachineFraming;
 
         private void Awake()
@@ -16,6 +19,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
         }
 
         Vector2 _lastClickedPosition;
+        Vector3 _targetRotation;
         private void Update()
         {
             cinemachineFraming.m_CameraDistance += InputManager.UI.SwitchHotBar.ReadValue<float>() / -100;
@@ -30,25 +34,25 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             
             if (InputManager.Playable.ScreenRightClick.GetKey)
             {
+                _targetRotation = transform.rotation.eulerAngles;
                 var currentClickedPosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
                 var delta = currentClickedPosition - _lastClickedPosition;
                 _lastClickedPosition = currentClickedPosition;
 
-                var rotation = transform.rotation.eulerAngles;
-                rotation.x -= delta.y * sensitivity.y;
-                if (90 < rotation.x && rotation.x < 180)
+                _targetRotation.x -= delta.y * sensitivity.y;
+                if (90 < _targetRotation.x && _targetRotation.x < 180)
                 {
-                    rotation.x = 90;
+                    _targetRotation.x = 90;
                 }
-                else if (180 < rotation.x && rotation.x < 270)
+                else if (180 < _targetRotation.x && _targetRotation.x < 270)
                 {
-                    rotation.x = 270;
+                    _targetRotation.x = 270;
                 }
                 
-                rotation.y += delta.x * sensitivity.x;
-                rotation.z = 0;
-                transform.rotation = Quaternion.Euler(rotation);
+                _targetRotation.y += delta.x * sensitivity.x;
+                _targetRotation.z = 0;
             }
+            transform.rotation = Quaternion.Euler(Vector3.Lerp(transform.rotation.eulerAngles,_targetRotation,cameraLerpSpeed));
         }
     }
 }
