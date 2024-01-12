@@ -24,7 +24,18 @@ public class MapObjectGameObjectDatastoreEditor : UnityEditor.Editor
 
         foreach (var mapObject in datastore.MapObjects)
         {
-            Debug.Log(mapObject.MapObjectType);
+            mapObject.SetMapObjectData(instanceId);
+            instanceId++;
+
+            var config = new ConfigMapObjectData
+            {
+                Type = mapObject.MapObjectType,
+                InstanceId = mapObject.InstanceId,
+                X = mapObject.GetPosition().x,
+                Y = mapObject.GetPosition().y,
+                Z = mapObject.GetPosition().z
+            };
+            configDataList.Add(config);
         }
 
 
