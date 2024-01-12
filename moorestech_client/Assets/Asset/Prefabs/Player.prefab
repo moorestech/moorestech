@@ -403,7 +403,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   virtualCamera: {fileID: 2746655488367588027}
   sensitivity: {x: 0.3, y: 0.3}
-  lerpSpeed: 7
+  lerpSpeed: 10
 --- !u!1 &3504028723181249557
 GameObject:
   m_ObjectHideFlags: 0
@@ -438,7 +438,7 @@ Transform:
   - {fileID: 5473396259808741827}
   - {fileID: 3321521980524149095}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4937768895087371709
 GameObject:
