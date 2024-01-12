@@ -17,6 +17,7 @@ TagManager:
   - Block
   - Player
   - Ground
+  - Outline
   - 
   - 
   - 
@@ -38,7 +39,6 @@ TagManager:
   - 
   - 
   - 
-  - MapObjectOutline-Obsolete
   m_SortingLayers:
   - name: Default
     uniqueID: 0
