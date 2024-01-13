@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading;
 using Core.Item.Config;
 using Cysharp.Threading.Tasks;
@@ -39,33 +40,30 @@ namespace MainGame.Presenter.MapObject
             _sendGetMapObjectProtocolProtocol = sendGetMapObjectProtocolProtocol;
             _inventoryItems = inventoryItems;
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
-
-            WhileUpdate().Forget();
         }
+        
+        private MapObjectGameObject _lastMapObjectGameObject = null;
 
-
-        private async UniTask WhileUpdate()
-        {
-            while (true)
-            {
-                await MiningUpdate(_gameObjectCancellationToken);
-                await UniTask.Yield(_gameObjectCancellationToken);
-            }
-        }
-
-        private async UniTask MiningUpdate(CancellationToken cancellationToken)
+        private async UniTask Update()
         {
             if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return;
 
-            var forcesMapObject = GetOnMouseMapObject();
-            if (miningObjectProgressbarPresenter.IsMining || !InputManager.Playable.ScreenLeftClick.GetKey || forcesMapObject == null) return;
+            var mapObject = GetOnMouseMapObject();
+            if (mapObject == null || _lastMapObjectGameObject != mapObject)
+            {
+                _lastMapObjectGameObject.OutlineEnable(false);
+                _lastMapObjectGameObject = null;
+                return;
+            }
+            
+            if (miningObjectProgressbarPresenter.IsMining || !InputManager.Playable.ScreenLeftClick.GetKey) return;
 
-            forcesMapObject.OutlineEnable(true);
+            _lastMapObjectGameObject.OutlineEnable(true);
 
             _miningCancellationTokenSource.Cancel();
             _miningCancellationTokenSource = new CancellationTokenSource();
 
-            var miningTime = GetMiningTime(forcesMapObject.MapObjectType);
+            var miningTime = GetMiningTime(_lastMapObjectGameObject.MapObjectType);
 
             //マイニングバーのUIを表示するやつを設定
             miningObjectProgressbarPresenter.StartMining(miningTime, _miningCancellationTokenSource.Token).Forget();
@@ -78,13 +76,13 @@ namespace MainGame.Presenter.MapObject
             var nowTime = 0f;
             while (nowTime < miningTime)
             {
-                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                await UniTask.Yield(PlayerLoopTiming.Update, _gameObjectCancellationToken);
                 nowTime += Time.deltaTime;
 
 
                 //クリックが離されたら採掘を終了する
                 //map objectが変わったら採掘を終了する
-                if (InputManager.Playable.ScreenLeftClick.GetKeyUp || forcesMapObject != GetOnMouseMapObject())
+                if (InputManager.Playable.ScreenLeftClick.GetKeyUp || _lastMapObjectGameObject != GetOnMouseMapObject())
                 {
                     isMiningCanceled = true;
                     break;
@@ -94,9 +92,9 @@ namespace MainGame.Presenter.MapObject
             //マイニングをキャンセルせずに終わったので、マイニング完了をサーバーに送信する
             if (!isMiningCanceled)
             {
-                _sendGetMapObjectProtocolProtocol.Send(forcesMapObject.InstanceId);
+                _sendGetMapObjectProtocolProtocol.Send(_lastMapObjectGameObject.InstanceId);
                 SoundEffectType soundEffectType;
-                switch (forcesMapObject.MapObjectType)
+                switch (_lastMapObjectGameObject.MapObjectType)
                 {
                     case VanillaMapObjectType.VanillaStone:
                     case VanillaMapObjectType.VanillaCray:
@@ -120,7 +118,7 @@ namespace MainGame.Presenter.MapObject
                 SoundEffectManager.Instance.PlaySoundEffect(soundEffectType);
             }
 
-            forcesMapObject.OutlineEnable(false);
+            _lastMapObjectGameObject.OutlineEnable(false);
             _miningCancellationTokenSource.Cancel();
         }
 
