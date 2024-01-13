@@ -204,7 +204,7 @@ Transform:
   - {fileID: 5233445804878940032}
   - {fileID: 8395495506907936704}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!205 &3399116132891638490
 LODGroup:
@@ -290,7 +290,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8395495506907936704}
-  m_Layer: 6
+  m_Layer: 10
   m_Name: Outline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -441,7 +441,7 @@ GameObject:
   - component: {fileID: 672845872108754079}
   - component: {fileID: 7101180502942216263}
   - component: {fileID: 6478803789419214005}
-  m_Layer: 31
+  m_Layer: 10
   m_Name: TreeLit_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}

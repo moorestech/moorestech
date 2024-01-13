@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4042637883828603750}
-  m_Layer: 31
+  m_Layer: 10
   m_Name: Outline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -46,7 +46,7 @@ GameObject:
   - component: {fileID: 3425939135294903618}
   - component: {fileID: 1492523553197690948}
   - component: {fileID: 8736058977917117607}
-  m_Layer: 31
+  m_Layer: 10
   m_Name: Reaf ISO_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -634,7 +634,7 @@ Transform:
   - {fileID: 4024904036095140202}
   - {fileID: 4042637883828603750}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!205 &4420928352677332454
 LODGroup:
@@ -1030,7 +1030,7 @@ GameObject:
   - component: {fileID: 9183752530072250550}
   - component: {fileID: 3413066430176412754}
   - component: {fileID: 2384230102054782900}
-  m_Layer: 31
+  m_Layer: 10
   m_Name: Reaf_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1113,7 +1113,7 @@ GameObject:
   - component: {fileID: 46807219440876937}
   - component: {fileID: 2215039442217791328}
   - component: {fileID: 4365450391988478259}
-  m_Layer: 31
+  m_Layer: 10
   m_Name: Stem_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1196,7 +1196,7 @@ GameObject:
   - component: {fileID: 3741610779546224324}
   - component: {fileID: 6616360251135870771}
   - component: {fileID: 4449380433015904166}
-  m_Layer: 31
+  m_Layer: 10
   m_Name: Reaf_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
