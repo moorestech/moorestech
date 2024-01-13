@@ -76,7 +76,7 @@
     },
     "com.unity.burst": {
       "version": "1.8.4",
-      "depth": 1,
+      "depth": 2,
       "source": "registry",
       "dependencies": {
         "com.unity.mathematics": "1.2.1"
@@ -142,7 +142,7 @@
     },
     "com.unity.mathematics": {
       "version": "1.2.6",
-      "depth": 1,
+      "depth": 2,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
@@ -167,7 +167,7 @@
     },
     "com.unity.render-pipelines.universal": {
       "version": "14.0.8",
-      "depth": 0,
+      "depth": 1,
       "source": "builtin",
       "dependencies": {
         "com.unity.mathematics": "1.2.1",
@@ -277,11 +277,11 @@
       "url": "https://registry.npmjs.org"
     },
     "com.unityfx.outline.urp": {
-      "version": "0.5.0",
+      "version": "0.3.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unityfx.outline": "0.8.5",
+        "com.unityfx.outline": "0.8.3",
         "com.unity.render-pipelines.universal": "7.0.0"
       },
       "url": "https://registry.npmjs.org"
