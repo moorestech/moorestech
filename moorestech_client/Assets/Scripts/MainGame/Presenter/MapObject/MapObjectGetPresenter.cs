@@ -46,7 +46,6 @@ namespace MainGame.Presenter.MapObject
 
         private async UniTask Update()
         {
-            Debug.Log("aaa");
             if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return;
 
             var mapObject = GetOnMouseMapObject();
