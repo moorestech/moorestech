@@ -1,15 +1,12 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using Core.Item.Config;
+﻿using System.Threading;
 using Cysharp.Threading.Tasks;
 using Game.MapObject.Interface;
 using Constant;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
+using MainGame.UnityView.Game;
 using MainGame.UnityView.MapObject;
 using MainGame.UnityView.SoundEffect;
-using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.Util;
@@ -25,6 +22,7 @@ namespace MainGame.Presenter.MapObject
     public class MapObjectGetPresenter : MonoBehaviour
     {
         [SerializeField] private MiningObjectProgressbarPresenter miningObjectProgressbarPresenter;
+        [SerializeField] private float miningDistance = 1.5f;
 
         private CancellationToken _gameObjectCancellationToken;
         private CancellationTokenSource _miningCancellationTokenSource = new();
@@ -32,13 +30,15 @@ namespace MainGame.Presenter.MapObject
         private IInventoryItems _inventoryItems;
         private SendGetMapObjectProtocolProtocol _sendGetMapObjectProtocolProtocol;
         private UIStateControl _uiStateControl;
+        private IPlayerPosition _playerPosition;
 
         [Inject]
-        public void Constructor(UIStateControl uiStateControl, SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol, IInventoryItems inventoryItems)
+        public void Constructor(UIStateControl uiStateControl, SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol, IInventoryItems inventoryItems, IPlayerPosition playerPosition)
         {
             _uiStateControl = uiStateControl;
             _sendGetMapObjectProtocolProtocol = sendGetMapObjectProtocolProtocol;
             _inventoryItems = inventoryItems;
+            _playerPosition = playerPosition;
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
         }
         
@@ -56,8 +56,10 @@ namespace MainGame.Presenter.MapObject
                     _lastMapObjectGameObject.OutlineEnable(false);
                 }
                 _lastMapObjectGameObject = null;
+                return;
             }
-            else if (_lastMapObjectGameObject != mapObject)
+
+            if (_lastMapObjectGameObject != mapObject)
             {
                 if (_lastMapObjectGameObject != null)
                 {
@@ -66,7 +68,7 @@ namespace MainGame.Presenter.MapObject
                 _lastMapObjectGameObject = mapObject;
                 _lastMapObjectGameObject.OutlineEnable(true);
             }
-            
+
             if (miningObjectProgressbarPresenter.IsMining || !InputManager.Playable.ScreenLeftClick.GetKey) return;
             
             _miningCancellationTokenSource.Cancel();
@@ -135,11 +137,15 @@ namespace MainGame.Presenter.MapObject
         {
             //スクリーンからマウスの位置にRayを飛ばす
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (!Physics.Raycast(ray, out var hit, 1000)) return null;
+            if (!Physics.Raycast(ray, out var hit, 10)) return null;
             if (EventSystem.current.IsPointerOverGameObject()) return null;
+            if (!hit.collider.gameObject.TryGetComponent(out MapObjectGameObject mapObject)) return null;
+                
+            var playerPos = _playerPosition.GetPlayerPosition3D();
+            var mapObjectPos = mapObject.transform.position;
+            if (miningDistance < Vector3.Distance(playerPos, mapObjectPos)) return null;
 
-            //マップオブジェクトを取得する
-            return hit.collider.gameObject.GetComponent<MapObjectGameObject>();
+            return mapObject;
         }
 
 

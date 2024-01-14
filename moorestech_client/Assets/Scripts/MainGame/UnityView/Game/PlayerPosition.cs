@@ -1,6 +1,4 @@
-﻿using Game.World.Interface.DataStore;
-using Constant;
-using MainGame.UnityView.Block;
+﻿using MainGame.UnityView.Block;
 using StarterAssets;
 using UnityEngine;
 
@@ -14,6 +12,10 @@ namespace MainGame.UnityView.Game
         {
             var position = transform.position;
             return new Vector2(position.x, position.z);
+        }
+        public Vector3 GetPlayerPosition3D()
+        {
+            return transform.position;
         }
 
         /// <summary>
