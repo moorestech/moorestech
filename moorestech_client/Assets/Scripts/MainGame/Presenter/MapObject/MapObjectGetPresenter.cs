@@ -46,20 +46,30 @@ namespace MainGame.Presenter.MapObject
 
         private async UniTask Update()
         {
+            Debug.Log("aaa");
             if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return;
 
             var mapObject = GetOnMouseMapObject();
-            if (mapObject == null || _lastMapObjectGameObject != mapObject)
+            if (mapObject == null)
             {
-                _lastMapObjectGameObject.OutlineEnable(false);
+                if (_lastMapObjectGameObject != null)
+                {
+                    _lastMapObjectGameObject.OutlineEnable(false);
+                }
                 _lastMapObjectGameObject = null;
-                return;
+            }
+            else if (_lastMapObjectGameObject != mapObject)
+            {
+                if (_lastMapObjectGameObject != null)
+                {
+                    _lastMapObjectGameObject.OutlineEnable(false);
+                }
+                _lastMapObjectGameObject = mapObject;
+                _lastMapObjectGameObject.OutlineEnable(true);
             }
             
             if (miningObjectProgressbarPresenter.IsMining || !InputManager.Playable.ScreenLeftClick.GetKey) return;
-
-            _lastMapObjectGameObject.OutlineEnable(true);
-
+            
             _miningCancellationTokenSource.Cancel();
             _miningCancellationTokenSource = new CancellationTokenSource();
 
