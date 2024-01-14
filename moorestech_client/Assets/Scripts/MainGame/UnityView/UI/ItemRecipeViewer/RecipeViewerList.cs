@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Item;
 using Core.Item.Config;
 using Game.Block.Interface.RecipeConfig;
 using Game.Crafting.Interface;
@@ -42,6 +43,18 @@ namespace MainGame.UnityView.UI.ItemRecipeViewer
         {
             
         }
+
+        public void DisplayCraftableItem(List<IItemStack> inventoryItems)
+        {
+            
+        }
+                
+        public void DisplayCraftableItem(List<IItemStack> inventoryItems,int blockId)
+        {
+            
+        }
+
+        
     }
 
     public interface IRecipeViewerRecipe
