@@ -22,7 +22,7 @@ namespace MainGame.UnityView.UI.UIState
             if (InputManager.UI.OpenMenu.GetKeyDown) return UIStateEnum.PauseMenu;
             if (IsClickOpenableBlock()) return UIStateEnum.BlockInventory;
             if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
-            if (_selectHotBarControl.IsClicked || InputManager.UI.HotBar.ReadValue<int>() != 0) return UIStateEnum.BlockPlace;
+            if (_selectHotBarControl.IsClicked || InputManager.UI.HotBar.ReadValue<int>() != 0) return UIStateEnum.SelectHotBar;
 
 
             return UIStateEnum.Current;

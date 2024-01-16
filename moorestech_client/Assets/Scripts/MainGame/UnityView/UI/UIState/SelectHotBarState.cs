@@ -5,12 +5,12 @@ using MainGame.UnityView.UI.Inventory.HotBar;
 
 namespace MainGame.UnityView.UI.UIState
 {
-    public class BlockPlaceState : IUIState
+    public class SelectHotBarState : IUIState
     {
         private readonly IBlockClickDetect _blockClickDetect;
         private readonly SelectHotBarView _selectHotBarView;
 
-        public BlockPlaceState(SelectHotBarView selectHotBarView, IBlockClickDetect blockClickDetect)
+        public SelectHotBarState(SelectHotBarView selectHotBarView, IBlockClickDetect blockClickDetect)
         {
             _selectHotBarView = selectHotBarView;
             _blockClickDetect = blockClickDetect;

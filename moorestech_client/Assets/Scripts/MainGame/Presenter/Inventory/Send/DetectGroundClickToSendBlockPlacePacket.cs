@@ -97,7 +97,7 @@ namespace MainGame.Presenter.Inventory.Send
             //そのrayが地面のオブジェクトにヒットしてるか
             if (hit.transform.GetComponent<GroundPlane>() == null) return (false, new Vector2Int());
             //UIの状態がゲーム中か
-            if (_uiStateControl.CurrentState != UIStateEnum.BlockPlace) return (false, new Vector2Int());
+            if (_uiStateControl.CurrentState != UIStateEnum.SelectHotBar) return (false, new Vector2Int());
 
             //基本的にブロックの原点は0,0なので、rayがヒットした座標を基準にブロックの原点を計算する
             var x = Mathf.FloorToInt(hit.point.x);
