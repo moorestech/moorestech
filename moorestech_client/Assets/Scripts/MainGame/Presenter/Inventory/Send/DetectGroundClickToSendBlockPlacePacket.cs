@@ -1,5 +1,6 @@
 using Game.World.Interface.DataStore;
 using Constant;
+using Game.Block.Interface.BlockConfig;
 using MainGame.Network.Send;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
@@ -7,6 +8,7 @@ using MainGame.UnityView.Control;
 using MainGame.UnityView.SoundEffect;
 using MainGame.UnityView.UI.Inventory.HotBar;
 using MainGame.UnityView.UI.UIState;
+using SinglePlay;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
@@ -22,11 +24,11 @@ namespace MainGame.Presenter.Inventory.Send
 
 
         private BlockDirection _currentBlockDirection;
-        private GroundPlane _groundPlane;
         private SelectHotBarControl _hotBarControl;
         private Camera _mainCamera;
         private SendPlaceHotBarBlockProtocol _sendPlaceHotBarBlockProtocol;
         private UIStateControl _uiStateControl;
+        private IBlockConfig _blockConfig;
 
         private void Update()
         {
@@ -36,14 +38,15 @@ namespace MainGame.Presenter.Inventory.Send
 
         [Inject]
         public void Construct(Camera mainCamera, GroundPlane groundPlane,
-            SelectHotBarControl selectHotBarControl, SendPlaceHotBarBlockProtocol sendPlaceHotBarBlockProtocol, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview)
+            SelectHotBarControl selectHotBarControl, SendPlaceHotBarBlockProtocol sendPlaceHotBarBlockProtocol, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview,SinglePlayInterface singlePlayInterface)
         {
             _uiStateControl = uiStateControl;
             _sendPlaceHotBarBlockProtocol = sendPlaceHotBarBlockProtocol;
             _hotBarControl = selectHotBarControl;
             _mainCamera = mainCamera;
-            _groundPlane = groundPlane;
             _blockPlacePreview = blockPlacePreview;
+            _blockConfig = singlePlayInterface.BlockConfig;
+            singlePlayInterface.ItemConfig.
         }
 
         private void BlockDirectionControl()
@@ -66,6 +69,8 @@ namespace MainGame.Presenter.Inventory.Send
             //基本はプレビュー非表示
             _blockPlacePreview.SetActive(false);
 
+            //UIの状態がゲームホットバー選択中か
+            if (_uiStateControl.CurrentState != UIStateEnum.SelectHotBar) return;
 
             var (isHit, hitPoint) = GetPreviewPosition();
             if (!isHit) return;
@@ -96,8 +101,6 @@ namespace MainGame.Presenter.Inventory.Send
             if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutOnlyMapObjectLayerMask)) return (false, new Vector2Int());
             //そのrayが地面のオブジェクトにヒットしてるか
             if (hit.transform.GetComponent<GroundPlane>() == null) return (false, new Vector2Int());
-            //UIの状態がゲーム中か
-            if (_uiStateControl.CurrentState != UIStateEnum.SelectHotBar) return (false, new Vector2Int());
 
             //基本的にブロックの原点は0,0なので、rayがヒットした座標を基準にブロックの原点を計算する
             var x = Mathf.FloorToInt(hit.point.x);
