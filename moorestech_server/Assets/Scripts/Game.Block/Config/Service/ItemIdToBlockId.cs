@@ -5,6 +5,7 @@ using Game.Block.Interface.BlockConfig;
 
 namespace Game.Block.Config.Service
 {
+    [Obsolete("BlockConfigに統合する")]
     public class ItemIdToBlockId
     {
         private readonly Dictionary<int, int> _idTable = new();

@@ -1,12 +1,14 @@
 using Game.World.Interface.DataStore;
 using Constant;
-using Game.Block.Interface.BlockConfig;
+using Game.Block.Config.Service;
+using Game.PlayerInventory.Interface;
 using MainGame.Network.Send;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.SoundEffect;
 using MainGame.UnityView.UI.Inventory.HotBar;
+using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
 using SinglePlay;
 using UnityEngine;
@@ -28,7 +30,8 @@ namespace MainGame.Presenter.Inventory.Send
         private Camera _mainCamera;
         private SendPlaceHotBarBlockProtocol _sendPlaceHotBarBlockProtocol;
         private UIStateControl _uiStateControl;
-        private IBlockConfig _blockConfig;
+        private ItemIdToBlockId _itemIdToBlockId;
+        private LocalPlayerInventoryDataController _localPlayerInventory;
 
         private void Update()
         {
@@ -37,16 +40,16 @@ namespace MainGame.Presenter.Inventory.Send
         }
 
         [Inject]
-        public void Construct(Camera mainCamera, GroundPlane groundPlane,
-            SelectHotBarControl selectHotBarControl, SendPlaceHotBarBlockProtocol sendPlaceHotBarBlockProtocol, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview,SinglePlayInterface singlePlayInterface)
+        public void Construct(Camera mainCamera, SelectHotBarControl selectHotBarControl, SendPlaceHotBarBlockProtocol sendPlaceHotBarBlockProtocol, 
+            UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview,SinglePlayInterface singlePlayInterface,LocalPlayerInventoryDataController localPlayerInventoryDataController)
         {
             _uiStateControl = uiStateControl;
             _sendPlaceHotBarBlockProtocol = sendPlaceHotBarBlockProtocol;
             _hotBarControl = selectHotBarControl;
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
-            _blockConfig = singlePlayInterface.BlockConfig;
-            singlePlayInterface.ItemConfig.
+            _itemIdToBlockId = singlePlayInterface.ItemIdToBlockId;
+            _localPlayerInventory = localPlayerInventoryDataController;
         }
 
         private void BlockDirectionControl()
@@ -72,6 +75,12 @@ namespace MainGame.Presenter.Inventory.Send
             //UIの状態がゲームホットバー選択中か
             if (_uiStateControl.CurrentState != UIStateEnum.SelectHotBar) return;
 
+            var selectIndex = (short)_hotBarControl.SelectIndex;
+            var itemId = _localPlayerInventory.InventoryItems[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
+            //持っているアイテムがブロックじゃなかったら何もしない
+            if (!_itemIdToBlockId.CanConvert(itemId)) return; 
+
+            //プレビューの座標を取得
             var (isHit, hitPoint) = GetPreviewPosition();
             if (!isHit) return;
 
@@ -81,7 +90,7 @@ namespace MainGame.Presenter.Inventory.Send
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
             {
-                _sendPlaceHotBarBlockProtocol.Send(hitPoint.x, hitPoint.y, (short)_hotBarControl.SelectIndex, _currentBlockDirection);
+                _sendPlaceHotBarBlockProtocol.Send(hitPoint.x, hitPoint.y,selectIndex,  _currentBlockDirection);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
                 return;
             }

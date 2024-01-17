@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
-using Constant;
+using Game.PlayerInventory.Interface;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
 using UnityEngine;
@@ -38,11 +38,11 @@ namespace MainGame.UnityView.UI.Inventory.HotBar
         private void UpdateHotBar(int slot,IItemStack item)
         {
             //スロットが一番下の段もしくはメインインベントリの範囲外の時はスルー
-            var c = PlayerInventoryConstant.MainInventoryColumns;
-            var r = PlayerInventoryConstant.MainInventoryRows;
+            var c = PlayerInventoryConst.MainInventoryColumns;
+            var r = PlayerInventoryConst.MainInventoryRows;
             var startHotBarSlot = c * (r - 1);
 
-            if (slot < startHotBarSlot || PlayerInventoryConstant.MainInventorySize <= slot) return;
+            if (slot < startHotBarSlot || PlayerInventoryConst.MainInventorySize <= slot) return;
 
             var viewData = _itemImageContainer.GetItemView(item.Id);
             slot -= startHotBarSlot;

@@ -1,14 +1,11 @@
 ﻿using System.Collections.Generic;
 using Core.Item;
-using Core.Item.Config;
 using Cysharp.Threading.Tasks;
 using Constant;
-using MainGame.Network.Event;
-using MainGame.UnityView.UI.Inventory;
+using Game.PlayerInventory.Interface;
 using MainGame.UnityView.UI.Inventory.Main;
 using MessagePack;
 using Server.Protocol.PacketResponse;
-using SinglePlay;
 
 namespace MainGame.Network.Receive
 {
@@ -44,7 +41,7 @@ namespace MainGame.Network.Receive
             
             //main inventory items
             var mainItems = new List<ItemStack>();
-            for (var i = 0; i < PlayerInventoryConstant.MainInventorySize; i++)
+            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
                 var item = data.Main[i];
                 mainItems.Add(new ItemStack(item.Id, item.Count));

@@ -5,6 +5,7 @@ using ClassLibrary;
 using Core.Const;
 using Core.Item;
 using Constant;
+using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory.Element;
 using SinglePlay;
@@ -305,10 +306,10 @@ namespace MainGame.UnityView.UI.Inventory.Main
         private void DirectMove(int slotIndex)
         {
              //そのスロットがメインインベントリかサブインベントリを判定する
-             var isMain = slotIndex < PlayerInventoryConstant.MainInventorySize;
+             var isMain = slotIndex < PlayerInventoryConst.MainInventorySize;
              
-             var startIndex = isMain ? 0 : PlayerInventoryConstant.MainInventorySize;
-             var endIndex = isMain ? PlayerInventoryConstant.MainInventorySize : PlayerInventoryConstant.MainInventorySize + _subInventory.Count;
+             var startIndex = isMain ? 0 : PlayerInventoryConst.MainInventorySize;
+             var endIndex = isMain ? PlayerInventoryConst.MainInventorySize : PlayerInventoryConst.MainInventorySize + _subInventory.Count;
              for (int i = startIndex; i < endIndex; i++)
              {
                  _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub,slotIndex,LocalMoveInventoryType.MainOrSub, i, _playerInventory.InventoryItems[slotIndex].Count);
