@@ -1,6 +1,6 @@
 using Game.World.Interface.DataStore;
 using Constant;
-using Game.Block.Config.Service;
+using Game.Block.Interface.BlockConfig;
 using Game.PlayerInventory.Interface;
 using MainGame.Network.Send;
 using MainGame.UnityView.Block;
@@ -30,7 +30,7 @@ namespace MainGame.Presenter.Inventory.Send
         private Camera _mainCamera;
         private SendPlaceHotBarBlockProtocol _sendPlaceHotBarBlockProtocol;
         private UIStateControl _uiStateControl;
-        private ItemIdToBlockId _itemIdToBlockId;
+        private IBlockConfig _blockConfig;
         private ILocalPlayerInventory _localPlayerInventory;
 
         private void Update()
@@ -48,7 +48,7 @@ namespace MainGame.Presenter.Inventory.Send
             _hotBarControl = selectHotBarControl;
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
-            _itemIdToBlockId = singlePlayInterface.ItemIdToBlockId;
+            _blockConfig = singlePlayInterface.BlockConfig;
             _localPlayerInventory = localPlayerInventory;
         }
 
@@ -78,7 +78,7 @@ namespace MainGame.Presenter.Inventory.Send
             var selectIndex = (short)_hotBarControl.SelectIndex;
             var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
             //持っているアイテムがブロックじゃなかったら何もしない
-            if (!_itemIdToBlockId.CanConvert(itemId)) return; 
+            if (!_blockConfig.IsBlock(itemId)) return; 
 
             //プレビューの座標を取得
             var (isHit, hitPoint) = GetPreviewPosition();

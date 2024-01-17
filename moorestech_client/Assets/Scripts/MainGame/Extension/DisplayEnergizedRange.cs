@@ -2,12 +2,10 @@
 using Core.Const;
 using Game.Block;
 using Game.Block.Config.LoadConfig.Param;
-using Game.Block.Config.Service;
 using Game.Block.Interface.BlockConfig;
 using Game.PlayerInventory.Interface;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Chunk;
-using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.HotBar;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
@@ -28,7 +26,6 @@ namespace MainGame.Extension
 
         private IBlockConfig _blockConfig;
         private ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
-        private ItemIdToBlockId _itemIdToBlockId;
         private ILocalPlayerInventory _localPlayerInventory;
         private SelectHotBarControl _selectHotBarControl;
 
@@ -40,7 +37,6 @@ namespace MainGame.Extension
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _blockConfig = singlePlayInterface.BlockConfig;
-            _itemIdToBlockId = singlePlayInterface.ItemIdToBlockId;
 
             _localPlayerInventory = localPlayerInventory;
             _selectHotBarControl = selectHotBarControl;
@@ -112,9 +108,9 @@ namespace MainGame.Extension
             var id = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot)].Id;
 
             if (id == ItemConst.EmptyItemId) return (false, false);
-            if (!_itemIdToBlockId.CanConvert(id)) return (false, false);
+            if (!_blockConfig.IsBlock(id)) return (false, false);
 
-            var blockConfig = _blockConfig.GetBlockConfig(_itemIdToBlockId.Convert(id));
+            var blockConfig = _blockConfig.GetBlockConfig(_blockConfig.ItemIdToBlockId(id));
 
             return (IsElectricalBlock(blockConfig.Type), IsPole(blockConfig.Type));
         }

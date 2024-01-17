@@ -2,7 +2,6 @@ using Core.ConfigJson;
 using Core.Item;
 using Core.Item.Config;
 using Core.Ore;
-using Game.Block.Config.Service;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.RecipeConfig;
 using Game.Crafting.Interface;
@@ -18,8 +17,6 @@ namespace SinglePlay
         public readonly ConfigJsonList ConfigJsonList;
         public readonly ICraftingConfig CraftingConfig;
         public readonly IItemConfig ItemConfig;
-
-        public readonly ItemIdToBlockId ItemIdToBlockId;
 
         public readonly ItemStackFactory ItemStackFactory;
         public readonly IMachineRecipeConfig MachineRecipeConfig;
@@ -37,7 +34,6 @@ namespace SinglePlay
             BlockConfig = serviceProvider.GetService<IBlockConfig>();
             ConfigJsonList = serviceProvider.GetService<ConfigJsonList>();
             OreConfig = serviceProvider.GetService<IOreConfig>();
-            ItemIdToBlockId = serviceProvider.GetService<ItemIdToBlockId>();
         }
     }
 }

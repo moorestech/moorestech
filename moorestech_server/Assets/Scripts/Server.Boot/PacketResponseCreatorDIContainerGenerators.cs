@@ -7,7 +7,6 @@ using Core.Item.Config;
 using Core.Ore;
 using Core.Ore.Config;
 using Game.Block.Config;
-using Game.Block.Config.Service;
 using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
@@ -66,7 +65,6 @@ namespace Server.Boot
             services.AddSingleton<IBlockConfig, BlockConfig>();
             services.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             services.AddSingleton<IBlockFactory, BlockFactory>();
-            services.AddSingleton<ItemIdToBlockId, ItemIdToBlockId>();
 
 
             //ゲームプレイに必要なクラスのインスタンスを生成

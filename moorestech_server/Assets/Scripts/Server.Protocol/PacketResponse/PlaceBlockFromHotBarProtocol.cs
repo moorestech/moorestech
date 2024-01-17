@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Game.Block.Config.Service;
 using Game.Block.Interface;
+using Game.Block.Interface.BlockConfig;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
@@ -15,13 +15,13 @@ namespace Server.Protocol.PacketResponse
         public const string Tag = "va:palceHotbarBlock";
         private readonly IBlockFactory _blockFactory;
 
-        private readonly ItemIdToBlockId _itemIdToBlockId;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly IBlockConfig _blockConfig;
 
         public SendPlaceHotBarBlockProtocol(ServiceProvider serviceProvider)
         {
-            _itemIdToBlockId = serviceProvider.GetService<ItemIdToBlockId>();
+            _blockConfig = serviceProvider.GetService<IBlockConfig>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             _blockFactory = serviceProvider.GetService<IBlockFactory>();
@@ -37,7 +37,7 @@ namespace Server.Protocol.PacketResponse
                 .GetItem(inventorySlot);
 
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
-            if (!_itemIdToBlockId.CanConvert(item.Id)) return new List<List<byte>>();
+            if (!_blockConfig.IsBlock(item.Id)) return new List<List<byte>>();
             //すでにブロックがある場合はそもまま処理を終了
             if (_worldBlockDatastore.Exists(data.X, data.Y)) return new List<List<byte>>();
 
@@ -53,7 +53,7 @@ namespace Server.Protocol.PacketResponse
 
 
             //ブロックの作成
-            var block = _blockFactory.Create(_itemIdToBlockId.Convert(item.Id), CreateBlockEntityId.Create());
+            var block = _blockFactory.Create(_blockConfig.ItemIdToBlockId(item.Id), CreateBlockEntityId.Create());
             //ブロックの設置
             _worldBlockDatastore.AddBlock(block, data.X, data.Y, blockDirection);
 
