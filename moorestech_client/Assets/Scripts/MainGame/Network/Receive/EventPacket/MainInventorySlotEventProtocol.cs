@@ -14,11 +14,11 @@ namespace MainGame.Network.Receive.EventPacket
     public class MainInventorySlotEventProtocol : IAnalysisEventPacket
     {
         private readonly ItemStackFactory _itemStackFactory;
-        private readonly InventoryMainAndSubCombineItems _inventoryMainAndSubCombineItems;
+        private readonly LocalPlayerInventory _localPlayerInventory;
 
-        public MainInventorySlotEventProtocol(ItemStackFactory itemStackFactory,InventoryMainAndSubCombineItems inventoryMainAndSubCombineItems)
+        public MainInventorySlotEventProtocol(ItemStackFactory itemStackFactory,LocalPlayerInventory localPlayerInventory)
         {
-            _inventoryMainAndSubCombineItems = inventoryMainAndSubCombineItems;
+            _localPlayerInventory = localPlayerInventory;
             _itemStackFactory = itemStackFactory;
         }
 
@@ -33,7 +33,7 @@ namespace MainGame.Network.Receive.EventPacket
         {
             await UniTask.SwitchToMainThread();
             
-            _inventoryMainAndSubCombineItems[data.Slot] = _itemStackFactory.Create(data.Item.Id, data.Item.Count);
+            _localPlayerInventory[data.Slot] = _itemStackFactory.Create(data.Item.Id, data.Item.Count);
         }
     }
 }

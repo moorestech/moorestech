@@ -34,7 +34,7 @@ namespace MainGame.Presenter.Inventory
 
         //TODO 用語の統一が出来てないのでOreConfigをMapTileConfigに変更する
         private IOreConfig _oreConfig;
-        private IInventoryItems _inventoryItems;
+        private ILocalPlayerInventory _localPlayerInventory;
         private SendMiningProtocol _sendMiningProtocol;
         private UIStateControl _uiStateControl;
 
@@ -71,7 +71,7 @@ namespace MainGame.Presenter.Inventory
             _miningTokenSource.Cancel();
             _miningTokenSource = new CancellationTokenSource();
 
-            var miningTime = GetMiningTime(_inventoryItems);
+            var miningTime = GetMiningTime(_localPlayerInventory);
             miningObjectProgressbarPresenter.StartMining(miningTime, _miningTokenSource.Token).Forget();
 
             var isMiningCanceled = false;
@@ -138,10 +138,10 @@ namespace MainGame.Presenter.Inventory
         /// </summary>
         /// <param name="playerInventoryViewModel"></param>
         /// <returns></returns>
-        private static float GetMiningTime(IInventoryItems inventoryItems)
+        private static float GetMiningTime(ILocalPlayerInventory localPlayerInventory)
         {
-            var stoneTool = inventoryItems.IsItemExist(AlphaMod.ModId, "stone tool");
-            var ironPickaxe = inventoryItems.IsItemExist(AlphaMod.ModId, "iron pickaxe");
+            var stoneTool = localPlayerInventory.IsItemExist(AlphaMod.ModId, "stone tool");
+            var ironPickaxe = localPlayerInventory.IsItemExist(AlphaMod.ModId, "iron pickaxe");
             if (ironPickaxe) return 3;
 
             if (stoneTool) return 7;

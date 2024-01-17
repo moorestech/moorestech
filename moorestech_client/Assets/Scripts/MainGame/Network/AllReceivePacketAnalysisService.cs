@@ -21,15 +21,15 @@ namespace MainGame.Network
 
 
         public AllReceivePacketAnalysisService(ReceiveChunkDataEvent receiveChunkDataEvent, BlockInventoryView blockInventoryView, ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol, ReceiveEntitiesDataEvent receiveEntitiesDataEvent, ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent, ReceiveUpdateMapObjectEvent receiveUpdateMapObjectEvent,
-            LocalPlayerInventoryDataController localPlayerInventoryDataController, SinglePlayInterface singlePlayInterface,IInventoryItems inventoryItems)
+            LocalPlayerInventoryController localPlayerInventoryController, SinglePlayInterface singlePlayInterface,ILocalPlayerInventory localPlayerInventory)
         {
-            var inventoryMainAndSubCombineItems = (InventoryMainAndSubCombineItems)inventoryItems;
+            var inventoryMainAndSubCombineItems = (LocalPlayerInventory)localPlayerInventory;
             _analysisPackets.Add(DummyProtocol.Tag, new ReceiveDummyProtocol());
             _analysisPackets.Add(InitialHandshakeProtocol.Tag, receiveInitialHandshakeProtocol);
             _analysisPackets.Add(PlayerCoordinateSendProtocol.ChunkDataTag, new ReceiveChunkDataProtocol(receiveChunkDataEvent));
             _analysisPackets.Add(PlayerCoordinateSendProtocol.EntityDataTag, new ReceiveEntitiesProtocol(receiveEntitiesDataEvent));
-            _analysisPackets.Add(EventProtocolMessagePackBase.EventProtocolTag, new ReceiveEventProtocol(receiveChunkDataEvent,blockInventoryView , receiveBlockStateChangeEvent, receiveUpdateMapObjectEvent,localPlayerInventoryDataController,singlePlayInterface.ItemStackFactory,inventoryMainAndSubCombineItems));
-            _analysisPackets.Add(PlayerInventoryResponseProtocol.Tag, new ReceivePlayerInventoryProtocol(singlePlayInterface.ItemStackFactory,localPlayerInventoryDataController));
+            _analysisPackets.Add(EventProtocolMessagePackBase.EventProtocolTag, new ReceiveEventProtocol(receiveChunkDataEvent,blockInventoryView , receiveBlockStateChangeEvent, receiveUpdateMapObjectEvent,localPlayerInventoryController,singlePlayInterface.ItemStackFactory,inventoryMainAndSubCombineItems));
+            _analysisPackets.Add(PlayerInventoryResponseProtocol.Tag, new ReceivePlayerInventoryProtocol(singlePlayInterface.ItemStackFactory,localPlayerInventoryController));
             _analysisPackets.Add(BlockInventoryRequestProtocol.Tag, new ReceiveBlockInventoryProtocol(blockInventoryView,singlePlayInterface));
             _analysisPackets.Add(MapObjectDestructionInformationProtocol.Tag, new ReceiveMapObjectDestructionInformationProtocol(receiveUpdateMapObjectEvent));
         }

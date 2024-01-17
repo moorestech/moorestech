@@ -148,8 +148,8 @@ namespace MainGame.Starter
             builder.Register<SendOneClickCraftProtocol>(Lifetime.Singleton);
 
             //インベントリのUIコントロール
-            builder.Register<LocalPlayerInventoryDataController>(Lifetime.Singleton);
-            builder.Register<IInventoryItems,InventoryMainAndSubCombineItems>(Lifetime.Singleton);
+            builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
+            builder.Register<ILocalPlayerInventory,LocalPlayerInventory>(Lifetime.Singleton);
 
             //プレゼンターアセンブリ
             builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();

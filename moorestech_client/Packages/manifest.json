@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.unityfx.outline": "0.8.5",
+    "com.unityfx.outline": "0.8.3",
     "com.unityfx.outline.urp": "0.3.0",
 
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",

@@ -27,17 +27,17 @@ namespace MainGame.Presenter.MapObject
         private CancellationToken _gameObjectCancellationToken;
         private CancellationTokenSource _miningCancellationTokenSource = new();
 
-        private IInventoryItems _inventoryItems;
+        private ILocalPlayerInventory _localPlayerInventory;
         private SendGetMapObjectProtocolProtocol _sendGetMapObjectProtocolProtocol;
         private UIStateControl _uiStateControl;
         private IPlayerPosition _playerPosition;
 
         [Inject]
-        public void Constructor(UIStateControl uiStateControl, SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol, IInventoryItems inventoryItems, IPlayerPosition playerPosition)
+        public void Constructor(UIStateControl uiStateControl, SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol, ILocalPlayerInventory localPlayerInventory, IPlayerPosition playerPosition)
         {
             _uiStateControl = uiStateControl;
             _sendGetMapObjectProtocolProtocol = sendGetMapObjectProtocolProtocol;
-            _inventoryItems = inventoryItems;
+            _localPlayerInventory = localPlayerInventory;
             _playerPosition = playerPosition;
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
         }
@@ -46,7 +46,7 @@ namespace MainGame.Presenter.MapObject
 
         private async UniTask Update()
         {
-            if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return;
+            if (_uiStateControl.CurrentState != UIStateEnum.SelectHotBar) return;
 
             var mapObject = GetOnMouseMapObject();
             if (mapObject == null)
@@ -155,10 +155,10 @@ namespace MainGame.Presenter.MapObject
         /// </summary>
         private float GetMiningTime(string mapObjectType)
         {
-            var isStoneTool = _inventoryItems.IsItemExist(AlphaMod.ModId, "stone tool");
-            var isStoneAx = _inventoryItems.IsItemExist(AlphaMod.ModId, "stone ax");
-            var isIronAx = _inventoryItems.IsItemExist(AlphaMod.ModId, "iron ax");
-            var isIronPickaxe = _inventoryItems.IsItemExist(AlphaMod.ModId, "iron pickaxe");
+            var isStoneTool = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "stone tool");
+            var isStoneAx = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "stone ax");
+            var isIronAx = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "iron ax");
+            var isIronPickaxe = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "iron pickaxe");
 
             switch (mapObjectType)
             {

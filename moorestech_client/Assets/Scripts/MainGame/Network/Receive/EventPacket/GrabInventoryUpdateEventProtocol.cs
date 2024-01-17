@@ -12,12 +12,12 @@ namespace MainGame.Network.Receive.EventPacket
 {
     public class GrabInventoryUpdateEventProtocol : IAnalysisEventPacket
     {
-        private readonly LocalPlayerInventoryDataController _localPlayerInventoryDataController;
+        private readonly LocalPlayerInventoryController _localPlayerInventoryController;
         private readonly ItemStackFactory _itemStackFactory;
         
-        public GrabInventoryUpdateEventProtocol(LocalPlayerInventoryDataController localPlayerInventoryDataController, ItemStackFactory itemStackFactory)
+        public GrabInventoryUpdateEventProtocol(LocalPlayerInventoryController localPlayerInventoryController, ItemStackFactory itemStackFactory)
         {
-            _localPlayerInventoryDataController = localPlayerInventoryDataController;
+            _localPlayerInventoryController = localPlayerInventoryController;
             _itemStackFactory = itemStackFactory;
         }
 
@@ -27,7 +27,7 @@ namespace MainGame.Network.Receive.EventPacket
             var data = MessagePackSerializer
                 .Deserialize<GrabInventoryUpdateEventMessagePack>(packet.ToArray());
             
-            _localPlayerInventoryDataController.SetGrabItem(_itemStackFactory.Create(data.Item.Id, data.Item.Count));
+            _localPlayerInventoryController.SetGrabItem(_itemStackFactory.Create(data.Item.Id, data.Item.Count));
         }
     }
 }

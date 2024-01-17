@@ -14,24 +14,24 @@ namespace MainGame.UnityView.UI.Inventory.HotBar
         [SerializeField] private List<ItemSlotObject> hotBarSlots;
 
         private ItemImageContainer _itemImageContainer;
-        private IInventoryItems _inventoryItems;
+        private ILocalPlayerInventory _localPlayerInventory;
         
         public IReadOnlyList<ItemSlotObject> Slots => hotBarSlots;
         
 
 
         [Inject]
-        public void Construct(ItemImageContainer itemImageContainer,IInventoryItems inventoryItems)
+        public void Construct(ItemImageContainer itemImageContainer,ILocalPlayerInventory localPlayerInventory)
         {
             _itemImageContainer = itemImageContainer;
-            _inventoryItems = inventoryItems;
+            _localPlayerInventory = localPlayerInventory;
         }
 
         private void Update()
         {
-            for (int i = 0; i < _inventoryItems.Count(); i++)
+            for (int i = 0; i < _localPlayerInventory.Count(); i++)
             {
-                UpdateHotBar(i, _inventoryItems[i]);
+                UpdateHotBar(i, _localPlayerInventory[i]);
             }
         }
 

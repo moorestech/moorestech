@@ -34,7 +34,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
         private IItemConfig _itemConfig;
         private ICraftingConfig _craftingConfig;
         private ItemImageContainer _itemImageContainer;
-        private IInventoryItems _inventoryItems;
+        private ILocalPlayerInventory _localPlayerInventory;
         
         private IReadOnlyList<CraftingConfigData> _currentCraftingConfigDataList;
         private int _currentCraftingConfigIndex;
@@ -43,13 +43,13 @@ namespace MainGame.UnityView.UI.Inventory.Sub
 
 
         [Inject]
-        public void Construct(SinglePlayInterface singlePlay,ItemImageContainer itemImageContainer,IInventoryItems inventoryItems,SendOneClickCraftProtocol sendProtocol)
+        public void Construct(SinglePlayInterface singlePlay,ItemImageContainer itemImageContainer,ILocalPlayerInventory localPlayerInventory,SendOneClickCraftProtocol sendProtocol)
         {
             _itemConfig = singlePlay.ItemConfig;
             _craftingConfig = singlePlay.CraftingConfig;
             _itemImageContainer = itemImageContainer;
-            _inventoryItems = inventoryItems;
-            _inventoryItems.OnItemChange.Subscribe(OnItemChange);
+            _localPlayerInventory = localPlayerInventory;
+            _localPlayerInventory.OnItemChange.Subscribe(OnItemChange);
 
             itemImageContainer.OnLoadFinished += () =>
             {
@@ -170,7 +170,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
         private bool IsCraftable(CraftingConfigData craftingConfigData)
         {
             var itemPerCount = new Dictionary<int, int>();
-            foreach (var item in _inventoryItems)
+            foreach (var item in _localPlayerInventory)
             {
                 if (item.Id == ItemConst.EmptyItemId) continue;
                 if (itemPerCount.ContainsKey(item.Id))
@@ -196,7 +196,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
         private HashSet<int> IsAllItemCraftable()
         {
             var itemPerCount = new Dictionary<int, int>();
-            foreach (var item in _inventoryItems)
+            foreach (var item in _localPlayerInventory)
             {
                 if (item.Id == ItemConst.EmptyItemId) continue;
                 if (itemPerCount.ContainsKey(item.Id))

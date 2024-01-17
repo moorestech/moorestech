@@ -31,7 +31,7 @@ namespace MainGame.Presenter.Inventory.Send
         private SendPlaceHotBarBlockProtocol _sendPlaceHotBarBlockProtocol;
         private UIStateControl _uiStateControl;
         private ItemIdToBlockId _itemIdToBlockId;
-        private LocalPlayerInventoryDataController _localPlayerInventory;
+        private ILocalPlayerInventory _localPlayerInventory;
 
         private void Update()
         {
@@ -41,7 +41,7 @@ namespace MainGame.Presenter.Inventory.Send
 
         [Inject]
         public void Construct(Camera mainCamera, SelectHotBarControl selectHotBarControl, SendPlaceHotBarBlockProtocol sendPlaceHotBarBlockProtocol, 
-            UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview,SinglePlayInterface singlePlayInterface,LocalPlayerInventoryDataController localPlayerInventoryDataController)
+            UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview,SinglePlayInterface singlePlayInterface,ILocalPlayerInventory localPlayerInventory)
         {
             _uiStateControl = uiStateControl;
             _sendPlaceHotBarBlockProtocol = sendPlaceHotBarBlockProtocol;
@@ -49,7 +49,7 @@ namespace MainGame.Presenter.Inventory.Send
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
             _itemIdToBlockId = singlePlayInterface.ItemIdToBlockId;
-            _localPlayerInventory = localPlayerInventoryDataController;
+            _localPlayerInventory = localPlayerInventory;
         }
 
         private void BlockDirectionControl()
@@ -76,7 +76,7 @@ namespace MainGame.Presenter.Inventory.Send
             if (_uiStateControl.CurrentState != UIStateEnum.SelectHotBar) return;
 
             var selectIndex = (short)_hotBarControl.SelectIndex;
-            var itemId = _localPlayerInventory.InventoryItems[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
+            var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
             //持っているアイテムがブロックじゃなかったら何もしない
             if (!_itemIdToBlockId.CanConvert(itemId)) return; 
 

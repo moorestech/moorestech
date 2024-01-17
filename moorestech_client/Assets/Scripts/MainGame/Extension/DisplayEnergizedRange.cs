@@ -29,20 +29,20 @@ namespace MainGame.Extension
         private IBlockConfig _blockConfig;
         private ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private ItemIdToBlockId _itemIdToBlockId;
-        private IInventoryItems _inventoryItems;
+        private ILocalPlayerInventory _localPlayerInventory;
         private SelectHotBarControl _selectHotBarControl;
 
 
         private bool isBlockPlaceState;
 
         [Inject]
-        public void Construct(SinglePlayInterface singlePlayInterface, SelectHotBarControl selectHotBarControl, UIStateControl uiStateControl, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,IInventoryItems inventoryItems)
+        public void Construct(SinglePlayInterface singlePlayInterface, SelectHotBarControl selectHotBarControl, UIStateControl uiStateControl, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,ILocalPlayerInventory localPlayerInventory)
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _blockConfig = singlePlayInterface.BlockConfig;
             _itemIdToBlockId = singlePlayInterface.ItemIdToBlockId;
 
-            _inventoryItems = inventoryItems;
+            _localPlayerInventory = localPlayerInventory;
             _selectHotBarControl = selectHotBarControl;
 
             selectHotBarControl.OnSelectHotBar += OnSelectHotBar;
@@ -109,7 +109,7 @@ namespace MainGame.Extension
         private (bool isElectricalBlock, bool isPole) IsDisplay()
         {
             var hotBarSlot = _selectHotBarControl.SelectIndex;
-            var id = _inventoryItems[PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot)].Id;
+            var id = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot)].Id;
 
             if (id == ItemConst.EmptyItemId) return (false, false);
             if (!_itemIdToBlockId.CanConvert(id)) return (false, false);

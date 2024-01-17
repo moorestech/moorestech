@@ -7,11 +7,10 @@ using SinglePlay;
 
 namespace MainGame.UnityView.UI.Inventory.Main
 {
-    //TODO 名前変えたい
-    public class LocalPlayerInventoryDataController
+    public class LocalPlayerInventoryController
     {
-        public IInventoryItems InventoryItems => _mainAndSubCombineItems;
-        private readonly InventoryMainAndSubCombineItems _mainAndSubCombineItems;
+        public ILocalPlayerInventory LocalPlayerInventory => _mainAndSubCombine;
+        private readonly LocalPlayerInventory _mainAndSubCombine;
         public IItemStack GrabInventory { get; private set; }
         
         
@@ -19,9 +18,9 @@ namespace MainGame.UnityView.UI.Inventory.Main
         private readonly InventoryMoveItemProtocol _inventoryMoveItemProtocol;
         private ISubInventory _subInventory;
         
-        public LocalPlayerInventoryDataController(SinglePlayInterface singlePlayInterface,InventoryMoveItemProtocol inventoryMoveItemProtocol,IInventoryItems inventoryMainAndSubCombineItems)
+        public LocalPlayerInventoryController(SinglePlayInterface singlePlayInterface,InventoryMoveItemProtocol inventoryMoveItemProtocol,ILocalPlayerInventory localPlayerInventoryMainAndSubCombine)
         {
-            _mainAndSubCombineItems = (InventoryMainAndSubCombineItems)inventoryMainAndSubCombineItems;
+            _mainAndSubCombine = (LocalPlayerInventory)localPlayerInventoryMainAndSubCombine;
             _itemStackFactory = singlePlayInterface.ItemStackFactory;
             _inventoryMoveItemProtocol = inventoryMoveItemProtocol;
         }
@@ -30,7 +29,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
         {
             var fromInvItem = from switch
             {
-                LocalMoveInventoryType.MainOrSub => InventoryItems[fromSlot],
+                LocalMoveInventoryType.MainOrSub => LocalPlayerInventory[fromSlot],
                 LocalMoveInventoryType.Grab => GrabInventory,
                 _ => throw new ArgumentOutOfRangeException(nameof(from), from, null)
             };
@@ -52,7 +51,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
             {
                 var toInvItem = to switch
                 {
-                    LocalMoveInventoryType.MainOrSub => InventoryItems[toSlot],
+                    LocalMoveInventoryType.MainOrSub => LocalPlayerInventory[toSlot],
                     LocalMoveInventoryType.Grab => GrabInventory,
                     _ => throw new ArgumentOutOfRangeException(nameof(to), to, null)
                 };
@@ -62,7 +61,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
                 switch (to)
                 {
                     case LocalMoveInventoryType.MainOrSub:
-                        _mainAndSubCombineItems[toSlot] = add.ProcessResultItemStack;
+                        _mainAndSubCombine[toSlot] = add.ProcessResultItemStack;
                         break;
                     case LocalMoveInventoryType.Grab:
                         GrabInventory = add.ProcessResultItemStack;
@@ -79,7 +78,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
                         GrabInventory = fromItem;
                         break;
                     default:
-                        _mainAndSubCombineItems[fromSlot] = fromItem;
+                        _mainAndSubCombine[fromSlot] = fromItem;
                         break;
                 }
             }
@@ -108,12 +107,12 @@ namespace MainGame.UnityView.UI.Inventory.Main
         }
         public void SetMainItem(IItemStack itemStack,int slot)
         {
-            _mainAndSubCombineItems[slot] = itemStack;
+            _mainAndSubCombine[slot] = itemStack;
         }
         
         public void SetSubInventory(ISubInventory subInventory)
         {
-            _mainAndSubCombineItems.SetSubInventory(subInventory);
+            _mainAndSubCombine.SetSubInventory(subInventory);
             _subInventory = subInventory;
         }
     }

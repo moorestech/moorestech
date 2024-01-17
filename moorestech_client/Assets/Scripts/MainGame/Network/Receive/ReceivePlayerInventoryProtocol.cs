@@ -14,16 +14,16 @@ namespace MainGame.Network.Receive
     /// </summary>
     public class ReceivePlayerInventoryProtocol : IAnalysisPacket
     {
-        private readonly InventoryMainAndSubCombineItems _inventoryMainAndSubCombineItems;
-        private readonly LocalPlayerInventoryDataController _localPlayerInventoryDataController;
+        private readonly LocalPlayerInventory _localPlayerInventory;
+        private readonly LocalPlayerInventoryController _localPlayerInventoryController;
         
         private readonly ItemStackFactory _itemStackFactory;
 
-        public ReceivePlayerInventoryProtocol(ItemStackFactory itemStackFactory, LocalPlayerInventoryDataController localPlayerInventoryDataController)
+        public ReceivePlayerInventoryProtocol(ItemStackFactory itemStackFactory, LocalPlayerInventoryController localPlayerInventoryController)
         {
             _itemStackFactory = itemStackFactory;
-            _localPlayerInventoryDataController = localPlayerInventoryDataController;
-            _inventoryMainAndSubCombineItems = localPlayerInventoryDataController.InventoryItems as InventoryMainAndSubCombineItems;
+            _localPlayerInventoryController = localPlayerInventoryController;
+            _localPlayerInventory = localPlayerInventoryController.LocalPlayerInventory as LocalPlayerInventory;
         }
         
         
@@ -45,10 +45,10 @@ namespace MainGame.Network.Receive
             {
                 var item = data.Main[i];
                 mainItems.Add(new ItemStack(item.Id, item.Count));
-                _inventoryMainAndSubCombineItems[i] = _itemStackFactory.Create(item.Id, item.Count);
+                _localPlayerInventory[i] = _itemStackFactory.Create(item.Id, item.Count);
             }
             
-            _localPlayerInventoryDataController.SetGrabItem( _itemStackFactory.Create(data.Grab.Id, data.Grab.Count));
+            _localPlayerInventoryController.SetGrabItem( _itemStackFactory.Create(data.Grab.Id, data.Grab.Count));
         }
     }
 }

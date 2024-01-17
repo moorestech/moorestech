@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace MainGame.UnityView.UI.Inventory.Main
 {
-    public interface IInventoryItems : IEnumerable<IItemStack>
+    public interface ILocalPlayerInventory : IEnumerable<IItemStack>
     {
         public IItemStack this[int index] { get; }
         public IObservable<int> OnItemChange { get; }
@@ -20,7 +20,10 @@ namespace MainGame.UnityView.UI.Inventory.Main
         public bool IsItemExist(string modId, string itemName);
     }
     
-    public class InventoryMainAndSubCombineItems : IInventoryItems
+    /// <summary>
+    /// メインインベントリとサブインベントリを統合して扱えるローカルのプレイヤーインベントリ
+    /// </summary>
+    public class LocalPlayerInventory : ILocalPlayerInventory
     {
         public IObservable<int> OnItemChange => _onItemChange;
         private readonly Subject<int> _onItemChange = new();
@@ -31,7 +34,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
         
         private ISubInventory _subInventory;
 
-        public InventoryMainAndSubCombineItems(SinglePlayInterface singlePlayInterface)
+        public LocalPlayerInventory(SinglePlayInterface singlePlayInterface)
         {
             _itemConfig = singlePlayInterface.ItemConfig;
             _itemStackFactory = singlePlayInterface.ItemStackFactory;
