@@ -104,6 +104,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   miningObjectProgressbarPresenter: {fileID: 2179175055219430037}
+  selectHotBarControl: {fileID: 1797806254966188289}
 --- !u!1 &1971782199373254859
 GameObject:
   m_ObjectHideFlags: 0
@@ -4509,6 +4510,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   miningObjectProgressbarPresenter: {fileID: 2179175055219430037}
+  selectHotBarControl: {fileID: 1797806254966188289}
   miningDistance: 2.5
 --- !u!1 &8881494043226809023
 GameObject:
