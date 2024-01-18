@@ -2,11 +2,13 @@
 using Cysharp.Threading.Tasks;
 using Game.MapObject.Interface;
 using Constant;
+using Game.PlayerInventory.Interface;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.Game;
 using MainGame.UnityView.MapObject;
 using MainGame.UnityView.SoundEffect;
+using MainGame.UnityView.UI.Inventory.HotBar;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.Util;
@@ -22,6 +24,7 @@ namespace MainGame.Presenter.MapObject
     public class MapObjectGetPresenter : MonoBehaviour
     {
         [SerializeField] private MiningObjectProgressbarPresenter miningObjectProgressbarPresenter;
+        [SerializeField] private SelectHotBarControl selectHotBarControl;
         [SerializeField] private float miningDistance = 1.5f;
 
         private CancellationToken _gameObjectCancellationToken;
@@ -42,70 +45,168 @@ namespace MainGame.Presenter.MapObject
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
         }
         
-        private MapObjectGameObject _lastMapObjectGameObject = null;
+        private MapObjectGameObject _currentMapObjectGameObject = null;
 
         private async UniTask Update()
         {
-            if (_uiStateControl.CurrentState != UIStateEnum.SelectHotBar) return;
-
-            var mapObject = GetOnMouseMapObject();
-            if (mapObject == null)
+            if (IsStartMining())
             {
-                if (_lastMapObjectGameObject != null)
-                {
-                    _lastMapObjectGameObject.OutlineEnable(false);
-                }
-                _lastMapObjectGameObject = null;
                 return;
             }
 
-            if (_lastMapObjectGameObject != mapObject)
-            {
-                if (_lastMapObjectGameObject != null)
-                {
-                    _lastMapObjectGameObject.OutlineEnable(false);
-                }
-                _lastMapObjectGameObject = mapObject;
-                _lastMapObjectGameObject.OutlineEnable(true);
-            }
-
-            if (miningObjectProgressbarPresenter.IsMining || !InputManager.Playable.ScreenLeftClick.GetKey) return;
+            await Mining();
             
-            _miningCancellationTokenSource.Cancel();
-            _miningCancellationTokenSource = new CancellationTokenSource();
 
-            var miningTime = GetMiningTime(_lastMapObjectGameObject.MapObjectType);
+            #region Internal
 
-            //マイニングバーのUIを表示するやつを設定
-            miningObjectProgressbarPresenter.StartMining(miningTime, _miningCancellationTokenSource.Token).Forget();
-
-            var isMiningCanceled = false;
-
-            //map objectがフォーカスされ、クリックされているので採掘を行う
-            //採掘中はこのループの中にいる
-            //採掘時間分ループする
-            var nowTime = 0f;
-            while (nowTime < miningTime)
+            bool IsStartMining()
             {
-                await UniTask.Yield(PlayerLoopTiming.Update, _gameObjectCancellationToken);
-                nowTime += Time.deltaTime;
+                if (_uiStateControl.CurrentState != UIStateEnum.SelectHotBar) return false;
 
+                UpdateCurrentMapObject();
+            
+                var (_,mineable) = GetMiningData(_currentMapObjectGameObject.MapObjectType);
 
-                //クリックが離されたら採掘を終了する
-                //map objectが変わったら採掘を終了する
-                if (InputManager.Playable.ScreenLeftClick.GetKeyUp || _lastMapObjectGameObject != GetOnMouseMapObject())
-                {
-                    isMiningCanceled = true;
-                    break;
-                }
+                if (!mineable) return false;
+                if (miningObjectProgressbarPresenter.IsMining || !InputManager.Playable.ScreenLeftClick.GetKey) return false;
+
+                return true;
             }
 
-            //マイニングをキャンセルせずに終わったので、マイニング完了をサーバーに送信する
-            if (!isMiningCanceled)
+            async UniTask Mining()
             {
-                _sendGetMapObjectProtocolProtocol.Send(_lastMapObjectGameObject.InstanceId);
+                _miningCancellationTokenSource.Cancel();
+                _miningCancellationTokenSource = new CancellationTokenSource();
+
+                //マイニングバーのUIを表示するやつを設定
+                var (miningTime,_) = GetMiningData(_currentMapObjectGameObject.MapObjectType);
+                miningObjectProgressbarPresenter.StartMining(miningTime, _miningCancellationTokenSource.Token).Forget();
+
+                var isMiningFinish = await IsMiningFinishWait(miningTime);
+
+                //マイニングをキャンセルせずに終わったので、マイニング完了をサーバーに送信する
+                if (isMiningFinish)
+                {
+                    _sendGetMapObjectProtocolProtocol.Send(_currentMapObjectGameObject.InstanceId);
+                    PlaySoundEffect();
+                }
+
+                _miningCancellationTokenSource.Cancel();
+            }
+            
+            
+
+            void UpdateCurrentMapObject()
+            {
+                var mapObject = GetOnMouseMapObject();
+                if (mapObject == null)
+                {
+                    if (_currentMapObjectGameObject != null)
+                    {
+                        _currentMapObjectGameObject.OutlineEnable(false);
+                    }
+                    _currentMapObjectGameObject = null;
+                    return;
+                }
+
+                if (_currentMapObjectGameObject == mapObject) return;
+                
+                if (_currentMapObjectGameObject != null)
+                {
+                    _currentMapObjectGameObject.OutlineEnable(false);
+                }
+                _currentMapObjectGameObject = mapObject;
+                _currentMapObjectGameObject.OutlineEnable(true);
+            }
+
+            (float miningTime, bool mineable) GetMiningData(string mapObjectType)
+            {
+                var slotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(selectHotBarControl.SelectIndex);
+
+                //TODO 採掘するためのアイテムはコンフィグに移す（mapObject.jsonとか作る？）
+                var isStoneTool = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "stone tool", slotIndex);
+                var isStoneAx = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "stone ax", slotIndex);
+                var isIronAx = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "iron ax", slotIndex);
+                var isIronPickaxe = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "iron pickaxe", slotIndex);
+
+                switch (mapObjectType)
+                {
+                    #region 木
+
+                    case VanillaMapObjectType.VanillaTree when isIronAx:
+                        return (4, true);
+                    case VanillaMapObjectType.VanillaTree when isStoneAx:
+                        return (4, true);
+                    case VanillaMapObjectType.VanillaTree when isStoneTool:
+                        return (10, true);
+                    case VanillaMapObjectType.VanillaTree:
+                        return (10000, true);
+
+                    case VanillaMapObjectType.VanillaBigTree when isIronAx:
+                        return (10, true);
+                    case VanillaMapObjectType.VanillaBigTree:
+                        return (10000, true);
+
+                    #endregion
+
+                    #region 石
+
+                    case VanillaMapObjectType.VanillaStone:
+                        return (5, true);
+
+
+                    case VanillaMapObjectType.VanillaCoal when isIronPickaxe:
+                        return (5, true);
+                    case VanillaMapObjectType.VanillaCoal:
+                        return (10000, true);
+                    case VanillaMapObjectType.VanillaIronOre when isIronPickaxe:
+                        return (10, true);
+                    case VanillaMapObjectType.VanillaIronOre:
+                        return (10000, true);
+
+                    case VanillaMapObjectType.VanillaCray when isStoneAx:
+                        return (3, true);
+                    case VanillaMapObjectType.VanillaCray:
+                        return (10000, true);
+
+                    #endregion
+
+                    #region ブッシュ
+
+                    case VanillaMapObjectType.VanillaBush:
+                        return (3, true);
+
+                    #endregion
+                }
+
+                return (5, false);
+            }
+            
+            async UniTask<bool> IsMiningFinishWait(float miningTime)
+            {
+                //map objectがフォーカスされ、クリックされているので採掘を行う
+                //採掘中はこのループの中にいる
+                //採掘時間分ループする
+                var nowTime = 0f;
+                while (nowTime < miningTime)
+                {
+                    await UniTask.Yield(PlayerLoopTiming.Update, _gameObjectCancellationToken);
+                    nowTime += Time.deltaTime;
+
+                    //クリックが離されたら採掘を終了する か map objectが変わったら採掘を終了する
+                    if (InputManager.Playable.ScreenLeftClick.GetKeyUp || _currentMapObjectGameObject != GetOnMouseMapObject())
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            void PlaySoundEffect()
+            {
                 SoundEffectType soundEffectType;
-                switch (_lastMapObjectGameObject.MapObjectType)
+                switch (_currentMapObjectGameObject.MapObjectType)
                 {
                     case VanillaMapObjectType.VanillaStone:
                     case VanillaMapObjectType.VanillaCray:
@@ -128,9 +229,8 @@ namespace MainGame.Presenter.MapObject
 
                 SoundEffectManager.Instance.PlaySoundEffect(soundEffectType);
             }
-
-            _lastMapObjectGameObject.OutlineEnable(false);
-            _miningCancellationTokenSource.Cancel();
+            
+            #endregion
         }
 
         private MapObjectGameObject GetOnMouseMapObject()
@@ -149,68 +249,6 @@ namespace MainGame.Presenter.MapObject
         }
 
 
-        /// <summary>
-        ///     採掘時間を取得する
-        ///     採掘アイテムがインベントリにあれば早くなる
-        /// </summary>
-        private float GetMiningTime(string mapObjectType)
-        {
-            var isStoneTool = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "stone tool");
-            var isStoneAx = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "stone ax");
-            var isIronAx = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "iron ax");
-            var isIronPickaxe = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "iron pickaxe");
 
-            switch (mapObjectType)
-            {
-                #region 木
-
-                case VanillaMapObjectType.VanillaTree when isIronAx:
-                    return 4;
-                case VanillaMapObjectType.VanillaTree when isStoneAx:
-                    return 4;
-                case VanillaMapObjectType.VanillaTree when isStoneTool:
-                    return 10;
-                case VanillaMapObjectType.VanillaTree:
-                    return 10000;
-
-                case VanillaMapObjectType.VanillaBigTree when isIronAx:
-                    return 10;
-                case VanillaMapObjectType.VanillaBigTree:
-                    return 10000;
-
-                #endregion
-
-                #region 石
-
-                case VanillaMapObjectType.VanillaStone:
-                    return 5;
-
-
-                case VanillaMapObjectType.VanillaCoal when isIronPickaxe:
-                    return 5;
-                case VanillaMapObjectType.VanillaCoal:
-                    return 10000;
-                case VanillaMapObjectType.VanillaIronOre when isIronPickaxe:
-                    return 10;
-                case VanillaMapObjectType.VanillaIronOre:
-                    return 10000;
-
-                case VanillaMapObjectType.VanillaCray when isStoneAx:
-                    return 3;
-                case VanillaMapObjectType.VanillaCray:
-                    return 10000;
-
-                #endregion
-
-                #region ブッシュ
-
-                case VanillaMapObjectType.VanillaBush:
-                    return 3;
-
-                #endregion
-            }
-
-            return 5;
-        }
     }
 }

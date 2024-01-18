@@ -17,7 +17,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
         public IObservable<int> OnItemChange { get; }
 
         public int Count { get; }
-        public bool IsItemExist(string modId, string itemName);
+        public bool IsItemExist(string modId, string itemName,int itemSlot);
     }
     
     /// <summary>
@@ -68,10 +68,14 @@ namespace MainGame.UnityView.UI.Inventory.Main
 
         public int Count => _mainInventory.Count + _subInventory.Count;
 
-        public bool IsItemExist(string modId, string itemName)
+        public bool IsItemExist(string modId, string itemName,int itemSlot)
         {
             var id = _itemConfig.GetItemId(modId, itemName);
-            return _mainInventory.Any(item => item.Id == id);
+            if (itemSlot < _mainInventory.Count) return _mainInventory[itemSlot].Id == id;
+            var subIndex = itemSlot - _mainInventory.Count;
+            if (subIndex < _subInventory.Count) return _subInventory.SubInventory[itemSlot - _mainInventory.Count].Id == id;
+            Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + itemSlot);
+            return false;
         }
 
 
