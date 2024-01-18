@@ -49,7 +49,7 @@ namespace MainGame.Presenter.MapObject
 
         private async UniTask Update()
         {
-            if (IsStartMining())
+            if (!IsStartMining())
             {
                 return;
             }
