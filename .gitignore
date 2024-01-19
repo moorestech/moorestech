@@ -80,6 +80,7 @@ crashlytics-build.properties
 
 # lilToon
 /moorestech_client/Assets/Dependencies/lilToon/Editor/CurrentRP.txt
+/moorestech_client/Assets/Dependencies/lilToon/Editor/CurrentRP.txt.meta
 
 # Github Actionsのアウトプット
 /Output_StandaloneWindows64/
