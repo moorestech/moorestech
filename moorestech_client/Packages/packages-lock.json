@@ -269,23 +269,6 @@
       },
       "url": "https://packages.unity.com"
     },
-    "com.unityfx.outline": {
-      "version": "0.8.3",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://registry.npmjs.org"
-    },
-    "com.unityfx.outline.urp": {
-      "version": "0.3.0",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unityfx.outline": "0.8.3",
-        "com.unity.render-pipelines.universal": "7.0.0"
-      },
-      "url": "https://registry.npmjs.org"
-    },
     "com.vrmc.gltf": {
       "version": "https://github.com/vrm-c/UniVRM.git?path=/Assets/UniGLTF#v0.99.0",
       "depth": 0,
