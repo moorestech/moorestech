@@ -78,6 +78,9 @@ crashlytics-build.properties
 *.DS_Store
 
 
+# lilToon
+/moorestech_client/Assets/Dependencies/lilToon/Editor/CurrentRP.txt
+
 # Github Actionsのアウトプット
 /Output_StandaloneWindows64/
 /Output_StandaloneOSX/
