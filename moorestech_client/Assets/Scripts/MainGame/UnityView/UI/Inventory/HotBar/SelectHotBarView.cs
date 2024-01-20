@@ -12,11 +12,5 @@ namespace MainGame.UnityView.UI.Inventory.HotBar
         {
             selectImage.transform.position = hotBarItemView.Slots[selectIndex].transform.position;
         }
-
-
-        public void SetActiveSelectHotBar(bool isActive)
-        {
-            selectImage.gameObject.SetActive(isActive);
-        }
     }
 }

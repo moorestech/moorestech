@@ -10,12 +10,10 @@ namespace MainGame.UnityView.UI.Inventory.HotBar
     {
         [SerializeField] private SelectHotBarView selectHotBarView;
         [SerializeField] private HotBarItemView hotBarItemView;
-        private int _isClickedCount = -1;
 
         public int SelectIndex { get; private set; }
 
-
-        public bool IsClicked => _isClickedCount == 0 || _isClickedCount == 1;
+        public event Action<int> OnSelectHotBar;
 
         public void Start()
         {
@@ -26,21 +24,14 @@ namespace MainGame.UnityView.UI.Inventory.HotBar
         private void Update()
         {
             //キーボード入力で選択
-            if (InputManager.UI.HotBar.ReadValue<int>() != 0)
-            {
-                //キー入力で得られる値は1〜9なので-1する
-                SelectIndex = InputManager.UI.HotBar.ReadValue<int>() - 1;
-                selectHotBarView.SetSelect(SelectIndex);
+            if (InputManager.UI.HotBar.ReadValue<int>() == 0) return;
+            
+            //キー入力で得られる値は1〜9なので-1する
+            SelectIndex = InputManager.UI.HotBar.ReadValue<int>() - 1;
+            selectHotBarView.SetSelect(SelectIndex);
 
-                OnSelectHotBar?.Invoke(SelectIndex);
-            }
-
-            // ButtonがクリックされたことをUpdate内で確認したいのでクリックされてから2フレームはtrueとする
-            if (_isClickedCount == 0 || _isClickedCount == 1) _isClickedCount++;
-            if (_isClickedCount == 2) _isClickedCount = -1;
+            OnSelectHotBar?.Invoke(SelectIndex);
         }
-
-        public event Action<int> OnSelectHotBar;
 
         private void ClickItem(ItemSlotObject itemSlotObject)
         {
@@ -49,7 +40,6 @@ namespace MainGame.UnityView.UI.Inventory.HotBar
                 if (itemSlotObject == hotBarItemView.Slots[i])
                     slot = i;
             SelectIndex = slot;
-            _isClickedCount = 0;
             selectHotBarView.SetSelect(slot);
 
             OnSelectHotBar?.Invoke(SelectIndex);

@@ -54,14 +54,14 @@ namespace MainGame.Extension
 
         private void OnStateChanged(UIStateEnum state)
         {
-            if (isBlockPlaceState && state != UIStateEnum.SelectHotBar)
+            if (isBlockPlaceState && state != UIStateEnum.GameScreen)
             {
                 isBlockPlaceState = false;
                 ResetRangeObject();
                 return;
             }
 
-            if (state != UIStateEnum.SelectHotBar) return;
+            if (state != UIStateEnum.GameScreen) return;
             isBlockPlaceState = true;
 
             CreateRangeObject();

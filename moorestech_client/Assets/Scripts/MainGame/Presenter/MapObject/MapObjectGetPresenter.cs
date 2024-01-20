@@ -61,7 +61,7 @@ namespace MainGame.Presenter.MapObject
 
             bool IsStartMining()
             {
-                if (_uiStateControl.CurrentState != UIStateEnum.SelectHotBar) return false;
+                if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return false;
 
                 UpdateCurrentMapObject();
 

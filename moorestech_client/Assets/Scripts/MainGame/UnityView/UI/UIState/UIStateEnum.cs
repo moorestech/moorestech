@@ -9,6 +9,5 @@
         BlockInventory,
         PauseMenu,
         DeleteBar,
-        SelectHotBar,
     }
 }

@@ -73,7 +73,7 @@ namespace MainGame.Presenter.Inventory.Send
             _blockPlacePreview.SetActive(false);
 
             //UIの状態がゲームホットバー選択中か
-            if (_uiStateControl.CurrentState != UIStateEnum.SelectHotBar) return;
+            if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return;
 
             var selectIndex = (short)_hotBarControl.SelectIndex;
             var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;

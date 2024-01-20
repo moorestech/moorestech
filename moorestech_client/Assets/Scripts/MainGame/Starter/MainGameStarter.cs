@@ -168,7 +168,6 @@ namespace MainGame.Starter
             builder.Register<PauseMenuState>(Lifetime.Singleton);
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
             builder.Register<DeleteObjectInventoryState>(Lifetime.Singleton);
-            builder.Register<SelectHotBarState>(Lifetime.Singleton);
 
             //modからロードしてきたデータ
             builder.Register<ItemImageContainer>(Lifetime.Singleton);

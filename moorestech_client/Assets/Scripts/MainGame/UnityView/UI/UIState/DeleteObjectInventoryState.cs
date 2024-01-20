@@ -20,7 +20,6 @@ namespace MainGame.UnityView.UI.UIState
         {
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.GameScreen;
 
-            if (_selectHotBarControl.IsClicked || InputManager.UI.HotBar.ReadValue<int>() != 0) return UIStateEnum.SelectHotBar;
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
             if (InputManager.UI.OpenMenu.GetKeyDown) return UIStateEnum.PauseMenu;
 
