@@ -8,7 +8,7 @@ using MainGame.UnityView.Control;
 using MainGame.UnityView.Game;
 using MainGame.UnityView.MapObject;
 using MainGame.UnityView.SoundEffect;
-using MainGame.UnityView.UI.Inventory.HotBar;
+using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.Util;
@@ -24,7 +24,7 @@ namespace MainGame.Presenter.MapObject
     public class MapObjectGetPresenter : MonoBehaviour
     {
         [SerializeField] private MiningObjectProgressbarPresenter miningObjectProgressbarPresenter;
-        [SerializeField] private SelectHotBarControl selectHotBarControl;
+        [SerializeField] private HotBarView hotBarView;
         [SerializeField] private float miningDistance = 1.5f;
 
         private CancellationToken _gameObjectCancellationToken;
@@ -123,7 +123,7 @@ namespace MainGame.Presenter.MapObject
 
             (float miningTime, bool mineable) GetMiningData(string mapObjectType)
             {
-                var slotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(selectHotBarControl.SelectIndex);
+                var slotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarView.SelectIndex);
 
                 //TODO 採掘するためのアイテムはコンフィグに移す（mapObject.jsonとか作る？）
                 var isStoneTool = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "stone tool", slotIndex);

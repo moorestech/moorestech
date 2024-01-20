@@ -1,5 +1,4 @@
 ﻿using MainGame.UnityView.Control;
-using MainGame.UnityView.UI.Inventory.HotBar;
 using MainGame.UnityView.UI.UIState.UIObject;
 
 namespace MainGame.UnityView.UI.UIState
@@ -7,11 +6,9 @@ namespace MainGame.UnityView.UI.UIState
     public class DeleteObjectInventoryState : IUIState
     {
         private readonly DeleteBarObject _deleteBarObject;
-        private readonly SelectHotBarControl _selectHotBarControl;
-
-        public DeleteObjectInventoryState(DeleteBarObject deleteBarObject, SelectHotBarControl selectHotBarControl)
+        
+        public DeleteObjectInventoryState(DeleteBarObject deleteBarObject)
         {
-            _selectHotBarControl = selectHotBarControl;
             _deleteBarObject = deleteBarObject;
             deleteBarObject.gameObject.SetActive(false);
         }

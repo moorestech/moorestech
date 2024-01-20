@@ -27,7 +27,6 @@ using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.Game;
 using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Element;
-using MainGame.UnityView.UI.Inventory.HotBar;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.Inventory.Sub;
 using MainGame.UnityView.UI.UIState;
@@ -62,13 +61,11 @@ namespace MainGame.Starter
         [SerializeField] private WorldMapTileGameObjectDataStore worldMapTileGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
 
-        [SerializeField] private HotBarItemView hotBarItemView;
         [SerializeField] private BlockClickDetect blockClickDetect;
         [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private DetectGroundClickToSendBlockPlacePacket detectGroundClickToSendBlockPlacePacket;
-        [SerializeField] private SelectHotBarControl selectHotBarControl;
+        [SerializeField] private HotBarView hotBarView;
         [SerializeField] private PlayerPosition playerPosition;
-        [SerializeField] private SelectHotBarView selectHotBarView;
         [SerializeField] private MapObjectGetPresenter mapObjectGetPresenter;
 
         [SerializeField] private EntitiesPresenter entitiesPresenter;
@@ -189,9 +186,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(groundPlane);
             builder.RegisterComponent(detectGroundClickToSendBlockPlacePacket);
             builder.RegisterComponent(commandUIInput);
-            builder.RegisterComponent(hotBarItemView);
-            builder.RegisterComponent(selectHotBarControl);
-            builder.RegisterComponent(selectHotBarView);
+            builder.RegisterComponent(hotBarView);
 
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(loadingFinishDetector);

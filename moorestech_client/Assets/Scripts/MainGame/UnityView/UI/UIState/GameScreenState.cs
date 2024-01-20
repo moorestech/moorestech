@@ -1,19 +1,19 @@
 ﻿using MainGame.UnityView.Block;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.Control.MouseKeyboard;
-using MainGame.UnityView.UI.Inventory.HotBar;
+using MainGame.UnityView.UI.Inventory;
 
 namespace MainGame.UnityView.UI.UIState
 {
     public class GameScreenState : IUIState
     {
         private readonly IBlockClickDetect _blockClickDetect;
-        private readonly SelectHotBarControl _selectHotBarControl;
+        private readonly HotBarView _hotBarView;
 
-        public GameScreenState(IBlockClickDetect blockClickDetect, SelectHotBarControl selectHotBarControl)
+        public GameScreenState(IBlockClickDetect blockClickDetect, HotBarView hotBarView)
         {
             _blockClickDetect = blockClickDetect;
-            _selectHotBarControl = selectHotBarControl;
+            _hotBarView = hotBarView;
         }
 
         public UIStateEnum GetNext()

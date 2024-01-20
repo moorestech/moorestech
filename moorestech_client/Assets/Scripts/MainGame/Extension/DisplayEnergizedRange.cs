@@ -6,6 +6,7 @@ using Game.Block.Interface.BlockConfig;
 using Game.PlayerInventory.Interface;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Chunk;
+using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.HotBar;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
@@ -27,21 +28,21 @@ namespace MainGame.Extension
         private IBlockConfig _blockConfig;
         private ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private ILocalPlayerInventory _localPlayerInventory;
-        private SelectHotBarControl _selectHotBarControl;
+        private HotBarView _hotBarView;
 
 
         private bool isBlockPlaceState;
 
         [Inject]
-        public void Construct(SinglePlayInterface singlePlayInterface, SelectHotBarControl selectHotBarControl, UIStateControl uiStateControl, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,ILocalPlayerInventory localPlayerInventory)
+        public void Construct(SinglePlayInterface singlePlayInterface, HotBarView hotBarView, UIStateControl uiStateControl, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,ILocalPlayerInventory localPlayerInventory)
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _blockConfig = singlePlayInterface.BlockConfig;
 
             _localPlayerInventory = localPlayerInventory;
-            _selectHotBarControl = selectHotBarControl;
+            _hotBarView = hotBarView;
 
-            selectHotBarControl.OnSelectHotBar += OnSelectHotBar;
+            hotBarView.OnSelectHotBar += OnSelectHotBar;
             uiStateControl.OnStateChanged += OnStateChanged;
             chunkBlockGameObjectDataStore.OnPlaceBlock += OnPlaceBlock;
         }
@@ -104,7 +105,7 @@ namespace MainGame.Extension
 
         private (bool isElectricalBlock, bool isPole) IsDisplay()
         {
-            var hotBarSlot = _selectHotBarControl.SelectIndex;
+            var hotBarSlot = _hotBarView.SelectIndex;
             var id = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot)].Id;
 
             if (id == ItemConst.EmptyItemId) return (false, false);

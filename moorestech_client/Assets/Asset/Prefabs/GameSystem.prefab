@@ -104,7 +104,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   miningObjectProgressbarPresenter: {fileID: 2179175055219430037}
-  selectHotBarControl: {fileID: 1797806254966188289}
+  hotBarView: {fileID: 0}
 --- !u!1 &1971782199373254859
 GameObject:
   m_ObjectHideFlags: 0
@@ -4510,7 +4510,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   miningObjectProgressbarPresenter: {fileID: 2179175055219430037}
-  selectHotBarControl: {fileID: 1797806254966188289}
+  hotBarView: {fileID: 0}
   miningDistance: 2.5
 --- !u!1 &8881494043226809023
 GameObject:
@@ -4580,13 +4580,11 @@ MonoBehaviour:
   chunkBlockGameObjectDataStore: {fileID: 8650265669030383555}
   worldMapTileGameObjectDataStore: {fileID: 8477438844126861688}
   mapObjectGameObjectDatastore: {fileID: 2378660713236389372}
-  hotBarItemView: {fileID: 1881995156536415484}
   blockClickDetect: {fileID: 4426243371036382355}
   commandUIInput: {fileID: 658237661569717696}
   detectGroundClickToSendBlockPlacePacket: {fileID: 4192525954406032704}
-  selectHotBarControl: {fileID: 1797806254966188289}
+  hotBarView: {fileID: 1797806254966188289}
   playerPosition: {fileID: 8327004088713836899}
-  selectHotBarView: {fileID: 2969430433967882305}
   mapObjectGetPresenter: {fileID: 3767846705739946558}
   entitiesPresenter: {fileID: 9004822369202094949}
   uIStateControl: {fileID: 4694271036350155273}
@@ -5008,17 +5006,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b7fea822e3946a798a252eca17a035c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1881995156536415484 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4515352874386258074, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-  m_PrefabInstance: {fileID: 2645848407441091686}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5987fef42adc4228a01abbf00467f905, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &2521230234860250898 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 453390843158383476, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
@@ -5039,17 +5026,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23f78a41c07e4d8abcb4fbf2fa8db067, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &2969430433967882305 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 973472567877495847, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-  m_PrefabInstance: {fileID: 2645848407441091686}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 444702c38aa74957a573527a4703509c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &3760452863612925393 stripped
