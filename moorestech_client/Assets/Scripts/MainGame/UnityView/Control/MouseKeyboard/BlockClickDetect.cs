@@ -52,8 +52,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
         {
             blockObject = null;
 
-            var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
-            var ray = _mainCamera.ScreenPointToRay(mousePosition);
+            var ray = _mainCamera.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
 
             if (!Physics.Raycast(ray, out var hit, 100, LayerConst.BlockOnlyLayerMask)) return false;
             var child = hit.collider.gameObject.GetComponent<BlockGameObjectChild>();

@@ -1,5 +1,6 @@
 ﻿using System;
 using Cinemachine;
+using MainGame.UnityView.UI.UIState;
 using UnityEngine;
 
 namespace MainGame.UnityView.Control.MouseKeyboard
@@ -7,6 +8,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
     public class CameraController : MonoBehaviour
     {
         [SerializeField] private CinemachineVirtualCamera virtualCamera;
+        [SerializeField] private UIStateControl uiStateControl;
         [SerializeField] private Vector2 sensitivity = Vector2.one;
         [SerializeField] private float lerpSpeed = 5.0f; // Adjust this to change the lerp speed
         
@@ -19,24 +21,22 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             _targetRotation = transform.rotation; // Initialize target rotation to current rotation
         }
 
-        Vector2 _lastClickedPosition;
         private void Update()
         {
             _cinemachineFraming.m_CameraDistance += InputManager.UI.SwitchHotBar.ReadValue<float>() / -100;
-
             _cinemachineFraming.m_CameraDistance = Mathf.Clamp(_cinemachineFraming.m_CameraDistance, 1, 75);
             
-            //マウスのインプットによって向きを変える
-            if (InputManager.Playable.ScreenRightClick.GetKeyDown)
-            {
-                _lastClickedPosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
-            }
+            if (uiStateControl.CurrentState != UIStateEnum.GameScreen && uiStateControl.CurrentState != UIStateEnum.DeleteBar) return;
             
-            if (InputManager.Playable.ScreenRightClick.GetKey)
+            //マウスのインプットによって向きを変える
+            UpdateCameraRotation();
+            LerpCameraRotation();
+            
+            #region Internal
+
+            void UpdateCameraRotation()
             {
-                var currentClickedPosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
-                var delta = currentClickedPosition - _lastClickedPosition;
-                _lastClickedPosition = currentClickedPosition;
+                var delta = InputManager.Player.Look.ReadValue<Vector2>();
 
                 var rotation = _targetRotation.eulerAngles;
                 rotation.x -= delta.y * sensitivity.y;
@@ -54,9 +54,15 @@ namespace MainGame.UnityView.Control.MouseKeyboard
                 _targetRotation = Quaternion.Euler(rotation);
             }
 
-            var resultRotation = Quaternion.Lerp(transform.rotation, _targetRotation, lerpSpeed * Time.deltaTime);
-            resultRotation = Quaternion.Euler(resultRotation.eulerAngles.x, resultRotation.eulerAngles.y, 0);
-            transform.rotation = resultRotation;
+            void LerpCameraRotation()
+            {
+                var resultRotation = Quaternion.Lerp(transform.rotation, _targetRotation, lerpSpeed * Time.deltaTime);
+                resultRotation = Quaternion.Euler(resultRotation.eulerAngles.x, resultRotation.eulerAngles.y, 0);
+                transform.rotation = resultRotation;
+            }
+
+            #endregion
         }
     }
+    
 }

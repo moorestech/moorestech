@@ -53,6 +53,8 @@ namespace MainGame.UnityView.UI.UIState
         {
             if (!_blockClickDetect.TryGetCursorOnBlockPosition(out _openBlockPos)) Debug.LogError("開いたブロックの座標が取得できませんでした。UIステートに不具合があります。");
             if (!_chunkBlockGameObjectDataStore.ContainsBlockGameObject(_openBlockPos)) return;
+            
+            InputManager.MouseCursorVisible(true);
 
             //サーバーのリクエスト
             _sendRequestBlockInventoryProtocol.Send(_openBlockPos);

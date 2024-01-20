@@ -7,7 +7,7 @@ using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.SoundEffect;
-using MainGame.UnityView.UI.Inventory.HotBar;
+using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
 using SinglePlay;
@@ -26,7 +26,7 @@ namespace MainGame.Presenter.Inventory.Send
 
 
         private BlockDirection _currentBlockDirection;
-        private SelectHotBarControl _hotBarControl;
+        private HotBarView _hotBarView;
         private Camera _mainCamera;
         private SendPlaceHotBarBlockProtocol _sendPlaceHotBarBlockProtocol;
         private UIStateControl _uiStateControl;
@@ -40,12 +40,12 @@ namespace MainGame.Presenter.Inventory.Send
         }
 
         [Inject]
-        public void Construct(Camera mainCamera, SelectHotBarControl selectHotBarControl, SendPlaceHotBarBlockProtocol sendPlaceHotBarBlockProtocol, 
+        public void Construct(Camera mainCamera, HotBarView hotBarView, SendPlaceHotBarBlockProtocol sendPlaceHotBarBlockProtocol, 
             UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview,SinglePlayInterface singlePlayInterface,ILocalPlayerInventory localPlayerInventory)
         {
             _uiStateControl = uiStateControl;
             _sendPlaceHotBarBlockProtocol = sendPlaceHotBarBlockProtocol;
-            _hotBarControl = selectHotBarControl;
+            _hotBarView = hotBarView;
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
             _blockConfig = singlePlayInterface.BlockConfig;
@@ -73,9 +73,9 @@ namespace MainGame.Presenter.Inventory.Send
             _blockPlacePreview.SetActive(false);
 
             //UIの状態がゲームホットバー選択中か
-            if (_uiStateControl.CurrentState != UIStateEnum.SelectHotBar) return;
+            if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return;
 
-            var selectIndex = (short)_hotBarControl.SelectIndex;
+            var selectIndex = (short)_hotBarView.SelectIndex;
             var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
             //持っているアイテムがブロックじゃなかったら何もしない
             if (!_blockConfig.IsBlock(itemId)) return; 
@@ -103,11 +103,10 @@ namespace MainGame.Presenter.Inventory.Send
 
         private (bool, Vector2Int pos) GetPreviewPosition()
         {
-            var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
-            var ray = _mainCamera.ScreenPointToRay(mousePosition);
+            var ray = _mainCamera.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
 
             //画面からのrayが何かにヒットしているか
-            if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutOnlyMapObjectLayerMask)) return (false, new Vector2Int());
+            if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return (false, new Vector2Int());
             //そのrayが地面のオブジェクトにヒットしてるか
             if (hit.transform.GetComponent<GroundPlane>() == null) return (false, new Vector2Int());
 

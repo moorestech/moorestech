@@ -23,6 +23,7 @@ namespace MainGame.UnityView.UI.UIState
         public void OnEnter(UIStateEnum lastStateEnum)
         {
             _pauseMenu.gameObject.SetActive(true);
+            InputManager.MouseCursorVisible(true);
         }
 
         public void OnExit()

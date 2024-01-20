@@ -1,4 +1,6 @@
 using System;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace MainGame.UnityView.Control
@@ -28,6 +30,11 @@ namespace MainGame.UnityView.Control
 
                 return _instance;
             }
+        }
+        
+        public static void MouseCursorVisible(bool isVisible)
+        {
+            Cursor.lockState = isVisible ? CursorLockMode.None : CursorLockMode.Locked;
         }
     }
 

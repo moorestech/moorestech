@@ -1,11 +1,10 @@
 ﻿using System.Threading;
-using Core.Ore;
 using Cysharp.Threading.Tasks;
 using Constant;
 using Game.PlayerInventory.Interface;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
-using MainGame.UnityView.UI.Inventory.HotBar;
+using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.Util;
@@ -23,7 +22,7 @@ namespace MainGame.Presenter.Inventory
     public class OreMapTileClickDetect : MonoBehaviour
     {
         [SerializeField] private MiningObjectProgressbarPresenter miningObjectProgressbarPresenter;
-        [SerializeField] private SelectHotBarControl selectHotBarControl;
+        [SerializeField] private HotBarView hotBarView;
 
         private MapTileObject _currentClickingMapTileObject;
         private Camera _mainCamera;
@@ -100,7 +99,7 @@ namespace MainGame.Presenter.Inventory
                 // UIのクリックかどうかを判定
                 if (EventSystem.current.IsPointerOverGameObject()) return null;
                 //TODo この辺のGameObjectのrayの取得をutiにまとめたい
-                if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutOnlyMapObjectLayerMask)) return null;
+                if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return null;
                 var mapTile = hit.collider.GetComponent<MapTileObject>();
                 if (mapTile == null) return null;
 
@@ -112,7 +111,7 @@ namespace MainGame.Presenter.Inventory
                 var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
                 var ray = _mainCamera.ScreenPointToRay(mousePosition);
 
-                if (Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutOnlyMapObjectLayerMask))
+                if (Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutMapObjectAndPlayerLayerMask))
                 {
                     var x = Mathf.RoundToInt(hit.point.x);
                     var y = Mathf.RoundToInt(hit.point.z);
@@ -125,7 +124,7 @@ namespace MainGame.Presenter.Inventory
 
             float GetMiningTime()
             {
-                var slotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(selectHotBarControl.SelectIndex);
+                var slotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarView.SelectIndex);
 
                 //  TODO 将来的に採掘時間をコンフィグから取得する
                 var stoneTool = _localPlayerInventory.IsItemExist(AlphaMod.ModId, "stone tool", slotIndex);

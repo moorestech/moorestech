@@ -32,6 +32,8 @@ namespace MainGame.UnityView.UI.UIState
             _craftInventory.SetActive(true);
             _playerInventoryController.SetActive(true);
             _playerInventoryController.SetSubInventory(new EmptySubInventory());
+            
+            InputManager.MouseCursorVisible(true);
 
             OnOpenInventory?.Invoke();
         }

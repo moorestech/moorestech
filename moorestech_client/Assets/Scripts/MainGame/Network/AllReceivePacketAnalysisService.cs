@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using Core.Item;
 using MainGame.Network.Event;
 using MainGame.Network.Receive;
-using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.Inventory.Sub;
 using MessagePack;
