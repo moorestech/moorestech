@@ -10,6 +10,10 @@ namespace MainGame.UnityView.UI.UIState
 
         public UIStateEnum CurrentState { get; private set; } = UIStateEnum.GameScreen;
 
+        private void Start()
+        {
+            _uiStateDictionary.GetState(CurrentState).OnEnter(UIStateEnum.Current);
+        }
 
         //UIステート
         private void Update()

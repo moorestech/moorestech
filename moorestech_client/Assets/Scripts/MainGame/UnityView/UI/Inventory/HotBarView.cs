@@ -28,14 +28,18 @@ namespace MainGame.UnityView.UI.Inventory
         {
             _itemImageContainer = itemImageContainer;
             _localPlayerInventory = localPlayerInventory;
-            SetSelect(0);
+        }
+
+        private void Start()
+        {
+            SelectIndex = 0;
         }
 
         private void Update()
         {
             UpdateHotBar();
             UpdateSelectedHotBar();
-
+            SetSelect(SelectIndex);
 
             #region Internal
 
@@ -68,7 +72,6 @@ namespace MainGame.UnityView.UI.Inventory
             
                 //キー入力で得られる値は1〜9なので-1する
                 SelectIndex = InputManager.UI.HotBar.ReadValue<int>() - 1;
-                SetSelect(SelectIndex);
 
                 OnSelectHotBar?.Invoke(SelectIndex);
             }

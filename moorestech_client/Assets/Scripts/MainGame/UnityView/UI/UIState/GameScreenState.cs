@@ -29,6 +29,7 @@ namespace MainGame.UnityView.UI.UIState
 
         public void OnEnter(UIStateEnum lastStateEnum)
         {
+            InputManager.MouseCursorVisible(false);
         }
 
         public void OnExit()

@@ -4510,7 +4510,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   miningObjectProgressbarPresenter: {fileID: 2179175055219430037}
-  hotBarView: {fileID: 0}
+  hotBarView: {fileID: 1797806254966188289}
   miningDistance: 2.5
 --- !u!1 &8881494043226809023
 GameObject:
@@ -5243,13 +5243,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 4472190466862084539, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+      propertyPath: uiStateControl
+      value: 
+      objectReference: {fileID: 4694271036350155273}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -139.18
+      value: -138.78
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 17.937069
+      value: 18.26707
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.z
