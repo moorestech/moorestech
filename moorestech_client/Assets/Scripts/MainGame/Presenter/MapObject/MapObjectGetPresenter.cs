@@ -64,6 +64,8 @@ namespace MainGame.Presenter.MapObject
                 if (_uiStateControl.CurrentState != UIStateEnum.SelectHotBar) return false;
 
                 UpdateCurrentMapObject();
+
+                if (_currentMapObjectGameObject == null) return false;
             
                 var (_,mineable) = GetMiningData(_currentMapObjectGameObject.MapObjectType);
 
