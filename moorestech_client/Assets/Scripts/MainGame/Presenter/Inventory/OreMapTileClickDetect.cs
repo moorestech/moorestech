@@ -99,7 +99,7 @@ namespace MainGame.Presenter.Inventory
                 // UIのクリックかどうかを判定
                 if (EventSystem.current.IsPointerOverGameObject()) return null;
                 //TODo この辺のGameObjectのrayの取得をutiにまとめたい
-                if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutOnlyMapObjectLayerMask)) return null;
+                if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return null;
                 var mapTile = hit.collider.GetComponent<MapTileObject>();
                 if (mapTile == null) return null;
 
@@ -111,7 +111,7 @@ namespace MainGame.Presenter.Inventory
                 var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
                 var ray = _mainCamera.ScreenPointToRay(mousePosition);
 
-                if (Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutOnlyMapObjectLayerMask))
+                if (Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutMapObjectAndPlayerLayerMask))
                 {
                     var x = Mathf.RoundToInt(hit.point.x);
                     var y = Mathf.RoundToInt(hit.point.z);

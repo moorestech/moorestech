@@ -103,11 +103,10 @@ namespace MainGame.Presenter.Inventory.Send
 
         private (bool, Vector2Int pos) GetPreviewPosition()
         {
-            var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
-            var ray = _mainCamera.ScreenPointToRay(mousePosition);
+            var ray = _mainCamera.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
 
             //画面からのrayが何かにヒットしているか
-            if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutOnlyMapObjectLayerMask)) return (false, new Vector2Int());
+            if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return (false, new Vector2Int());
             //そのrayが地面のオブジェクトにヒットしてるか
             if (hit.transform.GetComponent<GroundPlane>() == null) return (false, new Vector2Int());
 

@@ -26,7 +26,7 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             _cinemachineFraming.m_CameraDistance += InputManager.UI.SwitchHotBar.ReadValue<float>() / -100;
             _cinemachineFraming.m_CameraDistance = Mathf.Clamp(_cinemachineFraming.m_CameraDistance, 1, 75);
             
-            if (uiStateControl.CurrentState != UIStateEnum.GameScreen) return;
+            if (uiStateControl.CurrentState != UIStateEnum.GameScreen && uiStateControl.CurrentState != UIStateEnum.DeleteBar) return;
             
             //マウスのインプットによって向きを変える
             UpdateCameraRotation();
