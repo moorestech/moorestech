@@ -15,7 +15,7 @@ namespace MainGame.UnityView.Chunk
     public class ChunkBlockGameObjectDataStore : MonoBehaviour
     {
         private readonly Dictionary<Vector2Int, BlockGameObject> _blockObjectsDictionary = new();
-        private BlockGameObjectFactory _blockGameObjectFactory;
+        private BlockGameObjectContainer _blockGameObjectContainer;
         private IBlockConfig _blockConfig;
 
         public IReadOnlyDictionary<Vector2Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
@@ -23,9 +23,9 @@ namespace MainGame.UnityView.Chunk
         public event Action<BlockGameObject> OnPlaceBlock;
 
         [Inject]
-        public void Construct(BlockGameObjectFactory blockGameObjectFactory,SinglePlayInterface singlePlayInterface)
+        public void Construct(BlockGameObjectContainer blockGameObjectContainer,SinglePlayInterface singlePlayInterface)
         {
-            _blockGameObjectFactory = blockGameObjectFactory;
+            _blockGameObjectContainer = blockGameObjectContainer;
             _blockConfig = singlePlayInterface.BlockConfig;
         }
 
@@ -66,7 +66,7 @@ namespace MainGame.UnityView.Chunk
                 scale = Vector3.one;
             }
             
-            var block = _blockGameObjectFactory.CreateBlock(blockId, pos, rot,scale, transform, blockPosition);
+            var block = _blockGameObjectContainer.CreateBlock(blockId, pos, rot,scale, transform, blockPosition);
 
             _blockObjectsDictionary.Add(blockPosition, block);
             OnPlaceBlock?.Invoke(block);

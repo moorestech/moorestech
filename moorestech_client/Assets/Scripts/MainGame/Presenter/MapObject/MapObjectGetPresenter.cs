@@ -5,8 +5,8 @@ using Constant;
 using Game.PlayerInventory.Interface;
 using MainGame.Network.Send;
 using MainGame.UnityView.Control;
-using MainGame.UnityView.Game;
 using MainGame.UnityView.MapObject;
+using MainGame.UnityView.Player;
 using MainGame.UnityView.SoundEffect;
 using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
@@ -33,15 +33,15 @@ namespace MainGame.Presenter.MapObject
         private ILocalPlayerInventory _localPlayerInventory;
         private SendGetMapObjectProtocolProtocol _sendGetMapObjectProtocolProtocol;
         private UIStateControl _uiStateControl;
-        private IPlayerPosition _playerPosition;
+        private IPlayerObjectController _playerObjectController;
 
         [Inject]
-        public void Constructor(UIStateControl uiStateControl, SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol, ILocalPlayerInventory localPlayerInventory, IPlayerPosition playerPosition)
+        public void Constructor(UIStateControl uiStateControl, SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol, ILocalPlayerInventory localPlayerInventory, IPlayerObjectController playerObjectController)
         {
             _uiStateControl = uiStateControl;
             _sendGetMapObjectProtocolProtocol = sendGetMapObjectProtocolProtocol;
             _localPlayerInventory = localPlayerInventory;
-            _playerPosition = playerPosition;
+            _playerObjectController = playerObjectController;
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
         }
         
@@ -243,7 +243,7 @@ namespace MainGame.Presenter.MapObject
             if (EventSystem.current.IsPointerOverGameObject()) return null;
             if (!hit.collider.gameObject.TryGetComponent(out MapObjectGameObject mapObject)) return null;
                 
-            var playerPos = _playerPosition.GetPlayerPosition3D();
+            var playerPos = _playerObjectController.Position;
             var mapObjectPos = mapObject.transform.position;
             if (miningDistance < Vector3.Distance(playerPos, mapObjectPos)) return null;
 

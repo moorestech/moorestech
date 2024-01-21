@@ -24,7 +24,8 @@ using MainGame.UnityView.Block;
 using MainGame.UnityView.Block.StateChange;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
-using MainGame.UnityView.Game;
+using MainGame.UnityView.Item;
+using MainGame.UnityView.Player;
 using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
@@ -65,7 +66,7 @@ namespace MainGame.Starter
         [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private DetectGroundClickToSendBlockPlacePacket detectGroundClickToSendBlockPlacePacket;
         [SerializeField] private HotBarView hotBarView;
-        [SerializeField] private PlayerPosition playerPosition;
+        [SerializeField] private PlayerObjectController playerObjectController;
         [SerializeField] private MapObjectGetPresenter mapObjectGetPresenter;
 
         [SerializeField] private EntitiesPresenter entitiesPresenter;
@@ -169,7 +170,7 @@ namespace MainGame.Starter
             //modからロードしてきたデータ
             builder.Register<ItemImageContainer>(Lifetime.Singleton);
             builder.Register<WorldMapTileMaterials>(Lifetime.Singleton);
-            builder.Register<BlockGameObjectFactory>(Lifetime.Singleton);
+            builder.Register<BlockGameObjectContainer>(Lifetime.Singleton);
 
             //ScriptableObjectの登録
             builder.RegisterInstance(worldMapTileObject);
@@ -204,7 +205,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(craftInventoryView);
 
 
-            builder.RegisterComponent<IPlayerPosition>(playerPosition);
+            builder.RegisterComponent<IPlayerObjectController>(playerObjectController);
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
 

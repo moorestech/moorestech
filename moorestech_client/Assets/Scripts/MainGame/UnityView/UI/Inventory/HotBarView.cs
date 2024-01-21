@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
 using Core.Item;
+using Core.Item.Config;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Control;
+using MainGame.UnityView.Item;
+using MainGame.UnityView.Player;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
+using SinglePlay;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
@@ -13,21 +17,28 @@ namespace MainGame.UnityView.UI.Inventory
 {
     public class HotBarView : MonoBehaviour
     {
+        public static HotBarView Instance { get; private set; }
+        
         [SerializeField] private Image selectImage;
         [SerializeField] private List<ItemSlotObject> hotBarSlots;
+        [SerializeField] private Play
+        [SerializeField] private PlayerGrabItemManager playerGrabItemManager;
         
         private ItemImageContainer _itemImageContainer;
         private ILocalPlayerInventory _localPlayerInventory;
+        private IItemConfig _itemConfig;
 
         public int SelectIndex { get; private set; }
 
         public event Action<int> OnSelectHotBar;
         
         [Inject]
-        public void Construct(ItemImageContainer itemImageContainer,ILocalPlayerInventory localPlayerInventory)
+        public void Construct(ItemImageContainer itemImageContainer,ILocalPlayerInventory localPlayerInventory,SinglePlayInterface singlePlayInterface)
         {
             _itemImageContainer = itemImageContainer;
             _localPlayerInventory = localPlayerInventory;
+            _itemConfig = singlePlayInterface.ItemConfig;
+            Instance = this;
         }
 
         private void Start()
@@ -80,9 +91,14 @@ namespace MainGame.UnityView.UI.Inventory
         }
 
 
+        GameObject _currentGrabItem = null;
         public void SetSelect(int selectIndex)
         {
             selectImage.transform.position = hotBarSlots[selectIndex].transform.position;
+            var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
+            var itemConfig = _itemConfig.GetItemConfig(itemId);
+            
+            
         }
 
         public void SetActiveSelectHotBar(bool isActive)

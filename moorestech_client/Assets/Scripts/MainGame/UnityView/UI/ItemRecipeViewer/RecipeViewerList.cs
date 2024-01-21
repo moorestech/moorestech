@@ -4,6 +4,7 @@ using Core.Item;
 using Core.Item.Config;
 using Game.Block.Interface.RecipeConfig;
 using Game.Crafting.Interface;
+using MainGame.UnityView.Item;
 using MainGame.UnityView.UI.Inventory.Element;
 using UniRx;
 using UnityEngine;
