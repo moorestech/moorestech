@@ -4584,7 +4584,7 @@ MonoBehaviour:
   commandUIInput: {fileID: 658237661569717696}
   detectGroundClickToSendBlockPlacePacket: {fileID: 4192525954406032704}
   hotBarView: {fileID: 1797806254966188289}
-  playerPosition: {fileID: 8327004088713836899}
+  playerObjectController: {fileID: 8327004088713836899}
   mapObjectGetPresenter: {fileID: 3767846705739946558}
   entitiesPresenter: {fileID: 9004822369202094949}
   uIStateControl: {fileID: 4694271036350155273}
@@ -4909,6 +4909,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4342849207216047463, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+      propertyPath: playerGrabItemManager
+      value: 
+      objectReference: {fileID: 3429672528115171287}
     - target: {fileID: 5665865760842791710, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -5272,6 +5276,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+--- !u!114 &3429672528115171287 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5958767447513421297, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
+  m_PrefabInstance: {fileID: 9018862401877617190}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52b6f625ec884c449fb0824b02b5773d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!20 &3578403268787985468 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 5512517279608141338, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}

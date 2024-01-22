@@ -363,6 +363,8 @@ MonoBehaviour:
   - {fileID: 8931598643731286489}
   - {fileID: 5902011908061932260}
   - {fileID: 7863364592362346119}
+  itemObjectContainer: {fileID: 11400000, guid: 8f0b7beb974174e40a51ae3fda2c1df4, type: 2}
+  playerGrabItemManager: {fileID: 0}
 --- !u!1 &8371745198884729396
 GameObject:
   m_ObjectHideFlags: 0

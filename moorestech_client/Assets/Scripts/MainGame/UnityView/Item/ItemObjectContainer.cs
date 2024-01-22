@@ -13,17 +13,15 @@ namespace MainGame.UnityView.Item
     {
         [SerializeField] private ItemObjectData[] itemObjects;
 
-        public GameObject GetItemPrefab(string modId, string name)
+        public ItemObjectData GetItemPrefab(string modId, string name)
         {
             foreach (var itemObject in itemObjects)
             {
                 if (itemObject.ModId == modId && itemObject.Name == name)
                 {
-                    return itemObject.ItemPrefab;
+                    return itemObject;
                 }
             }
-
-            Debug.LogError("アイテムが見つかりませんでした。" + modId + ":" + name);
             return null;
         }
     }
@@ -39,5 +37,11 @@ namespace MainGame.UnityView.Item
         
         public GameObject ItemPrefab => itemPrefab;
         [SerializeField] private GameObject itemPrefab;
+        
+        public Vector3 Position => position;
+        [SerializeField] private Vector3 position;
+        
+        public Vector3 Rotation => rotation;
+        [SerializeField] private Vector3 rotation;
     }
 }

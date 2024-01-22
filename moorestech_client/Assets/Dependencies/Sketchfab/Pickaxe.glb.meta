@@ -9,4 +9,4 @@ ScriptedImporter:
   assetBundleVariant: 
   script: {fileID: 11500000, guid: cc45016b844e7624dae3aec10fb443ea, type: 3}
   reverseAxis: 0
-  renderPipeline: 0
+  renderPipeline: 1

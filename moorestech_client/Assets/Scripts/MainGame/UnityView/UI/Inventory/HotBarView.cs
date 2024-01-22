@@ -21,7 +21,7 @@ namespace MainGame.UnityView.UI.Inventory
         
         [SerializeField] private Image selectImage;
         [SerializeField] private List<ItemSlotObject> hotBarSlots;
-        [SerializeField] private Play
+        [SerializeField] private ItemObjectContainer itemObjectContainer;
         [SerializeField] private PlayerGrabItemManager playerGrabItemManager;
         
         private ItemImageContainer _itemImageContainer;
@@ -49,8 +49,12 @@ namespace MainGame.UnityView.UI.Inventory
         private void Update()
         {
             UpdateHotBar();
-            UpdateSelectedHotBar();
-            SetSelect(SelectIndex);
+            var selectIndex = SelectedHotBar();
+            if (selectIndex != -1 && selectIndex != SelectIndex)
+            {
+                SelectIndex = selectIndex;
+                SetSelect(SelectIndex);
+            }
 
             #region Internal
 
@@ -76,15 +80,16 @@ namespace MainGame.UnityView.UI.Inventory
                 hotBarSlots[slot].SetItem(viewData, item.Count);
             }
 
-            void UpdateSelectedHotBar()
+            int SelectedHotBar()
             {
                 //キーボード入力で選択
-                if (InputManager.UI.HotBar.ReadValue<int>() == 0) return;
+                if (InputManager.UI.HotBar.ReadValue<int>() == 0) return -1;
             
                 //キー入力で得られる値は1〜9なので-1する
-                SelectIndex = InputManager.UI.HotBar.ReadValue<int>() - 1;
+                var selected = InputManager.UI.HotBar.ReadValue<int>() - 1;
 
-                OnSelectHotBar?.Invoke(SelectIndex);
+                OnSelectHotBar?.Invoke(selected);
+                return selected;
             }
             
             #endregion
@@ -97,8 +102,15 @@ namespace MainGame.UnityView.UI.Inventory
             selectImage.transform.position = hotBarSlots[selectIndex].transform.position;
             var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
             var itemConfig = _itemConfig.GetItemConfig(itemId);
+
+            if(_currentGrabItem != null) Destroy(_currentGrabItem.gameObject);
             
-            
+            var itemObjectData = itemObjectContainer.GetItemPrefab(itemConfig.ModId, itemConfig.Name);
+            if (itemObjectData != null)
+            {
+                _currentGrabItem = Instantiate(itemObjectData.ItemPrefab);
+                playerGrabItemManager.SetItem(_currentGrabItem,false,itemObjectData.Position,Quaternion.Euler(itemObjectData.Rotation));
+            }
         }
 
         public void SetActiveSelectHotBar(bool isActive)
