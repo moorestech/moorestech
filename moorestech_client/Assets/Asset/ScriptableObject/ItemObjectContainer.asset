@@ -26,8 +26,8 @@ MonoBehaviour:
   - modId: sakastudio:moorestechAlphaMod
     name: stone ax
     itemPrefab: {fileID: 2720313952640830799, guid: ba793c97a36087e48872b232c94bce98, type: 3}
-    position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0}
+    position: {x: -0.134, y: 0.0969, z: 0.0661}
+    rotation: {x: -1.168, y: 24.15, z: -0.128}
   - modId: sakastudio:moorestechAlphaMod
     name: stone tool
     itemPrefab: {fileID: 6704801324916059687, guid: f620ddbeef6140248947551a289f0681, type: 3}
