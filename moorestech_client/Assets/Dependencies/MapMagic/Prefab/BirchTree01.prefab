@@ -610,7 +610,6 @@ GameObject:
   - component: {fileID: 8050479590868216197}
   - component: {fileID: 2036035112410012488}
   - component: {fileID: 722666192749940900}
-  - component: {fileID: 4037029992172226696}
   m_Layer: 6
   m_Name: BirchTree01
   m_TagString: Untagged
@@ -722,21 +721,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.36, y: 3.18, z: 0.36}
   m_Center: {x: 0, y: 1.21, z: 0}
---- !u!114 &4037029992172226696
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3638638104421625418}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b976201810e240bea52f6452c10f0d0b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  textKey: Press and hold left-click to get
-  displayEnable: 1
-  fontSize: 25
 --- !u!1 &4531633917272061138
 GameObject:
   m_ObjectHideFlags: 0

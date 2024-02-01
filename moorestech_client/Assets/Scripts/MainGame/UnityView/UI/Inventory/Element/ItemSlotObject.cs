@@ -134,7 +134,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
                     break;
             }
         }
-        public void SetItem(ItemViewData itemView, int count)
+        public void SetItem(ItemViewData itemView, int count,bool updateExplainer = true)
         {
             ItemViewData = itemView;
             image.sprite = itemView.ItemImage;

@@ -81,7 +81,7 @@ namespace MainGame.UnityView.UI.Inventory
 
                 var viewData = _itemImageContainer.GetItemView(item.Id);
                 slot -= startHotBarSlot;
-                hotBarSlots[slot].SetItem(viewData, item.Count);
+                hotBarSlots[slot].SetItem(viewData, item.Count,false);
             }
 
             int SelectedHotBar()

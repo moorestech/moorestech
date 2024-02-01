@@ -8,8 +8,10 @@ namespace MainGame.UnityView.UI.Util
     public interface IMouseCursorExplainer
     {
         public const int DefaultFontSize = 36;
+        // TODO hotbarから毎フレーム呼び出されると常にfalseになってしまうので、何か実装方法を考えたいな、、
         public void Hide();
         public void Show(string key, int fontSize = DefaultFontSize);
+        public void ShowText(string text, int fontSize = DefaultFontSize);
     }
 
     /// <summary>
@@ -22,11 +24,6 @@ namespace MainGame.UnityView.UI.Util
         [SerializeField] private CanvasGroup canvasGroup;
 
 
-        /// <summary>
-        ///     基本的には使わない
-        ///     Controller系のみアクセスしてOKって感じ
-        /// </summary>
-        [Obsolete("基本は使わないでね コントローラーを介して使ってね")]
         public static IMouseCursorExplainer Instance { get; private set; }
 
         private void Awake()
@@ -38,6 +35,13 @@ namespace MainGame.UnityView.UI.Util
         {
             canvasGroup.alpha = 1;
             itemName.text = Localize.Get(key);
+            itemName.fontSize = fontSize;
+        }
+
+        public void ShowText(string text, int fontSize = IMouseCursorExplainer.DefaultFontSize)
+        {
+            canvasGroup.alpha = 1;
+            itemName.text = text;
             itemName.fontSize = fontSize;
         }
 

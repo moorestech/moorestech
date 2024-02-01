@@ -180,7 +180,6 @@ GameObject:
   - component: {fileID: 3399116132891638490}
   - component: {fileID: 4347509066824173546}
   - component: {fileID: 7060979146636634364}
-  - component: {fileID: 853187096619325328}
   m_Layer: 6
   m_Name: PineTree01
   m_TagString: Untagged
@@ -266,21 +265,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.84, y: 6.025615, z: 2.84}
   m_Center: {x: 0, y: 2.5128074, z: 0}
---- !u!114 &853187096619325328
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 891774519178384162}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b976201810e240bea52f6452c10f0d0b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  textKey: Press and hold left-click to get
-  displayEnable: 1
-  fontSize: 25
 --- !u!1 &1909732843677024342
 GameObject:
   m_ObjectHideFlags: 0
