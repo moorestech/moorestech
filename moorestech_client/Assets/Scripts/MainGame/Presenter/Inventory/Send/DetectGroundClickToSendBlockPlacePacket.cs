@@ -97,7 +97,7 @@ namespace MainGame.Presenter.Inventory.Send
 
 
             //クリックされてなかったらプレビューを表示する
-            _blockPlacePreview.SetPreview(hitPoint, _currentBlockDirection);
+            _blockPlacePreview.SetPreview(hitPoint, _currentBlockDirection,_blockConfig.ItemIdToBlockId(itemId));
         }
 
 

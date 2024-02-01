@@ -6,8 +6,10 @@ namespace MainGame.UnityView.Block
 {
     public class BlockPlacePreview : MonoBehaviour, IBlockPlacePreview
     {
-        public void SetPreview(Vector2Int vector2Int, BlockDirection blockDirection)
+        public void SetPreview(Vector2Int vector2Int, BlockDirection blockDirection,int blockId)
         {
+            //TODO ブロックのプレビューを表示する
+            
             //0.5のオフセットをすることで正しい位置に設定する
             var (position, rotation, scale) = SlopeBlockPlaceSystem.GetSlopeBeltConveyorTransform(vector2Int, blockDirection,Vector2Int.one);
             transform.position = position;
