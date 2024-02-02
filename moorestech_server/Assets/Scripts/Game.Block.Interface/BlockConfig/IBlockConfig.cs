@@ -12,5 +12,6 @@ namespace Game.Block.Interface.BlockConfig
         
         public bool IsBlock(int itemId);
         public int ItemIdToBlockId(int itemId);
+        public BlockConfigData ItemIdToBlockConfig(int itemId);
     }
 }

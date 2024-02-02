@@ -106,5 +106,10 @@ namespace Game.Block.Config
 
             return _itemIdToBlockId[itemId];
         }
+
+        public BlockConfigData ItemIdToBlockConfig(int itemId)
+        {
+            return GetBlockConfig(ItemIdToBlockId(itemId));
+        }
     }
 }

@@ -57,14 +57,7 @@ namespace MainGame.UnityView.Chunk
 
             //新しいブロックを設置
             var blockConfig = _blockConfig.GetBlockConfig(blockId);
-            var (pos,rot,scale) = SlopeBlockPlaceSystem.GetSlopeBeltConveyorTransform(blockPosition, blockDirection,blockConfig.BlockSize);
-
-            var blockType = blockConfig.Type;
-            if (!BlockSlopeDeformationType.IsDeformation(blockType))
-            {
-                rot = BlockDirectionAngle.GetRotation(blockDirection);
-                scale = Vector3.one;
-            }
+            var (pos,rot,scale) = SlopeBlockPlaceSystem.GetSlopeBeltConveyorTransform(blockConfig.Type,blockPosition, blockDirection,blockConfig.BlockSize);
             
             var block = _blockGameObjectContainer.CreateBlock(blockId, pos, rot,scale, transform, blockPosition);
 
