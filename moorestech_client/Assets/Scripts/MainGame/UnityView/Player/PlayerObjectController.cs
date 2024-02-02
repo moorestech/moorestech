@@ -9,13 +9,23 @@ namespace MainGame.UnityView.Player
         public Vector3 Position { get; }
         public Vector2 Position2d { get; }
         public void SetPlayerPosition(Vector2 playerPos);
-        
         public void SetActive(bool active);
+        
+        public void SetAnimationState(string state);
+    }
+    public class PlayerAnimationState
+    {
+        public const string IdleWalkRunBlend = "Idle Walk Run Blend";
+        public const string JumpStart = "JumpStart";
+        public const string JumpInAir = "JumpInAir";
+        public const string JumpLand = "JumpLand";
+        public const string Axe = "Axe";
     }
     
     public class PlayerObjectController : MonoBehaviour, IPlayerObjectController
     {
         [SerializeField] private ThirdPersonController controller;
+        [SerializeField] private Animator animator;
 
         public Vector3 Position => transform.position;
         public Vector2 Position2d => new(transform.position.x, transform.position.z);
@@ -36,7 +46,12 @@ namespace MainGame.UnityView.Player
         {
             gameObject.SetActive(active);
         }
-        
+
+        public void SetAnimationState(string state)
+        {
+            animator.Play(state);
+        }
+
         private void LateUpdate()
         {
             if (transform.localPosition.y < -10)

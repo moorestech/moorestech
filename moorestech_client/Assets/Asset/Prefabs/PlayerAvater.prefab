@@ -8432,7 +8432,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 2678359194264357046}
-  starterAssetsInputs: {fileID: 6615062693593664847}
+  animator: {fileID: 2216567649510206473}
 --- !u!114 &7066434662162615904
 MonoBehaviour:
   m_ObjectHideFlags: 0

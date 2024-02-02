@@ -108,8 +108,12 @@ namespace MainGame.Presenter.MapObject
                 //マイニングバーのUIを表示するやつを設定
                 var (miningTime,_) = GetMiningData(_currentMapObjectGameObject.MapObjectType);
                 miningObjectProgressbarPresenter.StartMining(miningTime, _miningCancellationTokenSource.Token).Forget();
+                
+                _playerObjectController.SetAnimationState(PlayerAnimationState.Axe);
 
                 var isMiningFinish = await IsMiningFinishWait(miningTime);
+                
+                _playerObjectController.SetAnimationState(PlayerAnimationState.IdleWalkRunBlend);
 
                 //マイニングをキャンセルせずに終わったので、マイニング完了をサーバーに送信する
                 if (isMiningFinish)

@@ -52,7 +52,6 @@ namespace MainGame.UnityView.UI.Inventory
         {
             UpdateHotBar();
             var selectIndex = SelectedHotBar();
-            
             if (selectIndex != -1 && selectIndex != SelectIndex)
             {
                 SelectIndex = selectIndex;
