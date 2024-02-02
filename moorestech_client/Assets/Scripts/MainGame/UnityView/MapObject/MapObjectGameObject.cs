@@ -35,6 +35,10 @@ namespace MainGame.UnityView.MapObject
             }
         }
 
+        public Vector3 GetPosition()
+        {
+            return transform.position;
+        }
 
 #if UNITY_EDITOR
         public void SetMapObjectData(int instanceId)
@@ -44,10 +48,6 @@ namespace MainGame.UnityView.MapObject
             this.instanceId = instanceId;
         }
 
-        public Vector3 GetPosition()
-        {
-            return transform.position;
-        }
 #endif
     }
 }

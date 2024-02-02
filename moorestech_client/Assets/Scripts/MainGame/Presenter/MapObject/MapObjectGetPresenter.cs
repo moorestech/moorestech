@@ -57,8 +57,8 @@ namespace MainGame.Presenter.MapObject
                 return;
             }
             
-            var isMinenable = IsStartMining();
             UpdateCurrentMapObject();
+            var isMinenable = IsStartMining();
 
             if (_currentMapObjectGameObject != null)
             {
