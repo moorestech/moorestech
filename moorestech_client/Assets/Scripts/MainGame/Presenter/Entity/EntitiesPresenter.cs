@@ -4,6 +4,7 @@ using Game.Entity.Interface;
 using Constant;
 using MainGame.Network.Event;
 using MainGame.UnityView.Entity;
+using MainGame.UnityView.Item;
 using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
 using VContainer;

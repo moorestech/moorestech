@@ -111,6 +111,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _AliasingRange: 20
+    - _Alpha: 1
     - _AlphaClip: 0
     - _AlphaCutoff: 0.5
     - _AlphaToMask: 0

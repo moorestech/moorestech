@@ -7,6 +7,7 @@ using Core.Item;
 using Constant;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Control;
+using MainGame.UnityView.Item;
 using MainGame.UnityView.UI.Inventory.Element;
 using SinglePlay;
 using UniRx;

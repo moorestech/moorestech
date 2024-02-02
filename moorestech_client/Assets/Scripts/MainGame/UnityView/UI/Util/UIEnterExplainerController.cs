@@ -58,7 +58,10 @@ namespace MainGame.UnityView.UI.Util
         public void DisplayEnable(bool enable)
         {
             displayEnable = enable;
-            UpdateMouseCursorExplainer();
+            if (_pointerStay)
+            {
+                UpdateMouseCursorExplainer();
+            }
         }
 
         public void OnPointerEnter(PointerEventData eventData)

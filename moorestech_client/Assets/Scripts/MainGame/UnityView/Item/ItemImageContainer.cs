@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using Core.Const;
 using Core.Item.Config;
 using Cysharp.Threading.Tasks;
-using Constant;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Texture;
 using SinglePlay;
 using UnityEngine;
 
-namespace MainGame.UnityView.UI.Inventory.Element
+namespace MainGame.UnityView.Item
 {
     /// <summary>
     /// TODO ここもItemConfigと統合して、クライアント向けのリソースも含めたアイテムリストを作りたい
+    /// TODO staticにするべき？
     /// </summary>
     public class ItemImageContainer
     {

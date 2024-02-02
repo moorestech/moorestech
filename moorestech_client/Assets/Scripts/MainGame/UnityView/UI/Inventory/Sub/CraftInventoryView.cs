@@ -3,6 +3,7 @@ using Core.Const;
 using Core.Item.Config;
 using Game.Crafting.Interface;
 using MainGame.Network.Send;
+using MainGame.UnityView.Item;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
 using SinglePlay;
