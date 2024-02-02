@@ -9,12 +9,16 @@ namespace MainGame.UnityView.Player
         public Vector3 Position { get; }
         public Vector2 Position2d { get; }
         public void SetPlayerPosition(Vector2 playerPos);
+        public void LookAt(Vector2 targetPos);
+        public void SetPlayerControllable(bool enable);
+        
         public void SetActive(bool active);
     }
     
     public class PlayerObjectController : MonoBehaviour, IPlayerObjectController
     {
         [SerializeField] private ThirdPersonController controller;
+        [SerializeField] private StarterAssetsInputs starterAssetsInputs;
 
         public Vector3 Position => transform.position;
         public Vector2 Position2d => new(transform.position.x, transform.position.z);
@@ -28,6 +32,17 @@ namespace MainGame.UnityView.Player
         {
             var height = SlopeBlockPlaceSystem.GetGroundPoint(playerPos).y;
             controller.Warp(new Vector3(playerPos.x, height, playerPos.y));
+        }
+
+        public void LookAt(Vector2 targetPos)
+        {
+            var target = new Vector3(targetPos.x, transform.position.y, targetPos.y);
+            transform.LookAt(target);
+        }
+
+        public void SetPlayerControllable(bool enable)
+        {
+            starterAssetsInputs.inputEnable = enable;
         }
 
         public void SetActive(bool active)
