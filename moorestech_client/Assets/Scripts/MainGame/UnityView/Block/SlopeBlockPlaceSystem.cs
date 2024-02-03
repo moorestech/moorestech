@@ -11,7 +11,7 @@ namespace MainGame.UnityView.Block
         
         public static readonly int GroundLayerMask = LayerMask.GetMask("Ground");
         
-        public static (Vector3 position, Quaternion rotation, Vector3 scale) GetSlopeBeltConveyorTransform(Vector2Int blockPosition,BlockDirection blockDirection,Vector2Int blockSize)
+        public static (Vector3 position, Quaternion rotation, Vector3 scale) GetSlopeBeltConveyorTransform(string blockType,Vector2Int blockPosition,BlockDirection blockDirection,Vector2Int blockSize)
         {
             //実際のブロックのモデルは+0.5した値が中心になる
             var blockObjectPos = blockPosition.AddBlockPlaceOffset();
@@ -31,6 +31,13 @@ namespace MainGame.UnityView.Block
             var resultBlockPos = new Vector3(blockObjectPos.x,blockY + 0.3f,blockObjectPos.y);
             var blockRotation = GetRotation(blockDirection, blockAngle,frontPoint.y > backPoint.y);
             var blockScale = new Vector3(1, 1, hypotenuse);
+            
+            if (!BlockSlopeDeformationType.IsDeformation(blockType))
+            {
+                blockRotation = BlockDirectionAngle.GetRotation(blockDirection);
+                blockScale = Vector3.one;
+            }
+
             
             return (resultBlockPos, blockRotation, blockScale);
         }

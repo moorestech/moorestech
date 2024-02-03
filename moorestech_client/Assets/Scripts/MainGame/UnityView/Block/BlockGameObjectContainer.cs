@@ -18,6 +18,8 @@ namespace MainGame.UnityView.Block
     /// </summary>
     public class BlockGameObjectContainer
     {
+        public static BlockGameObjectContainer Instance { get; private set; }
+        
         private readonly BlockGameObject _nothingIndexBlockObject;
         private readonly IBlockConfig _blockConfig;
         private List<BlockData> _blockObjectList;
@@ -27,6 +29,7 @@ namespace MainGame.UnityView.Block
             Init(modDirectory, singlePlayInterface).Forget();
             _nothingIndexBlockObject = nothingIndexBlockObject;
             _blockConfig = singlePlayInterface.BlockConfig;
+            Instance = this;
         }
 
         public event Action OnLoadFinished;
