@@ -64,7 +64,7 @@ namespace StarterAssets
                     ScriptingDefineUtils.SetScriptingDefine(PackageCheckerScriptingDefine);
 
                     // create a list of compatible packages for current engine version
-                    compatibleList = Client.SearchAll();
+                    compatibleList = UnityEditor.PackageManager.Client.SearchAll();
 
                     while (!compatibleList.IsCompleted)
                     {
@@ -76,7 +76,7 @@ namespace StarterAssets
                     }
 
                     // create a list of packages found in the engine
-                    clientList = Client.List();
+                    clientList = UnityEditor.PackageManager.Client.List();
 
                     while (!clientList.IsCompleted)
                     {
@@ -204,7 +204,7 @@ namespace StarterAssets
                 Debug.Log($"<b>Adding package</b>: {packageName}");
             }
 
-            AddRequest newPackage = Client.Add(packageName);
+            AddRequest newPackage = UnityEditor.PackageManager.Client.Add(packageName);
 
             while (!newPackage.IsCompleted)
             {
