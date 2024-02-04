@@ -1,0 +1,19 @@
+{
+    "name": "Client.Localization",
+    "rootNamespace": "",
+    "references": [
+        "Unity.TextMeshPro",
+        "UniRx",
+        "Core.Const",
+        "Client.Common"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
