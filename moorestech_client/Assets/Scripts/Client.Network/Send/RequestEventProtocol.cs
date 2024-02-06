@@ -31,6 +31,7 @@ namespace MainGame.Network.Send
 
         private void Send(int playerId)
         {
+            //TODO ポーリング化
             _socketSender.Send(MessagePackSerializer.Serialize(new EventProtocolMessagePack(playerId)).ToList());
         }
     }
