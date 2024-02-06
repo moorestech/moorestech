@@ -11,13 +11,13 @@ namespace MainGame.Network.Event
         public event Action<ChunkUpdateEventProperties> OnChunkUpdateEvent;
         public event Action<BlockUpdateEventProperties> OnBlockUpdateEvent;
 
-        internal async UniTask InvokeChunkUpdateEvent(ChunkUpdateEventProperties properties)
+        public async UniTask InvokeChunkUpdateEvent(ChunkUpdateEventProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnChunkUpdateEvent?.Invoke(properties);
         }
 
-        internal async UniTask InvokeBlockUpdateEvent(BlockUpdateEventProperties properties)
+        public async UniTask InvokeBlockUpdateEvent(BlockUpdateEventProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnBlockUpdateEvent?.Invoke(properties);

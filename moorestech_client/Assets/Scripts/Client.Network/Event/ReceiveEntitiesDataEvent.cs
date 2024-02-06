@@ -10,7 +10,7 @@ namespace MainGame.Network.Event
     {
         public event Action<List<EntityProperties>> OnEntitiesUpdate;
 
-        internal async UniTask InvokeChunkUpdateEvent(EntitiesResponseMessagePack response)
+        public async UniTask InvokeChunkUpdateEvent(EntitiesResponseMessagePack response)
         {
             await UniTask.SwitchToMainThread();
 

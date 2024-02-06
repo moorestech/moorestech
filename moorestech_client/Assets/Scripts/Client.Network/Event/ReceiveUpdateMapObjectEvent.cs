@@ -10,14 +10,14 @@ namespace MainGame.Network.Event
         public event Action<List<MapObjectProperties>> OnReceiveMapObjectInformation;
 
 
-        internal async UniTask InvokeOnDestroyMapObject(MapObjectProperties properties)
+        public async UniTask InvokeOnDestroyMapObject(MapObjectProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnDestroyMapObject?.Invoke(properties);
         }
 
 
-        internal async UniTask InvokeReceiveMapObjectInformation(List<MapObjectProperties> properties)
+        public async UniTask InvokeReceiveMapObjectInformation(List<MapObjectProperties> properties)
         {
             await UniTask.SwitchToMainThread();
             OnReceiveMapObjectInformation?.Invoke(properties);

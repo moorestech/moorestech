@@ -1,13 +1,11 @@
 using System.Linq;
-using Client.View.Protocol;
 using MainGame.Network.Settings;
 using MessagePack;
 using Server.Protocol.PacketResponse;
-using UnityEngine;
 
 namespace MainGame.Network.Send
 {
-    public class SendOneClickCraftProtocol : ISendOneClickCraftProtocol
+    public class SendOneClickCraftProtocol
     {
         private readonly int _playerId;
         private readonly ISocketSender _socketSender;

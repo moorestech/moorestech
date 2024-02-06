@@ -9,7 +9,7 @@ namespace MainGame.Network.Event
     {
         public event Action<BlockStateChangeProperties> OnStateChange;
 
-        internal async UniTask InvokeReceiveBlockStateChange(BlockStateChangeProperties properties)
+        public async UniTask InvokeReceiveBlockStateChange(BlockStateChangeProperties properties)
         {
             await UniTask.SwitchToMainThread();
             OnStateChange?.Invoke(properties);
