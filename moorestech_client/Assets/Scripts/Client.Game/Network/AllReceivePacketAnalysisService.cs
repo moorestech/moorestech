@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Client.Network.NewApi;
 using MainGame.Network.Event;
 using MainGame.Network.Receive;
 using MainGame.UnityView.UI.Inventory.Main;
@@ -14,39 +15,20 @@ namespace MainGame.Network
 {
     public class AllReceivePacketAnalysisService
     {
-        private readonly Dictionary<string, IAnalysisPacket> _analysisPackets = new();
-        private int _packetCount;
+        private readonly ServerRequester _serverRequester;
 
-
-        public AllReceivePacketAnalysisService(ReceiveChunkDataEvent receiveChunkDataEvent, BlockInventoryView blockInventoryView, ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol, ReceiveEntitiesDataEvent receiveEntitiesDataEvent, ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent, ReceiveUpdateMapObjectEvent receiveUpdateMapObjectEvent,
-            LocalPlayerInventoryController localPlayerInventoryController, SinglePlayInterface singlePlayInterface,ILocalPlayerInventory localPlayerInventory)
+        public AllReceivePacketAnalysisService(ServerRequester serverRequester)
         {
-            var inventoryMainAndSubCombineItems = (LocalPlayerInventory)localPlayerInventory;
-            _analysisPackets.Add(DummyProtocol.Tag, new ReceiveDummyProtocol());
-            _analysisPackets.Add(InitialHandshakeProtocol.Tag, receiveInitialHandshakeProtocol);
-            _analysisPackets.Add(PlayerCoordinateSendProtocol.ChunkDataTag, new ReceiveChunkDataProtocol(receiveChunkDataEvent));
-            _analysisPackets.Add(PlayerCoordinateSendProtocol.EntityDataTag, new ReceiveEntitiesProtocol(receiveEntitiesDataEvent));
-            _analysisPackets.Add(EventProtocolMessagePackBase.EventProtocolTag, new ReceiveEventProtocol(receiveChunkDataEvent,blockInventoryView , receiveBlockStateChangeEvent, receiveUpdateMapObjectEvent,localPlayerInventoryController,singlePlayInterface.ItemStackFactory,inventoryMainAndSubCombineItems));
-            _analysisPackets.Add(PlayerInventoryResponseProtocol.Tag, new ReceivePlayerInventoryProtocol(singlePlayInterface.ItemStackFactory,localPlayerInventoryController));
-            _analysisPackets.Add(BlockInventoryRequestProtocol.Tag, new ReceiveBlockInventoryProtocol(blockInventoryView,singlePlayInterface));
-            _analysisPackets.Add(MapObjectDestructionInformationProtocol.Tag, new ReceiveMapObjectDestructionInformationProtocol(receiveUpdateMapObjectEvent));
+            _serverRequester = serverRequester;
         }
 
         public void Analysis(List<byte> packet)
         {
-            var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(packet.ToArray()).Tag;
-
-            //receive debug
-            _packetCount++;
-            if (!_analysisPackets.TryGetValue(tag, out var analyser))
-            {
-                Debug.LogError("Count " + _packetCount + " NotFoundTag " + tag);
-                return;
-            }
-
-
-            //analysis packet
-            analyser.Analysis(packet);
+            var response = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(packet.ToArray());
+            var sequence = response.SequenceId;
+            
+            
+            _serverRequester.ReceiveData(packet,sequence);
         }
     }
 }

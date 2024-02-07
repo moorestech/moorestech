@@ -6,5 +6,7 @@ namespace Server.Protocol
     public class ProtocolMessagePackBase
     {
         public string Tag { get; set; }
+        
+        public int SequenceId { get; set; }
     }
 }
