@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using MessagePack;
 using Server.Protocol.PacketResponse;
@@ -37,16 +38,24 @@ namespace MainGame.Network.Send
         
         public void TimeOut()
         {
-            _onReceiveData.OnError(new TimeoutException());
+            _onReceiveData.OnNext(null);
         }
         
         
 
-        public async UniTask<List<MapObjectDestructionInformationData>> GetInformationData()
+        public async UniTask<List<MapObjectDestructionInformationData>> GetInformationData(CancellationToken ct)
         {
             _socketSender.Send(MessagePackSerializer.Serialize(new RequestMapObjectDestructionInformationMessagePack()).ToList());
 
-            var receiveData = await _onReceiveData.ToUniTask(true);
+            var receiveData = await _onReceiveData.ToUniTask(true, ct);
+            
+            if (receiveData == null)
+            {
+                return null;
+            }
+
+            var response = MessagePackSerializer.Deserialize<ResponseMapObjectDestructionInformationMessagePack>(receiveData);
+            return response.MapObjects;
         }
     }
 }
