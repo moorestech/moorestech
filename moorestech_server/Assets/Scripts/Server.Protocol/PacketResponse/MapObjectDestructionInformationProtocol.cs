@@ -23,12 +23,11 @@ namespace Server.Protocol.PacketResponse
 
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            var sendMapObjects = new List<MapObjectDestructionInformationData>();
+            var sendMapObjects = new List<MapObjectsInfoMessagePack>();
             foreach (var mapObject in _mapObjectDatastore.MapObjects)
-                sendMapObjects.Add(
-                    new MapObjectDestructionInformationData(mapObject.InstanceId, mapObject.IsDestroyed));
+                sendMapObjects.Add(new MapObjectsInfoMessagePack(mapObject.InstanceId, mapObject.IsDestroyed));
 
-            var response = new ResponseMapObjectDestructionInformationMessagePack(sendMapObjects);
+            var response = new ResponseMapObjectsMessagePack(sendMapObjects);
 
             return new List<List<byte>> { MessagePackSerializer.Serialize(response).ToList() };
         }
@@ -44,31 +43,31 @@ namespace Server.Protocol.PacketResponse
     }
 
     [MessagePackObject(true)]
-    public class ResponseMapObjectDestructionInformationMessagePack : ProtocolMessagePackBase
+    public class ResponseMapObjectsMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ResponseMapObjectDestructionInformationMessagePack()
+        public ResponseMapObjectsMessagePack()
         {
         }
 
-        public ResponseMapObjectDestructionInformationMessagePack(List<MapObjectDestructionInformationData> mapObjects)
+        public ResponseMapObjectsMessagePack(List<MapObjectsInfoMessagePack> mapObjects)
         {
             Tag = MapObjectDestructionInformationProtocol.Tag;
             MapObjects = mapObjects;
         }
 
-        public List<MapObjectDestructionInformationData> MapObjects { get; set; }
+        public List<MapObjectsInfoMessagePack> MapObjects { get; set; }
     }
 
     [MessagePackObject(true)]
-    public class MapObjectDestructionInformationData
+    public class MapObjectsInfoMessagePack
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public MapObjectDestructionInformationData()
+        public MapObjectsInfoMessagePack()
         {
         }
 
-        public MapObjectDestructionInformationData(int instanceId, bool isDestroyed)
+        public MapObjectsInfoMessagePack(int instanceId, bool isDestroyed)
         {
             InstanceId = instanceId;
             IsDestroyed = isDestroyed;

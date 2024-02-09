@@ -117,7 +117,6 @@ namespace MainGame.Starter
             builder.RegisterInstance(new PlayerConnectionSetting(PlayerId));
             builder.Register<ConnectionServer>(Lifetime.Scoped);
             builder.Register<SocketInstanceCreate, SocketInstanceCreate>(Lifetime.Singleton);
-            builder.Register<AllReceivePacketAnalysisService, AllReceivePacketAnalysisService>(Lifetime.Singleton);
             builder.Register<ISocketSender, SocketSender>(Lifetime.Singleton);
 
             //パケット受け取りイベント
@@ -130,7 +129,6 @@ namespace MainGame.Starter
             //パケット送信インスタンス
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
             builder.RegisterEntryPoint<InitialHandshakeProtocol>(); //最初にパケットを送るのでRegisterEntryPointを使う
-            builder.RegisterEntryPoint<RequestMapObjectDestructionInformationProtocol>();
 
             builder.Register<SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
             builder.Register<RequestPlayerInventoryProtocol>(Lifetime.Singleton);

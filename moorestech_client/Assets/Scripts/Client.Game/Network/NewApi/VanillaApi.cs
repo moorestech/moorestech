@@ -7,16 +7,19 @@ namespace Client.Network.NewApi
 {
     public class VanillaApi
     {
-        private readonly ServerRequester _serverRequester;
-        public VanillaApi(ServerRequester serverRequester)
+        private readonly ServerConnector _serverConnector;
+        public VanillaApi(ServerConnector serverConnector)
         {
-            _serverRequester = serverRequester;
+            _serverConnector = serverConnector;
         }
         
-        public async UniTask<List<MapObjectDestructionInformationData>> GetMapObjectDestructionInformationData(CancellationToken ct)
+        /// <summary>
+        /// TODO この呼び出しタイミングを考える
+        /// </summary>
+        public async UniTask<List<MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
         {
             var request = new RequestMapObjectDestructionInformationMessagePack();
-            var response = await _serverRequester.GetInformationData<ResponseMapObjectDestructionInformationMessagePack>(request ,ct);
+            var response = await _serverConnector.GetInformationData<ResponseMapObjectsMessagePack>(request ,ct);
             return response?.MapObjects;
         }
     }

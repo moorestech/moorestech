@@ -18,7 +18,7 @@ namespace MainGame.Network.Receive
 
         public void Analysis(List<byte> packet)
         {
-            var data = MessagePackSerializer.Deserialize<ResponseMapObjectDestructionInformationMessagePack>(packet.ToArray());
+            var data = MessagePackSerializer.Deserialize<ResponseMapObjectsMessagePack>(packet.ToArray());
 
             var mapObjectEvent = new List<MapObjectProperties>();
             foreach (var mapObject in data.MapObjects) mapObjectEvent.Add(new MapObjectProperties(mapObject.InstanceId, mapObject.IsDestroyed));

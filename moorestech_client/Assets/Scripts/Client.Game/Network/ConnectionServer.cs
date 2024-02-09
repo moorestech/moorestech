@@ -2,6 +2,7 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Client.Network.NewApi;
 using Cysharp.Threading.Tasks;
 using MainGame.Network.Send.SocketUtil;
 using MessagePack;
@@ -13,16 +14,16 @@ namespace MainGame.Network
 {
     public class ConnectionServer
     {
-        private readonly AllReceivePacketAnalysisService _allReceivePacketAnalysisService;
+        private readonly ServerConnector _serverConnector;
         private readonly Subject<Unit> _onDisconnect = new();
         private readonly SocketInstanceCreate _socketInstanceCreate;
 
 
         public ConnectionServer(
-            AllReceivePacketAnalysisService allReceivePacketAnalysisService,
+            ServerConnector serverConnector,
             SocketInstanceCreate socketInstanceCreate)
         {
-            _allReceivePacketAnalysisService = allReceivePacketAnalysisService;
+            _serverConnector = serverConnector;
             _socketInstanceCreate = socketInstanceCreate;
 
             Task.Run(Connect);
@@ -67,7 +68,7 @@ namespace MainGame.Network
 
                     //解析をしてunity viewに送る
                     var packets = parser.Parse(buffer, length);
-                    foreach (var packet in packets) _allReceivePacketAnalysisService.Analysis(packet);
+                    foreach (var packet in packets) _serverConnector.ReceiveData(packet).Forget();
                 }
             }
             catch (Exception e)
