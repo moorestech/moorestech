@@ -27,30 +27,30 @@ namespace Server.Protocol.PacketResponse
             foreach (var mapObject in _mapObjectDatastore.MapObjects)
                 sendMapObjects.Add(new MapObjectsInfoMessagePack(mapObject.InstanceId, mapObject.IsDestroyed));
 
-            var response = new ResponseMapObjectsMessagePack(sendMapObjects);
+            var response = new ResponseMapObjectInfosMessagePack(sendMapObjects);
 
             return new List<List<byte>> { MessagePackSerializer.Serialize(response).ToList() };
         }
     }
 
     [MessagePackObject(true)]
-    public class RequestMapObjectDestructionInformationMessagePack : ProtocolMessagePackBase
+    public class RequestMapObjectInfosMessagePack : ProtocolMessagePackBase
     {
-        public RequestMapObjectDestructionInformationMessagePack()
+        public RequestMapObjectInfosMessagePack()
         {
             Tag = MapObjectDestructionInformationProtocol.Tag;
         }
     }
 
     [MessagePackObject(true)]
-    public class ResponseMapObjectsMessagePack : ProtocolMessagePackBase
+    public class ResponseMapObjectInfosMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public ResponseMapObjectsMessagePack()
+        public ResponseMapObjectInfosMessagePack()
         {
         }
 
-        public ResponseMapObjectsMessagePack(List<MapObjectsInfoMessagePack> mapObjects)
+        public ResponseMapObjectInfosMessagePack(List<MapObjectsInfoMessagePack> mapObjects)
         {
             Tag = MapObjectDestructionInformationProtocol.Tag;
             MapObjects = mapObjects;
