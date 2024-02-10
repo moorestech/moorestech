@@ -3,6 +3,7 @@ using System.Threading;
 using Core.Item;
 using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse;
+using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Client.Network.NewApi
@@ -45,5 +46,36 @@ namespace Client.Network.NewApi
             
             return items;
         }
+        
+        
+        public static async UniTask<PlayerInventoryResponse> GetPlayerInventory(int playerId,CancellationToken ct)
+        {
+            var request = new RequestPlayerInventoryProtocolMessagePack(playerId);
+            
+            var response = await _instance._serverConnector.GetInformationData<PlayerInventoryResponseProtocolMessagePack>(request ,ct);
+            
+            var mainItems = new List<IItemStack>(response.Main.Length);
+            foreach (var item in response.Main)
+            {
+                var id = item.Id;
+                var count = item.Count;
+                mainItems.Add(_instance._itemStackFactory.Create(id, count));
+            }
+            var grabItem = _instance._itemStackFactory.Create(response.Grab.Id, response.Grab.Count);
+            
+            return new PlayerInventoryResponse(mainItems, grabItem);
+        }
+    }
+
+    public class PlayerInventoryResponse
+    {
+        public PlayerInventoryResponse(List<IItemStack> mainInventory, IItemStack grabItem)
+        {
+            MainInventory = mainInventory;
+            GrabItem = grabItem;
+        }
+
+        public List<IItemStack> MainInventory { get; }
+        public IItemStack GrabItem { get; }
     }
 }

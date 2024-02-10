@@ -22,7 +22,7 @@ namespace Server.Protocol.PacketResponse
 
         public List<List<byte>> GetResponse(List<byte> payload)
         {
-            var data = MessagePackSerializer.Deserialize<RequestPlayerInventoryProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(payload.ToArray());
 
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
 
