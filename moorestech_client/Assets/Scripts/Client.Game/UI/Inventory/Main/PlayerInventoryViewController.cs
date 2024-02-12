@@ -19,7 +19,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
     /// <summary>
     /// TODO フラグ管理をステートベースに変換する
     /// </summary>
-    public class PlayerInventoryController : MonoBehaviour
+    public class PlayerInventoryViewController : MonoBehaviour
     {
         [SerializeField] private List<ItemSlotObject> mainInventorySlotObjects;
         [SerializeField] private ItemSlotObject grabInventorySlotObject;

@@ -21,19 +21,19 @@ namespace MainGame.UnityView.UI.UIState
 
         private readonly SinglePlayInterface _singlePlayInterface;
         private readonly BlockInventoryView _blockInventoryView;
-        private readonly PlayerInventoryController _playerInventoryController;
+        private readonly PlayerInventoryViewController _playerInventoryViewController;
         
         private readonly SendBlockInventoryOpenCloseControlProtocol _blockInventoryOpenCloseControlProtocol;
         private readonly SendRequestBlockInventoryProtocol _sendRequestBlockInventoryProtocol;
         
         private Vector2Int _openBlockPos;
 
-        public BlockInventoryState(BlockInventoryView blockInventoryView, IBlockClickDetect blockClickDetect, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, SinglePlayInterface singlePlayInterface,PlayerInventoryController playerInventoryController,SendRequestBlockInventoryProtocol sendRequestBlockInventoryProtocol, SendBlockInventoryOpenCloseControlProtocol blockInventoryOpenCloseControlProtocol)
+        public BlockInventoryState(BlockInventoryView blockInventoryView, IBlockClickDetect blockClickDetect, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, SinglePlayInterface singlePlayInterface,PlayerInventoryViewController playerInventoryViewController,SendRequestBlockInventoryProtocol sendRequestBlockInventoryProtocol, SendBlockInventoryOpenCloseControlProtocol blockInventoryOpenCloseControlProtocol)
         {
             _blockClickDetect = blockClickDetect;
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _singlePlayInterface = singlePlayInterface;
-            _playerInventoryController = playerInventoryController;
+            _playerInventoryViewController = playerInventoryViewController;
             _blockInventoryView = blockInventoryView;
             
             _sendRequestBlockInventoryProtocol = sendRequestBlockInventoryProtocol;
@@ -77,8 +77,8 @@ namespace MainGame.UnityView.UI.UIState
 
             //UIのオブジェクトをオンにする
             _blockInventoryView.SetActive(true);
-            _playerInventoryController.SetActive(true);
-            _playerInventoryController.SetSubInventory(_blockInventoryView);
+            _playerInventoryViewController.SetActive(true);
+            _playerInventoryViewController.SetSubInventory(_blockInventoryView);
         }
 
         public void OnExit()
@@ -86,7 +86,7 @@ namespace MainGame.UnityView.UI.UIState
             _blockInventoryOpenCloseControlProtocol.Send(_openBlockPos, false);
 
             _blockInventoryView.SetActive(false);
-            _playerInventoryController.SetActive(false);
+            _playerInventoryViewController.SetActive(false);
         }
     }
 }

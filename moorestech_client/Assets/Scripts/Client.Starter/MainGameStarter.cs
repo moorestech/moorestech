@@ -77,7 +77,7 @@ namespace MainGame.Starter
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private BlockInventoryView blockInventoryView;
         [SerializeField] private CraftInventoryView craftInventoryView;
-        [SerializeField] private PlayerInventoryController playerInventoryController;
+        [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
 
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
@@ -197,7 +197,7 @@ namespace MainGame.Starter
 
             builder.RegisterComponent(displayEnergizedRange);
             builder.RegisterComponent(entitiesPresenter);
-            builder.RegisterComponent(playerInventoryController);
+            builder.RegisterComponent(playerInventoryViewController);
             builder.RegisterComponent(blockInventoryView);
             builder.RegisterComponent(craftInventoryView);
 
