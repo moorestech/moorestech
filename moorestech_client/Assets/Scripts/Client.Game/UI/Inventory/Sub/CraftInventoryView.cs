@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Client.View.Protocol;
 using Core.Const;
 using Core.Item.Config;
 using Game.Crafting.Interface;
+using MainGame.Network.Send;
 using MainGame.UnityView.Item;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
@@ -44,7 +44,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
 
 
         [Inject]
-        public void Construct(SinglePlayInterface singlePlay,ItemImageContainer itemImageContainer,ILocalPlayerInventory localPlayerInventory,ISendOneClickCraftProtocol sendProtocol)
+        public void Construct(SinglePlayInterface singlePlay,ItemImageContainer itemImageContainer,ILocalPlayerInventory localPlayerInventory,SendOneClickCraftProtocol sendProtocol)
         {
             _itemConfig = singlePlay.ItemConfig;
             _craftingConfig = singlePlay.CraftingConfig;

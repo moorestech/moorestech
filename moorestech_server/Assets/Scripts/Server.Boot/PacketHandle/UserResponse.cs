@@ -17,8 +17,14 @@ namespace Server.Boot.PacketHandle
             _client = client;
         }
 
+        private DateTime _startTime;
+        private int _byteCount;
+        
+
         public void StartListen()
         {
+            _startTime = DateTime.Now;
+            
             var buffer = new byte[4096];
             //切断されるまでパケットを受信
             try
@@ -41,6 +47,8 @@ namespace Server.Boot.PacketHandle
                 Debug.Log(e);
             }
         }
+        
+        
 
         private bool ReceiveProcess(PacketBufferParser parser, byte[] buffer)
         {
@@ -56,11 +64,30 @@ namespace Server.Boot.PacketHandle
                 foreach (var result in results)
                 {
                     result.InsertRange(0, ToByteList.Convert(result.Count));
-                    _client.Send(result.ToArray());
+                    var array = result.ToArray();
+                    _byteCount += array.Length;
+                    _client.Send(array);
                 }
             }
 
+            LogDataConsumption(_byteCount, _startTime);
+
             return false;
+        }
+        
+        public static void LogDataConsumption(int bytesSent, DateTime startTime)
+        {
+            // Convert bytes to Megabytes
+            double megabytesSent = (double)bytesSent / (1024);
+
+            // Calculate elapsed time in seconds
+            double elapsedTimeSeconds = (DateTime.Now - startTime).TotalSeconds;
+
+            // Calculate avg bandwidth in MB/s
+            double avgBandwidth = megabytesSent / elapsedTimeSeconds;
+
+            // Output the result
+            Debug.Log($"送信量 {megabytesSent:F1} KB 平均消費帯域 {avgBandwidth:F1} KB/s 時間 {elapsedTimeSeconds}");
         }
     }
 }
