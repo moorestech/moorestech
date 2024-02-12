@@ -27,7 +27,6 @@ using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.Item;
 using MainGame.UnityView.Player;
 using MainGame.UnityView.UI.Inventory;
-using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.Inventory.Sub;
 using MainGame.UnityView.UI.UIState;
@@ -131,10 +130,8 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<InitialHandshakeProtocol>(); //最初にパケットを送るのでRegisterEntryPointを使う
 
             builder.Register<SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
-            builder.Register<RequestPlayerInventoryProtocol>(Lifetime.Singleton);
             builder.Register<SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);
             builder.Register<SendCommandProtocol>(Lifetime.Singleton);
-            builder.Register<SendBlockInventoryOpenCloseControlProtocol>(Lifetime.Singleton);
             builder.Register<SendBlockRemoveProtocol>(Lifetime.Singleton);
             builder.Register<SendMiningProtocol>(Lifetime.Singleton);
             builder.Register<SendSaveProtocol>(Lifetime.Singleton);
@@ -151,7 +148,6 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<ChunkDataPresenter>();
             builder.RegisterEntryPoint<WorldMapTilePresenter>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
-            builder.RegisterEntryPoint<PlayerInventoryRequestPacketSend>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateChangePresenter>();
 

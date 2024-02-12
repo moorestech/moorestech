@@ -49,6 +49,12 @@ namespace Client.Network.NewApi
             return items;
         }
 
+        public static void SetOpenCloseBlock(int playerId, Vector2Int pos, bool isOpen)
+        {
+            var request = new BlockInventoryOpenCloseProtocolMessagePack(playerId, pos.x, pos.y, isOpen);
+            _instance._serverConnector.Send(request);
+        }
+
 
         public static async UniTask<PlayerInventoryResponse> GetPlayerInventory(int playerId, CancellationToken ct)
         {

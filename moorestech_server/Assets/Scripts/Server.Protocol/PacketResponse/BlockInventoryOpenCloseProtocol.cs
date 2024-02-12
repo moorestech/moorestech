@@ -39,6 +39,13 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
+        /// <summary>
+        /// TODO このプロトコル消していいのでは（どうせステートの変化を送るなら、それと一緒にインベントリの情報を送った方が設計的に楽なのでは？
+        /// </summary>
+        /// <param name="playerId"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="isOpen"></param>
         public BlockInventoryOpenCloseProtocolMessagePack(int playerId, int x, int y, bool isOpen)
         {
             Tag = BlockInventoryOpenCloseProtocol.Tag;

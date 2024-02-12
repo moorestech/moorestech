@@ -63,6 +63,11 @@ namespace Client.Network.NewApi
 
         private int _sequenceId = 0;
 
+        public void Send(ProtocolMessagePackBase sendData)
+        {
+            _socketSender.Send(MessagePackSerializer.Serialize(sendData).ToList());
+        } 
+
         public async UniTask<TResponse> GetInformationData<TResponse>(ProtocolMessagePackBase sendData,CancellationToken ct) where TResponse : ProtocolMessagePackBase
         {
             Send();

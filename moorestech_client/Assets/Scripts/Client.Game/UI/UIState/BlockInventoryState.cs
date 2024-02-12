@@ -1,7 +1,11 @@
 using System;
+using System.Threading;
+using Client.Network.NewApi;
+using Cysharp.Threading.Tasks;
 using Game.Block;
 using Game.Block.Config.LoadConfig.Param;
 using MainGame.Network.Send;
+using MainGame.Network.Settings;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.Control.MouseKeyboard;
@@ -22,22 +26,18 @@ namespace MainGame.UnityView.UI.UIState
         private readonly SinglePlayInterface _singlePlayInterface;
         private readonly BlockInventoryView _blockInventoryView;
         private readonly PlayerInventoryViewController _playerInventoryViewController;
-        
-        private readonly SendBlockInventoryOpenCloseControlProtocol _blockInventoryOpenCloseControlProtocol;
-        private readonly SendRequestBlockInventoryProtocol _sendRequestBlockInventoryProtocol;
+
+        private CancellationTokenSource _cancellationTokenSource;
         
         private Vector2Int _openBlockPos;
 
-        public BlockInventoryState(BlockInventoryView blockInventoryView, IBlockClickDetect blockClickDetect, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, SinglePlayInterface singlePlayInterface,PlayerInventoryViewController playerInventoryViewController,SendRequestBlockInventoryProtocol sendRequestBlockInventoryProtocol, SendBlockInventoryOpenCloseControlProtocol blockInventoryOpenCloseControlProtocol)
+        public BlockInventoryState(BlockInventoryView blockInventoryView, IBlockClickDetect blockClickDetect, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, SinglePlayInterface singlePlayInterface,PlayerInventoryViewController playerInventoryViewController)
         {
             _blockClickDetect = blockClickDetect;
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _singlePlayInterface = singlePlayInterface;
             _playerInventoryViewController = playerInventoryViewController;
             _blockInventoryView = blockInventoryView;
-            
-            _sendRequestBlockInventoryProtocol = sendRequestBlockInventoryProtocol;
-            _blockInventoryOpenCloseControlProtocol = blockInventoryOpenCloseControlProtocol;
             
             blockInventoryView.SetActive(false);
         }
@@ -57,8 +57,10 @@ namespace MainGame.UnityView.UI.UIState
             InputManager.MouseCursorVisible(true);
 
             //サーバーのリクエスト
-            _sendRequestBlockInventoryProtocol.Send(_openBlockPos);
-            _blockInventoryOpenCloseControlProtocol.Send(_openBlockPos, true);
+            VanillaApi.SetOpenCloseBlock(PlayerConnectionSetting.Instance.PlayerId,_openBlockPos,true);
+            _cancellationTokenSource = new CancellationTokenSource();
+            UpdateBlockInventory(_openBlockPos, _cancellationTokenSource.Token).Forget();
+            
 
             //ブロックインベントリのビューを設定する
             var id = _chunkBlockGameObjectDataStore.GetBlockGameObject(_openBlockPos).BlockId;
@@ -81,9 +83,18 @@ namespace MainGame.UnityView.UI.UIState
             _playerInventoryViewController.SetSubInventory(_blockInventoryView);
         }
 
+        private async UniTask UpdateBlockInventory(Vector2Int pos,CancellationToken ct)
+        {
+            var response = await VanillaApi.GetBlockInventory(pos, ct);
+            _blockInventoryView.SetItemList(response);
+        }
+
         public void OnExit()
         {
-            _blockInventoryOpenCloseControlProtocol.Send(_openBlockPos, false);
+            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource = null;
+            
+            VanillaApi.SetOpenCloseBlock(PlayerConnectionSetting.Instance.PlayerId,_openBlockPos,false);
 
             _blockInventoryView.SetActive(false);
             _playerInventoryViewController.SetActive(false);
