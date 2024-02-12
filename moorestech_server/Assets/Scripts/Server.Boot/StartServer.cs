@@ -30,8 +30,7 @@ namespace Server.Boot
             }
         }
 
-        public static (Thread serverUpdateThread, Thread gameUpdateThread, CancellationTokenSource autoSaveTokenSource)
-            Start(string[] args)
+        public static (Thread serverUpdateThread, CancellationTokenSource autoSaveTokenSource) Start(string[] args)
         {
             //カレントディレクトリを表示
 #if DEBUG
@@ -61,18 +60,13 @@ namespace Server.Boot
             //サーバーの起動とゲームアップデートの開始
             var serverUpdateThread = new Thread(() => new PacketHandler().StartServer(packet));
             serverUpdateThread.Name = "[moorestech]通信受け入れスレッド";
-            var gameUpdateThread = new Thread(() =>
-            {
-                while (true) GameUpdater.Update();
-            });
-            gameUpdateThread.Name = "[moorestech]ゲームアップデートスレッド";
-
+            
             var autoSaveTaskTokenSource = new CancellationTokenSource();
             Task.Run(
                 () => new AutoSaveSystem(serviceProvider.GetService<IWorldSaveDataSaver>()).AutoSave(
                     autoSaveTaskTokenSource), autoSaveTaskTokenSource.Token);
 
-            return (serverUpdateThread, gameUpdateThread, autoSaveTaskTokenSource);
+            return (serverUpdateThread,autoSaveTaskTokenSource);
         }
     }
 }
