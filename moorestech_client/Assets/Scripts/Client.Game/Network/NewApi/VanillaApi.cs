@@ -77,6 +77,9 @@ namespace Client.Network.NewApi
 
         public static async UniTask<List<ChunkResponse>> GetChunkInfos(List<Vector2Int> chunks, CancellationToken ct)
         {
+            var request = new RequestChunkInfoProtocolMessagePack(chunks);
+            
+            
             //TODO チャンクを取得するプロトコルをつくる
             throw new NotImplementedException();
         }

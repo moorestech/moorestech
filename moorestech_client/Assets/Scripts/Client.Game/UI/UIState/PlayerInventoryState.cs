@@ -43,7 +43,7 @@ namespace MainGame.UnityView.UI.UIState
             _playerInventoryViewController.SetSubInventory(new EmptySubInventory());
             
             _cancellationTokenSource = new CancellationTokenSource();
-            UpdatePlayerInventory(_cancellationTokenSource.Token);
+            UpdatePlayerInventory(_cancellationTokenSource.Token).Forget();
             
             InputManager.MouseCursorVisible(true);
         }
