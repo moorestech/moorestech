@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -8,6 +9,11 @@ namespace Server.Protocol.PacketResponse
 {
     public class GetChunkDataProtocol : IPacketResponse
     {
+        public GetChunkDataProtocol(ServiceProvider serviceProvider)
+        {
+            throw new NotImplementedException();
+        }
+
         public const string Tag = "va:getChunk";
 
 

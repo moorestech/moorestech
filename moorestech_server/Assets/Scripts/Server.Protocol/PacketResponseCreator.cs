@@ -18,7 +18,7 @@ namespace Server.Protocol
         {
             _packetResponseDictionary.Add(DummyProtocol.Tag, new DummyProtocol());
             _packetResponseDictionary.Add(InitialHandshakeProtocol.Tag, new InitialHandshakeProtocol(serviceProvider));
-            _packetResponseDictionary.Add(PlayerCoordinateSendProtocol.Tag, new PlayerCoordinateSendProtocol(serviceProvider));
+            _packetResponseDictionary.Add(GetChunkDataProtocol.Tag, new GetChunkDataProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.Tag, new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
             _packetResponseDictionary.Add(EventProtocolMessagePackBase.EventProtocolTag, new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseDictionary.Add(InventoryItemMoveProtocol.Tag, new InventoryItemMoveProtocol(serviceProvider));
