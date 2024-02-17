@@ -108,7 +108,7 @@ namespace MainGame.Presenter.MapObject
                 var (miningTime,_) = GetMiningData(_currentMapObjectGameObject.MapObjectType);
                 miningObjectProgressbarPresenter.StartMining(miningTime, _miningCancellationTokenSource.Token).Forget();
                 
-                _playerObjectController.SetAnimationState(PlayerAnimationState.Axe);
+                //_playerObjectController.SetAnimationState(PlayerAnimationState.Axe);
 
                 var isMiningFinish = await IsMiningFinishWait(miningTime);
                 

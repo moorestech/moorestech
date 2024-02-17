@@ -49,8 +49,9 @@ namespace Game.Block.Blocks.Machine.Inventory
         /// <returns>スロットに空きがあったらtrue</returns>
         public bool IsAllowedToOutputItem(MachineRecipeData machineRecipeData)
         {
-            foreach (var itemOutput in machineRecipeData.ItemOutputs)
+            for (var i = 0; i < machineRecipeData.ItemOutputs.Count; i++)
             {
+                var itemOutput = machineRecipeData.ItemOutputs[i];
                 var isAllowed = OutputSlot.Aggregate(false,
                     (current, slot) => slot.IsAllowedToAdd(itemOutput.OutputItem) || current);
 
