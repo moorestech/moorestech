@@ -317,14 +317,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5fea218e86342adaa64609636fdf4b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemImage: {fileID: 0}
+  itemImage: {fileID: 1885320552950913259}
   normalFrame: {fileID: 4299517632762084330}
   machineSlotFrame: {fileID: 8384614708635708959}
   craftRecipeFrame: {fileID: 8668122986229676837}
   hotBarSelect: {fileID: 7837513962978010560}
-  grayOutImage: {fileID: 8765699475418099456}
-  hoverImage: {fileID: 0}
-  clickImage: {fileID: 0}
+  grayOutImage: {fileID: 6648118856840850400}
+  hoverImage: {fileID: 1297722331359907779}
+  clickImage: {fileID: 784587572628537564}
+  normalItemSlotObject: {fileID: 4453128930901351719}
+  noneCrossObject: {fileID: 4581972568625986164}
   countText: {fileID: 1014375674738587960}
   uiEnterExplainerController: {fileID: 5725241490740468130}
 --- !u!114 &5725241490740468130
@@ -734,7 +736,7 @@ GameObject:
   m_Component:
   - component: {fileID: 628354622185468710}
   m_Layer: 5
-  m_Name: ItemView
+  m_Name: NormalItemView
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
