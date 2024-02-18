@@ -156,7 +156,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             {
                 prevRecipeButton.interactable = _currentCraftingConfigDataList.Count != 1;
                 nextRecipeButton.interactable = _currentCraftingConfigDataList.Count != 1;
-                recipeCountText.text = $"{_currentCraftingConfigIndex + 1}/{_currentCraftingConfigDataList.Count}";
+                recipeCountText.text = $"{_currentCraftingConfigIndex + 1} / {_currentCraftingConfigDataList.Count}";
                 craftButton.interactable = IsCraftable(craftingConfigData);
             }
             
