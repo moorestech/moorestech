@@ -105,12 +105,16 @@ namespace MainGame.UnityView.UI.Inventory
             
             void UpdateHoldItem(int selectIndex)
             {
+                if (_currentGrabItem != null)
+                {
+                    Destroy(_currentGrabItem.gameObject);
+                }
+                
                 var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
-                if (itemId == ItemConst.EmptyItemId) return;
-            
-                var itemConfig = _itemConfig.GetItemConfig(itemId);
 
-                if(_currentGrabItem != null) Destroy(_currentGrabItem.gameObject);
+                if (itemId == ItemConst.EmptyItemId) return;
+                
+                var itemConfig = _itemConfig.GetItemConfig(itemId);
             
                 var itemObjectData = itemObjectContainer.GetItemPrefab(itemConfig.ModId, itemConfig.Name);
                 if (itemObjectData != null)
