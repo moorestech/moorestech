@@ -43,16 +43,20 @@ namespace MainGame.UnityView.UI.Inventory.Element
         public void SetItem(ItemViewData itemView, int count)
         {
             ItemViewData = itemView;
-            itemImage.sprite = itemView.ItemImage;
 
             countText.text = count != 0? count.ToString() : string.Empty;
 
             if (itemView.ItemId == ItemConst.EmptyItemId)
             {
+                itemImage.gameObject.SetActive(false);
+                
                 uiEnterExplainerController.DisplayEnable(false);
             }
             else
             {
+                itemImage.gameObject.SetActive(true);
+                itemImage.sprite = itemView.ItemImage;
+                
                 uiEnterExplainerController.SetText(itemView.ItemName);
                 uiEnterExplainerController.DisplayEnable(true);
             }
