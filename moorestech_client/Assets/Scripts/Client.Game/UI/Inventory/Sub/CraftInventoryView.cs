@@ -100,7 +100,8 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             var enableItem = IsAllItemCraftable();
             foreach (var itemUI in _itemListObjects)
             {
-                itemUI.SetGrayOut(!enableItem.Contains(itemUI.ItemViewData.ItemId));
+                var isGrayOut = enableItem.Contains(itemUI.ItemViewData.ItemId);
+                itemUI.SetGrayOut(isGrayOut);
             }
         }
         
@@ -155,7 +156,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             {
                 prevRecipeButton.interactable = _currentCraftingConfigDataList.Count != 1;
                 nextRecipeButton.interactable = _currentCraftingConfigDataList.Count != 1;
-                recipeCountText.text = $"{_currentCraftingConfigIndex + 1}/{_currentCraftingConfigDataList.Count}";
+                recipeCountText.text = $"{_currentCraftingConfigIndex + 1} / {_currentCraftingConfigDataList.Count}";
                 craftButton.interactable = IsCraftable(craftingConfigData);
             }
             
