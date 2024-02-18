@@ -86,3 +86,4 @@ crashlytics-build.properties
 /Output_StandaloneWindows64/
 /Output_StandaloneOSX/
 /Output_StandaloneLinux64/
+moorestech_client/.vscode/settings.json
