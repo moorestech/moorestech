@@ -100,8 +100,8 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             var enableItem = IsAllItemCraftable();
             foreach (var itemUI in _itemListObjects)
             {
-                var overlay = enableItem.Contains(itemUI.ItemViewData.ItemId) ? ItemSlotOverlayType.None : ItemSlotOverlayType.GrayOut;
-                itemUI.SetOverlay(overlay);
+                var isGrayOut = enableItem.Contains(itemUI.ItemViewData.ItemId);
+                itemUI.SetGrayOut(isGrayOut);
             }
         }
         

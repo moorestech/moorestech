@@ -21,8 +21,8 @@ namespace MainGame.UnityView.UI.Inventory.Element
         [SerializeField] private GameObject hotBarSelect;
             
         [SerializeField] private GameObject grayOutImage;
-        [SerializeField] private GameObject hoverImage;
-        [SerializeField] private GameObject clickImage;
+        [SerializeField] private GameObject hoverImage; // TODO 後で対応
+        [SerializeField] private GameObject clickImage; // TODO 後で対応
         
         [SerializeField] private GameObject normalItemSlotObject;
         [SerializeField] private GameObject noneCrossObject;
@@ -62,11 +62,9 @@ namespace MainGame.UnityView.UI.Inventory.Element
             }
         }
         
-        public void SetOverlay(ItemSlotOverlayType overlayType)
+        public void SetGrayOut(bool active)
         {
-            grayOutImage.SetActive(overlayType == ItemSlotOverlayType.GrayOut);
-            hoverImage.SetActive(overlayType == ItemSlotOverlayType.Hover);
-            clickImage.SetActive(overlayType == ItemSlotOverlayType.Click);
+            grayOutImage.SetActive(active);
         }
         
         public void SetFrame(ItemSlotFrameType frameType)
@@ -226,13 +224,5 @@ namespace MainGame.UnityView.UI.Inventory.Element
         Normal,
         MachineSlot,
         CraftRecipe
-    }
-
-    public enum ItemSlotOverlayType
-    {
-        None,
-        GrayOut,
-        Hover,
-        Click
     }
 }
