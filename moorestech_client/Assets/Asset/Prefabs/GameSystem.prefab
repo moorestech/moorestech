@@ -4593,7 +4593,7 @@ MonoBehaviour:
   deleteBarObject: {fileID: 4640722214229418808}
   blockInventoryView: {fileID: 8898167348514627761}
   craftInventoryView: {fileID: 2779522200308272756}
-  playerInventoryController: {fileID: 485462951067189742}
+  playerInventoryController: {fileID: 5132210590052991366}
   blockPlacePreview: {fileID: 1584877711214233187}
   oreMapTileClickDetect: {fileID: 3488627204785912720}
   saveButton: {fileID: 773343225977944571}
@@ -4970,17 +4970,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
---- !u!114 &485462951067189742 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2453130154838732168, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-  m_PrefabInstance: {fileID: 2645848407441091686}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f3b8c2b51da64853a42c24ceee8dda38, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &773343225977944571 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3318174955527574941, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
@@ -5061,6 +5050,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cb2469ed7f0241b5b5b984ccd93b513f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5132210590052991366 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7173872796640243168, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 2645848407441091686}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3b8c2b51da64853a42c24ceee8dda38, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &7499633600282642158 stripped
@@ -5246,7 +5246,7 @@ PrefabInstance:
       objectReference: {fileID: 4694271036350155273}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -138.65741
+      value: -138.65729
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.y
@@ -5266,7 +5266,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6536760820669664449, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -138.65741
+      value: -138.65729
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

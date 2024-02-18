@@ -21,6 +21,8 @@ namespace MainGame.UnityView.UI.Inventory.Main
     /// </summary>
     public class PlayerInventoryController : MonoBehaviour
     {
+        [SerializeField] private GameObject mainInventoryObject;
+        
         [SerializeField] private List<ItemSlotObject> mainInventorySlotObjects;
         [SerializeField] private ItemSlotObject grabInventorySlotObject;
         
@@ -321,7 +323,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
         
         public void SetActive(bool isActive)
         {
-            gameObject.SetActive(isActive);
+            mainInventoryObject.SetActive(isActive);
         }
 
 
