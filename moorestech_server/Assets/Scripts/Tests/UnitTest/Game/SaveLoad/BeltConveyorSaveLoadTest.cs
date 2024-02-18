@@ -25,9 +25,9 @@ namespace Tests.UnitTest.Game.SaveLoad
                 typeof(VanillaBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (List<BeltConveyorInventoryItem>)inventoryItemsField.GetValue(belt);
             //アイテムを設定
-            inventoryItems.Add(new BeltConveyorInventoryItem(1, 10, 0, 1));
-            inventoryItems.Add(new BeltConveyorInventoryItem(2, 100, 1000, 2));
-            inventoryItems.Add(new BeltConveyorInventoryItem(5, 2500, 2000, 3));
+            inventoryItems.Add(new BeltConveyorInventoryItem(1, 0));
+            inventoryItems.Add(new BeltConveyorInventoryItem(2, 1000));
+            inventoryItems.Add(new BeltConveyorInventoryItem(5, 2000));
 
             //セーブデータ取得
             var str = belt.GetSaveState();

@@ -11,33 +11,16 @@
         public readonly int ItemId;
         public readonly long ItemInstanceId;
 
-        private double _remainingTime;
+        /// <summary>
+        /// ベルトコンベア内のアイテムがあと何秒で出るかを入れるプロパティ
+        /// </summary>
+        public double RemainingTime { get; set; }
 
-        public BeltConveyorInventoryItem(int itemId, double remainingTime, double limitTime, long itemInstanceId)
+        public BeltConveyorInventoryItem(int itemId, double remainingTime, long itemInstanceId)
         {
             ItemId = itemId;
-            _remainingTime = remainingTime;
-            LimitTime = limitTime;
+            RemainingTime = remainingTime;
             ItemInstanceId = itemInstanceId;
-        }
-
-        /// <summary>
-        ///     アイテムの残り時間をどこまで減らしていいか？という制限
-        ///     アイテム残り時間制限 = 前のアイテムの残り秒数 + ベルトコンベアの挿入可能な間隔の秒数
-        ///     ベルトコンベアの挿入可能な間隔の秒数 = ベルトコンベアに入れれるアイテム数 / ベルトコンベアでアイテムが入ってから出るまでの秒数
-        /// </summary>
-        public double LimitTime { get; set; }
-
-        /// <summary>
-        ///     ベルトコンベア内のアイテムがあと何秒で
-        /// </summary>
-        public double RemainingTime
-        {
-            get => _remainingTime;
-            set
-            {
-                if (LimitTime < RemainingTime) _remainingTime = value;
-            }
         }
     }
 }
