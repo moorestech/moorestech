@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Server.Protocol;
 using UnityEngine;
@@ -24,8 +25,11 @@ namespace Server.Boot.PacketHandle
                 //通信の確率
                 var client = listener.Accept();
                 Debug.Log("接続確立");
-                //性能が足りなくなってきたら非同期メソッドを使うようにする
-                Task.Run(() => new UserResponse(client, packetResponseCreator).StartListen());
+
+                var receiveThread = new Thread(() => new UserResponse(client, packetResponseCreator).StartListen());
+                receiveThread.Name = "[moorestech] 受信スレッド";
+                
+                receiveThread.Start();
             }
         }
     }

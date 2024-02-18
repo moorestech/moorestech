@@ -47,6 +47,7 @@ namespace Game.Block.RecipeConfig
 
         /// <summary>
         ///     設置物IDと現在の搬入スロットからレシピを検索し、取得する
+        /// TODO ここ重めだからゼロアロケーションにする、というかこれ自体そもそも仕組みを変えたい
         /// </summary>
         /// <param name="BlockId">設置物ID</param>
         /// <param name="inputItem">搬入スロット</param>

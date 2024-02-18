@@ -1,5 +1,4 @@
 ﻿using System;
-using Constant.UI;
 using Core.Const;
 using MainGame.ModLoader.Texture;
 using MainGame.UnityView.UI.Util;
@@ -13,8 +12,21 @@ namespace MainGame.UnityView.UI.Inventory.Element
 {
     public class ItemSlotObject : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler, IPointerMoveHandler
     {
-        [SerializeField] private Image image;
-        [SerializeField] private Image grayOutImage;
+        [SerializeField] private Image itemImage;
+
+        [SerializeField] private GameObject normalFrame;
+        [SerializeField] private GameObject machineSlotFrame;
+        [SerializeField] private GameObject craftRecipeFrame;
+
+        [SerializeField] private GameObject hotBarSelect;
+            
+        [SerializeField] private GameObject grayOutImage;
+        [SerializeField] private GameObject hoverImage; // TODO 後で対応
+        [SerializeField] private GameObject clickImage; // TODO 後で対応
+        
+        [SerializeField] private GameObject normalItemSlotObject;
+        [SerializeField] private GameObject noneCrossObject;
+        
         [SerializeField] private TMP_Text countText;
         [SerializeField] private UIEnterExplainerController uiEnterExplainerController;
         
@@ -22,8 +34,65 @@ namespace MainGame.UnityView.UI.Inventory.Element
         
         public ItemViewData ItemViewData { get; private set; }
 
-        #region PointerEvents
+        private void Awake()
+        {
+            OnPointerEvent.Subscribe(OnInvokeOtherEvent);
+        }
 
+
+        public void SetItem(ItemViewData itemView, int count)
+        {
+            ItemViewData = itemView;
+
+            countText.text = count != 0? count.ToString() : string.Empty;
+
+            if (itemView.ItemId == ItemConst.EmptyItemId)
+            {
+                itemImage.gameObject.SetActive(false);
+                
+                uiEnterExplainerController.DisplayEnable(false);
+            }
+            else
+            {
+                itemImage.gameObject.SetActive(true);
+                itemImage.sprite = itemView.ItemImage;
+                
+                uiEnterExplainerController.SetText(itemView.ItemName);
+                uiEnterExplainerController.DisplayEnable(true);
+            }
+        }
+        
+        public void SetGrayOut(bool active)
+        {
+            grayOutImage.SetActive(active);
+        }
+        
+        public void SetFrame(ItemSlotFrameType frameType)
+        {
+            normalFrame.SetActive(frameType == ItemSlotFrameType.Normal);
+            machineSlotFrame.SetActive(frameType == ItemSlotFrameType.MachineSlot);
+            craftRecipeFrame.SetActive(frameType == ItemSlotFrameType.CraftRecipe);
+        }
+
+        public void SetItemSlotType(ItemSlotType slotType)
+        {
+            normalItemSlotObject.SetActive(slotType == ItemSlotType.Normal);
+            noneCrossObject.SetActive(slotType == ItemSlotType.NoneCross);
+        }
+        
+        public void SetHotBarSelect(bool active)
+        {
+            hotBarSelect.SetActive(active);
+        }
+        
+        public void SetActive(bool active)
+        {
+            gameObject.SetActive(active);
+        }
+
+
+        #region PointerEvents
+        
         public IObservable<(ItemSlotObject,ItemUIEventType)> OnPointerEvent => _onPointerEvent;
         private readonly Subject<(ItemSlotObject,ItemUIEventType)> _onPointerEvent = new();
         
@@ -78,14 +147,6 @@ namespace MainGame.UnityView.UI.Inventory.Element
                     throw new ArgumentOutOfRangeException();
             }
         }
-        
-        #endregion
-
-        private void Awake()
-        {
-            OnPointerEvent.Subscribe(OnInvokeOtherEvent);
-        }
-
 
         public void OnPointerClick(PointerEventData eventData)
         {
@@ -134,37 +195,8 @@ namespace MainGame.UnityView.UI.Inventory.Element
                     break;
             }
         }
-        public void SetItem(ItemViewData itemView, int count,bool updateExplainer = true)
-        {
-            ItemViewData = itemView;
-            image.sprite = itemView.ItemImage;
 
-            countText.text = count != 0? count.ToString() : string.Empty;
-
-            if (itemView.ItemId == ItemConst.EmptyItemId)
-            {
-                uiEnterExplainerController.DisplayEnable(false);
-            }
-            else
-            {
-                uiEnterExplainerController.SetText(itemView.ItemName);
-                uiEnterExplainerController.DisplayEnable(true);
-            }
-        }
-        public void SetActive(bool active)
-        {
-            gameObject.SetActive(active);
-        }
-        public void SetGrayOut(bool isGrayOut)
-        {
-            grayOutImage.gameObject.SetActive(isGrayOut);
-        }
-
-
-        public RectTransformReadonlyData GetRectTransformData()
-        {
-            return new RectTransformReadonlyData(transform as RectTransform);
-        }
+        #endregion
     }
 
     public enum ItemUIEventType
@@ -179,5 +211,18 @@ namespace MainGame.UnityView.UI.Inventory.Element
         CursorMove,
         
         DoubleClick,
+    }
+    
+    public enum ItemSlotType
+    {
+        Normal, // 通常のアイテム表示
+        NoneCross, // アイテムが何もないクロス表示
+    }
+    
+    public enum ItemSlotFrameType
+    {
+        Normal,
+        MachineSlot,
+        CraftRecipe
     }
 }

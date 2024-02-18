@@ -163,29 +163,35 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             lock (_inventoryItems)
             {
+                var count = _inventoryItems.Count;
+                
                 //リミットの更新
-                if (2 <= _inventoryItems.Count)
+                if (2 <= count)
                     //アイテムが2個以上あるときは、次のアイテムと間隔をあけてリミットを設定する
                     //間隔値は ベルトコンベアに入るアイテム数 / アイテムが入ってから出るまでの時間 で決まる
-                    for (var i = 0; i < _inventoryItems.Count - 1; i++)
+                    for (var i = 0; i < count - 1; i++)
                         _inventoryItems[i].LimitTime =
                             _inventoryItems[i + 1].RemainingTime + TimeOfItemEnterToExit / _inventoryItemNum;
-                if (_inventoryItems.Count != 0)
+                if (count != 0)
                     //最後のアイテムは最後まで進むのでリミットは0になる
                     _inventoryItems[^1].LimitTime = 0;
 
                 //時間を減らす
-                foreach (var t in _inventoryItems) t.RemainingTime -= GameUpdater.UpdateMillSecondTime;
+                for (var i = 0; i < count; i++)
+                {
+                    var t = _inventoryItems[i];
+                    t.RemainingTime -= GameUpdater.UpdateMillSecondTime;
+                }
 
 
                 //最後のアイテムが0だったら接続先に渡す
-                if (1 <= _inventoryItems.Count && _inventoryItems[^1].RemainingTime <= 0)
+                if (1 <= count && _inventoryItems[^1].RemainingTime <= 0)
                 {
                     var item = _itemStackFactory.Create(_inventoryItems[^1].ItemId, 1,
                         _inventoryItems[^1].ItemInstanceId);
                     var output = _connector.InsertItem(item);
                     //渡した結果がnullItemだったらそのアイテムを消す
-                    if (output.Count == 0) _inventoryItems.RemoveAt(_inventoryItems.Count - 1);
+                    if (output.Count == 0) _inventoryItems.RemoveAt(count - 1);
                 }
             }
         }

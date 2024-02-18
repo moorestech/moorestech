@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Const;
 using Core.Item;
 using Game.Block.BlockInventory;
 using Game.Block.Interface.BlockConfig;
@@ -60,6 +61,12 @@ namespace Server.Protocol.PacketResponse
             //壊したブロックをインベントリーに挿入
             //ブロックIdの取得
             var blockId = _worldBlockDatastore.GetBlock(data.X, data.Y).BlockId;
+            //すでにブロックがなかったら-1
+            if (blockId == BlockConst.EmptyBlockId)
+            {
+                return new List<List<byte>>();
+            }
+            
             //ブロックのIDを取得
             var blockItemId = _blockConfig.GetBlockConfig(blockId).ItemId;
             var remainBlockItem = playerMainInventory.InsertItem(_itemStackFactory.Create(blockItemId, 1));

@@ -78,9 +78,13 @@ namespace Game.Block.Config
 
         public BlockConfigData GetBlockConfig(string modId, string blockName)
         {
-            foreach (var blockConfig in _blockConfigList)
+            for (var i = 0; i < _blockConfigList.Count; i++)
+            {
+                var blockConfig = _blockConfigList[i];
                 if (blockConfig.ModId == modId && blockConfig.Name == blockName)
                     return blockConfig;
+            }
+
             //TODO ログ基盤に入れる
             throw new Exception("Mod id or block name not found:" + modId + " " + blockName);
         }

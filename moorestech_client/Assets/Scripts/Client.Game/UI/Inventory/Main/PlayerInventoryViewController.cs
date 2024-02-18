@@ -21,6 +21,8 @@ namespace MainGame.UnityView.UI.Inventory.Main
     /// </summary>
     public class PlayerInventoryViewController : MonoBehaviour
     {
+        [SerializeField] private GameObject mainInventoryObject;
+        
         [SerializeField] private List<ItemSlotObject> mainInventorySlotObjects;
         [SerializeField] private ItemSlotObject grabInventorySlotObject;
         
@@ -321,7 +323,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
         
         public void SetActive(bool isActive)
         {
-            gameObject.SetActive(isActive);
+            mainInventoryObject.SetActive(isActive);
         }
 
 
@@ -335,16 +337,16 @@ namespace MainGame.UnityView.UI.Inventory.Main
             for (int i = 0; i < _playerInventory.LocalPlayerInventory.Count; i++)
             {
                 var item = _playerInventory.LocalPlayerInventory[i];
-                var sprite = _itemImageContainer.GetItemView(item.Id);
+                var itemView = _itemImageContainer.GetItemView(item.Id);
 
                 if (i < mainInventorySlotObjects.Count)
                 {
-                    mainInventorySlotObjects[i].SetItem(sprite,item.Count);
+                    mainInventorySlotObjects[i].SetItem(itemView,item.Count);
                 }
                 else
                 {
                     var subIndex = i - mainInventorySlotObjects.Count;
-                    _subInventory.SubInventorySlotObjects[subIndex].SetItem(sprite,item.Count);
+                    _subInventory.SubInventorySlotObjects[subIndex].SetItem(itemView,item.Count);
                 }
             }
             grabInventorySlotObject.SetActive(IsGrabItem);

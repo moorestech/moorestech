@@ -20,8 +20,8 @@ namespace MainGame.UnityView.UI.Inventory
     {
         public static HotBarView Instance { get; private set; }
         
-        [SerializeField] private Image selectImage;
-        [SerializeField] private List<ItemSlotObject> hotBarSlots;
+        [SerializeField] private List<HotBarItem> hotBarItems;
+        
         [SerializeField] private ItemObjectContainer itemObjectContainer;
         [SerializeField] private PlayerGrabItemManager playerGrabItemManager;
         
@@ -45,23 +45,30 @@ namespace MainGame.UnityView.UI.Inventory
         private void Start()
         {
             SelectIndex = 0;
+            UpdateSelectedView(0,0);
+            for (int i = 0; i < hotBarItems.Count; i++)
+            {
+                var keyBordText = (i + 1).ToString();
+                hotBarItems[i].SetKeyBoardText(keyBordText);
+            }
         }
         GameObject _currentGrabItem = null;
 
         private void Update()
         {
-            UpdateHotBar();
-            var selectIndex = SelectedHotBar();
-            if (selectIndex != -1 && selectIndex != SelectIndex)
+            UpdateHotBarItem();
+            var nextSelectIndex = SelectedHotBar();
+            if (nextSelectIndex != -1 && nextSelectIndex != SelectIndex)
             {
-                SelectIndex = selectIndex;
-                UpdateHoldItem(selectIndex); //アイテムの再生成があるので変化を検知して変更する
+                UpdateSelectedView(SelectIndex,nextSelectIndex);
+                UpdateHoldItem(nextSelectIndex); //アイテムの再生成があるので変化を検知して変更する
+                
+                SelectIndex = nextSelectIndex;
             }
-            UpdateSelect(SelectIndex);//毎フレームやらないと、なぜか最初の数フレームで正しい位置に来ない
 
             #region Internal
 
-            void UpdateHotBar()
+            void UpdateHotBarItem()
             {
                 for (int i = 0; i < _localPlayerInventory.Count; i++)
                 {
@@ -80,7 +87,7 @@ namespace MainGame.UnityView.UI.Inventory
 
                 var viewData = _itemImageContainer.GetItemView(item.Id);
                 slot -= startHotBarSlot;
-                hotBarSlots[slot].SetItem(viewData, item.Count,false);
+                hotBarItems[slot].SetItem(viewData, item.Count);
             }
 
             int SelectedHotBar()
@@ -95,19 +102,19 @@ namespace MainGame.UnityView.UI.Inventory
                 return selected;
             }
             
-            void UpdateSelect(int selectIndex)
-            {
-                selectImage.transform.position = hotBarSlots[selectIndex].transform.position;
-            }
             
             void UpdateHoldItem(int selectIndex)
             {
+                if (_currentGrabItem != null)
+                {
+                    Destroy(_currentGrabItem.gameObject);
+                }
+                
                 var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
-                if (itemId == ItemConst.EmptyItemId) return;
-            
-                var itemConfig = _itemConfig.GetItemConfig(itemId);
 
-                if(_currentGrabItem != null) Destroy(_currentGrabItem.gameObject);
+                if (itemId == ItemConst.EmptyItemId) return;
+                
+                var itemConfig = _itemConfig.GetItemConfig(itemId);
             
                 var itemObjectData = itemObjectContainer.GetItemPrefab(itemConfig.ModId, itemConfig.Name);
                 if (itemObjectData != null)
@@ -119,13 +126,12 @@ namespace MainGame.UnityView.UI.Inventory
             
             #endregion
         }
-
-
         
-
-        public void SetActiveSelectHotBar(bool isActive)
+        
+        private void UpdateSelectedView(int prevIndex,int nextIndex)
         {
-            selectImage.gameObject.SetActive(isActive);
+            hotBarItems[prevIndex].SetSelect(false);
+            hotBarItems[nextIndex].SetSelect(true);
         }
     }
 }
