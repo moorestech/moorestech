@@ -75,8 +75,6 @@ namespace Game.Block.Blocks.BeltConveyor
                 state.Append(',');
                 state.Append(t.RemainingTime);
                 state.Append(',');
-                state.Append(t.LimitTime);
-                state.Append(',');
             }
 
             //最後のカンマを削除
@@ -87,11 +85,11 @@ namespace Game.Block.Blocks.BeltConveyor
         public IItemStack InsertItem(IItemStack itemStack)
         {
             //新しく挿入可能か
-            if (_inventoryItems[0] != null)
+            if (_inventoryItems[^1] != null)
                 //挿入可能でない
                 return itemStack;
 
-            _inventoryItems[0] = new BeltConveyorInventoryItem(itemStack.Id, TimeOfItemEnterToExit, itemStack.ItemInstanceId);
+            _inventoryItems[^1] = new BeltConveyorInventoryItem(itemStack.Id, TimeOfItemEnterToExit, itemStack.ItemInstanceId);
             
             //挿入したのでアイテムを減らして返す
             return itemStack.SubItem(1);
@@ -146,6 +144,7 @@ namespace Game.Block.Blocks.BeltConveyor
                     if (item == null) continue;
                     
                     //TODO 次のインデックスに入れる時間かどうかをチェックする
+                    var nextIndex = (int)(item.RemainingTime / _inventoryItemNum);
                     
                     //TODo 次のインデックスに入れて、次に空きがあれば次に移動する
                     
@@ -164,17 +163,6 @@ namespace Game.Block.Blocks.BeltConveyor
                     var t = _inventoryItems[i];
                     t.RemainingTime -= GameUpdater.UpdateMillSecondTime;
                 }
-                
-                //リミットの更新
-                if (2 <= count)
-                    //アイテムが2個以上あるときは、次のアイテムと間隔をあけてリミットを設定する
-                    //間隔値は ベルトコンベアに入るアイテム数 / アイテムが入ってから出るまでの時間 で決まる
-                    for (var i = 0; i < count - 1; i++)
-                        _inventoryItems[i].LimitTime =
-                            _inventoryItems[i + 1].RemainingTime + TimeOfItemEnterToExit / _inventoryItemNum;
-                if (count != 0)
-                    //最後のアイテムは最後まで進むのでリミットは0になる
-                    _inventoryItems[^1].LimitTime = 0;
             }
         }
     }
