@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Core
 
             var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
             //最大クラフト時間を超過するまでクラフトする
-            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
+            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
 
             //検証
             var (input, output) = GetInputOutputSlot(block);

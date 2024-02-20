@@ -36,7 +36,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             machine.InsertItem(itemStackFactory.Create(1, 3));
             machine.InsertItem(itemStackFactory.Create(2, 1));
             //処理を開始
-            GameUpdater.Update();
+            GameUpdater.UpdateWithWait();
             //別のアイテムを追加
             machine.InsertItem(itemStackFactory.Create(5, 6));
             machine.InsertItem(itemStackFactory.Create(2, 4));

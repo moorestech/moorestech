@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Core
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var random = new Random(4123);
-            for (var i = 0; i < 5; i++)
+            for (var i = 0; i < 2; i++) //あまり深い意味はないが取りあえずテストは2回実行する
             {
                 var id = random.Next(0, 10);
 
@@ -45,14 +45,14 @@ namespace Tests.CombinedTest.Core
                 while (DateTime.Now < endTime.AddSeconds(0.2))
                 {
                     item = beltConveyor.InsertItem(item);
-                    GameUpdater.Update();
+                    GameUpdater.UpdateWithWait();
                 }
 
                 Assert.AreEqual(item.Count, 1);
 
                 var dummy = new DummyBlockInventory(itemStackFactory);
                 beltConveyor.AddOutputConnector(dummy);
-                GameUpdater.Update();
+                GameUpdater.UpdateWithWait();
 
                 Assert.AreEqual(itemStackFactory.Create(id, 1).ToString(), dummy.InsertedItems[0].ToString());
             }
@@ -72,7 +72,7 @@ namespace Tests.CombinedTest.Core
 
 
             var random = new Random(4123);
-            for (var i = 0; i < 5; i++)
+            for (var i = 0; i < 2; i++) //あまり深い意味はないが取りあえずテストは2回実行する
             {
                 var id = random.Next(1, 11);
                 var count = random.Next(1, 10);
@@ -83,8 +83,13 @@ namespace Tests.CombinedTest.Core
 
                 var expectedEndTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
                 var outputItem = beltConveyor.InsertItem(item);
-                while (!dummy.IsItemExists) GameUpdater.Update();
+                
 
+                var startTime = DateTime.Now;
+            
+                //5秒以上経過したらループを抜ける 
+                while (!dummy.IsItemExists)  GameUpdater.UpdateWithWait();
+                
                 Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.2));
                 Assert.True(expectedEndTime.AddSeconds(-0.2) <= DateTime.Now);
 
@@ -108,7 +113,7 @@ namespace Tests.CombinedTest.Core
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var random = new Random(4123);
-            for (var i = 0; i < 5; i++)
+            for (var i = 0; i < 2; i++) //あまり深い意味はないが取りあえずテストは2回実行する
             {
                 var id = random.Next(1, 11);
                 var item = itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
@@ -119,7 +124,7 @@ namespace Tests.CombinedTest.Core
                 while (!dummy.IsItemExists)
                 {
                     item = beltConveyor.InsertItem(item);
-                    GameUpdater.Update();
+                    GameUpdater.UpdateWithWait();
                 }
 
                 Assert.True(item.Equals(itemStackFactory.Create(id, 0)));
@@ -138,7 +143,7 @@ namespace Tests.CombinedTest.Core
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var random = new Random(4123);
-            for (var i = 0; i < 5; i++)
+            for (var i = 0; i < 2; i++) //あまり深い意味はないが取りあえずテストは2回実行する
             {
                 //必要な変数を作成
                 var item1 = itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));

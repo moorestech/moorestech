@@ -143,9 +143,13 @@ namespace Game.Block.Blocks.BeltConveyor
             {
                 var item = _inventoryItems[i];
                 if (item == null) continue;
+                
+                //時間を減らす 
+                item.RemainingTime -= GameUpdater.UpdateMillSecondTime;
+                Debug.Log($"Item {i} RemainingTime:{item.RemainingTime}");
                     
                 //次のインデックスに入れる時間かどうかをチェックする
-                var nextIndexStartTime = (i + 1) * (TimeOfItemEnterToExit / InventoryItemNum);
+                var nextIndexStartTime = i * (TimeOfItemEnterToExit / InventoryItemNum);
                 var isNextInsertable = item.RemainingTime <= nextIndexStartTime;
                     
                 //次に空きがあれば次に移動する
@@ -153,12 +157,14 @@ namespace Game.Block.Blocks.BeltConveyor
                 {
                     _inventoryItems[i - 1] = item;
                     _inventoryItems[i] = null;
+                    Debug.Log($"Item Moved {i} -> {i - 1} RemainingTime:{item.RemainingTime}");
                     continue;
                 }
                     
                 //最後のアイテムの場合は接続先に渡す
-                if (i == 0)
+                if (i == 0 && item.RemainingTime <= 0)
                 {
+                    Debug.Log($"Item Out {i} RemainingTime:{item.RemainingTime}");
                     var insertItem = _itemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
                     var output = _connector.InsertItem(insertItem);
                     //渡した結果がnullItemだったらそのアイテムを消す
@@ -166,13 +172,10 @@ namespace Game.Block.Blocks.BeltConveyor
                         
                     continue;
                 }
-                    
-                //時間を減らす 
-                item.RemainingTime -= GameUpdater.UpdateMillSecondTime;
             }
         }
         
-        public BeltConveyorInventoryItem GetInventoryItem(int index)
+        public BeltConveyorInventoryItem GetBeltConveyorItem(int index)
         {
             return _inventoryItems[index];
         }

@@ -168,7 +168,7 @@ namespace Tests.CombinedTest.Server
 
             //4秒間アップデートする
             var now = DateTime.Now;
-            while (DateTime.Now - now < TimeSpan.FromMilliseconds(TimeOfItemEnterToExit)) GameUpdater.Update();
+            while (DateTime.Now - now < TimeSpan.FromMilliseconds(TimeOfItemEnterToExit)) GameUpdater.UpdateWithWait();
 
             //ベルトコンベアからアイテムを取得
             var inventoryItemsField =

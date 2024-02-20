@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Core
             var expectedEndTime = DateTime.Now.AddMilliseconds(
                 config.TimeOfItemEnterToExit);
             var outputItem = beltConveyor.InsertItem(item);
-            while (!chest.GetItem(0).Equals(item)) GameUpdater.Update();
+            while (!chest.GetItem(0).Equals(item)) GameUpdater.UpdateWithWait();
 
             Assert.True(chest.GetItem(0).Equals(item));
         }
@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Core
             chest.SetItem(0, 1, 1);
 
             chest.AddOutputConnector(beltconveyor);
-            GameUpdater.Update();
+            GameUpdater.UpdateWithWait();
 
 
             Assert.AreEqual(chest.GetItem(0).Count, 0);

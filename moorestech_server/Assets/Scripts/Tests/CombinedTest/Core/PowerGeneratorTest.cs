@@ -42,13 +42,13 @@ namespace Tests.CombinedTest.Core
             powerGenerator.InsertItem(fuelItem1);
 
             //1回目のループ
-            GameUpdater.Update();
+            GameUpdater.UpdateWithWait();
 
             //供給電力の確認
             Assert.AreEqual(generatorConfigParam.FuelSettings[FuelItem1Id].Power, powerGenerator.OutputEnergy());
 
             //燃料の枯渇までループ
-            while (endTime1.AddSeconds(0.1).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
+            while (endTime1.AddSeconds(0.1).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
 
             //燃料が枯渇しているか確認
             //リフレクションで現在の燃料を取得
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Core
 
             //燃料の1個目の枯渇までループ
             endTime1 = DateTime.Now.AddMilliseconds(generatorConfigParam.FuelSettings[FuelItem1Id].Time);
-            while (endTime1.AddSeconds(0.3).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
+            while (endTime1.AddSeconds(0.3).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
 
             //2個の燃料が入っていることを確認
             fuelItemId = (int)typeof(VanillaPowerGeneratorBase).GetField("_fuelItemId",
@@ -73,7 +73,7 @@ namespace Tests.CombinedTest.Core
 
             //燃料の2個目の枯渇までループ
             var endTime2 = DateTime.Now.AddMilliseconds(generatorConfigParam.FuelSettings[FuelItem2Id].Time);
-            while (endTime2.AddSeconds(0.1).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
+            while (endTime2.AddSeconds(0.1).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
 
             //2個目の燃料が枯渇しているか確認
             fuelItemId = (int)typeof(VanillaPowerGeneratorBase).GetField("_fuelItemId",
@@ -95,7 +95,7 @@ namespace Tests.CombinedTest.Core
                 blockConfig.GetBlockConfig(UnitTestModBlockId.InfinityGeneratorId).Param as PowerGeneratorConfigParam;
 
             //1回目のループ
-            GameUpdater.Update();
+            GameUpdater.UpdateWithWait();
 
             //供給電力の確認
             Assert.AreEqual(generatorConfigParam.InfinityPower, powerGenerator.OutputEnergy());
