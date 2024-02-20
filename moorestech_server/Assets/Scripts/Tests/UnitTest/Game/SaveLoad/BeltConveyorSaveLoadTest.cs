@@ -24,10 +24,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             var inventoryItemsField =
                 typeof(VanillaBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (List<BeltConveyorInventoryItem>)inventoryItemsField.GetValue(belt);
+
+            var timeOfItemEnterToExit = belt.TimeOfItemEnterToExit;
             //アイテムを設定
-            inventoryItems.Add(new BeltConveyorInventoryItem(1, 0));
-            inventoryItems.Add(new BeltConveyorInventoryItem(2, 1000));
-            inventoryItems.Add(new BeltConveyorInventoryItem(5, 2000));
+            inventoryItems.Add(new BeltConveyorInventoryItem(1,timeOfItemEnterToExit ,0));
+            inventoryItems.Add(new BeltConveyorInventoryItem(2,timeOfItemEnterToExit ,1000));
+            inventoryItems.Add(new BeltConveyorInventoryItem(5,timeOfItemEnterToExit ,2000));
 
             //セーブデータ取得
             var str = belt.GetSaveState();
@@ -40,13 +42,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(3, newInventoryItems.Count);
             Assert.AreEqual(1, newInventoryItems[0].ItemId);
             Assert.AreEqual(10, newInventoryItems[0].RemainingTime);
-            Assert.AreEqual(0, newInventoryItems[0].LimitTime);
             Assert.AreEqual(2, newInventoryItems[1].ItemId);
             Assert.AreEqual(100, newInventoryItems[1].RemainingTime);
-            Assert.AreEqual(1000, newInventoryItems[1].LimitTime);
             Assert.AreEqual(5, newInventoryItems[2].ItemId);
             Assert.AreEqual(2500, newInventoryItems[2].RemainingTime);
-            Assert.AreEqual(2000, newInventoryItems[2].LimitTime);
         }
     }
 }

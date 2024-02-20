@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Core.Item;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
@@ -80,9 +81,7 @@ namespace Tests.CombinedTest.Core
                 var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue);
                 beltConveyor.AddOutputConnector(dummy);
 
-
-                var expectedEndTime = DateTime.Now.AddMilliseconds(
-                    config.TimeOfItemEnterToExit);
+                var expectedEndTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
                 var outputItem = beltConveyor.InsertItem(item);
                 while (!dummy.IsItemExists) GameUpdater.Update();
 

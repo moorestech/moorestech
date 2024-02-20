@@ -8,6 +8,7 @@ using Game.Block.BlockInventory;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
@@ -16,11 +17,13 @@ namespace Game.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyor : IBlock, IBlockInventory
     {
-        private readonly int _inventoryItemNum;
-        private readonly BeltConveyorInventoryItem[] _inventoryItems;
-        private readonly ItemStackFactory _itemStackFactory;
 
         public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
+        public readonly int InventoryItemNum;
+        
+        private readonly BeltConveyorInventoryItem[] _inventoryItems;
+        private readonly ItemStackFactory _itemStackFactory;
+        
         private IBlockInventory _connector;
 
         public VanillaBeltConveyor(int blockId, int entityId, long blockHash, ItemStackFactory itemStackFactory,
@@ -29,7 +32,7 @@ namespace Game.Block.Blocks.BeltConveyor
             EntityId = entityId;
             BlockId = blockId;
             _itemStackFactory = itemStackFactory;
-            _inventoryItemNum = inventoryItemNum;
+            InventoryItemNum = inventoryItemNum;
             TimeOfItemEnterToExit = timeOfItemEnterToExit;
             BlockHash = blockHash;
             _connector = new NullIBlockInventory(_itemStackFactory);
@@ -119,12 +122,10 @@ namespace Game.Block.Blocks.BeltConveyor
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            lock (_inventoryItems)
-            {
-                var limitTime = _inventoryItems[slot].RemainingTime;
-                _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.Id, TimeOfItemEnterToExit,
-                    itemStack.ItemInstanceId);
-            }
+            //TODo lockすべき？？
+            
+            _inventoryItems[slot] = new BeltConveyorInventoryItem(itemStack.Id, TimeOfItemEnterToExit,
+                itemStack.ItemInstanceId);
         }
 
         /// <summary>
@@ -134,36 +135,46 @@ namespace Game.Block.Blocks.BeltConveyor
         /// </summary>
         private void Update()
         {
-            lock (_inventoryItems)
-            {
-                var count = _inventoryItems.Length;
 
-                for (int i = 0; i < _inventoryItems.Length; i++)
+            //TODO lockすべき？？
+            var count = _inventoryItems.Length;
+
+            for (int i = 0; i < count; i++)
+            {
+                var item = _inventoryItems[i];
+                if (item == null) continue;
+                    
+                //次のインデックスに入れる時間かどうかをチェックする
+                var nextIndexStartTime = (i + 1) * (TimeOfItemEnterToExit / InventoryItemNum);
+                var isNextInsertable = item.RemainingTime <= nextIndexStartTime;
+                    
+                //次に空きがあれば次に移動する
+                if (isNextInsertable && i != 0 && _inventoryItems[i - 1] == null)
                 {
-                    var item = _inventoryItems[i];
-                    if (item == null) continue;
-                    
-                    //TODO 次のインデックスに入れる時間かどうかをチェックする
-                    var nextIndex = (int)(item.RemainingTime / _inventoryItemNum);
-                    
-                    //TODo 次のインデックスに入れて、次に空きがあれば次に移動する
-                    
-                    //最後のアイテムの場合は接続先に渡す
-                    if (i == count - 1)
-                    {
-                        var insertItem = _itemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
-                        var output = _connector.InsertItem(insertItem);
-                        //渡した結果がnullItemだったらそのアイテムを消す
-                        if (output.Id == ItemConst.EmptyItemId) _inventoryItems[i] = null;
-                        
-                        continue;
-                    }
-                    
-                    //時間を減らす 
-                    var t = _inventoryItems[i];
-                    t.RemainingTime -= GameUpdater.UpdateMillSecondTime;
+                    _inventoryItems[i - 1] = item;
+                    _inventoryItems[i] = null;
+                    continue;
                 }
+                    
+                //最後のアイテムの場合は接続先に渡す
+                if (i == 0)
+                {
+                    var insertItem = _itemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
+                    var output = _connector.InsertItem(insertItem);
+                    //渡した結果がnullItemだったらそのアイテムを消す
+                    if (output.Id == ItemConst.EmptyItemId) _inventoryItems[i] = null;
+                        
+                    continue;
+                }
+                    
+                //時間を減らす 
+                item.RemainingTime -= GameUpdater.UpdateMillSecondTime;
             }
+        }
+        
+        public BeltConveyorInventoryItem GetInventoryItem(int index)
+        {
+            return _inventoryItems[index];
         }
     }
 }
