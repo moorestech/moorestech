@@ -32,12 +32,6 @@ jobs:
       # Checkout
       - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          submodules: Assets/Script/Server/moorestech
-      # Submoduleの設定
-      - name: Init submodules
-        id: init
-        run: git submodule update --init
       - name: Run git status
         id: status
         run: echo "::set-output name=status::$(git status -s)"
@@ -51,7 +45,7 @@ jobs:
       # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
       - uses: actions/cache@v3
         with:
-          path: Library
+          path: moorestech_client/Library
           key: "Library_${{ env.CURRENT_DATETIME }}"
       
       # Build
@@ -65,6 +59,7 @@ jobs:
           unityVersion: 2022.3.1f1
           buildMethod: ${{ matrix.platform.buildMethod }}
           allowDirtyBuild: true
+          projectPath: moorestech_client/
       
       # Upload Build for Windows, Mac
       - name: ${{ matrix.platform.name }} Upload
@@ -72,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Output_${{ matrix.platform.name }}
-          path: Output_${{ matrix.platform.name }}
+          path: moorestech_client/Output_${{ matrix.platform.name }}
       
       # Archive for Linux
       - name: Archive for Linux
