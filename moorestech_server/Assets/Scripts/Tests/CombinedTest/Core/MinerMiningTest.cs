@@ -26,8 +26,9 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void MiningTest()
         {
-            var (_, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            GameUpdater.ResetUpdate();
+
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var oreConfig = serviceProvider.GetService<IOreConfig>();
@@ -55,7 +56,7 @@ namespace Tests.CombinedTest.Core
 
             //テストコードの準備完了
             //鉱石1個分の採掘時間待機
-            while (mineEndTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
+            while (mineEndTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
 
             //鉱石1個が出力されているかチェック
             Assert.AreEqual(miningItemId, dummyInventory.InsertedItems[0].Id);
@@ -66,7 +67,7 @@ namespace Tests.CombinedTest.Core
 
             //鉱石2個分の採掘時間待機
             mineEndTime = DateTime.Now.AddMilliseconds(miningTime * 2);
-            while (mineEndTime.AddSeconds(0.02).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
+            while (mineEndTime.AddSeconds(0.02).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
 
             //鉱石2個が残っているかチェック
             var outputSlot = miner.Items[0];
@@ -77,7 +78,7 @@ namespace Tests.CombinedTest.Core
             ((IBlockInventory)miner).AddOutputConnector(dummyInventory);
 
             //コネクターにアイテムを入れるためのアップデート
-            GameUpdater.Update();
+            GameUpdater.UpdateWithWait();
             
             //アイテムがさらに2個追加で入っているかチェック
             Assert.AreEqual(miningItemId, dummyInventory.InsertedItems[0].Id);
