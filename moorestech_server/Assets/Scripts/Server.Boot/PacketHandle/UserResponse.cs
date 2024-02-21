@@ -70,7 +70,7 @@ namespace Server.Boot.PacketHandle
                 }
             }
 
-            LogDataConsumption(_byteCount, _startTime);
+            //LogDataConsumption(_byteCount, _startTime);
 
             return false;
         }

@@ -23,8 +23,9 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void ItemProcessingOutputTest()
         {
-            var (_, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.MachineIoTestModDirectory);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.MachineIoTestModDirectory);
+            GameUpdater.ResetUpdate();
+            
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
@@ -39,7 +40,7 @@ namespace Tests.CombinedTest.Core
 
             var craftTime = DateTime.Now.AddMilliseconds(recipe.Time);
             //最大クラフト時間を超過するまでクラフトする
-            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.Update();
+            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
 
             //検証
             var (input, output) = GetInputOutputSlot(block);

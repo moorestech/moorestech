@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
 using Game.WorldMap;
 using MessagePack;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
+using UnityEngine;
 
 namespace Server.Protocol
 {
@@ -39,8 +41,8 @@ namespace Server.Protocol
         public List<List<byte>> GetPacketResponse(List<byte> payload)
         {
             var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray()).Tag;
-
             var response = _packetResponseDictionary[tag].GetResponse(payload);
+            
             return response;
         }
     }

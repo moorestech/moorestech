@@ -11,6 +11,7 @@ namespace Tests.UnitTest.Core.Block
         [Test]
         public void ElectricEnergyTest()
         {
+            GameUpdater.ResetUpdate();
             var segment = new EnergySegment();
 
             var electric = new BlockElectricConsumer(100, 0);
@@ -18,22 +19,22 @@ namespace Tests.UnitTest.Core.Block
 
             segment.AddGenerator(generate);
             segment.AddEnergyConsumer(electric);
-            GameUpdater.Update();
+            GameUpdater.UpdateWithWait();
             Assert.AreEqual(100, electric.NowPower);
 
             segment.RemoveGenerator(generate);
-            GameUpdater.Update();
+            GameUpdater.UpdateWithWait();
             Assert.AreEqual(0, electric.NowPower);
 
             var electric2 = new BlockElectricConsumer(300, 1);
             segment.AddGenerator(generate);
             segment.AddEnergyConsumer(electric2);
-            GameUpdater.Update();
+            GameUpdater.UpdateWithWait();
             Assert.AreEqual(25, electric.NowPower);
             Assert.AreEqual(75, electric2.NowPower);
 
             segment.RemoveEnergyConsumer(electric);
-            GameUpdater.Update();
+            GameUpdater.UpdateWithWait();
             Assert.AreEqual(25, electric.NowPower);
             Assert.AreEqual(100, electric2.NowPower);
         }
