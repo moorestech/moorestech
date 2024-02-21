@@ -51,11 +51,13 @@ namespace Game.Block.Blocks.BeltConveyor
             //データがないときは何もしない
             if (state == string.Empty) return;
             var stateList = state.Split(',');
-            for (var i = 0; i < stateList.Length; i += 3)
+            for (var i = 0; i < _inventoryItems.Length; i++)
             {
-                var id = int.Parse(stateList[i]);
-                var remainTime = double.Parse(stateList[i + 1]);
-                var limitTime = double.Parse(stateList[i + 2]);
+                var saveIndex = i * 2;
+                var id = int.Parse(stateList[saveIndex]);
+                var remainTime = double.Parse(stateList[saveIndex + 1]);
+                if (id == -1) continue;
+                
                 _inventoryItems[i] = new BeltConveyorInventoryItem(id, remainTime, ItemInstanceIdGenerator.Generate());
             }
         }
@@ -74,6 +76,11 @@ namespace Game.Block.Blocks.BeltConveyor
             var state = new StringBuilder();
             foreach (var t in _inventoryItems)
             {
+                if (t == null)
+                {
+                    state.Append("-1,-1,");
+                    continue;
+                }
                 state.Append(t.ItemId);
                 state.Append(',');
                 state.Append(t.RemainingTime);
@@ -144,27 +151,25 @@ namespace Game.Block.Blocks.BeltConveyor
                 var item = _inventoryItems[i];
                 if (item == null) continue;
                 
-                //時間を減らす 
-                item.RemainingTime -= GameUpdater.UpdateMillSecondTime;
-                Debug.Log($"Item {i} RemainingTime:{item.RemainingTime}");
-                    
                 //次のインデックスに入れる時間かどうかをチェックする
                 var nextIndexStartTime = i * (TimeOfItemEnterToExit / InventoryItemNum);
                 var isNextInsertable = item.RemainingTime <= nextIndexStartTime;
                     
                 //次に空きがあれば次に移動する
-                if (isNextInsertable && i != 0 && _inventoryItems[i - 1] == null)
+                if (isNextInsertable && i != 0)
                 {
-                    _inventoryItems[i - 1] = item;
-                    _inventoryItems[i] = null;
-                    Debug.Log($"Item Moved {i} -> {i - 1} RemainingTime:{item.RemainingTime}");
+                    if (_inventoryItems[i - 1] == null)
+                    {
+                        _inventoryItems[i - 1] = item;
+                        _inventoryItems[i] = null;
+                    }
                     continue;
                 }
                     
                 //最後のアイテムの場合は接続先に渡す
                 if (i == 0 && item.RemainingTime <= 0)
                 {
-                    Debug.Log($"Item Out {i} RemainingTime:{item.RemainingTime}");
+                    Debug.Log($"Item Out {i} EntityId {EntityId } RemainingTime:{item.RemainingTime}");
                     var insertItem = _itemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
                     var output = _connector.InsertItem(insertItem);
                     //渡した結果がnullItemだったらそのアイテムを消す
@@ -172,6 +177,10 @@ namespace Game.Block.Blocks.BeltConveyor
                         
                     continue;
                 }
+
+                //時間を減らす 
+                item.RemainingTime -= GameUpdater.UpdateMillSecondTime;
+                Debug.Log($"Item {i} EntityId {EntityId } RemainingTime:{item.RemainingTime} {GameUpdater.UpdateMillSecondTime}");
             }
         }
         

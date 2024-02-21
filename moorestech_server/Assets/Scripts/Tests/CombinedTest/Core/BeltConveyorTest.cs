@@ -25,8 +25,8 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FullInsertAndChangeConnectorBeltConveyorTest()
         {
-            var (_, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            GameUpdater.ResetUpdate();
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
@@ -62,8 +62,8 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void InsertBeltConveyorTest()
         {
-            var (_, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            GameUpdater.ResetUpdate();
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
@@ -84,11 +84,10 @@ namespace Tests.CombinedTest.Core
                 var expectedEndTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
                 var outputItem = beltConveyor.InsertItem(item);
                 
-
-                var startTime = DateTime.Now;
-            
                 //5秒以上経過したらループを抜ける 
                 while (!dummy.IsItemExists)  GameUpdater.UpdateWithWait();
+                
+                Debug.Log($"{(DateTime.Now - expectedEndTime).TotalMilliseconds}");
                 
                 Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.2));
                 Assert.True(expectedEndTime.AddSeconds(-0.2) <= DateTime.Now);
@@ -104,8 +103,9 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FullInsertBeltConveyorTest()
         {
-            var (_, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            GameUpdater.ResetUpdate();
+
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;

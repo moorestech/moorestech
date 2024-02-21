@@ -11,6 +11,7 @@ namespace Tests.UnitTest.Core.Block
         [Test]
         public void ElectricEnergyTest()
         {
+            GameUpdater.ResetUpdate();
             var segment = new EnergySegment();
 
             var electric = new BlockElectricConsumer(100, 0);

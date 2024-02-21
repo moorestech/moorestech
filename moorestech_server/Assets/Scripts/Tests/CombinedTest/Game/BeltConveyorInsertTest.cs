@@ -16,8 +16,9 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void TwoItemIoTest()
         {
-            var (_, saveServiceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, saveServiceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            GameUpdater.ResetUpdate();
+            
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 

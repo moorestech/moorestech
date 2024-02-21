@@ -23,29 +23,29 @@ namespace Tests.UnitTest.Game.SaveLoad
             //リフレクションで_inventoryItemsを取得
             var inventoryItemsField =
                 typeof(VanillaBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventoryItems = (List<BeltConveyorInventoryItem>)inventoryItemsField.GetValue(belt);
+            var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
 
             var timeOfItemEnterToExit = belt.TimeOfItemEnterToExit;
             //アイテムを設定
-            inventoryItems.Add(new BeltConveyorInventoryItem(1,timeOfItemEnterToExit ,0));
-            inventoryItems.Add(new BeltConveyorInventoryItem(2,timeOfItemEnterToExit ,1000));
-            inventoryItems.Add(new BeltConveyorInventoryItem(5,timeOfItemEnterToExit ,2000));
+            inventoryItems[0] = new BeltConveyorInventoryItem(1, timeOfItemEnterToExit - 700, 0);
+            inventoryItems[2] = new BeltConveyorInventoryItem(2, timeOfItemEnterToExit - 500, 0);
+            inventoryItems[3] = new BeltConveyorInventoryItem(5, timeOfItemEnterToExit, 0);
 
             //セーブデータ取得
             var str = belt.GetSaveState();
             Debug.Log(str);
             //セーブデータをロード
             var newBelt = new VanillaBeltConveyor(1, 10, 1, str, itemsStackFactory, 4, 4000);
-            var newInventoryItems = (List<BeltConveyorInventoryItem>)inventoryItemsField.GetValue(newBelt);
+            var newInventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
 
             //アイテムが一致するかチェック
-            Assert.AreEqual(3, newInventoryItems.Count);
+            Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
             Assert.AreEqual(1, newInventoryItems[0].ItemId);
-            Assert.AreEqual(10, newInventoryItems[0].RemainingTime);
-            Assert.AreEqual(2, newInventoryItems[1].ItemId);
-            Assert.AreEqual(100, newInventoryItems[1].RemainingTime);
-            Assert.AreEqual(5, newInventoryItems[2].ItemId);
-            Assert.AreEqual(2500, newInventoryItems[2].RemainingTime);
+            Assert.AreEqual(timeOfItemEnterToExit - 700, newInventoryItems[0].RemainingTime);
+            Assert.AreEqual(2, newInventoryItems[2].ItemId);
+            Assert.AreEqual(timeOfItemEnterToExit - 500, newInventoryItems[2].RemainingTime);
+            Assert.AreEqual(5, newInventoryItems[3].ItemId);
+            Assert.AreEqual(timeOfItemEnterToExit, newInventoryItems[3].RemainingTime);
         }
     }
 }

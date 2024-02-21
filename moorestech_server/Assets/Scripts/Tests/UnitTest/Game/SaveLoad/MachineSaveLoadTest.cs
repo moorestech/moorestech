@@ -26,8 +26,9 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void InventoryBlockTest()
         {
             //機械の追加
-            var (itemStackFactory, blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) =
-                CreateBlockTestModule();
+            var (itemStackFactory, blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
+            GameUpdater.ResetUpdate();
+            
             var machine = (VanillaMachineBase)blockFactory.Create(1, 10);
             worldBlockDatastore.AddBlock(machine, 0, 0, BlockDirection.North);
 

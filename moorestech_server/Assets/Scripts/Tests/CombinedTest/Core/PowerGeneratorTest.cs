@@ -23,8 +23,9 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void UseFuelTest()
         {
-            var (_, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            GameUpdater.ResetUpdate();
+            
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var powerGenerator = blockFactory.Create(PowerGeneratorId, 10) as VanillaPowerGeneratorBase;
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
@@ -85,8 +86,9 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void InfinityGeneratorTet()
         {
-            var (_, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            GameUpdater.ResetUpdate();
+            
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var powerGenerator =
                 blockFactory.Create(UnitTestModBlockId.InfinityGeneratorId, 10) as VanillaPowerGeneratorBase;

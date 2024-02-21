@@ -59,6 +59,8 @@ namespace Server.Protocol.PacketResponse.Util
             for (var i = 0 ; i < vanillaBeltConveyor.InventoryItemNum; i++)
             {
                 var beltConveyorItem = vanillaBeltConveyor.GetBeltConveyorItem(i);
+                if (beltConveyorItem == null) continue;
+                
                 //残り時間をどこまで進んだかに変換するために 1- する
                 var parcent =
                     1 - (float)(beltConveyorItem.RemainingTime / vanillaBeltConveyor.TimeOfItemEnterToExit);
