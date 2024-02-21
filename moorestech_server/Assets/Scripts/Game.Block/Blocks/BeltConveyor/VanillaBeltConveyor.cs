@@ -142,7 +142,6 @@ namespace Game.Block.Blocks.BeltConveyor
         /// </summary>
         private void Update()
         {
-
             //TODO lockすべき？？
             var count = _inventoryItems.Length;
 
@@ -169,7 +168,6 @@ namespace Game.Block.Blocks.BeltConveyor
                 //最後のアイテムの場合は接続先に渡す
                 if (i == 0 && item.RemainingTime <= 0)
                 {
-                    Debug.Log($"Item Out {i} EntityId {EntityId } RemainingTime:{item.RemainingTime}");
                     var insertItem = _itemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
                     var output = _connector.InsertItem(insertItem);
                     //渡した結果がnullItemだったらそのアイテムを消す
@@ -180,7 +178,6 @@ namespace Game.Block.Blocks.BeltConveyor
 
                 //時間を減らす 
                 item.RemainingTime -= GameUpdater.UpdateMillSecondTime;
-                Debug.Log($"Item {i} EntityId {EntityId } RemainingTime:{item.RemainingTime} {GameUpdater.UpdateMillSecondTime}");
             }
         }
         
