@@ -55,8 +55,7 @@ namespace Client.Network.NewApi
             var request = new BlockInventoryOpenCloseProtocolMessagePack(playerId, pos.x, pos.y, isOpen);
             _instance._serverConnector.Send(request);
         }
-
-
+        
         public static async UniTask<PlayerInventoryResponse> GetPlayerInventory(int playerId, CancellationToken ct)
         {
             var request = new RequestPlayerInventoryProtocolMessagePack(playerId);
