@@ -52,9 +52,10 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public RequestChunkDataMessagePack(int playerId, string playerName)
+        public RequestChunkDataMessagePack(List<Vector2IntMessagePack> chunkPos)
         {
             Tag = GetChunkDataProtocol.Tag;
+            ChunkPos = chunkPos;
         }
 
         public List<Vector2IntMessagePack> ChunkPos { get; set; }
@@ -68,20 +69,36 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public ResponseChunkDataMessagePack(Vector2Int chunk, int[,] blockIds, int[,] blockDirect,EntityMessagePack[] entities)
+        public ResponseChunkDataMessagePack(ChunkDataMessagePack[] chunkData)
         {
             Tag = GetChunkDataProtocol.Tag;
-            ChunkPos = new Vector2IntMessagePack(chunk);
+            ChunkData = chunkData;
+        }
+        
+        public ChunkDataMessagePack[] ChunkData { get; set; }
+    }
+    
+    [MessagePackObject(true)]
+    public class ChunkDataMessagePack
+    {
+        
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public ChunkDataMessagePack()
+        {
+        }
+
+        public ChunkDataMessagePack(Vector2Int chunkPos, int[,] blockIds, int[,] blockDirections, EntityMessagePack[] entities)
+        {
+            ChunkPos = new Vector2IntMessagePack(chunkPos);
             BlockIds = blockIds;
-            BlockDirect = blockDirect;
+            BlockDirections = blockDirections;
             Entities = entities;
         }
         
         public Vector2IntMessagePack ChunkPos { get; set; }
-        
         public int[,] BlockIds { get; set; }
-        public int[,] BlockDirect { get; set; }
-        
+        public int[,] BlockDirections { get; set; }
         public EntityMessagePack[] Entities { get; set; }
+        
     }
 }

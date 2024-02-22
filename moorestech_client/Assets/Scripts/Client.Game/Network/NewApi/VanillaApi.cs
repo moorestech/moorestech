@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Core.Item;
 using Cysharp.Threading.Tasks;
@@ -77,11 +78,47 @@ namespace Client.Network.NewApi
 
         public static async UniTask<List<ChunkResponse>> GetChunkInfos(List<Vector2Int> chunks, CancellationToken ct)
         {
-            var request = new RequestChunkInfoProtocolMessagePack(chunks);
+            var request = new RequestChunkDataMessagePack(chunks.Select(c => new Vector2IntMessagePack(c)).ToList());
+            var response = await _instance._serverConnector.GetInformationData<ResponseChunkDataMessagePack>(request, ct);
             
+            var result = new List<ChunkResponse>(response.ChunkData.Length);
+            foreach (var responseChunk in response.ChunkData)
+            {
+                result.Add(ParseChunkResponse(responseChunk));
+            }
             
-            //TODO チャンクを取得するプロトコルをつくる
-            throw new NotImplementedException();
+            return result;
+            
+            #region Internal
+
+            ChunkResponse ParseChunkResponse(ChunkDataMessagePack chunk)
+            {
+                var blocks = new BlockResponse[chunk.BlockIds.GetLength(0), chunk.BlockIds.GetLength(1)];
+                for (int x = 0; x < chunk.BlockIds.GetLength(0); x++)
+                {
+                    for (int y = 0; y < chunk.BlockIds.GetLength(1); y++)
+                    {
+                        blocks[x, y] = new BlockResponse
+                        {
+                            BlockId = chunk.BlockIds[x, y],
+                            BlockDirection = (BlockDirection) chunk.BlockDirections[x, y]
+                        };
+                    }
+                }
+                
+                var entities = chunk.Entities.Select(e => new EntityResponse
+                {
+                    InstanceId = e.InstanceId,
+                    Position = new Vector3(e.Position.X, e.Position.Y, e.Position.Z),
+                    State = e.State,
+                    Type = e.Type
+                });
+                
+                var chunkPos = chunk.ChunkPos.Vector2Int;
+                return new ChunkResponse(chunkPos, blocks, entities.ToList());
+            }
+
+            #endregion
         }
     }
 
@@ -101,11 +138,11 @@ namespace Client.Network.NewApi
     {
         public readonly Vector2Int ChunkPos;
         public readonly BlockResponse[,] Blocks;
-        public readonly EntityResponse[] Entities;
+        public readonly List<EntityResponse> Entities;
         
         //TODO レスポンスの種類を増やせるようにする
 
-        public ChunkResponse(Vector2Int chunkPos, BlockResponse[,] blocks, EntityResponse[] entities)
+        public ChunkResponse(Vector2Int chunkPos, BlockResponse[,] blocks, List<EntityResponse> entities)
         {
             ChunkPos = chunkPos;
             Blocks = blocks;
