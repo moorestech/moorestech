@@ -7,12 +7,12 @@ using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
 {
-    public class GrabInventoryUpdateToSetEventPacket
+    public class GrabInventoryUpdateEventPacket
     {
         public const string EventTag = "va:event:grabInvUpdate";
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public GrabInventoryUpdateToSetEventPacket(IGrabInventoryUpdateEvent grabInventoryUpdateEvent,
+        public GrabInventoryUpdateEventPacket(IGrabInventoryUpdateEvent grabInventoryUpdateEvent,
             EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
@@ -41,7 +41,7 @@ namespace Server.Event.EventReceive
 
         public GrabInventoryUpdateEventMessagePack(IItemStack item)
         {
-            EventTag = GrabInventoryUpdateToSetEventPacket.EventTag;
+            EventTag = GrabInventoryUpdateEventPacket.EventTag;
             Item = new ItemMessagePack(item);
         }
 

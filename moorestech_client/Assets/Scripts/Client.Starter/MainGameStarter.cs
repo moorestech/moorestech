@@ -140,6 +140,7 @@ namespace MainGame.Starter
             //インベントリのUIコントロール
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory,LocalPlayerInventory>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
 
             //プレゼンターアセンブリ
             builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();

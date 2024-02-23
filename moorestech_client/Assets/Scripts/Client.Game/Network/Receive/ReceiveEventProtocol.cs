@@ -19,10 +19,7 @@ namespace MainGame.Network.Receive
             LocalPlayerInventoryController localPlayerInventoryController, ItemStackFactory itemStackFactory,LocalPlayerInventory localPlayerInventory)
         {
             _eventPacket.Add(PlaceBlockToSetEventPacket.EventTag, new BlockPlaceEventProtocol(receiveChunkDataEvent));
-            _eventPacket.Add(MainInventoryUpdateToSetEventPacket.EventTag, new MainInventorySlotEventProtocol(itemStackFactory,localPlayerInventory));
-            _eventPacket.Add(OpenableBlockInventoryUpdateToSetEventPacket.EventTag, new BlockInventorySlotUpdateEventProtocol(blockInventoryView,itemStackFactory));
             _eventPacket.Add(RemoveBlockToSetEventPacket.EventTag, new BlockRemoveEventProtocol(receiveChunkDataEvent));
-            _eventPacket.Add(GrabInventoryUpdateToSetEventPacket.EventTag, new GrabInventoryUpdateEventProtocol(localPlayerInventoryController,itemStackFactory));
             _eventPacket.Add(ChangeBlockStateEventPacket.EventTag, new BlockStateChangeEventProtocol(receiveBlockStateChangeEvent));
             _eventPacket.Add(MapObjectUpdateEventPacket.EventTag, new MapObjectUpdateEventProtocol(receiveUpdateMapObjectEvent));
         }

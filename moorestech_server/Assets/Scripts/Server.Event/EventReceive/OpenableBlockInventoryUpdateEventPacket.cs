@@ -10,7 +10,7 @@ using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
 {
-    public class OpenableBlockInventoryUpdateToSetEventPacket
+    public class OpenableBlockInventoryUpdateEventPacket
     {
         public const string EventTag = "va:event:blockInvUpdate";
 
@@ -20,7 +20,7 @@ namespace Server.Event.EventReceive
 
         private DateTime _now = DateTime.Now;
 
-        public OpenableBlockInventoryUpdateToSetEventPacket(
+        public OpenableBlockInventoryUpdateEventPacket(
             EventProtocolProvider eventProtocolProvider, IBlockInventoryOpenStateDataStore inventoryOpenStateDataStore,
             IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, IWorldBlockDatastore worldBlockDatastore)
         {
@@ -62,7 +62,7 @@ namespace Server.Event.EventReceive
 
         public OpenableBlockInventoryUpdateEventMessagePack(int x, int y, int slot, IItemStack item)
         {
-            EventTag = OpenableBlockInventoryUpdateToSetEventPacket.EventTag;
+            EventTag = OpenableBlockInventoryUpdateEventPacket.EventTag;
             X = x;
             Y = y;
             Slot = slot;

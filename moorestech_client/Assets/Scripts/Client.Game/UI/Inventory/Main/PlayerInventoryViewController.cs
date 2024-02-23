@@ -278,7 +278,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
             _playerInventory.SetGrabItem(_grabInventoryBeforeDrag);
             foreach (var itemSplit in _itemSplitDraggedSlots)
             {
-                _playerInventory.SetMainItem(itemSplit.BeforeDragItem,itemSplit.Slot);
+                _playerInventory.SetMainItem(itemSplit.Slot, itemSplit.BeforeDragItem);
             }
             
             

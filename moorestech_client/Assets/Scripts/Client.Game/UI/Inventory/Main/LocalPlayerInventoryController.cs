@@ -105,7 +105,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
         {
             GrabInventory = itemStack;
         }
-        public void SetMainItem(IItemStack itemStack,int slot)
+        public void SetMainItem(int slot, IItemStack itemStack)
         {
             _mainAndSubCombine[slot] = itemStack;
         }

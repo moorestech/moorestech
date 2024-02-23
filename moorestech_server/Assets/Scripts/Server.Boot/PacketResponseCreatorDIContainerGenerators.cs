@@ -101,9 +101,9 @@ namespace Server.Boot
 
             //イベントレシーバーを登録
             services.AddSingleton<ChangeBlockStateEventPacket>();
-            services.AddSingleton<MainInventoryUpdateToSetEventPacket>();
-            services.AddSingleton<OpenableBlockInventoryUpdateToSetEventPacket>();
-            services.AddSingleton<GrabInventoryUpdateToSetEventPacket>();
+            services.AddSingleton<MainInventoryUpdateEventPacket>();
+            services.AddSingleton<OpenableBlockInventoryUpdateEventPacket>();
+            services.AddSingleton<GrabInventoryUpdateEventPacket>();
             services.AddSingleton<PlaceBlockToSetEventPacket>();
             services.AddSingleton<RemoveBlockToSetEventPacket>();
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect>();
@@ -123,9 +123,9 @@ namespace Server.Boot
 
             //イベントレシーバーをインスタンス化する
             //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
-            serviceProvider.GetService<MainInventoryUpdateToSetEventPacket>();
-            serviceProvider.GetService<OpenableBlockInventoryUpdateToSetEventPacket>();
-            serviceProvider.GetService<GrabInventoryUpdateToSetEventPacket>();
+            serviceProvider.GetService<MainInventoryUpdateEventPacket>();
+            serviceProvider.GetService<OpenableBlockInventoryUpdateEventPacket>();
+            serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
             serviceProvider.GetService<PlaceBlockToSetEventPacket>();
             serviceProvider.GetService<RemoveBlockToSetEventPacket>();
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();

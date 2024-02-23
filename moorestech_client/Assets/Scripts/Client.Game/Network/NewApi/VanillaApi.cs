@@ -125,7 +125,7 @@ namespace Client.Network.NewApi
 
         private readonly Dictionary<string,EventResponseInfo> _eventResponseInfos = new ();
 
-        public async UniTask CollectEvent()
+        private async UniTask CollectEvent()
         {
             while (true)
             {
@@ -163,14 +163,14 @@ namespace Client.Network.NewApi
             #endregion
         }
         
-        public void RegisterEventResponse(string tag,Action<byte[]> responseAction)
+        public static void RegisterEventResponse(string tag,Action<byte[]> responseAction)
         {
-            _eventResponseInfos.Add(tag,new EventResponseInfo(responseAction,tag));
+            _instance._eventResponseInfos.Add(tag,new EventResponseInfo(responseAction,tag));
         }
         
-        public void UnRegisterEventResponse(string tag)
+        public static void UnRegisterEventResponse(string tag)
         {
-            _eventResponseInfos.Remove(tag);
+            _instance._eventResponseInfos.Remove(tag);
         }
     }
 

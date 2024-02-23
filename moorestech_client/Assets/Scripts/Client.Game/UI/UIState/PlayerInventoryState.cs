@@ -59,7 +59,7 @@ namespace MainGame.UnityView.UI.UIState
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
                 var item = invResponse.MainInventory[i];
-                _localPlayerInventoryController.SetMainItem(item,i);
+                _localPlayerInventoryController.SetMainItem(i, item);
             }
 
             _localPlayerInventoryController.SetGrabItem(invResponse.GrabItem);
