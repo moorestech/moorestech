@@ -119,7 +119,6 @@ namespace MainGame.Starter
             builder.Register<ISocketSender, SocketSender>(Lifetime.Singleton);
 
             //パケット受け取りイベント
-            builder.Register<ReceiveChunkDataEvent>(Lifetime.Singleton);
             builder.Register<ReceiveEntitiesDataEvent>(Lifetime.Singleton);
             builder.Register<ReceiveBlockStateChangeEvent>(Lifetime.Singleton);
             builder.Register<ReceiveUpdateMapObjectEvent>(Lifetime.Singleton);
@@ -145,7 +144,6 @@ namespace MainGame.Starter
             //プレゼンターアセンブリ
             builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<ChunkDataReciver>();
-            builder.RegisterEntryPoint<WorldMapTilePresenter>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateChangePresenter>();
