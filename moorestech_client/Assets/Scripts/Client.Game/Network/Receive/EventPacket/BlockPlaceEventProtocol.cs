@@ -20,15 +20,13 @@ namespace MainGame.Network.Receive.EventPacket
 
         public void Analysis(List<byte> packet)
         {
-            var data = MessagePackSerializer
-                .Deserialize<PlaceBlockEventMessagePack>(packet.ToArray());
+            var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(packet.ToArray());
 
 
             var direction = (BlockDirection)data.Direction;
 
             //ブロックをセットする
-            receiveChunkDataEvent.InvokeBlockUpdateEvent(new BlockUpdateEventProperties(
-                new Vector2Int(data.X, data.Y), data.BlockId, direction)).Forget();
+            receiveChunkDataEvent.InvokeBlockUpdateEvent(new BlockUpdateEventProperties(new Vector2Int(data.X, data.Y), data.BlockId, direction)).Forget();
         }
     }
 }

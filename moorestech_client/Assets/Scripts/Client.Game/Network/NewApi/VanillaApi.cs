@@ -31,8 +31,7 @@ namespace Client.Network.NewApi
             var response = await _instance._serverConnector.GetInformationData<ResponseMapObjectInfosMessagePack>(request, ct);
             return response?.MapObjects;
         }
-
-
+        
         public static async UniTask<List<IItemStack>> GetBlockInventory(Vector2Int blockPos, CancellationToken ct)
         {
             var request = new RequestBlockInventoryRequestProtocolMessagePack(blockPos.x, blockPos.y);
@@ -97,21 +96,12 @@ namespace Client.Network.NewApi
                 {
                     for (int y = 0; y < chunk.BlockIds.GetLength(1); y++)
                     {
-                        blocks[x, y] = new BlockResponse
-                        {
-                            BlockId = chunk.BlockIds[x, y],
-                            BlockDirection = (BlockDirection) chunk.BlockDirections[x, y]
-                        };
+                        blocks[x, y] = new BlockResponse(chunk.BlockIds[x, y], (BlockDirection) chunk.BlockDirections[x, y]);
                     }
                 }
                 
-                var entities = chunk.Entities.Select(e => new EntityResponse
-                {
-                    InstanceId = e.InstanceId,
-                    Position = new Vector3(e.Position.X, e.Position.Y, e.Position.Z),
-                    State = e.State,
-                    Type = e.Type
-                });
+                var entities = chunk.Entities.
+                    Select(e => new EntityResponse(e));
                 
                 var chunkPos = chunk.ChunkPos.Vector2Int;
                 return new ChunkResponse(chunkPos, blocks, entities.ToList());
@@ -121,16 +111,26 @@ namespace Client.Network.NewApi
         }
     }
 
+    public class HandshakeResponse
+    {
+        public Vector2 PlayerPos { get; }
+        
+        public HandshakeResponse(Vector2 playerPos)
+        {
+            PlayerPos = playerPos;
+        }
+    }
+
     public class PlayerInventoryResponse
     {
+        public List<IItemStack> MainInventory { get; }
+        public IItemStack GrabItem { get; }
+        
         public PlayerInventoryResponse(List<IItemStack> mainInventory, IItemStack grabItem)
         {
             MainInventory = mainInventory;
             GrabItem = grabItem;
         }
-
-        public List<IItemStack> MainInventory { get; }
-        public IItemStack GrabItem { get; }
     }
 
     public class ChunkResponse
@@ -147,24 +147,34 @@ namespace Client.Network.NewApi
             Blocks = blocks;
             Entities = entities;
         }
-
     }
 
     public class BlockResponse
     {
-        public BlockDirection BlockDirection;
-        public int BlockId;
+        public readonly BlockDirection BlockDirection;
+        public readonly int BlockId;
+        
+        public BlockResponse(int blockId, BlockDirection blockDirection)
+        {
+            BlockId = blockId;
+            BlockDirection = blockDirection;
+        }
     }
 
     public class EntityResponse
     {
-        public long InstanceId { get; set; }
+        public readonly long InstanceId;
+        public readonly string Type;
+        public readonly Vector3 Position;
+        public readonly string State;
 
-        public string Type { get; set; }
-
-        public Vector3 Position { get; set; }
-
-        public string State { get; set; }
+        public EntityResponse(EntityMessagePack entityMessagePack)
+        {
+            InstanceId = entityMessagePack.InstanceId;
+            Type = entityMessagePack.Type;
+            Position = entityMessagePack.Position.Vector3;
+            State = entityMessagePack.State;
+        }
     }
 
 }
