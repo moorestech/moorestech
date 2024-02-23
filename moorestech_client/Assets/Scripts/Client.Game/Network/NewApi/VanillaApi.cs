@@ -25,6 +25,13 @@ namespace Client.Network.NewApi
             _instance = this;
         }
 
+        public static async UniTask<HandshakeResponse> InitialHandShake(int playerId,CancellationToken ct)
+        {
+            var request = new RequestInitialHandshakeMessagePack(playerId,$"Player {playerId}");
+            var response = await _instance._serverConnector.GetInformationData<ResponseInitialHandshakeMessagePack>(request, ct);
+            return new HandshakeResponse(response);
+        }
+        
         public static async UniTask<List<MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
         {
             var request = new RequestMapObjectInfosMessagePack();
@@ -115,9 +122,9 @@ namespace Client.Network.NewApi
     {
         public Vector2 PlayerPos { get; }
         
-        public HandshakeResponse(Vector2 playerPos)
+        public HandshakeResponse(ResponseInitialHandshakeMessagePack response)
         {
-            PlayerPos = playerPos;
+            PlayerPos = response.PlayerPos.Vector2;
         }
     }
 

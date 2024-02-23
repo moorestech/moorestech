@@ -120,7 +120,6 @@ namespace MainGame.Starter
 
             //パケット受け取りイベント
             builder.Register<ReceiveChunkDataEvent>(Lifetime.Singleton);
-            builder.Register<ReceiveInitialHandshakeProtocol>(Lifetime.Singleton); //初期接続時に受け取るプロトコル
             builder.Register<ReceiveEntitiesDataEvent>(Lifetime.Singleton);
             builder.Register<ReceiveBlockStateChangeEvent>(Lifetime.Singleton);
             builder.Register<ReceiveUpdateMapObjectEvent>(Lifetime.Singleton);
