@@ -126,7 +126,6 @@ namespace MainGame.Starter
 
             //パケット送信インスタンス
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
-            builder.RegisterEntryPoint<InitialHandshakeProtocol>(); //最初にパケットを送るのでRegisterEntryPointを使う
 
             builder.Register<SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
             builder.Register<SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);

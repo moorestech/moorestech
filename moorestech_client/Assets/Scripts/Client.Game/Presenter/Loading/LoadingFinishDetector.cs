@@ -27,32 +27,18 @@ namespace MainGame.Presenter.Loading
         private IPlayerObjectController _playerObjectController;
 
         [Inject]
-        public void Construct(ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol, IPlayerObjectController playerObjectController, BlockGameObjectContainer blockGameObjectContainer, ItemImageContainer itemImageContainer, WorldMapTileMaterials worldMapTileMaterials)
+        public void Construct(IPlayerObjectController playerObjectController, BlockGameObjectContainer blockGameObjectContainer, ItemImageContainer itemImageContainer, WorldMapTileMaterials worldMapTileMaterials)
         {
             _loadingStopwatch.Start();
             _playerObjectController = playerObjectController;
 
             loadingUI.SetActive(true);
 
-            receiveInitialHandshakeProtocol.OnFinishHandshake += OnFinishHandshake;
             blockGameObjectContainer.OnLoadFinished += FinishBlockModelLoading;
             itemImageContainer.OnLoadFinished += FinishItemTextureLoading;
             worldMapTileMaterials.OnLoadFinished += FinishMapTileTextureLoading;
         }
 
-        private void OnFinishHandshake(Vector2 playerStartPosition)
-        {
-            loadingLog.text += $"\nサーバーハンドシェイク完了 {_loadingStopwatch.Elapsed}";
-
-            //プレイヤーのオブジェクトにポジションをセットする
-            //この関数自体はawait UniTask.SwitchToMainThread(); のあと呼ばれているが、
-            //プレイヤーに座標をセットした後ThirdPersonControllerによる謎の「戻し」が発生する
-            //そのため、あらかじめオフにしていたプレイヤーを、座標を設定した後オンにして一旦解決とする
-            _playerObjectController.SetPlayerPosition(playerStartPosition);
-            _playerObjectController.SetActive(true);
-
-            CheckFinishLoading(LoadingElement.Handshake);
-        }
 
         private void FinishItemTextureLoading()
         {
@@ -98,7 +84,6 @@ namespace MainGame.Presenter.Loading
 
     internal enum LoadingElement
     {
-        Handshake,
         ItemTexture,
         MapTileTexture,
         BlockModel

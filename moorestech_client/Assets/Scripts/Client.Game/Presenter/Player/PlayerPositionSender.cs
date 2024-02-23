@@ -17,15 +17,12 @@ namespace MainGame.Presenter.Player
 
         private float _timer;
 
-        public PlayerPositionSender(SendPlayerPositionProtocolProtocol protocol, IPlayerObjectController playerObjectController, ReceiveInitialHandshakeProtocol receiveInitialHandshakeProtocol)
+        public PlayerPositionSender(SendPlayerPositionProtocolProtocol protocol, IPlayerObjectController playerObjectController)
         {
             _protocol = protocol;
             _playerObjectController = playerObjectController;
 
-            //_startPositionSendがないとプレイヤーの座標が0,0,0の時にプレイヤー座標が送信されるため、
-            //不要なチャンクデータの受信など不都合が発生する可能性がある（チャンクのデータはプレイヤーの周りの情報が帰ってくる）
-            //そのため、ハンドシェイクが終わってからプレイヤー座標の送信を始める
-            receiveInitialHandshakeProtocol.OnFinishHandshake += _ => _startPositionSend = true;
+
         }
 
         /// <summary>
