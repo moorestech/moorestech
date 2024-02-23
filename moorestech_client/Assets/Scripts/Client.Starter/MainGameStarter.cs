@@ -146,7 +146,7 @@ namespace MainGame.Starter
             builder.RegisterEntryPoint<ChunkDataReciver>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
-            builder.RegisterEntryPoint<BlockStateChangePresenter>();
+            builder.RegisterEntryPoint<BlockStateEventHandler>();
 
 
             //UIコントロール

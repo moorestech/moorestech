@@ -12,9 +12,8 @@ namespace MainGame.Network.Receive
         private readonly Dictionary<string, IAnalysisEventPacket> _eventPacket = new();
 
         //TODO ここはDIコンテナを渡すほうがいいのでは
-        public ReceiveEventProtocol(ReceiveBlockStateChangeEvent receiveBlockStateChangeEvent, ReceiveUpdateMapObjectEvent receiveUpdateMapObjectEvent)
+        public ReceiveEventProtocol(ReceiveUpdateMapObjectEvent receiveUpdateMapObjectEvent)
         {
-            _eventPacket.Add(ChangeBlockStateEventPacket.EventTag, new BlockStateChangeEventProtocol(receiveBlockStateChangeEvent));
             _eventPacket.Add(MapObjectUpdateEventPacket.EventTag, new MapObjectUpdateEventProtocol(receiveUpdateMapObjectEvent));
         }
 
