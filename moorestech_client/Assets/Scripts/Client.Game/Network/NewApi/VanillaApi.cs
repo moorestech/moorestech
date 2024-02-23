@@ -7,6 +7,7 @@ using Cysharp.Threading.Tasks;
 using Game.World.Interface.DataStore;
 using MainGame.Network.Send;
 using MainGame.Network.Settings;
+using MainGame.Presenter.Block;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
@@ -104,12 +105,12 @@ namespace Client.Network.NewApi
 
             ChunkResponse ParseChunkResponse(ChunkDataMessagePack chunk)
             {
-                var blocks = new BlockResponse[chunk.BlockIds.GetLength(0), chunk.BlockIds.GetLength(1)];
+                var blocks = new BlockInfo[chunk.BlockIds.GetLength(0), chunk.BlockIds.GetLength(1)];
                 for (int x = 0; x < chunk.BlockIds.GetLength(0); x++)
                 {
                     for (int y = 0; y < chunk.BlockIds.GetLength(1); y++)
                     {
-                        blocks[x, y] = new BlockResponse(chunk.BlockIds[x, y], (BlockDirection) chunk.BlockDirections[x, y]);
+                        blocks[x, y] = new BlockInfo(chunk.BlockIds[x, y], (BlockDirection) chunk.BlockDirections[x, y]);
                     }
                 }
                 
@@ -199,28 +200,16 @@ namespace Client.Network.NewApi
     public class ChunkResponse
     {
         public readonly Vector2Int ChunkPos;
-        public readonly BlockResponse[,] Blocks;
+        public readonly BlockInfo[,] Blocks;
         public readonly List<EntityResponse> Entities;
         
         //TODO レスポンスの種類を増やせるようにする
 
-        public ChunkResponse(Vector2Int chunkPos, BlockResponse[,] blocks, List<EntityResponse> entities)
+        public ChunkResponse(Vector2Int chunkPos, BlockInfo[,] blocks, List<EntityResponse> entities)
         {
             ChunkPos = chunkPos;
             Blocks = blocks;
             Entities = entities;
-        }
-    }
-
-    public class BlockResponse
-    {
-        public readonly BlockDirection BlockDirection;
-        public readonly int BlockId;
-        
-        public BlockResponse(int blockId, BlockDirection blockDirection)
-        {
-            BlockId = blockId;
-            BlockDirection = blockDirection;
         }
     }
 

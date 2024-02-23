@@ -104,7 +104,7 @@ namespace Server.Boot
             services.AddSingleton<MainInventoryUpdateEventPacket>();
             services.AddSingleton<OpenableBlockInventoryUpdateEventPacket>();
             services.AddSingleton<GrabInventoryUpdateEventPacket>();
-            services.AddSingleton<PlaceBlockToSetEventPacket>();
+            services.AddSingleton<PlaceBlockEventPacket>();
             services.AddSingleton<RemoveBlockToSetEventPacket>();
             services.AddSingleton<BlockPlaceEventToBlockInventoryConnect>();
             services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect>();
@@ -126,7 +126,7 @@ namespace Server.Boot
             serviceProvider.GetService<MainInventoryUpdateEventPacket>();
             serviceProvider.GetService<OpenableBlockInventoryUpdateEventPacket>();
             serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
-            serviceProvider.GetService<PlaceBlockToSetEventPacket>();
+            serviceProvider.GetService<PlaceBlockEventPacket>();
             serviceProvider.GetService<RemoveBlockToSetEventPacket>();
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();

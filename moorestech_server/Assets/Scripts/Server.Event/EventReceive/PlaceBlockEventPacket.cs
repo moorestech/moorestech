@@ -2,15 +2,17 @@ using System;
 using System.Linq;
 using Game.World.Interface.Event;
 using MessagePack;
+using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Event.EventReceive
 {
-    public class PlaceBlockToSetEventPacket
+    public class PlaceBlockEventPacket
     {
         public const string EventTag = "va:event:blockPlace";
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public PlaceBlockToSetEventPacket(IBlockPlaceEvent blockPlaceEvent, EventProtocolProvider eventProtocolProvider)
+        public PlaceBlockEventPacket(IBlockPlaceEvent blockPlaceEvent, EventProtocolProvider eventProtocolProvider)
         {
             blockPlaceEvent.Subscribe(ReceivedEvent);
             _eventProtocolProvider = eventProtocolProvider;
@@ -22,7 +24,7 @@ namespace Server.Event.EventReceive
             var blockId = blockPlaceEventProperties.Block.BlockId;
 
             var payload = MessagePackSerializer.Serialize(new PlaceBlockEventMessagePack(
-                c.x, c.y, blockId, (int)blockPlaceEventProperties.BlockDirection
+                c, blockId, (int)blockPlaceEventProperties.BlockDirection
             )).ToList();
 
             _eventProtocolProvider.AddBroadcastEvent(payload);
@@ -38,17 +40,15 @@ namespace Server.Event.EventReceive
         {
         }
 
-        public PlaceBlockEventMessagePack(int x, int y, int blockId, int direction)
+        public PlaceBlockEventMessagePack(Vector2Int blockPos, int blockId, int direction)
         {
-            EventTag = PlaceBlockToSetEventPacket.EventTag;
-            X = x;
-            Y = y;
+            BlockPos = new Vector2IntMessagePack(blockPos);
+            EventTag = PlaceBlockEventPacket.EventTag;
             BlockId = blockId;
             Direction = direction;
         }
 
-        public int X { get; set; }
-        public int Y { get; set; }
+        public Vector2IntMessagePack BlockPos { get; set; }
         public int BlockId { get; set; }
         public int Direction { get; set; }
     }

@@ -144,7 +144,7 @@ namespace MainGame.Starter
 
             //プレゼンターアセンブリ
             builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();
-            builder.RegisterEntryPoint<ChunkDataPresenter>();
+            builder.RegisterEntryPoint<ChunkDataReciver>();
             builder.RegisterEntryPoint<WorldMapTilePresenter>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
