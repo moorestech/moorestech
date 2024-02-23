@@ -5,6 +5,7 @@ using System.Threading;
 using Core.Item;
 using Cysharp.Threading.Tasks;
 using Game.World.Interface.DataStore;
+using MainGame.Network.Send;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using UnityEngine;
@@ -116,6 +117,33 @@ namespace Client.Network.NewApi
 
             #endregion
         }
+
+        private readonly Dictionary<string,EventResponseInfo> _eventResponseInfos = new ();
+
+        public static async UniTask CollectEvent(int playerId,CancellationToken ct)
+        {
+            var request = new EventProtocolMessagePack(playerId);
+            
+            var response = await _instance._serverConnector.GetInformationData<ResponseEventProtocolMessagePack>(request, ct);
+            
+            foreach (var eventMessagePack in response.Events)
+            {
+                if (_instance._eventResponseInfos.TryGetValue(eventMessagePack.Tag, out var info))
+                {
+                    info.ResponseAction(eventMessagePack.Payload);
+                }
+            }
+        }
+        
+        public void RegisterEventResponse(string tag,Action<byte[]> responseAction)
+        {
+            _eventResponseInfos.Add(tag,new EventResponseInfo(responseAction,tag));
+        }
+        
+        public void UnRegisterEventResponse(string tag)
+        {
+            _eventResponseInfos.Remove(tag);
+        }
     }
 
     public class HandshakeResponse
@@ -183,5 +211,16 @@ namespace Client.Network.NewApi
             State = entityMessagePack.State;
         }
     }
+    
+    public class EventResponseInfo
+    {
+        public readonly string EventTag;
+        public readonly Action<byte[]> ResponseAction;
 
+        public EventResponseInfo(Action<byte[]> responseAction, string eventTag)
+        {
+            ResponseAction = responseAction;
+            EventTag = eventTag;
+        }
+    }
 }

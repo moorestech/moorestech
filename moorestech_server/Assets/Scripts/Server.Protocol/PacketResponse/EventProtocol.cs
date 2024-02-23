@@ -40,4 +40,37 @@ namespace Server.Protocol.PacketResponse
 
         public int PlayerId { get; set; }
     }
+    
+    
+    [MessagePackObject(true)]
+    public class ResponseEventProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public EventMessagePack[] Events { get; set; }
+        
+        public ResponseEventProtocolMessagePack(EventMessagePack[] events)
+        {
+            Events = events;
+        }
+        
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public ResponseEventProtocolMessagePack() { }
+    }
+
+    [MessagePackObject]
+    public class EventMessagePack
+    {
+        [Key(0)]
+        public string Tag { get; set; }
+        [Key(1)]
+        public byte[] Payload { get; set; }
+        
+        public EventMessagePack(string tag, byte[] payload)
+        {
+            Tag = tag;
+            Payload = payload;
+        }
+        
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public EventMessagePack() { }
+    }
 }
