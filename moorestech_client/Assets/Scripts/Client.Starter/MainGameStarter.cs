@@ -7,7 +7,6 @@ using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
 using MainGame.Network;
 using MainGame.Network.Event;
-using MainGame.Network.Receive;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Settings;

@@ -1,6 +1,5 @@
 using Client.Network.NewApi;
 using Core.Item;
-using MainGame.Network.Receive.EventPacket;
 using MainGame.UnityView.UI.Inventory.Sub;
 using MessagePack;
 using Server.Event.EventReceive;
