@@ -120,8 +120,6 @@ namespace MainGame.Starter
 
             //パケット受け取りイベント
             builder.Register<ReceiveEntitiesDataEvent>(Lifetime.Singleton);
-            builder.Register<ReceiveBlockStateChangeEvent>(Lifetime.Singleton);
-            builder.Register<ReceiveUpdateMapObjectEvent>(Lifetime.Singleton);
 
             //パケット送信インスタンス
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
