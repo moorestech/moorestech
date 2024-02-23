@@ -6,6 +6,8 @@ using Core.Item;
 using Cysharp.Threading.Tasks;
 using Game.World.Interface.DataStore;
 using MainGame.Network.Send;
+using MainGame.Network.Settings;
+using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using UnityEngine;
@@ -16,14 +18,17 @@ namespace Client.Network.NewApi
     {
         private readonly ServerConnector _serverConnector;
         private readonly ItemStackFactory _itemStackFactory;
+        private readonly PlayerConnectionSetting _playerConnectionSetting;
 
         private static VanillaApi _instance;
 
-        public VanillaApi(ServerConnector serverConnector, ItemStackFactory itemStackFactory)
+        public VanillaApi(ServerConnector serverConnector, ItemStackFactory itemStackFactory, PlayerConnectionSetting playerConnectionSetting)
         {
             _serverConnector = serverConnector;
             _itemStackFactory = itemStackFactory;
+            _playerConnectionSetting = playerConnectionSetting;
             _instance = this;
+            CollectEvent().Forget();
         }
 
         public static async UniTask<HandshakeResponse> InitialHandShake(int playerId,CancellationToken ct)
@@ -120,19 +125,42 @@ namespace Client.Network.NewApi
 
         private readonly Dictionary<string,EventResponseInfo> _eventResponseInfos = new ();
 
-        public static async UniTask CollectEvent(int playerId,CancellationToken ct)
+        public async UniTask CollectEvent()
         {
-            var request = new EventProtocolMessagePack(playerId);
-            
-            var response = await _instance._serverConnector.GetInformationData<ResponseEventProtocolMessagePack>(request, ct);
-            
-            foreach (var eventMessagePack in response.Events)
+            while (true)
             {
-                if (_instance._eventResponseInfos.TryGetValue(eventMessagePack.Tag, out var info))
+                var ct = new CancellationTokenSource().Token;
+
+                try
                 {
-                    info.ResponseAction(eventMessagePack.Payload);
+                    await RequestAndParse(ct);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Event Protocol Error:{e.Message}\n{e.StackTrace}");
+                }
+
+                await UniTask.Delay(ServerConst.PollingRateMillSec, cancellationToken: ct);
+            }
+
+            #region Internal
+
+            async UniTask RequestAndParse(CancellationToken ct)
+            {
+                var request = new EventProtocolMessagePack(_playerConnectionSetting.PlayerId);
+            
+                var response = await _instance._serverConnector.GetInformationData<ResponseEventProtocolMessagePack>(request, ct);
+            
+                foreach (var eventMessagePack in response.Events)
+                {
+                    if (_instance._eventResponseInfos.TryGetValue(eventMessagePack.Tag, out var info))
+                    {
+                        info.ResponseAction(eventMessagePack.Payload);
+                    }
                 }
             }
+
+            #endregion
         }
         
         public void RegisterEventResponse(string tag,Action<byte[]> responseAction)
