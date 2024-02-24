@@ -17,6 +17,7 @@ using VContainer;
 namespace MainGame.Presenter.Inventory
 {
     /// <summary>
+    /// TODO map tileとして削除予定
     ///  マップ上をクリック長押しして一定時間が経てば採掘実行プロトコルを送る
     /// </summary>
     public class OreMapTileClickDetect : MonoBehaviour
@@ -27,7 +28,6 @@ namespace MainGame.Presenter.Inventory
         private MapTileObject _currentClickingMapTileObject;
         private Camera _mainCamera;
         private ILocalPlayerInventory _localPlayerInventory;
-        private SendMiningProtocol _sendMiningProtocol;
         private UIStateControl _uiStateControl;
         
         private CancellationToken _gameObjectCancellationToken;
@@ -35,10 +35,9 @@ namespace MainGame.Presenter.Inventory
         private CancellationTokenSource _miningTokenSource = new();
 
         [Inject]
-        public void Construct(Camera mainCamera, SendMiningProtocol sendMiningProtocol, UIStateControl uiStateControl, SinglePlayInterface singlePlayInterface)
+        public void Construct(Camera mainCamera, UIStateControl uiStateControl, SinglePlayInterface singlePlayInterface)
         {
             _mainCamera = mainCamera;
-            _sendMiningProtocol = sendMiningProtocol;
             _uiStateControl = uiStateControl;
 
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
@@ -86,7 +85,7 @@ namespace MainGame.Presenter.Inventory
                     return;
                 }
 
-                _sendMiningProtocol.Send(GetClickPosition());
+                //VanillaApi.SendOnly.Send(GetClickPosition());
                 _miningTokenSource.Cancel();
             }
 

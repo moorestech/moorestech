@@ -1,3 +1,4 @@
+using Client.Network.NewApi;
 using Constant.Server;
 using MainGame.Network.Send;
 using MainGame.UnityView.Player;
@@ -9,16 +10,14 @@ namespace MainGame.Presenter.Player
     public class PlayerPositionSender : ITickable
     {
         private readonly IPlayerObjectController _playerObjectController;
-        private readonly SendPlayerPositionProtocolProtocol _protocol;
 
 
         private bool _startPositionSend;
 
         private float _timer;
 
-        public PlayerPositionSender(SendPlayerPositionProtocolProtocol protocol, IPlayerObjectController playerObjectController)
+        public PlayerPositionSender(IPlayerObjectController playerObjectController)
         {
-            _protocol = protocol;
             _playerObjectController = playerObjectController;
 
 
@@ -35,7 +34,7 @@ namespace MainGame.Presenter.Player
             _timer += Time.deltaTime;
             if (_timer < NetworkConst.UpdateIntervalSeconds) return;
             _timer = 0;
-            _protocol.Send(_playerObjectController.Position2d);
+            VanillaApi.SendOnly.SendPlayerPosition(_playerObjectController.Position2d);
         }
     }
 }

@@ -9,13 +9,11 @@ namespace MainGame.Presenter.Inventory.Send
     public class DeleteBlockDetectToSendPacket : ITickable
     {
         private readonly IBlockClickDetect _blockClickDetect;
-        private readonly SendBlockRemoveProtocol _sendBlockRemoveProtocol;
         private readonly UIStateControl _uiStateControl;
 
-        public DeleteBlockDetectToSendPacket(IBlockClickDetect blockClickDetect, SendBlockRemoveProtocol sendBlockRemoveProtocol, UIStateControl uiStateControl)
+        public DeleteBlockDetectToSendPacket(IBlockClickDetect blockClickDetect, UIStateControl uiStateControl)
         {
             _blockClickDetect = blockClickDetect;
-            _sendBlockRemoveProtocol = sendBlockRemoveProtocol;
             _uiStateControl = uiStateControl;
         }
 
@@ -24,7 +22,6 @@ namespace MainGame.Presenter.Inventory.Send
             if (_uiStateControl.CurrentState == UIStateEnum.DeleteBar &&
                 _blockClickDetect.TryGetClickBlockPosition(out var position))
             {
-                _sendBlockRemoveProtocol.Send(position.x, position.y);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.DestroyBlock);
             }
         }

@@ -1,3 +1,4 @@
+using Client.Network.NewApi;
 using Game.World.Interface.DataStore;
 using Constant;
 using Game.Block.Interface.BlockConfig;
@@ -28,7 +29,6 @@ namespace MainGame.Presenter.Inventory.Send
         private BlockDirection _currentBlockDirection;
         private HotBarView _hotBarView;
         private Camera _mainCamera;
-        private SendPlaceHotBarBlockProtocol _sendPlaceHotBarBlockProtocol;
         private UIStateControl _uiStateControl;
         private IBlockConfig _blockConfig;
         private ILocalPlayerInventory _localPlayerInventory;
@@ -40,11 +40,9 @@ namespace MainGame.Presenter.Inventory.Send
         }
 
         [Inject]
-        public void Construct(Camera mainCamera, HotBarView hotBarView, SendPlaceHotBarBlockProtocol sendPlaceHotBarBlockProtocol, 
-            UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview,SinglePlayInterface singlePlayInterface,ILocalPlayerInventory localPlayerInventory)
+        public void Construct(Camera mainCamera, HotBarView hotBarView, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview,SinglePlayInterface singlePlayInterface,ILocalPlayerInventory localPlayerInventory)
         {
             _uiStateControl = uiStateControl;
-            _sendPlaceHotBarBlockProtocol = sendPlaceHotBarBlockProtocol;
             _hotBarView = hotBarView;
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
@@ -90,7 +88,7 @@ namespace MainGame.Presenter.Inventory.Send
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
             {
-                _sendPlaceHotBarBlockProtocol.Send(hitPoint.x, hitPoint.y,selectIndex,  _currentBlockDirection);
+                VanillaApi.SendOnly.PlaceHotBarBlock(hitPoint.x, hitPoint.y,selectIndex,  _currentBlockDirection);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
                 return;
             }

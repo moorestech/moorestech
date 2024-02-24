@@ -116,19 +116,6 @@ namespace MainGame.Starter
             builder.Register<SocketInstanceCreate, SocketInstanceCreate>(Lifetime.Singleton);
             builder.Register<ISocketSender, SocketSender>(Lifetime.Singleton);
 
-            //パケット送信インスタンス
-            builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
-
-            builder.Register<SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
-            builder.Register<SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);
-            builder.Register<SendCommandProtocol>(Lifetime.Singleton);
-            builder.Register<SendBlockRemoveProtocol>(Lifetime.Singleton);
-            builder.Register<SendMiningProtocol>(Lifetime.Singleton);
-            builder.Register<SendSaveProtocol>(Lifetime.Singleton);
-            builder.Register<InventoryMoveItemProtocol>(Lifetime.Singleton);
-            builder.Register<SendGetMapObjectProtocolProtocol>(Lifetime.Singleton);
-            builder.Register<SendOneClickCraftProtocol>(Lifetime.Singleton);
-
             //インベントリのUIコントロール
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory,LocalPlayerInventory>(Lifetime.Singleton);

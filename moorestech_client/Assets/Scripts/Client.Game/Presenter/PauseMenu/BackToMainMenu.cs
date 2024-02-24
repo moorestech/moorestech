@@ -1,4 +1,5 @@
 using System.Threading;
+using Client.Network.NewApi;
 using Constant;
 using MainGame.Network;
 using MainGame.Network.Send;
@@ -14,7 +15,6 @@ namespace MainGame.Control.UI.PauseMenu
     public class BackToMainMenu : MonoBehaviour
     {
         [SerializeField] private Button backToMainMenuButton;
-        private SendSaveProtocol _sendSaveProtocol;
         private ServerProcessSetting _serverProcessSetting;
         private ISocketSender _socketSender;
 
@@ -34,9 +34,8 @@ namespace MainGame.Control.UI.PauseMenu
         }
 
         [Inject]
-        public void Construct(ISocketSender socketSender, ServerProcessSetting serverProcessSetting, SendSaveProtocol sendSaveProtocol)
+        public void Construct(ISocketSender socketSender, ServerProcessSetting serverProcessSetting)
         {
-            _sendSaveProtocol = sendSaveProtocol;
             _socketSender = socketSender;
             _serverProcessSetting = serverProcessSetting;
         }
@@ -50,7 +49,7 @@ namespace MainGame.Control.UI.PauseMenu
 
         private void Disconnect()
         {
-            _sendSaveProtocol.Send();
+            VanillaApi.SendOnly.Save();
             Thread.Sleep(50);
             if (_serverProcessSetting.isLocal) _serverProcessSetting.localServerProcess.Kill();
             _socketSender.Close();

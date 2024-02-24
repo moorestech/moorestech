@@ -1,4 +1,5 @@
 using System;
+using Client.Network.NewApi;
 using Core.Item;
 using Game.PlayerInventory.Interface;
 using MainGame.Network.Send;
@@ -15,14 +16,12 @@ namespace MainGame.UnityView.UI.Inventory.Main
         
         
         private readonly ItemStackFactory _itemStackFactory;
-        private readonly InventoryMoveItemProtocol _inventoryMoveItemProtocol;
         private ISubInventory _subInventory;
         
-        public LocalPlayerInventoryController(SinglePlayInterface singlePlayInterface,InventoryMoveItemProtocol inventoryMoveItemProtocol,ILocalPlayerInventory localPlayerInventoryMainAndSubCombine)
+        public LocalPlayerInventoryController(SinglePlayInterface singlePlayInterface,ILocalPlayerInventory localPlayerInventoryMainAndSubCombine)
         {
             _mainAndSubCombine = (LocalPlayerInventory)localPlayerInventoryMainAndSubCombine;
             _itemStackFactory = singlePlayInterface.ItemStackFactory;
-            _inventoryMoveItemProtocol = inventoryMoveItemProtocol;
         }
 
         public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count,bool isMoveSendData = true)
@@ -86,7 +85,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
             {
                 var fromInfo = GetServerInventoryInfo(from,fromSlot);
                 var toInfo = GetServerInventoryInfo(to,toSlot);
-                _inventoryMoveItemProtocol.Send(count, ItemMoveType.SwapSlot, fromInfo,fromSlot, toInfo,toSlot);
+                VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromInfo,fromSlot, toInfo,toSlot);
             }
 
             ItemMoveInventoryInfo GetServerInventoryInfo(LocalMoveInventoryType localType,int localSlot)

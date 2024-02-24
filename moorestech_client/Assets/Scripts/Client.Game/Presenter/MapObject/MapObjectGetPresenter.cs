@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using Client.Network.NewApi;
 using Cysharp.Threading.Tasks;
 using Game.MapObject.Interface;
 using Constant;
 using Game.PlayerInventory.Interface;
-using MainGame.Network.Send;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.MapObject;
 using MainGame.UnityView.Player;
@@ -33,15 +33,13 @@ namespace MainGame.Presenter.MapObject
         private CancellationTokenSource _miningCancellationTokenSource = new();
 
         private ILocalPlayerInventory _localPlayerInventory;
-        private SendGetMapObjectProtocolProtocol _sendGetMapObjectProtocolProtocol;
         private UIStateControl _uiStateControl;
         private IPlayerObjectController _playerObjectController;
 
         [Inject]
-        public void Constructor(UIStateControl uiStateControl, SendGetMapObjectProtocolProtocol sendGetMapObjectProtocolProtocol, ILocalPlayerInventory localPlayerInventory, IPlayerObjectController playerObjectController)
+        public void Constructor(UIStateControl uiStateControl, ILocalPlayerInventory localPlayerInventory, IPlayerObjectController playerObjectController)
         {
             _uiStateControl = uiStateControl;
-            _sendGetMapObjectProtocolProtocol = sendGetMapObjectProtocolProtocol;
             _localPlayerInventory = localPlayerInventory;
             _playerObjectController = playerObjectController;
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
@@ -117,7 +115,7 @@ namespace MainGame.Presenter.MapObject
                 //マイニングをキャンセルせずに終わったので、マイニング完了をサーバーに送信する
                 if (isMiningFinish)
                 {
-                    _sendGetMapObjectProtocolProtocol.Send(_currentMapObjectGameObject.InstanceId);
+                    VanillaApi.SendOnly.GetMapObject(_currentMapObjectGameObject.InstanceId);
                     PlaySoundEffect();
                 }
 
