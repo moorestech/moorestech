@@ -4586,14 +4586,14 @@ MonoBehaviour:
   hotBarView: {fileID: 1409822626637412669}
   playerObjectController: {fileID: 8327004088713836899}
   mapObjectGetPresenter: {fileID: 3767846705739946558}
-  entitiesPresenter: {fileID: 9004822369202094949}
+  entityObjectDatastore: {fileID: 9004822369202094949}
   uIStateControl: {fileID: 4694271036350155273}
   loadingFinishDetector: {fileID: 4819544141744569551}
   pauseMenuObject: {fileID: 7499633600282642158}
   deleteBarObject: {fileID: 4640722214229418808}
   blockInventoryView: {fileID: 8898167348514627761}
   craftInventoryView: {fileID: 3227045173603346395}
-  playerInventoryController: {fileID: 5132210590052991366}
+  playerInventoryViewController: {fileID: 5132210590052991366}
   blockPlacePreview: {fileID: 1584877711214233187}
   oreMapTileClickDetect: {fileID: 3488627204785912720}
   saveButton: {fileID: 773343225977944571}

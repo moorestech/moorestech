@@ -22,6 +22,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
         {
             _mainAndSubCombine = (LocalPlayerInventory)localPlayerInventoryMainAndSubCombine;
             _itemStackFactory = singlePlayInterface.ItemStackFactory;
+            GrabInventory = _itemStackFactory.Create(0, 0);
         }
 
         public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count,bool isMoveSendData = true)

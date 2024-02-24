@@ -70,13 +70,13 @@ namespace Client.Network.API
 
         public async UniTask<TResponse> GetInformationData<TResponse>(ProtocolMessagePackBase sendData,CancellationToken ct) where TResponse : ProtocolMessagePackBase
         {
-            Send();
+            SendPacket();
             
             return await WaitReceive();
 
             #region Internal
 
-            void Send()
+            void SendPacket()
             {
                 _socketSender.Send(MessagePackSerializer.Serialize(sendData).ToList());
                 _sequenceId++;

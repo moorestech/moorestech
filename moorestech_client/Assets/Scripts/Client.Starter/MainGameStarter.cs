@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Client.Localization;
+using Client.Network.API;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.Extension;
@@ -112,7 +113,9 @@ namespace MainGame.Starter
             builder.RegisterInstance(new ServerProcessSetting(isLocal, localServerProcess));
             builder.RegisterInstance(new ConnectionServerConfig(IPAddress, Port));
             builder.RegisterInstance(new PlayerConnectionSetting(PlayerId));
-            builder.Register<ConnectionServer>(Lifetime.Scoped);
+            builder.RegisterEntryPoint<VanillaApi>();
+            builder.Register<ServerConnector>(Lifetime.Singleton);
+            builder.Register<ConnectionServer>(Lifetime.Singleton);
             builder.Register<SocketInstanceCreate, SocketInstanceCreate>(Lifetime.Singleton);
             builder.Register<ISocketSender, SocketSender>(Lifetime.Singleton);
 

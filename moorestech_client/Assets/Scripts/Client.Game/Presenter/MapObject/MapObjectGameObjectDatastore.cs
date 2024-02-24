@@ -26,7 +26,7 @@ namespace MainGame.Presenter.MapObject
             VanillaApi.Event.RegisterEventResponse(MapObjectUpdateEventPacket.EventTag,OnUpdateMapObject);
         }
 
-        private async UniTask Awake()
+        private async UniTask Start()
         {
             foreach (var mapObject in mapObjects) _allMapObjects.Add(mapObject.InstanceId, mapObject);
             
