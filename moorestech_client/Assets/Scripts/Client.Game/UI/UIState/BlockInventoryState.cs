@@ -57,7 +57,7 @@ namespace MainGame.UnityView.UI.UIState
             InputManager.MouseCursorVisible(true);
 
             //サーバーのリクエスト
-            VanillaApi.SetOpenCloseBlock(PlayerConnectionSetting.Instance.PlayerId,_openBlockPos,true);
+            VanillaApi.SendOnly.SetOpenCloseBlock(PlayerConnectionSetting.Instance.PlayerId,_openBlockPos,true);
             _cancellationTokenSource = new CancellationTokenSource();
             UpdateBlockInventory(_openBlockPos, _cancellationTokenSource.Token).Forget();
             
@@ -85,7 +85,7 @@ namespace MainGame.UnityView.UI.UIState
 
         private async UniTask UpdateBlockInventory(Vector2Int pos,CancellationToken ct)
         {
-            var response = await VanillaApi.GetBlockInventory(pos, ct);
+            var response = await VanillaApi.Response.GetBlockInventory(pos, ct);
             _blockInventoryView.SetItemList(response);
         }
 
@@ -94,7 +94,7 @@ namespace MainGame.UnityView.UI.UIState
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource = null;
             
-            VanillaApi.SetOpenCloseBlock(PlayerConnectionSetting.Instance.PlayerId,_openBlockPos,false);
+            VanillaApi.SendOnly.SetOpenCloseBlock(PlayerConnectionSetting.Instance.PlayerId,_openBlockPos,false);
 
             _blockInventoryView.SetActive(false);
             _playerInventoryViewController.SetActive(false);

@@ -54,7 +54,7 @@ namespace MainGame.UnityView.UI.UIState
         /// </summary>
         private async UniTask UpdatePlayerInventory(CancellationToken ct)
         {
-            var invResponse = await VanillaApi.GetPlayerInventory(PlayerConnectionSetting.Instance.PlayerId,ct);
+            var invResponse = await VanillaApi.Response.GetPlayerInventory(PlayerConnectionSetting.Instance.PlayerId,ct);
             
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {

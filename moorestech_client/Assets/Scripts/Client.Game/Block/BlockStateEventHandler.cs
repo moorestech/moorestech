@@ -20,7 +20,7 @@ namespace MainGame.Presenter.Block
         {
             _blockConfig = singlePlayInterface.BlockConfig;
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
-            VanillaApi.RegisterEventResponse(ChangeBlockStateEventPacket.EventTag, OnStateChange);
+            VanillaApi.Event.RegisterEventResponse(ChangeBlockStateEventPacket.EventTag, OnStateChange);
         }
 
         public void Initialize()

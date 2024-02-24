@@ -22,9 +22,9 @@ namespace MainGame.UnityView.UI.Inventory.Main
         
         public void Initialize()
         {
-            VanillaApi.RegisterEventResponse(GrabInventoryUpdateEventPacket.EventTag,OnGrabInventoryUpdateEvent);
-            VanillaApi.RegisterEventResponse(MainInventoryUpdateEventPacket.EventTag,OnMainInventoryUpdateEvent);
-            VanillaApi.RegisterEventResponse(OpenableBlockInventoryUpdateEventPacket.EventTag,OnOpenableBlockInventoryUpdateEvent);
+            VanillaApi.Event.RegisterEventResponse(GrabInventoryUpdateEventPacket.EventTag,OnGrabInventoryUpdateEvent);
+            VanillaApi.Event.RegisterEventResponse(MainInventoryUpdateEventPacket.EventTag,OnMainInventoryUpdateEvent);
+            VanillaApi.Event.RegisterEventResponse(OpenableBlockInventoryUpdateEventPacket.EventTag,OnOpenableBlockInventoryUpdateEvent);
         }
         
         /// <summary>

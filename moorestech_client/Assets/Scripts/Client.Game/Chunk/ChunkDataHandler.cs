@@ -29,7 +29,7 @@ namespace MainGame.Presenter.Block
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             //イベントをサブスクライブする
-            VanillaApi.RegisterEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
+            VanillaApi.Event.RegisterEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
         }
         
         /// <summary>
@@ -82,7 +82,7 @@ namespace MainGame.Presenter.Block
 
             async UniTask GetChunkAndApply()
             {
-                var data = await VanillaApi.GetChunkInfos(chunks, ct);
+                var data = await VanillaApi.Response.GetChunkInfos(chunks, ct);
                 
                 foreach (var chunk in data)
                 {

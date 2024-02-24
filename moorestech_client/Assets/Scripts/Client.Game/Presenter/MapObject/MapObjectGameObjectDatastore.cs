@@ -23,14 +23,14 @@ namespace MainGame.Presenter.MapObject
         [Inject]
         public void Construct()
         {
-            VanillaApi.RegisterEventResponse(MapObjectUpdateEventPacket.EventTag,OnUpdateMapObject);
+            VanillaApi.Event.RegisterEventResponse(MapObjectUpdateEventPacket.EventTag,OnUpdateMapObject);
         }
 
         private async UniTask Awake()
         {
             foreach (var mapObject in mapObjects) _allMapObjects.Add(mapObject.InstanceId, mapObject);
             
-            var mapObjectInfos = await VanillaApi.GetMapObjectInfo(default);
+            var mapObjectInfos = await VanillaApi.Response.GetMapObjectInfo(default);
             
             foreach (var mapObjectInfo in mapObjectInfos)
             {
