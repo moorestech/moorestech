@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-using Client.Network.NewApi;
+using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.Block;
 using Game.Block.Config.LoadConfig.Param;

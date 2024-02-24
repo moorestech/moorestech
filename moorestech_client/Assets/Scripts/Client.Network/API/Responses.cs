@@ -1,12 +1,11 @@
-using System;
 using System.Collections.Generic;
 using Core.Item;
-using MainGame.Presenter.Block;
+using Game.World.Interface.DataStore;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using UnityEngine;
 
-namespace Client.Network.NewApi
+namespace Client.Network.API
 {
     public class HandshakeResponse
     {
@@ -43,6 +42,18 @@ namespace Client.Network.NewApi
             ChunkPos = chunkPos;
             Blocks = blocks;
             Entities = entities;
+        }
+    }
+    
+    public class BlockInfo
+    {
+        public readonly BlockDirection BlockDirection;
+        public readonly int BlockId;
+        
+        public BlockInfo(int blockId, BlockDirection blockDirection)
+        {
+            BlockId = blockId;
+            BlockDirection = blockDirection;
         }
     }
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
-using Client.Network.NewApi;
+using Client.Network.API;
+using Client.Network.API;
 using Game.World.Interface.DataStore;
 using Constant;
 using Cysharp.Threading.Tasks;
@@ -142,15 +143,4 @@ namespace MainGame.Presenter.Block
     
     
 
-    public class BlockInfo
-    {
-        public readonly BlockDirection BlockDirection;
-        public readonly int BlockId;
-        
-        public BlockInfo(int blockId, BlockDirection blockDirection)
-        {
-            BlockId = blockId;
-            BlockDirection = blockDirection;
-        }
-    }
 }

@@ -1,7 +1,7 @@
 using Core.Item;
 using MainGame.Network.Settings;
 
-namespace Client.Network.NewApi
+namespace Client.Network.API
 {
     public class VanillaApi
     {

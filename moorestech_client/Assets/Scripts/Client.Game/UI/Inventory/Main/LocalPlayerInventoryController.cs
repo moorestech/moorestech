@@ -1,5 +1,5 @@
 using System;
-using Client.Network.NewApi;
+using Client.Network.API;
 using Core.Item;
 using Game.PlayerInventory.Interface;
 using MainGame.Network.Send;

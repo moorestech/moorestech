@@ -7,7 +7,7 @@ using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using UnityEngine;
 
-namespace Client.Network.NewApi
+namespace Client.Network.API
 {
     public class VanillaApiSendOnly
     {

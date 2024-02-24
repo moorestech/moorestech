@@ -7,7 +7,7 @@ using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Network.NewApi
+namespace Client.Network.API
 {
     public class VanillaApiEvent
     {

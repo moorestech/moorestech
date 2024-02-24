@@ -8,7 +8,7 @@ using MessagePack;
 using Server.Protocol;
 using UniRx;
 
-namespace Client.Network.NewApi
+namespace Client.Network.API
 {
     /// <summary>
     /// TODO リネーム
