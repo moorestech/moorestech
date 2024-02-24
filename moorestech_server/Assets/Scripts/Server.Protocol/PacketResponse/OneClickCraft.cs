@@ -23,7 +23,7 @@ namespace Server.Protocol.PacketResponse
         }
         
         
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<RequestOneClickCraftProtocolMessagePack>(payload.ToArray());
             
@@ -37,7 +37,7 @@ namespace Server.Protocol.PacketResponse
             if (!IsCraftable(mainInventory,grabInventory,craftConfig))
             {
                 //クラフト不可能な場合は何もしない
-                return new List<List<byte>>();
+                return null;
             }
             
             //クラフト可能な場合はクラフトを実行
@@ -48,7 +48,7 @@ namespace Server.Protocol.PacketResponse
             playerInventory.MainOpenableInventory.InsertItem(craftConfig.ResultItem);
             
             
-            return new List<List<byte>>();
+            return null;
         }
         
         private static bool IsCraftable(IOpenableInventory mainInventory,IOpenableInventory grabInventory, CraftingConfigData craftingConfigData)

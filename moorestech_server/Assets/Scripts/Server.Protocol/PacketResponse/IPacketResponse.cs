@@ -4,6 +4,6 @@ namespace Server.Protocol.PacketResponse
 {
     public interface IPacketResponse
     {
-        public List<List<byte>> GetResponse(List<byte> payload);
+        public ProtocolMessagePackBase GetResponse(List<byte> payload);
     }
 }

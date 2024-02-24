@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse
             _mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var sendMapObjects = new List<MapObjectsInfoMessagePack>();
             foreach (var mapObject in _mapObjectDatastore.MapObjects)
@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse
 
             var response = new ResponseMapObjectInfosMessagePack(sendMapObjects);
 
-            return new List<List<byte>> { MessagePackSerializer.Serialize(response).ToList() };
+            return response;
         }
     }
 

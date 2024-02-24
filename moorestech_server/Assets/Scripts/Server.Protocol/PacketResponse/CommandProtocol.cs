@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<SendCommandProtocolMessagePack>(payload.ToArray());
 
@@ -35,7 +35,7 @@ namespace Server.Protocol.PacketResponse
                 inventory.MainOpenableInventory.InsertItem(item);
             }
 
-            return new List<List<byte>>();
+            return null;
         }
     }
 

@@ -18,7 +18,7 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = playerInventoryDataStore;
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(payload.ToArray());
 
@@ -38,10 +38,8 @@ namespace Server.Protocol.PacketResponse
                 playerInventory.GrabInventory.GetItem(0).Id,
                 playerInventory.GrabInventory.GetItem(0).Count);
 
-            var response = MessagePackSerializer.Serialize(new PlayerInventoryResponseProtocolMessagePack(
-                data.PlayerId, mainItems.ToArray(), grabItem));
 
-            return new List<List<byte>> { response.ToList() };
+            return new PlayerInventoryResponseProtocolMessagePack(data.PlayerId, mainItems.ToArray(), grabItem);
         }
     }
 

@@ -28,7 +28,7 @@ namespace Server.Protocol.PacketResponse
         }
 
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<GetMapObjectProtocolProtocolMessagePack>(payload.ToArray());
 
@@ -41,7 +41,7 @@ namespace Server.Protocol.PacketResponse
             //アイテムの挿入に成功したらマップオブジェクトを削除
             if (insertedItem.Id == ItemConst.EmptyItemId) mapObject.Destroy();
 
-            return new List<List<byte>>();
+            return null;
         }
     }
 

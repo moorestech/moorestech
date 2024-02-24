@@ -30,12 +30,12 @@ namespace Server.Protocol.PacketResponse
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload.ToArray());
 
             var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.X, data.FromInventory.Y);
-            if (fromInventory == null) return new List<List<byte>>();
+            if (fromInventory == null) return null;
             
             var fromSlot = data.FromInventory.Slot;
             if (data.FromInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
@@ -43,7 +43,7 @@ namespace Server.Protocol.PacketResponse
             
             
             var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.X, data.ToInventory.Y);
-            if (toInventory == null) return new List<List<byte>>();
+            if (toInventory == null) return null;
             
             var toSlot = data.ToInventory.Slot;
             if (data.ToInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
@@ -62,7 +62,7 @@ namespace Server.Protocol.PacketResponse
                     break;
             }
 
-            return new List<List<byte>>();
+            return null;
         }
 
         private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, int x, int y)

@@ -16,7 +16,7 @@ namespace Server.Protocol.PacketResponse
             _inventoryOpenState = serviceProvider.GetService<IBlockInventoryOpenStateDataStore>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<BlockInventoryOpenCloseProtocolMessagePack>(payload.ToArray());
 
@@ -26,7 +26,7 @@ namespace Server.Protocol.PacketResponse
             else
                 _inventoryOpenState.Close(data.PlayerId);
 
-            return new List<List<byte>>();
+            return null;
         }
     }
 

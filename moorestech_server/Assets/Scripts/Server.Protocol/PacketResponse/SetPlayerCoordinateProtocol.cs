@@ -25,7 +25,7 @@ namespace Server.Protocol.PacketResponse
             _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<PlayerCoordinateSendProtocolMessagePack>(payload.ToArray());
 
@@ -33,7 +33,7 @@ namespace Server.Protocol.PacketResponse
             var newPosition = new Vector3(data.X, 0, data.Y);
             _entitiesDatastore.SetPosition(data.PlayerId, newPosition);
 
-            return new List<List<byte>>();
+            return null;
         }
     }
 

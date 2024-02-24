@@ -6,9 +6,9 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:dummy";
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
-            return new List<List<byte>>();
+            return null;
         }
     }
 }

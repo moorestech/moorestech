@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse
             _entityFactory = serviceProvider.GetService<IEntityFactory>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<RequestChunkDataMessagePack>(payload.ToArray());
 
@@ -40,8 +40,7 @@ namespace Server.Protocol.PacketResponse
                 result[i] = chunkData;
             }
 
-            var response = MessagePackSerializer.Serialize(new ResponseChunkDataMessagePack(result)).ToList();
-            return new List<List<byte>> {response};
+            return new ResponseChunkDataMessagePack(result);
 
             #region Internal
 

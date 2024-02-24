@@ -17,12 +17,12 @@ namespace Server.Protocol.PacketResponse
             _worldSaveDataSaver = serviceProvider.GetService<IWorldSaveDataSaver>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             Debug.Log("セーブ開始");
             _worldSaveDataSaver.Save();
             Debug.Log("セーブ完了");
-            return new List<List<byte>>();
+            return null;
         }
     }
 
