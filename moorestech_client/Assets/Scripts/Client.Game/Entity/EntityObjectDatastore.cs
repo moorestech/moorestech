@@ -19,7 +19,6 @@ namespace MainGame.Presenter.Entity
 
         private ItemImageContainer _itemImageContainer;
 
-
         /// <summary>
         ///     エンティティ最終更新時間をチェックし、一定時間経過していたら削除する
         /// </summary>

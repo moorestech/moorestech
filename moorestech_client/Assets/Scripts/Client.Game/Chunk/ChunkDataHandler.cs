@@ -60,7 +60,7 @@ namespace MainGame.Presenter.Block
         }
 
         /// <summary>
-        /// 5秒に1回のチャンクの更新イベント
+        /// 0.5秒に1回のチャンクの更新イベント
         /// </summary>
         private async UniTask OnChunkUpdate()
         {
@@ -75,7 +75,7 @@ namespace MainGame.Presenter.Block
             while (true)
             {
                 await GetChunkAndApply();
-                await UniTask.Delay(5000, cancellationToken: ct); //TODO 本当に5秒に1回でいいのか？
+                await UniTask.Delay(500, cancellationToken: ct); //TODO 本当に0.55秒に1回でいいのか？
             }
 
             #region Internal
