@@ -6,8 +6,7 @@ namespace Game.World.Interface.DataStore
 {
     public class WorldBlockData
     {
-        public WorldBlockData(IBlock block, int originX, int originY, BlockDirection blockDirection,
-            IBlockConfig blockConfig)
+        public WorldBlockData(IBlock block, int originX, int originY, BlockDirection blockDirection, IBlockConfig blockConfig)
         {
             OriginX = originX;
             OriginY = originY;

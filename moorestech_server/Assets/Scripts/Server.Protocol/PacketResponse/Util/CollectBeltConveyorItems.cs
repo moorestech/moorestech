@@ -26,8 +26,7 @@ namespace Server.Protocol.PacketResponse.Util
         }
 
 
-        private static List<IEntity> CollectItemFromChunk(Vector2Int chunk,
-            IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
+        public static List<IEntity> CollectItemFromChunk(Vector2Int chunk, IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
             for (var i = 0; i < ChunkResponseConst.ChunkSize; i++)
