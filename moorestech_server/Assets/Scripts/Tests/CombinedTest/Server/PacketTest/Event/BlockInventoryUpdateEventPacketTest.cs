@@ -28,8 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void BlockInventoryUpdatePacketTest()
         {
-            var (packetResponse, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
@@ -51,10 +50,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //イベントパケットを取得
             var eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
 
-            //イベントパケットをチェック
-            Assert.AreEqual(1, eventPacket.Count);
 
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPacket[0].ToArray());
+            //イベントパケットをチェック
+            Assert.AreEqual(1, eventMessagePack.Events.Count);
             var payLoad = eventMessagePack.Events[0].Payload;
             var data = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payLoad);
 
@@ -75,8 +74,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //パケットが送られていないことをチェック
             //イベントパケットを取得
             eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
-            //イベントパケットをチェック
-            Assert.AreEqual(0, eventPacket.Count);
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPacket[0].ToArray());
+            Assert.AreEqual(0, eventMessagePack.Events.Count);
         }
 
 
@@ -84,8 +83,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void OnlyOneInventoryCanBeOpenedTest()
         {
-            var (packetResponse, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var worldBlockDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
@@ -111,10 +109,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
 
             //パケットが送られていないことをチェック
-            //イベントパケットを取得
-            var eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
-            //イベントパケットをチェック
-            Assert.AreEqual(0, eventPacket.Count);
+            var response = packetResponse.GetPacketResponse(GetEventPacket());
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            Assert.AreEqual(0, eventMessagePack.Events.Count);
         }
 
 

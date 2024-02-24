@@ -22,7 +22,7 @@ namespace Server.Protocol.PacketResponse
             //イベントプロトコルプロバイダからデータを取得して返す
             var events = _eventProtocolProvider.GetEventBytesList(data.PlayerId);
             
-            return events == null ? null : new ResponseEventProtocolMessagePack(events);
+            return new ResponseEventProtocolMessagePack(events);
         }
     }
 

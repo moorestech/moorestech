@@ -22,8 +22,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
 
             var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             //イベントがないことを確認する
-            Assert.AreEqual(0, response.Count);
+            Assert.AreEqual(0, eventMessagePack.Events.Count);
 
             //MapObjectを一つ破壊する
             var mapObject = mapObjectDatastore.MapObjects[0];
@@ -31,8 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             //map objectが破壊されたことを確かめる
             response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
-            var eventResponse = response[0].ToArray();
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventResponse);
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             Assert.AreEqual(1, eventMessagePack.Events.Count);
             
             var data = MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(eventMessagePack.Events[0].Payload);

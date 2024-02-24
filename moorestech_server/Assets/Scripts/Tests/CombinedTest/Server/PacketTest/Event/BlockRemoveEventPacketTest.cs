@@ -24,7 +24,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             //イベントキューにIDを登録する
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
-            Assert.AreEqual(0, response.Count);
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            Assert.AreEqual(0, eventMessagePack.Events.Count);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
@@ -37,7 +38,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             //イベントを取得
             response = packetResponse.GetPacketResponse(EventRequestData(0));
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             Assert.AreEqual(4, eventMessagePack.Events.Count);
 
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();

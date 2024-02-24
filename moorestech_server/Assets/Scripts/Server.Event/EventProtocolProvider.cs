@@ -43,11 +43,6 @@ namespace Server.Event
                 if (_events.ContainsKey(playerId))
                 {
                     var events = _events[playerId];
-                    if (events.Count == 0)
-                    {
-                        return null;
-                    }
-                    
                     var data = new List<EventMessagePack>();
                     data.AddRange(events);
                     
@@ -58,7 +53,7 @@ namespace Server.Event
                 //ブロードキャストイベントの時に使うので、何かしらリクエストがあった際はDictionaryにキーを追加しておく
                 _events.Add(playerId, new List<EventMessagePack>());
                 
-                return null;
+                return new List<EventMessagePack>();
             }
         }
     }

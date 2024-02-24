@@ -24,20 +24,16 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
-            Assert.AreEqual(0, response.Count);
-
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            Assert.AreEqual(0, eventMessagePack.Events.Count);
 
             //インベントリにアイテムを追加
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0);
-            playerInventoryData.MainOpenableInventory.SetItem(5,
-                serviceProvider.GetService<ItemStackFactory>().Create(1, 5));
+            playerInventoryData.MainOpenableInventory.SetItem(5,serviceProvider.GetService<ItemStackFactory>().Create(1, 5));
 
             //追加時のイベントのキャッチ
             response = packetResponse.GetPacketResponse(EventRequestData(PlayerId));
-            Assert.AreEqual(1, response.Count);
-
-            //チェック
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             var data = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(eventMessagePack.Events[0].Payload);
             Assert.AreEqual(5, data.Slot);
             Assert.AreEqual(1, data.Item.Id);
