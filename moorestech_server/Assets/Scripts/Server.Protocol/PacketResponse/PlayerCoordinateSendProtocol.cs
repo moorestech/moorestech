@@ -66,8 +66,7 @@ namespace Server.Protocol.PacketResponse
         private List<List<byte>> GetChunkBytes(PlayerCoordinateSendProtocolMessagePack data)
         {
             var responseChunk = new List<List<byte>>();
-            var responseChunkCoordinates = _responses[data.PlayerId]
-                .GetResponseChunkCoordinates(new Vector2Int((int)data.X, (int)data.Y));
+            var responseChunkCoordinates = _responses[data.PlayerId].GetResponseChunkCoordinates(new Vector2Int((int)data.X, (int)data.Y));
             foreach (var chunkCoordinate in responseChunkCoordinates)
                 //チャンクのブロックデータを取得してバイト配列に変換する
                 responseChunk.Add(ChunkBlockToPayload.Convert(chunkCoordinate, _worldBlockDatastore, _worldMapTile));

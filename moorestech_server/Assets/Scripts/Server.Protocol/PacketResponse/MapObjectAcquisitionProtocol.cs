@@ -12,15 +12,15 @@ namespace Server.Protocol.PacketResponse
     /// <summary>
     ///     MapObjectを取得するときのプロトコル
     /// </summary>
-    public class GetMapObjectProtocol : IPacketResponse
+    public class MapObjectAcquisitionProtocol : IPacketResponse
     {
-        public const string Tag = "va:getMapObjectInfo";
+        public const string Tag = "va:mapObjectInfoAcquisition";
         private readonly ItemStackFactory _itemStackFactory;
 
         private readonly IMapObjectDatastore _mapObjectDatastore;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
-        public GetMapObjectProtocol(ServiceProvider serviceProvider)
+        public MapObjectAcquisitionProtocol(ServiceProvider serviceProvider)
         {
             _mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
@@ -56,7 +56,7 @@ namespace Server.Protocol.PacketResponse
 
         public GetMapObjectProtocolProtocolMessagePack(int playerId, int instanceId)
         {
-            Tag = GetMapObjectProtocol.Tag;
+            Tag = MapObjectAcquisitionProtocol.Tag;
             PlayerId = playerId;
             InstanceId = instanceId;
         }

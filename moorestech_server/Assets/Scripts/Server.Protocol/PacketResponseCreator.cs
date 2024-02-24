@@ -32,7 +32,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(BlockInventoryOpenCloseProtocol.Tag, new BlockInventoryOpenCloseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SaveProtocol.Tag, new SaveProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetMapObjectInfoProtocol.Tag, new GetMapObjectInfoProtocol(serviceProvider));
-            _packetResponseDictionary.Add(GetMapObjectProtocol.Tag, new GetMapObjectProtocol(serviceProvider));
+            _packetResponseDictionary.Add(MapObjectAcquisitionProtocol.Tag, new MapObjectAcquisitionProtocol(serviceProvider));
             _packetResponseDictionary.Add(OneClickCraft.Tag, new OneClickCraft(serviceProvider));
 
             serviceProvider.GetService<VeinGenerator>();
