@@ -69,7 +69,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                     Assert.AreEqual(id, r.BlockIds[i, j]);
 
                     var direction = worldBlock.GetOriginPosBlock(c.X + i, c.Y + j)?.BlockDirection ?? BlockDirection.North;
-                    Assert.AreEqual(direction, r.BlockDirections[i, j]);
+                    Assert.AreEqual(direction, (BlockDirection)r.BlockDirections[i, j]);
                 }
             }
         }
