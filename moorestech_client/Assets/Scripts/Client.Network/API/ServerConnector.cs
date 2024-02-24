@@ -30,18 +30,20 @@ namespace Client.Network.API
         {
             while (true)
             {
-                foreach (var waiter in _responseWaiters)
+                for (var i = _responseWaiters.Count - 1; i >= 0; i--)
                 {
-                    var time = DateTime.Now - waiter.Value.SendTime;
-                    var sequenceId = waiter.Key;
+                    var sequenceId = _responseWaiters.Keys.ElementAt(i);
+                    var waiter = _responseWaiters[sequenceId];
+                    var time = DateTime.Now - waiter.SendTime;
                     if (time.TotalSeconds < 10)
                     {
                         continue;
                     }
-                    
+
                     _responseWaiters[sequenceId].WaitSubject.OnNext(null);
                     _responseWaiters.Remove(sequenceId);
                 }
+
                 await UniTask.Delay(1000);
             }
         }
