@@ -1,6 +1,5 @@
 ﻿using Client.Network.NewApi;
 using Game.Block.Interface.BlockConfig;
-using MainGame.Network.Event;
 using MainGame.UnityView.Chunk;
 using MessagePack;
 using Server.Event.EventReceive;

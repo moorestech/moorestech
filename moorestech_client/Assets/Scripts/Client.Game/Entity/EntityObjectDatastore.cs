@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Client.Network.NewApi;
 using Game.Entity.Interface;
 using Constant;
-using MainGame.Network.Event;
 using MainGame.UnityView.Entity;
 using MainGame.UnityView.Item;
 using MainGame.UnityView.UI.Inventory.Element;
@@ -11,7 +11,7 @@ using VContainer;
 
 namespace MainGame.Presenter.Entity
 {
-    public class EntitiesPresenter : MonoBehaviour
+    public class EntityObjectDatastore : MonoBehaviour
     {
         [SerializeField] private ItemEntityObject itemPrefab;
 
@@ -38,18 +38,18 @@ namespace MainGame.Presenter.Entity
         }
 
         [Inject]
-        public void Construct(ReceiveEntitiesDataEvent receiveEntitiesDataEvent, ItemImageContainer itemImageContainer)
+        public void Construct(ItemImageContainer itemImageContainer)
         {
             _itemImageContainer = itemImageContainer;
-            receiveEntitiesDataEvent.OnEntitiesUpdate += OnEntitiesUpdate;
         }
 
         /// <summary>
-        ///     イベントを受け取りエンティティの生成、更新を行う
+        /// エンティティの生成、更新を行う
         /// </summary>
-        private void OnEntitiesUpdate(List<EntityProperties> entities)
+        public void OnEntitiesUpdate(List<EntityResponse> entities)
         {
             foreach (var entity in entities)
+            {
                 if (_entities.ContainsKey(entity.InstanceId))
                 {
                     _entities[entity.InstanceId].objectEntity.SetInterpolationPosition(entity.Position);
@@ -60,19 +60,20 @@ namespace MainGame.Presenter.Entity
                     var entityObject = CreateEntity(entity);
                     _entities.Add(entity.InstanceId, (DateTime.Now, entityObject));
                 }
+            }
         }
 
         /// <summary>
         ///     タイプに応じたエンティティの作成
         /// </summary>
-        private IEntityObject CreateEntity(EntityProperties entityProperties)
+        private IEntityObject CreateEntity(EntityResponse entity)
         {
-            if (entityProperties.Type == VanillaEntityType.VanillaItem)
+            if (entity.Type == VanillaEntityType.VanillaItem)
             {
-                var item = Instantiate(itemPrefab, entityProperties.Position, Quaternion.identity, transform);
+                var item = Instantiate(itemPrefab, entity.Position, Quaternion.identity, transform);
 
 
-                var id = int.Parse(entityProperties.State.Split(',')[0]);
+                var id = int.Parse(entity.State.Split(',')[0]);
                 item.SetTexture(_itemImageContainer.GetItemView(id).ItemTexture);
                 return item;
             }

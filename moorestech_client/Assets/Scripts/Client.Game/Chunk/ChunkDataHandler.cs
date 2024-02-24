@@ -4,12 +4,11 @@ using Client.Network.NewApi;
 using Game.World.Interface.DataStore;
 using Constant;
 using Cysharp.Threading.Tasks;
-using MainGame.Network.Event;
+using MainGame.Presenter.Entity;
 using MainGame.UnityView.Chunk;
 using MessagePack;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse.Const;
-using UnityEditor.Callbacks;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -19,12 +18,14 @@ namespace MainGame.Presenter.Block
     ///     サーバーからのパケットを受け取り、Viewにブロックの更新情報を渡す
     ///     IInitializableがないとDIコンテナ作成時にインスタンスが生成されないので実装しています
     /// </summary>
-    public class ChunkDataReciver : IInitializable
+    public class ChunkDataHandler : IInitializable
     {
         private readonly Dictionary<Vector2Int, BlockInfo[,]> _chunk = new();
+        
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
+        private readonly EntityObjectDatastore _entitiesDatastore;
 
-        public ChunkDataReciver(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
+        public ChunkDataHandler(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             //イベントをサブスクライブする
@@ -82,19 +83,27 @@ namespace MainGame.Presenter.Block
             async UniTask GetChunkAndApply()
             {
                 var data = await VanillaApi.GetChunkInfos(chunks, ct);
+                
                 foreach (var chunk in data)
                 {
-                    var chunkPos = chunk.ChunkPos;
-                    _chunk[chunkPos] = chunk.Blocks;
-                    for (var i = 0; i < chunk.Blocks.GetLength(0); i++)
-                    for (var j = 0; j < chunk.Blocks.GetLength(1); j++)
-                    {
-                        var blockPos = new Vector2Int(chunkPos.x + i, chunkPos.y + j);
-                        var blockId = chunk.Blocks[i, j].BlockId;
-                        var blockDirections = chunk.Blocks[i, j].BlockDirection;
-                        PlaceOrRemoveBlock(blockPos, blockId, blockDirections);
-                    }
+                    ApplyChunkData(chunk);
                 }
+            }
+
+            void ApplyChunkData(ChunkResponse chunk)
+            {
+                var chunkPos = chunk.ChunkPos;
+                _chunk[chunkPos] = chunk.Blocks;
+                for (var i = 0; i < chunk.Blocks.GetLength(0); i++)
+                for (var j = 0; j < chunk.Blocks.GetLength(1); j++)
+                {
+                    var blockPos = new Vector2Int(chunkPos.x + i, chunkPos.y + j);
+                    var blockId = chunk.Blocks[i, j].BlockId;
+                    var blockDirections = chunk.Blocks[i, j].BlockDirection;
+                    PlaceOrRemoveBlock(blockPos, blockId, blockDirections);
+                }
+                
+                _entitiesDatastore.OnEntitiesUpdate(chunk.Entities);
             }
 
             #endregion

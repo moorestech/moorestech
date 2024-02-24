@@ -6,7 +6,6 @@ using MainGame.Extension;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
 using MainGame.Network;
-using MainGame.Network.Event;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Settings;
@@ -67,7 +66,7 @@ namespace MainGame.Starter
         [SerializeField] private PlayerObjectController playerObjectController;
         [SerializeField] private MapObjectGetPresenter mapObjectGetPresenter;
 
-        [SerializeField] private EntitiesPresenter entitiesPresenter;
+        [SerializeField] private EntityObjectDatastore entityObjectDatastore;
 
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private LoadingFinishDetector loadingFinishDetector;
@@ -117,9 +116,6 @@ namespace MainGame.Starter
             builder.Register<SocketInstanceCreate, SocketInstanceCreate>(Lifetime.Singleton);
             builder.Register<ISocketSender, SocketSender>(Lifetime.Singleton);
 
-            //パケット受け取りイベント
-            builder.Register<ReceiveEntitiesDataEvent>(Lifetime.Singleton);
-
             //パケット送信インスタンス
             builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
 
@@ -140,7 +136,7 @@ namespace MainGame.Starter
 
             //プレゼンターアセンブリ
             builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();
-            builder.RegisterEntryPoint<ChunkDataReciver>();
+            builder.RegisterEntryPoint<ChunkDataHandler>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateEventHandler>();
@@ -186,7 +182,7 @@ namespace MainGame.Starter
             builder.RegisterComponent(mapObjectGetPresenter);
 
             builder.RegisterComponent(displayEnergizedRange);
-            builder.RegisterComponent(entitiesPresenter);
+            builder.RegisterComponent(entityObjectDatastore);
             builder.RegisterComponent(playerInventoryViewController);
             builder.RegisterComponent(blockInventoryView);
             builder.RegisterComponent(craftInventoryView);
@@ -208,7 +204,7 @@ namespace MainGame.Starter
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<LoadingFinishDetector>();
             _resolver.Resolve<DisplayEnergizedRange>();
-            _resolver.Resolve<EntitiesPresenter>();
+            _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ConnectionServer>();
             _resolver.Resolve<NetworkDisconnectPresenter>();
         }
