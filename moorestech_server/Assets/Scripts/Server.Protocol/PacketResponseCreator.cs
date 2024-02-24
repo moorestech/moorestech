@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Game.PlayerInventory.Interface;
 using Game.WorldMap;
 using MessagePack;
@@ -41,10 +42,13 @@ namespace Server.Protocol
 
         public List<List<byte>> GetPacketResponse(List<byte> payload)
         {
-            var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray()).Tag;
+            var request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray());
+            var tag = request.Tag;
             var response = _packetResponseDictionary[tag].GetResponse(payload);
+            response.SequenceId = request.SequenceId;
             
-            return response;
+            var responseBytes = MessagePackSerializer.Serialize(response);
+            return new List<List<byte>> {responseBytes.ToList()};
         }
     }
 }

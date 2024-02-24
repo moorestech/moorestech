@@ -20,13 +20,10 @@ namespace Server.Event.EventReceive
         private void ReceivedEvent(BlockRemoveEventProperties blockPlaceEventProperties)
         {
             var c = blockPlaceEventProperties.CoreVector2Int;
-
-
-            var payload = MessagePackSerializer.Serialize(new RemoveBlockEventMessagePack(
-                c.x, c.y)).ToList();
-
-
-            _eventProtocolProvider.AddBroadcastEvent(payload);
+            
+            var payload = MessagePackSerializer.Serialize(new RemoveBlockEventMessagePack(c.x, c.y));
+            
+            _eventProtocolProvider.AddBroadcastEvent(EventTag,payload);
         }
     }
 
@@ -34,9 +31,7 @@ namespace Server.Event.EventReceive
     public class RemoveBlockEventMessagePack : EventProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RemoveBlockEventMessagePack()
-        {
-        }
+        public RemoveBlockEventMessagePack() { }
 
         public RemoveBlockEventMessagePack(int x, int y)
         {

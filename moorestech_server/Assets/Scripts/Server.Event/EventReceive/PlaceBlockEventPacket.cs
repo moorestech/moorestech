@@ -23,11 +23,10 @@ namespace Server.Event.EventReceive
             var c = blockPlaceEventProperties.CoreVector2Int;
             var blockId = blockPlaceEventProperties.Block.BlockId;
 
-            var payload = MessagePackSerializer.Serialize(new PlaceBlockEventMessagePack(
-                c, blockId, (int)blockPlaceEventProperties.BlockDirection
-            )).ToList();
+            var messagePack = new PlaceBlockEventMessagePack(c, blockId, (int)blockPlaceEventProperties.BlockDirection);
+            var payload = MessagePackSerializer.Serialize(messagePack);
 
-            _eventProtocolProvider.AddBroadcastEvent(payload);
+            _eventProtocolProvider.AddBroadcastEvent(EventTag,payload);
         }
     }
 

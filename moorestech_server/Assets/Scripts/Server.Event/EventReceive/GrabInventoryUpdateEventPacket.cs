@@ -22,11 +22,10 @@ namespace Server.Event.EventReceive
 
         private void ReceivedEvent(PlayerInventoryUpdateEventProperties playerInventoryUpdateEvent)
         {
-            var payload = MessagePackSerializer.Serialize(new GrabInventoryUpdateEventMessagePack(
-                playerInventoryUpdateEvent.ItemStack
-            )).ToList();
+            var messagePack = new GrabInventoryUpdateEventMessagePack(playerInventoryUpdateEvent.ItemStack);
+            var payload = MessagePackSerializer.Serialize(messagePack);
 
-            _eventProtocolProvider.AddEvent(playerInventoryUpdateEvent.PlayerId, payload);
+            _eventProtocolProvider.AddEvent(playerInventoryUpdateEvent.PlayerId,EventTag, payload);
         }
     }
 

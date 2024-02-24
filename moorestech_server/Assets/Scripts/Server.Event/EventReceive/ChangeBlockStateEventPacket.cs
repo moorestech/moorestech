@@ -24,10 +24,10 @@ namespace Server.Event.EventReceive
 
         private void ChangeState((ChangedBlockState state, IBlock block, int x, int y) state)
         {
-            var payload = MessagePackSerializer.Serialize(
-                new ChangeBlockStateEventMessagePack(state.state, state.x, state.y)).ToList();
+            var messagePack = new ChangeBlockStateEventMessagePack(state.state, state.x, state.y);
+            var payload = MessagePackSerializer.Serialize(messagePack);
 
-            _eventProtocolProvider.AddBroadcastEvent(payload);
+            _eventProtocolProvider.AddBroadcastEvent(EventTag,payload);
         }
     }
 

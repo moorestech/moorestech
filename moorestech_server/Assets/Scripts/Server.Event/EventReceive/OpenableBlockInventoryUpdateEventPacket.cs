@@ -10,6 +10,9 @@ using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
 {
+    /// <summary>
+    /// TODO これいる？どうせステートの変更を送るんだから、そこに入れたらいいんじゃないの？
+    /// </summary>
     public class OpenableBlockInventoryUpdateEventPacket
     {
         public const string EventTag = "va:event:blockInvUpdate";
@@ -37,17 +40,15 @@ namespace Server.Event.EventReceive
             var playerIds = _inventoryOpenStateDataStore.GetBlockInventoryOpenPlayers(properties.EntityId);
             if (playerIds.Count == 0) return;
 
-            //プレイヤーごとにイベントを送信
-            foreach (var id in playerIds) _eventProtocolProvider.AddEvent(id, GetPayload(properties));
-        }
-
-        private List<byte> GetPayload(BlockOpenableInventoryUpdateEventProperties properties)
-        {
             var (x, y) = _worldBlockDatastore.GetBlockPosition(properties.EntityId);
-
-            return MessagePackSerializer.Serialize(new OpenableBlockInventoryUpdateEventMessagePack(
-                x, y, properties.Slot, properties.ItemStack
-            )).ToList();
+            var messagePack = new OpenableBlockInventoryUpdateEventMessagePack(x, y, properties.Slot, properties.ItemStack);
+            var payload = MessagePackSerializer.Serialize(messagePack);
+            
+            //プレイヤーごとにイベントを送信
+            foreach (var id in playerIds)
+            {
+                _eventProtocolProvider.AddEvent(id,EventTag, payload);
+            }
         }
     }
 
