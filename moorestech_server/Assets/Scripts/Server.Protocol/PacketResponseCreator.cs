@@ -43,11 +43,16 @@ namespace Server.Protocol
         public List<List<byte>> GetPacketResponse(List<byte> payload)
         {
             var request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray());
-            var tag = request.Tag;
-            var response = _packetResponseDictionary[tag].GetResponse(payload);
-            response.SequenceId = request.SequenceId;
+            var response = _packetResponseDictionary[request.Tag].GetResponse(payload);
             
-            var responseBytes = MessagePackSerializer.Serialize(response);
+            if (response == null)
+            {
+                return new List<List<byte>>();
+            }
+
+            response.SequenceId = request.SequenceId;
+            var responseBytes = MessagePackSerializer.Serialize(Convert.ChangeType(response, response.GetType()));
+            
             return new List<List<byte>> {responseBytes.ToList()};
         }
     }

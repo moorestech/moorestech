@@ -42,14 +42,23 @@ namespace Server.Event
             {
                 if (_events.ContainsKey(playerId))
                 {
-                    var data = _events[playerId].Copy();
+                    var events = _events[playerId];
+                    if (events.Count == 0)
+                    {
+                        return null;
+                    }
+                    
+                    var data = new List<EventMessagePack>();
+                    data.AddRange(events);
+                    
                     _events[playerId].Clear();
                     return data;
                 }
 
                 //ブロードキャストイベントの時に使うので、何かしらリクエストがあった際はDictionaryにキーを追加しておく
                 _events.Add(playerId, new List<EventMessagePack>());
-                return _events[playerId];
+                
+                return null;
             }
         }
     }

@@ -11,6 +11,7 @@ using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -53,9 +54,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //イベントパケットをチェック
             Assert.AreEqual(1, eventPacket.Count);
 
-            var data =
-                MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(
-                    eventPacket[0].ToArray());
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPacket[0].ToArray());
+            var payLoad = eventMessagePack.Events[0].Payload;
+            var data = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payLoad);
 
             Assert.AreEqual(1, data.Slot); // slot id
             Assert.AreEqual(4, data.Item.Id); // item id
