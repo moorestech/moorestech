@@ -31,7 +31,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(MiningOperationProtocol.Tag, new MiningOperationProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockInventoryOpenCloseProtocol.Tag, new BlockInventoryOpenCloseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SaveProtocol.Tag, new SaveProtocol(serviceProvider));
-            _packetResponseDictionary.Add(MapObjectDestructionInformationProtocol.Tag, new MapObjectDestructionInformationProtocol(serviceProvider));
+            _packetResponseDictionary.Add(GetMapObjectInfoProtocol.Tag, new GetMapObjectInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetMapObjectProtocol.Tag, new GetMapObjectProtocol(serviceProvider));
             _packetResponseDictionary.Add(OneClickCraft.Tag, new OneClickCraft(serviceProvider));
 

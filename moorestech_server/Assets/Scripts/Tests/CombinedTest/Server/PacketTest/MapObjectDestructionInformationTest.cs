@@ -25,9 +25,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             var responseArray = packet.GetPacketResponse(MapObjectDestructionInformationProtocol())[0];
-            var response =
-                MessagePackSerializer.Deserialize<ResponseMapObjectDestructionInformationMessagePack>(
-                    responseArray.ToArray());
+            var response = MessagePackSerializer.Deserialize<ResponseMapObjectInfosMessagePack>(responseArray.ToArray());
 
             foreach (var mapObject in mapObjectDatastore.MapObjects)
             {
@@ -40,7 +38,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         // Packet
         private List<byte> MapObjectDestructionInformationProtocol()
         {
-            return MessagePackSerializer.Serialize(new RequestMapObjectDestructionInformationMessagePack()).ToList();
+            return MessagePackSerializer.Serialize(new RequestMapObjectInfosMessagePack()).ToList();
         }
     }
 }

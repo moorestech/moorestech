@@ -25,8 +25,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var blockPlace = new BlockPlaceEvent();
 
             var eventProtocol = new EventProtocolProvider();
-            var (packetResponse, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             Assert.AreEqual(response.Count, 0);
         }
@@ -95,9 +94,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload.ToArray());
 
-            Assert.AreEqual(PlaceBlockToSetEventPacket.EventTag, data.EventTag);
+            Assert.AreEqual(PlaceBlockEventPacket.EventTag, data.EventTag);
 
-            return new TestBlockData(data.X, data.Y, data.BlockId, data.Direction);
+            return new TestBlockData(data.BlockPos.X,data.BlockPos.Y, data.BlockId, data.Direction);
         }
 
         private List<byte> EventRequestData(int plyaerID)
