@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Server.Util.MessagePack;
-using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -26,8 +24,6 @@ namespace Server.Protocol.PacketResponse
 
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
 
-            //ExportInventoryLog(playerInventory);
-
             //メインインベントリのアイテムを設定
             var mainItems = new List<ItemMessagePack>();
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
@@ -37,53 +33,15 @@ namespace Server.Protocol.PacketResponse
                 mainItems.Add(new ItemMessagePack(id, count));
             }
 
-
             //グラブインベントリのアイテムを設定
             var grabItem = new ItemMessagePack(
                 playerInventory.GrabInventory.GetItem(0).Id,
                 playerInventory.GrabInventory.GetItem(0).Count);
 
-
-
             var response = MessagePackSerializer.Serialize(new PlayerInventoryResponseProtocolMessagePack(
                 data.PlayerId, mainItems.ToArray(), grabItem));
 
-
             return new List<List<byte>> { response.ToList() };
-        }
-
-
-        /// <summary>
-        ///     デバッグ用でインベントリの中身が知りたい時に使用する
-        /// </summary>
-        public static void ExportInventoryLog(PlayerInventoryData playerInventory, bool isExportMain,
-            bool isExportCraft, bool isExportGrab)
-        {
-            var inventoryStr = new StringBuilder();
-            inventoryStr.AppendLine("Main Inventory");
-
-
-            if (isExportMain)
-                //メインインベントリのアイテムを設定
-                for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
-                {
-                    var id = playerInventory.MainOpenableInventory.GetItem(i).Id;
-                    var count = playerInventory.MainOpenableInventory.GetItem(i).Count;
-
-                    inventoryStr.Append(id + " " + count + "  ");
-                    if ((i + 1) % PlayerInventoryConst.MainInventoryColumns == 0) inventoryStr.AppendLine();
-                }
-
-            inventoryStr.AppendLine();
-
-            if (isExportGrab)
-            {
-                inventoryStr.AppendLine("Grab Inventory");
-                inventoryStr.AppendLine(playerInventory.GrabInventory.GetItem(0).Id + " " +
-                                        playerInventory.GrabInventory.GetItem(0).Count + "  ");
-            }
-
-            Debug.Log(inventoryStr);
         }
     }
 
