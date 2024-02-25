@@ -26,9 +26,10 @@ namespace MainGame.Presenter.Block
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private readonly EntityObjectDatastore _entitiesDatastore;
 
-        public ChunkDataHandler(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
+        public ChunkDataHandler(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, EntityObjectDatastore entitiesDatastore)
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
+            _entitiesDatastore = entitiesDatastore;
             //イベントをサブスクライブする
             VanillaApi.Event.RegisterEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
         }
@@ -72,6 +73,8 @@ namespace MainGame.Presenter.Block
             for (var i = -getChunkSize; i <= getChunkSize; i++)
             for (var j = -getChunkSize; j <= getChunkSize; j++)
                 chunks.Add(new Vector2Int(i * ChunkResponseConst.ChunkSize, j * ChunkResponseConst.ChunkSize));
+
+            await VanillaApi.WaiteConnection();
             
             while (true)
             {
@@ -84,6 +87,10 @@ namespace MainGame.Presenter.Block
             async UniTask GetChunkAndApply()
             {
                 var data = await VanillaApi.Response.GetChunkInfos(chunks, ct);
+                if (data == null)
+                {
+                    return;
+                }
                 
                 foreach (var chunk in data)
                 {
@@ -103,7 +110,12 @@ namespace MainGame.Presenter.Block
                     var blockDirections = chunk.Blocks[i, j].BlockDirection;
                     PlaceOrRemoveBlock(blockPos, blockId, blockDirections);
                 }
-                
+
+                if (chunk.Entities == null)
+                {
+                    Debug.Log("chunk.Entities is null");
+                    return;
+                }
                 _entitiesDatastore.OnEntitiesUpdate(chunk.Entities);
             }
 

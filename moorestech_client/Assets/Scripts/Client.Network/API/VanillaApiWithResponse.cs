@@ -80,6 +80,12 @@ namespace Client.Network.API
             var request = new RequestChunkDataMessagePack(chunks.Select(c => new Vector2IntMessagePack(c)).ToList());
             var response = await _serverConnector.GetInformationData<ResponseChunkDataMessagePack>(request, ct);
             
+            //TODO 初期化をちゃんとするようにしてnullチェックをなくしたい
+            if (response == null)
+            {
+                return null;
+            }
+            
             var result = new List<ChunkResponse>(response.ChunkData.Length);
             foreach (var responseChunk in response.ChunkData)
             {
@@ -101,8 +107,7 @@ namespace Client.Network.API
                     }
                 }
                 
-                var entities = chunk.Entities.
-                    Select(e => new EntityResponse(e));
+                var entities = chunk.Entities.Select(e => new EntityResponse(e));
                 
                 var chunkPos = chunk.ChunkPos.Vector2Int;
                 return new ChunkResponse(chunkPos, blocks, entities.ToList());

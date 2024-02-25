@@ -65,7 +65,7 @@ namespace MainGame.Presenter.MapObject
                 }
                 else
                 {
-                    MouseCursorExplainer.Instance.ShowText("このアイテムが必要です:" + string.Join(", ", GetRecommendItemId(_currentMapObjectGameObject.MapObjectType)));
+                    MouseCursorExplainer.Instance.ShowWithoutLocalize("このアイテムが必要です:" + string.Join(", ", GetRecommendItemId(_currentMapObjectGameObject.MapObjectType)));
                 }
             }
             

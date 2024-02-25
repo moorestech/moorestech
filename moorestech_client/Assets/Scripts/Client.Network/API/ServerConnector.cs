@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using JetBrains.Annotations;
 using MainGame.Network;
 using MessagePack;
 using Server.Protocol;
 using UniRx;
+using UnityEngine;
 
 namespace Client.Network.API
 {
@@ -67,9 +69,10 @@ namespace Client.Network.API
 
         public void Send(ProtocolMessagePackBase sendData)
         {
-            _socketSender.Send(MessagePackSerializer.Serialize(sendData).ToList());
+            _socketSender.Send(MessagePackSerializer.Serialize(Convert.ChangeType(sendData,sendData.GetType())).ToList());
         } 
 
+        [CanBeNull]
         public async UniTask<TResponse> GetInformationData<TResponse>(ProtocolMessagePackBase sendData,CancellationToken ct) where TResponse : ProtocolMessagePackBase
         {
             SendPacket();
@@ -80,8 +83,9 @@ namespace Client.Network.API
 
             void SendPacket()
             {
-                _socketSender.Send(MessagePackSerializer.Serialize(sendData).ToList());
                 _sequenceId++;
+                sendData.SequenceId = _sequenceId;
+                _socketSender.Send(MessagePackSerializer.Serialize(Convert.ChangeType(sendData,sendData.GetType())).ToList());
             }
             
             async UniTask<TResponse> WaitReceive()
@@ -92,6 +96,7 @@ namespace Client.Network.API
                 var receiveData = await responseWaiter.WaitSubject.ToUniTask(true, ct);
                 if (receiveData == null)
                 {
+                    Debug.Log("Receive null");
                     return null;
                 }
 
