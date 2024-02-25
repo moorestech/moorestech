@@ -57,7 +57,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
                 itemImage.gameObject.SetActive(true);
                 itemImage.sprite = itemView.ItemImage;
                 
-                uiEnterExplainerController.SetText(itemView.ItemName);
+                uiEnterExplainerController.SetText($"{itemView.ItemName}\n<size=25>ID:{itemView.ItemId}</size>",false);
                 uiEnterExplainerController.DisplayEnable(true);
             }
         }

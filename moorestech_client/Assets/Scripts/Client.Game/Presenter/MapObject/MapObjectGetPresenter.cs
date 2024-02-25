@@ -59,14 +59,17 @@ namespace MainGame.Presenter.MapObject
 
             if (_currentMapObjectGameObject != null)
             {
+                var text = string.Empty;
                 if (isMinenable)
                 {
-                    MouseCursorExplainer.Instance.Show("Press and hold left-click to get");
+                    text = "Press and hold left-click to get";
                 }
                 else
                 {
-                    MouseCursorExplainer.Instance.ShowWithoutLocalize("このアイテムが必要です:" + string.Join(", ", GetRecommendItemId(_currentMapObjectGameObject.MapObjectType)));
+                    text = "このアイテムが必要です:" + string.Join(", ", GetRecommendItemId(_currentMapObjectGameObject.MapObjectType));
                 }
+                
+                MouseCursorExplainer.Instance.Show(text,isLocalize:isMinenable);
             }
             
             if (!isMinenable)

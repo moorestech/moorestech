@@ -24,10 +24,10 @@ namespace MainGame.Presenter.Entity
         /// </summary>
         private void Update()
         {
-            //0.2秒以上経過していたら削除
+            //1秒以上経過していたら削除
             var removeEntities = new List<long>();
             foreach (var entity in _entities)
-                if ((DateTime.Now - entity.Value.lastUpdate).TotalSeconds > 0.2)
+                if ((DateTime.Now - entity.Value.lastUpdate).TotalSeconds > 1)
                     removeEntities.Add(entity.Key);
             foreach (var removeEntity in removeEntities)
             {
