@@ -53,11 +53,9 @@ namespace Server.Protocol.PacketResponse
             switch (data.ItemMoveType)
             {
                 case ItemMoveType.SwapSlot:
-                    Debug.Log($"Swap from:{data.FromInventory.InventoryType} fromSlot:{fromSlot} to:{data.ToInventory.InventoryType} to:{toSlot} count:{data.Count}");
                     InventoryItemMoveService.Move(_itemStackFactory, fromInventory, fromSlot, toInventory, toSlot, data.Count);
                     break;
                 case ItemMoveType.InsertSlot:
-                    Debug.Log($"Insert from:{data.FromInventory.InventoryType} fromSlot:{fromSlot} to:{data.ToInventory.InventoryType} count:{data.Count}");
                     InventoryItemInsertService.Insert(fromInventory, fromSlot, toInventory, data.Count);
                     break;
             }
