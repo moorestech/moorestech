@@ -1,4 +1,4 @@
-using MainGame.Network.Send;
+using Client.Network.API;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,23 +11,15 @@ namespace MainGame.Presenter.Command
         [SerializeField] private TMP_InputField commandInputField;
         [SerializeField] private Button submitButton;
 
-        private SendCommandProtocol _sendCommandProtocol;
 
         private void Start()
         {
             submitButton.onClick.AddListener(SubmitCommand);
         }
-
-
-        [Inject]
-        public void Construct(SendCommandProtocol sendCommandProtocol)
-        {
-            _sendCommandProtocol = sendCommandProtocol;
-        }
-
+        
         private void SubmitCommand()
         {
-            _sendCommandProtocol.SendCommand(commandInputField.text);
+            VanillaApi.SendOnly.SendCommand(commandInputField.text);
             commandInputField.text = string.Empty;
         }
     }

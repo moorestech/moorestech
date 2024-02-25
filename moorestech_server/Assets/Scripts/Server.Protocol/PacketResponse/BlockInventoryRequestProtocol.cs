@@ -22,14 +22,14 @@ namespace Server.Protocol.PacketResponse
             serviceProvider.GetService<IBlockConfig>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data =
                 MessagePackSerializer.Deserialize<RequestBlockInventoryRequestProtocolMessagePack>(payload.ToArray());
 
             //開けるインベントリを持つブロックが存在するかどうかをチェック
             if (!_blockDatastore.ExistsComponentBlock<IOpenableInventory>(data.X, data.Y))
-                return new List<List<byte>>();
+                return null;
 
 
             //存在したらアイテム数とアイテムIDをまとめてレスポンスする
@@ -44,11 +44,7 @@ namespace Server.Protocol.PacketResponse
 
             var blockId = _blockDatastore.GetBlock(data.X, data.Y).BlockId;
 
-            var response = MessagePackSerializer
-                .Serialize(new BlockInventoryResponseProtocolMessagePack(blockId, itemIds.ToArray(),
-                    itemCounts.ToArray())).ToList();
-
-            return new List<List<byte>> { response };
+            return new BlockInventoryResponseProtocolMessagePack(blockId, itemIds.ToArray(), itemCounts.ToArray());
         }
 
         //データのレスポンスを実行するdelegateを設定する

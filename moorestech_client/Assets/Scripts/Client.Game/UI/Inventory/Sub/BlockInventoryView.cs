@@ -145,7 +145,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             SubInventory = itemStacks;
         }
 
-        public void SetItemSlot(IItemStack item, int slot)
+        public void SetItemSlot(int slot,IItemStack item)
         {
             if (SubInventory.Count <= slot)
             {

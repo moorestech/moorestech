@@ -24,10 +24,10 @@ namespace Server.Event.EventReceive
 
         private void ChangeState((ChangedBlockState state, IBlock block, int x, int y) state)
         {
-            var payload = MessagePackSerializer.Serialize(
-                new ChangeBlockStateEventMessagePack(state.state, state.x, state.y)).ToList();
+            var messagePack = new ChangeBlockStateEventMessagePack(state.state, state.x, state.y);
+            var payload = MessagePackSerializer.Serialize(messagePack);
 
-            _eventProtocolProvider.AddBroadcastEvent(payload);
+            _eventProtocolProvider.AddBroadcastEvent(EventTag,payload);
         }
     }
 
@@ -46,13 +46,13 @@ namespace Server.Event.EventReceive
             PreviousState = state.PreviousState;
 
             CurrentStateJsonData = state.CurrentStateJsonData;
-            Position = new Vector2MessagePack(x, y);
+            Position = new Vector2IntMessagePack(x, y);
         }
 
         public string CurrentState { get; set; }
         public string PreviousState { get; set; }
         public string CurrentStateJsonData { get; set; }
-        public Vector2MessagePack Position { get; set; }
+        public Vector2IntMessagePack Position { get; set; }
 
         public TBlockState GetStateDat<TBlockState>()
         {

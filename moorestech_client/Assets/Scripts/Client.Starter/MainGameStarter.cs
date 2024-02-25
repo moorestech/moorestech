@@ -1,13 +1,12 @@
 using System.Diagnostics;
 using Client.Localization;
+using Client.Network.API;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.Extension;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
 using MainGame.Network;
-using MainGame.Network.Event;
-using MainGame.Network.Receive;
 using MainGame.Network.Send;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Settings;
@@ -27,7 +26,6 @@ using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.Item;
 using MainGame.UnityView.Player;
 using MainGame.UnityView.UI.Inventory;
-using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.Inventory.Sub;
 using MainGame.UnityView.UI.UIState;
@@ -69,7 +67,7 @@ namespace MainGame.Starter
         [SerializeField] private PlayerObjectController playerObjectController;
         [SerializeField] private MapObjectGetPresenter mapObjectGetPresenter;
 
-        [SerializeField] private EntitiesPresenter entitiesPresenter;
+        [SerializeField] private EntityObjectDatastore entityObjectDatastore;
 
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private LoadingFinishDetector loadingFinishDetector;
@@ -77,7 +75,7 @@ namespace MainGame.Starter
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private BlockInventoryView blockInventoryView;
         [SerializeField] private CraftInventoryView craftInventoryView;
-        [SerializeField] private PlayerInventoryController playerInventoryController;
+        [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
 
         [SerializeField] private BlockPlacePreview blockPlacePreview;
         [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
@@ -115,48 +113,23 @@ namespace MainGame.Starter
             builder.RegisterInstance(new ServerProcessSetting(isLocal, localServerProcess));
             builder.RegisterInstance(new ConnectionServerConfig(IPAddress, Port));
             builder.RegisterInstance(new PlayerConnectionSetting(PlayerId));
-            builder.Register<ConnectionServer>(Lifetime.Scoped);
+            builder.RegisterEntryPoint<VanillaApi>();
+            builder.Register<ServerConnector>(Lifetime.Singleton);
+            builder.Register<ConnectionServer>(Lifetime.Singleton);
             builder.Register<SocketInstanceCreate, SocketInstanceCreate>(Lifetime.Singleton);
-            builder.Register<AllReceivePacketAnalysisService, AllReceivePacketAnalysisService>(Lifetime.Singleton);
             builder.Register<ISocketSender, SocketSender>(Lifetime.Singleton);
-
-            //パケット受け取りイベント
-            builder.Register<ReceiveChunkDataEvent>(Lifetime.Singleton);
-            builder.Register<ReceiveInitialHandshakeProtocol>(Lifetime.Singleton); //初期接続時に受け取るプロトコル
-            builder.Register<ReceiveEntitiesDataEvent>(Lifetime.Singleton);
-            builder.Register<ReceiveBlockStateChangeEvent>(Lifetime.Singleton);
-            builder.Register<ReceiveUpdateMapObjectEvent>(Lifetime.Singleton);
-
-            //パケット送信インスタンス
-            builder.RegisterEntryPoint<RequestEventProtocol>(); //イベントは一定時間ごとに送信するのでRegisterEntryPointを使う
-            builder.RegisterEntryPoint<InitialHandshakeProtocol>(); //最初にパケットを送るのでRegisterEntryPointを使う
-            builder.RegisterEntryPoint<RequestMapObjectDestructionInformationProtocol>();
-
-            builder.Register<SendPlayerPositionProtocolProtocol>(Lifetime.Singleton);
-            builder.Register<RequestPlayerInventoryProtocol>(Lifetime.Singleton);
-            builder.Register<SendPlaceHotBarBlockProtocol>(Lifetime.Singleton);
-            builder.Register<SendRequestBlockInventoryProtocol>(Lifetime.Singleton);
-            builder.Register<SendCommandProtocol>(Lifetime.Singleton);
-            builder.Register<SendBlockInventoryOpenCloseControlProtocol>(Lifetime.Singleton);
-            builder.Register<SendBlockRemoveProtocol>(Lifetime.Singleton);
-            builder.Register<SendMiningProtocol>(Lifetime.Singleton);
-            builder.Register<SendSaveProtocol>(Lifetime.Singleton);
-            builder.Register<InventoryMoveItemProtocol>(Lifetime.Singleton);
-            builder.Register<SendGetMapObjectProtocolProtocol>(Lifetime.Singleton);
-            builder.Register<SendOneClickCraftProtocol>(Lifetime.Singleton);
 
             //インベントリのUIコントロール
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory,LocalPlayerInventory>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
 
             //プレゼンターアセンブリ
             builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();
-            builder.RegisterEntryPoint<ChunkDataPresenter>();
-            builder.RegisterEntryPoint<WorldMapTilePresenter>();
+            builder.RegisterEntryPoint<ChunkDataHandler>();
             builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
-            builder.RegisterEntryPoint<PlayerInventoryRequestPacketSend>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
-            builder.RegisterEntryPoint<BlockStateChangePresenter>();
+            builder.RegisterEntryPoint<BlockStateEventHandler>();
 
 
             //UIコントロール
@@ -199,8 +172,8 @@ namespace MainGame.Starter
             builder.RegisterComponent(mapObjectGetPresenter);
 
             builder.RegisterComponent(displayEnergizedRange);
-            builder.RegisterComponent(entitiesPresenter);
-            builder.RegisterComponent(playerInventoryController);
+            builder.RegisterComponent(entityObjectDatastore);
+            builder.RegisterComponent(playerInventoryViewController);
             builder.RegisterComponent(blockInventoryView);
             builder.RegisterComponent(craftInventoryView);
 
@@ -221,7 +194,7 @@ namespace MainGame.Starter
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<LoadingFinishDetector>();
             _resolver.Resolve<DisplayEnergizedRange>();
-            _resolver.Resolve<EntitiesPresenter>();
+            _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ConnectionServer>();
             _resolver.Resolve<NetworkDisconnectPresenter>();
         }

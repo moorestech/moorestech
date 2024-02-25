@@ -18,33 +18,26 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void MapObjectDestroyToEventTest()
         {
-            var (packetResponse, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
             var mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
 
-            var response = packetResponse.GetPacketResponse(EventRequestData());
+            var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             //イベントがないことを確認する
-            Assert.AreEqual(0, response.Count);
-
+            Assert.AreEqual(0, eventMessagePack.Events.Count);
 
             //MapObjectを一つ破壊する
             var mapObject = mapObjectDatastore.MapObjects[0];
             mapObject.Destroy();
 
-
             //map objectが破壊されたことを確かめる
-            response = packetResponse.GetPacketResponse(EventRequestData());
-            Assert.AreEqual(1, response.Count);
-            var data = MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(response[0].ToArray());
+            response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            Assert.AreEqual(1, eventMessagePack.Events.Count);
+            
+            var data = MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(eventMessagePack.Events[0].Payload);
             Assert.AreEqual(MapObjectUpdateEventMessagePack.DestroyEventType, data.EventType);
             Assert.AreEqual(mapObject.InstanceId, data.InstanceId);
-        }
-
-
-        private List<byte> EventRequestData()
-        {
-            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(PlayerId)).ToList();
-            ;
         }
     }
 }

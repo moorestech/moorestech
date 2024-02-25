@@ -45,6 +45,7 @@
         "Client.Common",
         "Client.Input",
         "Client.Localization",
+        "Client.Network",
         "Cinemachine",
         "UniRx",
         "UniTask",

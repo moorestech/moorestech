@@ -15,12 +15,14 @@ namespace Server.Protocol.PacketResponse
             _eventProtocolProvider = eventProtocolProvider;
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<EventProtocolMessagePack>(payload.ToArray());
 
             //イベントプロトコルプロバイダからデータを取得して返す
-            return _eventProtocolProvider.GetEventBytesList(data.PlayerId);
+            var events = _eventProtocolProvider.GetEventBytesList(data.PlayerId);
+            
+            return new ResponseEventProtocolMessagePack(events);
         }
     }
 
@@ -39,5 +41,19 @@ namespace Server.Protocol.PacketResponse
         }
 
         public int PlayerId { get; set; }
+    }
+
+    [MessagePackObject(true)]
+    public class ResponseEventProtocolMessagePack : ProtocolMessagePackBase
+    {
+        public List<EventMessagePack> Events { get; set; }
+        
+        public ResponseEventProtocolMessagePack(List<EventMessagePack> events)
+        {
+            Events = events;
+        }
+        
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public ResponseEventProtocolMessagePack() { }
     }
 }

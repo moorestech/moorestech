@@ -27,7 +27,7 @@ namespace Server.Protocol.PacketResponse
             _blockFactory = serviceProvider.GetService<IBlockFactory>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<SendPlaceHotBarBlockProtocolMessagePack>(payload.ToArray());
 
@@ -37,9 +37,9 @@ namespace Server.Protocol.PacketResponse
                 .GetItem(inventorySlot);
 
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
-            if (!_blockConfig.IsBlock(item.Id)) return new List<List<byte>>();
+            if (!_blockConfig.IsBlock(item.Id)) return null;
             //すでにブロックがある場合はそもまま処理を終了
-            if (_worldBlockDatastore.Exists(data.X, data.Y)) return new List<List<byte>>();
+            if (_worldBlockDatastore.Exists(data.X, data.Y)) return null;
 
 
             var blockDirection = data.Direction switch
@@ -63,7 +63,7 @@ namespace Server.Protocol.PacketResponse
                 .SetItem(inventorySlot, item);
 
 
-            return new List<List<byte>>();
+            return null;
         }
     }
 

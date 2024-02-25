@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
-using MainGame.Network.Event;
+using Client.Network.API;
+using Cysharp.Threading.Tasks;
 using MainGame.UnityView.MapObject;
+using Server.Event.EventReceive;
 using UnityEngine;
 using VContainer;
 
@@ -12,38 +14,48 @@ namespace MainGame.Presenter.MapObject
     public class MapObjectGameObjectDatastore : MonoBehaviour
     {
         [SerializeField] private List<MapObjectGameObject> mapObjects;
-
-
         private readonly Dictionary<int, MapObjectGameObject> _allMapObjects = new();
 
 #if UNITY_EDITOR
         public IReadOnlyList<MapObjectGameObject> MapObjects => mapObjects;
 #endif
+        
+        [Inject]
+        public void Construct()
+        {
+            VanillaApi.Event.RegisterEventResponse(MapObjectUpdateEventPacket.EventTag,OnUpdateMapObject);
+        }
 
-        private void Awake()
+        private async UniTask Start()
         {
             foreach (var mapObject in mapObjects) _allMapObjects.Add(mapObject.InstanceId, mapObject);
+            
+            await VanillaApi.WaiteConnection();
+            
+            var mapObjectInfos = await VanillaApi.Response.GetMapObjectInfo(default);
+            
+            foreach (var mapObjectInfo in mapObjectInfos)
+            {
+                var mapObject = _allMapObjects[mapObjectInfo.InstanceId];
+                if (mapObjectInfo.IsDestroyed)
+                {
+                    mapObject.DestroyMapObject();
+                }
+            }
         }
 
-
-        [Inject]
-        public void Construct(ReceiveUpdateMapObjectEvent receiveUpdateMapObjectEvent)
+        private void OnUpdateMapObject(byte[] payLoad)
         {
-            receiveUpdateMapObjectEvent.OnReceiveMapObjectInformation += UpdateMapObjectInformation;
-            receiveUpdateMapObjectEvent.OnDestroyMapObject += DestroyMapObject;
-        }
-
-        private void DestroyMapObject(MapObjectProperties mapObject)
-        {
-            _allMapObjects[mapObject.InstanceId].DestroyMapObject();
-        }
-
-
-        private void UpdateMapObjectInformation(List<MapObjectProperties> mapObjects)
-        {
-            foreach (var mapObject in mapObjects)
-                if (mapObject.IsDestroyed)
-                    _allMapObjects[mapObject.InstanceId].DestroyMapObject();
+            var data = MessagePack.MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(payLoad);
+            
+            switch (data.EventType)
+            {
+                case MapObjectUpdateEventMessagePack.DestroyEventType:
+                    _allMapObjects[data.InstanceId].DestroyMapObject();
+                    break;
+                default:
+                    throw new System.Exception("MapObjectUpdateEventProtocol: EventTypeが不正か実装されていません");
+            }
         }
     }
 }

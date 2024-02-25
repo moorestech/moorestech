@@ -24,14 +24,14 @@ namespace Server.Protocol.PacketResponse
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload.ToArray());
 
 
             var response = new ResponseInitialHandshakeMessagePack(GetPlayerPosition(data.PlayerId));
 
-            return new List<List<byte>> { MessagePackSerializer.Serialize(response).ToList() };
+            return response;
         }
 
 

@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse
             _blockConfig = serviceProvider.GetService<IBlockConfig>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<RemoveBlockProtocolMessagePack>(payload.ToArray());
 
@@ -64,7 +64,7 @@ namespace Server.Protocol.PacketResponse
             //すでにブロックがなかったら-1
             if (blockId == BlockConst.EmptyBlockId)
             {
-                return new List<List<byte>>();
+                return null;
             }
             
             //ブロックのIDを取得
@@ -76,7 +76,7 @@ namespace Server.Protocol.PacketResponse
             if (isNotRemainItem && remainBlockItem.Equals(_itemStackFactory.CreatEmpty()))
                 _worldBlockDatastore.RemoveBlock(data.X, data.Y);
 
-            return new List<List<byte>>();
+            return null;
         }
     }
 

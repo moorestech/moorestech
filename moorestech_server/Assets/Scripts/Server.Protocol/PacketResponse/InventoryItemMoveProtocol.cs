@@ -30,12 +30,12 @@ namespace Server.Protocol.PacketResponse
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload.ToArray());
 
             var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.X, data.FromInventory.Y);
-            if (fromInventory == null) return new List<List<byte>>();
+            if (fromInventory == null) return null;
             
             var fromSlot = data.FromInventory.Slot;
             if (data.FromInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
@@ -43,7 +43,7 @@ namespace Server.Protocol.PacketResponse
             
             
             var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.X, data.ToInventory.Y);
-            if (toInventory == null) return new List<List<byte>>();
+            if (toInventory == null) return null;
             
             var toSlot = data.ToInventory.Slot;
             if (data.ToInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
@@ -53,16 +53,14 @@ namespace Server.Protocol.PacketResponse
             switch (data.ItemMoveType)
             {
                 case ItemMoveType.SwapSlot:
-                    Debug.Log($"Swap from:{data.FromInventory.InventoryType} fromSlot:{fromSlot} to:{data.ToInventory.InventoryType} to:{toSlot} count:{data.Count}");
                     InventoryItemMoveService.Move(_itemStackFactory, fromInventory, fromSlot, toInventory, toSlot, data.Count);
                     break;
                 case ItemMoveType.InsertSlot:
-                    Debug.Log($"Insert from:{data.FromInventory.InventoryType} fromSlot:{fromSlot} to:{data.ToInventory.InventoryType} count:{data.Count}");
                     InventoryItemInsertService.Insert(fromInventory, fromSlot, toInventory, data.Count);
                     break;
             }
 
-            return new List<List<byte>>();
+            return null;
         }
 
         private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, int x, int y)

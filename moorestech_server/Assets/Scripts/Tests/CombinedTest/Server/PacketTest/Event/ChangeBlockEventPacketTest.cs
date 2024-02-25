@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
+using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
@@ -22,8 +23,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             GameUpdater.ResetUpdate();
 
             //機械のブロックを作る
-            var machine = (VanillaMachineBase)serviceProvider.GetService<IBlockFactory>()
-                .Create(UnitTestModBlockId.MachineId, 1);
+            var machine = (VanillaMachineBase)serviceProvider.GetService<IBlockFactory>().Create(UnitTestModBlockId.MachineId, 1);
             //機械のブロックを配置
             serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine, 0, 0, BlockDirection.North);
             //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する
@@ -48,8 +48,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             //ステートが実行中になっているかをチェック
             var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
-            var changeStateData =
-                MessagePackSerializer.Deserialize<ChangeBlockStateEventMessagePack>(response[0].ToArray());
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            var payLoad = eventMessagePack.Events[0].Payload;
+            
+            var changeStateData = MessagePackSerializer.Deserialize<ChangeBlockStateEventMessagePack>(payLoad);
 
             Assert.AreEqual(VanillaMachineBlockStateConst.IdleState, changeStateData.PreviousState);
             Assert.AreEqual(VanillaMachineBlockStateConst.ProcessingState, changeStateData.CurrentState);

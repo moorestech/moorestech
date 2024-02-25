@@ -28,7 +28,7 @@ namespace Server.Protocol.PacketResponse
             _seed = serviceProvider.GetService<Seed>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<MiningOperationProtocolMessagePack>(payload.ToArray());
 
@@ -45,7 +45,7 @@ namespace Server.Protocol.PacketResponse
             playerMainInventory.InsertItem(_itemStackFactory.Create(oreItemId, 1));
 
 
-            return new List<List<byte>>();
+            return null;
         }
     }
 

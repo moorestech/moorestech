@@ -4,6 +4,7 @@ using Core.Item;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -20,10 +21,9 @@ namespace Server.Protocol.PacketResponse
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 
-        public List<List<byte>> GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<SendCommandProtocolMessagePack>(payload.ToArray());
-
 
             var command = data.Command.Split(' '); //command text
 
@@ -35,7 +35,7 @@ namespace Server.Protocol.PacketResponse
                 inventory.MainOpenableInventory.InsertItem(item);
             }
 
-            return new List<List<byte>>();
+            return null;
         }
     }
 

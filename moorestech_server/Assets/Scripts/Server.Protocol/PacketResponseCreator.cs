@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Game.PlayerInventory.Interface;
 using Game.WorldMap;
 using MessagePack;
@@ -20,8 +21,9 @@ namespace Server.Protocol
         {
             _packetResponseDictionary.Add(DummyProtocol.Tag, new DummyProtocol());
             _packetResponseDictionary.Add(InitialHandshakeProtocol.Tag, new InitialHandshakeProtocol(serviceProvider));
-            _packetResponseDictionary.Add(PlayerCoordinateSendProtocol.Tag, new PlayerCoordinateSendProtocol(serviceProvider));
+            _packetResponseDictionary.Add(RequestChunkDataProtocol.Tag, new RequestChunkDataProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.Tag, new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
+            _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.Tag, new SetPlayerCoordinateProtocol(serviceProvider));
             _packetResponseDictionary.Add(EventProtocolMessagePackBase.EventProtocolTag, new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseDictionary.Add(InventoryItemMoveProtocol.Tag, new InventoryItemMoveProtocol(serviceProvider));
             _packetResponseDictionary.Add(SendPlaceHotBarBlockProtocol.Tag, new SendPlaceHotBarBlockProtocol(serviceProvider));
@@ -31,8 +33,8 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(MiningOperationProtocol.Tag, new MiningOperationProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockInventoryOpenCloseProtocol.Tag, new BlockInventoryOpenCloseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SaveProtocol.Tag, new SaveProtocol(serviceProvider));
-            _packetResponseDictionary.Add(MapObjectDestructionInformationProtocol.Tag, new MapObjectDestructionInformationProtocol(serviceProvider));
-            _packetResponseDictionary.Add(GetMapObjectProtocol.Tag, new GetMapObjectProtocol(serviceProvider));
+            _packetResponseDictionary.Add(GetMapObjectInfoProtocol.Tag, new GetMapObjectInfoProtocol(serviceProvider));
+            _packetResponseDictionary.Add(MapObjectAcquisitionProtocol.Tag, new MapObjectAcquisitionProtocol(serviceProvider));
             _packetResponseDictionary.Add(OneClickCraft.Tag, new OneClickCraft(serviceProvider));
 
             serviceProvider.GetService<VeinGenerator>();
@@ -40,10 +42,18 @@ namespace Server.Protocol
 
         public List<List<byte>> GetPacketResponse(List<byte> payload)
         {
-            var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray()).Tag;
-            var response = _packetResponseDictionary[tag].GetResponse(payload);
+            var request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray());
+            var response = _packetResponseDictionary[request.Tag].GetResponse(payload);
             
-            return response;
+            if (response == null)
+            {
+                return new List<List<byte>>();
+            }
+
+            response.SequenceId = request.SequenceId;
+            var responseBytes = MessagePackSerializer.Serialize(Convert.ChangeType(response, response.GetType()));
+            
+            return new List<List<byte>> {responseBytes.ToList()};
         }
     }
 }
