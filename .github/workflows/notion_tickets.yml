@@ -1,0 +1,28 @@
+name: Notion Tickets
+
+on:
+  issues:
+    types: [opened, closed, reopened]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code   
+      uses: actions/checkout@v2
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '12'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        npm install -g @notionhq/client
+        
+    - name: Sync with Notion
+      run: node .github/actions/sync-with-notion.js
+      env:
+        NOTION_KEY: ${{ secrets.NOTION_KEY }}
+        NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
