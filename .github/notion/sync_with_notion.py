@@ -19,13 +19,38 @@ def fetch_github_issues():
 
 
 def query_notion_database_for_tickets():
-    query = notion_client.databases.query(
-        **{
-            "database_id": DATABASE_ID,
-        }
-    )
+    issue_urls = {}
+    start_cursor = None
 
-    return {ticket["properties"]["issue"]["url"]: ticket["id"] for ticket in query['results']}
+    while True:
+        query = notion_client.databases.query(
+            **{
+                "database_id": DATABASE_ID,
+                "start_cursor": start_cursor,  # Use the start_cursor if it's not the first request
+                "filter": {
+                    "or": [
+                        {
+                            "property": 'issue',
+                            "rich_text": {
+                                "contains": "http"
+                            }
+                        },
+                    ],
+                },
+            }
+        )
+        # Process the current page of results
+        for ticket in query['results']:
+            issue_link = ticket["properties"]["issue"]["url"]
+            ticket_id = ticket["id"]
+            issue_urls[issue_link] = ticket_id
+
+        # Check if there are more pages of data
+        if not query['has_more']:
+            break  # Exit the loop if there are no more pages
+        start_cursor = query['next_cursor']  # Set the start_cursor for the next page of results
+
+    return issue_urls
 
 
 def create_ticket(issue):
