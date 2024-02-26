@@ -138,7 +138,8 @@ def main():
                 continue
 
             print("Update " + issue.title)
-            update_ticket_status(notion_tickets_url_to_id[issue_url], issue.title, issue_status)
+            page_id = notion_tickets_url_to_id[issue_url]["id"]
+            update_ticket_status(page_id, issue.title, issue_status)
         else:
             print("Create " + issue.title)
             create_ticket(issue)
