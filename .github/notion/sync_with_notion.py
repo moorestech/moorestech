@@ -8,6 +8,7 @@ NOTION_TOKEN = os.environ.get('NOTION_TOKEN')
 GITHUB_REPOSITORY = "moorestech/moorestech"
 DATABASE_ID = "10091c58b3084d33a5d66d64e78ca102"
 
+
 github_client = Github(GH_TOKEN)
 notion_client = NotionClient(auth=NOTION_TOKEN)
 
@@ -43,7 +44,9 @@ def query_notion_database_for_tickets():
         for ticket in query['results']:
             issue_link = ticket["properties"]["issue"]["url"]
             ticket_id = ticket["id"]
-            issue_urls[issue_link] = ticket_id
+            ticket_title = ticket["properties"]["名前"]["title"][0]["text"]["content"]
+            ticket_status = ticket["properties"]["ステータス"]["status"]["name"]
+            issue_urls[issue_link] = {"id": ticket_id, "title": ticket_title, "status": ticket_status}
 
         # Check if there are more pages of data
         if not query['has_more']:
@@ -128,6 +131,12 @@ def main():
         issue_url = issue.html_url
         if issue_url in notion_tickets_url_to_id:
             issue_status = "Done" if issue.state == "closed" else "TODO"
+
+            # タイトルとステータスが変わった場合のみ更新
+            if notion_tickets_url_to_id[issue_url]["title"] == issue.title and notion_tickets_url_to_id[issue_url]["status"] == issue_status:
+                print("Skip " + issue.title)
+                continue
+
             print("Update " + issue.title)
             update_ticket_status(notion_tickets_url_to_id[issue_url], issue.title, issue_status)
         else:
