@@ -2,7 +2,7 @@ name: Notion Tickets
 
 on:
   issues:
-    types: [opened, closed, reopened]
+    types: [opened, closed, reopened, renamed]
 
 jobs:
   sync_issues:
