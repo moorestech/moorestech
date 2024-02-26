@@ -86,14 +86,21 @@ def update_ticket_status(page_id, title, issue_status):
 
 
 def main():
+    print("Fetching github issues")
     github_issues = fetch_github_issues()
-    notion_tickets_url_to_id = query_notion_database_for_tickets()
+    print("Fetched " + str(github_issues.totalCount) + " issues")
 
-    github_issues = [github_issues[0]]
+    print()
+
+    print("Querying notion database for tickets")
+    notion_tickets_url_to_id = query_notion_database_for_tickets()
+    print("Found " + str(len(notion_tickets_url_to_id)) + " tickets")
 
     for issue in github_issues:
         if issue.pull_request:
             continue
+
+        print("Processing " + issue.title)
 
         issue_url = issue.html_url
         if issue_url in notion_tickets_url_to_id:
@@ -104,5 +111,8 @@ def main():
             print("Create " + issue.title)
             create_ticket(issue)
 
+        print()
 
+
+print("Start sync with notion")
 main()
