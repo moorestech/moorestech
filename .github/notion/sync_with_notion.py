@@ -100,8 +100,6 @@ def main():
         if issue.pull_request:
             continue
 
-        print("Processing " + issue.title)
-
         issue_url = issue.html_url
         if issue_url in notion_tickets_url_to_id:
             issue_status = "Done" if issue.state == "closed" else "TODO"
@@ -111,7 +109,7 @@ def main():
             print("Create " + issue.title)
             create_ticket(issue)
 
-        print()
+        print("")
 
 
 print("Start sync with notion")
