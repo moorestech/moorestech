@@ -5,24 +5,24 @@ on:
     types: [opened, closed, reopened]
 
 jobs:
-  build:
+  sync_issues:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code   
-      uses: actions/checkout@v2
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
       
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '12'
-        
-    - name: Install dependencies
-      run: |
-        npm ci
-        npm install -g @notionhq/client
-        
-    - name: Sync with Notion
-      run: node .github/actions/sync-with-notion.js
-      env:
-        NOTION_KEY: ${{ secrets.NOTION_KEY }}
-        NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install notion-client PyGithub
+
+      - name: Run sync script
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: python .github/notion/sync_with_notion.py
