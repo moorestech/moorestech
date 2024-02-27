@@ -3,6 +3,9 @@ name: Notion Tickets
 on:
   issues:
     types: [opened, closed, reopened, renamed]
+    
+  # 手動実行デバッグ用
+  workflow_dispatch: {}
 
 jobs:
   sync_issues:
