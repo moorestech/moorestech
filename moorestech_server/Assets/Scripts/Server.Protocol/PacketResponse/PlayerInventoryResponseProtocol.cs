@@ -58,7 +58,7 @@ namespace Server.Protocol.PacketResponse
             PlayerId = playerId;
         }
 
-        [Key(0)]
+        [Key(2)]
         public int PlayerId { get; set; }
     }
 

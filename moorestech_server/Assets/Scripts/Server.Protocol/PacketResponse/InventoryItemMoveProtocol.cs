@@ -113,6 +113,7 @@ namespace Server.Protocol.PacketResponse
         public int Count { get; set; }
         [Key(4)]
         public int ItemMoveTypeId { get; set; }
+
         [IgnoreMember]
         public ItemMoveType ItemMoveType => (ItemMoveType)ItemMoveTypeId;
 
@@ -140,16 +141,17 @@ namespace Server.Protocol.PacketResponse
         }
 
         [Obsolete("シリアライズ用の値です。InventoryTypeを使用してください。")]
+        [Key(2)]
         public int InventoryId { get; set; }
 
         [IgnoreMember]
         public ItemMoveInventoryType InventoryType => (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), InventoryId);
         
-        [Key(2)]
-        public int Slot { get; set; }
         [Key(3)]
-        public int X { get; set; }
+        public int Slot { get; set; }
         [Key(4)]
+        public int X { get; set; }
+        [Key(5)]
         public int Y { get; set; }
     }
 }
