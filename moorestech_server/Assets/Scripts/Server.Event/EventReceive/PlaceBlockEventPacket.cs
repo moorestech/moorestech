@@ -31,8 +31,8 @@ namespace Server.Event.EventReceive
     }
 
 
-    [MessagePackObject(true)]
-    public class PlaceBlockEventMessagePack : EventProtocolMessagePackBase
+    [MessagePackObject]
+    public class PlaceBlockEventMessagePack
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public PlaceBlockEventMessagePack()
@@ -42,13 +42,15 @@ namespace Server.Event.EventReceive
         public PlaceBlockEventMessagePack(Vector2Int blockPos, int blockId, int direction)
         {
             BlockPos = new Vector2IntMessagePack(blockPos);
-            EventTag = PlaceBlockEventPacket.EventTag;
             BlockId = blockId;
             Direction = direction;
         }
 
+        [Key(0)]
         public Vector2IntMessagePack BlockPos { get; set; }
+        [Key(1)]
         public int BlockId { get; set; }
+        [Key(2)]
         public int Direction { get; set; }
     }
 }

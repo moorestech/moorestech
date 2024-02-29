@@ -8,6 +8,8 @@ namespace Server.Protocol.PacketResponse
 {
     public class EventProtocol : IPacketResponse
     {
+        public const string Tag = "va:event";
+        
         private readonly EventProtocolProvider _eventProtocolProvider;
 
         public EventProtocol(EventProtocolProvider eventProtocolProvider)
@@ -26,7 +28,7 @@ namespace Server.Protocol.PacketResponse
         }
     }
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class EventProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -36,16 +38,18 @@ namespace Server.Protocol.PacketResponse
 
         public EventProtocolMessagePack(int playerId)
         {
-            Tag = EventProtocolMessagePackBase.EventProtocolTag;
+            Tag = EventProtocol.Tag;
             PlayerId = playerId;
         }
 
+        [Key(2)]
         public int PlayerId { get; set; }
     }
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class ResponseEventProtocolMessagePack : ProtocolMessagePackBase
     {
+        [Key(2)]
         public List<EventMessagePack> Events { get; set; }
         
         public ResponseEventProtocolMessagePack(List<EventMessagePack> events)

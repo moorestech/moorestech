@@ -150,10 +150,12 @@ namespace Server.Protocol.PacketResponse
         }
     }
     
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class RequestOneClickCraftProtocolMessagePack : ProtocolMessagePackBase
     {
+        [Key(2)]
         public int PlayerId { get; set; }
+        [Key(3)]
         public int CraftRecipeId { get; set; }
         
         public RequestOneClickCraftProtocolMessagePack(int playerId, int craftRecipeId)

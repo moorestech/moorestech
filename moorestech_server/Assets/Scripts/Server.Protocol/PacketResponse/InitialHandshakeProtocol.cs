@@ -56,7 +56,7 @@ namespace Server.Protocol.PacketResponse
     }
 
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class RequestInitialHandshakeMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -71,11 +71,13 @@ namespace Server.Protocol.PacketResponse
             PlayerName = playerName;
         }
 
+        [Key(2)]
         public int PlayerId { get; set; }
+        [Key(3)]
         public string PlayerName { get; set; }
     }
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class ResponseInitialHandshakeMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -89,6 +91,7 @@ namespace Server.Protocol.PacketResponse
             PlayerPos = playerPos;
         }
 
+        [Key(2)]
         public Vector2MessagePack PlayerPos { get; set; }
     }
 }

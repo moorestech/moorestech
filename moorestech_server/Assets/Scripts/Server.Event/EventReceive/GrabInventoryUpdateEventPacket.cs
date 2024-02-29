@@ -30,8 +30,8 @@ namespace Server.Event.EventReceive
     }
 
 
-    [MessagePackObject(true)]
-    public class GrabInventoryUpdateEventMessagePack : EventProtocolMessagePackBase
+    [MessagePackObject]
+    public class GrabInventoryUpdateEventMessagePack
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public GrabInventoryUpdateEventMessagePack()
@@ -40,10 +40,10 @@ namespace Server.Event.EventReceive
 
         public GrabInventoryUpdateEventMessagePack(IItemStack item)
         {
-            EventTag = GrabInventoryUpdateEventPacket.EventTag;
             Item = new ItemMessagePack(item);
         }
 
+        [Key(0)]
         public ItemMessagePack Item { get; set; }
     }
 }

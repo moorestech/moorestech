@@ -40,7 +40,7 @@ namespace Server.Protocol.PacketResponse
     }
 
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class SendCommandProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -54,6 +54,7 @@ namespace Server.Protocol.PacketResponse
             Command = command;
         }
 
+        [Key(2)]
         public string Command { get; set; }
     }
 }

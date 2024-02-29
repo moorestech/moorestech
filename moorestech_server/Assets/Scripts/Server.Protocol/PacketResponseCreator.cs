@@ -19,12 +19,11 @@ namespace Server.Protocol
         //TODO この辺もDIコンテナに載せる?こういうパケット周りめっちゃなんとかしたい
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
-            _packetResponseDictionary.Add(DummyProtocol.Tag, new DummyProtocol());
             _packetResponseDictionary.Add(InitialHandshakeProtocol.Tag, new InitialHandshakeProtocol(serviceProvider));
             _packetResponseDictionary.Add(RequestChunkDataProtocol.Tag, new RequestChunkDataProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.Tag, new PlayerInventoryResponseProtocol(serviceProvider.GetService<IPlayerInventoryDataStore>()));
             _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.Tag, new SetPlayerCoordinateProtocol(serviceProvider));
-            _packetResponseDictionary.Add(EventProtocolMessagePackBase.EventProtocolTag, new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
+            _packetResponseDictionary.Add(EventProtocol.Tag, new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseDictionary.Add(InventoryItemMoveProtocol.Tag, new InventoryItemMoveProtocol(serviceProvider));
             _packetResponseDictionary.Add(SendPlaceHotBarBlockProtocol.Tag, new SendPlaceHotBarBlockProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockInventoryRequestProtocol.Tag, new BlockInventoryRequestProtocol(serviceProvider));

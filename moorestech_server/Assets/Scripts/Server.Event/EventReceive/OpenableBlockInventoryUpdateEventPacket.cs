@@ -53,8 +53,8 @@ namespace Server.Event.EventReceive
     }
 
 
-    [MessagePackObject(true)]
-    public class OpenableBlockInventoryUpdateEventMessagePack : EventProtocolMessagePackBase
+    [MessagePackObject]
+    public class OpenableBlockInventoryUpdateEventMessagePack
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public OpenableBlockInventoryUpdateEventMessagePack()
@@ -63,16 +63,19 @@ namespace Server.Event.EventReceive
 
         public OpenableBlockInventoryUpdateEventMessagePack(int x, int y, int slot, IItemStack item)
         {
-            EventTag = OpenableBlockInventoryUpdateEventPacket.EventTag;
             X = x;
             Y = y;
             Slot = slot;
             Item = new ItemMessagePack(item.Id, item.Count);
         }
 
+        [Key(0)]
         public int X { get; set; }
+        [Key(1)]
         public int Y { get; set; }
+        [Key(2)]
         public int Slot { get; set; }
+        [Key(3)]
         public ItemMessagePack Item { get; set; }
     }
 }

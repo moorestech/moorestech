@@ -32,8 +32,8 @@ namespace Server.Event.EventReceive
         }
     }
 
-    [MessagePackObject(true)]
-    public class MapObjectUpdateEventMessagePack : EventProtocolMessagePackBase
+    [MessagePackObject]
+    public class MapObjectUpdateEventMessagePack
     {
         public const string DestroyEventType = "destroy";
 
@@ -45,12 +45,13 @@ namespace Server.Event.EventReceive
 
         public MapObjectUpdateEventMessagePack(string eventType, int instanceId)
         {
-            EventTag = MapObjectUpdateEventPacket.EventTag;
             EventType = eventType;
             InstanceId = instanceId;
         }
 
+        [Key(0)]
         public string EventType { get; set; }
+        [Key(1)]
         public int InstanceId { get; set; }
     }
 }

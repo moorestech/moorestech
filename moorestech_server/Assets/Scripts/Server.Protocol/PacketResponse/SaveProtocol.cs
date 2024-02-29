@@ -27,7 +27,7 @@ namespace Server.Protocol.PacketResponse
     }
 
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class SaveProtocolMessagePack : ProtocolMessagePackBase
     {
         public SaveProtocolMessagePack()

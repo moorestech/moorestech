@@ -31,8 +31,8 @@ namespace Server.Event.EventReceive
         }
     }
 
-    [MessagePackObject(true)]
-    public class ChangeBlockStateEventMessagePack : EventProtocolMessagePackBase
+    [MessagePackObject]
+    public class ChangeBlockStateEventMessagePack
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public ChangeBlockStateEventMessagePack()
@@ -41,7 +41,6 @@ namespace Server.Event.EventReceive
 
         public ChangeBlockStateEventMessagePack(ChangedBlockState state, int x, int y)
         {
-            EventTag = ChangeBlockStateEventPacket.EventTag;
             CurrentState = state.CurrentState;
             PreviousState = state.PreviousState;
 
@@ -49,9 +48,13 @@ namespace Server.Event.EventReceive
             Position = new Vector2IntMessagePack(x, y);
         }
 
+        [Key(0)]
         public string CurrentState { get; set; }
+        [Key(1)]
         public string PreviousState { get; set; }
+        [Key(2)]
         public string CurrentStateJsonData { get; set; }
+        [Key(3)]
         public Vector2IntMessagePack Position { get; set; }
 
         public TBlockState GetStateDat<TBlockState>()
