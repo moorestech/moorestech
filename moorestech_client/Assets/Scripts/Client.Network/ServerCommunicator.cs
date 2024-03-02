@@ -54,7 +54,7 @@ namespace MainGame.Network
         public IObservable<Unit> OnDisconnect => _onDisconnect;
 
 
-        private Task StartCommunicat(PacketExchangeManager packetExchangeManager)
+        public Task StartCommunicat(PacketExchangeManager packetExchangeManager)
         {
             var buffer = new byte[4096];
 

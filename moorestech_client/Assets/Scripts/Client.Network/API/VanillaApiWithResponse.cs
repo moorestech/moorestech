@@ -80,12 +80,6 @@ namespace Client.Network.API
             var request = new RequestChunkDataMessagePack(chunks.Select(c => new Vector2IntMessagePack(c)).ToList());
             var response = await _packetExchangeManager.GetPacketResponse<ResponseChunkDataMessagePack>(request, ct);
             
-            //TODO 初期化をちゃんとするようにしてnullチェックをなくしたい
-            if (response == null)
-            {
-                return null;
-            }
-            
             var result = new List<ChunkResponse>(response.ChunkData.Length);
             foreach (var responseChunk in response.ChunkData)
             {

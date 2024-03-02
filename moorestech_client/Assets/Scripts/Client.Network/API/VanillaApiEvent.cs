@@ -47,11 +47,6 @@ namespace Client.Network.API
                 var request = new EventProtocolMessagePack(_playerConnectionSetting.PlayerId);
             
                 var response = await _packetExchangeManager.GetPacketResponse<ResponseEventProtocolMessagePack>(request, ct);
-                //TODO 初期化をちゃんとするようにしてnullチェックをなくしたい
-                if (response == null)
-                {
-                    return;
-                }
             
                 foreach (var eventMessagePack in response.Events)
                 {

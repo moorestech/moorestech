@@ -16,11 +16,8 @@ namespace Client.Network.API
         
         private static ServerCommunicator _serverCommunicator;
         
-        public VanillaApi(ServerCommunicator serverCommunicator,MoorestechServerServiceProvider moorestechServerServiceProvider, PlayerConnectionSetting playerConnectionSetting)
+        public VanillaApi(PacketExchangeManager packetExchangeManager, PacketSender packetSender,ServerCommunicator serverCommunicator, MoorestechServerServiceProvider moorestechServerServiceProvider, PlayerConnectionSetting playerConnectionSetting)
         {
-            var packetSender = new PacketSender(serverCommunicator);
-            var packetExchangeManager = new PacketExchangeManager(packetSender);
-            
             _serverCommunicator = serverCommunicator;
             
             Event = new VanillaApiEvent(packetExchangeManager, playerConnectionSetting);
