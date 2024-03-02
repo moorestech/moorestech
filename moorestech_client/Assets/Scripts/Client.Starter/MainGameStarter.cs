@@ -1,12 +1,8 @@
 using System.Diagnostics;
-using Client.Localization;
-using Client.Network.API;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.Extension;
-using MainGame.ModLoader;
 using MainGame.Network;
-using MainGame.Network.Settings;
 using MainGame.Presenter.Block;
 using MainGame.Presenter.Command;
 using MainGame.Presenter.Entity;
@@ -30,7 +26,6 @@ using ServerServiceProvider;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
-using Debug = UnityEngine.Debug;
 
 namespace MainGame.Starter
 {
@@ -90,25 +85,15 @@ namespace MainGame.Starter
         private int PlayerId = ServerConst.DefaultPlayerId;
         private int Port = ServerConst.LocalServerPort;
 
-        public void ResolveGame(ServerCommunicator serverCommunicator)
+        public void ResolveGame()
         {
-            Debug.Log(Localize.Get("start"));
-
-
             var builder = new ContainerBuilder();
             //シングルプレイ用のインスタンス
             var singlePlayInterface = new MoorestechServerServiceProvider(ServerConst.ServerDirectory);
             builder.RegisterInstance(singlePlayInterface);
             builder.RegisterInstance(singlePlayInterface.ItemConfig);
-            builder.RegisterInstance(new ModDirectory(ServerConst.ServerModsDirectory));
 
             //サーバーに接続するためのインスタンス
-            builder.RegisterInstance(serverCommunicator);
-            builder.RegisterInstance(new PlayerConnectionSetting(PlayerId));
-            builder.RegisterEntryPoint<VanillaApi>();
-            builder.Register<PacketExchangeManager>(Lifetime.Singleton);
-            builder.Register<PacketSender>(Lifetime.Singleton);
-            builder.Register<ServerCommunicator>(Lifetime.Singleton);
 
             //インベントリのUIコントロール
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
@@ -168,9 +153,7 @@ namespace MainGame.Starter
             builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
 
-
             builder.RegisterBuildCallback(objectResolver => { });
-
 
             //依存関係を解決
             _resolver = builder.Build();
