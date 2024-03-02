@@ -20,9 +20,6 @@ namespace Client.Starter
     {
         [SerializeField] private BlockGameObject nothingIndexBlock;
         
-        private readonly List<List<IInitializeSequence>> _initializeSequences = new();
-        
-        
         private void Start()
         {
             
