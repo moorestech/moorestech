@@ -10,6 +10,7 @@ using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -49,16 +50,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
 
             Assert.AreEqual(4, eventMessagePack.Events.Count);
-
-            var grabUp = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(eventMessagePack.Events[0].Payload);
+            
+            var grabUp = MessagePackSerializer.Deserialize<GrabInventoryUpdateEventMessagePack>(eventMessagePack.Events[0].Payload);
             var setMainInventory = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(eventMessagePack.Events[1].Payload);
             var outMainInventory = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(eventMessagePack.Events[2].Payload);
-            var grabDown = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(eventMessagePack.Events[3].Payload);
+            var grabDown = MessagePackSerializer.Deserialize<GrabInventoryUpdateEventMessagePack>(eventMessagePack.Events[3].Payload);
 
-            Assert.AreEqual(0, grabUp.Slot); //移動時のスロット確認
-            Assert.AreEqual(5, setMainInventory.Slot);
+            Assert.AreEqual(5, setMainInventory.Slot); //移動時のスロット確認
             Assert.AreEqual(4, outMainInventory.Slot);
-            Assert.AreEqual(0, grabDown.Slot);
 
             Assert.AreEqual(1, grabUp.Item.Id); //アイテムIDの確認
             Assert.AreEqual(1, setMainInventory.Item.Id);
@@ -79,15 +78,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
 
             Assert.AreEqual(4, eventMessagePack.Events.Count);
-            grabUp = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(eventMessagePack.Events[0].Payload);
+            grabUp = MessagePackSerializer.Deserialize<GrabInventoryUpdateEventMessagePack>(eventMessagePack.Events[0].Payload);
             setMainInventory = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(eventMessagePack.Events[1].Payload);
             outMainInventory = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(eventMessagePack.Events[2].Payload);
-            grabDown = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(eventMessagePack.Events[3].Payload);
+            grabDown = MessagePackSerializer.Deserialize<GrabInventoryUpdateEventMessagePack>(eventMessagePack.Events[3].Payload);
 
-            Assert.AreEqual(0, grabUp.Slot); //移動時のスロット確認
-            Assert.AreEqual(4, setMainInventory.Slot);
+            Assert.AreEqual(4, setMainInventory.Slot); //移動時のスロット確認
             Assert.AreEqual(5, outMainInventory.Slot);
-            Assert.AreEqual(0, grabDown.Slot);
 
             Assert.AreEqual(1, grabUp.Item.Id); //アイテムIDの確認
             Assert.AreEqual(0, setMainInventory.Item.Id);
