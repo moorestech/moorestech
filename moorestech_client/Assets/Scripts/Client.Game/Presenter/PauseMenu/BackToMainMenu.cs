@@ -1,8 +1,6 @@
 using System.Threading;
 using Client.Network.API;
 using Constant;
-using MainGame.Network;
-using MainGame.Network.Send;
 using MainGame.Network.Settings;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,7 +14,6 @@ namespace MainGame.Control.UI.PauseMenu
     {
         [SerializeField] private Button backToMainMenuButton;
         private ServerProcessSetting _serverProcessSetting;
-        private ISocketSender _socketSender;
 
         private void Start()
         {
@@ -34,9 +31,8 @@ namespace MainGame.Control.UI.PauseMenu
         }
 
         [Inject]
-        public void Construct(ISocketSender socketSender, ServerProcessSetting serverProcessSetting)
+        public void Construct(ServerProcessSetting serverProcessSetting)
         {
-            _socketSender = socketSender;
             _serverProcessSetting = serverProcessSetting;
         }
 
@@ -52,7 +48,7 @@ namespace MainGame.Control.UI.PauseMenu
             VanillaApi.SendOnly.Save();
             Thread.Sleep(50);
             if (_serverProcessSetting.isLocal) _serverProcessSetting.localServerProcess.Kill();
-            _socketSender.Close();
+            VanillaApi.Disconnect();
         }
     }
 }

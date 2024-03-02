@@ -112,8 +112,6 @@ namespace MainGame.Starter
 
             //サーバーに接続するためのインスタンス
             builder.RegisterInstance(serverCommunicator);
-            builder.RegisterInstance(new ServerProcessSetting(isLocal, localServerProcess));
-            builder.RegisterInstance(new ConnectionServerConfig(IPAddress, Port));
             builder.RegisterInstance(new PlayerConnectionSetting(PlayerId));
             builder.RegisterEntryPoint<VanillaApi>();
             builder.Register<PacketExchangeManager>(Lifetime.Singleton);

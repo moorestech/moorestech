@@ -30,8 +30,6 @@ namespace MainGame.Presenter.MapObject
         {
             foreach (var mapObject in mapObjects) _allMapObjects.Add(mapObject.InstanceId, mapObject);
             
-            await VanillaApi.WaiteConnection();
-            
             var mapObjectInfos = await VanillaApi.Response.GetMapObjectInfo(default);
             
             foreach (var mapObjectInfo in mapObjectInfos)
