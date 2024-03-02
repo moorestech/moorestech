@@ -22,11 +22,13 @@ namespace ServerServiceProvider
         public readonly IMachineRecipeConfig MachineRecipeConfig;
         public readonly IOreConfig OreConfig;
 
+        public readonly ServiceProvider ServiceProvider;
 
         public MoorestechServerServiceProvider(string serverDirectory)
         {
             var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(serverDirectory);
 
+            ServiceProvider = serviceProvider;
             CraftingConfig = serviceProvider.GetService<ICraftingConfig>();
             MachineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
             ItemConfig = serviceProvider.GetService<IItemConfig>();

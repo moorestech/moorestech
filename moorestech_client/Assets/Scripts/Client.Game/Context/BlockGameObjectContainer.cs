@@ -5,12 +5,13 @@ using Game.Block;
 using Game.Block.Interface.BlockConfig;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
+using MainGame.UnityView.Block;
 using MainGame.UnityView.Block.StateChange;
 using ServerServiceProvider;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace MainGame.UnityView.Block
+namespace Client.Game.Context
 {
     /// <summary>
     ///     Unityに表示されるブロックの実際のGameObjectを管理するクラス

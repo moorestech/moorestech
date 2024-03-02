@@ -13,20 +13,19 @@ using UnityEngine;
 namespace Client.Network.API
 {
     /// <summary>
-    /// TODO リネーム
+    /// 送信されたパケットの応答パケットを<see cref="ServerCommunicator"/>から受け取り、呼び出し元に返すクラス
     /// </summary>
-    public class ServerConnector
+    public class PacketExchangeManager
     {
-        private readonly ISocketSender _socketSender;
+        private readonly PacketSender _packetSender;
 
-        public ServerConnector(ISocketSender socketSender)
+        public PacketExchangeManager(PacketSender packetSender)
         {
-            _socketSender = socketSender;
+            _packetSender = packetSender;
             TimeOutUpdate().Forget();
         }
 
         private readonly Dictionary<int, ResponseWaiter> _responseWaiters = new();
-        
         
         private async UniTask TimeOutUpdate()
         {
@@ -50,7 +49,7 @@ namespace Client.Network.API
             }
         }
 
-        public async UniTask ReceiveData(List<byte> data)
+        public async UniTask ExchangeReceivedPacket(List<byte> data)
         {
             var response = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(data.ToArray());
             var sequence = response.SequenceId;
@@ -67,13 +66,8 @@ namespace Client.Network.API
 
         private int _sequenceId = 0;
 
-        public void Send(ProtocolMessagePackBase sendData)
-        {
-            _socketSender.Send(MessagePackSerializer.Serialize(Convert.ChangeType(sendData,sendData.GetType())).ToList());
-        } 
-
         [CanBeNull]
-        public async UniTask<TResponse> GetInformationData<TResponse>(ProtocolMessagePackBase sendData,CancellationToken ct) where TResponse : ProtocolMessagePackBase
+        public async UniTask<TResponse> GetPacketResponse<TResponse>(ProtocolMessagePackBase request,CancellationToken ct) where TResponse : ProtocolMessagePackBase
         {
             SendPacket();
             
@@ -84,8 +78,8 @@ namespace Client.Network.API
             void SendPacket()
             {
                 _sequenceId++;
-                sendData.SequenceId = _sequenceId;
-                _socketSender.Send(MessagePackSerializer.Serialize(Convert.ChangeType(sendData,sendData.GetType())).ToList());
+                request.SequenceId = _sequenceId;
+                _packetSender.Send(request);
             }
             
             async UniTask<TResponse> WaitReceive()

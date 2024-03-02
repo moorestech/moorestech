@@ -13,26 +13,11 @@ namespace Client.Network.API
         public static VanillaApiWithResponse Response { get; private set; }
         public static VanillaApiSendOnly SendOnly { get; private set; }
 
-        private static SocketInstanceCreate _socketInstanceCreate;
-
-        public VanillaApi(ServerConnector serverConnector,MoorestechServerServiceProvider moorestechServerServiceProvider, PlayerConnectionSetting playerConnectionSetting,SocketInstanceCreate socketInstanceCreate)
+        public VanillaApi(PacketExchangeManager packetExchangeManager,PacketSender packetSender,MoorestechServerServiceProvider moorestechServerServiceProvider, PlayerConnectionSetting playerConnectionSetting)
         {
-            _socketInstanceCreate = socketInstanceCreate;
-            Event = new VanillaApiEvent(serverConnector, playerConnectionSetting);
-            Response = new VanillaApiWithResponse(serverConnector, moorestechServerServiceProvider.ItemStackFactory, playerConnectionSetting);
-            SendOnly = new VanillaApiSendOnly(serverConnector, moorestechServerServiceProvider.ItemStackFactory, playerConnectionSetting);
-        }
-
-        //TODO 初期化をちゃんとするようにして最初からstaticアクセスできるようにする
-        [Obsolete("初期化をちゃんとするようにして最初からstaticアクセスできるようにする")]
-        public static async UniTask WaiteConnection()
-        {
-            if (_socketInstanceCreate.SocketInstance.Connected)
-            {
-                return;
-            }
-            
-            await UniTask.WaitUntil(() => _socketInstanceCreate.SocketInstance.Connected);
+            Event = new VanillaApiEvent(packetExchangeManager, playerConnectionSetting);
+            Response = new VanillaApiWithResponse(packetExchangeManager, moorestechServerServiceProvider.ItemStackFactory, playerConnectionSetting);
+            SendOnly = new VanillaApiSendOnly(packetSender, moorestechServerServiceProvider.ItemStackFactory, playerConnectionSetting);
         }
 
         public void Initialize() { }

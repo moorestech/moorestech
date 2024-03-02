@@ -16,9 +16,9 @@ namespace MainGame.Presenter.PauseMenu
 
 
         [Inject]
-        public void Construct(ConnectionServer connectionServer)
+        public void Construct(ServerCommunicator serverCommunicator)
         {
-            connectionServer.OnDisconnect.Subscribe(_ => { disconnectPanel.gameObject.SetActive(true); }).AddTo(this);
+            serverCommunicator.OnDisconnect.Subscribe(_ => { disconnectPanel.gameObject.SetActive(true); }).AddTo(this);
             goToMainMenuButton.onClick.AddListener(() => { SceneManager.LoadScene(SceneConstant.MainMenuSceneName); });
         }
     }

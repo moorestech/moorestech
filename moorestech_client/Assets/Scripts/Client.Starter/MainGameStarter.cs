@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Client.Game.Context;
 using Client.Localization;
 using Client.Network.API;
 using GameConst;
@@ -97,7 +98,7 @@ namespace MainGame.Starter
         private int PlayerId = ServerConst.DefaultPlayerId;
         private int Port = ServerConst.LocalServerPort;
 
-        private void Start()
+        public void ResolveGame(ServerCommunicator serverCommunicator)
         {
             Debug.Log(Localize.Get("start"));
 
@@ -110,14 +111,14 @@ namespace MainGame.Starter
             builder.RegisterInstance(new ModDirectory(ServerConst.ServerModsDirectory));
 
             //サーバーに接続するためのインスタンス
+            builder.RegisterInstance(serverCommunicator);
             builder.RegisterInstance(new ServerProcessSetting(isLocal, localServerProcess));
             builder.RegisterInstance(new ConnectionServerConfig(IPAddress, Port));
             builder.RegisterInstance(new PlayerConnectionSetting(PlayerId));
             builder.RegisterEntryPoint<VanillaApi>();
-            builder.Register<ServerConnector>(Lifetime.Singleton);
-            builder.Register<ConnectionServer>(Lifetime.Singleton);
-            builder.Register<SocketInstanceCreate, SocketInstanceCreate>(Lifetime.Singleton);
-            builder.Register<ISocketSender, SocketSender>(Lifetime.Singleton);
+            builder.Register<PacketExchangeManager>(Lifetime.Singleton);
+            builder.Register<PacketSender>(Lifetime.Singleton);
+            builder.Register<ServerCommunicator>(Lifetime.Singleton);
 
             //インベントリのUIコントロール
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
@@ -195,7 +196,7 @@ namespace MainGame.Starter
             _resolver.Resolve<LoadingFinishDetector>();
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntityObjectDatastore>();
-            _resolver.Resolve<ConnectionServer>();
+            _resolver.Resolve<ServerCommunicator>();
             _resolver.Resolve<NetworkDisconnectPresenter>();
         }
 

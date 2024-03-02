@@ -14,13 +14,13 @@ namespace Client.Network.API
 {
     public class VanillaApiWithResponse
     {
-        private readonly ServerConnector _serverConnector;
+        private readonly PacketExchangeManager _packetExchangeManager;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly PlayerConnectionSetting _playerConnectionSetting;
         
-        public VanillaApiWithResponse(ServerConnector serverConnector, ItemStackFactory itemStackFactory, PlayerConnectionSetting playerConnectionSetting)
+        public VanillaApiWithResponse(PacketExchangeManager packetExchangeManager, ItemStackFactory itemStackFactory, PlayerConnectionSetting playerConnectionSetting)
         {
-            _serverConnector = serverConnector;
+            _packetExchangeManager = packetExchangeManager;
             _itemStackFactory = itemStackFactory;
             _playerConnectionSetting = playerConnectionSetting;
         }
@@ -28,14 +28,14 @@ namespace Client.Network.API
         public async UniTask<HandshakeResponse> InitialHandShake(int playerId,CancellationToken ct)
         {
             var request = new RequestInitialHandshakeMessagePack(playerId,$"Player {playerId}");
-            var response = await _serverConnector.GetInformationData<ResponseInitialHandshakeMessagePack>(request, ct);
+            var response = await _packetExchangeManager.GetPacketResponse<ResponseInitialHandshakeMessagePack>(request, ct);
             return new HandshakeResponse(response);
         }
         
         public async UniTask<List<MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
         {
             var request = new RequestMapObjectInfosMessagePack();
-            var response = await _serverConnector.GetInformationData<ResponseMapObjectInfosMessagePack>(request, ct);
+            var response = await _packetExchangeManager.GetPacketResponse<ResponseMapObjectInfosMessagePack>(request, ct);
             return response?.MapObjects;
         }
         
@@ -43,7 +43,7 @@ namespace Client.Network.API
         {
             var request = new RequestBlockInventoryRequestProtocolMessagePack(blockPos.x, blockPos.y);
 
-            var response = await _serverConnector.GetInformationData<BlockInventoryResponseProtocolMessagePack>(request, ct);
+            var response = await _packetExchangeManager.GetPacketResponse<BlockInventoryResponseProtocolMessagePack>(request, ct);
 
             var items = new List<IItemStack>(response.ItemIds.Length);
             for (int i = 0; i < response.ItemIds.Length; i++)
@@ -60,7 +60,7 @@ namespace Client.Network.API
         {
             var request = new RequestPlayerInventoryProtocolMessagePack(playerId);
 
-            var response = await _serverConnector.GetInformationData<PlayerInventoryResponseProtocolMessagePack>(request, ct);
+            var response = await _packetExchangeManager.GetPacketResponse<PlayerInventoryResponseProtocolMessagePack>(request, ct);
 
             var mainItems = new List<IItemStack>(response.Main.Length);
             foreach (var item in response.Main)
@@ -78,7 +78,7 @@ namespace Client.Network.API
         public async UniTask<List<ChunkResponse>> GetChunkInfos(List<Vector2Int> chunks, CancellationToken ct)
         {
             var request = new RequestChunkDataMessagePack(chunks.Select(c => new Vector2IntMessagePack(c)).ToList());
-            var response = await _serverConnector.GetInformationData<ResponseChunkDataMessagePack>(request, ct);
+            var response = await _packetExchangeManager.GetPacketResponse<ResponseChunkDataMessagePack>(request, ct);
             
             //TODO 初期化をちゃんとするようにしてnullチェックをなくしたい
             if (response == null)
