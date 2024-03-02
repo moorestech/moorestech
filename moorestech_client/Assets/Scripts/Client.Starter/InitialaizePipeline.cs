@@ -6,9 +6,11 @@ using Client.Game.Context;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using GameConst;
+using MainGame.ModLoader.Glb;
 using MainGame.Network;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Settings;
+using MainGame.UnityView.Item;
 using ServerServiceProvider;
 using UnityEngine;
 
@@ -16,6 +18,8 @@ namespace Client.Starter
 {
     public class InitializeScenePipeline : MonoBehaviour
     {
+        [SerializeField] private BlockGameObject nothingIndexBlock;
+        
         private readonly List<List<IInitializeSequence>> _initializeSequences = new();
         
         
@@ -26,19 +30,25 @@ namespace Client.Starter
         
         private async UniTask Initialize()
         {
+            //Vanilla APIのロードに必要なものを作成
             var serverServiceProvider = new MoorestechServerServiceProvider(ServerConst.ServerDirectory);
+            var playerConnectionSetting = new PlayerConnectionSetting(ServerConst.DefaultPlayerId);
+            VanillaApi vanillaApi = null;
             
-            var vanillaApi = await CreateAndStartVanillaApi();
+            BlockGameObjectContainer blockGameObjectContainer = null;
+            
+            //Vanilla APIの作成とコネクションの確立、ブロックのロードを並列で行う
+            await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAssets());
 
-
-
-
-
-            new MoorestechContext();
+            //アイテム画像をロード
+            var itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(ServerConst.ServerModsDirectory, serverServiceProvider);
+            
+            //コンテキストの作成
+            new MoorestechContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi);
             
             #region Internal
 
-            async UniTask<VanillaApi> CreateAndStartVanillaApi()
+            async UniTask CreateAndStartVanillaApi()
             {
                 var serverCommunicator = await ConnectionToServer();
                 
@@ -47,8 +57,7 @@ namespace Client.Starter
                 
                 Task.Run(() => serverCommunicator.StartCommunicat(exchangeManager));
 
-                var playerConnectionSetting = new PlayerConnectionSetting(ServerConst.DefaultPlayerId);
-                return new VanillaApi(exchangeManager, packetSender, serverCommunicator, serverServiceProvider, playerConnectionSetting);
+                vanillaApi =  new VanillaApi(exchangeManager, packetSender, serverCommunicator, serverServiceProvider, playerConnectionSetting);
             }
 
             async UniTask<ServerCommunicator> ConnectionToServer()
@@ -70,9 +79,9 @@ namespace Client.Starter
                 }
             }
 
-            async UniTask LoadModAssets()
+            async UniTask LoadBlockAssets()
             {
-                
+                blockGameObjectContainer = await BlockGameObjectContainer.CreateAndLoadBlockGameObjectContainer(ServerConst.ServerModsDirectory,nothingIndexBlock, serverServiceProvider);
             }
 
             #endregion

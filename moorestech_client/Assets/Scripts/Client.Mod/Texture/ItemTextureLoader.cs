@@ -51,6 +51,7 @@ namespace MainGame.ModLoader.Texture
         public readonly ItemConfigData ItemConfigData;
         public int ItemId => ItemConfigData.ItemId;
         public string ItemName => ItemConfigData.Name;
+        
         public readonly Sprite ItemImage;
         public readonly UnityEngine.Texture ItemTexture;
 

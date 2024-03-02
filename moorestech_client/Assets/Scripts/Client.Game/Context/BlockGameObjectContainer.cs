@@ -25,24 +25,22 @@ namespace Client.Game.Context
         private readonly IBlockConfig _blockConfig;
         private List<BlockData> _blockObjectList;
 
-        public BlockGameObjectContainer(ModDirectory modDirectory, BlockGameObject nothingIndexBlockObject, MoorestechServerServiceProvider moorestechServerServiceProvider)
+        
+        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory, BlockGameObject nothingIndexBlockObject, MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
-            Init(modDirectory, moorestechServerServiceProvider).Forget();
+            var blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory, moorestechServerServiceProvider);
+            
+            return new BlockGameObjectContainer(nothingIndexBlockObject, moorestechServerServiceProvider, blockObjectList);
+        }
+        
+        public BlockGameObjectContainer(BlockGameObject nothingIndexBlockObject, MoorestechServerServiceProvider moorestechServerServiceProvider, List<BlockData> blockObjectList)
+        {
             _nothingIndexBlockObject = nothingIndexBlockObject;
             _blockConfig = moorestechServerServiceProvider.BlockConfig;
+            _blockObjectList = blockObjectList;
             Instance = this;
         }
 
-        public event Action OnLoadFinished;
-
-        private async UniTask Init(ModDirectory modDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider)
-        {
-            //await BlockGlbLoader.GetBlockLoaderは同期処理になっているため、ここで1フレーム待って他のイベントが追加されるのを待つ
-            await UniTask.WaitForFixedUpdate();
-
-            _blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory.Directory, moorestechServerServiceProvider);
-            OnLoadFinished?.Invoke();
-        }
 
         public BlockGameObject CreateBlock(int blockId, Vector3 position, Quaternion rotation,Vector3 scale ,Transform parent, Vector2Int blockPosition)
         {

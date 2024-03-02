@@ -55,7 +55,6 @@ namespace MainGame.Starter
         private Camera mainCamera;
 
         [SerializeField] private GroundPlane groundPlane;
-        [SerializeField] private BlockGameObject nothingIndexBlock;
 
         [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
         [SerializeField] private WorldMapTileGameObjectDataStore worldMapTileGameObjectDataStore;
@@ -148,8 +147,6 @@ namespace MainGame.Starter
             builder.RegisterInstance(worldMapTileObject);
 
             //Hierarchy上にあるcomponent
-            builder.RegisterComponent(nothingIndexBlock);
-
             builder.RegisterComponent(chunkBlockGameObjectDataStore);
             builder.RegisterComponent(worldMapTileGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore);

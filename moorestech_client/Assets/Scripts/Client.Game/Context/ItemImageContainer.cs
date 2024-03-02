@@ -10,40 +10,31 @@ using UnityEngine;
 namespace MainGame.UnityView.Item
 {
     /// <summary>
-    /// TODO ここもItemConfigと統合して、クライアント向けのリソースも含めたアイテムリストを作りたい
-    /// TODO staticにするべき？
+    /// アイテム画像を管理するクラス
     /// </summary>
     public class ItemImageContainer
     {
         private readonly List<ItemViewData> _itemImageList = new();
         private readonly ItemViewData _nothingIndexItemImage;
 
-        public ItemImageContainer(ModDirectory modDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider)
+        public static ItemImageContainer CreateAndLoadItemImageContainer(string modsDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
-            _nothingIndexItemImage = new ItemViewData(null, null, new ItemConfigData("Not item", 100, "Not mod", 0));
+            var nothingIndexItemImage = new ItemViewData(null, null, new ItemConfigData("Not item", 100, "Not mod", 0));
+            var itemImageList = new List<ItemViewData>();
 
-            LoadTexture(modDirectory, moorestechServerServiceProvider).Forget();
-        }
-
-        //TODO これを消す
-        [Obsolete("将来的には依存関係がすべて解決された時点で画像がロードされているようにしたいな、、")]
-        public event Action OnLoadFinished;
-
-        /// <summary>
-        ///  テクスチャのロードは別スレッドで非同期で行いたいのでUniTaskをつける
-        /// </summary>
-        private async UniTask LoadTexture(ModDirectory modDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider)
-        {
-            //await BlockGlbLoader.GetBlockLoaderは同期処理になっているため、ここで1フレーム待って他のイベントが追加されるのを待つ
-            await UniTask.WaitForFixedUpdate();
-
-            _itemImageList.Add(_nothingIndexItemImage); //id 0番は何もないことを表すのでnullを入れる
+            itemImageList.Add(nothingIndexItemImage); //id 0番は何もないことを表すので、何もない画像を追加
             
-            var textures = ItemTextureLoader.GetItemTexture(modDirectory.Directory, moorestechServerServiceProvider);
-            _itemImageList.AddRange(textures);
-
-            OnLoadFinished?.Invoke();
+            var textures = ItemTextureLoader.GetItemTexture(modsDirectory, moorestechServerServiceProvider);
+            itemImageList.AddRange(textures);
+            
+            return new ItemImageContainer(itemImageList, nothingIndexItemImage);
         }
+
+        private ItemImageContainer(List<ItemViewData> itemImageList, ItemViewData nothingIndexItemImage)
+        {
+            _itemImageList = itemImageList;
+            _nothingIndexItemImage = nothingIndexItemImage;
+        } 
 
 
         public ItemViewData GetItemView(int itemId)
