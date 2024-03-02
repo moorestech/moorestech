@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void MiningTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();

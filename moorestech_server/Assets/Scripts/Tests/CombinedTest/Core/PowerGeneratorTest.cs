@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void UseFuelTest()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
             
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
@@ -86,7 +86,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void InfinityGeneratorTet()
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
             
             var blockFactory = serviceProvider.GetService<IBlockFactory>();

@@ -49,7 +49,7 @@
     "Server.Event",
     "Server.Protocol",
     "Server.Util",
-    "SinglePlay"
+    "ServerServiceProvider"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

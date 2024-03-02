@@ -9,7 +9,7 @@ using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.Item;
 using MainGame.UnityView.UI.Inventory.Element;
-using SinglePlay;
+using ServerServiceProvider;
 using UniRx;
 using UnityEngine;
 using VContainer;
@@ -40,9 +40,9 @@ namespace MainGame.UnityView.UI.Inventory.Main
         private bool IsGrabItem => _playerInventory.GrabInventory.Id != ItemConst.EmptyItemId;
 
         [Inject]
-        public void Construct(SinglePlayInterface singlePlayInterface,LocalPlayerInventoryController playerInventory,ItemImageContainer itemImageContainer)
+        public void Construct(MoorestechServerServiceProvider moorestechServerServiceProvider,LocalPlayerInventoryController playerInventory,ItemImageContainer itemImageContainer)
         {
-            _itemStackFactory = singlePlayInterface.ItemStackFactory;
+            _itemStackFactory = moorestechServerServiceProvider.ItemStackFactory;
             _playerInventory = playerInventory;
             _itemImageContainer = itemImageContainer;
         }

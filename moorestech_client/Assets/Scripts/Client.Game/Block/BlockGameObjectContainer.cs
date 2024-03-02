@@ -6,7 +6,7 @@ using Game.Block.Interface.BlockConfig;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Block.StateChange;
-using SinglePlay;
+using ServerServiceProvider;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -24,22 +24,22 @@ namespace MainGame.UnityView.Block
         private readonly IBlockConfig _blockConfig;
         private List<BlockData> _blockObjectList;
 
-        public BlockGameObjectContainer(ModDirectory modDirectory, BlockGameObject nothingIndexBlockObject, SinglePlayInterface singlePlayInterface)
+        public BlockGameObjectContainer(ModDirectory modDirectory, BlockGameObject nothingIndexBlockObject, MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
-            Init(modDirectory, singlePlayInterface).Forget();
+            Init(modDirectory, moorestechServerServiceProvider).Forget();
             _nothingIndexBlockObject = nothingIndexBlockObject;
-            _blockConfig = singlePlayInterface.BlockConfig;
+            _blockConfig = moorestechServerServiceProvider.BlockConfig;
             Instance = this;
         }
 
         public event Action OnLoadFinished;
 
-        private async UniTask Init(ModDirectory modDirectory, SinglePlayInterface singlePlayInterface)
+        private async UniTask Init(ModDirectory modDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
             //await BlockGlbLoader.GetBlockLoaderは同期処理になっているため、ここで1フレーム待って他のイベントが追加されるのを待つ
             await UniTask.WaitForFixedUpdate();
 
-            _blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory.Directory, singlePlayInterface);
+            _blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory.Directory, moorestechServerServiceProvider);
             OnLoadFinished?.Invoke();
         }
 

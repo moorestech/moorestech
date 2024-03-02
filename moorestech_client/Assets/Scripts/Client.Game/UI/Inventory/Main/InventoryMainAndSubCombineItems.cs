@@ -5,7 +5,7 @@ using System.Linq;
 using Core.Item;
 using Core.Item.Config;
 using Game.PlayerInventory.Interface;
-using SinglePlay;
+using ServerServiceProvider;
 using UniRx;
 using UnityEngine;
 
@@ -34,10 +34,10 @@ namespace MainGame.UnityView.UI.Inventory.Main
         
         private ISubInventory _subInventory;
 
-        public LocalPlayerInventory(SinglePlayInterface singlePlayInterface)
+        public LocalPlayerInventory(MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
-            _itemConfig = singlePlayInterface.ItemConfig;
-            _itemStackFactory = singlePlayInterface.ItemStackFactory;
+            _itemConfig = moorestechServerServiceProvider.ItemConfig;
+            _itemStackFactory = moorestechServerServiceProvider.ItemStackFactory;
             _mainInventory = new List<IItemStack>();
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {

@@ -25,7 +25,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void MainInventoryMoveTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0)
                 .MainOpenableInventory;
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void BlockInventoryTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             var blockFactory = serviceProvider.GetService<IBlockFactory>();

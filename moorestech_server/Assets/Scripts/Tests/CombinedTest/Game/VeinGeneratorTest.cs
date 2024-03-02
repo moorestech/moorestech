@@ -14,7 +14,7 @@ namespace Tests.CombinedTest.Game
         {
             //直接生成してテストできないので、500x500の範囲で生成して100個以上鉱石があればOKとする
             var (_, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var veinGenerator = serviceProvider.GetService<VeinGenerator>();
 
             var count = 0;

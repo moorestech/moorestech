@@ -19,7 +19,7 @@ namespace Tests.UnitTest.Game.WorldSetting
         public void WorldSpawnPointSearcherTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldSettings = serviceProvider.GetService<IWorldSettingsDatastore>();
             var vineGenerator = serviceProvider.GetService<VeinGenerator>();
             worldSettings.Initialize();

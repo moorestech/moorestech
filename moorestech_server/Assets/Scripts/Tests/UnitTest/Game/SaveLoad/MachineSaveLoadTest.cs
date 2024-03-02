@@ -124,7 +124,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             CreateBlockTestModule()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();

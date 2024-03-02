@@ -44,7 +44,7 @@ using Server.Protocol;
 
 namespace Server.Boot
 {
-    public class PacketResponseCreatorDiContainerGenerators
+    public class MoorestechServerDiContainerGenerator
     {
         //TODO セーブファイルのディレクトリもここで指定できるようにする
         public (PacketResponseCreator, ServiceProvider) Create(string serverDirectory)
@@ -131,9 +131,7 @@ namespace Server.Boot
             serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
             serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();
 
-            serviceProvider
-                .GetService<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator,
-                    IElectricPole>>();
+            serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
 
             serviceProvider.GetService<SetMiningItemToMiner>();
             serviceProvider.GetService<ChangeBlockStateEventPacket>();

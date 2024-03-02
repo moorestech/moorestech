@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void SaveLoadTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemsStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var belt = new VanillaBeltConveyor(1, 10, 1, itemsStackFactory, 4, 4000);

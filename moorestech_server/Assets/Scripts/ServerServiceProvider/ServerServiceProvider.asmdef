@@ -1,5 +1,5 @@
 {
-    "name": "SinglePlay",
+    "name": "ServerServiceProvider",
     "rootNamespace": "",
     "references": [
         "Game.Block.Interface",
@@ -8,7 +8,6 @@
         "Core.Item",
         "Game.Block",
         "Core.Ore",
-        "Game.Quest.Interface",
         "Server.Boot",
         "Server.Protocol"
     ],

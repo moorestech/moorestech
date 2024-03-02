@@ -4,7 +4,7 @@ using Core.Item.Config;
 using Cysharp.Threading.Tasks;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Texture;
-using SinglePlay;
+using ServerServiceProvider;
 using UnityEngine;
 
 namespace MainGame.UnityView.Item
@@ -18,11 +18,11 @@ namespace MainGame.UnityView.Item
         private readonly List<ItemViewData> _itemImageList = new();
         private readonly ItemViewData _nothingIndexItemImage;
 
-        public ItemImageContainer(ModDirectory modDirectory, SinglePlayInterface singlePlayInterface)
+        public ItemImageContainer(ModDirectory modDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
             _nothingIndexItemImage = new ItemViewData(null, null, new ItemConfigData("Not item", 100, "Not mod", 0));
 
-            LoadTexture(modDirectory, singlePlayInterface).Forget();
+            LoadTexture(modDirectory, moorestechServerServiceProvider).Forget();
         }
 
         //TODO これを消す
@@ -32,14 +32,14 @@ namespace MainGame.UnityView.Item
         /// <summary>
         ///  テクスチャのロードは別スレッドで非同期で行いたいのでUniTaskをつける
         /// </summary>
-        private async UniTask LoadTexture(ModDirectory modDirectory, SinglePlayInterface singlePlayInterface)
+        private async UniTask LoadTexture(ModDirectory modDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
             //await BlockGlbLoader.GetBlockLoaderは同期処理になっているため、ここで1フレーム待って他のイベントが追加されるのを待つ
             await UniTask.WaitForFixedUpdate();
 
             _itemImageList.Add(_nothingIndexItemImage); //id 0番は何もないことを表すのでnullを入れる
             
-            var textures = ItemTextureLoader.GetItemTexture(modDirectory.Directory, singlePlayInterface);
+            var textures = ItemTextureLoader.GetItemTexture(modDirectory.Directory, moorestechServerServiceProvider);
             _itemImageList.AddRange(textures);
 
             OnLoadFinished?.Invoke();

@@ -41,7 +41,7 @@
         "Server.Protocol",
         "Server.StartServerSystem",
         "Server.Util",
-        "SinglePlay"
+        "ServerServiceProvider"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

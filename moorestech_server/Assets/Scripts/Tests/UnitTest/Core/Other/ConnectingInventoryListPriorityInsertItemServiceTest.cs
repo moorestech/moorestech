@@ -19,7 +19,7 @@ namespace Tests.UnitTest.Core.Other
         public void Test()
         {
             var (_, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var inventoryList = new List<IBlockInventory>();

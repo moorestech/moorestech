@@ -13,7 +13,7 @@ using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.Inventory.Sub;
 using MainGame.UnityView.UI.UIState.UIObject;
-using SinglePlay;
+using ServerServiceProvider;
 using UnityEngine;
 
 namespace MainGame.UnityView.UI.UIState
@@ -23,7 +23,7 @@ namespace MainGame.UnityView.UI.UIState
         private readonly IBlockClickDetect _blockClickDetect;
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
 
-        private readonly SinglePlayInterface _singlePlayInterface;
+        private readonly MoorestechServerServiceProvider _moorestechServerServiceProvider;
         private readonly BlockInventoryView _blockInventoryView;
         private readonly PlayerInventoryViewController _playerInventoryViewController;
 
@@ -31,11 +31,11 @@ namespace MainGame.UnityView.UI.UIState
         
         private Vector2Int _openBlockPos;
 
-        public BlockInventoryState(BlockInventoryView blockInventoryView, IBlockClickDetect blockClickDetect, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, SinglePlayInterface singlePlayInterface,PlayerInventoryViewController playerInventoryViewController)
+        public BlockInventoryState(BlockInventoryView blockInventoryView, IBlockClickDetect blockClickDetect, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, MoorestechServerServiceProvider moorestechServerServiceProvider,PlayerInventoryViewController playerInventoryViewController)
         {
             _blockClickDetect = blockClickDetect;
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
-            _singlePlayInterface = singlePlayInterface;
+            _moorestechServerServiceProvider = moorestechServerServiceProvider;
             _playerInventoryViewController = playerInventoryViewController;
             _blockInventoryView = blockInventoryView;
             
@@ -64,7 +64,7 @@ namespace MainGame.UnityView.UI.UIState
 
             //ブロックインベントリのビューを設定する
             var id = _chunkBlockGameObjectDataStore.GetBlockGameObject(_openBlockPos).BlockId;
-            var config = _singlePlayInterface.BlockConfig.GetBlockConfig(id);
+            var config = _moorestechServerServiceProvider.BlockConfig.GetBlockConfig(id);
             
             var type = config.Type switch
             {

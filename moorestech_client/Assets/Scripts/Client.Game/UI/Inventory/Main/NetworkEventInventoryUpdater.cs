@@ -3,7 +3,7 @@ using Core.Item;
 using MainGame.UnityView.UI.Inventory.Sub;
 using MessagePack;
 using Server.Event.EventReceive;
-using SinglePlay;
+using ServerServiceProvider;
 using VContainer.Unity;
 
 namespace MainGame.UnityView.UI.Inventory.Main
@@ -14,10 +14,10 @@ namespace MainGame.UnityView.UI.Inventory.Main
         private readonly ItemStackFactory _itemStackFactory;
         private readonly BlockInventoryView _blockInventoryView;
         
-        public NetworkEventInventoryUpdater(LocalPlayerInventoryController localPlayerInventoryController, SinglePlayInterface singlePlayInterface, BlockInventoryView blockInventoryView)
+        public NetworkEventInventoryUpdater(LocalPlayerInventoryController localPlayerInventoryController, MoorestechServerServiceProvider moorestechServerServiceProvider, BlockInventoryView blockInventoryView)
         {
             _localPlayerInventoryController = localPlayerInventoryController;
-            _itemStackFactory = singlePlayInterface.ItemStackFactory;
+            _itemStackFactory = moorestechServerServiceProvider.ItemStackFactory;
             _blockInventoryView = blockInventoryView;
         }
         

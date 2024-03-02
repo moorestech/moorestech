@@ -35,7 +35,7 @@ namespace Tests.CombinedTest.Server
         [Test]
         public void BlockDirectionItemPositionTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemsStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
@@ -137,7 +137,7 @@ namespace Tests.CombinedTest.Server
         [Test]
         public void ItemInstanceIdTest()
         {
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
             
             var itemsStackFactory = serviceProvider.GetService<ItemStackFactory>();

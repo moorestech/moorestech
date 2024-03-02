@@ -19,7 +19,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void MachineChangeStateEvent()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
             //機械のブロックを作る

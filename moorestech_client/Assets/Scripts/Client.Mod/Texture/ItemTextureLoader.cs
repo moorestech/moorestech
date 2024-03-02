@@ -3,7 +3,7 @@ using System.Linq;
 using Core.Item.Config;
 using Constant;
 using Mod.Loader;
-using SinglePlay;
+using ServerServiceProvider;
 using UnityEngine;
 
 namespace MainGame.ModLoader.Texture
@@ -12,7 +12,7 @@ namespace MainGame.ModLoader.Texture
     {
         private const string ModTextureDirectory = "assets/item/";
 
-        public static List<ItemViewData> GetItemTexture(string modDirectory, SinglePlayInterface singlePlayInterface)
+        public static List<ItemViewData> GetItemTexture(string modDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
             var textureList = new List<ItemViewData>();
 
@@ -20,8 +20,8 @@ namespace MainGame.ModLoader.Texture
 
             foreach (var mod in mods.Mods)
             {
-                var itemIds = singlePlayInterface.ItemConfig.GetItemIds(mod.Value.ModMetaJson.ModId);
-                var itemConfigs = itemIds.Select(singlePlayInterface.ItemConfig.GetItemConfig).ToList();
+                var itemIds = moorestechServerServiceProvider.ItemConfig.GetItemIds(mod.Value.ModMetaJson.ModId);
+                var itemConfigs = itemIds.Select(moorestechServerServiceProvider.ItemConfig.GetItemConfig).ToList();
 
                 textureList.AddRange(GetTextures(itemConfigs, mod.Value));
             }

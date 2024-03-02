@@ -6,7 +6,7 @@ using Game.World.Interface.DataStore;
 using Constant;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Block;
-using SinglePlay;
+using ServerServiceProvider;
 using UnityEngine;
 using VContainer;
 
@@ -23,10 +23,10 @@ namespace MainGame.UnityView.Chunk
         public event Action<BlockGameObject> OnPlaceBlock;
 
         [Inject]
-        public void Construct(BlockGameObjectContainer blockGameObjectContainer,SinglePlayInterface singlePlayInterface)
+        public void Construct(BlockGameObjectContainer blockGameObjectContainer,MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
             _blockGameObjectContainer = blockGameObjectContainer;
-            _blockConfig = singlePlayInterface.BlockConfig;
+            _blockConfig = moorestechServerServiceProvider.BlockConfig;
         }
 
 

@@ -18,7 +18,7 @@ namespace Tests.UnitTest.Game
         public void RegisteredDataCoordinateFromFetchTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var random = new Random(131513);
@@ -41,7 +41,7 @@ namespace Tests.UnitTest.Game
         public void AlreadyRegisteredEntityIdSecondTimeFailTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var entityId = CreateBlockEntityId.Create();
@@ -57,7 +57,7 @@ namespace Tests.UnitTest.Game
         public void AlreadyCoordinateSecondTimeFailTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var i = CreateMachine(1, CreateBlockEntityId.Create());
@@ -73,7 +73,7 @@ namespace Tests.UnitTest.Game
             if (_blockFactory == null)
             {
                 var (_, serviceProvider) =
-                    new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                    new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
                 _blockFactory = serviceProvider.GetService<IBlockFactory>();
             }
 

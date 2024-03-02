@@ -16,7 +16,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void GetMapObjectTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
 
 

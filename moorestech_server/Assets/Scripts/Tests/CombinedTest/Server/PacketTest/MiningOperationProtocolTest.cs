@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var PlayerId = 0;
             var oreId = 0;
 
-            var (packet, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var oreConfig = serviceProvider.GetService<IOreConfig>();
             var seed = serviceProvider.GetService<Seed>();
 

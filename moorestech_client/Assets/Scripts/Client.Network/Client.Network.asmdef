@@ -40,7 +40,7 @@
     "Server.Event",
     "Server.Protocol",
     "Server.Util",
-    "SinglePlay",
+    "ServerServiceProvider",
     "VContainer",
     "Client.Common",
     "UniRx",

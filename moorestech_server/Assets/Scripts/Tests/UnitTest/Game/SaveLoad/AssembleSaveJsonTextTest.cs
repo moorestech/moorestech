@@ -18,7 +18,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void SimpleBlockPlacedTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
@@ -35,7 +35,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Debug.Log(json);
 
             var (_, loadServiceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
 
             var worldLoadBlockDatastore = loadServiceProvider.GetService<IWorldBlockDatastore>();

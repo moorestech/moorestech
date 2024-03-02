@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Core.Other
         public void OreIdToItemIdTest()
         {
             var (packetResponse, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var oreConfig = serviceProvider.GetService<IOreConfig>();
             Assert.AreEqual(3, oreConfig.OreIdToItemId(1));
             Assert.AreEqual(4, oreConfig.OreIdToItemId(2));
@@ -26,7 +26,7 @@ namespace Tests.UnitTest.Core.Other
         public void ModItToOreIdsTest()
         {
             var (packetResponse, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var oreConfig = serviceProvider.GetService<IOreConfig>();
 
             Assert.AreEqual(2, oreConfig.GetOreIds("Test Author:forUniTest").Count);

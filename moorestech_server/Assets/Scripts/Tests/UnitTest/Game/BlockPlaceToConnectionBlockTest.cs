@@ -34,7 +34,7 @@ namespace Tests.UnitTest.Game
         public void BeltConveyorConnectMachineTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
@@ -92,7 +92,7 @@ namespace Tests.UnitTest.Game
         public void MachineConnectToBeltConveyorTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
@@ -154,7 +154,7 @@ namespace Tests.UnitTest.Game
         public void BeltConveyorToChestConnectTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
@@ -195,7 +195,7 @@ namespace Tests.UnitTest.Game
         public void NotConnectableBlockTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 

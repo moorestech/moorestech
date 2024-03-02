@@ -10,7 +10,7 @@ using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.HotBar;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
-using SinglePlay;
+using ServerServiceProvider;
 using UnityEngine;
 using VContainer;
 
@@ -34,10 +34,10 @@ namespace MainGame.Extension
         private bool isBlockPlaceState;
 
         [Inject]
-        public void Construct(SinglePlayInterface singlePlayInterface, HotBarView hotBarView, UIStateControl uiStateControl, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,ILocalPlayerInventory localPlayerInventory)
+        public void Construct(MoorestechServerServiceProvider moorestechServerServiceProvider, HotBarView hotBarView, UIStateControl uiStateControl, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,ILocalPlayerInventory localPlayerInventory)
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
-            _blockConfig = singlePlayInterface.BlockConfig;
+            _blockConfig = moorestechServerServiceProvider.BlockConfig;
 
             _localPlayerInventory = localPlayerInventory;
             _hotBarView = hotBarView;

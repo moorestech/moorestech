@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Ore.Config;
 using Mod.Loader;
-using SinglePlay;
+using ServerServiceProvider;
 using UnityEngine;
 
 namespace MainGame.ModLoader.Texture
@@ -11,15 +11,15 @@ namespace MainGame.ModLoader.Texture
     {
         private const string TextureDirectory = "assets/maptile/";
 
-        public static List<Material> GetMapTileMaterial(string modDirectory, SinglePlayInterface singlePlayInterface, Material baseMaterial)
+        public static List<Material> GetMapTileMaterial(string modDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider, Material baseMaterial)
         {
             var materials = new List<Material>();
             var mods = new ModsResource(modDirectory);
 
             foreach (var mod in mods.Mods)
             {
-                var oreIDs = singlePlayInterface.OreConfig.GetOreIds(mod.Value.ModMetaJson.ModId);
-                var oreConfigs = oreIDs.Select(singlePlayInterface.OreConfig.Get).ToList();
+                var oreIDs = moorestechServerServiceProvider.OreConfig.GetOreIds(mod.Value.ModMetaJson.ModId);
+                var oreConfigs = oreIDs.Select(moorestechServerServiceProvider.OreConfig.Get).ToList();
 
                 materials.AddRange(GetTextures(oreConfigs, mod.Value, baseMaterial));
             }

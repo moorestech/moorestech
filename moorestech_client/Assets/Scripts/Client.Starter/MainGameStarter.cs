@@ -31,7 +31,7 @@ using MainGame.UnityView.UI.Inventory.Sub;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.UI.UIState.UIObject;
 using MainGame.UnityView.WorldMapTile;
-using SinglePlay;
+using ServerServiceProvider;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -104,7 +104,7 @@ namespace MainGame.Starter
 
             var builder = new ContainerBuilder();
             //シングルプレイ用のインスタンス
-            var singlePlayInterface = new SinglePlayInterface(ServerConst.ServerDirectory);
+            var singlePlayInterface = new MoorestechServerServiceProvider(ServerConst.ServerDirectory);
             builder.RegisterInstance(singlePlayInterface);
             builder.RegisterInstance(singlePlayInterface.ItemConfig);
             builder.RegisterInstance(new ModDirectory(ServerConst.ServerModsDirectory));

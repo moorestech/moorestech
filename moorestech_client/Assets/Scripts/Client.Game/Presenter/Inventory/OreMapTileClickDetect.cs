@@ -9,7 +9,7 @@ using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.Util;
 using MainGame.UnityView.WorldMapTile;
-using SinglePlay;
+using ServerServiceProvider;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
@@ -35,7 +35,7 @@ namespace MainGame.Presenter.Inventory
         private CancellationTokenSource _miningTokenSource = new();
 
         [Inject]
-        public void Construct(Camera mainCamera, UIStateControl uiStateControl, SinglePlayInterface singlePlayInterface)
+        public void Construct(Camera mainCamera, UIStateControl uiStateControl, MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
             _mainCamera = mainCamera;
             _uiStateControl = uiStateControl;

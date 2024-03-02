@@ -6,7 +6,7 @@ using Game.Crafting.Interface;
 using MainGame.UnityView.Item;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
-using SinglePlay;
+using ServerServiceProvider;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -44,7 +44,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
 
 
         [Inject]
-        public void Construct(SinglePlayInterface singlePlay,ItemImageContainer itemImageContainer,ILocalPlayerInventory localPlayerInventory)
+        public void Construct(MoorestechServerServiceProvider singlePlay,ItemImageContainer itemImageContainer,ILocalPlayerInventory localPlayerInventory)
         {
             _itemConfig = singlePlay.ItemConfig;
             _craftingConfig = singlePlay.CraftingConfig;

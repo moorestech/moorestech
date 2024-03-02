@@ -25,7 +25,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void RandomPlaceBlockToChunkResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
@@ -78,7 +78,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void PlaceBlockToChunkResponseTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 

@@ -11,7 +11,7 @@ using MainGame.UnityView.SoundEffect;
 using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.UIState;
-using SinglePlay;
+using ServerServiceProvider;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
@@ -40,13 +40,13 @@ namespace MainGame.Presenter.Inventory.Send
         }
 
         [Inject]
-        public void Construct(Camera mainCamera, HotBarView hotBarView, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview,SinglePlayInterface singlePlayInterface,ILocalPlayerInventory localPlayerInventory)
+        public void Construct(Camera mainCamera, HotBarView hotBarView, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview,MoorestechServerServiceProvider moorestechServerServiceProvider,ILocalPlayerInventory localPlayerInventory)
         {
             _uiStateControl = uiStateControl;
             _hotBarView = hotBarView;
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
-            _blockConfig = singlePlayInterface.BlockConfig;
+            _blockConfig = moorestechServerServiceProvider.BlockConfig;
             _localPlayerInventory = localPlayerInventory;
         }
 

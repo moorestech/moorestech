@@ -15,7 +15,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void EntitySaveTest()
         {
             var (_, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
             var entityFactory = serviceProvider.GetService<IEntityFactory>();
@@ -39,7 +39,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             //ロードの実行
             var (_, loadServiceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
 
 

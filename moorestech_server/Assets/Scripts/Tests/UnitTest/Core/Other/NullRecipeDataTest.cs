@@ -12,7 +12,7 @@ namespace Tests.UnitTest.Core.Other
         public void NullTest()
         {
             var (packetResponse, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var recipeData = serviceProvider.GetService<IMachineRecipeConfig>().GetEmptyRecipeData();
             Assert.AreEqual(0, recipeData.ItemInputs.Count);
             Assert.AreEqual(0, recipeData.ItemOutputs.Count);

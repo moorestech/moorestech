@@ -17,7 +17,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void SaveLoadTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var blockHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(ChestBlockId).BlockHash;

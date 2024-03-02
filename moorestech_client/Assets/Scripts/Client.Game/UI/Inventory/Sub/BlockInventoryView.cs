@@ -4,7 +4,7 @@ using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
 using MainGame.UnityView.UI.Inventory.Element;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
-using SinglePlay;
+using ServerServiceProvider;
 using UnityEngine;
 using VContainer;
 
@@ -37,9 +37,9 @@ namespace MainGame.UnityView.UI.Inventory.Sub
         private ItemStackFactory _itemStackFactory;
         
         [Inject]
-        public void Construct(SinglePlayInterface singlePlayInterface)
+        public void Construct(MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
-            _itemStackFactory = singlePlayInterface.ItemStackFactory;
+            _itemStackFactory = moorestechServerServiceProvider.ItemStackFactory;
         }
         
         public void SetActive(bool isActive)

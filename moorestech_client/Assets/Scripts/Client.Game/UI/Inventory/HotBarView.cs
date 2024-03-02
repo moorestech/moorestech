@@ -9,7 +9,7 @@ using MainGame.UnityView.Item;
 using MainGame.UnityView.Player;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
-using SinglePlay;
+using ServerServiceProvider;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
@@ -34,11 +34,11 @@ namespace MainGame.UnityView.UI.Inventory
         public event Action<int> OnSelectHotBar;
         
         [Inject]
-        public void Construct(ItemImageContainer itemImageContainer,ILocalPlayerInventory localPlayerInventory,SinglePlayInterface singlePlayInterface)
+        public void Construct(ItemImageContainer itemImageContainer,ILocalPlayerInventory localPlayerInventory,MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
             _itemImageContainer = itemImageContainer;
             _localPlayerInventory = localPlayerInventory;
-            _itemConfig = singlePlayInterface.ItemConfig;
+            _itemConfig = moorestechServerServiceProvider.ItemConfig;
             Instance = this;
         }
 

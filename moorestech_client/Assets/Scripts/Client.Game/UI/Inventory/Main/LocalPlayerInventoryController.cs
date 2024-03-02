@@ -4,7 +4,7 @@ using Core.Item;
 using Game.PlayerInventory.Interface;
 using MainGame.Network.Send;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
-using SinglePlay;
+using ServerServiceProvider;
 
 namespace MainGame.UnityView.UI.Inventory.Main
 {
@@ -18,10 +18,10 @@ namespace MainGame.UnityView.UI.Inventory.Main
         private readonly ItemStackFactory _itemStackFactory;
         private ISubInventory _subInventory;
         
-        public LocalPlayerInventoryController(SinglePlayInterface singlePlayInterface,ILocalPlayerInventory localPlayerInventoryMainAndSubCombine)
+        public LocalPlayerInventoryController(MoorestechServerServiceProvider moorestechServerServiceProvider,ILocalPlayerInventory localPlayerInventoryMainAndSubCombine)
         {
             _mainAndSubCombine = (LocalPlayerInventory)localPlayerInventoryMainAndSubCombine;
-            _itemStackFactory = singlePlayInterface.ItemStackFactory;
+            _itemStackFactory = moorestechServerServiceProvider.ItemStackFactory;
             GrabInventory = _itemStackFactory.Create(0, 0);
         }
 

@@ -5,7 +5,7 @@ using Game.Block.Interface.BlockConfig;
 using Constant;
 using Constant.Util;
 using Mod.Loader;
-using SinglePlay;
+using ServerServiceProvider;
 using UnityEngine;
 
 namespace MainGame.ModLoader.Glb
@@ -15,7 +15,7 @@ namespace MainGame.ModLoader.Glb
         private const string BlockDirectory = "assets/block/";
 
 
-        public static async UniTask<List<BlockData>> GetBlockLoader(string modDirectory, SinglePlayInterface singlePlayInterface)
+        public static async UniTask<List<BlockData>> GetBlockLoader(string modDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
             var blocks = new List<BlockData>();
 
@@ -25,8 +25,8 @@ namespace MainGame.ModLoader.Glb
 
             foreach (var mod in mods.Mods)
             {
-                var blockIds = singlePlayInterface.BlockConfig.GetBlockIds(mod.Value.ModMetaJson.ModId);
-                var blockConfigs = blockIds.Select(singlePlayInterface.BlockConfig.GetBlockConfig).ToList();
+                var blockIds = moorestechServerServiceProvider.BlockConfig.GetBlockIds(mod.Value.ModMetaJson.ModId);
+                var blockConfigs = blockIds.Select(moorestechServerServiceProvider.BlockConfig.GetBlockConfig).ToList();
 
                 blocks.AddRange(await GetBlocks(blockConfigs, mod.Value, blockPrefabsParent.transform));
             }

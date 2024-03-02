@@ -21,7 +21,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void PowerGeneratorTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var fuelSlotCount =

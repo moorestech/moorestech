@@ -17,7 +17,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void OnePlayerTest()
         {
             var (_, saveServiceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInventory = saveServiceProvider.GetService<IPlayerInventoryDataStore>();
             var itemStackFactory = saveServiceProvider.GetService<ItemStackFactory>();
             var assembleJsonText = saveServiceProvider.GetService<AssembleSaveJsonText>();
@@ -49,7 +49,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             //セーブしたデータをロードする
             var (_, loadServiceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
             var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>()
                 .GetInventoryData(playerEntityId);
@@ -75,7 +75,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void MultiplePlayerSaveTest()
         {
             var (_, saveServiceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var playerInventory = saveServiceProvider.GetService<IPlayerInventoryDataStore>();
             var itemStackFactory = saveServiceProvider.GetService<ItemStackFactory>();
             var seed = 13143;
@@ -102,7 +102,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             //セーブしたデータをロードする
             var (_, loadServiceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
             var loadedPlayerInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>();
 

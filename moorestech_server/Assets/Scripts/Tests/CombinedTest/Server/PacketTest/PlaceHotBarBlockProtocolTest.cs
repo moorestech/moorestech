@@ -24,7 +24,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void BlockPlaceTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             //パケットでプレイヤーインベントリを生成
@@ -68,7 +68,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void PlaceDirectionTest()
         {
             var (packet, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
 

@@ -18,7 +18,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void MapObjectDestroyToEventTest()
         {
-            var (packetResponse, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var mapObjectDatastore = serviceProvider.GetService<IMapObjectDatastore>();
 
             var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));

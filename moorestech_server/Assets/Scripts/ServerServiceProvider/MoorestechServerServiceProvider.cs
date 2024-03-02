@@ -8,9 +8,9 @@ using Game.Crafting.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot;
 
-namespace SinglePlay
+namespace ServerServiceProvider
 {
-    public class SinglePlayInterface
+    public class MoorestechServerServiceProvider
     {
         public readonly IBlockConfig BlockConfig;
 
@@ -23,9 +23,9 @@ namespace SinglePlay
         public readonly IOreConfig OreConfig;
 
 
-        public SinglePlayInterface(string configPath)
+        public MoorestechServerServiceProvider(string serverDirectory)
         {
-            var (_, serviceProvider) = new PacketResponseCreatorDiContainerGenerators().Create(configPath);
+            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(serverDirectory);
 
             CraftingConfig = serviceProvider.GetService<ICraftingConfig>();
             MachineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();

@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Core.Other
         public void Setup()
         {
             var (_, serviceProvider) =
-                new PacketResponseCreatorDiContainerGenerators().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
         }
 
