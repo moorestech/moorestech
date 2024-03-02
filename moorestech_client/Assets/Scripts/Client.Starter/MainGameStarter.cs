@@ -1,22 +1,17 @@
 using System.Diagnostics;
-using Client.Game.Context;
 using Client.Localization;
 using Client.Network.API;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.Extension;
 using MainGame.ModLoader;
-using MainGame.ModLoader.Glb;
 using MainGame.Network;
-using MainGame.Network.Send;
-using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Settings;
 using MainGame.Presenter.Block;
 using MainGame.Presenter.Command;
 using MainGame.Presenter.Entity;
 using MainGame.Presenter.Inventory;
 using MainGame.Presenter.Inventory.Send;
-using MainGame.Presenter.Loading;
 using MainGame.Presenter.MapObject;
 using MainGame.Presenter.PauseMenu;
 using MainGame.Presenter.Player;
@@ -24,7 +19,6 @@ using MainGame.UnityView.Block;
 using MainGame.UnityView.Block.StateChange;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
-using MainGame.UnityView.Item;
 using MainGame.UnityView.Player;
 using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
@@ -70,7 +64,6 @@ namespace MainGame.Starter
         [SerializeField] private EntityObjectDatastore entityObjectDatastore;
 
         [SerializeField] private UIStateControl uIStateControl;
-        [SerializeField] private LoadingFinishDetector loadingFinishDetector;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private BlockInventoryView blockInventoryView;
@@ -139,9 +132,7 @@ namespace MainGame.Starter
             builder.Register<DeleteObjectInventoryState>(Lifetime.Singleton);
 
             //modからロードしてきたデータ
-            builder.Register<ItemImageContainer>(Lifetime.Singleton);
             builder.Register<WorldMapTileMaterials>(Lifetime.Singleton);
-            builder.Register<BlockGameObjectContainer>(Lifetime.Singleton);
 
             //ScriptableObjectの登録
             builder.RegisterInstance(worldMapTileObject);
@@ -159,7 +150,6 @@ namespace MainGame.Starter
             builder.RegisterComponent(hotBarView);
 
             builder.RegisterComponent(uIStateControl);
-            builder.RegisterComponent(loadingFinishDetector);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
             builder.RegisterComponent(saveButton);
@@ -188,7 +178,6 @@ namespace MainGame.Starter
             _resolver.Resolve<DetectGroundClickToSendBlockPlacePacket>();
             _resolver.Resolve<CommandUIInput>();
             _resolver.Resolve<UIStateControl>();
-            _resolver.Resolve<LoadingFinishDetector>();
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ServerCommunicator>();

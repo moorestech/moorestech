@@ -7,11 +7,11 @@ namespace Client.Network.API
 {
     public class VanillaApi : IInitializable
     {
-        public static VanillaApiEvent Event { get; private set; }
-        public static VanillaApiWithResponse Response { get; private set; }
-        public static VanillaApiSendOnly SendOnly { get; private set; }
+        public readonly VanillaApiEvent Event;
+        public readonly VanillaApiWithResponse Response;
+        public readonly VanillaApiSendOnly SendOnly;
         
-        private static ServerCommunicator _serverCommunicator;
+        private readonly ServerCommunicator _serverCommunicator;
         
         public VanillaApi(PacketExchangeManager packetExchangeManager, PacketSender packetSender,ServerCommunicator serverCommunicator, MoorestechServerServiceProvider moorestechServerServiceProvider, PlayerConnectionSetting playerConnectionSetting)
         {
@@ -24,7 +24,7 @@ namespace Client.Network.API
 
         public void Initialize() { }
         
-        public static void Disconnect()
+        public void Disconnect()
         {
             _serverCommunicator.Close();
         }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
+using Client.Game.Context;
 using Client.Network.API;
 using Client.Network.API;
 using Game.World.Interface.DataStore;
@@ -31,7 +32,7 @@ namespace MainGame.Presenter.Block
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _entitiesDatastore = entitiesDatastore;
             //イベントをサブスクライブする
-            VanillaApi.Event.RegisterEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
+            MoorestechContext.VanillaApi.Event.RegisterEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
         }
         
         /// <summary>
@@ -84,7 +85,7 @@ namespace MainGame.Presenter.Block
 
             async UniTask GetChunkAndApply()
             {
-                var data = await VanillaApi.Response.GetChunkInfos(chunks, ct);
+                var data = await MoorestechContext.VanillaApi.Response.GetChunkInfos(chunks, ct);
                 if (data == null)
                 {
                     return;

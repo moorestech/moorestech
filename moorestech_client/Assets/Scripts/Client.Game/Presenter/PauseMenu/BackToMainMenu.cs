@@ -1,4 +1,5 @@
 using System.Threading;
+using Client.Game.Context;
 using Client.Network.API;
 using Constant;
 using MainGame.Network.Settings;
@@ -45,10 +46,10 @@ namespace MainGame.Control.UI.PauseMenu
 
         private void Disconnect()
         {
-            VanillaApi.SendOnly.Save();
+            MoorestechContext.VanillaApi.SendOnly.Save();
             Thread.Sleep(50);
             if (_serverProcessSetting.isLocal) _serverProcessSetting.localServerProcess.Kill();
-            VanillaApi.Disconnect();
+            MoorestechContext.VanillaApi.Disconnect();
         }
     }
 }

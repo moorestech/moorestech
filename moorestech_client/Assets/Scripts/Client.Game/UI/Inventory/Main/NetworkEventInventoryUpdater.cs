@@ -1,3 +1,4 @@
+using Client.Game.Context;
 using Client.Network.API;
 using Core.Item;
 using MainGame.UnityView.UI.Inventory.Sub;
@@ -23,9 +24,9 @@ namespace MainGame.UnityView.UI.Inventory.Main
         
         public void Initialize()
         {
-            VanillaApi.Event.RegisterEventResponse(GrabInventoryUpdateEventPacket.EventTag,OnGrabInventoryUpdateEvent);
-            VanillaApi.Event.RegisterEventResponse(MainInventoryUpdateEventPacket.EventTag,OnMainInventoryUpdateEvent);
-            VanillaApi.Event.RegisterEventResponse(OpenableBlockInventoryUpdateEventPacket.EventTag,OnOpenableBlockInventoryUpdateEvent);
+            MoorestechContext.VanillaApi.Event.RegisterEventResponse(GrabInventoryUpdateEventPacket.EventTag,OnGrabInventoryUpdateEvent);
+            MoorestechContext.VanillaApi.Event.RegisterEventResponse(MainInventoryUpdateEventPacket.EventTag,OnMainInventoryUpdateEvent);
+            MoorestechContext.VanillaApi.Event.RegisterEventResponse(OpenableBlockInventoryUpdateEventPacket.EventTag,OnOpenableBlockInventoryUpdateEvent);
         }
         
         /// <summary>

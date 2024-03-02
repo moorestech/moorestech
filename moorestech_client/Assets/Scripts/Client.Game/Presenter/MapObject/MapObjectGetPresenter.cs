@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using Client.Game.Context;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.MapObject.Interface;
@@ -118,7 +119,7 @@ namespace MainGame.Presenter.MapObject
                 //マイニングをキャンセルせずに終わったので、マイニング完了をサーバーに送信する
                 if (isMiningFinish)
                 {
-                    VanillaApi.SendOnly.GetMapObject(_currentMapObjectGameObject.InstanceId);
+                    MoorestechContext.VanillaApi.SendOnly.GetMapObject(_currentMapObjectGameObject.InstanceId);
                     PlaySoundEffect();
                 }
 

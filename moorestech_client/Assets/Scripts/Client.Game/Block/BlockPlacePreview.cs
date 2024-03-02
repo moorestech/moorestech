@@ -20,7 +20,7 @@ namespace MainGame.UnityView.Block
             {
                 if (_previewBlock)
                     Destroy(_previewBlock.gameObject);
-                _previewBlock = BlockGameObjectContainer.Instance.CreateBlock(blockConfig.BlockId, pos, rot, scale, transform, blockPosition);
+                _previewBlock = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockConfig.BlockId, pos, rot, scale, transform, blockPosition);
             }
             
             transform.position = pos;

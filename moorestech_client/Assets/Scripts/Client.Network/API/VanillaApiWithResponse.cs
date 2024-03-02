@@ -55,6 +55,11 @@ namespace Client.Network.API
 
             return items;
         }
+
+        public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)
+        {
+            return await GetPlayerInventory(_playerConnectionSetting.PlayerId, ct);
+        }
         
         public async UniTask<PlayerInventoryResponse> GetPlayerInventory(int playerId, CancellationToken ct)
         {

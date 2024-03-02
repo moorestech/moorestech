@@ -1,9 +1,9 @@
 using System.Collections.Generic;
+using Client.Game.Context;
 using Client.Network.API;
 using Core.Const;
 using Core.Item.Config;
 using Game.Crafting.Interface;
-using MainGame.UnityView.Item;
 using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
 using ServerServiceProvider;
@@ -34,7 +34,6 @@ namespace MainGame.UnityView.UI.Inventory.Sub
         
         private IItemConfig _itemConfig;
         private ICraftingConfig _craftingConfig;
-        private ItemImageContainer _itemImageContainer;
         private ILocalPlayerInventory _localPlayerInventory;
         
         private IReadOnlyList<CraftingConfigData> _currentCraftingConfigDataList;
@@ -44,31 +43,27 @@ namespace MainGame.UnityView.UI.Inventory.Sub
 
 
         [Inject]
-        public void Construct(MoorestechServerServiceProvider singlePlay,ItemImageContainer itemImageContainer,ILocalPlayerInventory localPlayerInventory)
+        public void Construct(MoorestechServerServiceProvider singlePlay,ILocalPlayerInventory localPlayerInventory)
         {
             _itemConfig = singlePlay.ItemConfig;
             _craftingConfig = singlePlay.CraftingConfig;
-            _itemImageContainer = itemImageContainer;
             _localPlayerInventory = localPlayerInventory;
             _localPlayerInventory.OnItemChange.Subscribe(OnItemChange);
 
-            itemImageContainer.OnLoadFinished += () =>
+            foreach (var item in _itemConfig.ItemConfigDataList)
             {
-                foreach (var item in _itemConfig.ItemConfigDataList)
-                {
-                    var itemViewData = _itemImageContainer.GetItemView(item.ItemId);
-                
-                    var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
-                    itemSlotObject.SetItem(itemViewData, 0);
-                    itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
-                    _itemListObjects.Add(itemSlotObject);
-                }
-            };
+                var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(item.ItemId);
+
+                var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
+                itemSlotObject.SetItem(itemViewData, 0);
+                itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
+                _itemListObjects.Add(itemSlotObject);
+            }
             
             craftButton.onClick.AddListener(() =>
             {
                 if (_currentCraftingConfigDataList.Count == 0) return;
-                VanillaApi.SendOnly.Craft(_currentCraftingConfigDataList[_currentCraftingConfigIndex].RecipeId);
+                MoorestechContext.VanillaApi.SendOnly.Craft(_currentCraftingConfigDataList[_currentCraftingConfigIndex].RecipeId);
             });
 
             nextRecipeButton.onClick.AddListener(() =>
@@ -137,7 +132,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             {
                 foreach (var material in craftingConfigData.CraftItems)
                 {
-                    var itemViewData = _itemImageContainer.GetItemView(material.Id);
+                    var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(material.Id);
                     var itemSlotObject = Instantiate(itemSlotObjectPrefab, craftMaterialParent);
                     itemSlotObject.SetItem(itemViewData, material.Count);
                     itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
@@ -147,7 +142,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             
             void SetResultSlot()
             {
-                var itemViewData = _itemImageContainer.GetItemView(craftingConfigData.ResultItem.Id);
+                var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(craftingConfigData.ResultItem.Id);
                 _craftResultSlot = Instantiate(itemSlotObjectPrefab, craftResultParent);
                 _craftResultSlot.SetItem(itemViewData, craftingConfigData.ResultItem.Count);
             }

@@ -19,13 +19,10 @@ namespace Client.Game.Context
     /// </summary>
     public class BlockGameObjectContainer
     {
-        public static BlockGameObjectContainer Instance { get; private set; }
-        
         private readonly BlockGameObject _nothingIndexBlockObject;
         private readonly IBlockConfig _blockConfig;
-        private List<BlockData> _blockObjectList;
+        private readonly List<BlockData> _blockObjectList;
 
-        
         public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory, BlockGameObject nothingIndexBlockObject, MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
             var blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory, moorestechServerServiceProvider);
@@ -38,7 +35,6 @@ namespace Client.Game.Context
             _nothingIndexBlockObject = nothingIndexBlockObject;
             _blockConfig = moorestechServerServiceProvider.BlockConfig;
             _blockObjectList = blockObjectList;
-            Instance = this;
         }
 
 

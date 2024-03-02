@@ -1,4 +1,5 @@
-﻿using Client.Network.API;
+﻿using Client.Game.Context;
+using Client.Network.API;
 using Game.Block.Interface.BlockConfig;
 using MainGame.UnityView.Chunk;
 using MessagePack;
@@ -20,7 +21,7 @@ namespace MainGame.Presenter.Block
         {
             _blockConfig = moorestechServerServiceProvider.BlockConfig;
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
-            VanillaApi.Event.RegisterEventResponse(ChangeBlockStateEventPacket.EventTag, OnStateChange);
+            MoorestechContext.VanillaApi.Event.RegisterEventResponse(ChangeBlockStateEventPacket.EventTag, OnStateChange);
         }
 
         public void Initialize()

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Client.Game.Context;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using MainGame.UnityView.MapObject;
@@ -23,14 +24,14 @@ namespace MainGame.Presenter.MapObject
         [Inject]
         public void Construct()
         {
-            VanillaApi.Event.RegisterEventResponse(MapObjectUpdateEventPacket.EventTag,OnUpdateMapObject);
+            MoorestechContext.VanillaApi.Event.RegisterEventResponse(MapObjectUpdateEventPacket.EventTag,OnUpdateMapObject);
         }
 
         private async UniTask Start()
         {
             foreach (var mapObject in mapObjects) _allMapObjects.Add(mapObject.InstanceId, mapObject);
             
-            var mapObjectInfos = await VanillaApi.Response.GetMapObjectInfo(default);
+            var mapObjectInfos = await MoorestechContext.VanillaApi.Response.GetMapObjectInfo(default);
             
             foreach (var mapObjectInfo in mapObjectInfos)
             {
