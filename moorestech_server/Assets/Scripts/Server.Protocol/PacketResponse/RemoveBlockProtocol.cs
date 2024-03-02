@@ -81,7 +81,7 @@ namespace Server.Protocol.PacketResponse
     }
 
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class RemoveBlockProtocolMessagePack : ProtocolMessagePackBase
     {
         public RemoveBlockProtocolMessagePack(int playerId, int x, int y)
@@ -98,8 +98,11 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
+        [Key(2)]
         public int PlayerId { get; set; }
+        [Key(3)]
         public int X { get; set; }
+        [Key(4)]
         public int Y { get; set; }
     }
 }

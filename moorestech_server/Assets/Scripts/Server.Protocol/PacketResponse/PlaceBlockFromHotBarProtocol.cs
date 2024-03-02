@@ -7,6 +7,7 @@ using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -30,7 +31,6 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<SendPlaceHotBarBlockProtocolMessagePack>(payload.ToArray());
-
 
             var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(data.Slot);
             var item = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory
@@ -68,7 +68,7 @@ namespace Server.Protocol.PacketResponse
     }
 
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class SendPlaceHotBarBlockProtocolMessagePack : ProtocolMessagePackBase
     {
         public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int direction, int slot, int x, int y)
@@ -86,11 +86,16 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
+        [Key(2)]
         public int PlayerId { get; set; }
+        [Key(3)]
         public int Direction { get; set; }
+        [Key(4)]
         public int Slot { get; set; }
 
+        [Key(5)]
         public int X { get; set; }
+        [Key(6)]
         public int Y { get; set; }
     }
 }

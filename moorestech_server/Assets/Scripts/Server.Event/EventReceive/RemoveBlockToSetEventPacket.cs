@@ -10,8 +10,7 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:removeBlock";
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public RemoveBlockToSetEventPacket(IBlockRemoveEvent blockRemoveEvent,
-            EventProtocolProvider eventProtocolProvider)
+        public RemoveBlockToSetEventPacket(IBlockRemoveEvent blockRemoveEvent, EventProtocolProvider eventProtocolProvider)
         {
             blockRemoveEvent.Subscribe(ReceivedEvent);
             _eventProtocolProvider = eventProtocolProvider;
@@ -27,20 +26,21 @@ namespace Server.Event.EventReceive
         }
     }
 
-    [MessagePackObject(true)]
-    public class RemoveBlockEventMessagePack : EventProtocolMessagePackBase
+    [MessagePackObject]
+    public class RemoveBlockEventMessagePack
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public RemoveBlockEventMessagePack() { }
 
         public RemoveBlockEventMessagePack(int x, int y)
         {
-            EventTag = RemoveBlockToSetEventPacket.EventTag;
             X = x;
             Y = y;
         }
 
+        [Key(0)]
         public int X { get; set; }
+        [Key(1)]
         public int Y { get; set; }
     }
 }

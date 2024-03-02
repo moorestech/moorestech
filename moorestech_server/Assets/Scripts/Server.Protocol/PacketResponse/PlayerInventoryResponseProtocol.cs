@@ -44,7 +44,7 @@ namespace Server.Protocol.PacketResponse
     }
 
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class RequestPlayerInventoryProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -58,11 +58,12 @@ namespace Server.Protocol.PacketResponse
             PlayerId = playerId;
         }
 
+        [Key(2)]
         public int PlayerId { get; set; }
     }
 
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class PlayerInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -79,9 +80,11 @@ namespace Server.Protocol.PacketResponse
             Grab = grab;
         }
 
+        [Key(2)]
         public int PlayerId { get; set; }
-
+        [Key(3)]
         public ItemMessagePack[] Main { get; set; }
+        [Key(4)]
         public ItemMessagePack Grab { get; set; }
     }
 }

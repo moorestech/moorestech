@@ -33,7 +33,7 @@ namespace Server.Protocol.PacketResponse
         }
     }
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class RequestMapObjectInfosMessagePack : ProtocolMessagePackBase
     {
         public RequestMapObjectInfosMessagePack()
@@ -42,7 +42,7 @@ namespace Server.Protocol.PacketResponse
         }
     }
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class ResponseMapObjectInfosMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -56,10 +56,11 @@ namespace Server.Protocol.PacketResponse
             MapObjects = mapObjects;
         }
 
+        [Key(2)]
         public List<MapObjectsInfoMessagePack> MapObjects { get; set; }
     }
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class MapObjectsInfoMessagePack
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -73,7 +74,9 @@ namespace Server.Protocol.PacketResponse
             IsDestroyed = isDestroyed;
         }
 
+        [Key(0)]
         public int InstanceId { get; set; }
+        [Key(1)]
         public bool IsDestroyed { get; set; }
     }
 }

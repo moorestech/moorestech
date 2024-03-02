@@ -46,7 +46,7 @@ namespace Server.Protocol.PacketResponse
     }
 
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class GetMapObjectProtocolProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -61,7 +61,9 @@ namespace Server.Protocol.PacketResponse
             InstanceId = instanceId;
         }
 
+        [Key(2)]
         public int PlayerId { get; set; }
+        [Key(3)]
         public int InstanceId { get; set; }
     }
 }

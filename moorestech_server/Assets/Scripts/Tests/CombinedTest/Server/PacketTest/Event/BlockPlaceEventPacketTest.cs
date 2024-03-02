@@ -87,8 +87,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload);
 
-            Assert.AreEqual(PlaceBlockEventPacket.EventTag, data.EventTag);
-
             return new TestBlockData(data.BlockPos.X,data.BlockPos.Y, data.BlockId, data.Direction);
         }
 

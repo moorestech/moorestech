@@ -52,7 +52,7 @@ namespace Server.Protocol.PacketResponse
     }
 
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class RequestBlockInventoryRequestProtocolMessagePack : ProtocolMessagePackBase
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -66,12 +66,14 @@ namespace Server.Protocol.PacketResponse
             X = x;
             Y = y;
         }
-
+        
+        [Key(2)]
         public int X { get; set; }
+        [Key(3)]
         public int Y { get; set; }
     }
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class BlockInventoryResponseProtocolMessagePack : ProtocolMessagePackBase
     {
         public BlockInventoryResponseProtocolMessagePack(int blockId, int[] itemIds, int[] itemCounts)
@@ -88,8 +90,11 @@ namespace Server.Protocol.PacketResponse
         }
 
 
+        [Key(2)]
         public int BlockId { get; set; }
+        [Key(3)]
         public int[] ItemIds { get; set; }
+        [Key(4)]
         public int[] ItemCounts { get; set; }
     }
 }

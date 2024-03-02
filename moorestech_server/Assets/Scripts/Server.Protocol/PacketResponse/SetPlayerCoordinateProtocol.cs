@@ -38,11 +38,14 @@ namespace Server.Protocol.PacketResponse
     }
 
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class PlayerCoordinateSendProtocolMessagePack : ProtocolMessagePackBase
     {
+        [Key(2)]
         public int PlayerId { get; set; }
+        [Key(3)]
         public float X { get; set; }
+        [Key(4)]
         public float Y { get; set; }
         
         public PlayerCoordinateSendProtocolMessagePack(int playerId, float x, float y)

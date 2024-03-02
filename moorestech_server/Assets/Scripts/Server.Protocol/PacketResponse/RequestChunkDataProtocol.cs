@@ -79,9 +79,10 @@ namespace Server.Protocol.PacketResponse
         }
     }
     
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class RequestChunkDataMessagePack : ProtocolMessagePackBase
     {
+        [Key(2)]
         public List<Vector2IntMessagePack> ChunkPos { get; set; }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -96,9 +97,10 @@ namespace Server.Protocol.PacketResponse
         }
     }
 
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class ResponseChunkDataMessagePack : ProtocolMessagePackBase
     {
+        [Key(2)]
         public ChunkDataMessagePack[] ChunkData { get; set; }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -113,12 +115,16 @@ namespace Server.Protocol.PacketResponse
         }
     }
     
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class ChunkDataMessagePack
     {
+        [Key(0)]
         public Vector2IntMessagePack ChunkPos { get; set; }
+        [Key(1)]
         public int[,] BlockIds { get; set; }
+        [Key(2)]
         public int[,] BlockDirections { get; set; }
+        [Key(3)]
         public EntityMessagePack[] Entities { get; set; }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

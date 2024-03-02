@@ -2,11 +2,13 @@ using MessagePack;
 
 namespace Server.Protocol
 {
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class ProtocolMessagePackBase
     {
+        [Key(0)]
         public string Tag { get; set; }
         
+        [Key(1)]
         public int SequenceId { get; set; }
     }
 }

@@ -20,12 +20,16 @@ namespace Server.Util.MessagePack
             Position = new Vector3MessagePack(entity.Position);
         }
 
-        [Key(0)] public long InstanceId { get; set; }
+        [Key(0)]
+        public long InstanceId { get; set; }
 
-        [Key(1)] public string Type { get; set; }
+        [Key(1)]
+        public string Type { get; set; }
 
-        [Key(2)] public Vector3MessagePack Position { get; set; }
+        [Key(2)]
+        public Vector3MessagePack Position { get; set; }
 
-        [Key(3)] public string State { get; set; }
+        [Key(3)]
+        public string State { get; set; }
     }
 }

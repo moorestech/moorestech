@@ -30,8 +30,8 @@ namespace Server.Event.EventReceive
     }
 
 
-    [MessagePackObject(true)]
-    public class MainInventoryUpdateEventMessagePack : EventProtocolMessagePackBase
+    [MessagePackObject]
+    public class MainInventoryUpdateEventMessagePack
     {
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public MainInventoryUpdateEventMessagePack()
@@ -40,12 +40,13 @@ namespace Server.Event.EventReceive
 
         public MainInventoryUpdateEventMessagePack(int slot, IItemStack itemStack)
         {
-            EventTag = MainInventoryUpdateEventPacket.EventTag;
             Slot = slot;
             Item = new ItemMessagePack(itemStack.Id, itemStack.Count);
         }
 
+        [Key(0)]
         public int Slot { get; set; }
+        [Key(1)]
         public ItemMessagePack Item { get; set; }
     }
 }
