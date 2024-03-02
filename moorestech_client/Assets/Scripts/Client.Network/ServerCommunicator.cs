@@ -109,7 +109,6 @@ namespace MainGame.Network
             _onDisconnect.OnNext(Unit.Default);
         }
         
-        
         public void Send(byte[] data)
         {
             //先頭にパケット長を設定して送信
@@ -120,6 +119,11 @@ namespace MainGame.Network
             data.CopyTo(newData, byteCount.Count);
             
             _socket.Send(newData);
+        }
+        
+        public void Close()
+        {
+            _socket.Close();
         }
     }
 }

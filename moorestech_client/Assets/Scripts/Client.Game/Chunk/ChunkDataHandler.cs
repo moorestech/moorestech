@@ -73,8 +73,6 @@ namespace MainGame.Presenter.Block
             for (var i = -getChunkSize; i <= getChunkSize; i++)
             for (var j = -getChunkSize; j <= getChunkSize; j++)
                 chunks.Add(new Vector2Int(i * ChunkResponseConst.ChunkSize, j * ChunkResponseConst.ChunkSize));
-
-            await VanillaApi.WaiteConnection();
             
             while (true)
             {
