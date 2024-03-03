@@ -14,7 +14,6 @@ namespace MainGame.Control.UI.PauseMenu
     public class BackToMainMenu : MonoBehaviour
     {
         [SerializeField] private Button backToMainMenuButton;
-        private ServerProcessSetting _serverProcessSetting;
 
         private void Start()
         {
@@ -31,12 +30,6 @@ namespace MainGame.Control.UI.PauseMenu
             Disconnect();
         }
 
-        [Inject]
-        public void Construct(ServerProcessSetting serverProcessSetting)
-        {
-            _serverProcessSetting = serverProcessSetting;
-        }
-
         private void Back()
         {
             Disconnect();
@@ -48,7 +41,6 @@ namespace MainGame.Control.UI.PauseMenu
         {
             MoorestechContext.VanillaApi.SendOnly.Save();
             Thread.Sleep(50);
-            if (_serverProcessSetting.isLocal) _serverProcessSetting.localServerProcess.Kill();
             MoorestechContext.VanillaApi.Disconnect();
         }
     }

@@ -1,4 +1,6 @@
+using System;
 using System.Diagnostics;
+using Client.Network.API;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.Extension;
@@ -85,7 +87,14 @@ namespace MainGame.Starter
         private int PlayerId = ServerConst.DefaultPlayerId;
         private int Port = ServerConst.LocalServerPort;
 
-        public void ResolveGame()
+        private InitialHandshakeResponse _initialHandshakeResponse;
+        
+        public void SetInitialHandshakeResponse(InitialHandshakeResponse initialHandshakeResponse)
+        {
+            _initialHandshakeResponse = initialHandshakeResponse;
+        }
+
+        private void Start()
         {
             var builder = new ContainerBuilder();
             //シングルプレイ用のインスタンス
@@ -93,7 +102,8 @@ namespace MainGame.Starter
             builder.RegisterInstance(singlePlayInterface);
             builder.RegisterInstance(singlePlayInterface.ItemConfig);
 
-            //サーバーに接続するためのインスタンス
+            //最初に取得したデータを登録
+            builder.RegisterInstance(_initialHandshakeResponse);
 
             //インベントリのUIコントロール
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
@@ -170,16 +180,6 @@ namespace MainGame.Starter
         protected override void OnDestroy()
         {
             _resolver.Dispose();
-        }
-
-        public void SetProperty(MainGameStartProprieties proprieties)
-        {
-            IPAddress = proprieties.serverIp;
-            Port = proprieties.serverPort;
-            isLocal = proprieties.isLocal;
-
-            PlayerId = proprieties.playerId;
-            localServerProcess = proprieties.localServerProcess;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Client.Starter;
 using Cysharp.Threading.Tasks;
 using GameConst;
 using Constant;
@@ -45,18 +46,16 @@ namespace MainMenu
             Debug.Log("Server started");
 
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;
-            SceneManager.LoadScene(SceneConstant.MainGameSceneName);
+            SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
         }
 
         private void OnMainGameSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             SceneManager.sceneLoaded -= OnMainGameSceneLoaded;
-            var starter = FindObjectOfType<MainGameStarter>();
+            var starter = FindObjectOfType<InitializeScenePipeline>();
 
-            var isLocal = true;
-
-            starter.SetProperty(new MainGameStartProprieties(
-                isLocal, _serverProcess,
+            starter.SetProperty(new InitializeProprieties(
+                true, _serverProcess,
                 ServerConst.LocalServerIp,
                 ServerConst.LocalServerPort,
                 PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey)));

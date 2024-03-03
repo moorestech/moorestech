@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using MainGame.Network;
 using MainGame.Network.Settings;
 using ServerServiceProvider;
@@ -12,11 +13,13 @@ namespace Client.Network.API
         public readonly VanillaApiSendOnly SendOnly;
         
         private readonly ServerCommunicator _serverCommunicator;
+        private readonly Process _localServerProcess;
         
-        public VanillaApi(PacketExchangeManager packetExchangeManager, PacketSender packetSender,ServerCommunicator serverCommunicator, MoorestechServerServiceProvider moorestechServerServiceProvider, PlayerConnectionSetting playerConnectionSetting)
+        public VanillaApi(PacketExchangeManager packetExchangeManager, PacketSender packetSender,ServerCommunicator serverCommunicator, MoorestechServerServiceProvider moorestechServerServiceProvider, PlayerConnectionSetting playerConnectionSetting, Process localServerProcess)
         {
             _serverCommunicator = serverCommunicator;
-            
+            _localServerProcess = localServerProcess;
+
             Event = new VanillaApiEvent(packetExchangeManager, playerConnectionSetting);
             Response = new VanillaApiWithResponse(packetExchangeManager, moorestechServerServiceProvider.ItemStackFactory, playerConnectionSetting);
             SendOnly = new VanillaApiSendOnly(packetSender, moorestechServerServiceProvider.ItemStackFactory, playerConnectionSetting);
@@ -27,6 +30,7 @@ namespace Client.Network.API
         public void Disconnect()
         {
             _serverCommunicator.Close();
+            _localServerProcess?.Kill();
         }
     }
 }
