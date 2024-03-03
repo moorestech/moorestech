@@ -81,7 +81,7 @@ jobs:
         if: matrix.platform.name == 'StandaloneLinux64'
         uses: actions/upload-artifact@v3
         with:
-          name: moorestech_client/Output_${{ matrix.platform.name }}
+          name: Output_${{ matrix.platform.name }}
           path: ./output.tar.gz
 
 
