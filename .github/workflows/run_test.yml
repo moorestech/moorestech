@@ -1,6 +1,14 @@
 name: Run Unity Test
 on:
+  # masterへのPRマージをトリガーとしてワークフローを開始する
+  pull_request:
+    branches:
+      - master
+    types: [closed]
+
+  # 手動実行デバッグ用
   workflow_dispatch: {}
+  
 jobs:
   test:
     name: Run Unity Test
