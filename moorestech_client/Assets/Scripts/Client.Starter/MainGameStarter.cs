@@ -1,10 +1,8 @@
-using System;
 using System.Diagnostics;
 using Client.Network.API;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.Extension;
-using MainGame.Network;
 using MainGame.Presenter.Block;
 using MainGame.Presenter.Command;
 using MainGame.Presenter.Entity;
@@ -29,7 +27,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace MainGame.Starter
+namespace Client.Starter
 {
     /// <summary>
     ///     ゲームの起動と依存解決を行うクラス

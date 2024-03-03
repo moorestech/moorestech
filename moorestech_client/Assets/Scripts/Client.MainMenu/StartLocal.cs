@@ -3,7 +3,6 @@ using Client.Starter;
 using Cysharp.Threading.Tasks;
 using GameConst;
 using Constant;
-using MainGame.Starter;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;

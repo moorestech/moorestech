@@ -11,7 +11,6 @@ using MainGame.ModLoader.Glb;
 using MainGame.Network;
 using MainGame.Network.Send.SocketUtil;
 using MainGame.Network.Settings;
-using MainGame.Starter;
 using MainGame.UnityView.Item;
 using ServerServiceProvider;
 using TMPro;

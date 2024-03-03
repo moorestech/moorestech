@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
-using GameConst;
 
-namespace MainGame.Starter
+namespace Client.Starter
 {
     public class InitializeProprieties
     {
