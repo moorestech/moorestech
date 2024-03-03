@@ -58,6 +58,7 @@ jobs:
         with:
           unityVersion: 2022.3.1f1
           buildMethod: ${{ matrix.platform.buildMethod }}
+          targetPlatform: ${{ matrix.platform.name }}
           allowDirtyBuild: true
           projectPath: moorestech_client/
       
