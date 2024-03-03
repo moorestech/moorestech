@@ -1,7 +1,9 @@
+using System;
 using System.Diagnostics;
 using MainGame.Network;
 using MainGame.Network.Settings;
 using ServerServiceProvider;
+using UniRx;
 using VContainer.Unity;
 
 namespace Client.Network.API
@@ -11,6 +13,7 @@ namespace Client.Network.API
         public readonly VanillaApiEvent Event;
         public readonly VanillaApiWithResponse Response;
         public readonly VanillaApiSendOnly SendOnly;
+        public IObservable<Unit> OnDisconnect => _serverCommunicator.OnDisconnect;
         
         private readonly ServerCommunicator _serverCommunicator;
         private readonly Process _localServerProcess;

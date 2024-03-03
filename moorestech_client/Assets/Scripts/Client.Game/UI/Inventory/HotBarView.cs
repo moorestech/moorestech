@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.Context;
 using Core.Const;
 using Core.Item;
 using Core.Item.Config;
@@ -25,7 +26,6 @@ namespace MainGame.UnityView.UI.Inventory
         [SerializeField] private ItemObjectContainer itemObjectContainer;
         [SerializeField] private PlayerGrabItemManager playerGrabItemManager;
         
-        private ItemImageContainer _itemImageContainer;
         private ILocalPlayerInventory _localPlayerInventory;
         private IItemConfig _itemConfig;
 
@@ -34,9 +34,8 @@ namespace MainGame.UnityView.UI.Inventory
         public event Action<int> OnSelectHotBar;
         
         [Inject]
-        public void Construct(ItemImageContainer itemImageContainer,ILocalPlayerInventory localPlayerInventory,MoorestechServerServiceProvider moorestechServerServiceProvider)
+        public void Construct(ILocalPlayerInventory localPlayerInventory,MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
-            _itemImageContainer = itemImageContainer;
             _localPlayerInventory = localPlayerInventory;
             _itemConfig = moorestechServerServiceProvider.ItemConfig;
             Instance = this;
@@ -85,7 +84,7 @@ namespace MainGame.UnityView.UI.Inventory
 
                 if (slot < startHotBarSlot || PlayerInventoryConst.MainInventorySize <= slot) return;
 
-                var viewData = _itemImageContainer.GetItemView(item.Id);
+                var viewData = MoorestechContext.ItemImageContainer.GetItemView(item.Id);
                 slot -= startHotBarSlot;
                 hotBarItems[slot].SetItem(viewData, item.Count);
             }

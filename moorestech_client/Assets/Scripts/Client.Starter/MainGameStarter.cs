@@ -173,7 +173,6 @@ namespace MainGame.Starter
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntityObjectDatastore>();
-            _resolver.Resolve<ServerCommunicator>();
             _resolver.Resolve<NetworkDisconnectPresenter>();
         }
 

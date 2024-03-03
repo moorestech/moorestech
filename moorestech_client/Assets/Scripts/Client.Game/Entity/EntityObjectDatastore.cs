@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.Context;
 using Client.Network.API;
 using Game.Entity.Interface;
 using Constant;
@@ -17,8 +18,6 @@ namespace MainGame.Presenter.Entity
 
         private readonly Dictionary<long, (DateTime lastUpdate, IEntityObject objectEntity)> _entities = new();
 
-        private ItemImageContainer _itemImageContainer;
-
         /// <summary>
         ///     エンティティ最終更新時間をチェックし、一定時間経過していたら削除する
         /// </summary>
@@ -34,12 +33,6 @@ namespace MainGame.Presenter.Entity
                 _entities[removeEntity].objectEntity.Destroy();
                 _entities.Remove(removeEntity);
             }
-        }
-
-        [Inject]
-        public void Construct(ItemImageContainer itemImageContainer)
-        {
-            _itemImageContainer = itemImageContainer;
         }
 
         /// <summary>
@@ -73,7 +66,8 @@ namespace MainGame.Presenter.Entity
 
 
                 var id = int.Parse(entity.State.Split(',')[0]);
-                item.SetTexture(_itemImageContainer.GetItemView(id).ItemTexture);
+                var texture = MoorestechContext.ItemImageContainer.GetItemView(id).ItemTexture;
+                item.SetTexture(texture);
                 return item;
             }
 

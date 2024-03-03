@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Client.Game.Context;
 using Client.Network.API;
@@ -14,14 +14,17 @@ using MainGame.Network.Settings;
 using MainGame.Starter;
 using MainGame.UnityView.Item;
 using ServerServiceProvider;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Debug = UnityEngine.Debug;
 
 namespace Client.Starter
 {
     public class InitializeScenePipeline : MonoBehaviour
     {
         [SerializeField] private BlockGameObject nothingIndexBlock;
+        [SerializeField] private TMP_Text loadingLog;
         
         private InitializeProprieties _proprieties;
         
@@ -32,6 +35,9 @@ namespace Client.Starter
         
         private async UniTask Start()
         {
+            var loadingStopwatch = new Stopwatch(); 
+            loadingStopwatch.Start();
+            
             _proprieties ??= new InitializeProprieties(
                 false, null, 
                 ServerConst.LocalServerIp, ServerConst.LocalServerPort, ServerConst.DefaultPlayerId);
@@ -41,37 +47,51 @@ namespace Client.Starter
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
             VanillaApi vanillaApi = null;
             
+            //セットされる変数
             BlockGameObjectContainer blockGameObjectContainer = null;
+            ItemImageContainer itemImageContainer = null;
+            AsyncOperation sceneLoadTask = null;
+            InitialHandshakeResponse handshakeResponse = null;
             
-            //Vanilla APIの作成とコネクションの確立、ブロックのロードを並列で行う
-            await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAssets());
-
-            //アイテム画像をロード
-            var itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(ServerConst.ServerModsDirectory, serverServiceProvider);
+            //各種ロードを並列実行
+            await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAssets(),LoadItemAssets(), MainGameSceneLoad());
             
             //staticアクセスできるコンテキストの作成
             new MoorestechContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi);
             
-            //最初に必要なデータを取得
-            _handshakeResponse = await vanillaApi.Response.InitialHandShake(playerConnectionSetting.PlayerId, default);
-            
             //シーンに遷移し、初期データを渡す
-            SceneManager.sceneLoaded += OnMainGameSceneLoaded;
-            SceneManager.LoadScene(SceneConstant.MainGameSceneName);
+            SceneManager.sceneLoaded += MainGameSceneLoaded;
+            sceneLoadTask.allowSceneActivation = true;
+            
+            //初期データを渡す処理
+            void MainGameSceneLoaded(Scene scene, LoadSceneMode mode)
+            {
+                SceneManager.sceneLoaded -= MainGameSceneLoaded;
+                var starter = FindObjectOfType<MainGameStarter>();
+                starter.SetInitialHandshakeResponse(handshakeResponse);
+            }
             
             #region Internal
 
             async UniTask CreateAndStartVanillaApi()
             {
+                //サーバーとの接続を確立
                 var serverCommunicator = await ConnectionToServer();
                 
+                loadingLog.text += $"\nサーバーとの接続完了  {loadingStopwatch.Elapsed}";
+                
+                //データの受付開始
                 var packetSender = new PacketSender(serverCommunicator);
                 var exchangeManager = new PacketExchangeManager(packetSender);
-                
                 Task.Run(() => serverCommunicator.StartCommunicat(exchangeManager));
 
-                vanillaApi = new VanillaApi(
-                    exchangeManager, packetSender, serverCommunicator, serverServiceProvider, playerConnectionSetting,_proprieties.LocalServerProcess);
+                //Vanilla APIの作成
+                vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, serverServiceProvider, playerConnectionSetting,_proprieties.LocalServerProcess);
+                
+                //最初に必要なデータを取得
+                handshakeResponse = await vanillaApi.Response.InitialHandShake(playerConnectionSetting.PlayerId, default);
+                
+                loadingLog.text += $"\n初期データ取得完了  {loadingStopwatch.Elapsed}";
             }
 
             async UniTask<ServerCommunicator> ConnectionToServer()
@@ -96,19 +116,42 @@ namespace Client.Starter
             async UniTask LoadBlockAssets()
             {
                 blockGameObjectContainer = await BlockGameObjectContainer.CreateAndLoadBlockGameObjectContainer(ServerConst.ServerModsDirectory,nothingIndexBlock, serverServiceProvider);
+                loadingLog.text += $"\nブロックロード完了  {loadingStopwatch.Elapsed}";
             }
 
-            #endregion
-        }
-        
-        private InitialHandshakeResponse _handshakeResponse;
+            async UniTask LoadItemAssets()
+            {
+                //アイテム画像をロード
+                //TODO 非同期で実行できるようにする
+                itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(ServerConst.ServerModsDirectory, serverServiceProvider);
+                loadingLog.text += $"\nアイテムロード完了  {loadingStopwatch.Elapsed}";
+            }
 
-        //シーンがロードされたら初期データを渡す
-        private void OnMainGameSceneLoaded(Scene scene, LoadSceneMode mode)
-        {
-            SceneManager.sceneLoaded -= OnMainGameSceneLoaded;
-            var starter = FindObjectOfType<MainGameStarter>();
-            starter.SetInitialHandshakeResponse(_handshakeResponse);
+            async UniTask MainGameSceneLoad()
+            {
+                sceneLoadTask = SceneManager.LoadSceneAsync(SceneConstant.MainGameSceneName, LoadSceneMode.Single);
+                sceneLoadTask.allowSceneActivation = false;
+
+                var sceneLoadCts = new CancellationTokenSource();
+
+                try
+                {
+                    await sceneLoadTask.ToUniTask(Progress.Create<float>(
+                            x =>
+                            {
+                                if (x < 0.9f) return;
+                                sceneLoadCts.Cancel(); //シーンの読み込みが完了したら終了 allowSceneActivationがfalseの時は0.9fで止まる
+                            })
+                        , cancellationToken:sceneLoadCts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // シーンロード完了
+                }
+                
+                loadingLog.text += $"\nシーンロード完了  {loadingStopwatch.Elapsed}";
+            }
+            #endregion
         }
     }
 }
