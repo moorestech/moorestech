@@ -14,33 +14,16 @@ jobs:
       # GameCI の Test runner を利用して
       # EditMode 及び PlayMode のテストを実行する
       - name: Run Unity Test
-        uses: game-ci/unity-test-runner@v2
+        uses: game-ci/unity-test-runner@v4
         env:
-          # 2. の手順で Secrets に登録した Unity ライセンスの情報を指定する
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-
-          # もし Professional license を使いたい場合は、
-          # メールアドレス、パスワード、シリアルナンバーを入力する必要がある
-          # ref: https://game.ci/docs/github/test-runner#professional-license
-          # UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          # UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          # UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           projectPath: moorestech_client/
-          # テストの実行結果もみたい場合は githubToken を指定する
-          # secrets.GITHUB_TOKEN は Secrets 未登録でも利用可能
           githubToken: ${{ secrets.GH_TOKEN }}
-
-          # Unity プロジェクトのバージョンを指定する
-          # ProjectSettings/ProjectVersion.txt に記載されているバージョンを入力すれば OK
           unityVersion: 2022.3.1f1
-
-          # 実行したいテストの種類を指定できる
-          # 指定可能な値は All, PlayMode, EditMode
-          # testMode: All
-
-          # テスト実行時に利用したい Docker イメージを明示的に指定できる
-          # customImage: 'unityci/editor:2020.1.14f1-base-0'
+          testMode: All
 
       # テストの実行結果をアーティファクトにアップロードしてダウンロードして参照できるようにする
       - uses: actions/upload-artifact@v2
