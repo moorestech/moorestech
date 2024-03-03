@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Update;
@@ -33,10 +34,11 @@ namespace Server.Boot
         public static (Thread serverUpdateThread, CancellationTokenSource autoSaveTokenSource) Start(string[] args)
         {
             //カレントディレクトリを表示
+            var location = Assembly.GetEntryAssembly().Location;
 #if DEBUG
             var serverDirectory = DebugServerDirectory;
 #else
-            var serverDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            var serverDirectory = Path.GetDirectoryName(location);
 #endif
 
             Debug.Log("データをロードします　パス:" + serverDirectory);
