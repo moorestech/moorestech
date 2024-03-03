@@ -176,7 +176,7 @@ namespace Client.Starter
 
         protected override void OnDestroy()
         {
-            _resolver.Dispose();
+            _resolver?.Dispose();
         }
     }
 }

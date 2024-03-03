@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,17 +17,28 @@ using ServerServiceProvider;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using Debug = UnityEngine.Debug;
 
 namespace Client.Starter
 {
+    /// <summary>
+    /// シーンのロード、アセットのロード、サーバーとの接続を行う
+    /// TODO 何かが失敗したらそのログを出すようにする
+    /// </summary>
     public class InitializeScenePipeline : MonoBehaviour
     {
         [SerializeField] private BlockGameObject nothingIndexBlock;
         [SerializeField] private TMP_Text loadingLog;
+        [SerializeField] private Button backToMainMenuButton;
         
         private InitializeProprieties _proprieties;
-        
+
+        private void Awake()
+        {
+            backToMainMenuButton.onClick.AddListener(() => SceneManager.LoadScene(SceneConstant.MainMenuSceneName));
+        }
+
         public void SetProperty(InitializeProprieties proprieties)
         {
             _proprieties = proprieties;
