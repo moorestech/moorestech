@@ -1,4 +1,5 @@
 using System;
+using Client.Game.Context;
 using Client.Network.API;
 using Core.Item;
 using Game.PlayerInventory.Interface;
@@ -86,7 +87,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
             {
                 var fromInfo = GetServerInventoryInfo(from,fromSlot);
                 var toInfo = GetServerInventoryInfo(to,toSlot);
-                VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromInfo,fromSlot, toInfo,toSlot);
+                MoorestechContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromInfo,fromSlot, toInfo,toSlot);
             }
 
             ItemMoveInventoryInfo GetServerInventoryInfo(LocalMoveInventoryType localType,int localSlot)

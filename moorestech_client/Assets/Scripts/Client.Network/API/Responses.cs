@@ -7,12 +7,16 @@ using UnityEngine;
 
 namespace Client.Network.API
 {
-    public class HandshakeResponse
+    public class InitialHandshakeResponse
     {
         public Vector2 PlayerPos { get; }
+        public List<ChunkResponse> Chunks { get; }
+        public List<MapObjectsInfoMessagePack> MapObjects { get; }
         
-        public HandshakeResponse(ResponseInitialHandshakeMessagePack response)
+        public InitialHandshakeResponse(ResponseInitialHandshakeMessagePack response, List<ChunkResponse> chunks, List<MapObjectsInfoMessagePack> mapObjects)
         {
+            Chunks = chunks;
+            MapObjects = mapObjects;
             PlayerPos = response.PlayerPos.Vector2;
         }
     }

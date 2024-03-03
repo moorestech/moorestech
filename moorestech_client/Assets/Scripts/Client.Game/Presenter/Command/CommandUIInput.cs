@@ -1,3 +1,4 @@
+using Client.Game.Context;
 using Client.Network.API;
 using TMPro;
 using UnityEngine;
@@ -19,7 +20,7 @@ namespace MainGame.Presenter.Command
         
         private void SubmitCommand()
         {
-            VanillaApi.SendOnly.SendCommand(commandInputField.text);
+            MoorestechContext.VanillaApi.SendOnly.SendCommand(commandInputField.text);
             commandInputField.text = string.Empty;
         }
     }

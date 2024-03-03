@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Client.Game.Context;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using MainGame.UnityView.MapObject;
@@ -21,20 +22,15 @@ namespace MainGame.Presenter.MapObject
 #endif
         
         [Inject]
-        public void Construct()
+        public void Construct(InitialHandshakeResponse handshakeResponse)
         {
-            VanillaApi.Event.RegisterEventResponse(MapObjectUpdateEventPacket.EventTag,OnUpdateMapObject);
-        }
-
-        private async UniTask Start()
-        {
+            //イベント登録
+            MoorestechContext.VanillaApi.Event.RegisterEventResponse(MapObjectUpdateEventPacket.EventTag,OnUpdateMapObject);
+            
+            // mapObjectの破壊状況の初期設定
             foreach (var mapObject in mapObjects) _allMapObjects.Add(mapObject.InstanceId, mapObject);
             
-            await VanillaApi.WaiteConnection();
-            
-            var mapObjectInfos = await VanillaApi.Response.GetMapObjectInfo(default);
-            
-            foreach (var mapObjectInfo in mapObjectInfos)
+            foreach (var mapObjectInfo in handshakeResponse.MapObjects)
             {
                 var mapObject = _allMapObjects[mapObjectInfo.InstanceId];
                 if (mapObjectInfo.IsDestroyed)

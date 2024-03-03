@@ -1,8 +1,7 @@
 using System.Threading;
+using Client.Game.Context;
 using Client.Network.API;
 using Constant;
-using MainGame.Network;
-using MainGame.Network.Send;
 using MainGame.Network.Settings;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -15,8 +14,6 @@ namespace MainGame.Control.UI.PauseMenu
     public class BackToMainMenu : MonoBehaviour
     {
         [SerializeField] private Button backToMainMenuButton;
-        private ServerProcessSetting _serverProcessSetting;
-        private ISocketSender _socketSender;
 
         private void Start()
         {
@@ -33,13 +30,6 @@ namespace MainGame.Control.UI.PauseMenu
             Disconnect();
         }
 
-        [Inject]
-        public void Construct(ISocketSender socketSender, ServerProcessSetting serverProcessSetting)
-        {
-            _socketSender = socketSender;
-            _serverProcessSetting = serverProcessSetting;
-        }
-
         private void Back()
         {
             Disconnect();
@@ -49,10 +39,9 @@ namespace MainGame.Control.UI.PauseMenu
 
         private void Disconnect()
         {
-            VanillaApi.SendOnly.Save();
+            MoorestechContext.VanillaApi.SendOnly.Save();
             Thread.Sleep(50);
-            if (_serverProcessSetting.isLocal) _serverProcessSetting.localServerProcess.Kill();
-            _socketSender.Close();
+            MoorestechContext.VanillaApi.Disconnect();
         }
     }
 }

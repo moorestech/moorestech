@@ -1,4 +1,5 @@
-﻿using Client.Network.API;
+﻿using Client.Game.Context;
+using Client.Network.API;
 using MainGame.Network.Send;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,7 +13,7 @@ namespace MainGame.Control.UI.PauseMenu
 
         private void Start()
         {
-            saveButton.onClick.AddListener(VanillaApi.SendOnly.Save);
+            saveButton.onClick.AddListener(MoorestechContext.VanillaApi.SendOnly.Save);
         }
     }
 }

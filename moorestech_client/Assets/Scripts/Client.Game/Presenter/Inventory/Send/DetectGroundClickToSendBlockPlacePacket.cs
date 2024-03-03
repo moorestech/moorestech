@@ -1,3 +1,4 @@
+using Client.Game.Context;
 using Client.Network.API;
 using Game.World.Interface.DataStore;
 using Constant;
@@ -88,7 +89,7 @@ namespace MainGame.Presenter.Inventory.Send
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
             {
-                VanillaApi.SendOnly.PlaceHotBarBlock(hitPoint.x, hitPoint.y,selectIndex,  _currentBlockDirection);
+                MoorestechContext.VanillaApi.SendOnly.PlaceHotBarBlock(hitPoint.x, hitPoint.y,selectIndex,  _currentBlockDirection);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
                 return;
             }

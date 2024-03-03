@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using GameConst;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Texture;
 using ServerServiceProvider;
@@ -13,22 +14,18 @@ namespace MainGame.UnityView.WorldMapTile
         private readonly WorldMapTileObject _worldMapTileObject;
         private List<Material> _materials;
 
-        public WorldMapTileMaterials(WorldMapTileObject worldMapTileObject, ModDirectory modDirectory,
-            MoorestechServerServiceProvider moorestechServerServiceProvider)
+        public WorldMapTileMaterials(WorldMapTileObject worldMapTileObject, MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
             _worldMapTileObject = worldMapTileObject;
-            LoadMaterial(modDirectory, moorestechServerServiceProvider).Forget();
+            LoadMaterial(moorestechServerServiceProvider).Forget();
         }
 
-        public event Action OnLoadFinished;
-
-        private async UniTask LoadMaterial(ModDirectory modDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider)
+        private async UniTask LoadMaterial(MoorestechServerServiceProvider moorestechServerServiceProvider)
         {
             //await BlockGlbLoader.GetBlockLoaderは同期処理になっているため、ここで1フレーム待って他のイベントが追加されるのを待つ
             await UniTask.WaitForFixedUpdate();
 
-            _materials = WorldMapTileTextureLoader.GetMapTileMaterial(modDirectory.Directory, moorestechServerServiceProvider, _worldMapTileObject.BaseMaterial);
-            OnLoadFinished?.Invoke();
+            _materials = WorldMapTileTextureLoader.GetMapTileMaterial(ServerConst.ServerModsDirectory, moorestechServerServiceProvider, _worldMapTileObject.BaseMaterial);
         }
 
 

@@ -1,4 +1,6 @@
-﻿using Constant;
+﻿using System;
+using Client.Game.Context;
+using Constant;
 using MainGame.Network;
 using UniRx;
 using UnityEngine;
@@ -14,11 +16,9 @@ namespace MainGame.Presenter.PauseMenu
 
         [SerializeField] private Button goToMainMenuButton;
 
-
-        [Inject]
-        public void Construct(ConnectionServer connectionServer)
+        private void Start()
         {
-            connectionServer.OnDisconnect.Subscribe(_ => { disconnectPanel.gameObject.SetActive(true); }).AddTo(this);
+            MoorestechContext.VanillaApi.OnDisconnect.Subscribe(_ => { disconnectPanel.gameObject.SetActive(true); }).AddTo(this);
             goToMainMenuButton.onClick.AddListener(() => { SceneManager.LoadScene(SceneConstant.MainMenuSceneName); });
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Client.Game.Context;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.PlayerInventory.Interface;
@@ -54,7 +55,7 @@ namespace MainGame.UnityView.UI.UIState
         /// </summary>
         private async UniTask UpdatePlayerInventory(CancellationToken ct)
         {
-            var invResponse = await VanillaApi.Response.GetPlayerInventory(PlayerConnectionSetting.Instance.PlayerId,ct);
+            var invResponse = await MoorestechContext.VanillaApi.Response.GetMyPlayerInventory(ct);
             
             for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {

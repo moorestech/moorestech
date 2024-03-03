@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using Client.Starter;
 using GameConst;
 using Constant;
-using MainGame.Starter;
 using MainMenu.PopUp;
 using TMPro;
 using UnityEngine;
@@ -60,7 +60,7 @@ namespace MainMenu
                     socket.Close();
 
                     SceneManager.sceneLoaded += OnMainGameSceneLoaded;
-                    SceneManager.LoadScene(SceneConstant.MainGameSceneName);
+                    SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
                 }
             }
             catch (Exception e)
@@ -72,15 +72,15 @@ namespace MainMenu
         private void OnMainGameSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             SceneManager.sceneLoaded -= OnMainGameSceneLoaded;
-            var starter = FindObjectOfType<MainGameStarter>();
+            var starter = FindObjectOfType<InitializeScenePipeline>();
 
-            var isLocal = false;
+            var ip = serverIp.text;
+            var port = int.Parse(serverPort.text);
+            var playerId = PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey);
 
-            starter.SetProperty(new MainGameStartProprieties(
-                isLocal, null,
-                serverIp.text,
-                int.Parse(serverPort.text),
-                PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey)));
+            var properties = new InitializeProprieties(false, null, ip, port, playerId);
+            
+            starter.SetProperty(properties);
         }
     }
 }

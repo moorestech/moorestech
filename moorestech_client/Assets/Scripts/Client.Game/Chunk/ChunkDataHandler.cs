@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
+using Client.Game.Context;
 using Client.Network.API;
 using Client.Network.API;
 using Game.World.Interface.DataStore;
@@ -26,12 +27,18 @@ namespace MainGame.Presenter.Block
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private readonly EntityObjectDatastore _entitiesDatastore;
 
-        public ChunkDataHandler(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, EntityObjectDatastore entitiesDatastore)
+        public ChunkDataHandler(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, EntityObjectDatastore entitiesDatastore,InitialHandshakeResponse initialHandshakeResponse)
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _entitiesDatastore = entitiesDatastore;
             //イベントをサブスクライブする
-            VanillaApi.Event.RegisterEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
+            MoorestechContext.VanillaApi.Event.RegisterEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
+
+            //初期ハンドシェイクのデータを適用する
+            foreach (var chunk in initialHandshakeResponse.Chunks)
+            {
+                ApplyChunkData(chunk);
+            }
         }
         
         /// <summary>
@@ -68,25 +75,17 @@ namespace MainGame.Presenter.Block
         {
             var ct = new CancellationTokenSource().Token;
             
-            var chunks = new List<Vector2Int>();// TODO 動的にチャンクを取得するようにする？
-            var getChunkSize = 5;
-            for (var i = -getChunkSize; i <= getChunkSize; i++)
-            for (var j = -getChunkSize; j <= getChunkSize; j++)
-                chunks.Add(new Vector2Int(i * ChunkResponseConst.ChunkSize, j * ChunkResponseConst.ChunkSize));
-
-            await VanillaApi.WaiteConnection();
-            
             while (true)
             {
                 await GetChunkAndApply();
-                await UniTask.Delay(500, cancellationToken: ct); //TODO 本当に0.55秒に1回でいいのか？
+                await UniTask.Delay(500, cancellationToken: ct); //TODO 本当に0.5秒に1回でいいのか？
             }
 
             #region Internal
 
             async UniTask GetChunkAndApply()
             {
-                var data = await VanillaApi.Response.GetChunkInfos(chunks, ct);
+                var data = await MoorestechContext.VanillaApi.Response.GetChunkInfos(ct);
                 if (data == null)
                 {
                     return;
@@ -98,28 +97,30 @@ namespace MainGame.Presenter.Block
                 }
             }
 
-            void ApplyChunkData(ChunkResponse chunk)
-            {
-                var chunkPos = chunk.ChunkPos;
-                _chunk[chunkPos] = chunk.Blocks;
-                for (var i = 0; i < chunk.Blocks.GetLength(0); i++)
-                for (var j = 0; j < chunk.Blocks.GetLength(1); j++)
-                {
-                    var blockPos = new Vector2Int(chunkPos.x + i, chunkPos.y + j);
-                    var blockId = chunk.Blocks[i, j].BlockId;
-                    var blockDirections = chunk.Blocks[i, j].BlockDirection;
-                    PlaceOrRemoveBlock(blockPos, blockId, blockDirections);
-                }
-
-                if (chunk.Entities == null)
-                {
-                    Debug.Log("chunk.Entities is null");
-                    return;
-                }
-                _entitiesDatastore.OnEntitiesUpdate(chunk.Entities);
-            }
 
             #endregion
+        }
+        
+        
+        private void ApplyChunkData(ChunkResponse chunk)
+        {
+            var chunkPos = chunk.ChunkPos;
+            _chunk[chunkPos] = chunk.Blocks;
+            for (var i = 0; i < chunk.Blocks.GetLength(0); i++)
+            for (var j = 0; j < chunk.Blocks.GetLength(1); j++)
+            {
+                var blockPos = new Vector2Int(chunkPos.x + i, chunkPos.y + j);
+                var blockId = chunk.Blocks[i, j].BlockId;
+                var blockDirections = chunk.Blocks[i, j].BlockDirection;
+                PlaceOrRemoveBlock(blockPos, blockId, blockDirections);
+            }
+
+            if (chunk.Entities == null)
+            {
+                Debug.Log("chunk.Entities is null");
+                return;
+            }
+            _entitiesDatastore.OnEntitiesUpdate(chunk.Entities);
         }
 
 

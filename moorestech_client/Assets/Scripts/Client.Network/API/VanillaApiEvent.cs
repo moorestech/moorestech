@@ -11,21 +11,19 @@ namespace Client.Network.API
 {
     public class VanillaApiEvent
     {
-        private readonly ServerConnector _serverConnector;
+        private readonly PacketExchangeManager _packetExchangeManager;
         private readonly PlayerConnectionSetting _playerConnectionSetting;
         
         private readonly Dictionary<string,Action<byte[]>> _eventResponseInfos = new ();
-        public VanillaApiEvent(ServerConnector serverConnector, PlayerConnectionSetting playerConnectionSetting)
+        public VanillaApiEvent(PacketExchangeManager packetExchangeManager, PlayerConnectionSetting playerConnectionSetting)
         {
-            _serverConnector = serverConnector;
+            _packetExchangeManager = packetExchangeManager;
             _playerConnectionSetting = playerConnectionSetting;
             CollectEvent().Forget();
         }
         
         private async UniTask CollectEvent()
         {
-            await VanillaApi.WaiteConnection();
-                
             while (true)
             {
                 var ct = new CancellationTokenSource().Token;
@@ -48,12 +46,7 @@ namespace Client.Network.API
             {
                 var request = new EventProtocolMessagePack(_playerConnectionSetting.PlayerId);
             
-                var response = await _serverConnector.GetInformationData<ResponseEventProtocolMessagePack>(request, ct);
-                //TODO 初期化をちゃんとするようにしてnullチェックをなくしたい
-                if (response == null)
-                {
-                    return;
-                }
+                var response = await _packetExchangeManager.GetPacketResponse<ResponseEventProtocolMessagePack>(request, ct);
             
                 foreach (var eventMessagePack in response.Events)
                 {

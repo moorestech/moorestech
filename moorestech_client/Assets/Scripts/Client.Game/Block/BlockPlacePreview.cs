@@ -1,4 +1,5 @@
-﻿using Game.World.Interface.DataStore;
+﻿using Client.Game.Context;
+using Game.World.Interface.DataStore;
 using Constant;
 using Game.Block.Config;
 using Game.Block.Interface.BlockConfig;
@@ -19,7 +20,7 @@ namespace MainGame.UnityView.Block
             {
                 if (_previewBlock)
                     Destroy(_previewBlock.gameObject);
-                _previewBlock = BlockGameObjectContainer.Instance.CreateBlock(blockConfig.BlockId, pos, rot, scale, transform, blockPosition);
+                _previewBlock = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockConfig.BlockId, pos, rot, scale, transform, blockPosition);
             }
             
             transform.position = pos;

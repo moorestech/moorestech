@@ -1,3 +1,4 @@
+using Client.Game.Context;
 using Client.Network.API;
 using Constant.Server;
 using MainGame.Network.Send;
@@ -34,7 +35,7 @@ namespace MainGame.Presenter.Player
             _timer += Time.deltaTime;
             if (_timer < NetworkConst.UpdateIntervalSeconds) return;
             _timer = 0;
-            VanillaApi.SendOnly.SendPlayerPosition(_playerObjectController.Position2d);
+            MoorestechContext.VanillaApi.SendOnly.SendPlayerPosition(_playerObjectController.Position2d);
         }
     }
 }

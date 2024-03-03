@@ -85,7 +85,7 @@ namespace MainGame.Presenter.Inventory
                     return;
                 }
 
-                //VanillaApi.SendOnly.Send(GetClickPosition());
+                //MoorestechContext.VanillaApi.SendOnly.Send(GetClickPosition());
                 _miningTokenSource.Cancel();
             }
 

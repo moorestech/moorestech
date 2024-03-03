@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClassLibrary;
+using Client.Game.Context;
 using Core.Const;
 using Core.Item;
 using Constant;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Control;
-using MainGame.UnityView.Item;
 using MainGame.UnityView.UI.Inventory.Element;
 using ServerServiceProvider;
 using UniRx;
@@ -33,18 +33,14 @@ namespace MainGame.UnityView.UI.Inventory.Main
         private List<IDisposable> _subInventorySlotUIEventUnsubscriber = new();
         private bool _isItemSplitDragging;
         private bool _isItemOneDragging;
-        
-        
-        private ItemImageContainer _itemImageContainer;
-        
+         
         private bool IsGrabItem => _playerInventory.GrabInventory.Id != ItemConst.EmptyItemId;
 
         [Inject]
-        public void Construct(MoorestechServerServiceProvider moorestechServerServiceProvider,LocalPlayerInventoryController playerInventory,ItemImageContainer itemImageContainer)
+        public void Construct(MoorestechServerServiceProvider moorestechServerServiceProvider,LocalPlayerInventoryController playerInventory)
         {
             _itemStackFactory = moorestechServerServiceProvider.ItemStackFactory;
             _playerInventory = playerInventory;
-            _itemImageContainer = itemImageContainer;
         }
 
         private void Awake()
@@ -120,7 +116,6 @@ namespace MainGame.UnityView.UI.Inventory.Main
                 fromSlot = slotIndex;
             }
             
-            
             var collectTargetSotIndex = _playerInventory.LocalPlayerInventory.
                 Select((item, index) => new { item, index }).
                 Where(i => i.item.Id == collectTargetItem.Id).
@@ -143,13 +138,10 @@ namespace MainGame.UnityView.UI.Inventory.Main
 
                 collectTargetItem = added.ProcessResultItemStack;
                 
-                
-
                 //足したあまりがあるということはスロットにそれ以上入らないということなので、ここで処理を終了する
                 if (added.RemainderItemStack.Count != 0) break;
             }
         }
-
 
         private void CursorEnter(int slotIndex)
         {
@@ -337,7 +329,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
             for (int i = 0; i < _playerInventory.LocalPlayerInventory.Count; i++)
             {
                 var item = _playerInventory.LocalPlayerInventory[i];
-                var itemView = _itemImageContainer.GetItemView(item.Id);
+                var itemView = MoorestechContext.ItemImageContainer.GetItemView(item.Id);
 
                 if (i < mainInventorySlotObjects.Count)
                 {
@@ -350,7 +342,8 @@ namespace MainGame.UnityView.UI.Inventory.Main
                 }
             }
             grabInventorySlotObject.SetActive(IsGrabItem);
-            grabInventorySlotObject.SetItem(_itemImageContainer.GetItemView(_playerInventory.GrabInventory.Id), _playerInventory.GrabInventory.Count);
+            var garbItemView = MoorestechContext.ItemImageContainer.GetItemView(_playerInventory.GrabInventory.Id);
+            grabInventorySlotObject.SetItem(garbItemView, _playerInventory.GrabInventory.Count);
         }
     }
 

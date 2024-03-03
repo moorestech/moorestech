@@ -1,40 +1,39 @@
 using System;
-using Cysharp.Threading.Tasks;
-using MainGame.Network.Send.SocketUtil;
+using System.Diagnostics;
+using MainGame.Network;
 using MainGame.Network.Settings;
 using ServerServiceProvider;
+using UniRx;
 using VContainer.Unity;
 
 namespace Client.Network.API
 {
     public class VanillaApi : IInitializable
     {
-        public static VanillaApiEvent Event { get; private set; }
-        public static VanillaApiWithResponse Response { get; private set; }
-        public static VanillaApiSendOnly SendOnly { get; private set; }
-
-        private static SocketInstanceCreate _socketInstanceCreate;
-
-        public VanillaApi(ServerConnector serverConnector,MoorestechServerServiceProvider moorestechServerServiceProvider, PlayerConnectionSetting playerConnectionSetting,SocketInstanceCreate socketInstanceCreate)
+        public readonly VanillaApiEvent Event;
+        public readonly VanillaApiWithResponse Response;
+        public readonly VanillaApiSendOnly SendOnly;
+        public IObservable<Unit> OnDisconnect => _serverCommunicator.OnDisconnect;
+        
+        private readonly ServerCommunicator _serverCommunicator;
+        private readonly Process _localServerProcess;
+        
+        public VanillaApi(PacketExchangeManager packetExchangeManager, PacketSender packetSender,ServerCommunicator serverCommunicator, MoorestechServerServiceProvider moorestechServerServiceProvider, PlayerConnectionSetting playerConnectionSetting, Process localServerProcess)
         {
-            _socketInstanceCreate = socketInstanceCreate;
-            Event = new VanillaApiEvent(serverConnector, playerConnectionSetting);
-            Response = new VanillaApiWithResponse(serverConnector, moorestechServerServiceProvider.ItemStackFactory, playerConnectionSetting);
-            SendOnly = new VanillaApiSendOnly(serverConnector, moorestechServerServiceProvider.ItemStackFactory, playerConnectionSetting);
-        }
+            _serverCommunicator = serverCommunicator;
+            _localServerProcess = localServerProcess;
 
-        //TODO 初期化をちゃんとするようにして最初からstaticアクセスできるようにする
-        [Obsolete("初期化をちゃんとするようにして最初からstaticアクセスできるようにする")]
-        public static async UniTask WaiteConnection()
-        {
-            if (_socketInstanceCreate.SocketInstance.Connected)
-            {
-                return;
-            }
-            
-            await UniTask.WaitUntil(() => _socketInstanceCreate.SocketInstance.Connected);
+            Event = new VanillaApiEvent(packetExchangeManager, playerConnectionSetting);
+            Response = new VanillaApiWithResponse(packetExchangeManager, moorestechServerServiceProvider.ItemStackFactory, playerConnectionSetting);
+            SendOnly = new VanillaApiSendOnly(packetSender, moorestechServerServiceProvider.ItemStackFactory, playerConnectionSetting);
         }
 
         public void Initialize() { }
+        
+        public void Disconnect()
+        {
+            _serverCommunicator.Close();
+            _localServerProcess?.Kill();
+        }
     }
 }

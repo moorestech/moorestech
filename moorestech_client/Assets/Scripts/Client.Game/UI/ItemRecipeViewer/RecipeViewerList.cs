@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.Context;
 using Core.Item;
 using Core.Item.Config;
 using Game.Block.Interface.RecipeConfig;
@@ -24,13 +25,13 @@ namespace MainGame.UnityView.UI.ItemRecipeViewer
         private readonly List<ItemSlotObject> _itemSlotObjects = new();
         private IItemConfig _itemConfig;
 
-        public void Initialize(IItemConfig itemConfig,ICraftingConfig craftConfig,IMachineRecipeConfig machineRecipeConfig,ItemImageContainer itemImageContainer)
+        public void Initialize(IItemConfig itemConfig,ICraftingConfig craftConfig,IMachineRecipeConfig machineRecipeConfig)
         {
             _itemConfig = itemConfig;
             
             foreach (var item in itemConfig.ItemConfigDataList)
             {
-                var itemViewData = itemImageContainer.GetItemView(item.ItemId);
+                var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(item.ItemId);
                 
                 var itemSlotObject = Instantiate(itemSlotObjectPrefab, itemListParent);
                 itemSlotObject.SetItem(itemViewData, 0);
