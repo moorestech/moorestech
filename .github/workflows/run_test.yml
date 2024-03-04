@@ -14,6 +14,15 @@ jobs:
     name: Run Unity Test
     runs-on: ubuntu-latest
     steps:
+      # 使用するGithub Tokenを動的に生成する
+      # 利用は ${{ steps.generate_token.outputs.token }}
+      - name: Generate github token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.PRIVATE_KEY }}
+
       # actions/checkout@v2 を利用して作業ディレクトリに
       # Unity プロジェクトの中身をダウンロードしてくる
       - name: Check out my unity project.
@@ -29,7 +38,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           projectPath: moorestech_client/
-          githubToken: ${{ secrets.GH_TOKEN }}
+          githubToken: ${{ steps.generate_token.outputs.token }}
           unityVersion: 2022.3.1f1
           testMode: All
 
