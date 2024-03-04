@@ -1,16 +1,17 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Core.Update;
 using Game.SaveLoad.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Base;
 using Mod.Loader;
 using Server.Boot.PacketHandle;
 using UnityEngine;
+#if !DEBUG
+using System.Reflection;
+#endif
 
 namespace Server.Boot
 {
@@ -34,10 +35,10 @@ namespace Server.Boot
         public static (Thread serverUpdateThread, CancellationTokenSource autoSaveTokenSource) Start(string[] args)
         {
             //カレントディレクトリを表示
-            var location = Assembly.GetEntryAssembly().Location;
 #if DEBUG
             var serverDirectory = DebugServerDirectory;
 #else
+            var location = Assembly.GetEntryAssembly().Location;
             var serverDirectory = Path.GetDirectoryName(location);
 #endif
 
