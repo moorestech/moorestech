@@ -68,7 +68,7 @@ namespace Client.Starter
             await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAssets(),LoadItemAssets(), MainGameSceneLoad());
             
             //staticアクセスできるコンテキストの作成
-            new MoorestechContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi);
+            new MoorestechContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi,serverServiceProvider);
             
             //シーンに遷移し、初期データを渡す
             SceneManager.sceneLoaded += MainGameSceneLoaded;
@@ -79,7 +79,7 @@ namespace Client.Starter
             {
                 SceneManager.sceneLoaded -= MainGameSceneLoaded;
                 var starter = FindObjectOfType<MainGameStarter>();
-                starter.SetInitialHandshakeResponse(handshakeResponse);
+                starter.StartGame(handshakeResponse);
             }
             
             #region Internal
@@ -97,7 +97,7 @@ namespace Client.Starter
                 Task.Run(() => serverCommunicator.StartCommunicat(exchangeManager));
 
                 //Vanilla APIの作成
-                vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, serverServiceProvider, playerConnectionSetting,_proprieties.LocalServerProcess);
+                vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, serverServiceProvider.ItemStackFactory, playerConnectionSetting,_proprieties.LocalServerProcess);
                 
                 //最初に必要なデータを取得
                 handshakeResponse = await vanillaApi.Response.InitialHandShake(playerConnectionSetting.PlayerId, default);
@@ -126,7 +126,7 @@ namespace Client.Starter
 
             async UniTask LoadBlockAssets()
             {
-                blockGameObjectContainer = await BlockGameObjectContainer.CreateAndLoadBlockGameObjectContainer(ServerConst.ServerModsDirectory,nothingIndexBlock, serverServiceProvider);
+                blockGameObjectContainer = await BlockGameObjectContainer.CreateAndLoadBlockGameObjectContainer(ServerConst.ServerModsDirectory,nothingIndexBlock, serverServiceProvider.BlockConfig);
                 loadingLog.text += $"\nブロックロード完了  {loadingStopwatch.Elapsed}";
             }
 
@@ -134,7 +134,7 @@ namespace Client.Starter
             {
                 //アイテム画像をロード
                 //TODO 非同期で実行できるようにする
-                itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(ServerConst.ServerModsDirectory, serverServiceProvider);
+                itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(ServerConst.ServerModsDirectory, serverServiceProvider.ItemConfig);
                 loadingLog.text += $"\nアイテムロード完了  {loadingStopwatch.Elapsed}";
             }
 

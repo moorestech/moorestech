@@ -12,7 +12,7 @@ namespace MainGame.ModLoader.Texture
     {
         private const string ModTextureDirectory = "assets/item/";
 
-        public static List<ItemViewData> GetItemTexture(string modDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider)
+        public static List<ItemViewData> GetItemTexture(string modDirectory, IItemConfig itemConfig)
         {
             var textureList = new List<ItemViewData>();
 
@@ -20,8 +20,8 @@ namespace MainGame.ModLoader.Texture
 
             foreach (var mod in mods.Mods)
             {
-                var itemIds = moorestechServerServiceProvider.ItemConfig.GetItemIds(mod.Value.ModMetaJson.ModId);
-                var itemConfigs = itemIds.Select(moorestechServerServiceProvider.ItemConfig.GetItemConfig).ToList();
+                var itemIds = itemConfig.GetItemIds(mod.Value.ModMetaJson.ModId);
+                var itemConfigs = itemIds.Select(itemConfig.GetItemConfig).ToList();
 
                 textureList.AddRange(GetTextures(itemConfigs, mod.Value));
             }

@@ -26,7 +26,6 @@ namespace MainGame.UnityView.UI.Inventory.Main
         [SerializeField] private List<ItemSlotObject> mainInventorySlotObjects;
         [SerializeField] private ItemSlotObject grabInventorySlotObject;
         
-        private ItemStackFactory _itemStackFactory;
         private LocalPlayerInventoryController _playerInventory;
         
         private ISubInventory _subInventory;
@@ -37,9 +36,8 @@ namespace MainGame.UnityView.UI.Inventory.Main
         private bool IsGrabItem => _playerInventory.GrabInventory.Id != ItemConst.EmptyItemId;
 
         [Inject]
-        public void Construct(MoorestechServerServiceProvider moorestechServerServiceProvider,LocalPlayerInventoryController playerInventory)
+        public void Construct(LocalPlayerInventoryController playerInventory)
         {
-            _itemStackFactory = moorestechServerServiceProvider.ItemStackFactory;
             _playerInventory = playerInventory;
         }
 
@@ -235,7 +233,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
 
         private void PlaceOneItem(int slotIndex)
         {
-            var oneItem = _itemStackFactory.Create(_playerInventory.GrabInventory.Id, 1);
+            var oneItem = MoorestechContext.ServerServices.ItemStackFactory.Create(_playerInventory.GrabInventory.Id, 1);
             var currentItem = _playerInventory.LocalPlayerInventory[slotIndex];
                 
             //追加できない場合はスキップ
@@ -281,11 +279,12 @@ namespace MainGame.UnityView.UI.Inventory.Main
             //余っているアイテム数
             var remainItemNum = grabItem.Count - dragItemCount * _itemSplitDraggedSlots.Count;
             
+            var itemStackFactory = MoorestechContext.ServerServices.ItemStackFactory;
 
             foreach (var dragSlot in _itemSplitDraggedSlots)
             {
                 //ドラッグ中のスロットにアイテムを加算する
-                var addedItem = dragSlot.BeforeDragItem.AddItem(_itemStackFactory.Create(grabItem.Id, dragItemCount));
+                var addedItem = dragSlot.BeforeDragItem.AddItem(itemStackFactory.Create(grabItem.Id, dragItemCount));
                 var moveItemCount = addedItem.ProcessResultItemStack.Count - dragSlot.BeforeDragItem.Count;
 
                 _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.MainOrSub, dragSlot.Slot, moveItemCount,isMoveSendData);
@@ -294,7 +293,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
             }
             
             //あまりのアイテムをGrabインベントリに設定する
-            _playerInventory.SetGrabItem(_itemStackFactory.Create(grabItem.Id, remainItemNum));
+            _playerInventory.SetGrabItem(itemStackFactory.Create(grabItem.Id, remainItemNum));
         }
 
 

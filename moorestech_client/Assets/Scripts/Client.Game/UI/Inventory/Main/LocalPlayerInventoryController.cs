@@ -15,15 +15,12 @@ namespace MainGame.UnityView.UI.Inventory.Main
         private readonly LocalPlayerInventory _mainAndSubCombine;
         public IItemStack GrabInventory { get; private set; }
         
-        
-        private readonly ItemStackFactory _itemStackFactory;
         private ISubInventory _subInventory;
         
-        public LocalPlayerInventoryController(MoorestechServerServiceProvider moorestechServerServiceProvider,ILocalPlayerInventory localPlayerInventoryMainAndSubCombine)
+        public LocalPlayerInventoryController(ILocalPlayerInventory localPlayerInventoryMainAndSubCombine)
         {
             _mainAndSubCombine = (LocalPlayerInventory)localPlayerInventoryMainAndSubCombine;
-            _itemStackFactory = moorestechServerServiceProvider.ItemStackFactory;
-            GrabInventory = _itemStackFactory.Create(0, 0);
+            GrabInventory = MoorestechContext.ServerServices.ItemStackFactory.Create(0, 0);
         }
 
         public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count,bool isMoveSendData = true)
@@ -48,15 +45,18 @@ namespace MainGame.UnityView.UI.Inventory.Main
             }
 
             #region InternalMethod
+            
             void SetInventory()
             {
+                var itemStackFactory = MoorestechContext.ServerServices.ItemStackFactory;
+                
                 var toInvItem = to switch
                 {
                     LocalMoveInventoryType.MainOrSub => LocalPlayerInventory[toSlot],
                     LocalMoveInventoryType.Grab => GrabInventory,
                     _ => throw new ArgumentOutOfRangeException(nameof(to), to, null)
                 };
-                var moveItem = _itemStackFactory.Create(fromInvItem.Id, count);
+                var moveItem = itemStackFactory.Create(fromInvItem.Id, count);
                 
                 var add = toInvItem.AddItem(moveItem);
                 switch (to)
@@ -72,7 +72,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
                 }
 
                 var fromItemCount = fromInvItem.Count - count + add.RemainderItemStack.Count;
-                var fromItem = _itemStackFactory.Create(fromInvItem.Id, fromItemCount);
+                var fromItem = itemStackFactory.Create(fromInvItem.Id, fromItemCount);
                 switch (from)
                 {
                     case LocalMoveInventoryType.Grab:

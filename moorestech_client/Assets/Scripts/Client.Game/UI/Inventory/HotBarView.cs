@@ -27,17 +27,15 @@ namespace MainGame.UnityView.UI.Inventory
         [SerializeField] private PlayerGrabItemManager playerGrabItemManager;
         
         private ILocalPlayerInventory _localPlayerInventory;
-        private IItemConfig _itemConfig;
 
         public int SelectIndex { get; private set; }
 
         public event Action<int> OnSelectHotBar;
         
         [Inject]
-        public void Construct(ILocalPlayerInventory localPlayerInventory,MoorestechServerServiceProvider moorestechServerServiceProvider)
+        public void Construct(ILocalPlayerInventory localPlayerInventory)
         {
             _localPlayerInventory = localPlayerInventory;
-            _itemConfig = moorestechServerServiceProvider.ItemConfig;
             Instance = this;
         }
 
@@ -112,8 +110,8 @@ namespace MainGame.UnityView.UI.Inventory
                 var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
 
                 if (itemId == ItemConst.EmptyItemId) return;
-                
-                var itemConfig = _itemConfig.GetItemConfig(itemId);
+
+                var itemConfig = MoorestechContext.ServerServices.ItemConfig.GetItemConfig(itemId);
             
                 var itemObjectData = itemObjectContainer.GetItemPrefab(itemConfig.ModId, itemConfig.Name);
                 if (itemObjectData != null)

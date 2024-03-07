@@ -17,14 +17,14 @@ namespace MainGame.UnityView.Item
         private readonly List<ItemViewData> _itemImageList = new();
         private readonly ItemViewData _nothingIndexItemImage;
 
-        public static ItemImageContainer CreateAndLoadItemImageContainer(string modsDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider)
+        public static ItemImageContainer CreateAndLoadItemImageContainer(string modsDirectory, IItemConfig itemConfig)
         {
             var nothingIndexItemImage = new ItemViewData(null, null, new ItemConfigData("Not item", 100, "Not mod", 0));
             var itemImageList = new List<ItemViewData>();
 
             itemImageList.Add(nothingIndexItemImage); //id 0番は何もないことを表すので、何もない画像を追加
             
-            var textures = ItemTextureLoader.GetItemTexture(modsDirectory, moorestechServerServiceProvider);
+            var textures = ItemTextureLoader.GetItemTexture(modsDirectory, itemConfig);
             itemImageList.AddRange(textures);
             
             return new ItemImageContainer(itemImageList, nothingIndexItemImage);

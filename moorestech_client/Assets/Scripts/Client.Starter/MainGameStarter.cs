@@ -46,7 +46,6 @@ namespace Client.Starter
         [SerializeField] private GroundPlane groundPlane;
 
         [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
-        [SerializeField] private WorldMapTileGameObjectDataStore worldMapTileGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
 
         [SerializeField] private BlockClickDetect blockClickDetect;
@@ -85,23 +84,12 @@ namespace Client.Starter
         private int PlayerId = ServerConst.DefaultPlayerId;
         private int Port = ServerConst.LocalServerPort;
 
-        private InitialHandshakeResponse _initialHandshakeResponse;
-        
-        public void SetInitialHandshakeResponse(InitialHandshakeResponse initialHandshakeResponse)
-        {
-            _initialHandshakeResponse = initialHandshakeResponse;
-        }
-
-        private void Start()
+        public void StartGame(InitialHandshakeResponse initialHandshakeResponse)
         {
             var builder = new ContainerBuilder();
-            //シングルプレイ用のインスタンス
-            var singlePlayInterface = new MoorestechServerServiceProvider(ServerConst.ServerDirectory);
-            builder.RegisterInstance(singlePlayInterface);
-            builder.RegisterInstance(singlePlayInterface.ItemConfig);
 
             //最初に取得したデータを登録
-            builder.RegisterInstance(_initialHandshakeResponse);
+            builder.RegisterInstance(initialHandshakeResponse);
 
             //インベントリのUIコントロール
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
@@ -124,15 +112,11 @@ namespace Client.Starter
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
             builder.Register<DeleteObjectInventoryState>(Lifetime.Singleton);
 
-            //modからロードしてきたデータ
-            builder.Register<WorldMapTileMaterials>(Lifetime.Singleton);
-
             //ScriptableObjectの登録
             builder.RegisterInstance(worldMapTileObject);
 
             //Hierarchy上にあるcomponent
             builder.RegisterComponent(chunkBlockGameObjectDataStore);
-            builder.RegisterComponent(worldMapTileGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore);
 
             builder.RegisterComponent(oreMapTileClickDetect);
