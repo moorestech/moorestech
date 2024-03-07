@@ -35,7 +35,7 @@ namespace MainGame.Presenter.Inventory
         private CancellationTokenSource _miningTokenSource = new();
 
         [Inject]
-        public void Construct(Camera mainCamera, UIStateControl uiStateControl, MoorestechServerServiceProvider moorestechServerServiceProvider)
+        public void Construct(Camera mainCamera, UIStateControl uiStateControl)
         {
             _mainCamera = mainCamera;
             _uiStateControl = uiStateControl;

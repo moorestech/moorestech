@@ -14,19 +14,19 @@ namespace MainGame.ModLoader.Glb
     {
         private const string BlockDirectory = "assets/block/";
 
-
-        public static async UniTask<List<BlockData>> GetBlockLoader(string modDirectory, MoorestechServerServiceProvider moorestechServerServiceProvider)
+        public static async UniTask<List<BlockData>> GetBlockLoader(string modDirectory, IBlockConfig blockConfig)
         {
             var blocks = new List<BlockData>();
 
             var mods = new ModsResource(modDirectory);
 
             var blockPrefabsParent = new GameObject("BlockPrefabsParent");
+            Object.DontDestroyOnLoad(blockPrefabsParent);
 
             foreach (var mod in mods.Mods)
             {
-                var blockIds = moorestechServerServiceProvider.BlockConfig.GetBlockIds(mod.Value.ModMetaJson.ModId);
-                var blockConfigs = blockIds.Select(moorestechServerServiceProvider.BlockConfig.GetBlockConfig).ToList();
+                var blockIds = blockConfig.GetBlockIds(mod.Value.ModMetaJson.ModId);
+                var blockConfigs = blockIds.Select(blockConfig.GetBlockConfig).ToList();
 
                 blocks.AddRange(await GetBlocks(blockConfigs, mod.Value, blockPrefabsParent.transform));
             }

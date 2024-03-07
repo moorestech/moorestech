@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.Context;
 using Core.Item;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
@@ -34,14 +35,6 @@ namespace MainGame.UnityView.UI.Inventory.Sub
         
         private readonly List<ItemSlotObject> _blockItemSlotObjects = new();
         
-        private ItemStackFactory _itemStackFactory;
-        
-        [Inject]
-        public void Construct(MoorestechServerServiceProvider moorestechServerServiceProvider)
-        {
-            _itemStackFactory = moorestechServerServiceProvider.ItemStackFactory;
-        }
-        
         public void SetActive(bool isActive)
         {
             gameObject.SetActive(isActive);
@@ -49,7 +42,9 @@ namespace MainGame.UnityView.UI.Inventory.Sub
         
         public void SetBlockInventoryType(BlockInventoryType type,Vector2Int blockPos,IBlockConfigParam param)
         {
+            var itemStackFactory = MoorestechContext.ServerServices.ItemStackFactory;
             ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory,blockPos);
+            
             Clear();
             
             switch (type)
@@ -87,7 +82,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, chestItemParent);
                     _blockItemSlotObjects.Add(slotObject);
-                    itemList.Add(_itemStackFactory.CreatEmpty());
+                    itemList.Add(itemStackFactory.CreatEmpty());
                 }
                 SetItemList(itemList);
             }
@@ -100,7 +95,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, minerItemParent);
                     _blockItemSlotObjects.Add(slotObject);
-                    itemList.Add(_itemStackFactory.CreatEmpty());
+                    itemList.Add(itemStackFactory.CreatEmpty());
                 }
                 SetItemList(itemList);
             }
@@ -113,13 +108,13 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, machineInputItemParent);
                     _blockItemSlotObjects.Add(slotObject);
-                    itemList.Add(_itemStackFactory.CreatEmpty());
+                    itemList.Add(itemStackFactory.CreatEmpty());
                 }
                 for (int i = 0; i < machineParam.OutputSlot; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, machineOutputItemParent);
                     _blockItemSlotObjects.Add(slotObject);
-                    itemList.Add(_itemStackFactory.CreatEmpty());
+                    itemList.Add(itemStackFactory.CreatEmpty());
                 }
                 SetItemList(itemList);
             }
@@ -132,7 +127,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, powerGeneratorFuelItemParent);
                     _blockItemSlotObjects.Add(slotObject);
-                    itemList.Add(_itemStackFactory.CreatEmpty());
+                    itemList.Add(itemStackFactory.CreatEmpty());
                 }
                 SetItemList(itemList);
             }

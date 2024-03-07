@@ -23,17 +23,17 @@ namespace Client.Game.Context
         private readonly IBlockConfig _blockConfig;
         private readonly List<BlockData> _blockObjectList;
 
-        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory, BlockGameObject nothingIndexBlockObject, MoorestechServerServiceProvider moorestechServerServiceProvider)
+        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory, BlockGameObject nothingIndexBlockObject, IBlockConfig blockConfig)
         {
-            var blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory, moorestechServerServiceProvider);
+            var blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory, blockConfig);
             
-            return new BlockGameObjectContainer(nothingIndexBlockObject, moorestechServerServiceProvider, blockObjectList);
+            return new BlockGameObjectContainer(nothingIndexBlockObject, blockConfig, blockObjectList);
         }
         
-        public BlockGameObjectContainer(BlockGameObject nothingIndexBlockObject, MoorestechServerServiceProvider moorestechServerServiceProvider, List<BlockData> blockObjectList)
+        public BlockGameObjectContainer(BlockGameObject nothingIndexBlockObject, IBlockConfig blockConfig, List<BlockData> blockObjectList)
         {
             _nothingIndexBlockObject = nothingIndexBlockObject;
-            _blockConfig = moorestechServerServiceProvider.BlockConfig;
+            _blockConfig = blockConfig;
             _blockObjectList = blockObjectList;
         }
 

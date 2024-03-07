@@ -16,18 +16,11 @@ namespace MainGame.UnityView.Chunk
     public class ChunkBlockGameObjectDataStore : MonoBehaviour
     {
         private readonly Dictionary<Vector2Int, BlockGameObject> _blockObjectsDictionary = new();
-        private IBlockConfig _blockConfig;
 
         public IReadOnlyDictionary<Vector2Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
 
         public event Action<BlockGameObject> OnPlaceBlock;
-
-        [Inject]
-        public void Construct(MoorestechServerServiceProvider moorestechServerServiceProvider)
-        {
-            _blockConfig = moorestechServerServiceProvider.BlockConfig;
-        }
-
+        
 
         public BlockGameObject GetBlockGameObject(Vector2Int position)
         {
@@ -55,7 +48,7 @@ namespace MainGame.UnityView.Chunk
 
 
             //新しいブロックを設置
-            var blockConfig = _blockConfig.GetBlockConfig(blockId);
+            var blockConfig = MoorestechContext.ServerServices.BlockConfig.GetBlockConfig(blockId);
             var (pos,rot,scale) = SlopeBlockPlaceSystem.GetSlopeBeltConveyorTransform(blockConfig.Type,blockPosition, blockDirection,blockConfig.BlockSize);
             
             var block = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot,scale, transform, blockPosition);

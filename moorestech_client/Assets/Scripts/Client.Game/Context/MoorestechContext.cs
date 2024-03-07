@@ -1,6 +1,7 @@
 using Client.Network.API;
 using MainGame.Network.Settings;
 using MainGame.UnityView.Item;
+using ServerServiceProvider;
 
 namespace Client.Game.Context
 {
@@ -11,12 +12,15 @@ namespace Client.Game.Context
         public static PlayerConnectionSetting PlayerConnectionSetting { get; private set; }
         public static VanillaApi VanillaApi { get; private set; }
         
-        public MoorestechContext(BlockGameObjectContainer blockGameObjectContainer, ItemImageContainer itemImageContainer, PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi)
+        public static MoorestechServerServiceProvider ServerServices { get; private set; }
+        
+        public MoorestechContext(BlockGameObjectContainer blockGameObjectContainer, ItemImageContainer itemImageContainer, PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi, MoorestechServerServiceProvider serverServices)
         {
             BlockGameObjectContainer = blockGameObjectContainer;
             ItemImageContainer = itemImageContainer;
             PlayerConnectionSetting = playerConnectionSetting;
             VanillaApi = vanillaApi;
+            ServerServices = serverServices;
         }
     }
 }

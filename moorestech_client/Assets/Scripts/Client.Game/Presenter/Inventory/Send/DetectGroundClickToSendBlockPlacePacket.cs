@@ -26,12 +26,10 @@ namespace MainGame.Presenter.Inventory.Send
     {
         private IBlockPlacePreview _blockPlacePreview;
 
-
         private BlockDirection _currentBlockDirection;
         private HotBarView _hotBarView;
         private Camera _mainCamera;
         private UIStateControl _uiStateControl;
-        private IBlockConfig _blockConfig;
         private ILocalPlayerInventory _localPlayerInventory;
 
         private void Update()
@@ -41,13 +39,12 @@ namespace MainGame.Presenter.Inventory.Send
         }
 
         [Inject]
-        public void Construct(Camera mainCamera, HotBarView hotBarView, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview,MoorestechServerServiceProvider moorestechServerServiceProvider,ILocalPlayerInventory localPlayerInventory)
+        public void Construct(Camera mainCamera, HotBarView hotBarView, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview,ILocalPlayerInventory localPlayerInventory)
         {
             _uiStateControl = uiStateControl;
             _hotBarView = hotBarView;
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
-            _blockConfig = moorestechServerServiceProvider.BlockConfig;
             _localPlayerInventory = localPlayerInventory;
         }
 
@@ -68,6 +65,8 @@ namespace MainGame.Presenter.Inventory.Send
 
         private void GroundClickControl()
         {
+            var blockConfig = MoorestechContext.ServerServices.BlockConfig;
+            
             //基本はプレビュー非表示
             _blockPlacePreview.SetActive(false);
 
@@ -77,7 +76,7 @@ namespace MainGame.Presenter.Inventory.Send
             var selectIndex = (short)_hotBarView.SelectIndex;
             var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
             //持っているアイテムがブロックじゃなかったら何もしない
-            if (!_blockConfig.IsBlock(itemId)) return; 
+            if (!blockConfig.IsBlock(itemId)) return; 
 
             //プレビューの座標を取得
             var (isHit, hitPoint) = GetPreviewPosition();
@@ -96,7 +95,7 @@ namespace MainGame.Presenter.Inventory.Send
 
 
             //クリックされてなかったらプレビューを表示する
-            _blockPlacePreview.SetPreview(hitPoint, _currentBlockDirection,_blockConfig.ItemIdToBlockConfig(itemId));
+            _blockPlacePreview.SetPreview(hitPoint, _currentBlockDirection,blockConfig.ItemIdToBlockConfig(itemId));
         }
 
 

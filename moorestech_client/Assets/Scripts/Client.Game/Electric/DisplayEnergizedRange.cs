@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Client.Game.Context;
 using Core.Const;
 using Game.Block;
 using Game.Block.Config.LoadConfig.Param;
@@ -24,20 +25,16 @@ namespace MainGame.Extension
         [SerializeField] private EnergizedRangeObject rangePrefab;
         private readonly List<EnergizedRangeObject> rangeObjects = new();
 
-
-        private IBlockConfig _blockConfig;
         private ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private ILocalPlayerInventory _localPlayerInventory;
         private HotBarView _hotBarView;
 
-
         private bool isBlockPlaceState;
 
         [Inject]
-        public void Construct(MoorestechServerServiceProvider moorestechServerServiceProvider, HotBarView hotBarView, UIStateControl uiStateControl, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,ILocalPlayerInventory localPlayerInventory)
+        public void Construct(HotBarView hotBarView, UIStateControl uiStateControl, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,ILocalPlayerInventory localPlayerInventory)
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
-            _blockConfig = moorestechServerServiceProvider.BlockConfig;
 
             _localPlayerInventory = localPlayerInventory;
             _hotBarView = hotBarView;
@@ -86,6 +83,8 @@ namespace MainGame.Extension
 
         private void CreateRangeObject()
         {
+            var blockConfig = MoorestechContext.ServerServices.BlockConfig;
+
             var (isElectricalBlock, isPole) = IsDisplay();
             //電気ブロックでも電柱でもない
             if (!isElectricalBlock && !isPole) return;
@@ -94,51 +93,55 @@ namespace MainGame.Extension
             //電気系のブロックなので電柱の範囲を表示する
             foreach (var electricalPole in GetElectricalPoles())
             {
-                var config = (ElectricPoleConfigParam)_blockConfig.GetBlockConfig(electricalPole.BlockId).Param;
+                var config = (ElectricPoleConfigParam)blockConfig.GetBlockConfig(electricalPole.BlockId).Param;
                 var range = isElectricalBlock ? config.machineConnectionRange : config.poleConnectionRange;
 
                 var rangeObject = Instantiate(rangePrefab, electricalPole.transform.position, Quaternion.identity, transform);
                 rangeObject.SetRange(range);
                 rangeObjects.Add(rangeObject);
             }
-        }
 
-        private (bool isElectricalBlock, bool isPole) IsDisplay()
-        {
-            var hotBarSlot = _hotBarView.SelectIndex;
-            var id = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot)].Id;
+            #region Internal
 
-            if (id == ItemConst.EmptyItemId) return (false, false);
-            if (!_blockConfig.IsBlock(id)) return (false, false);
-
-            var blockConfig = _blockConfig.GetBlockConfig(_blockConfig.ItemIdToBlockId(id));
-
-            return (IsElectricalBlock(blockConfig.Type), IsPole(blockConfig.Type));
-        }
-
-        private List<BlockGameObject> GetElectricalPoles()
-        {
-            var resultBlocks = new List<BlockGameObject>();
-            foreach (var blocks in _chunkBlockGameObjectDataStore.BlockGameObjectDictionary)
+            (bool isElectricalBlock, bool isPole) IsDisplay()
             {
-                var blockType = _blockConfig.GetBlockConfig(blocks.Value.BlockId).Type;
-                if (blockType != VanillaBlockType.ElectricPole) continue;
+                var hotBarSlot = _hotBarView.SelectIndex;
+                var id = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot)].Id;
 
-                resultBlocks.Add(blocks.Value);
+                if (id == ItemConst.EmptyItemId) return (false, false);
+                if (!blockConfig.IsBlock(id)) return (false, false);
+
+                var config = blockConfig.GetBlockConfig(blockConfig.ItemIdToBlockId(id));
+
+                return (IsElectricalBlock(config.Type), IsPole(config.Type));
             }
 
-            return resultBlocks;
-        }
+            List<BlockGameObject> GetElectricalPoles()
+            {
+                var resultBlocks = new List<BlockGameObject>();
+                foreach (var blocks in _chunkBlockGameObjectDataStore.BlockGameObjectDictionary)
+                {
+                    var blockType = blockConfig.GetBlockConfig(blocks.Value.BlockId).Type;
+                    if (blockType != VanillaBlockType.ElectricPole) continue;
 
-        //TODO 電気系のブロックかどうか判定するロジック
-        private bool IsElectricalBlock(string type)
-        {
-            return type is VanillaBlockType.Generator or VanillaBlockType.Machine or VanillaBlockType.Miner;
-        }
+                    resultBlocks.Add(blocks.Value);
+                }
 
-        private bool IsPole(string type)
-        {
-            return type is VanillaBlockType.ElectricPole;
+                return resultBlocks;
+            }
+
+            //TODO 電気系のブロックかどうか判定するロジック
+            bool IsElectricalBlock(string type)
+            {
+                return type is VanillaBlockType.Generator or VanillaBlockType.Machine or VanillaBlockType.Miner;
+            }
+
+            bool IsPole(string type)
+            {
+                return type is VanillaBlockType.ElectricPole;
+            }
+
+            #endregion
         }
     }
 }

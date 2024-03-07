@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Client.Game.Context;
 using Core.Item;
 using Core.Item.Config;
 using Game.PlayerInventory.Interface;
@@ -29,19 +30,17 @@ namespace MainGame.UnityView.UI.Inventory.Main
         private readonly Subject<int> _onItemChange = new();
 
         private readonly List<IItemStack> _mainInventory;
-        private readonly ItemStackFactory _itemStackFactory;
-        private readonly IItemConfig _itemConfig;
         
         private ISubInventory _subInventory;
 
-        public LocalPlayerInventory(MoorestechServerServiceProvider moorestechServerServiceProvider)
+        public LocalPlayerInventory()
         {
-            _itemConfig = moorestechServerServiceProvider.ItemConfig;
-            _itemStackFactory = moorestechServerServiceProvider.ItemStackFactory;
             _mainInventory = new List<IItemStack>();
+
+            var itemStackFactory = MoorestechContext.ServerServices.ItemStackFactory;
             for (int i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
             {
-                _mainInventory.Add(_itemStackFactory.CreatEmpty());
+                _mainInventory.Add(itemStackFactory.CreatEmpty());
             }
 
             _subInventory = new EmptySubInventory();
@@ -70,8 +69,10 @@ namespace MainGame.UnityView.UI.Inventory.Main
 
         public bool IsItemExist(string modId, string itemName,int itemSlot)
         {
-            var id = _itemConfig.GetItemId(modId, itemName);
+            var id = MoorestechContext.ServerServices.ItemConfig.GetItemId(modId, itemName);
+            
             if (itemSlot < _mainInventory.Count) return _mainInventory[itemSlot].Id == id;
+            
             var subIndex = itemSlot - _mainInventory.Count;
             if (subIndex < _subInventory.Count) return _subInventory.SubInventory[itemSlot - _mainInventory.Count].Id == id;
             Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + itemSlot);
@@ -86,8 +87,9 @@ namespace MainGame.UnityView.UI.Inventory.Main
                 if (index < _mainInventory.Count) return _mainInventory[index];
                 var subIndex = index - _mainInventory.Count;
                 if (subIndex < _subInventory.Count) return _subInventory.SubInventory[index - _mainInventory.Count];
+                
                 Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + index);
-                return _itemStackFactory.CreatEmpty();
+                return MoorestechContext.ServerServices.ItemStackFactory.CreatEmpty();
             }
             set
             {

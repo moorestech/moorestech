@@ -12,13 +12,11 @@ namespace MainGame.UnityView.UI.Inventory.Main
     public class NetworkEventInventoryUpdater : IInitializable
     {
         private readonly LocalPlayerInventoryController _localPlayerInventoryController;
-        private readonly ItemStackFactory _itemStackFactory;
         private readonly BlockInventoryView _blockInventoryView;
         
-        public NetworkEventInventoryUpdater(LocalPlayerInventoryController localPlayerInventoryController, MoorestechServerServiceProvider moorestechServerServiceProvider, BlockInventoryView blockInventoryView)
+        public NetworkEventInventoryUpdater(LocalPlayerInventoryController localPlayerInventoryController, BlockInventoryView blockInventoryView)
         {
             _localPlayerInventoryController = localPlayerInventoryController;
-            _itemStackFactory = moorestechServerServiceProvider.ItemStackFactory;
             _blockInventoryView = blockInventoryView;
         }
         
@@ -35,7 +33,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
         private void OnGrabInventoryUpdateEvent(byte[] payload)
         {
             var packet = MessagePackSerializer.Deserialize<GrabInventoryUpdateEventMessagePack>(payload);
-            var item = _itemStackFactory.Create(packet.Item.Id, packet.Item.Count);
+            var item = MoorestechContext.ServerServices.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
             _localPlayerInventoryController.SetGrabItem(item);
         }
 
@@ -45,7 +43,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
         private void OnMainInventoryUpdateEvent(byte[] payload)
         {
             var packet = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(payload);
-            var item = _itemStackFactory.Create(packet.Item.Id, packet.Item.Count);
+            var item = MoorestechContext.ServerServices.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
             _localPlayerInventoryController.SetMainItem(packet.Slot,item);
         }
         
@@ -55,7 +53,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
         private void OnOpenableBlockInventoryUpdateEvent(byte[] payload)
         {
             var packet = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payload);
-            var item = _itemStackFactory.Create(packet.Item.Id, packet.Item.Count);
+            var item = MoorestechContext.ServerServices.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
             _blockInventoryView.SetItemSlot(packet.Slot,item);
         }
     }

@@ -12,14 +12,10 @@ namespace MainGame.Presenter.Block
 {
     public class BlockStateEventHandler : IInitializable
     {
-        private readonly IBlockConfig _blockConfig;
-
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
 
-
-        public BlockStateEventHandler(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, MoorestechServerServiceProvider moorestechServerServiceProvider)
+        public BlockStateEventHandler(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore)
         {
-            _blockConfig = moorestechServerServiceProvider.BlockConfig;
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             MoorestechContext.VanillaApi.Event.RegisterEventResponse(ChangeBlockStateEventPacket.EventTag, OnStateChange);
         }
@@ -42,7 +38,7 @@ namespace MainGame.Presenter.Block
                 var blockObject = _chunkBlockGameObjectDataStore.BlockGameObjectDictionary[pos];
                 blockObject.BlockStateChangeProcessor.OnChangeState(data.CurrentState, data.PreviousState, data.CurrentStateJsonData);
 
-                var blockConfig = _blockConfig.GetBlockConfig(blockObject.BlockId);
+                var blockConfig = MoorestechContext.ServerServices.BlockConfig.GetBlockConfig(blockObject.BlockId);
 
             }
         }

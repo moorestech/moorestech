@@ -32,25 +32,20 @@ namespace MainGame.UnityView.UI.Inventory.Sub
         [SerializeField] private Button prevRecipeButton;
         [SerializeField] private TMP_Text recipeCountText;
         
-        private IItemConfig _itemConfig;
-        private ICraftingConfig _craftingConfig;
         private ILocalPlayerInventory _localPlayerInventory;
         
         private IReadOnlyList<CraftingConfigData> _currentCraftingConfigDataList;
         private int _currentCraftingConfigIndex;
-        
-
-
 
         [Inject]
-        public void Construct(MoorestechServerServiceProvider singlePlay,ILocalPlayerInventory localPlayerInventory)
+        public void Construct(ILocalPlayerInventory localPlayerInventory)
         {
-            _itemConfig = singlePlay.ItemConfig;
-            _craftingConfig = singlePlay.CraftingConfig;
             _localPlayerInventory = localPlayerInventory;
             _localPlayerInventory.OnItemChange.Subscribe(OnItemChange);
 
-            foreach (var item in _itemConfig.ItemConfigDataList)
+            var itemConfig = MoorestechContext.ServerServices.ItemConfig;
+
+            foreach (var item in itemConfig.ItemConfigDataList)
             {
                 var itemViewData = MoorestechContext.ItemImageContainer.GetItemView(item.ItemId);
 
@@ -83,7 +78,8 @@ namespace MainGame.UnityView.UI.Inventory.Sub
 
         private void OnClickItemList(ItemSlotObject slot)
         {
-            _currentCraftingConfigDataList = _craftingConfig.GetResultItemCraftingConfigList(slot.ItemViewData.ItemId);
+            var craftConfig = MoorestechContext.ServerServices.CraftingConfig;
+            _currentCraftingConfigDataList = craftConfig.GetResultItemCraftingConfigList(slot.ItemViewData.ItemId);
             if (_currentCraftingConfigDataList.Count == 0) return;
             
             _currentCraftingConfigIndex = 0;
@@ -208,7 +204,8 @@ namespace MainGame.UnityView.UI.Inventory.Sub
 
             var result = new HashSet<int>();
 
-            foreach (var configData in _craftingConfig.CraftingConfigList)
+            var craftingConfig = MoorestechContext.ServerServices.CraftingConfig;
+            foreach (var configData in craftingConfig.CraftingConfigList)
             {
                 if (result.Contains(configData.ResultItem.Id)) continue; //すでにクラフト可能なアイテムならスキップ
                 var isCraftable = true;

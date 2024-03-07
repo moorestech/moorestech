@@ -10,6 +10,14 @@ namespace MainGame.UnityView.UI.UIState
 
         public UIStateEnum CurrentState { get; private set; } = UIStateEnum.GameScreen;
 
+        public event Action<UIStateEnum> OnStateChanged;
+
+        [Inject]
+        public void Construct(UIStateDictionary uiStateDictionary)
+        {
+            _uiStateDictionary = uiStateDictionary;
+        }
+
         private void Start()
         {
             _uiStateDictionary.GetState(CurrentState).OnEnter(UIStateEnum.Current);
@@ -30,14 +38,6 @@ namespace MainGame.UnityView.UI.UIState
             _uiStateDictionary.GetState(CurrentState).OnEnter(lastState);
 
             OnStateChanged?.Invoke(CurrentState);
-        }
-
-        public event Action<UIStateEnum> OnStateChanged;
-
-        [Inject]
-        public void Construct(UIStateDictionary uiStateDictionary)
-        {
-            _uiStateDictionary = uiStateDictionary;
         }
     }
 }
