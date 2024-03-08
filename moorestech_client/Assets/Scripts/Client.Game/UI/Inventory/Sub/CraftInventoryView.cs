@@ -24,10 +24,14 @@ namespace MainGame.UnityView.UI.Inventory.Sub
 
         [SerializeField] private RectTransform itemListParent;
 
+        [SerializeField] private CraftButton craftButtonPercent;
         [SerializeField] private Button craftButton;
         [SerializeField] private Button nextRecipeButton;
         [SerializeField] private Button prevRecipeButton;
         [SerializeField] private TMP_Text recipeCountText;
+
+        [SerializeField] private float buttonDownElapsed;
+        [SerializeField] private bool isButtonDown;
         private readonly List<ItemSlotObject> _craftMaterialSlotList = new();
         private readonly List<ItemSlotObject> _itemListObjects = new();
         private ItemSlotObject _craftResultSlot;
@@ -70,7 +74,25 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                         if (_currentCraftingConfigDataList?.Count == 0) return;
                         MoorestechContext.VanillaApi.SendOnly.Craft(_currentCraftingConfigDataList[_currentCraftingConfigIndex].RecipeId);
                     }
-                );
+                )
+                .AddTo(this);
+
+            craftButton.OnPointerDownAsObservable().Subscribe(_ => isButtonDown = true).AddTo(this);
+            craftButton.OnPointerUpAsObservable().Subscribe(_ =>
+            {
+                isButtonDown = false;
+                buttonDownElapsed = 0;
+            }).AddTo(this);
+            Observable.EveryUpdate().Where(_ => isButtonDown).Subscribe(
+                _ => buttonDownElapsed += Time.deltaTime
+            ).AddTo(this);
+            Observable
+                .EveryUpdate()
+                .Select(_ => Mathf.Clamp(buttonDownElapsed, 0, duration))
+                .Select(x => x / duration)
+                .Subscribe(
+                    x => craftButtonPercent.percent = x
+                ).AddTo(this);
 
             nextRecipeButton.onClick.AddListener(() =>
             {
