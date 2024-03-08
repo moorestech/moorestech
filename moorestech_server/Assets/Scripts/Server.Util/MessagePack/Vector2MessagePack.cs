@@ -33,5 +33,10 @@ namespace Server.Util.MessagePack
             X = vector2.x;
             Y = vector2.y;
         }
+        
+        public static implicit operator Vector2(Vector2MessagePack pack)
+        {
+            return new Vector2(pack.X, pack.Y);
+        }
     }
 }

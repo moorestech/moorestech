@@ -28,7 +28,7 @@ namespace MainGame.Presenter.Block
         {
             var data = MessagePackSerializer.Deserialize<ChangeBlockStateEventMessagePack>(payload);
             
-            var pos = data.Position.Vector2Int;
+            var pos = data.Position;
             if (!_chunkBlockGameObjectDataStore.BlockGameObjectDictionary.TryGetValue(pos, out var _))
             {
                 Debug.Log("ブロックがない : " + pos);

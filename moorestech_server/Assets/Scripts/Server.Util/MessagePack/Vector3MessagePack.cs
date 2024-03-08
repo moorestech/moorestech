@@ -30,5 +30,10 @@ namespace Server.Util.MessagePack
             Y = vector3.y;
             Z = vector3.z;
         }
+        
+        public static implicit operator Vector3(Vector3MessagePack pack)
+        {
+            return new Vector3(pack.X, pack.Y, pack.Z);
+        }
     }
 }

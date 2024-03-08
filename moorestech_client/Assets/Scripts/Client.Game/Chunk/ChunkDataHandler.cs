@@ -48,15 +48,15 @@ namespace MainGame.Presenter.Block
         {
             var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload);
             
-            var blockPos = data.BlockPos.Vector2Int;
+            var blockPos = data.BlockPos;
             var chunkPos = ChunkConstant.BlockPositionToChunkOriginPosition(blockPos);
 
             if (!_chunk.ContainsKey(chunkPos)) return;
 
             //ブロックを置き換え
             var (i, j) = (
-                GetBlockArrayIndex(chunkPos.x, blockPos.x),
-                GetBlockArrayIndex(chunkPos.y, blockPos.y));
+                GetBlockArrayIndex(chunkPos.x, blockPos.X),
+                GetBlockArrayIndex(chunkPos.y, blockPos.Y));
             _chunk[chunkPos][i, j] = new BlockInfo(data.BlockId,(BlockDirection)data.Direction);
 
             //viewにブロックがおかれたことを通知する

@@ -17,7 +17,7 @@ namespace Client.Network.API
         {
             Chunks = chunks;
             MapObjects = mapObjects;
-            PlayerPos = response.PlayerPos.Vector2;
+            PlayerPos = response.PlayerPos;
         }
     }
 
@@ -72,7 +72,7 @@ namespace Client.Network.API
         {
             InstanceId = entityMessagePack.InstanceId;
             Type = entityMessagePack.Type;
-            Position = entityMessagePack.Position.Vector3;
+            Position = entityMessagePack.Position;
             State = entityMessagePack.State;
         }
     }
