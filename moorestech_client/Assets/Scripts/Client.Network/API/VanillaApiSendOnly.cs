@@ -26,7 +26,7 @@ namespace Client.Network.API
         
         public void SetOpenCloseBlock(Vector2Int pos, bool isOpen)
         {
-            var request = new BlockInventoryOpenCloseProtocolMessagePack(_playerId, pos.x, pos.y, isOpen);
+            var request = new BlockInventoryOpenCloseProtocolMessagePack(_playerId, pos, isOpen);
             _packetSender.Send(request);
         }
         
@@ -36,21 +36,21 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void PlaceHotBarBlock(int x, int y, short hotBarSlot, BlockDirection blockDirection)
+        public void PlaceHotBarBlock(Vector2Int pos, short hotBarSlot, BlockDirection blockDirection)
         {
-            var request = new SendPlaceHotBarBlockProtocolMessagePack(_playerId, (int)blockDirection, hotBarSlot, x, y);
+            var request = new SendPlaceHotBarBlockProtocolMessagePack(_playerId, (int)blockDirection, hotBarSlot, pos);
             _packetSender.Send(request);
         }
         
-        public void BlockRemove(int x, int y)
+        public void BlockRemove(Vector2Int pos)
         {
-            var request = new RemoveBlockProtocolMessagePack(_playerId, x, y);
+            var request = new RemoveBlockProtocolMessagePack(_playerId, pos);
             _packetSender.Send(request);
         }
         
         public void SendPlayerPosition(Vector2 pos)
         {
-            var request = new PlayerCoordinateSendProtocolMessagePack(_playerId, pos.x, pos.y);
+            var request = new PlayerCoordinateSendProtocolMessagePack(_playerId, pos);
             _packetSender.Send(request);
         }
         

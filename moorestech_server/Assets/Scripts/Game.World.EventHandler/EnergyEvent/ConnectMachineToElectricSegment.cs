@@ -6,6 +6,7 @@ using Game.Block.Interface.BlockConfig;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
+using UnityEngine;
 
 namespace Game.World.EventHandler.EnergyEvent
 {
@@ -40,11 +41,11 @@ namespace Game.World.EventHandler.EnergyEvent
         private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
         {
             //設置されたブロックが電柱だった時の処理
-            var x = blockPlaceEvent.CoreVector2Int.x;
-            var y = blockPlaceEvent.CoreVector2Int.y;
+            var x = blockPlaceEvent.Pos.x;
+            var y = blockPlaceEvent.Pos.y;
 
             //設置されたブロックが発電機か機械以外はスルー処理
-            if (!IsElectricMachine(x, y)) return;
+            if (!IsElectricMachine(blockPlaceEvent.Pos)) return;
 
             //最大の電柱の接続範囲を取得探索して接続する
             var startMachineX = x - _maxMachineConnectionRange / 2;
@@ -52,44 +53,47 @@ namespace Game.World.EventHandler.EnergyEvent
             for (var i = startMachineX; i < startMachineX + _maxMachineConnectionRange; i++)
             for (var j = startMachineY; j < startMachineY + _maxMachineConnectionRange; j++)
             {
-                if (!_worldBlockDatastore.ExistsComponentBlock<IElectricPole>(i, j)) continue;
+                var polePos = new Vector2Int(i, j);
+                if (!_worldBlockDatastore.ExistsComponentBlock<IElectricPole>(polePos)) continue;
 
                 //範囲内に電柱がある場合
                 //電柱に接続
-                ConnectToElectricPole(i, j, x, y);
+                var machinePos = blockPlaceEvent.Pos;
+                ConnectToElectricPole(polePos,machinePos);
             }
         }
 
-        private bool IsElectricMachine(int x, int y)
+        private bool IsElectricMachine(Vector2Int pos)
         {
-            return _worldBlockDatastore.ExistsComponentBlock<TGenerator>(x, y) ||
-                   _worldBlockDatastore.ExistsComponentBlock<TConsumer>(x, y);
+            return _worldBlockDatastore.ExistsComponentBlock<TGenerator>(pos) ||
+                   _worldBlockDatastore.ExistsComponentBlock<TConsumer>(pos);
         }
 
 
         /// <summary>
         ///     電柱のセグメントに機械を接続する
         /// </summary>
-        private void ConnectToElectricPole(int poleX, int poleY, int machineX, int machineY)
+        private void ConnectToElectricPole(Vector2Int polePos, Vector2Int machinePos)
         {
             //電柱を取得
-            var pole = _worldBlockDatastore.GetBlock<TTransformer>(poleX, poleY);
+            var pole = _worldBlockDatastore.GetBlock<TTransformer>(polePos);
             //その電柱のコンフィグを取得
-            var configParam =
-                _blockConfig.GetBlockConfig(((IBlock)pole).BlockId).Param as ElectricPoleConfigParam;
+            var configParam = _blockConfig.GetBlockConfig(((IBlock)pole).BlockId).Param as ElectricPoleConfigParam;
             var range = configParam.machineConnectionRange;
 
             //その電柱から見て機械が範囲内に存在するか確認
+            var poleX = polePos.x;
+            var poleY = polePos.y;
             if (poleX - range / 2 > poleX || poleX > poleX + range / 2 || poleY - range / 2 > poleY ||
                 poleY > poleY + range / 2) return;
 
             //在る場合は発電機か機械かを判定して接続
             //発電機を電力セグメントに追加
             var segment = _worldEnergySegmentDatastore.GetEnergySegment(pole);
-            if (_worldBlockDatastore.ExistsComponentBlock<TGenerator>(machineX, machineY))
-                segment.AddGenerator(_worldBlockDatastore.GetBlock<TGenerator>(machineX, machineY));
-            else if (_worldBlockDatastore.ExistsComponentBlock<TConsumer>(machineX, machineY))
-                segment.AddEnergyConsumer(_worldBlockDatastore.GetBlock<TConsumer>(machineX, machineY));
+            if (_worldBlockDatastore.ExistsComponentBlock<TGenerator>(machinePos))
+                segment.AddGenerator(_worldBlockDatastore.GetBlock<TGenerator>(machinePos));
+            else if (_worldBlockDatastore.ExistsComponentBlock<TConsumer>(machinePos))
+                segment.AddEnergyConsumer(_worldBlockDatastore.GetBlock<TConsumer>(machinePos));
         }
     }
 }

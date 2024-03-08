@@ -8,6 +8,8 @@ using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -41,7 +43,7 @@ namespace Server.Protocol.PacketResponse
             var isNotRemainItem = true;
 
             //インベントリがある時は
-            if (_worldBlockDatastore.TryGetBlock<IBlockInventory>(data.X, data.Y, out var blockInventory))
+            if (_worldBlockDatastore.TryGetBlock<IBlockInventory>(data.Pos, out var blockInventory))
                 //プレイヤーインベントリにブロック内のアイテムを挿入
                 for (var i = 0; i < blockInventory.GetSlotSize(); i++)
                 {
@@ -60,7 +62,7 @@ namespace Server.Protocol.PacketResponse
 
             //壊したブロックをインベントリーに挿入
             //ブロックIdの取得
-            var blockId = _worldBlockDatastore.GetBlock(data.X, data.Y).BlockId;
+            var blockId = _worldBlockDatastore.GetBlock(data.Pos).BlockId;
             //すでにブロックがなかったら-1
             if (blockId == BlockConst.EmptyBlockId)
             {
@@ -74,7 +76,7 @@ namespace Server.Protocol.PacketResponse
 
             //ブロック内のアイテムを全てインベントリに入れ、ブロックもインベントリに入れれた時だけブロックを削除する
             if (isNotRemainItem && remainBlockItem.Equals(_itemStackFactory.CreatEmpty()))
-                _worldBlockDatastore.RemoveBlock(data.X, data.Y);
+                _worldBlockDatastore.RemoveBlock(data.Pos);
 
             return null;
         }
@@ -84,12 +86,11 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class RemoveBlockProtocolMessagePack : ProtocolMessagePackBase
     {
-        public RemoveBlockProtocolMessagePack(int playerId, int x, int y)
+        public RemoveBlockProtocolMessagePack(int playerId, Vector2Int pos)
         {
             Tag = RemoveBlockProtocol.Tag;
             PlayerId = playerId;
-            X = x;
-            Y = y;
+            Pos = new Vector2IntMessagePack(pos);
         }
 
 
@@ -101,8 +102,6 @@ namespace Server.Protocol.PacketResponse
         [Key(2)]
         public int PlayerId { get; set; }
         [Key(3)]
-        public int X { get; set; }
-        [Key(4)]
-        public int Y { get; set; }
+        public Vector2IntMessagePack Pos { get; set; }
     }
 }

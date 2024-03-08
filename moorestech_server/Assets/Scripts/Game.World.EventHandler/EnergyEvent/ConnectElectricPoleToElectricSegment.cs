@@ -4,6 +4,7 @@ using Game.Block.Interface.BlockConfig;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
+using UnityEngine;
 
 namespace Game.World.EventHandler.EnergyEvent
 {
@@ -35,19 +36,17 @@ namespace Game.World.EventHandler.EnergyEvent
         private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
         {
             //設置されたブロックが電柱だった時の処理
-            var x = blockPlaceEvent.CoreVector2Int.x;
-            var y = blockPlaceEvent.CoreVector2Int.y;
-            if (!_worldBlockDatastore.ExistsComponentBlock<IEnergyTransformer>(x, y)) return;
+            if (!_worldBlockDatastore.ExistsComponentBlock<IEnergyTransformer>( blockPlaceEvent.Pos)) return;
 
             var electricPoleConfigParam =
                 _blockConfig.GetBlockConfig(blockPlaceEvent.Block.BlockId).Param as ElectricPoleConfigParam;
 
             //電柱と電気セグメントを接続する
-            var electricSegment = GetAndConnectElectricSegment(x, y, electricPoleConfigParam,
-                _worldBlockDatastore.GetBlock<IEnergyTransformer>(x, y));
+            var electricSegment = GetAndConnectElectricSegment( blockPlaceEvent.Pos, electricPoleConfigParam,
+                _worldBlockDatastore.GetBlock<IEnergyTransformer>( blockPlaceEvent.Pos));
 
             //他の機械、発電機を探索して接続する
-            ConnectMachine(x, y, electricSegment, electricPoleConfigParam);
+            ConnectMachine( blockPlaceEvent.Pos, electricSegment, electricPoleConfigParam);
         }
 
         /// <summary>
@@ -55,12 +54,11 @@ namespace Game.World.EventHandler.EnergyEvent
         ///     範囲内の電柱をリストアップする 電柱が１つであればそれに接続、複数ならマージする
         ///     接続したセグメントを返す
         /// </summary>
-        private EnergySegment GetAndConnectElectricSegment(
-            int x, int y, ElectricPoleConfigParam electricPoleConfigParam, IEnergyTransformer blockElectric)
+        private EnergySegment GetAndConnectElectricSegment(Vector2Int pos, ElectricPoleConfigParam electricPoleConfigParam, IEnergyTransformer blockElectric)
         {
             //周りの電柱をリストアップする
             var electricPoles =
-                FindElectricPoleFromPeripheralService.Find(x, y, electricPoleConfigParam, _worldBlockDatastore);
+                FindElectricPoleFromPeripheralService.Find(pos, electricPoleConfigParam, _worldBlockDatastore);
 
             //接続したセグメントを取得
             var electricSegment = electricPoles.Count switch
@@ -82,10 +80,10 @@ namespace Game.World.EventHandler.EnergyEvent
         /// <summary>
         ///     設置した電柱の周辺にある機械、発電機を探索して接続する
         /// </summary>
-        private void ConnectMachine(int x, int y, EnergySegment segment, ElectricPoleConfigParam poleConfigParam)
+        private void ConnectMachine(Vector2Int pos, EnergySegment segment, ElectricPoleConfigParam poleConfigParam)
         {
             var (blocks, generators) =
-                FindMachineAndGeneratorFromPeripheralService.Find(x, y, poleConfigParam, _worldBlockDatastore);
+                FindMachineAndGeneratorFromPeripheralService.Find(pos, poleConfigParam, _worldBlockDatastore);
 
             //機械と発電機を電力セグメントを接続する
             blocks.ForEach(segment.AddEnergyConsumer);

@@ -40,17 +40,14 @@ namespace Game.World.EventHandler.EnergyEvent
 
         private void OnBlockRemove(BlockRemoveEventProperties blockRemoveEvent)
         {
-            var x = blockRemoveEvent.CoreVector2Int.x;
-            var y = blockRemoveEvent.CoreVector2Int.y;
-
             //電柱かどうか判定
             //電柱だったら接続範囲内周りにある電柱を取得する
-            if (!_worldBlockDatastore.TryGetBlock<TTransformer>(x, y, out var removedElectricPole)) return;
+            if (!_worldBlockDatastore.TryGetBlock<TTransformer>(blockRemoveEvent.Pos, out var removedElectricPole)) return;
 
 
             //接続範囲内の電柱を取得
             var electricPoles = FindElectricPoleFromPeripheralService.Find(
-                x, y, _blockConfig.GetBlockConfig(blockRemoveEvent.Block.BlockId).Param as ElectricPoleConfigParam,
+                blockRemoveEvent.Pos, _blockConfig.GetBlockConfig(blockRemoveEvent.Block.BlockId).Param as ElectricPoleConfigParam,
                 _worldBlockDatastore);
 
             //削除した電柱のセグメントを取得

@@ -50,13 +50,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             {
                 var x = random.Next(-10000, 10000);
                 var y = random.Next(-10000, 10000);
+                var pos = new Vector2Int(x, y);
                 var blockId = random.Next(1, 1000);
                 var direction = random.Next(0, 4);
 
                 //設置したブロックを保持する
-                blocks.Add(new TestBlockData(x, y, blockId, direction));
+                blocks.Add(new TestBlockData(pos, blockId, direction));
                 //ブロックの設置
-                worldBlockDataStore.AddBlock(new VanillaBlock(blockId, random.Next(1, 1000000), 1), x, y, (BlockDirection)direction);
+                worldBlockDataStore.AddBlock(new VanillaBlock(blockId, random.Next(1, 1000000), 1), pos, (BlockDirection)direction);
             }
 
 
@@ -87,7 +88,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload);
 
-            return new TestBlockData(data.BlockPos.X,data.BlockPos.Y, data.BlockId, data.Direction);
+            return new TestBlockData(data.BlockPos, data.BlockId, data.Direction);
         }
 
         private List<byte> EventRequestData(int plyaerID)
@@ -102,10 +103,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             public readonly int X;
             public readonly int Y;
 
-            public TestBlockData(int x, int y, int id, int blockDirectionNum)
+            public TestBlockData(Vector2Int pos, int id, int blockDirectionNum)
             {
-                X = x;
-                Y = y;
+                X = pos.x;
+                Y = pos.y;
                 this.id = id;
                 BlockDirection = (BlockDirection)blockDirectionNum;
             }

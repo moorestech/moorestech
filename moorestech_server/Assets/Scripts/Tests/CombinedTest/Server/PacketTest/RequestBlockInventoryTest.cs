@@ -10,6 +10,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -33,11 +34,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             machine.SetItem(0, itemStackFactory.Create(1, 2));
             machine.SetItem(2, itemStackFactory.Create(4, 5));
 
-            serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine, 5, 10, BlockDirection.North);
+            serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine, new Vector2Int(5 ,10), BlockDirection.North);
 
             //レスポンスの取得
             var data = MessagePackSerializer.Deserialize<BlockInventoryResponseProtocolMessagePack>(
-                packet.GetPacketResponse(RequestBlock(5, 10))[0].ToArray());
+                packet.GetPacketResponse(RequestBlock(new Vector2Int(5, 10)))[0].ToArray());
 
             Assert.AreEqual(InputSlotNum + OutPutSlotNum, data.ItemIds.Length); // slot num
 
@@ -54,9 +55,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(5, data.ItemCounts[2]);
         }
 
-        private List<byte> RequestBlock(int x, int y)
+        private List<byte> RequestBlock(Vector2Int pos)
         {
-            return MessagePackSerializer.Serialize(new RequestBlockInventoryRequestProtocolMessagePack(x, y)).ToList();
+            return MessagePackSerializer.Serialize(new RequestBlockInventoryRequestProtocolMessagePack(pos)).ToList();
         }
     }
 }

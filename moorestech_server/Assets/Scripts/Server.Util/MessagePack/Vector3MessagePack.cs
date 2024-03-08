@@ -11,8 +11,6 @@ namespace Server.Util.MessagePack
         [Key(1)] public float Y { get; set; }
         [Key(2)] public float Z { get; set; }
         
-        [IgnoreMember]
-        public Vector3 Vector3 => new Vector3(X, Y, Z);
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public Vector3MessagePack()
@@ -31,6 +29,11 @@ namespace Server.Util.MessagePack
             X = vector3.x;
             Y = vector3.y;
             Z = vector3.z;
+        }
+        
+        public static implicit operator Vector3(Vector3MessagePack pack)
+        {
+            return new Vector3(pack.X, pack.Y, pack.Z);
         }
     }
 }

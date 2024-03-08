@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -22,7 +24,7 @@ namespace Server.Protocol.PacketResponse
 
             //開く、閉じるのセット
             if (data.IsOpen)
-                _inventoryOpenState.Open(data.PlayerId, data.X, data.Y);
+                _inventoryOpenState.Open(data.PlayerId, data.Pos);
             else
                 _inventoryOpenState.Close(data.PlayerId);
 
@@ -46,22 +48,19 @@ namespace Server.Protocol.PacketResponse
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="isOpen"></param>
-        public BlockInventoryOpenCloseProtocolMessagePack(int playerId, int x, int y, bool isOpen)
+        public BlockInventoryOpenCloseProtocolMessagePack(int playerId, Vector2Int pos, bool isOpen)
         {
             Tag = BlockInventoryOpenCloseProtocol.Tag;
+            Pos = new Vector2IntMessagePack(pos);
             PlayerId = playerId;
-            X = x;
-            Y = y;
             IsOpen = isOpen;
         }
 
         [Key(2)]
         public int PlayerId { get; set; }
         [Key(3)]
-        public int X { get; set; }
+        public Vector2IntMessagePack Pos { get; set; }
         [Key(4)]
-        public int Y { get; set; }
-        [Key(5)]
         public bool IsOpen { get; set; }
     }
 }

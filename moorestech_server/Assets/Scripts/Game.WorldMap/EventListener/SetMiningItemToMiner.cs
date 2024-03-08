@@ -34,17 +34,16 @@ namespace Game.WorldMap.EventListener
 
         public void OnBlockPlace(BlockPlaceEventProperties blockPlaceEventProperties)
         {
-            var x = blockPlaceEventProperties.CoreVector2Int.x;
-            var y = blockPlaceEventProperties.CoreVector2Int.y;
-            if (!_worldBlockDatastore.ExistsComponentBlock<IMiner>(x, y)) return;
+            var pos = blockPlaceEventProperties.Pos;
+            if (!_worldBlockDatastore.ExistsComponentBlock<IMiner>(pos)) return;
 
             //鉱石コンフィグを取得
-            var oreId = _veinGenerator.GetOreId(x, y);
+            var oreId = _veinGenerator.GetOreId(pos);
             if (oreId == OreConst.NoneOreId) return;
 
 
             var oreConfig = _oreConfig.Get(oreId);
-            var miner = _worldBlockDatastore.GetBlock<IMiner>(x, y);
+            var miner = _worldBlockDatastore.GetBlock<IMiner>(pos);
             var minerConfig = _blockConfig.GetBlockConfig(((IBlock)miner).BlockId).Param as MinerBlockConfigParam;
 
             //マイナー自体の設定からその採掘機が鉱石を採掘するのに必要な時間を取得し、設定する

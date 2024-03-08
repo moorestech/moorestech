@@ -6,6 +6,7 @@ using Game.World.Interface.DataStore;
 using MessagePack;
 using Newtonsoft.Json;
 using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Event.EventReceive
 {
@@ -22,9 +23,9 @@ namespace Server.Event.EventReceive
             worldBlockDatastore.OnBlockStateChange += ChangeState;
         }
 
-        private void ChangeState((ChangedBlockState state, IBlock block, int x, int y) state)
+        private void ChangeState((ChangedBlockState state, IBlock block, Vector2Int pos) state)
         {
-            var messagePack = new ChangeBlockStateEventMessagePack(state.state, state.x, state.y);
+            var messagePack = new ChangeBlockStateEventMessagePack(state.state, state.pos);
             var payload = MessagePackSerializer.Serialize(messagePack);
 
             _eventProtocolProvider.AddBroadcastEvent(EventTag,payload);
@@ -39,13 +40,13 @@ namespace Server.Event.EventReceive
         {
         }
 
-        public ChangeBlockStateEventMessagePack(ChangedBlockState state, int x, int y)
+        public ChangeBlockStateEventMessagePack(ChangedBlockState state, Vector2Int pos)
         {
             CurrentState = state.CurrentState;
             PreviousState = state.PreviousState;
 
             CurrentStateJsonData = state.CurrentStateJsonData;
-            Position = new Vector2IntMessagePack(x, y);
+            Position = new Vector2IntMessagePack(pos);
         }
 
         [Key(0)]

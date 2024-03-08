@@ -1,4 +1,6 @@
-﻿namespace Server.Protocol.PacketResponse.Const
+﻿using UnityEngine;
+
+namespace Server.Protocol.PacketResponse.Const
 {
     public static class ChunkResponseConst
     {
@@ -6,9 +8,9 @@
         public const int PlayerVisibleRangeChunk = 5;
 
 
-        public static (int, int) BlockPositionToChunkOriginPosition(int x, int y)
+        public static Vector2Int BlockPositionToChunkOriginPosition(Vector2Int pos)
         {
-            return (GetChunk(x), GetChunk(y));
+            return new Vector2Int(GetChunk(pos.x), GetChunk(pos.y));
         }
 
         private static int GetChunk(int n)

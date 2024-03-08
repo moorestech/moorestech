@@ -8,6 +8,7 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Protocol.PacketResponse.Util.InventoryService;
+using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
@@ -34,7 +35,7 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload.ToArray());
 
-            var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.X, data.FromInventory.Y);
+            var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.Pos);
             if (fromInventory == null) return null;
             
             var fromSlot = data.FromInventory.Slot;
@@ -42,7 +43,7 @@ namespace Server.Protocol.PacketResponse
                 fromSlot -= PlayerInventoryConst.MainInventorySize;
             
             
-            var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.X, data.ToInventory.Y);
+            var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.Pos);
             if (toInventory == null) return null;
             
             var toSlot = data.ToInventory.Slot;
@@ -63,7 +64,7 @@ namespace Server.Protocol.PacketResponse
             return null;
         }
 
-        private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, int x, int y)
+        private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, Vector2Int pos)
         {
             IOpenableInventory inventory = null;
             switch (inventoryType)
@@ -75,8 +76,8 @@ namespace Server.Protocol.PacketResponse
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
                     break;
                 case ItemMoveInventoryType.BlockInventory:
-                    inventory = _worldBlockDatastore.ExistsComponentBlock<IOpenableInventory>(x, y)
-                        ? _worldBlockDatastore.GetBlock<IOpenableInventory>(x, y)
+                    inventory = _worldBlockDatastore.ExistsComponentBlock<IOpenableInventory>(pos)
+                        ? _worldBlockDatastore.GetBlock<IOpenableInventory>(pos)
                         : null;
                     break;
             }
@@ -136,8 +137,7 @@ namespace Server.Protocol.PacketResponse
             //メッセージパックでenumは重いらしいのでintを使う
             InventoryId = (int)info.ItemMoveInventoryType;
             Slot = slot;
-            X = info.X;
-            Y = info.Y;
+            Pos = new Vector2IntMessagePack(info.Pos);
         }
 
         [Obsolete("シリアライズ用の値です。InventoryTypeを使用してください。")]
@@ -150,8 +150,6 @@ namespace Server.Protocol.PacketResponse
         [Key(3)]
         public int Slot { get; set; }
         [Key(4)]
-        public int X { get; set; }
-        [Key(5)]
-        public int Y { get; set; }
+        public Vector2IntMessagePack Pos { get; set; }
     }
 }

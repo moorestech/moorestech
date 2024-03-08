@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.CombinedTest.Core
 {
@@ -26,17 +27,15 @@ namespace Tests.CombinedTest.Core
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var oreId = 0;
-            var x = 0;
-            var y = 0;
+            var pos = new Vector2Int(0, 0);
             for (var i = 0; i < 500; i++)
             {
                 for (var j = 0; j < 500; j++)
                 {
-                    oreId = veinGenerator.GetOreId(i, j);
+                    oreId = veinGenerator.GetOreId(new Vector2Int(i, j));
                     //oreIdが1の時にその上に採掘機を設置する
                     if (oreId != 1) continue;
-                    x = i;
-                    y = j;
+                    pos = new Vector2Int(i, j);
                     break;
                 }
 
@@ -44,9 +43,9 @@ namespace Tests.CombinedTest.Core
                 break;
             }
 
-            worldBlockDatastore.AddBlock(blockFactory.Create(MinerId, 1), x, y, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MinerId, 1), pos, BlockDirection.North);
 
-            var miner = worldBlockDatastore.GetBlock(x, y) as VanillaMinerBase;
+            var miner = worldBlockDatastore.GetBlock(pos) as VanillaMinerBase;
             //リフレクションでidを取得する
             var miningItems = (List<IItemStack>)typeof(VanillaMinerBase)
                 .GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(miner);

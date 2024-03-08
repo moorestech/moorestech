@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.Const;
+using UnityEngine;
 
 namespace Tests.UnitTest.Server.Player
 {
@@ -26,9 +27,9 @@ namespace Tests.UnitTest.Server.Player
         [TestCase(-105, -415, -120, -420)]
         public void ConvertTest(int blockX, int blockY, int expectedChunkX, int expectedChunkY)
         {
-            var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(blockX, blockY);
-            Assert.AreEqual(expectedChunkX, x);
-            Assert.AreEqual(expectedChunkY, y);
+            var pos = ChunkResponseConst.BlockPositionToChunkOriginPosition(new Vector2Int(blockX, blockY));
+            Assert.AreEqual(expectedChunkX, pos.x);
+            Assert.AreEqual(expectedChunkY, pos.y);
         }
     }
 }

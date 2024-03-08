@@ -2,26 +2,27 @@ using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
+using UnityEngine;
 
 namespace Game.World.Interface.DataStore
 {
     public interface IWorldBlockDatastore
     {
-        public bool AddBlock(IBlock block, int x, int y, BlockDirection blockDirection);
-        public bool RemoveBlock(int x, int y);
-        public IBlock GetBlock(int x, int y);
-        public WorldBlockData GetOriginPosBlock(int x, int y);
-        public bool Exists(int x, int y);
-        public bool TryGetBlock(int x, int y, out IBlock block);
-        public (int, int) GetBlockPosition(int entityId);
-        public BlockDirection GetBlockDirection(int x, int y);
+        public bool AddBlock(IBlock block, Vector2Int pos, BlockDirection blockDirection);
+        public bool RemoveBlock(Vector2Int pos);
+        public IBlock GetBlock(Vector2Int pos);
+        public WorldBlockData GetOriginPosBlock(Vector2Int pos);
+        public bool Exists(Vector2Int pos);
+        public bool TryGetBlock(Vector2Int pos, out IBlock block);
+        public Vector2Int GetBlockPosition(int entityId);
+        public BlockDirection GetBlockDirection(Vector2Int pos);
         public List<SaveBlockData> GetSaveBlockDataList();
         public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList);
 
-        public bool ExistsComponentBlock<TComponent>(int x, int y);
-        public TComponent GetBlock<TComponent>(int x, int y);
-        public bool TryGetBlock<TComponent>(int x, int y, out TComponent component);
+        public bool ExistsComponentBlock<TComponent>(Vector2Int pos);
+        public TComponent GetBlock<TComponent>(Vector2Int pos);
+        public bool TryGetBlock<TComponent>(Vector2Int pos, out TComponent component);
 
-        public event Action<(ChangedBlockState state, IBlock block, int x, int y)> OnBlockStateChange;
+        public event Action<(ChangedBlockState state, IBlock block, Vector2Int pos)> OnBlockStateChange;
     }
 }

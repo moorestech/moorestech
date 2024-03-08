@@ -8,6 +8,7 @@ using Game.World.Interface.Util;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -39,7 +40,7 @@ namespace Server.Protocol.PacketResponse
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
             if (!_blockConfig.IsBlock(item.Id)) return null;
             //すでにブロックがある場合はそもまま処理を終了
-            if (_worldBlockDatastore.Exists(data.X, data.Y)) return null;
+            if (_worldBlockDatastore.Exists(data.Pos)) return null;
 
 
             var blockDirection = data.Direction switch
@@ -55,7 +56,7 @@ namespace Server.Protocol.PacketResponse
             //ブロックの作成
             var block = _blockFactory.Create(_blockConfig.ItemIdToBlockId(item.Id), CreateBlockEntityId.Create());
             //ブロックの設置
-            _worldBlockDatastore.AddBlock(block, data.X, data.Y, blockDirection);
+            _worldBlockDatastore.AddBlock(block, data.Pos, blockDirection);
 
             //アイテムを減らし、セットする
             item = item.SubItem(1);
@@ -71,14 +72,13 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class SendPlaceHotBarBlockProtocolMessagePack : ProtocolMessagePackBase
     {
-        public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int direction, int slot, int x, int y)
+        public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int direction, int slot, Vector2Int pos)
         {
             Tag = SendPlaceHotBarBlockProtocol.Tag;
             PlayerId = playerId;
             Direction = direction;
             Slot = slot;
-            X = x;
-            Y = y;
+            Pos = new Vector2IntMessagePack(pos);
         }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -94,8 +94,6 @@ namespace Server.Protocol.PacketResponse
         public int Slot { get; set; }
 
         [Key(5)]
-        public int X { get; set; }
-        [Key(6)]
-        public int Y { get; set; }
+        public Vector2IntMessagePack Pos { get; set; }
     }
 }

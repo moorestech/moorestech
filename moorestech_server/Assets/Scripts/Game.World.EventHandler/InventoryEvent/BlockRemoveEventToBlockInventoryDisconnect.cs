@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Game.Block.BlockInventory;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
+using UnityEngine;
 
 namespace Game.World.EventHandler.InventoryEvent
 {
@@ -21,21 +22,20 @@ namespace Game.World.EventHandler.InventoryEvent
 
         private void OnRemoveBlock(BlockRemoveEventProperties blockRemoveEvent)
         {
-            var x = blockRemoveEvent.CoreVector2Int.x;
-            var y = blockRemoveEvent.CoreVector2Int.y;
+            var removePos = blockRemoveEvent.Pos;
 
             //削除されたブロックがIBlockInventoryでない場合、処理を終了する
             if (blockRemoveEvent.Block is not IBlockInventory block) return;
 
 
             //削除されたブロックの東西南北にあるブロックインベントリを削除する
-            var connectOffsetBlockPositions = new List<(int, int)> { (1, 0), (-1, 0), (0, 1), (0, -1) };
+            var connectOffsetBlockPositions = new List<Vector2Int> { new(1, 0), new (-1, 0), new(0, 1), new(0, -1) };
 
-            foreach (var (offsetX, offsetY) in connectOffsetBlockPositions)
+            foreach (var offsetpos in connectOffsetBlockPositions)
                 //削除されたブロックの周りのブロックがIBlockInventoryを持っている時
-                if (_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(x + offsetX, y + offsetY))
+                if (_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(offsetpos + removePos))
                     //そのブロックの接続を削除する
-                    _worldBlockDatastore.GetBlock<IBlockInventory>(x + offsetX, y + offsetY)
+                    _worldBlockDatastore.GetBlock<IBlockInventory>(offsetpos + removePos)
                         .RemoveOutputConnector(block);
         }
     }

@@ -70,7 +70,7 @@ namespace Client.Network.API
         
         public async UniTask<List<IItemStack>> GetBlockInventory(Vector2Int blockPos, CancellationToken ct)
         {
-            var request = new RequestBlockInventoryRequestProtocolMessagePack(blockPos.x, blockPos.y);
+            var request = new RequestBlockInventoryRequestProtocolMessagePack(blockPos);
 
             var response = await _packetExchangeManager.GetPacketResponse<BlockInventoryResponseProtocolMessagePack>(request, ct);
 
@@ -137,7 +137,7 @@ namespace Client.Network.API
                 
                 var entities = chunk.Entities.Select(e => new EntityResponse(e));
                 
-                var chunkPos = chunk.ChunkPos.Vector2Int;
+                var chunkPos = chunk.ChunkPos;
                 return new ChunkResponse(chunkPos, blocks, entities.ToList());
             }
 

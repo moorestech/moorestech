@@ -35,18 +35,18 @@ namespace Server.Protocol.PacketResponse.Player
             return now;
         }
 
-        public static List<Vector2Int> GetChunkCoordinates(Vector2Int coreVector2Int)
+        public static List<Vector2Int> GetChunkCoordinates(Vector2Int blockPos)
         {
             var chunkHalf = ChunkResponseConst.PlayerVisibleRangeChunk / 2;
             //その座標のチャンクの原点
-            var (x, y) = ChunkResponseConst.BlockPositionToChunkOriginPosition(coreVector2Int.x, coreVector2Int.y);
+            var chunkPos = ChunkResponseConst.BlockPositionToChunkOriginPosition(blockPos);
 
             var result = new List<Vector2Int>();
             for (var i = -chunkHalf; i <= chunkHalf; i++)
             for (var j = -chunkHalf; j <= chunkHalf; j++)
                 result.Add(new Vector2Int(
-                    x + i * ChunkResponseConst.ChunkSize,
-                    y + j * ChunkResponseConst.ChunkSize));
+                    chunkPos.x + i * ChunkResponseConst.ChunkSize,
+                    chunkPos.y + j * ChunkResponseConst.ChunkSize));
 
             return result;
         }

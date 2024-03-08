@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Game.World.Interface.DataStore
 {
@@ -11,11 +12,14 @@ namespace Game.World.Interface.DataStore
 
         [JsonProperty("X")] public int X;
         [JsonProperty("Y")] public int Y;
+        
+        [JsonIgnore]
+        public Vector2Int Pos => new(X,Y);
 
-        public SaveBlockData(int x, int y, long blocHash, int entityId, string state, int direction)
+        public SaveBlockData(Vector2Int pos, long blocHash, int entityId, string state, int direction)
         {
-            X = x;
-            Y = y;
+            X = pos.x;
+            Y = pos.y;
             BlockHash = blocHash;
             EntityId = entityId;
             State = state;

@@ -34,16 +34,17 @@ namespace Server.Protocol.PacketResponse.Util
             {
                 var x = i + chunk.x;
                 var y = j + chunk.y;
+                var pos = new Vector2Int(x, y);
 
-                if (!worldBlockDatastore.TryGetBlock(x, y, out var block)) continue;
+                if (!worldBlockDatastore.TryGetBlock(pos, out var block)) continue;
 
                 var type = blockConfig.GetBlockConfig(block.BlockId).Type;
 
                 if (type != VanillaBlockType.BeltConveyor) continue;
 
-                var direction = worldBlockDatastore.GetBlockDirection(x, y);
+                var direction = worldBlockDatastore.GetBlockDirection(pos);
 
-                result.AddRange(CollectItemFromBeltConveyor(entityFactory, (VanillaBeltConveyor)block, x, y,
+                result.AddRange(CollectItemFromBeltConveyor(entityFactory, (VanillaBeltConveyor)block, pos,
                     direction));
             }
 
@@ -52,7 +53,7 @@ namespace Server.Protocol.PacketResponse.Util
 
 
         private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory,
-            VanillaBeltConveyor vanillaBeltConveyor, int x, int y, BlockDirection blockDirection)
+            VanillaBeltConveyor vanillaBeltConveyor, Vector2Int pos, BlockDirection blockDirection)
         {
             var result = new List<IEntity>();
             for (var i = 0 ; i < vanillaBeltConveyor.InventoryItemNum; i++)
@@ -63,8 +64,8 @@ namespace Server.Protocol.PacketResponse.Util
                 //残り時間をどこまで進んだかに変換するために 1- する
                 var parcent =
                     1 - (float)(beltConveyorItem.RemainingTime / vanillaBeltConveyor.TimeOfItemEnterToExit);
-                float entityX = x;
-                float entityY = y;
+                float entityX = pos.x;
+                float entityY = pos.y;
                 switch (blockDirection)
                 {
                     case BlockDirection.North:

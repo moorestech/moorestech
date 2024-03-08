@@ -6,6 +6,8 @@ using Game.PlayerInventory.Interface;
 using Game.WorldMap;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -38,7 +40,7 @@ namespace Server.Protocol.PacketResponse
                 _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
 
             //鉱石IDを取得
-            var oreId = _veinGenerator.GetOreId(data.X, data.Y);
+            var oreId = _veinGenerator.GetOreId(data.Pos);
             //鉱石のアイテムID
             var oreItemId = _oreConfig.OreIdToItemId(oreId);
             //プレイヤーインベントリーに鉱石を挿入
@@ -58,19 +60,16 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public MiningOperationProtocolMessagePack(int playerId, int x, int y)
+        public MiningOperationProtocolMessagePack(int playerId, Vector2Int pos)
         {
             Tag = MiningOperationProtocol.Tag;
             PlayerId = playerId;
-            X = x;
-            Y = y;
+            Pos = new Vector2IntMessagePack(pos);
         }
 
         [Key(2)]
         public int PlayerId { get; set; }
         [Key(3)]
-        public int X { get; set; }
-        [Key(4)]
-        public int Y { get; set; }
+        public Vector2IntMessagePack Pos { get; set; }
     }
 }

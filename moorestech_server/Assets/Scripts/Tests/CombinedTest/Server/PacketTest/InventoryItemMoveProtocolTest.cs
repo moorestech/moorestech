@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var chest = (VanillaChest)blockFactory.Create(ChestBlockId, 1);
-            worldDataStore.AddBlock(chest, 5, 10, BlockDirection.North);
+            worldDataStore.AddBlock(chest, new Vector2Int(5 ,10), BlockDirection.North);
 
             //ブロックインベントリの設定
             chest.SetItem(1, 1, 10);

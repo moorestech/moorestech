@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using Game.World.Interface.Event;
 using MessagePack;
+using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Event.EventReceive
 {
@@ -18,9 +20,9 @@ namespace Server.Event.EventReceive
 
         private void ReceivedEvent(BlockRemoveEventProperties blockPlaceEventProperties)
         {
-            var c = blockPlaceEventProperties.CoreVector2Int;
+            var c = blockPlaceEventProperties.Pos;
             
-            var payload = MessagePackSerializer.Serialize(new RemoveBlockEventMessagePack(c.x, c.y));
+            var payload = MessagePackSerializer.Serialize(new RemoveBlockEventMessagePack(c));
             
             _eventProtocolProvider.AddBroadcastEvent(EventTag,payload);
         }
@@ -32,15 +34,12 @@ namespace Server.Event.EventReceive
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public RemoveBlockEventMessagePack() { }
 
-        public RemoveBlockEventMessagePack(int x, int y)
+        public RemoveBlockEventMessagePack(Vector2Int pos)
         {
-            X = x;
-            Y = y;
+            Position = new Vector2IntMessagePack(pos);
         }
 
         [Key(0)]
-        public int X { get; set; }
-        [Key(1)]
-        public int Y { get; set; }
+        public Vector2IntMessagePack Position { get; set; }
     }
 }

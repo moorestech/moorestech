@@ -10,8 +10,6 @@ namespace Server.Util.MessagePack
         [Key(0)] public float X { get; set; }
         [Key(1)] public float Y { get; set; }
         
-        [IgnoreMember]
-        public Vector2 Vector2 => new Vector2(X, Y);
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public Vector2MessagePack()
@@ -24,10 +22,21 @@ namespace Server.Util.MessagePack
             Y = y;
         }
 
-        public Vector2MessagePack(Vector2Int coreVector2Int)
+        public Vector2MessagePack(Vector2Int vector2Int)
         {
-            X = coreVector2Int.x;
-            Y = coreVector2Int.y;
+            X = vector2Int.x;
+            Y = vector2Int.y;
+        }
+
+        public Vector2MessagePack(Vector2 vector2)
+        {
+            X = vector2.x;
+            Y = vector2.y;
+        }
+        
+        public static implicit operator Vector2(Vector2MessagePack pack)
+        {
+            return new Vector2(pack.X, pack.Y);
         }
     }
 }

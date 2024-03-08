@@ -1,4 +1,6 @@
-﻿namespace Game.WorldMap
+﻿using UnityEngine;
+
+namespace Game.WorldMap
 {
     /// <summary>
     ///     マップタイルを取得します
@@ -14,9 +16,9 @@
             _generator = generator;
         }
 
-        public int GetMapTile(int x, int y)
+        public int GetMapTile(Vector2Int pos)
         {
-            return _generator.GetOreId(x, y);
+            return _generator.GetOreId(pos);
         }
     }
 }
