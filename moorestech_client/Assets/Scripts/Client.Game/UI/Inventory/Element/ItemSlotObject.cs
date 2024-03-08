@@ -38,6 +38,7 @@ namespace MainGame.UnityView.UI.Inventory.Element
         {
             OnPointerEvent.Subscribe(OnInvokeOtherEvent).AddTo(this);
             SubscribeHover();
+            SubscribeClick();
         }
 
         private void SubscribeHover()
@@ -45,6 +46,11 @@ namespace MainGame.UnityView.UI.Inventory.Element
             _onCursorEnter.Subscribe(_ => hoverImage.SetActive(true)).AddTo(this);
             _onCursorExit.Subscribe(_ => hoverImage.SetActive(false)).AddTo(this);
         }
+
+        private void SubscribeClick()
+        {
+            _onLeftClickDown.Subscribe(_ => clickImage.SetActive(true)).AddTo(this);
+            _onLeftClickUp.Subscribe(_ => clickImage.SetActive(false)).AddTo(this);
         }
 
 
