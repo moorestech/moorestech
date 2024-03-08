@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Inventory;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
+using UnityEngine;
 
 namespace Game.PlayerInventory
 {
@@ -22,12 +23,12 @@ namespace Game.PlayerInventory
             return _openCoordinates.Where(x => x.Value == blockEntityId).Select(x => x.Key).ToList();
         }
 
-        public void Open(int playerId, int x, int y)
+        public void Open(int playerId, Vector2Int pos)
         {
             //開けるインベントリのブロックが存在していなかったらそのまま終了
-            if (!_worldBlockDatastore.TryGetBlock<IOpenableInventory>(x, y, out _)) return;
+            if (!_worldBlockDatastore.TryGetBlock<IOpenableInventory>(pos, out _)) return;
 
-            var entityId = _worldBlockDatastore.GetBlock(x, y).EntityId;
+            var entityId = _worldBlockDatastore.GetBlock(pos).EntityId;
             _openCoordinates[playerId] = entityId;
         }
 

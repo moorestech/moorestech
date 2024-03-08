@@ -90,19 +90,19 @@ namespace Tests.UnitTest.Game
         private void PlaceBlock(int blockId, Vector2Int position, BlockDirection direction)
         {
             var block = _blockFactory.Create(blockId, new Random().Next(0, 10000));
-            worldDatastore.AddBlock(block, position.x, position.y, direction);
+            worldDatastore.AddBlock(block, position, direction);
         }
 
         private void RetrieveBlock(int expectedBlockId, Vector2Int position)
         {
-            var block = worldDatastore.GetBlock(position.x, position.y);
+            var block = worldDatastore.GetBlock(position);
             Assert.IsNotNull(block);
             Assert.AreEqual(expectedBlockId, block.BlockId);
         }
 
         private void RetrieveNonExistentBlock(Vector2Int position)
         {
-            Assert.False(worldDatastore.Exists(position.x, position.y));
+            Assert.False(worldDatastore.Exists(position));
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.EnergySystem;
 using Game.Block.Config.LoadConfig.Param;
 using Game.World.Interface.DataStore;
+using UnityEngine;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
@@ -17,26 +18,27 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         /// <param name="blockDatastore"></param>
         /// <returns></returns>
         public static List<IEnergyTransformer> Find(
-            int x, int y,
+            Vector2Int pos,
             ElectricPoleConfigParam electricPoleConfigParam,
             IWorldBlockDatastore blockDatastore)
         {
             var electricPoles = new List<IEnergyTransformer>();
             //for文のための設定
             var poleRange = electricPoleConfigParam.poleConnectionRange;
-            blockDatastore.GetBlock(x, y);
-            var startElectricX = x - poleRange / 2;
-            var startElectricY = y - poleRange / 2;
+            blockDatastore.GetBlock(pos);
+            var startElectricX = pos.x - poleRange / 2;
+            var startElectricY = pos.y - poleRange / 2;
 
             //実際の探索
             for (var i = startElectricX; i < startElectricX + poleRange; i++)
             for (var j = startElectricY; j < startElectricY + poleRange; j++)
             {
                 //範囲内に電柱がある場合 ただし自身のブロックは除く
-                if (!blockDatastore.ExistsComponentBlock<IEnergyTransformer>(i, j) || (i == x && j == y)) continue;
+                var electricPolePos = new Vector2Int(i, j);
+                if (!blockDatastore.ExistsComponentBlock<IEnergyTransformer>(electricPolePos) || (i == pos.x && j == pos.y)) continue;
 
                 //電柱を追加
-                electricPoles.Add(blockDatastore.GetBlock<IEnergyTransformer>(i, j));
+                electricPoles.Add(blockDatastore.GetBlock<IEnergyTransformer>(electricPolePos));
             }
 
             return electricPoles;

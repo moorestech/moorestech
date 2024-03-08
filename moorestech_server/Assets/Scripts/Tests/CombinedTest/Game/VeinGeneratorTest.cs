@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Game
             for (var i = 0; i < 500; i++)
             for (var j = 0; j < 500; j++)
             {
-                var oreId = veinGenerator.GetOreId(i, j);
+                var oreId = veinGenerator.GetOreId(new(i, j));
                 if (oreId != OreConst.NoneOreId) count++;
             }
 

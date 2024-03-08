@@ -6,27 +6,28 @@ namespace Game.World.Interface.DataStore
 {
     public class WorldBlockData
     {
-        public WorldBlockData(IBlock block, int originX, int originY, BlockDirection blockDirection, IBlockConfig blockConfig)
+        public WorldBlockData(IBlock block, Vector2Int originalPos, BlockDirection blockDirection, IBlockConfig blockConfig)
         {
-            OriginX = originX;
-            OriginY = originY;
+            OriginalPos = originalPos;
             BlockDirection = blockDirection;
             Block = block;
             var config = blockConfig.GetBlockConfig(block.BlockId);
             Height = config.BlockSize.y;
             Width = config.BlockSize.x;
             
-            var maxPos = CalcBlockGridMaxPos(new Vector2Int(originX, originY), blockDirection, config.BlockSize);
+            var maxPos = CalcBlockGridMaxPos(originalPos, blockDirection, config.BlockSize);
             MaxX = maxPos.x;
             MaxY = maxPos.y;
         }
 
-        public int OriginX { get; }
-        public int OriginY { get; }
+        /// <summary>
+        /// オリジナル座標は常に左下（ブロックが専有する範囲の最小の座標）になる
+        /// </summary>
+        public Vector2Int OriginalPos { get; }
+        
         public int Height { get; }
         public int Width { get; }
-
-
+        
         public int MaxX { get; }
 
         public int MaxY { get; }
@@ -34,9 +35,9 @@ namespace Game.World.Interface.DataStore
         public IBlock Block { get; }
         public BlockDirection BlockDirection { get; }
 
-        public bool IsContain(int x, int y)
+        public bool IsContain(Vector2Int pos)
         {
-            return OriginX <= x && x <= MaxX && OriginY <= y && y <= MaxY;
+            return OriginalPos.x <= pos.x && pos.x <= MaxX && OriginalPos.y <= pos.y && pos.y <= MaxY;
         }
 
 

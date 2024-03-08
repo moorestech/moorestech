@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var i = 0;
             while (true)
             {
-                oreId = veinGenerator.GetOreId(i, y);
+                oreId = veinGenerator.GetOreId(new Vector2Int(i, y));
                 if (oreId != OreConst.NoneOreId)
                 {
                     x = i;
@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Debug.Log(oreItemId);
 
             //プロトコルを使って鉱石を採掘
-            packet.GetPacketResponse(MiningOperation(x, y, PlayerId));
+            packet.GetPacketResponse(MiningOperation(new Vector2Int(x, y), PlayerId));
 
             //インベントリーに鉱石がはいっているか
             var playerSlotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
@@ -60,9 +60,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);
         } //パケット
 
-        private List<byte> MiningOperation(int x, int y, int playerId)
+        private List<byte> MiningOperation(Vector2Int pos, int playerId)
         {
-            return MessagePackSerializer.Serialize(new MiningOperationProtocolMessagePack(playerId, x, y)).ToList();
+            return MessagePackSerializer.Serialize(new MiningOperationProtocolMessagePack(playerId, pos)).ToList();
         }
     }
 }

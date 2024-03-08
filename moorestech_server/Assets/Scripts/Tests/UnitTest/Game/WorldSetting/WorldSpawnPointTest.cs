@@ -27,9 +27,9 @@ namespace Tests.UnitTest.Game.WorldSetting
             var spawnPoint = worldSettings.WorldSpawnPoint;
 
             //その座標の鉱石のIDを取得し、それが正しいかどうかをチェックする
-            var spawnPointOreId = vineGenerator.GetOreId(spawnPoint.x, spawnPoint.y);
+            var spawnPointOreId = vineGenerator.GetOreId(spawnPoint);
 
-            Assert.AreEqual(vineGenerator.GetOreId(spawnPoint.x, spawnPoint.y), spawnPointOreId);
+            Assert.AreEqual(vineGenerator.GetOreId(spawnPoint), spawnPointOreId);
             Assert.AreEqual(1, spawnPointOreId);
         }
     }

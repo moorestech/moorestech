@@ -1,5 +1,6 @@
 using ClassLibrary;
 using Core.Ore;
+using UnityEngine;
 
 namespace Game.WorldMap
 {
@@ -20,13 +21,13 @@ namespace Game.WorldMap
             _oreConfig = oreConfig;
         }
 
-        public int GetOreId(int x, int y)
+        public int /**/GetOreId(Vector2Int pos)
         {
             var ids = _oreConfig.GetSortedIdsForPriority();
             foreach (var id in ids)
             {
                 var config = _oreConfig.Get(id);
-                if (ExistsVein(x, y, config.VeinSize, config.VeinFrequency, id, _seed)) return id;
+                if (ExistsVein(pos, config.VeinSize, config.VeinFrequency, id, _seed)) return id;
             }
 
             return OreConst.NoneOreId;
@@ -37,7 +38,7 @@ namespace Game.WorldMap
         /// </summary>
         /// <param name="veinSize">鉱脈の大きさ</param>
         /// <param name="veinFrequency">鉱脈の頻度</param>
-        private bool ExistsVein(int x, int y, float veinSize, float veinFrequency, int oreId, int seed)
+        private bool ExistsVein(Vector2Int pos, float veinSize, float veinFrequency, int oreId, int seed)
         {
             //ノイズの設定
             var noise = new FastNoiseLite(seed);
@@ -50,6 +51,8 @@ namespace Game.WorldMap
             noise.SetCellularJitter(1.0f);
 
             //ノイズの値を取得
+            var x = pos.x;
+            var y = pos.y;
             var noiseValue = noise.GetNoise(x, y);
             //鉱脈の大きさを実際にノイズで使う値に変換
             var useVeinsSize = DefaultVeinsSize + (veinSize - 1) * 0.01f;

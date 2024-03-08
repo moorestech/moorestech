@@ -20,7 +20,7 @@ namespace Server.Event.EventReceive
 
         private void ReceivedEvent(BlockPlaceEventProperties blockPlaceEventProperties)
         {
-            var c = blockPlaceEventProperties.CoreVector2Int;
+            var c = blockPlaceEventProperties.Pos;
             var blockId = blockPlaceEventProperties.Block.BlockId;
 
             var messagePack = new PlaceBlockEventMessagePack(c, blockId, (int)blockPlaceEventProperties.BlockDirection);

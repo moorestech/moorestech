@@ -36,7 +36,7 @@ namespace Server.Protocol.PacketResponse
             var result = new ChunkDataMessagePack[data.ChunkPos.Count];
             for (var i = 0; i < data.ChunkPos.Count; i++)
             {
-                var chunkData = GetChunkData(data.ChunkPos[i].Vector2Int);
+                var chunkData = GetChunkData(data.ChunkPos[i]);
                 result[i] = chunkData;
             }
 
@@ -53,7 +53,7 @@ namespace Server.Protocol.PacketResponse
                 for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
                 {
                     var blockPos = chunkPos + new Vector2Int(i, j);
-                    var originalPosBlock = _worldBlockDatastore.GetOriginPosBlock(blockPos.x, blockPos.y);
+                    var originalPosBlock = _worldBlockDatastore.GetOriginPosBlock(blockPos);
 
                     var blockDirection = BlockDirection.North;
                     var blockId = BlockConst.EmptyBlockId;

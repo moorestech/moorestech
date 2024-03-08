@@ -13,6 +13,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -40,19 +41,19 @@ namespace Tests.CombinedTest.Server.PacketTest
             var blockConfigData = blockConfig.GetBlockConfig(block.BlockId);
 
             //削除するためのブロックの生成
-            worldBlock.AddBlock(block, 0, 0, BlockDirection.North);
+            worldBlock.AddBlock(block, new Vector2Int(0 ,0), BlockDirection.North);
 
-            Assert.AreEqual(0, worldBlock.GetBlock(0, 0).EntityId);
+            Assert.AreEqual(0, worldBlock.GetBlock(new Vector2Int(0,  0)).EntityId);
 
             //プレイヤーインベントリに削除したブロックを追加
 
 
             //プロトコルを使ってブロックを削除
-            packet.GetPacketResponse(RemoveBlock(0, 0, PlayerId));
+            packet.GetPacketResponse(RemoveBlock(new Vector2Int(0, 0), PlayerId));
 
 
             //削除したブロックがワールドに存在しないことを確認
-            Assert.False(worldBlock.Exists(0, 0));
+            Assert.False(worldBlock.Exists(new Vector2Int(0, 0)));
 
 
             var playerSlotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
@@ -102,15 +103,15 @@ namespace Tests.CombinedTest.Server.PacketTest
             blockInventory.SetItem(1, itemStackFactory.Create(4, 5));
 
             //ブロックを設置
-            worldBlock.AddBlock(block, 0, 0, BlockDirection.North);
+            worldBlock.AddBlock(block, new Vector2Int(0 ,0), BlockDirection.North);
 
 
             //プロトコルを使ってブロックを削除
-            packet.GetPacketResponse(RemoveBlock(0, 0, PlayerId));
+            packet.GetPacketResponse(RemoveBlock(new Vector2Int(0, 0), PlayerId));
 
 
             //削除したブロックがワールドに存在してることを確認
-            Assert.True(worldBlock.Exists(0, 0));
+            Assert.True(worldBlock.Exists(new Vector2Int(0, 0)));
 
             //プレイヤーのインベントリにブロック内のアイテムが入っているか確認
             Assert.AreEqual(itemStackFactory.Create(3, id3MaxStack), mainInventory.GetItem(0));
@@ -142,21 +143,21 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             //ブロックを設置
             var block = blockFactory.Create(MachineBlockId, 0);
-            worldBlock.AddBlock(block, 0, 0, BlockDirection.North);
+            worldBlock.AddBlock(block, new Vector2Int(0 ,0), BlockDirection.North);
 
 
             //プロトコルを使ってブロックを削除
-            packet.GetPacketResponse(RemoveBlock(0, 0, PlayerId));
+            packet.GetPacketResponse(RemoveBlock(new Vector2Int(0, 0), PlayerId));
 
 
             //ブロックが削除できていないことを検証
-            Assert.True(worldBlock.Exists(0, 0));
+            Assert.True(worldBlock.Exists(new Vector2Int(0, 0)));
         }
 
 
-        private List<byte> RemoveBlock(int x, int y, int playerId)
+        private List<byte> RemoveBlock(Vector2Int pos, int playerId)
         {
-            return MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(playerId, x, y)).ToList();
+            return MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(playerId, pos)).ToList();
         }
     }
 }

@@ -6,6 +6,8 @@ using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -28,7 +30,7 @@ namespace Server.Protocol.PacketResponse
                 MessagePackSerializer.Deserialize<RequestBlockInventoryRequestProtocolMessagePack>(payload.ToArray());
 
             //開けるインベントリを持つブロックが存在するかどうかをチェック
-            if (!_blockDatastore.ExistsComponentBlock<IOpenableInventory>(data.X, data.Y))
+            if (!_blockDatastore.ExistsComponentBlock<IOpenableInventory>(data.Pos))
                 return null;
 
 
@@ -36,19 +38,19 @@ namespace Server.Protocol.PacketResponse
             var itemIds = new List<int>();
             var itemCounts = new List<int>();
 
-            foreach (var item in _blockDatastore.GetBlock<IOpenableInventory>(data.X, data.Y).Items)
+            foreach (var item in _blockDatastore.GetBlock<IOpenableInventory>(data.Pos).Items)
             {
                 itemIds.Add(item.Id);
                 itemCounts.Add(item.Count);
             }
 
-            var blockId = _blockDatastore.GetBlock(data.X, data.Y).BlockId;
+            var blockId = _blockDatastore.GetBlock(data.Pos).BlockId;
 
             return new BlockInventoryResponseProtocolMessagePack(blockId, itemIds.ToArray(), itemCounts.ToArray());
         }
 
         //データのレスポンスを実行するdelegateを設定する
-        private delegate byte[] InventoryResponse(int x, int y, IBlockConfigParam config);
+        private delegate byte[] InventoryResponse(Vector2Int pos, IBlockConfigParam config);
     }
 
 
@@ -60,17 +62,14 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public RequestBlockInventoryRequestProtocolMessagePack(int x, int y)
+        public RequestBlockInventoryRequestProtocolMessagePack(Vector2Int pos)
         {
             Tag = BlockInventoryRequestProtocol.Tag;
-            X = x;
-            Y = y;
+            Pos = new Vector2IntMessagePack(pos);
         }
         
         [Key(2)]
-        public int X { get; set; }
-        [Key(3)]
-        public int Y { get; set; }
+        public Vector2IntMessagePack Pos { get; set; }
     }
 
     [MessagePackObject]

@@ -7,6 +7,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -33,7 +34,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //プレイヤーの座標を変更
-            packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, 100, -100));
+            packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, new Vector2Int(100, -100)));
 
 
             //再度ハンドシェイクを実行して座標が変更されていることを確認
@@ -51,10 +52,10 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
 
-        private List<byte> GetPlayerPositionPacket(int playerId, int x, int y)
+        private List<byte> GetPlayerPositionPacket(int playerId, Vector2Int pos)
         {
             return MessagePackSerializer.Serialize(
-                new PlayerCoordinateSendProtocolMessagePack(playerId, x, y)).ToList();
+                new PlayerCoordinateSendProtocolMessagePack(playerId, pos)).ToList();
         }
     }
 }

@@ -5,8 +5,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryMoveUtil
     public class ItemMoveInventoryInfo
     {
         public readonly ItemMoveInventoryType ItemMoveInventoryType;
-        public readonly int X;
-        public readonly int Y;
+        public readonly Vector2Int Pos;
 
         /// <summary>
         ///     アイテム移動用のパラメータクラスです
@@ -17,8 +16,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryMoveUtil
         public ItemMoveInventoryInfo(ItemMoveInventoryType itemMoveInventoryType, Vector2Int blockPos = default)
         {
             ItemMoveInventoryType = itemMoveInventoryType;
-            X = blockPos.x;
-            Y = blockPos.y;
+            Pos = blockPos;
         }
     }
 }

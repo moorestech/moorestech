@@ -69,14 +69,14 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
                 Dictionary<int, IElectricGenerator> powerGenerators,
                 EnergyServiceDependencyContainer<TSegment> container)
         {
-            var (x, y) = container.WorldBlockDatastore.GetBlockPosition(electricPole.EntityId);
+            var pos = container.WorldBlockDatastore.GetBlockPosition(electricPole.EntityId);
             var poleConfig =
                 container.BlockConfig.GetBlockConfig(((IBlock)electricPole).BlockId).Param as ElectricPoleConfigParam;
 
 
             //周辺の機械、発電機を取得
             var (newBlocks, newGenerators) =
-                FindMachineAndGeneratorFromPeripheralService.Find(x, y, poleConfig, container.WorldBlockDatastore);
+                FindMachineAndGeneratorFromPeripheralService.Find(pos, poleConfig, container.WorldBlockDatastore);
             //ブロックと発電機を追加
             foreach (var block in newBlocks)
             {
@@ -93,7 +93,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
 
             //周辺の電柱を取得
             var peripheralElectricPoles =
-                FindElectricPoleFromPeripheralService.Find(x, y, poleConfig, container.WorldBlockDatastore);
+                FindElectricPoleFromPeripheralService.Find(pos, poleConfig, container.WorldBlockDatastore);
             //削除された電柱は除く
             peripheralElectricPoles.Remove(removedElectricPole);
             //自身の電柱は追加する

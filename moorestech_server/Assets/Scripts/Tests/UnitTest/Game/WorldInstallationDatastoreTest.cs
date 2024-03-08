@@ -1,4 +1,3 @@
-using System;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;
@@ -7,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UnityEngine;
+using Random = System.Random;
 
 namespace Tests.UnitTest.Game
 {
@@ -29,9 +30,10 @@ namespace Tests.UnitTest.Game
 
                 var x = random.Next(-1000, 1000);
                 var y = random.Next(-1000, 1000);
+                var pos = new Vector2Int(x, y);
 
-                worldData.AddBlock(ins, x, y, BlockDirection.North);
-                var output = worldData.GetBlock(x, y);
+                worldData.AddBlock(ins, pos, BlockDirection.North);
+                var output = worldData.GetBlock(pos);
                 Assert.AreEqual(entityId, output.EntityId);
             }
         }
@@ -46,11 +48,11 @@ namespace Tests.UnitTest.Game
 
             var entityId = CreateBlockEntityId.Create();
             var i = CreateMachine(1, entityId);
-            worldData.AddBlock(i, 1, 1, BlockDirection.North);
+            worldData.AddBlock(i, new Vector2Int(1 ,1), BlockDirection.North);
 
             //座標だけ変えてintIDは同じ
             var i2 = CreateMachine(1, entityId);
-            Assert.False(worldData.AddBlock(i2, 10, 10, BlockDirection.North));
+            Assert.False(worldData.AddBlock(i2, new Vector2Int(10 ,10), BlockDirection.North));
         }
 
         [Test]
@@ -61,11 +63,11 @@ namespace Tests.UnitTest.Game
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var i = CreateMachine(1, CreateBlockEntityId.Create());
-            worldData.AddBlock(i, 1, 1, BlockDirection.North);
+            worldData.AddBlock(i, new Vector2Int(1 ,1), BlockDirection.North);
 
             //座標だけ変えてintIDは同じ
             var i2 = CreateMachine(1, CreateBlockEntityId.Create());
-            Assert.False(worldData.AddBlock(i2, 1, 1, BlockDirection.North));
+            Assert.False(worldData.AddBlock(i2, new Vector2Int(1 ,1), BlockDirection.North));
         }
 
         private VanillaMachineBase CreateMachine(int id, int entityId)

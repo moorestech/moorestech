@@ -30,7 +30,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             GameUpdater.ResetUpdate();
             
             var machine = (VanillaMachineBase)blockFactory.Create(1, 10);
-            worldBlockDatastore.AddBlock(machine, 0, 0, BlockDirection.North);
+            worldBlockDatastore.AddBlock(machine, new Vector2Int(0 ,0), BlockDirection.North);
 
 
             //レシピ用のアイテムを追加
@@ -73,7 +73,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var json = assembleSaveJsonText.AssembleSaveJson();
             Debug.Log(json);
             //配置したブロックを削除
-            worldBlockDatastore.RemoveBlock(0, 0);
+            worldBlockDatastore.RemoveBlock(new Vector2Int(0, 0));
 
 
             //ロードした時に機械の状態が正しいことを確認
@@ -81,7 +81,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             loadJsonFile.Load(json);
 
-            var loadMachine = (VanillaMachineBase)loadWorldBlockDatastore.GetBlock(0, 0);
+            var loadMachine = (VanillaMachineBase)loadWorldBlockDatastore.GetBlock(new Vector2Int(0,  0));
             Debug.Log(machine.GetHashCode());
             Debug.Log(loadMachine.GetHashCode());
             //ブロックID、intIDが同じであることを確認

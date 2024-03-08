@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Block;
+using UnityEngine;
 
 namespace Game.World.EventHandler.InventoryEvent
 {
@@ -85,6 +86,12 @@ namespace Game.World.EventHandler.InventoryEvent
         {
             North = north;
             East = east;
+        }
+        
+        public ConnectDirection(Vector2Int distance)
+        {
+            North = distance.y;
+            East = distance.x;
         }
 
         public bool Equals(ConnectDirection other)

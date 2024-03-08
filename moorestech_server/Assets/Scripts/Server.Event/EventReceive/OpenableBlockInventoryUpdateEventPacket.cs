@@ -7,6 +7,7 @@ using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Event.EventReceive
 {
@@ -40,8 +41,8 @@ namespace Server.Event.EventReceive
             var playerIds = _inventoryOpenStateDataStore.GetBlockInventoryOpenPlayers(properties.EntityId);
             if (playerIds.Count == 0) return;
 
-            var (x, y) = _worldBlockDatastore.GetBlockPosition(properties.EntityId);
-            var messagePack = new OpenableBlockInventoryUpdateEventMessagePack(x, y, properties.Slot, properties.ItemStack);
+            var pos = _worldBlockDatastore.GetBlockPosition(properties.EntityId);
+            var messagePack = new OpenableBlockInventoryUpdateEventMessagePack(pos, properties.Slot, properties.ItemStack);
             var payload = MessagePackSerializer.Serialize(messagePack);
             
             //プレイヤーごとにイベントを送信
@@ -61,21 +62,18 @@ namespace Server.Event.EventReceive
         {
         }
 
-        public OpenableBlockInventoryUpdateEventMessagePack(int x, int y, int slot, IItemStack item)
+        public OpenableBlockInventoryUpdateEventMessagePack(Vector2Int pos, int slot, IItemStack item)
         {
-            X = x;
-            Y = y;
+            Position = new Vector2IntMessagePack(pos);
             Slot = slot;
             Item = new ItemMessagePack(item.Id, item.Count);
         }
 
         [Key(0)]
-        public int X { get; set; }
+        public Vector2IntMessagePack Position { get; set; }
         [Key(1)]
-        public int Y { get; set; }
-        [Key(2)]
         public int Slot { get; set; }
-        [Key(3)]
+        [Key(2)]
         public ItemMessagePack Item { get; set; }
     }
 }

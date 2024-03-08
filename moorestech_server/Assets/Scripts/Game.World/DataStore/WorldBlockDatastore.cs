@@ -41,21 +41,20 @@ namespace Game.World.DataStore
             _blockPlaceEvent = (BlockPlaceEvent)blockPlaceEvent;
         }
 
-        public event Action<(ChangedBlockState state, IBlock block, int x, int y)> OnBlockStateChange;
+        public event Action<(ChangedBlockState state, IBlock block, Vector2Int pos)> OnBlockStateChange;
 
-        public bool AddBlock(IBlock block, int x, int y, BlockDirection blockDirection)
+        public bool AddBlock(IBlock block, Vector2Int pos, BlockDirection blockDirection)
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
             if (!_blockMasterDictionary.ContainsKey(block.EntityId) &&
-                !_coordinateDictionary.ContainsKey(new Vector2Int(x, y)))
+                !_coordinateDictionary.ContainsKey(pos))
             {
-                var c = new Vector2Int(x, y);
-                var data = new WorldBlockData(block, x, y, blockDirection, _blockConfig);
+                var data = new WorldBlockData(block, pos, blockDirection, _blockConfig);
                 _blockMasterDictionary.Add(block.EntityId, data);
-                _coordinateDictionary.Add(c, block.EntityId);
-                _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(c, data.Block, blockDirection));
+                _coordinateDictionary.Add(pos, block.EntityId);
+                _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(pos, data.Block, blockDirection));
 
-                block.OnBlockStateChange += state => { OnBlockStateChange?.Invoke((state, block, x, y)); };
+                block.OnBlockStateChange += state => { OnBlockStateChange?.Invoke((state, block, pos)); };
 
                 return true;
             }
@@ -63,75 +62,74 @@ namespace Game.World.DataStore
             return false;
         }
 
-        public bool RemoveBlock(int x, int y)
+        public bool RemoveBlock(Vector2Int pos)
         {
-            if (!Exists(x, y)) return false;
+            if (!Exists(pos)) return false;
 
-            var entityId = GetEntityId(x, y);
+            var entityId = GetEntityId(pos);
             if (!_blockMasterDictionary.ContainsKey(entityId)) return false;
 
             var data = _blockMasterDictionary[entityId];
 
-            _blockRemoveEvent.OnBlockRemoveEventInvoke(new BlockRemoveEventProperties(
-                new Vector2Int(x, y), data.Block));
+            _blockRemoveEvent.OnBlockRemoveEventInvoke(new BlockRemoveEventProperties(pos, data.Block));
 
             _blockMasterDictionary.Remove(entityId);
-            _coordinateDictionary.Remove(new Vector2Int(x, y));
+            _coordinateDictionary.Remove(pos);
             return true;
         }
 
 
-        public IBlock GetBlock(int x, int y)
+        public IBlock GetBlock(Vector2Int pos)
         {
-            return GetBlockDatastore(x, y)?.Block ?? _nullBlock;
+            return GetBlockDatastore(pos)?.Block ?? _nullBlock;
         }
 
-        public WorldBlockData GetOriginPosBlock(int x, int y)
+        public WorldBlockData GetOriginPosBlock(Vector2Int pos)
         {
-            return _coordinateDictionary.TryGetValue(new Vector2Int(x, y), out var entityId)
+            return _coordinateDictionary.TryGetValue(pos, out var entityId)
                 ? _blockMasterDictionary[entityId]
                 : null;
         }
 
-        public bool TryGetBlock(int x, int y, out IBlock block)
+        public bool TryGetBlock(Vector2Int pos, out IBlock block)
         {
-            block = GetBlock(x, y);
+            block = GetBlock(pos);
             block ??= _nullBlock;
             return block != _nullBlock;
         }
 
-        public (int, int) GetBlockPosition(int entityId)
+        public Vector2Int GetBlockPosition(int entityId)
         {
-            if (_blockMasterDictionary.TryGetValue(entityId, out var data)) return (data.OriginX, data.OriginY);
+            if (_blockMasterDictionary.TryGetValue(entityId, out var data)) return data.OriginalPos;
 
             throw new Exception("ブロックがありません");
         }
 
-        public BlockDirection GetBlockDirection(int x, int y)
+        public BlockDirection GetBlockDirection(Vector2Int pos)
         {
-            var block = GetBlockDatastore(x, y);
+            var block = GetBlockDatastore(pos);
             //TODO ブロックないときの処理どうしよう
             return block?.BlockDirection ?? BlockDirection.North;
         }
 
 
-        public bool Exists(int x, int y)
+        public bool Exists(Vector2Int pos)
         {
-            return GetBlock(x, y).BlockId != BlockConst.EmptyBlockId;
+            return GetBlock(pos).BlockId != BlockConst.EmptyBlockId;
         }
 
-        private int GetEntityId(int x, int y)
+        private int GetEntityId(Vector2Int pos)
         {
-            return GetBlockDatastore(x, y).Block.EntityId;
+            return GetBlockDatastore(pos).Block.EntityId;
         }
 
         /// <summary>
         ///     TODO GetBlockは頻繁に呼ばれる訳では無いが、この方式は効率が悪いのでなにか改善したい
         /// </summary>
-        private WorldBlockData GetBlockDatastore(int x, int y)
+        private WorldBlockData GetBlockDatastore(Vector2Int pos)
         {
             foreach (var block in
-                     _blockMasterDictionary.Where(block => block.Value.IsContain(x, y)))
+                     _blockMasterDictionary.Where(block => block.Value.IsContain(pos)))
                 return block.Value;
 
             return null;
@@ -139,24 +137,24 @@ namespace Game.World.DataStore
 
         #region Component
 
-        public bool ExistsComponentBlock<TComponent>(int x, int y)
+        public bool ExistsComponentBlock<TComponent>(Vector2Int pos)
         {
-            return GetBlock(x, y) is TComponent;
+            return GetBlock(pos) is TComponent;
         }
 
-        public TComponent GetBlock<TComponent>(int x, int y)
+        public TComponent GetBlock<TComponent>(Vector2Int pos)
         {
-            var block = GetBlock(x, y);
+            var block = GetBlock(pos);
             if (block is TComponent component) return component;
 
             throw new Exception("Block is not " + typeof(TComponent));
         }
 
-        public bool TryGetBlock<TComponent>(int x, int y, out TComponent component)
+        public bool TryGetBlock<TComponent>(Vector2Int pos, out TComponent component)
         {
-            if (ExistsComponentBlock<TComponent>(x, y))
+            if (ExistsComponentBlock<TComponent>(pos))
             {
-                component = GetBlock<TComponent>(x, y);
+                component = GetBlock<TComponent>(pos);
                 return true;
             }
 
@@ -174,8 +172,7 @@ namespace Game.World.DataStore
             var list = new List<SaveBlockData>();
             foreach (var block in _blockMasterDictionary)
                 list.Add(new SaveBlockData(
-                    block.Value.OriginX,
-                    block.Value.OriginY,
+                    block.Value.OriginalPos,
                     block.Value.Block.BlockHash,
                     block.Value.Block.EntityId,
                     block.Value.Block.GetSaveState(),
@@ -189,8 +186,7 @@ namespace Game.World.DataStore
             foreach (var block in saveBlockDataList)
                 AddBlock(
                     _blockFactory.Load(block.BlockHash, block.EntityId, block.State),
-                    block.X,
-                    block.Y,
+                    block.Pos,
                     (BlockDirection)block.Direction);
         }
 

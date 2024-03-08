@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Game.Block.BlockInventory;
 using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
+using UnityEngine;
 
 namespace Game.World.EventHandler.InventoryEvent
 {
@@ -33,15 +35,17 @@ namespace Game.World.EventHandler.InventoryEvent
         /// <param name="blockPlaceEvent"></param>
         private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
         {
-            var connectOffsetBlockPositions = new List<(int, int)> { (1, 0), (-1, 0), (0, 1), (0, -1) };
-            var x = blockPlaceEvent.CoreVector2Int.x;
-            var y = blockPlaceEvent.CoreVector2Int.y;
+            var connectOffsetBlockPositions = new List<Vector2Int>
+            {
+                new(1, 0), new(-1, 0), new(0, 1), new(0, -1)
+            };
+            var pos = blockPlaceEvent.Pos;
 
-            foreach (var (offsetX, offsetY) in connectOffsetBlockPositions)
+            foreach (var offset in connectOffsetBlockPositions)
             {
                 //接続元を入れ替えて接続を試みる
-                ConnectBlock(x, y, x + offsetX, y + offsetY);
-                ConnectBlock(x + offsetX, y + offsetY, x, y);
+                ConnectBlock(pos, pos + offset);
+                ConnectBlock(pos + offset, pos);
             }
         }
 
@@ -52,15 +56,15 @@ namespace Game.World.EventHandler.InventoryEvent
         ///     そのブロックのタイプはioConnectionDataDictionaryにあるか、
         ///     それぞれインプットとアウトプットの向きはあっているかを確認し、接続する
         /// </summary>
-        private void ConnectBlock(int sourceX, int sourceY, int destinationX, int destinationY)
+        private void ConnectBlock(Vector2Int source, Vector2Int destination)
         {
             //接続元、接続先にBlockInventoryがなければ処理を終了
-            if (!_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(sourceX, sourceY) ||
-                !_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(destinationX, destinationY)) return;
+            if (!_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(source) ||
+                !_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(destination)) return;
 
 
             //接続元のブロックデータを取得
-            var sourceBlock = _worldBlockDatastore.GetBlock(sourceX, sourceY);
+            var sourceBlock = _worldBlockDatastore.GetBlock(source);
             var sourceBlockType = _blockConfig.GetBlockConfig(sourceBlock.BlockId).Type;
             //接続元のブロックタイプがDictionaryになければ処理を終了
             if (!_ioConnectionDataDictionary.ContainsKey(sourceBlockType)) return;
@@ -68,11 +72,11 @@ namespace Game.World.EventHandler.InventoryEvent
             var (_, sourceBlockOutputConnector) =
                 GetConnectionPositions(
                     sourceBlockType,
-                    _worldBlockDatastore.GetBlockDirection(sourceX, sourceY));
+                    _worldBlockDatastore.GetBlockDirection(source));
 
 
             //接続先のブロックデータを取得
-            var destinationBlock = _worldBlockDatastore.GetBlock(destinationX, destinationY);
+            var destinationBlock = _worldBlockDatastore.GetBlock(destination);
             var destinationBlockType = _blockConfig.GetBlockConfig(destinationBlock.BlockId).Type;
             //接続先のブロックタイプがDictionaryになければ処理を終了
             if (!_ioConnectionDataDictionary.ContainsKey(destinationBlockType)) return;
@@ -80,7 +84,7 @@ namespace Game.World.EventHandler.InventoryEvent
             var (destinationBlockInputConnector, _) =
                 GetConnectionPositions(
                     destinationBlockType,
-                    _worldBlockDatastore.GetBlockDirection(destinationX, destinationY));
+                    _worldBlockDatastore.GetBlockDirection(destination));
 
 
             //接続元の接続可能リストに接続先がなかったら終了
@@ -89,18 +93,17 @@ namespace Game.World.EventHandler.InventoryEvent
 
 
             //接続元から接続先へのブロックの距離を取得
-            var distanceX = destinationX - sourceX;
-            var distanceY = destinationY - sourceY;
+            var distance = destination - source;
 
             //接続元ブロックに対応するアウトプット座標があるかチェック
-            if (!sourceBlockOutputConnector.Contains(new ConnectDirection(distanceY, distanceX))) return;
+            if (!sourceBlockOutputConnector.Contains(new ConnectDirection(distance))) return;
             //接続先ブロックに対応するインプット座標があるかチェック
-            if (!destinationBlockInputConnector.Contains(new ConnectDirection(-distanceY, -distanceX))) return;
+            if (!destinationBlockInputConnector.Contains(new ConnectDirection(distance * -1))) return;
 
 
             //接続元ブロックと接続先ブロックを接続
-            _worldBlockDatastore.GetBlock<IBlockInventory>(sourceX, sourceY).AddOutputConnector(
-                _worldBlockDatastore.GetBlock<IBlockInventory>(destinationX, destinationY));
+            _worldBlockDatastore.GetBlock<IBlockInventory>(source).AddOutputConnector(
+                _worldBlockDatastore.GetBlock<IBlockInventory>(destination));
         }
 
         /// <summary>

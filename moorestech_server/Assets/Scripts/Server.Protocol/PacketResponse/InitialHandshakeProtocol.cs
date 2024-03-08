@@ -49,9 +49,7 @@ namespace Server.Protocol.PacketResponse
 
 
             //プレイヤーのデータがなかったのでスポーン地点を取得する
-            var x = _worldSettingsDatastore.WorldSpawnPoint.x;
-            var y = _worldSettingsDatastore.WorldSpawnPoint.y;
-            return new Vector2MessagePack(x, y);
+            return new Vector2MessagePack(_worldSettingsDatastore.WorldSpawnPoint);
         }
     }
 

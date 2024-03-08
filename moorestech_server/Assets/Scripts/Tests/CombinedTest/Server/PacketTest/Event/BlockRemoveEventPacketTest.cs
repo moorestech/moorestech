@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
@@ -10,6 +9,8 @@ using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using UnityEngine;
+using Random = System.Random;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -43,35 +44,35 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             //一個ブロックを削除
-            worldDataStore.RemoveBlock(4, 0);
+            worldDataStore.RemoveBlock(new Vector2Int(4, 0));
 
             //イベントを取得
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             
             Assert.AreEqual(1, eventMessagePack.Events.Count);
-            var (x, y) = AnalysisResponsePacket(eventMessagePack.Events[0].Payload);
-            Assert.AreEqual(4, x);
-            Assert.AreEqual(0, y);
+            var pos = AnalysisResponsePacket(eventMessagePack.Events[0].Payload);
+            Assert.AreEqual(4, pos.x);
+            Assert.AreEqual(0, pos.y);
 
             //二個ブロックを削除
-            worldDataStore.RemoveBlock(3, 1);
-            worldDataStore.RemoveBlock(1, 4);
+            worldDataStore.RemoveBlock(new Vector2Int(3, 1));
+            worldDataStore.RemoveBlock(new Vector2Int(1, 4));
             //イベントを取得
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
             Assert.AreEqual(2, eventMessagePack.Events.Count);
-            (x, y) = AnalysisResponsePacket(eventMessagePack.Events[0].Payload);
-            Assert.AreEqual(3, x);
-            Assert.AreEqual(1, y);
-            (x, y) = AnalysisResponsePacket(eventMessagePack.Events[1].Payload);
-            Assert.AreEqual(1, x);
-            Assert.AreEqual(4, y);
+            (pos) = AnalysisResponsePacket(eventMessagePack.Events[0].Payload);
+            Assert.AreEqual(3, pos.x);
+            Assert.AreEqual(1, pos.y);
+            (pos) = AnalysisResponsePacket(eventMessagePack.Events[1].Payload);
+            Assert.AreEqual(1, pos.x);
+            Assert.AreEqual(4, pos.y);
         }
 
-        private void BlockPlace(int x, int y, int id, IWorldBlockDatastore worldBlock, IBlockFactory blockFactory)
+        private void BlockPlace(int x,int y, int id, IWorldBlockDatastore worldBlock, IBlockFactory blockFactory)
         {
-            worldBlock.AddBlock(blockFactory.Create(id, new Random().Next()), x, y, BlockDirection.North);
+            worldBlock.AddBlock(blockFactory.Create(id, new Random().Next()), new Vector2Int(x,y), BlockDirection.North);
         }
 
         private List<byte> EventRequestData(int plyaerID)
@@ -79,11 +80,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID)).ToList();
         }
 
-        private (int, int) AnalysisResponsePacket(byte[] payload)
+        private Vector2Int AnalysisResponsePacket(byte[] payload)
         {
             var data = MessagePackSerializer.Deserialize<RemoveBlockEventMessagePack>(payload.ToArray());
 
-            return (data.X, data.Y);
+            return data.Position;
         }
     }
 }

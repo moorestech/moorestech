@@ -37,11 +37,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //ブロックをセットアップ
             var block = blockFactory.Create(MachineBlockId, 1);
             var blockInventory = (IOpenableInventory)block;
-            worldBlockDataStore.AddBlock(block, 5, 7, BlockDirection.North);
+            worldBlockDataStore.AddBlock(block, new Vector2Int(5 ,7), BlockDirection.North);
 
 
             //インベントリを開く
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(5, 7, true));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new (5, 7), true));
             //ブロックにアイテムを入れる
             blockInventory.SetItem(1, itemStackFactory.Create(4, 8));
 
@@ -60,12 +60,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(1, data.Slot); // slot id
             Assert.AreEqual(4, data.Item.Id); // item id
             Assert.AreEqual(8, data.Item.Count); // item count
-            Assert.AreEqual(5, data.X); // x
-            Assert.AreEqual(7, data.Y); // y
+            Assert.AreEqual(5, data.Position.X); // x
+            Assert.AreEqual(7, data.Position.Y); // y
 
 
             //ブロックのインベントリを閉じる
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(5, 7, false));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new (5, 7), false));
 
             //ブロックにアイテムを入れる
             blockInventory.SetItem(2, itemStackFactory.Create(4, 8));
@@ -92,16 +92,17 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //ブロック1をセットアップ
             var block1 = blockFactory.Create(MachineBlockId, 1);
             var block1Inventory = (IOpenableInventory)block1;
-            worldBlockDataStore.AddBlock(block1, 5, 7, BlockDirection.North);
+            worldBlockDataStore.AddBlock(block1, new Vector2Int(5 ,7), BlockDirection.North);
             //ブロック2をセットアップ
             var block2 = blockFactory.Create(MachineBlockId, 2);
-            worldBlockDataStore.AddBlock(block2, 10, 20, BlockDirection.North);
+            worldBlockDataStore.AddBlock(block2, new Vector2Int(10 ,20), BlockDirection.North);
 
 
             //一つ目のブロックインベントリを開く
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(5, 7, true));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new (5, 7), true));
             //二つ目のブロックインベントリを開く
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(10, 20, true));
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new (10, 20), true));
+            
 
 
             //一つ目のブロックインベントリにアイテムを入れる
@@ -115,10 +116,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
 
 
-        private List<byte> OpenCloseBlockInventoryPacket(int x, int y, bool isOpen)
+        private List<byte> OpenCloseBlockInventoryPacket(Vector2Int pos, bool isOpen)
         {
             return MessagePackSerializer
-                .Serialize(new BlockInventoryOpenCloseProtocolMessagePack(PlayerId, x, y, isOpen)).ToList();
+                .Serialize(new BlockInventoryOpenCloseProtocolMessagePack(PlayerId, pos, isOpen)).ToList();
         }
 
         private List<byte> GetEventPacket()

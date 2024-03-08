@@ -42,8 +42,8 @@ namespace Game.World.DataStore.WorldSettings
             for (var x = x1; x < x2; x++)
             for (var y = y1; y < y2; y++)
             {
-                var veinId = veinGenerator.GetOreId(x, y);
-                if (veinId == IronOreId && CheckOreExistDirection(veinGenerator, x, y, IronOreId, 2))
+                var veinId = veinGenerator.GetOreId(new Vector2Int(x, y));
+                if (veinId == IronOreId && CheckOreExistDirection(veinGenerator, new Vector2Int(x, y), IronOreId, 2))
                     return (true, new Vector2Int(x, y));
             }
 
@@ -54,12 +54,15 @@ namespace Game.World.DataStore.WorldSettings
         ///     指定したOreIDが4方向の、指定したブロック分存在しているかどうかをチェック
         /// </summary>
         /// <returns></returns>
-        private static bool CheckOreExistDirection(VeinGenerator veinGenerator, int x, int y, int oreId, int checkBlock)
+        private static bool CheckOreExistDirection(VeinGenerator veinGenerator, Vector2Int pos, int oreId, int checkBlock)
         {
+            var x = pos.x;
+            var y = pos.y;
+            
             for (var i = x - checkBlock; i <= x + checkBlock; i++)
             for (var j = y - checkBlock; j <= y + checkBlock; j++)
             {
-                if (veinGenerator.GetOreId(i, j) == oreId) continue;
+                if (veinGenerator.GetOreId(new Vector2Int(i, j)) == oreId) continue;
 
                 return false;
             }
