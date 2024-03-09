@@ -90,9 +90,8 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                 .EveryUpdate()
                 .Select(_ => Mathf.Clamp(buttonDownElapsed, 0, duration))
                 .Select(x => x / duration)
-                .Subscribe(
-                    x => craftButtonPercent.percent = x
-                ).AddTo(this);
+                .Subscribe(x => craftButtonPercent.UpdateMaskFill(x))
+                .AddTo(this);
 
             nextRecipeButton.onClick.AddListener(() =>
             {

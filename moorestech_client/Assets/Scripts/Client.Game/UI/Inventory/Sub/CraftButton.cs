@@ -7,24 +7,12 @@ namespace MainGame.UnityView.UI.Inventory.Sub
     {
         [SerializeField] private RectTransform craftButton;
         [SerializeField] private RectMask2D mask;
-        private float _percent;
 
-        public float percent
-        {
-            get => _percent;
-            set
-            {
-                _percent = value;
-                UpdateMaskFill();
-            }
-        }
-
-        private void UpdateMaskFill()
+        public void UpdateMaskFill(float percent)
         {
             var maxWidth = craftButton.rect.width;
-            var p = maxWidth * (1f - _percent);
+            var p = maxWidth * (1f - percent);
             mask.padding = new Vector4(0, 0, p, 0);
-            MaskUtilities.NotifyStencilStateChanged(mask);
         }
     }
 }
