@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Client.Game.Context;
 using Core.Const;
@@ -7,7 +6,6 @@ using MainGame.UnityView.UI.Inventory.Element;
 using MainGame.UnityView.UI.Inventory.Main;
 using TMPro;
 using UniRx;
-using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
@@ -16,7 +14,6 @@ namespace MainGame.UnityView.UI.Inventory.Sub
 {
     public class CraftInventoryView : MonoBehaviour
     {
-        [SerializeField] private float duration;
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
 
         [SerializeField] private RectTransform craftMaterialParent;
@@ -24,14 +21,11 @@ namespace MainGame.UnityView.UI.Inventory.Sub
 
         [SerializeField] private RectTransform itemListParent;
 
-        [SerializeField] private CraftButton craftButtonPercent;
-        [SerializeField] private Button craftButton;
+        [SerializeField] private CraftButton craftButton;
         [SerializeField] private Button nextRecipeButton;
         [SerializeField] private Button prevRecipeButton;
         [SerializeField] private TMP_Text recipeCountText;
-
-        [SerializeField] private float buttonDownElapsed;
-        [SerializeField] private bool isButtonDown;
+        
         private readonly List<ItemSlotObject> _craftMaterialSlotList = new();
         private readonly List<ItemSlotObject> _itemListObjects = new();
         private ItemSlotObject _craftResultSlot;
@@ -59,52 +53,25 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                 _itemListObjects.Add(itemSlotObject);
             }
 
-            craftButton
-                .OnPointerDownAsObservable()
-                .Select(_ => true)
-                .Merge(
-                    craftButton.OnPointerUpAsObservable()
-                        .Select(_ => false)
-                )
-                .Throttle(TimeSpan.FromSeconds(duration))
-                .Where(x => x)
-                .AsUnitObservable()
-                .Subscribe(_ =>
-                    {
-                        if (_currentCraftingConfigDataList?.Count == 0) return;
-                        MoorestechContext.VanillaApi.SendOnly.Craft(_currentCraftingConfigDataList[_currentCraftingConfigIndex].RecipeId);
-                    }
-                )
-                .AddTo(this);
-
-            craftButton.OnPointerDownAsObservable().Subscribe(_ => isButtonDown = true).AddTo(this);
-            craftButton.OnPointerUpAsObservable().Subscribe(_ =>
-            {
-                isButtonDown = false;
-                buttonDownElapsed = 0;
-            }).AddTo(this);
-            Observable.EveryUpdate().Where(_ => isButtonDown).Subscribe(
-                _ => buttonDownElapsed += Time.deltaTime
-            ).AddTo(this);
-            Observable
-                .EveryUpdate()
-                .Select(_ => Mathf.Clamp(buttonDownElapsed, 0, duration))
-                .Select(x => x / duration)
-                .Subscribe(x => craftButtonPercent.UpdateMaskFill(x))
-                .AddTo(this);
-
             nextRecipeButton.onClick.AddListener(() =>
             {
                 _currentCraftingConfigIndex++;
                 if (_currentCraftingConfigDataList.Count <= _currentCraftingConfigIndex) _currentCraftingConfigIndex = 0;
                 DisplayRecipe(_currentCraftingConfigIndex);
             });
+            
             prevRecipeButton.onClick.AddListener(() =>
             {
                 _currentCraftingConfigIndex--;
                 if (_currentCraftingConfigIndex < 0) _currentCraftingConfigIndex = _currentCraftingConfigDataList.Count - 1;
                 DisplayRecipe(_currentCraftingConfigIndex);
             });
+
+            craftButton.OnButtonDown.Subscribe(_ =>
+            {
+                if (_currentCraftingConfigDataList?.Count == 0) return;
+                MoorestechContext.VanillaApi.SendOnly.Craft(_currentCraftingConfigDataList[_currentCraftingConfigIndex].RecipeId);                
+            }).AddTo(this);
         }
 
         private void OnClickItemList(ItemSlotObject slot)
@@ -173,7 +140,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                 prevRecipeButton.interactable = _currentCraftingConfigDataList.Count != 1;
                 nextRecipeButton.interactable = _currentCraftingConfigDataList.Count != 1;
                 recipeCountText.text = $"{_currentCraftingConfigIndex + 1} / {_currentCraftingConfigDataList.Count}";
-                craftButton.interactable = IsCraftable(craftingConfigData);
+                craftButton.UpdateInteractable(IsCraftable(craftingConfigData));
             }
 
             #endregion

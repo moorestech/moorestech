@@ -954,7 +954,7 @@ RectTransform:
   - {fileID: 3970556276642430243}
   - {fileID: 9027238609855228297}
   m_Father: {fileID: 0}
-  m_RootOrder: -1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -3651,18 +3651,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23f78a41c07e4d8abcb4fbf2fa8db067, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  duration: 0
   itemSlotObjectPrefab: {fileID: 7226362693378105453, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
   craftMaterialParent: {fileID: 8299249361103004977}
   craftResultParent: {fileID: 7154508325735355237}
   itemListParent: {fileID: 1875256008886003271}
-  craftButtonPercent: {fileID: 0}
-  craftButton: {fileID: 6442938015858263348}
+  craftButton: {fileID: 0}
   nextRecipeButton: {fileID: 8915801518316534857}
   prevRecipeButton: {fileID: 0}
   recipeCountText: {fileID: 4103172355902646815}
-  buttonDownElapsed: 0
-  isButtonDown: 0
 --- !u!1 &4789098456084041490
 GameObject:
   m_ObjectHideFlags: 0
@@ -5652,18 +5648,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23f78a41c07e4d8abcb4fbf2fa8db067, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  duration: 0
   itemSlotObjectPrefab: {fileID: 7226362693378105453, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
   craftMaterialParent: {fileID: 4886474124826281129}
   craftResultParent: {fileID: 2061700108881186972}
   itemListParent: {fileID: 4178271342224977091}
-  craftButtonPercent: {fileID: 6748881672478100712}
-  craftButton: {fileID: 6442938015858263348}
+  craftButton: {fileID: 6748881672478100712}
   nextRecipeButton: {fileID: 7885722958363309220}
   prevRecipeButton: {fileID: 8122030075278338625}
   recipeCountText: {fileID: 1930956621763274736}
-  buttonDownElapsed: 0
-  isButtonDown: 0
 --- !u!1 &7369432569108525015
 GameObject:
   m_ObjectHideFlags: 0
@@ -5771,8 +5763,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 547e54aa9086418da6e76fc3a19e3ea9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  craftButton: {fileID: 8517655400864358596}
+  rectTransform: {fileID: 8517655400864358596}
+  button: {fileID: 6442938015858263348}
   mask: {fileID: 4892134552860375612}
+  duration: 5
+  buttonDownElapsed: 0
+  isButtonDown: 0
 --- !u!1 &7510187342472450086
 GameObject:
   m_ObjectHideFlags: 0
@@ -11637,7 +11633,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 80.275
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.y
