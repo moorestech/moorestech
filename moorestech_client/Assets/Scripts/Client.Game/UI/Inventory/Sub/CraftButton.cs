@@ -18,6 +18,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
         private readonly Subject<Unit> _onButtonDownSubject = new();
         private float _buttonDownElapsed;
         private bool _isButtonDown;
+        private bool _isCursorStay = true;
         public IObservable<Unit> OnButtonDown => _onButtonDownSubject;
 
         private void Awake()
@@ -31,17 +32,18 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             button.OnPointerExitAsObservable().Subscribe(_ =>
             {
                 if (resetElapsedTimeOnPointerExit) _buttonDownElapsed = 0;
-                if (stopElapsedTimeUpdateOnPointerExit) _isButtonDown = false;
+                if (stopElapsedTimeUpdateOnPointerExit) _isCursorStay = false;
             });
             button.OnPointerEnterAsObservable().Subscribe(_ =>
             {
-                if (restartElapsedTimeUpdateOnPointerEnter) _isButtonDown = true;
+                if (restartElapsedTimeUpdateOnPointerEnter) _isCursorStay = true;
             });
         }
 
         private void Update()
         {
-            if (_isButtonDown) _buttonDownElapsed += Time.deltaTime;
+            if (_isButtonDown && _isCursorStay) _buttonDownElapsed += Time.deltaTime;
+
             if (_buttonDownElapsed >= duration)
             {
                 _buttonDownElapsed = 0;
