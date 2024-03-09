@@ -19,36 +19,22 @@ namespace MainGame.UnityView.UI.Inventory.Sub
 
         private void Awake()
         {
-            button
-                .OnPointerDownAsObservable()
-                .Select(_ => true)
-                .Merge(
-                    button.OnPointerUpAsObservable()
-                        .Select(_ => false)
-                )
-                .Throttle(TimeSpan.FromSeconds(duration))
-                .Where(x => x)
-                .AsUnitObservable()
-                .Subscribe(_ => _onButtonDownSubject.OnNext(Unit.Default))
-                .AddTo(this);
-
             button.OnPointerDownAsObservable().Subscribe(_ => isButtonDown = true).AddTo(this);
             button.OnPointerUpAsObservable().Subscribe(_ =>
             {
                 isButtonDown = false;
                 buttonDownElapsed = 0;
             }).AddTo(this);
+        }
 
-            Observable.EveryUpdate().Where(_ => isButtonDown).Subscribe(
-                _ => buttonDownElapsed += Time.deltaTime
-            ).AddTo(this);
-
-            Observable
-                .EveryUpdate()
-                .Select(_ => Mathf.Clamp(buttonDownElapsed, 0, duration))
-                .Select(x => x / duration)
-                .Subscribe(UpdateMaskFill)
-                .AddTo(this);
+        private void Update()
+        {
+            if (isButtonDown) buttonDownElapsed += Time.deltaTime;
+            if (buttonDownElapsed >= duration)
+            {
+                _onButtonDownSubject.OnNext(Unit.Default);
+            }
+            UpdateMaskFill(Mathf.Clamp(buttonDownElapsed, 0, duration) / duration);
         }
 
         private void OnDestroy()
