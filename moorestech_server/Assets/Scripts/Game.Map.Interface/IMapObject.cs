@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Game.MapObject.Interface
+namespace Game.Map.Interface
 {
     /// <summary>
     ///     小石や木など、マップ上にもとから配置されている静的なオブジェクトです。

@@ -1,10 +1,10 @@
 ﻿using System;
 using Core.Item.Config;
-using Game.MapObject.Interface;
+using Game.Map.Interface;
 using UnityEngine;
 using Random = System.Random;
 
-namespace Game.MapObject
+namespace Game.Map
 {
     public class MapObjectFactory : IMapObjectFactory
     {

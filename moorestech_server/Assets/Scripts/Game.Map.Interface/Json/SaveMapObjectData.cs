@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace Game.MapObject.Interface.Json
+namespace Game.Map.Interface.Json
 {
     [Serializable]
     public class SaveMapObjectData

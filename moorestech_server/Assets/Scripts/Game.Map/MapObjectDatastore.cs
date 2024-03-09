@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Game.MapObject.Interface;
-using Game.MapObject.Interface.Json;
+using Game.Map.Interface;
+using Game.Map.Interface.Json;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Newtonsoft.Json;
 
-namespace Game.MapObject
+namespace Game.Map
 {
     public class MapObjectDatastore : IMapObjectDatastore
     {

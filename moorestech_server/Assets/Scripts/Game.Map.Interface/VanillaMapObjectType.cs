@@ -1,4 +1,4 @@
-﻿namespace Game.MapObject.Interface
+﻿namespace Game.Map.Interface
 {
     public static class VanillaMapObjectType
     {

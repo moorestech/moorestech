@@ -1,8 +1,8 @@
 ﻿using System;
-using Game.MapObject.Interface;
+using Game.Map.Interface;
 using UnityEngine;
 
-namespace Game.MapObject
+namespace Game.Map
 {
     /// <summary>
     ///     木や小石など基本的に動かないマップオブジェクト

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Game.Entity.Interface;
-using Game.MapObject.Interface.Json;
+using Game.Map.Interface.Json;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using Game.Entity.Interface;
-using Game.MapObject.Interface;
+using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json.WorldVersions;

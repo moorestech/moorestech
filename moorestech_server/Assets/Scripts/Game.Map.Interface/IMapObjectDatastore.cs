@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Game.MapObject.Interface.Json;
+using Game.Map.Interface.Json;
 
-namespace Game.MapObject.Interface
+namespace Game.Map.Interface
 {
     public interface IMapObjectDatastore
     {
