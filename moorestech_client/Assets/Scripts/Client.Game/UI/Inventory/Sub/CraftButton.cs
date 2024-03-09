@@ -32,8 +32,10 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             if (isButtonDown) buttonDownElapsed += Time.deltaTime;
             if (buttonDownElapsed >= duration)
             {
+                buttonDownElapsed = 0;
                 _onButtonDownSubject.OnNext(Unit.Default);
             }
+
             UpdateMaskFill(Mathf.Clamp(buttonDownElapsed, 0, duration) / duration);
         }
 
