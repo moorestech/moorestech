@@ -67,7 +67,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                 DisplayRecipe(_currentCraftingConfigIndex);
             });
 
-            craftButton.OnButtonDown.Subscribe(_ =>
+            craftButton.OnCraftFinish.Subscribe(_ =>
             {
                 if (_currentCraftingConfigDataList?.Count == 0) return;
                 MoorestechContext.VanillaApi.SendOnly.Craft(_currentCraftingConfigDataList[_currentCraftingConfigIndex].RecipeId);                
