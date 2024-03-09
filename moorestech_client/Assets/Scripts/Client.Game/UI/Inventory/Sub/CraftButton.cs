@@ -12,31 +12,43 @@ namespace MainGame.UnityView.UI.Inventory.Sub
         [SerializeField] private Button button;
         [SerializeField] private RectMask2D mask;
         [SerializeField] private float duration;
-        [SerializeField] private float buttonDownElapsed;
-        [SerializeField] private bool isButtonDown;
+        [SerializeField] private bool resetElapsedTimeOnPointerExit;
+        [SerializeField] private bool stopElapsedTimeUpdateOnPointerExit;
+        [SerializeField] private bool restartElapsedTimeUpdateOnPointerEnter;
         private readonly Subject<Unit> _onButtonDownSubject = new();
+        private float _buttonDownElapsed;
+        private bool _isButtonDown;
         public IObservable<Unit> OnButtonDown => _onButtonDownSubject;
 
         private void Awake()
         {
-            button.OnPointerDownAsObservable().Subscribe(_ => isButtonDown = true).AddTo(this);
+            button.OnPointerDownAsObservable().Subscribe(_ => _isButtonDown = true).AddTo(this);
             button.OnPointerUpAsObservable().Subscribe(_ =>
             {
-                isButtonDown = false;
-                buttonDownElapsed = 0;
+                _isButtonDown = false;
+                _buttonDownElapsed = 0;
             }).AddTo(this);
+            button.OnPointerExitAsObservable().Subscribe(_ =>
+            {
+                if (resetElapsedTimeOnPointerExit) _buttonDownElapsed = 0;
+                if (stopElapsedTimeUpdateOnPointerExit) _isButtonDown = false;
+            });
+            button.OnPointerEnterAsObservable().Subscribe(_ =>
+            {
+                if (restartElapsedTimeUpdateOnPointerEnter) _isButtonDown = true;
+            });
         }
 
         private void Update()
         {
-            if (isButtonDown) buttonDownElapsed += Time.deltaTime;
-            if (buttonDownElapsed >= duration)
+            if (_isButtonDown) _buttonDownElapsed += Time.deltaTime;
+            if (_buttonDownElapsed >= duration)
             {
-                buttonDownElapsed = 0;
+                _buttonDownElapsed = 0;
                 _onButtonDownSubject.OnNext(Unit.Default);
             }
 
-            UpdateMaskFill(Mathf.Clamp(buttonDownElapsed, 0, duration) / duration);
+            UpdateMaskFill(Mathf.Clamp(_buttonDownElapsed, 0, duration) / duration);
         }
 
         private void OnDestroy()

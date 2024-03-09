@@ -5767,8 +5767,9 @@ MonoBehaviour:
   button: {fileID: 6442938015858263348}
   mask: {fileID: 4892134552860375612}
   duration: 5
-  buttonDownElapsed: 0
-  isButtonDown: 0
+  resetElapsedTimeOnPointerExit: 1
+  stopElapsedTimeUpdateOnPointerExit: 1
+  restartElapsedTimeUpdateOnPointerEnter: 1
 --- !u!1 &7510187342472450086
 GameObject:
   m_ObjectHideFlags: 0
@@ -11633,7 +11634,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 80.275
       objectReference: {fileID: 0}
     - target: {fileID: 3806647004965781935, guid: 1aefca399c28643e8bdcda00c5c73bff, type: 3}
       propertyPath: m_AnchoredPosition.y
