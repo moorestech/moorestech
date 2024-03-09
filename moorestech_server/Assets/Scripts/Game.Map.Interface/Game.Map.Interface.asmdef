@@ -1,5 +1,5 @@
 {
-    "name": "Game.MapObject.Interface",
+    "name": "Game.Map.Interface",
     "rootNamespace": "",
     "references": [
         "Game.Base"

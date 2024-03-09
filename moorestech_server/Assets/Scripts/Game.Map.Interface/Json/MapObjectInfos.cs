@@ -3,12 +3,13 @@ using UnityEngine;
 
 namespace Game.MapObject.Interface.Json
 {
-    public class ConfigMapObjects
+    public class MapInfo
     {
-        [JsonProperty("mapObjects")] public ConfigMapObjectData[] MapObjects;
+        [JsonProperty("mapObjects")] public MapObjectInfos[] MapObjects;
+        
     }
 
-    public class ConfigMapObjectData
+    public class MapObjectInfos
     {
         [JsonProperty("instanceId")] public int InstanceId;
         [JsonProperty("type")] public string Type;

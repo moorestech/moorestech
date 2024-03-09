@@ -27,7 +27,7 @@ namespace Game.MapObject
 
             //configからmap obejctを生成
             var mapObjects =
-                JsonConvert.DeserializeObject<ConfigMapObjects>(
+                JsonConvert.DeserializeObject<MapInfo>(
                     File.ReadAllText(mapConfigFile.FullMapObjectConfigFilePath));
             foreach (var configMapObject in mapObjects.MapObjects)
             {

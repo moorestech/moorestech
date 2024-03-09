@@ -1,8 +1,8 @@
 {
-    "name": "Game.MapObject",
+    "name": "Game.Map",
     "rootNamespace": "",
     "references": [
-        "Game.MapObject.Interface",
+        "Game.Map.Interface",
         "Core.Item",
         "Game.Base",
         "Game.SaveLoad.Interface",
