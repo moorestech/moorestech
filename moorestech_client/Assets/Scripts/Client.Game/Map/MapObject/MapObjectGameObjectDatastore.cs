@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using Client.Game.Context;
+using Client.Game.Map.MapObject;
 using Client.Network.API;
-using Cysharp.Threading.Tasks;
-using MainGame.UnityView.MapObject;
 using Server.Event.EventReceive;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.Presenter.MapObject
+namespace Client.Game.Map
 {
     /// <summary>
     ///     TODO 静的なオブジェクトになってるので、サーバーからコンフィグを取得して動的に生成するようにしたい

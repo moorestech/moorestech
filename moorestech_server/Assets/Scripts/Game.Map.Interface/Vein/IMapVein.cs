@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Game.Map.Interface.Vein
 {
-    public interface IVein
+    public interface IMapVein
     {
         public int VeinItemId { get;  }
         

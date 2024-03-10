@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using Client.Game.Context;
-using Client.Network.API;
-using Cysharp.Threading.Tasks;
-using Game.MapObject.Interface;
+using Client.Game.Map.MapObject;
 using Constant;
+using Cysharp.Threading.Tasks;
+using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Control;
-using MainGame.UnityView.MapObject;
 using MainGame.UnityView.Player;
 using MainGame.UnityView.SoundEffect;
 using MainGame.UnityView.UI.Inventory;
@@ -19,7 +18,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
 
-namespace MainGame.Presenter.MapObject
+namespace Client.Game.Map
 {
     /// <summary>
     ///     マップオブジェクトのUIの表示や削除の判定を担当する
