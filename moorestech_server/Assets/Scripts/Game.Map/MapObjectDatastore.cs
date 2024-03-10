@@ -21,18 +21,14 @@ namespace Game.Map
         /// </summary>
         private readonly Dictionary<int, IMapObject> _mapObjects = new();
 
-        public MapObjectDatastore(IMapObjectFactory mapObjectFactory, MapConfigFile mapConfigFile)
+        public MapObjectDatastore(IMapObjectFactory mapObjectFactory, MapInfoJson mapInfoJson)
         {
             _mapObjectFactory = mapObjectFactory;
 
             //configからmap obejctを生成
-            var mapObjects =
-                JsonConvert.DeserializeObject<MapInfo>(
-                    File.ReadAllText(mapConfigFile.FullMapObjectConfigFilePath));
-            foreach (var configMapObject in mapObjects.MapObjects)
+            foreach (var configMapObject in mapInfoJson.MapObjects)
             {
-                var mapObject = _mapObjectFactory.Create(configMapObject.InstanceId, configMapObject.Type,
-                    configMapObject.Position, false);
+                var mapObject = _mapObjectFactory.Create(configMapObject.InstanceId, configMapObject.Type, configMapObject.Position, false);
                 _mapObjects.Add(mapObject.InstanceId, mapObject);
                 mapObject.OnDestroy += () => OnDestroyMapObject?.Invoke(mapObject);
             }

@@ -4,13 +4,13 @@ using UnityEngine;
 
 namespace Game.Map.Interface.Json
 {
-    public class MapInfo
+    public class MapInfoJson
     {
-        [JsonProperty("mapObjects")] public List<MapObjectInfos> MapObjects;
-        [JsonProperty("mapVeins")] public List<MapVeinInfo> MapVeins;
+        [JsonProperty("mapObjects")] public List<MapObjectInfoJson> MapObjects;
+        [JsonProperty("mapVeins")] public List<MapVeinInfoJson> MapVeins;
     }
 
-    public class MapObjectInfos
+    public class MapObjectInfoJson
     {
         [JsonProperty("instanceId")] public int InstanceId;
         [JsonProperty("type")] public string Type;
@@ -22,7 +22,7 @@ namespace Game.Map.Interface.Json
         public Vector3 Position => new(X,Y, Z);
     }
 
-    public class MapVeinInfo
+    public class MapVeinInfoJson
     {
         [JsonProperty("veinItemModId")] public string ItemModId;
         [JsonProperty("veinItemId")] public string ItemId;

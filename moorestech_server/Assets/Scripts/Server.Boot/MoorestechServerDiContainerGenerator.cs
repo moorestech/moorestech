@@ -20,6 +20,7 @@ using Game.Entity;
 using Game.Entity.Interface;
 using Game.Map;
 using Game.Map.Interface;
+using Game.Map.Interface.Json;
 using Game.PlayerInventory;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
@@ -38,6 +39,7 @@ using Game.WorldMap;
 using Game.WorldMap.EventListener;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
+using Newtonsoft.Json;
 using Server.Event;
 using Server.Event.EventReceive;
 using Server.Protocol;
@@ -89,8 +91,8 @@ namespace Server.Boot
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
-            services.AddSingleton(new SaveJsonFileName("save_1.json"));
-            services.AddSingleton(new MapConfigFile(mapDirectory));
+            services.AddSingleton(new SaveJsonFileName("save_1.json")); 
+            services.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapDirectory)));
 
             //イベントを登録
             services.AddSingleton<IBlockPlaceEvent, BlockPlaceEvent>();
