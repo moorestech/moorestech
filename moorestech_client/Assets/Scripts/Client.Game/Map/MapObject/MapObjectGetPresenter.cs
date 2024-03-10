@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using Client.Game.Context;
-using Client.Game.Map.MapObject;
 using Constant;
 using Cysharp.Threading.Tasks;
 using Game.Map.Interface;
@@ -18,7 +17,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
 
-namespace Client.Game.Map
+namespace Client.Game.Map.MapObject
 {
     /// <summary>
     ///     マップオブジェクトのUIの表示や削除の判定を担当する

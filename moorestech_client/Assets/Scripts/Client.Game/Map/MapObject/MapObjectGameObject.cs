@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace MainGame.UnityView.MapObject
+namespace Client.Game.Map.MapObject
 {
     /// <summary>
     ///     MapObjectのGameObjectを表すクラス
