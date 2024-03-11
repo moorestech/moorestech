@@ -24,7 +24,7 @@ public class MapExportAndSetting : EditorWindow
             return;
         }
 
-        var mapObjectConfig = new MapInfo
+        var mapObjectConfig = new MapInfoJson
         {
             MapObjects = SetUpMapObjectInfos(),
             MapVeins = GetMapVeinInfo()
@@ -39,19 +39,19 @@ public class MapExportAndSetting : EditorWindow
 
         #region Internal
 
-        List<MapObjectInfos> SetUpMapObjectInfos()
+        List<MapObjectInfoJson> SetUpMapObjectInfos()
         {
             var datastore = FindObjectOfType<MapObjectGameObjectDatastore>();
 
             var instanceId = 0;
-            var result = new List<MapObjectInfos>();
+            var result = new List<MapObjectInfoJson>();
 
             foreach (var mapObject in datastore.MapObjects)
             {
                 mapObject.SetMapObjectData(instanceId);
                 instanceId++;
 
-                var config = new MapObjectInfos
+                var config = new MapObjectInfoJson
                 {
                     Type = mapObject.MapObjectType,
                     InstanceId = mapObject.InstanceId,
@@ -65,14 +65,14 @@ public class MapExportAndSetting : EditorWindow
             return result;
         }
 
-        List<MapVeinInfo> GetMapVeinInfo()
+        List<MapVeinInfoJson> GetMapVeinInfo()
         {
             var veins = FindObjectsOfType<MapVeinGameObject>();
-            var result = new List<MapVeinInfo>();
+            var result = new List<MapVeinInfoJson>();
 
             foreach (var vein in veins)
             {
-                var config = new MapVeinInfo
+                var config = new MapVeinInfoJson
                 {
                     ItemModId = vein.VeinItemModId,
                     ItemId = vein.VeinItemId,
