@@ -21,6 +21,7 @@ using Game.Entity.Interface;
 using Game.Map;
 using Game.Map.Interface;
 using Game.Map.Interface.Json;
+using Game.Map.Interface.Vein;
 using Game.PlayerInventory;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
@@ -86,6 +87,7 @@ namespace Server.Boot
 
             services.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
             services.AddSingleton<IMapObjectFactory, MapObjectFactory>();
+            services.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
 
 
             //JSONファイルのセーブシステムの読み込み
