@@ -10,12 +10,13 @@ namespace Game.Block.Config.LoadConfig.ConfigParamGenerator
         {
             int requiredPower = blockParam.requiredPower;
             int outputSlot = blockParam.outputSlot;
-            var oreSetting = new List<OreSetting>();
+            var oreSetting = new List<MineItemSetting>();
             foreach (var ore in blockParam.oreSetting)
             {
-                int id = ore.oreId;
                 int time = ore.time;
-                oreSetting.Add(new OreSetting(id, time));
+                string itemModId = ore.itemModId;
+                string itemName = ore.itemName;
+                oreSetting.Add(new MineItemSetting(time, itemModId, itemName));
             }
 
             return new MinerBlockConfigParam(requiredPower, oreSetting, outputSlot);

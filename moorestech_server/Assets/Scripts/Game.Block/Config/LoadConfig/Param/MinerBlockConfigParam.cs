@@ -5,27 +5,29 @@ namespace Game.Block.Config.LoadConfig.Param
 {
     public class MinerBlockConfigParam : IBlockConfigParam
     {
-        public readonly List<OreSetting> OreSettings;
+        public readonly List<MineItemSetting> MineItemSettings;
         public readonly int OutputSlot;
         public readonly int RequiredPower;
 
-        public MinerBlockConfigParam(int requiredPower, List<OreSetting> oreSettings, int outputSlot)
+        public MinerBlockConfigParam(int requiredPower, List<MineItemSetting> mineItemSettings, int outputSlot)
         {
             RequiredPower = requiredPower;
-            OreSettings = oreSettings;
+            MineItemSettings = mineItemSettings;
             OutputSlot = outputSlot;
         }
     }
 
-    public class OreSetting
+    public class MineItemSetting
     {
         public readonly int MiningTime;
-        public readonly int OreId;
+        public readonly string ItemModId;
+        public readonly string ItemName;
 
-        public OreSetting(int oreId, int miningTime)
+        public MineItemSetting(int miningTime, string itemModId, string itemName)
         {
             MiningTime = miningTime;
-            OreId = oreId;
+            ItemModId = itemModId;
+            ItemName = itemName;
         }
     }
 }

@@ -36,8 +36,8 @@ namespace Tests.CombinedTest.Core
 
             //手動で鉱石の設定を行う
             var outputCount = minerBlockConfigParam.OutputSlot;
-            var miningTime = minerBlockConfigParam.OreSettings[0].MiningTime;
-            var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.OreSettings[0].OreId);
+            var miningTime = minerBlockConfigParam.MineItemSettings[0].MiningTime;
+            var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.MineItemSettings[0].OreId);
 
             var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount,
                 itemStackFactory, new BlockOpenableInventoryUpdateEvent()));
