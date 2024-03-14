@@ -1,4 +1,4 @@
-using Core.Ore;
+using Core.Item.Config;
 using Game.Block.Blocks.Miner;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
@@ -16,20 +16,22 @@ namespace Game.WorldMap.EventListener
     public class SetMiningItemToMiner
     {
         private readonly IBlockConfig _blockConfig;
+        private readonly IItemConfig _itemConfig;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IMapVeinDatastore _mapVeinDatastore;
 
         public SetMiningItemToMiner(
             IBlockPlaceEvent blockPlaceEvent,
-            IBlockConfig blockConfig, IWorldBlockDatastore worldBlockDatastore, IMapVeinDatastore mapVeinDatastore)
+            IBlockConfig blockConfig, IWorldBlockDatastore worldBlockDatastore, IMapVeinDatastore mapVeinDatastore, IItemConfig itemConfig)
         {
+            _itemConfig = itemConfig;
             _blockConfig = blockConfig;
             _worldBlockDatastore = worldBlockDatastore;
             _mapVeinDatastore = mapVeinDatastore;
             blockPlaceEvent.Subscribe(OnBlockPlace);
         }
 
-        public void OnBlockPlace(BlockPlaceEventProperties blockPlaceEventProperties)
+        private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEventProperties)
         {
             var pos = blockPlaceEventProperties.Pos;
             
@@ -41,18 +43,19 @@ namespace Game.WorldMap.EventListener
             if (vein.Count == 0) return;
 
 
-
             var miner = _worldBlockDatastore.GetBlock<IMiner>(pos);
             var minerConfig = _blockConfig.GetBlockConfig(((IBlock)miner).BlockId).Param as MinerBlockConfigParam;
 
             //マイナー自体の設定からその採掘機が鉱石を採掘するのに必要な時間を取得し、設定する
-            foreach (var oreSetting in minerConfig.MineItemSettings)
+            foreach (var mineSetting in minerConfig.MineItemSettings)
             {
+                var mineItemId = _itemConfig.GetItemId(mineSetting.ItemModId, mineSetting.ItemName);
+                
                 //採掘可能な鉱石設定の中にあるか？
-                if (oreSetting.OreId != oreConfig.OreId) continue;
-
+                if (!vein.Exists(v => v.VeinItemId == mineItemId)) return;
+                
                 //採掘時間、アイテムを設定する
-                miner.SetMiningItem(itemId, oreSetting.MiningTime);
+                miner.SetMiningItem(mineItemId, mineSetting.MiningTime);
                 return;
             }
         }
