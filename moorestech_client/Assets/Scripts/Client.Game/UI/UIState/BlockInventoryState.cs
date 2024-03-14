@@ -73,7 +73,7 @@ namespace MainGame.UnityView.UI.UIState
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-            _blockInventoryView.SetBlockInventoryType(type,_openBlockPos,config.Param);
+            _blockInventoryView.SetBlockInventoryType(type,_openBlockPos,config.Param, id);
 
             //UIのオブジェクトをオンにする
             _blockInventoryView.SetActive(true);
