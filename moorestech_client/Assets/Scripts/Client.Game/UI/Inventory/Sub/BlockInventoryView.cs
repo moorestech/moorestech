@@ -6,6 +6,7 @@ using Game.Block.Interface.BlockConfig;
 using MainGame.UnityView.UI.Inventory.Element;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using ServerServiceProvider;
+using TMPro;
 using UnityEngine;
 using VContainer;
 
@@ -30,8 +31,10 @@ namespace MainGame.UnityView.UI.Inventory.Sub
         
         [SerializeField] private RectTransform machineInputItemParent;
         [SerializeField] private RectTransform machineOutputItemParent;
+        [SerializeField] private TMP_Text machineBlockNameText;
         
         [SerializeField] private RectTransform powerGeneratorFuelItemParent;
+        
         
         private readonly List<ItemSlotObject> _blockItemSlotObjects = new();
         
@@ -40,7 +43,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             gameObject.SetActive(isActive);
         }
         
-        public void SetBlockInventoryType(BlockInventoryType type,Vector2Int blockPos,IBlockConfigParam param)
+        public void SetBlockInventoryType(BlockInventoryType type,Vector2Int blockPos,IBlockConfigParam param, int blockId)
         {
             var itemStackFactory = MoorestechContext.ServerServices.ItemStackFactory;
             ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory,blockPos);
@@ -116,6 +119,9 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                     _blockItemSlotObjects.Add(slotObject);
                     itemList.Add(itemStackFactory.CreatEmpty());
                 }
+
+                var config =  MoorestechContext.ServerServices.BlockConfig.GetBlockConfig(blockId);
+                machineBlockNameText.text = config.Name;
                 SetItemList(itemList);
             }
             
