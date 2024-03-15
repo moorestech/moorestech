@@ -34,7 +34,7 @@ public class MapExportAndSetting : EditorWindow
         var json = JsonConvert.SerializeObject(mapObjectConfig, Formatting.Indented);
 
         //ダイアログを出して保存
-        var path = EditorUtility.SaveFilePanel("Save map object config", "../../Server/map/", "mapObjects", "json");
+        var path = EditorUtility.SaveFilePanel("Save map object config", "../../Server/map/", "map", "json");
         if (path.Length != 0) File.WriteAllText(path, json);
 
         #region Internal
