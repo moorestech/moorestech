@@ -1,5 +1,6 @@
 using Core.Item;
 using Core.Item.Config;
+using Core.Ore;
 using Game.Block.Factory;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.RecipeConfig;
@@ -20,6 +21,7 @@ namespace Mod.Base
         public readonly IItemConfig ItemConfig;
         public readonly ItemStackFactory ItemStackFactory;
         public readonly IMachineRecipeConfig MachineRecipeConfig;
+        public readonly IOreConfig OreConfig;
 
         /// <summary>
         ///     パケットを送信することができるインスタンス
@@ -48,6 +50,7 @@ namespace Mod.Base
             ItemConfig = serviceProvider.GetRequiredService<IItemConfig>();
             ItemStackFactory = serviceProvider.GetRequiredService<ItemStackFactory>();
             BlockConfig = serviceProvider.GetRequiredService<IBlockConfig>();
+            OreConfig = serviceProvider.GetRequiredService<IOreConfig>();
             BlockFactory = serviceProvider.GetRequiredService<BlockFactory>();
         }
     }

@@ -1,4 +1,5 @@
 using Game.World.Interface.DataStore;
+using Game.WorldMap;
 using UnityEngine;
 
 namespace Game.World.DataStore.WorldSettings
@@ -9,11 +10,18 @@ namespace Game.World.DataStore.WorldSettings
     /// </summary>
     public class WorldSettingsDatastore : IWorldSettingsDatastore
     {
+        private readonly VeinGenerator _veinGenerator;
+
+        public WorldSettingsDatastore(VeinGenerator veinGenerator)
+        {
+            _veinGenerator = veinGenerator;
+        }
+
         public Vector2Int WorldSpawnPoint { get; private set; }
 
         public void Initialize()
         {
-            WorldSpawnPoint = Vector2Int.zero;
+            WorldSpawnPoint = WorldSpawnPointSearcher.SearchSpawnPoint(_veinGenerator);
         }
 
         public WorldSettingSaveData GetSettingsSaveData()

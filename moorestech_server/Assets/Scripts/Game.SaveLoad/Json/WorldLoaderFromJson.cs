@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using Game.Entity.Interface;
-using Game.Map.Interface;
+using Game.MapObject.Interface;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json.WorldVersions;
@@ -15,6 +15,7 @@ namespace Game.SaveLoad.Json
     {
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
+        private readonly MapConfigFile _mapConfigFile;
         private readonly IMapObjectDatastore _mapObjectDatastore;
         private readonly SaveJsonFileName _saveJsonFileName;
 
@@ -23,7 +24,7 @@ namespace Game.SaveLoad.Json
 
         public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
-            IMapObjectDatastore mapObjectDatastore)
+            IMapObjectDatastore mapObjectDatastore, MapConfigFile mapConfigFile)
         {
             _saveJsonFileName = saveJsonFileName;
             _worldBlockDatastore = worldBlockDatastore;
@@ -31,6 +32,7 @@ namespace Game.SaveLoad.Json
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;
             _mapObjectDatastore = mapObjectDatastore;
+            _mapConfigFile = mapConfigFile;
         }
 
         public void LoadOrInitialize()

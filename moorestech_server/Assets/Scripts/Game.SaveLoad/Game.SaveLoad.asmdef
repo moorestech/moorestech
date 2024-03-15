@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "Game.Paths",
-        "Game.Map.Interface",
+        "Game.Quest.Interface",
+        "Game.MapObject.Interface",
         "Game.Entity.Interface",
         "Game.PlayerInventory.Interface",
         "Game.World.Interface",

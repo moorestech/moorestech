@@ -52,8 +52,7 @@
         "Unity.TextMeshPro",
         "StarterAssetsInputs",
         "ThirdPersonController",
-        "MessagePack",
-        "Game.Map.Interface"
+        "MessagePack"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
