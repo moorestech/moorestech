@@ -4,8 +4,6 @@ using Core.EnergySystem;
 using Core.EnergySystem.Electric;
 using Core.Item;
 using Core.Item.Config;
-using Core.Ore;
-using Core.Ore.Config;
 using Game.Block.Config;
 using Game.Block.Event;
 using Game.Block.Factory;
@@ -77,7 +75,6 @@ namespace Server.Boot
             services.AddSingleton<IBlockInventoryOpenStateDataStore, BlockInventoryOpenStateDataStore>();
             services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
-            services.AddSingleton<IOreConfig, OreConfig>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>();
 

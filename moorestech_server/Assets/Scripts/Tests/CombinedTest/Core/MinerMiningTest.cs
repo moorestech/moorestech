@@ -1,9 +1,7 @@
 using System;
-using System.Reflection;
 using Core.EnergySystem;
 using Core.Item;
 using Core.Item.Config;
-using Core.Ore;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Miner;
