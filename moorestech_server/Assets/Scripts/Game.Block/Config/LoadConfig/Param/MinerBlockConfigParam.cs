@@ -20,14 +20,12 @@ namespace Game.Block.Config.LoadConfig.Param
     public class MineItemSetting
     {
         public readonly int MiningTime;
-        public readonly string ItemModId;
-        public readonly string ItemName;
+        public readonly int ItemId;
 
-        public MineItemSetting(int miningTime, string itemModId, string itemName)
+        public MineItemSetting(int miningTime,int itemId)
         {
             MiningTime = miningTime;
-            ItemModId = itemModId;
-            ItemName = itemName;
+            ItemId = itemId;
         }
     }
 }

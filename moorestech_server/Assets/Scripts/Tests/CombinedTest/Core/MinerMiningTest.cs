@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Core
             var outputCount = minerBlockConfigParam.OutputSlot;
             var miningSetting = minerBlockConfigParam.MineItemSettings[0];
             var miningTime = miningSetting.MiningTime;
-            var miningItemId = itemConfig.GetItemId(miningSetting.ItemModId, miningSetting.ItemName);
+            var miningItemId = miningSetting.ItemId;
 
             var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, itemStackFactory, new BlockOpenableInventoryUpdateEvent()));
             miner.SetMiningItem(miningItemId, miningTime);

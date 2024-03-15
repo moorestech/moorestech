@@ -49,13 +49,11 @@ namespace Game.WorldMap.EventListener
             //マイナー自体の設定からその採掘機が鉱石を採掘するのに必要な時間を取得し、設定する
             foreach (var mineSetting in minerConfig.MineItemSettings)
             {
-                var mineItemId = _itemConfig.GetItemId(mineSetting.ItemModId, mineSetting.ItemName);
-                
                 //採掘可能な鉱石設定の中にあるか？
-                if (!vein.Exists(v => v.VeinItemId == mineItemId)) return;
+                if (!vein.Exists(v => v.VeinItemId == mineSetting.ItemId)) return;
                 
                 //採掘時間、アイテムを設定する
-                miner.SetMiningItem(mineItemId, mineSetting.MiningTime);
+                miner.SetMiningItem(mineSetting.ItemId, mineSetting.MiningTime);
                 return;
             }
         }

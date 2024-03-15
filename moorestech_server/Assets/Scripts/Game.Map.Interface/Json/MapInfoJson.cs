@@ -25,7 +25,7 @@ namespace Game.Map.Interface.Json
     public class MapVeinInfoJson
     {
         [JsonProperty("veinItemModId")] public string ItemModId;
-        [JsonProperty("veinItemId")] public string ItemId;
+        [JsonProperty("veinItemName")] public string ItemId;
         
         [JsonProperty("xMin")] public int XMin;
         [JsonProperty("yMin")] public int YMin;

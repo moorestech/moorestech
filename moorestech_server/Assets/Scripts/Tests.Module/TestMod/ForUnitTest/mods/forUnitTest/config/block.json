@@ -83,10 +83,11 @@
       "param": {
         "requiredPower": 100,
         "outputSlot": 3,
-        "oreSetting": [
+        "mineSettings": [
           {
-            "oreId": 1,
-            "time": 1000
+            "time": 1000,
+            "itemModId": "Test Author:forUniTest",
+            "itemName": "Test1"
           }
         ]
       }

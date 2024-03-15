@@ -17,7 +17,7 @@
   ],
   "mapVeins": [
     {
-      "veinItemModId": "forUniTest",
+      "veinItemModId": "Test Author:forUniTest",
       "veinItemName": "Test1",
       "xMin": 0,
       "xMax": 0,
