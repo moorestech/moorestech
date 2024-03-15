@@ -189,14 +189,16 @@
             "param": {
                 "requiredPower": 100,
                 "outputSlot": 1,
-                "oreSetting": [
+                "mineSettings": [
                     {
-                        "oreId": 1,
-                        "time": 20000
+                        "time": 20000,
+                        "itemModId": "sakastudio:moorestechAlphaMod",
+                        "itemName": "iron ore"
                     },
                     {
-                        "oreId": 2,
-                        "time": 20000
+                        "time": 20000,
+                        "itemModId": "sakastudio:moorestechAlphaMod",
+                        "itemName": "coal"
                     }
                 ]
             },
