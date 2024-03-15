@@ -27,10 +27,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId))[0];
             var handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
-            
-            //今のところ初期スポーンはゼロ固定
-            Assert.AreEqual(0, handShakeResponse.PlayerPos.X);
-            Assert.AreEqual(0, handShakeResponse.PlayerPos.Y);
+            //スポーンポイントは0,0近くの鉄鉱石になるので、今のところはマジックナンバーでテストする
+            //SEEDが変わると変換するので、その設定が追加されたら変更する
+            Assert.AreEqual(2, handShakeResponse.PlayerPos.X);
+            Assert.AreEqual(-88, handShakeResponse.PlayerPos.Y);
 
 
             //プレイヤーの座標を変更

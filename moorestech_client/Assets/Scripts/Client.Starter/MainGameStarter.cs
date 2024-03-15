@@ -1,6 +1,4 @@
 using System.Diagnostics;
-using Client.Game.Map;
-using Client.Game.Map.MapObject;
 using Client.Network.API;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
@@ -10,6 +8,7 @@ using MainGame.Presenter.Command;
 using MainGame.Presenter.Entity;
 using MainGame.Presenter.Inventory;
 using MainGame.Presenter.Inventory.Send;
+using MainGame.Presenter.MapObject;
 using MainGame.Presenter.PauseMenu;
 using MainGame.Presenter.Player;
 using MainGame.UnityView.Block;
