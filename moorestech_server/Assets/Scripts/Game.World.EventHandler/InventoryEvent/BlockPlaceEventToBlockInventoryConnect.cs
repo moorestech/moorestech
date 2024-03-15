@@ -37,7 +37,9 @@ namespace Game.World.EventHandler.InventoryEvent
         {
             var connectOffsetBlockPositions = new List<Vector3Int>
             {
-                new(1, 0), new(-1, 0), new(0, 1), new(0, -1)
+                new(1, 0,0), new(-1, 0,0), 
+                new(0, 1,0), new(0, -1,0),
+                new(0, 0,1), new(0, 0,-1),
             };
             var pos = blockPlaceEvent.Pos;
 

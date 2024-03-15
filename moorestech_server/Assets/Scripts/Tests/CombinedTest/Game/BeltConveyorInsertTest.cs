@@ -28,9 +28,9 @@ namespace Tests.CombinedTest.Game
             var outputChest = (VanillaChest)blockFactory.Create(UnitTestModBlockId.ChestId, 3);
 
             //それぞれを設置
-            worldBlockDatastore.AddBlock(inputChest, new Vector3Int(0, 0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(beltConveyor, new Vector3Int(0, 1), BlockDirection.North);
-            worldBlockDatastore.AddBlock(outputChest, new Vector3Int(0, 2), BlockDirection.North);
+            worldBlockDatastore.AddBlock(inputChest, new Vector3Int(0, 0,0), BlockDirection.North);
+            worldBlockDatastore.AddBlock(beltConveyor, new Vector3Int(0,0, 1), BlockDirection.North);
+            worldBlockDatastore.AddBlock(outputChest, new Vector3Int(0, 0,2), BlockDirection.North);
 
             //インプットチェストにアイテムを2つ入れる
             inputChest.SetItem(0, 1, 2);
