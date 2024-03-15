@@ -16,21 +16,21 @@ namespace Game.World.EventHandler.InventoryEvent
             {
                 VanillaBlockType.Machine,
                 new IoConnectionData(
-                    new ConnectDirection[] { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) },
-                    new ConnectDirection[] { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) },
+                    new ConnectDirection[] { new(1, 0,0), new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
+                    new ConnectDirection[] { new(1, 0,0), new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
                     new[] { VanillaBlockType.BeltConveyor })
             },
             {
                 VanillaBlockType.Chest,
                 new IoConnectionData(
-                    new ConnectDirection[] { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) },
-                    new ConnectDirection[] { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) },
+                    new ConnectDirection[] { new(1, 0,0), new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
+                    new ConnectDirection[] { new(1, 0,0), new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
                     new[] { VanillaBlockType.BeltConveyor })
             },
             {
                 VanillaBlockType.Generator,
                 new IoConnectionData(
-                    new ConnectDirection[] { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) },
+                    new ConnectDirection[] { new(1, 0,0), new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
                     new ConnectDirection[] { },
                     new[] { VanillaBlockType.BeltConveyor })
             },
@@ -38,15 +38,15 @@ namespace Game.World.EventHandler.InventoryEvent
                 VanillaBlockType.Miner,
                 new IoConnectionData(
                     new ConnectDirection[] { },
-                    new ConnectDirection[] { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) },
+                    new ConnectDirection[] { new(1, 0,0), new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
                     new[] { VanillaBlockType.BeltConveyor })
             },
             {
                 VanillaBlockType.BeltConveyor, new IoConnectionData(
                     // 南、西、東をからの接続を受け、アイテムをインプットする
-                    new ConnectDirection[] { new(-1, 0), new(0, 1), new(0, -1) },
+                    new ConnectDirection[] { new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
                     //北向きに出力する
-                    new ConnectDirection[] { new(1, 0) },
+                    new ConnectDirection[] { new(1, 0,0) },
                     new[]
                     {
                         VanillaBlockType.Machine, VanillaBlockType.Chest, VanillaBlockType.Generator,
@@ -67,8 +67,7 @@ namespace Game.World.EventHandler.InventoryEvent
         public readonly ConnectDirection[] InputConnector;
         public readonly ConnectDirection[] OutputConnector;
 
-        public IoConnectionData(ConnectDirection[] inputConnector, ConnectDirection[] outputConnector,
-            string[] connectableBlockType)
+        public IoConnectionData(ConnectDirection[] inputConnector, ConnectDirection[] outputConnector, string[] connectableBlockType)
         {
             InputConnector = inputConnector;
             OutputConnector = outputConnector;
@@ -76,29 +75,35 @@ namespace Game.World.EventHandler.InventoryEvent
         }
     }
 
+    /// <summary>
+    /// ブロックを北向きに置いた時、どの方向に接続するかどうかを指定する
+    /// X Y Zで表さないのは、この値は相対的な値であるため、絶対的なXYZと誤認しないようにするため
+    /// </summary>
     public class ConnectDirection : IEquatable<ConnectDirection>
     {
-        public readonly int East;
+        public readonly int Front; // Z、北向き
+        public readonly int Right; // X、東向き
+        public readonly int Up; // Y、上向き
 
-        public readonly int North;
-
-        public ConnectDirection(int north, int east)
+        public ConnectDirection(int front, int right, int up)
         {
-            North = north;
-            East = east;
+            Front = front;
+            Right = right;
+            Up = up;
         }
         
         public ConnectDirection(Vector3Int distance)
         {
-            North = distance.y;
-            East = distance.x;
+            Front = distance.z;
+            Right = distance.x;
+            Up = distance.y;
         }
 
         public bool Equals(ConnectDirection other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return North == other.North && East == other.East;
+            return Front == other.Front && Right == other.Right && Up == other.Up;
         }
 
         public override bool Equals(object obj)
@@ -111,7 +116,7 @@ namespace Game.World.EventHandler.InventoryEvent
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(North, East);
+            return HashCode.Combine(Front, Right, Up);
         }
     }
 }
