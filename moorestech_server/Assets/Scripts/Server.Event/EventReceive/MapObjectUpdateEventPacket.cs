@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using Game.Map.Interface;
+using Game.MapObject.Interface;
 using MessagePack;
 
 namespace Server.Event.EventReceive

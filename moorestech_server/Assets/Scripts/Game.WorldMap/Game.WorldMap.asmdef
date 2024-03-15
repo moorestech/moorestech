@@ -1,0 +1,21 @@
+{
+    "name": "Game.WorldMap",
+    "rootNamespace": "",
+    "references": [
+        "Core.Ore",
+        "Game.Block.Interface",
+        "Game.World.Interface",
+        "Game.Block",
+        "Core.Util",
+        "ClassLibrary"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

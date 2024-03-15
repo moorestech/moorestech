@@ -1,6 +1,6 @@
 using System.Linq;
 using Core.Item;
-using Game.Map.Interface;
+using Game.MapObject.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
