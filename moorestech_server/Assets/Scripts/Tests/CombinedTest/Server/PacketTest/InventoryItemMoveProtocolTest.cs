@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var chest = (VanillaChest)blockFactory.Create(ChestBlockId, 1);
-            worldDataStore.AddBlock(chest, new Vector2Int(5 ,10), BlockDirection.North);
+            worldDataStore.AddBlock(chest, new Vector3Int(5 ,10), BlockDirection.North);
 
             //ブロックインベントリの設定
             chest.SetItem(1, 1, 10);
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, new Vector2Int(5, 10)),1 + PlayerInventoryConst.MainInventorySize,
+                new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, new Vector3Int(5, 10)),1 + PlayerInventoryConst.MainInventorySize,
                 new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory),0));
 
             //移っているかチェック
@@ -90,7 +90,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
                 new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory),0,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, new Vector2Int(5, 10)),1 + PlayerInventoryConst.MainInventorySize));
+                new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, new Vector3Int(5, 10)),1 + PlayerInventoryConst.MainInventorySize));
 
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(1, 8), chest.GetItem(1));

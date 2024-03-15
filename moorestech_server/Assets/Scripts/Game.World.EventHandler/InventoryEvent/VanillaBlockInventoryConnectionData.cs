@@ -88,7 +88,7 @@ namespace Game.World.EventHandler.InventoryEvent
             East = east;
         }
         
-        public ConnectDirection(Vector2Int distance)
+        public ConnectDirection(Vector3Int distance)
         {
             North = distance.y;
             East = distance.x;

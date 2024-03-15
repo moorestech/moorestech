@@ -5,10 +5,10 @@ namespace Game.World.Interface.Event
 {
     public class BlockRemoveEventProperties
     {
-        public readonly Vector2Int Pos;
+        public readonly Vector3Int Pos;
         public readonly IBlock Block;
 
-        public BlockRemoveEventProperties(Vector2Int pos, IBlock block)
+        public BlockRemoveEventProperties(Vector3Int pos, IBlock block)
         {
             Pos = pos;
             Block = block;

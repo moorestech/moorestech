@@ -6,10 +6,10 @@ namespace Game.Map
     public class MapVein : IMapVein
     {
         public int VeinItemId { get; }
-        public Vector2Int VeinRangeMin { get; }
-        public Vector2Int VeinRangeMax { get; }
+        public Vector3Int VeinRangeMin { get; }
+        public Vector3Int VeinRangeMax { get; }
         
-        public MapVein(int veinItemId, Vector2Int veinRangeMin, Vector2Int veinRangeMax)
+        public MapVein(int veinItemId, Vector3Int veinRangeMin, Vector3Int veinRangeMax)
         {
             VeinItemId = veinItemId;
             VeinRangeMin = veinRangeMin;

@@ -44,7 +44,7 @@ namespace Server.Protocol.PacketResponse
 
             #region Internal
 
-            ChunkDataMessagePack GetChunkData(Vector2Int chunkPos)
+            ChunkDataMessagePack GetChunkData(Vector3Int chunkPos)
             {
                 var blockIds = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
                 var blockDirections = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
@@ -52,7 +52,7 @@ namespace Server.Protocol.PacketResponse
                 for (int i = 0; i < ChunkResponseConst.ChunkSize; i++)
                 for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
                 {
-                    var blockPos = chunkPos + new Vector2Int(i, j);
+                    var blockPos = chunkPos + new Vector3Int(i, j);
                     var originalPosBlock = _worldBlockDatastore.GetOriginPosBlock(blockPos);
 
                     var blockDirection = BlockDirection.North;
@@ -132,7 +132,7 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public ChunkDataMessagePack(Vector2Int chunkPos, int[,] blockIds, int[,] blockDirections, EntityMessagePack[] entities)
+        public ChunkDataMessagePack(Vector3Int chunkPos, int[,] blockIds, int[,] blockDirections, EntityMessagePack[] entities)
         {
             ChunkPos = new Vector2IntMessagePack(chunkPos);
             BlockIds = blockIds;

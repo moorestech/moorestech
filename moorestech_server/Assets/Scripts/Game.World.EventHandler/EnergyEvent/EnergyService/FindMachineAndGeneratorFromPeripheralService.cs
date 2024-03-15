@@ -9,7 +9,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
     public static class FindMachineAndGeneratorFromPeripheralService
     {
         public static (List<IBlockElectricConsumer>, List<IElectricGenerator>) Find(
-            Vector2Int pos, ElectricPoleConfigParam poleConfigParam,
+            Vector3Int pos, ElectricPoleConfigParam poleConfigParam,
             IWorldBlockDatastore worldBlockDatastore)
         {
             var blocks = new List<IBlockElectricConsumer>();
@@ -21,7 +21,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             for (var i = startMachineX; i < startMachineX + machineRange; i++)
             for (var j = startMachineY; j < startMachineY + machineRange; j++)
             {
-                var machinePos = new Vector2Int(i, j);
+                var machinePos = new Vector3Int(i, j);
                 //範囲内に機械がある場合
                 if (worldBlockDatastore.TryGetBlock<IBlockElectricConsumer>(machinePos, out var consumer))
                     //機械を電力セグメントに追加

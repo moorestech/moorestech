@@ -9,16 +9,16 @@ namespace Server.Protocol.PacketResponse.Player
     {
         private const int RequestPlayerIntervalMilliSeconds = 5000;
 
-        private Vector2Int _lastCoreVector2Int = new(int.MaxValue, int.MaxValue);
+        private Vector3Int _lastCoreVector2Int = new(int.MaxValue, int.MaxValue);
         private DateTime _lastGetTime = DateTime.MinValue;
 
-        public List<Vector2Int> GetResponseChunkCoordinates(Vector2Int coreVector2Int)
+        public List<Vector3Int> GetResponseChunkCoordinates(Vector3Int coreVector2Int)
         {
             //例えばユーザーが一度ログアウトして、再度ログインすると、クライアント側ではブロックの情報は消えているが、
             //サーバー側では前回との差分しか返さないようになってしまう
             //そのため、前回の取得から5000ミリ秒以上経過している場合は、前回座標のリセットを行う
             if (_lastGetTime.AddMilliseconds(RequestPlayerIntervalMilliSeconds) < DateTime.Now)
-                _lastCoreVector2Int = new Vector2Int(int.MaxValue, int.MaxValue);
+                _lastCoreVector2Int = new Vector3Int(int.MaxValue, int.MaxValue);
 
             _lastGetTime = DateTime.Now;
 
@@ -35,16 +35,16 @@ namespace Server.Protocol.PacketResponse.Player
             return now;
         }
 
-        public static List<Vector2Int> GetChunkCoordinates(Vector2Int blockPos)
+        public static List<Vector3Int> GetChunkCoordinates(Vector3Int blockPos)
         {
             var chunkHalf = ChunkResponseConst.PlayerVisibleRangeChunk / 2;
             //その座標のチャンクの原点
             var chunkPos = ChunkResponseConst.BlockPositionToChunkOriginPosition(blockPos);
 
-            var result = new List<Vector2Int>();
+            var result = new List<Vector3Int>();
             for (var i = -chunkHalf; i <= chunkHalf; i++)
             for (var j = -chunkHalf; j <= chunkHalf; j++)
-                result.Add(new Vector2Int(
+                result.Add(new Vector3Int(
                     chunkPos.x + i * ChunkResponseConst.ChunkSize,
                     chunkPos.y + j * ChunkResponseConst.ChunkSize));
 

@@ -18,7 +18,7 @@ namespace Server.Util.MessagePack
             Y = y;
         }
 
-        public Vector2IntMessagePack(Vector2Int coreVector2Int)
+        public Vector2IntMessagePack(Vector3Int coreVector2Int)
         {
             X = coreVector2Int.x;
             Y = coreVector2Int.y;
@@ -28,9 +28,9 @@ namespace Server.Util.MessagePack
 
         [Key(1)] public int Y { get; set; }
         
-        public static implicit operator Vector2Int(Vector2IntMessagePack pack)
+        public static implicit operator Vector3Int(Vector2IntMessagePack pack)
         {
-            return new Vector2Int(pack.X, pack.Y);
+            return new Vector3Int(pack.X, pack.Y);
         }
     }
 }

@@ -81,7 +81,7 @@ namespace Game.Block.Config.LoadConfig
                 int height = block.height;
 
                 blockDictionary.Add(new BlockConfigData(modId, id, name, hash, type, blockParam, itemId, modelTransform,
-                    new Vector2Int(width, height)));
+                    new Vector3Int(width, height)));
             }
 
             return blockDictionary;

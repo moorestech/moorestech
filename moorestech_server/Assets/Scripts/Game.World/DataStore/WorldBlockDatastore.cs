@@ -27,7 +27,7 @@ namespace Game.World.DataStore
         private readonly BlockRemoveEvent _blockRemoveEvent;
 
         //座標とキーの紐づけ
-        private readonly Dictionary<Vector2Int, int> _coordinateDictionary = new();
+        private readonly Dictionary<Vector3Int, int> _coordinateDictionary = new();
 
 
         private readonly IBlock _nullBlock = new NullBlock();
@@ -41,9 +41,9 @@ namespace Game.World.DataStore
             _blockPlaceEvent = (BlockPlaceEvent)blockPlaceEvent;
         }
 
-        public event Action<(ChangedBlockState state, IBlock block, Vector2Int pos)> OnBlockStateChange;
+        public event Action<(ChangedBlockState state, IBlock block, Vector3Int pos)> OnBlockStateChange;
 
-        public bool AddBlock(IBlock block, Vector2Int pos, BlockDirection blockDirection)
+        public bool AddBlock(IBlock block, Vector3Int pos, BlockDirection blockDirection)
         {
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
             if (!_blockMasterDictionary.ContainsKey(block.EntityId) &&
@@ -62,7 +62,7 @@ namespace Game.World.DataStore
             return false;
         }
 
-        public bool RemoveBlock(Vector2Int pos)
+        public bool RemoveBlock(Vector3Int pos)
         {
             if (!Exists(pos)) return false;
 
@@ -79,33 +79,33 @@ namespace Game.World.DataStore
         }
 
 
-        public IBlock GetBlock(Vector2Int pos)
+        public IBlock GetBlock(Vector3Int pos)
         {
             return GetBlockDatastore(pos)?.Block ?? _nullBlock;
         }
 
-        public WorldBlockData GetOriginPosBlock(Vector2Int pos)
+        public WorldBlockData GetOriginPosBlock(Vector3Int pos)
         {
             return _coordinateDictionary.TryGetValue(pos, out var entityId)
                 ? _blockMasterDictionary[entityId]
                 : null;
         }
 
-        public bool TryGetBlock(Vector2Int pos, out IBlock block)
+        public bool TryGetBlock(Vector3Int pos, out IBlock block)
         {
             block = GetBlock(pos);
             block ??= _nullBlock;
             return block != _nullBlock;
         }
 
-        public Vector2Int GetBlockPosition(int entityId)
+        public Vector3Int GetBlockPosition(int entityId)
         {
             if (_blockMasterDictionary.TryGetValue(entityId, out var data)) return data.OriginalPos;
 
             throw new Exception("ブロックがありません");
         }
 
-        public BlockDirection GetBlockDirection(Vector2Int pos)
+        public BlockDirection GetBlockDirection(Vector3Int pos)
         {
             var block = GetBlockDatastore(pos);
             //TODO ブロックないときの処理どうしよう
@@ -113,12 +113,12 @@ namespace Game.World.DataStore
         }
 
 
-        public bool Exists(Vector2Int pos)
+        public bool Exists(Vector3Int pos)
         {
             return GetBlock(pos).BlockId != BlockConst.EmptyBlockId;
         }
 
-        private int GetEntityId(Vector2Int pos)
+        private int GetEntityId(Vector3Int pos)
         {
             return GetBlockDatastore(pos).Block.EntityId;
         }
@@ -126,7 +126,7 @@ namespace Game.World.DataStore
         /// <summary>
         ///     TODO GetBlockは頻繁に呼ばれる訳では無いが、この方式は効率が悪いのでなにか改善したい
         /// </summary>
-        private WorldBlockData GetBlockDatastore(Vector2Int pos)
+        private WorldBlockData GetBlockDatastore(Vector3Int pos)
         {
             foreach (var block in
                      _blockMasterDictionary.Where(block => block.Value.IsContain(pos)))
@@ -137,12 +137,12 @@ namespace Game.World.DataStore
 
         #region Component
 
-        public bool ExistsComponentBlock<TComponent>(Vector2Int pos)
+        public bool ExistsComponentBlock<TComponent>(Vector3Int pos)
         {
             return GetBlock(pos) is TComponent;
         }
 
-        public TComponent GetBlock<TComponent>(Vector2Int pos)
+        public TComponent GetBlock<TComponent>(Vector3Int pos)
         {
             var block = GetBlock(pos);
             if (block is TComponent component) return component;
@@ -150,7 +150,7 @@ namespace Game.World.DataStore
             throw new Exception("Block is not " + typeof(TComponent));
         }
 
-        public bool TryGetBlock<TComponent>(Vector2Int pos, out TComponent component)
+        public bool TryGetBlock<TComponent>(Vector3Int pos, out TComponent component)
         {
             if (ExistsComponentBlock<TComponent>(pos))
             {

@@ -5,6 +5,6 @@ namespace Game.Map.Interface.Vein
 {
     public interface IMapVeinDatastore
     {
-        public List<IMapVein> GetOverVeins(Vector2Int pos);
+        public List<IMapVein> GetOverVeins(Vector3Int pos);
     }
 }

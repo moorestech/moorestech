@@ -35,7 +35,7 @@ namespace Game.World.EventHandler.InventoryEvent
         /// <param name="blockPlaceEvent"></param>
         private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
         {
-            var connectOffsetBlockPositions = new List<Vector2Int>
+            var connectOffsetBlockPositions = new List<Vector3Int>
             {
                 new(1, 0), new(-1, 0), new(0, 1), new(0, -1)
             };
@@ -56,7 +56,7 @@ namespace Game.World.EventHandler.InventoryEvent
         ///     そのブロックのタイプはioConnectionDataDictionaryにあるか、
         ///     それぞれインプットとアウトプットの向きはあっているかを確認し、接続する
         /// </summary>
-        private void ConnectBlock(Vector2Int source, Vector2Int destination)
+        private void ConnectBlock(Vector3Int source, Vector3Int destination)
         {
             //接続元、接続先にBlockInventoryがなければ処理を終了
             if (!_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(source) ||

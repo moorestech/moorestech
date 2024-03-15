@@ -53,7 +53,7 @@ namespace Game.World.EventHandler.EnergyEvent
             for (var i = startMachineX; i < startMachineX + _maxMachineConnectionRange; i++)
             for (var j = startMachineY; j < startMachineY + _maxMachineConnectionRange; j++)
             {
-                var polePos = new Vector2Int(i, j);
+                var polePos = new Vector3Int(i, j);
                 if (!_worldBlockDatastore.ExistsComponentBlock<IElectricPole>(polePos)) continue;
 
                 //範囲内に電柱がある場合
@@ -63,7 +63,7 @@ namespace Game.World.EventHandler.EnergyEvent
             }
         }
 
-        private bool IsElectricMachine(Vector2Int pos)
+        private bool IsElectricMachine(Vector3Int pos)
         {
             return _worldBlockDatastore.ExistsComponentBlock<TGenerator>(pos) ||
                    _worldBlockDatastore.ExistsComponentBlock<TConsumer>(pos);
@@ -73,7 +73,7 @@ namespace Game.World.EventHandler.EnergyEvent
         /// <summary>
         ///     電柱のセグメントに機械を接続する
         /// </summary>
-        private void ConnectToElectricPole(Vector2Int polePos, Vector2Int machinePos)
+        private void ConnectToElectricPole(Vector3Int polePos, Vector3Int machinePos)
         {
             //電柱を取得
             var pole = _worldBlockDatastore.GetBlock<TTransformer>(polePos);

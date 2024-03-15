@@ -62,7 +62,7 @@ namespace Server.Event.EventReceive
         {
         }
 
-        public OpenableBlockInventoryUpdateEventMessagePack(Vector2Int pos, int slot, IItemStack item)
+        public OpenableBlockInventoryUpdateEventMessagePack(Vector3Int pos, int slot, IItemStack item)
         {
             Position = new Vector2IntMessagePack(pos);
             Slot = slot;

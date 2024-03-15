@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
                 var blockDirection = (BlockDirection)random.Next(0, 4);
-                var pos = new Vector2Int(random.Next(-40, 40), random.Next(-40, 40));
+                var pos = new Vector3Int(random.Next(-40, 40), random.Next(-40, 40));
                 worldBlock.AddBlock(b,pos , blockDirection);
             }
 
@@ -66,7 +66,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 for (var i = 0; i < r.BlockIds.GetLength(0); i++)
                 for (var j = 0; j < r.BlockIds.GetLength(1); j++)
                 {
-                    var pos = new Vector2Int(c.X + i, c.Y + j);
+                    var pos = new Vector3Int(c.X + i, c.Y + j);
                     var id = worldBlock.GetOriginPosBlock(pos)?.Block.BlockId ?? BlockConst.EmptyBlockId;
                     Assert.AreEqual(id, r.BlockIds[i, j]);
 
@@ -86,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             //ブロックの設置
             var b = blockFactory.Create(Block_1x4_Id, 1);
-            worldBlock.AddBlock(b, new Vector2Int(0 ,0), BlockDirection.North);
+            worldBlock.AddBlock(b, new Vector3Int(0 ,0), BlockDirection.North);
 
             var requestChunks = new List<Vector2IntMessagePack>() { new (new (0, 0)) };
             var requestBytes = MessagePackSerializer.Serialize(new RequestChunkDataMessagePack(requestChunks));
@@ -97,7 +97,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //座標の確認
             var c = chunkData.ChunkPos;
-            Assert.AreEqual(new Vector2Int(0, 0), (Vector2Int)c);
+            Assert.AreEqual(new Vector3Int(0, 0), (Vector3Int)c);
             //ブロックの確認
             for (var i = 0; i < chunkData.BlockIds.GetLength(0); i++)
             for (var j = 0; j < chunkData.BlockIds.GetLength(1); j++)

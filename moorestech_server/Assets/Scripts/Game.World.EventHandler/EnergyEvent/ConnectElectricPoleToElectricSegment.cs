@@ -54,7 +54,7 @@ namespace Game.World.EventHandler.EnergyEvent
         ///     範囲内の電柱をリストアップする 電柱が１つであればそれに接続、複数ならマージする
         ///     接続したセグメントを返す
         /// </summary>
-        private EnergySegment GetAndConnectElectricSegment(Vector2Int pos, ElectricPoleConfigParam electricPoleConfigParam, IEnergyTransformer blockElectric)
+        private EnergySegment GetAndConnectElectricSegment(Vector3Int pos, ElectricPoleConfigParam electricPoleConfigParam, IEnergyTransformer blockElectric)
         {
             //周りの電柱をリストアップする
             var electricPoles =
@@ -80,7 +80,7 @@ namespace Game.World.EventHandler.EnergyEvent
         /// <summary>
         ///     設置した電柱の周辺にある機械、発電機を探索して接続する
         /// </summary>
-        private void ConnectMachine(Vector2Int pos, EnergySegment segment, ElectricPoleConfigParam poleConfigParam)
+        private void ConnectMachine(Vector3Int pos, EnergySegment segment, ElectricPoleConfigParam poleConfigParam)
         {
             var (blocks, generators) =
                 FindMachineAndGeneratorFromPeripheralService.Find(pos, poleConfigParam, _worldBlockDatastore);

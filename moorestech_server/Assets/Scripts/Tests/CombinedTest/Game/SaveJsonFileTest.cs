@@ -31,9 +31,9 @@ namespace Tests.CombinedTest.Game
 
 
             //ブロックの追加
-            worldBlockDatastore.AddBlock(blockFactory.Create(1, 10), new Vector2Int(0 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(2, 5), new Vector2Int(0 ,1), BlockDirection.East);
-            worldBlockDatastore.AddBlock(blockFactory.Create(3, 1000), new Vector2Int(30 ,-10), BlockDirection.West);
+            worldBlockDatastore.AddBlock(blockFactory.Create(1, 10), new Vector3Int(0 ,0), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(2, 5), new Vector3Int(0 ,1), BlockDirection.East);
+            worldBlockDatastore.AddBlock(blockFactory.Create(3, 1000), new Vector3Int(30 ,-10), BlockDirection.West);
 
             saveServiceProvider.GetService<IWorldSaveDataSaver>().Save();
 
@@ -52,20 +52,20 @@ namespace Tests.CombinedTest.Game
 
 
             //追加したブロックのチェック
-            var block = loadWorldBlockDatastore.GetBlock(new Vector2Int(0,  0));
+            var block = loadWorldBlockDatastore.GetBlock(new Vector3Int(0,  0));
             Assert.AreEqual(1, block.BlockId);
             Assert.AreEqual(10, block.EntityId);
-            Assert.AreEqual(BlockDirection.North, loadWorldBlockDatastore.GetBlockDirection(new Vector2Int(0, 0)));
+            Assert.AreEqual(BlockDirection.North, loadWorldBlockDatastore.GetBlockDirection(new Vector3Int(0, 0)));
 
-            block = loadWorldBlockDatastore.GetBlock(new Vector2Int(0,  1));
+            block = loadWorldBlockDatastore.GetBlock(new Vector3Int(0,  1));
             Assert.AreEqual(2, block.BlockId);
             Assert.AreEqual(5, block.EntityId);
-            Assert.AreEqual(BlockDirection.East, loadWorldBlockDatastore.GetBlockDirection(new Vector2Int(0, 1)));
+            Assert.AreEqual(BlockDirection.East, loadWorldBlockDatastore.GetBlockDirection(new Vector3Int(0, 1)));
 
-            block = loadWorldBlockDatastore.GetBlock(new Vector2Int(30,  -10));
+            block = loadWorldBlockDatastore.GetBlock(new Vector3Int(30,  -10));
             Assert.AreEqual(3, block.BlockId);
             Assert.AreEqual(1000, block.EntityId);
-            Assert.AreEqual(BlockDirection.West, loadWorldBlockDatastore.GetBlockDirection(new Vector2Int(30, -10)));
+            Assert.AreEqual(BlockDirection.West, loadWorldBlockDatastore.GetBlockDirection(new Vector3Int(30, -10)));
         }
 
         private void ChangeFilePath(SaveJsonFileName instance, string fileName)

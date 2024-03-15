@@ -14,9 +14,9 @@ namespace Game.World.Interface.DataStore
         [JsonProperty("Y")] public int Y;
         
         [JsonIgnore]
-        public Vector2Int Pos => new(X,Y);
+        public Vector3Int Pos => new(X,Y);
 
-        public SaveBlockData(Vector2Int pos, long blocHash, int entityId, string state, int direction)
+        public SaveBlockData(Vector3Int pos, long blocHash, int entityId, string state, int direction)
         {
             X = pos.x;
             Y = pos.y;

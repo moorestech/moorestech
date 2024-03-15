@@ -64,7 +64,7 @@ namespace Server.Protocol.PacketResponse
             return null;
         }
 
-        private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, Vector2Int pos)
+        private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, Vector3Int pos)
         {
             IOpenableInventory inventory = null;
             switch (inventoryType)

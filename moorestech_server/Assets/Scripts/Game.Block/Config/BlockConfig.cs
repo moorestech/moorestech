@@ -66,7 +66,7 @@ namespace Game.Block.Config
                 0,
                 VanillaBlockType.Block,
                 new NullBlockConfigParam(),
-                ItemConst.EmptyItemId, new ModelTransform(), new Vector2Int(1, 1));
+                ItemConst.EmptyItemId, new ModelTransform(), new Vector3Int(1, 1));
         }
 
         public BlockConfigData GetBlockConfig(long blockHash)

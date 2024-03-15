@@ -23,7 +23,7 @@ namespace Server.Event.EventReceive
             worldBlockDatastore.OnBlockStateChange += ChangeState;
         }
 
-        private void ChangeState((ChangedBlockState state, IBlock block, Vector2Int pos) state)
+        private void ChangeState((ChangedBlockState state, IBlock block, Vector3Int pos) state)
         {
             var messagePack = new ChangeBlockStateEventMessagePack(state.state, state.pos);
             var payload = MessagePackSerializer.Serialize(messagePack);
@@ -40,7 +40,7 @@ namespace Server.Event.EventReceive
         {
         }
 
-        public ChangeBlockStateEventMessagePack(ChangedBlockState state, Vector2Int pos)
+        public ChangeBlockStateEventMessagePack(ChangedBlockState state, Vector3Int pos)
         {
             CurrentState = state.CurrentState;
             PreviousState = state.PreviousState;

@@ -86,7 +86,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class RemoveBlockProtocolMessagePack : ProtocolMessagePackBase
     {
-        public RemoveBlockProtocolMessagePack(int playerId, Vector2Int pos)
+        public RemoveBlockProtocolMessagePack(int playerId, Vector3Int pos)
         {
             Tag = RemoveBlockProtocol.Tag;
             PlayerId = playerId;

@@ -39,7 +39,7 @@ namespace Server.Event.EventReceive
         {
         }
 
-        public PlaceBlockEventMessagePack(Vector2Int blockPos, int blockId, int direction)
+        public PlaceBlockEventMessagePack(Vector3Int blockPos, int blockId, int direction)
         {
             BlockPos = new Vector2IntMessagePack(blockPos);
             BlockId = blockId;

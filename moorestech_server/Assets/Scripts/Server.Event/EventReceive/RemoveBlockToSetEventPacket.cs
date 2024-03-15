@@ -34,7 +34,7 @@ namespace Server.Event.EventReceive
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public RemoveBlockEventMessagePack() { }
 
-        public RemoveBlockEventMessagePack(Vector2Int pos)
+        public RemoveBlockEventMessagePack(Vector3Int pos)
         {
             Position = new Vector2IntMessagePack(pos);
         }

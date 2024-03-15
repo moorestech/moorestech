@@ -48,7 +48,7 @@ namespace Server.Protocol.PacketResponse
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="isOpen"></param>
-        public BlockInventoryOpenCloseProtocolMessagePack(int playerId, Vector2Int pos, bool isOpen)
+        public BlockInventoryOpenCloseProtocolMessagePack(int playerId, Vector3Int pos, bool isOpen)
         {
             Tag = BlockInventoryOpenCloseProtocol.Tag;
             Pos = new Vector2IntMessagePack(pos);

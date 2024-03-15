@@ -72,7 +72,7 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class SendPlaceHotBarBlockProtocolMessagePack : ProtocolMessagePackBase
     {
-        public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int direction, int slot, Vector2Int pos)
+        public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int direction, int slot, Vector3Int pos)
         {
             Tag = SendPlaceHotBarBlockProtocol.Tag;
             PlayerId = playerId;

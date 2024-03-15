@@ -8,9 +8,9 @@ namespace Server.Protocol.PacketResponse.Const
         public const int PlayerVisibleRangeChunk = 5;
 
 
-        public static Vector2Int BlockPositionToChunkOriginPosition(Vector2Int pos)
+        public static Vector3Int BlockPositionToChunkOriginPosition(Vector3Int pos)
         {
-            return new Vector2Int(GetChunk(pos.x), GetChunk(pos.y));
+            return new Vector3Int(GetChunk(pos.x), GetChunk(pos.y));
         }
 
         private static int GetChunk(int n)
