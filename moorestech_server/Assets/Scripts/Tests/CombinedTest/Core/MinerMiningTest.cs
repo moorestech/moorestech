@@ -1,8 +1,7 @@
 using System;
-using System.Reflection;
 using Core.EnergySystem;
 using Core.Item;
-using Core.Ore;
+using Core.Item.Config;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Miner;
@@ -31,16 +30,16 @@ namespace Tests.CombinedTest.Core
 
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
-            var oreConfig = serviceProvider.GetService<IOreConfig>();
+            var itemConfig = serviceProvider.GetService<IItemConfig>();
             var minerBlockConfigParam = blockConfig.GetBlockConfig(MinerId).Param as MinerBlockConfigParam;
 
             //手動で鉱石の設定を行う
             var outputCount = minerBlockConfigParam.OutputSlot;
-            var miningTime = minerBlockConfigParam.OreSettings[0].MiningTime;
-            var miningItemId = oreConfig.OreIdToItemId(minerBlockConfigParam.OreSettings[0].OreId);
+            var miningSetting = minerBlockConfigParam.MineItemSettings[0];
+            var miningTime = miningSetting.MiningTime;
+            var miningItemId = miningSetting.ItemId;
 
-            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount,
-                itemStackFactory, new BlockOpenableInventoryUpdateEvent()));
+            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, itemStackFactory, new BlockOpenableInventoryUpdateEvent()));
             miner.SetMiningItem(miningItemId, miningTime);
 
             var dummyInventory = new DummyBlockInventory(itemStackFactory);

@@ -18,7 +18,7 @@
         "Game.Base",
         "Game.Quest.Interface",
         "Server.Event",
-        "Game.MapObject.Interface",
+        "Game.Map.Interface",
         "Core.Ore",
         "Game.SaveLoad.Interface",
         "Game.Crafting.Interface"
