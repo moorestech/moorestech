@@ -10,19 +10,19 @@ public class BuildPipeline
 {
     private const string OutputPathKey = "WindowsBuildOutputPath";
 
-    [MenuItem("moorestech/WindowsBuild")]
+    [MenuItem("moorestech/Build/WindowsBuild")]
     public static void WindowsBuild()
     {
         Pipeline(BuildTarget.StandaloneWindows64, false, true);
     }
 
-    [MenuItem("moorestech/MacOsBuild")]
+    [MenuItem("moorestech/Build/MacOsBuild")]
     public static void MacOsBuild()
     {
         Pipeline(BuildTarget.StandaloneOSX, false, true);
     }
 
-    [MenuItem("moorestech/LinuxBuild")]
+    [MenuItem("moorestech/Build/LinuxBuild")]
     public static void LinuxBuild()
     {
         Pipeline(BuildTarget.StandaloneLinux64, false, true);
