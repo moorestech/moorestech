@@ -36,7 +36,6 @@ using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.EventHandler.InventoryEvent;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
-using Game.WorldMap;
 using Game.WorldMap.EventListener;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
@@ -55,7 +54,7 @@ namespace Server.Boot
             var services = new ServiceCollection();
 
             var modDirectory = Path.Combine(serverDirectory, "mods");
-            var mapDirectory = Path.Combine(serverDirectory, "map");
+            var mapPath = Path.Combine(serverDirectory, "map", "map.json");
 
             //コンフィグ、ファクトリーのインスタンスを登録
             var (configJsons, modsResource) = ModJsonStringLoader.GetConfigString(modDirectory);
@@ -79,9 +78,6 @@ namespace Server.Boot
             services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IOreConfig, OreConfig>();
-            services.AddSingleton<VeinGenerator, VeinGenerator>();
-            services.AddSingleton<WorldMapTile, WorldMapTile>();
-            services.AddSingleton(new Seed(1337));
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>();
 
@@ -94,7 +90,7 @@ namespace Server.Boot
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(new SaveJsonFileName("save_1.json")); 
-            services.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapDirectory)));
+            services.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
 
             //イベントを登録
             services.AddSingleton<IBlockPlaceEvent, BlockPlaceEvent>();

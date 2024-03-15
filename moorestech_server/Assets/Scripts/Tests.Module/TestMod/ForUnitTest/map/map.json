@@ -14,5 +14,15 @@
       "z": 0.0,
       "instanceId": 1
     }
+  ],
+  "mapVeins": [
+    {
+      "veinItemModId": "forUniTest",
+      "veinItemName": "Test1",
+      "xMin": 0,
+      "xMax": 0,
+      "yMin": 5,
+      "yMax": 5
+    }
   ]
 }

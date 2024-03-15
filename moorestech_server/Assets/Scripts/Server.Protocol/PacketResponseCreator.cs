@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.PlayerInventory.Interface;
-using Game.WorldMap;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
-using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
-using UnityEngine;
 
 namespace Server.Protocol
 {
@@ -29,14 +26,11 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(BlockInventoryRequestProtocol.Tag, new BlockInventoryRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveBlockProtocol.Tag, new RemoveBlockProtocol(serviceProvider));
             _packetResponseDictionary.Add(SendCommandProtocol.Tag, new SendCommandProtocol(serviceProvider));
-            _packetResponseDictionary.Add(MiningOperationProtocol.Tag, new MiningOperationProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockInventoryOpenCloseProtocol.Tag, new BlockInventoryOpenCloseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SaveProtocol.Tag, new SaveProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetMapObjectInfoProtocol.Tag, new GetMapObjectInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(MapObjectAcquisitionProtocol.Tag, new MapObjectAcquisitionProtocol(serviceProvider));
             _packetResponseDictionary.Add(OneClickCraft.Tag, new OneClickCraft(serviceProvider));
-
-            serviceProvider.GetService<VeinGenerator>();
         }
 
         public List<List<byte>> GetPacketResponse(List<byte> payload)
