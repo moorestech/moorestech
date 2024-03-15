@@ -10,7 +10,7 @@
         "Game.World.Interface",
         "Game.Block.Interface",
         "Game.PlayerInventory.Interface",
-        "Game.MapObject.Interface",
+        "Game.Map.Interface",
         "Game.Quest.Interface",
         "Server.Util"
     ],

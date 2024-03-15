@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.MapObject.Interface;
+using Game.Map.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 

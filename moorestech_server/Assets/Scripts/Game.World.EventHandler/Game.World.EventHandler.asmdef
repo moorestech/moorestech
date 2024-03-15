@@ -6,7 +6,9 @@
         "Game.Block.Interface",
         "Game.World.Interface",
         "Core.Util",
-        "Game.Block"
+        "Core.Item",
+        "Game.Block",
+        "Game.Map.Interface"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

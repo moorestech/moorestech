@@ -4,8 +4,6 @@ using Core.EnergySystem;
 using Core.EnergySystem.Electric;
 using Core.Item;
 using Core.Item.Config;
-using Core.Ore;
-using Core.Ore.Config;
 using Game.Block.Config;
 using Game.Block.Event;
 using Game.Block.Factory;
@@ -18,8 +16,10 @@ using Game.Crafting.Config;
 using Game.Crafting.Interface;
 using Game.Entity;
 using Game.Entity.Interface;
-using Game.MapObject;
-using Game.MapObject.Interface;
+using Game.Map;
+using Game.Map.Interface;
+using Game.Map.Interface.Json;
+using Game.Map.Interface.Vein;
 using Game.PlayerInventory;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
@@ -34,10 +34,10 @@ using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.EventHandler.InventoryEvent;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
-using Game.WorldMap;
 using Game.WorldMap.EventListener;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
+using Newtonsoft.Json;
 using Server.Event;
 using Server.Event.EventReceive;
 using Server.Protocol;
@@ -52,7 +52,7 @@ namespace Server.Boot
             var services = new ServiceCollection();
 
             var modDirectory = Path.Combine(serverDirectory, "mods");
-            var mapDirectory = Path.Combine(serverDirectory, "map");
+            var mapPath = Path.Combine(serverDirectory, "map", "map.json");
 
             //コンフィグ、ファクトリーのインスタンスを登録
             var (configJsons, modsResource) = ModJsonStringLoader.GetConfigString(modDirectory);
@@ -75,22 +75,19 @@ namespace Server.Boot
             services.AddSingleton<IBlockInventoryOpenStateDataStore, BlockInventoryOpenStateDataStore>();
             services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
-            services.AddSingleton<IOreConfig, OreConfig>();
-            services.AddSingleton<VeinGenerator, VeinGenerator>();
-            services.AddSingleton<WorldMapTile, WorldMapTile>();
-            services.AddSingleton(new Seed(1337));
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>();
 
             services.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
             services.AddSingleton<IMapObjectFactory, MapObjectFactory>();
+            services.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
 
 
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
-            services.AddSingleton(new SaveJsonFileName("save_1.json"));
-            services.AddSingleton(new MapConfigFile(mapDirectory));
+            services.AddSingleton(new SaveJsonFileName("save_1.json")); 
+            services.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
 
             //イベントを登録
             services.AddSingleton<IBlockPlaceEvent, BlockPlaceEvent>();

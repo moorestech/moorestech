@@ -3,6 +3,7 @@ using System.Reflection;
 using Core.Item;
 using Game.Block.Blocks.Miner;
 using Game.Block.Interface;
+using Game.Map.Interface.Vein;
 using Game.World.Interface.DataStore;
 using Game.WorldMap;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,26 +23,12 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) =
                 new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
-            var veinGenerator = serviceProvider.GetService<VeinGenerator>();
+            var mapVeinDatastore = serviceProvider.GetService<IMapVeinDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
 
-            var oreId = 0;
-            var pos = new Vector2Int(0, 0);
-            for (var i = 0; i < 500; i++)
-            {
-                for (var j = 0; j < 500; j++)
-                {
-                    oreId = veinGenerator.GetOreId(new Vector2Int(i, j));
-                    //oreIdが1の時にその上に採掘機を設置する
-                    if (oreId != 1) continue;
-                    pos = new Vector2Int(i, j);
-                    break;
-                }
-
-                if (oreId != 1) continue;
-                break;
-            }
+            //採掘機を設置する位置を取得
+            var (mapVein, pos) = GetMapVein();
 
             worldBlockDatastore.AddBlock(blockFactory.Create(MinerId, 1), pos, BlockDirection.North);
 
@@ -55,8 +42,28 @@ namespace Tests.CombinedTest.Core
                 .GetValue(miner);
 
 
-            Assert.AreEqual(3, miningItems[0].Id);
+            Assert.AreEqual(mapVein.VeinItemId, miningItems[0].Id);
             Assert.AreEqual(1000, defaultMiningTime);
+
+            #region Internal
+
+            (IMapVein mapVein,Vector2Int pos) GetMapVein()
+            {
+                var pos = new Vector2Int(0, 0);
+                for (var i = 0; i < 500; i++)
+                {
+                    for (var j = 0; j < 500; j++)
+                    {
+                        var veins = mapVeinDatastore.GetOverVeins(new Vector2Int(i, j));
+                        if (veins.Count == 0) continue;
+                    
+                         return (veins[0], new Vector2Int(i, j));
+                    }
+                }
+                return (null, pos);
+            }
+
+            #endregion
         }
     }
 }
