@@ -23,7 +23,7 @@ namespace Game.PlayerInventory
             return _openCoordinates.Where(x => x.Value == blockEntityId).Select(x => x.Key).ToList();
         }
 
-        public void Open(int playerId, Vector2Int pos)
+        public void Open(int playerId, Vector3Int pos)
         {
             //開けるインベントリのブロックが存在していなかったらそのまま終了
             if (!_worldBlockDatastore.TryGetBlock<IOpenableInventory>(pos, out _)) return;

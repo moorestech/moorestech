@@ -7,6 +7,7 @@ using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse.Const;
 using Server.Protocol.PacketResponse.Util;
 using Server.Util.MessagePack;
@@ -46,25 +47,20 @@ namespace Server.Protocol.PacketResponse
 
             ChunkDataMessagePack GetChunkData(Vector2Int chunkPos)
             {
-                var blockIds = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
-                var blockDirections = new int[ChunkResponseConst.ChunkSize, ChunkResponseConst.ChunkSize];
+                var chunkOrigin = new Vector3Int(chunkPos.x, 0, chunkPos.y);
+                var blocks = new List<BlockDataMessagePack>();
                 
                 for (int i = 0; i < ChunkResponseConst.ChunkSize; i++)
                 for (int j = 0; j < ChunkResponseConst.ChunkSize; j++)
                 {
-                    var blockPos = chunkPos + new Vector2Int(i, j);
+                    var blockPos = chunkOrigin + new Vector3Int(i,0, j);
                     var originalPosBlock = _worldBlockDatastore.GetOriginPosBlock(blockPos);
 
-                    var blockDirection = BlockDirection.North;
-                    var blockId = BlockConst.EmptyBlockId;
-                    if (originalPosBlock != null)
-                    {
-                        blockDirection = originalPosBlock.BlockDirection;
-                        blockId = originalPosBlock.Block.BlockId;
-                    }
+                    if (originalPosBlock == null) continue;
                     
-                    blockIds[i, j] = blockId;
-                    blockDirections[i, j] = (int)blockDirection;
+                    var blockDirection = originalPosBlock.BlockDirection;
+                    var blockId = originalPosBlock.Block.BlockId;
+                    blocks.Add(new BlockDataMessagePack(blockId, blockPos, blockDirection));
                 }
                 
                 //TODO 今はベルトコンベアのアイテムをエンティティとして返しているだけ 今後は本当のentityも返す
@@ -72,7 +68,7 @@ namespace Server.Protocol.PacketResponse
                 var entities = new List<EntityMessagePack>();
                 entities.AddRange(items.Select(item => new EntityMessagePack(item)));
 
-                return new ChunkDataMessagePack(chunkPos, blockIds, blockDirections, entities.ToArray());
+                return new ChunkDataMessagePack(chunkPos,blocks.ToArray(), entities.ToArray());
             }
 
             #endregion
@@ -121,10 +117,8 @@ namespace Server.Protocol.PacketResponse
         [Key(0)]
         public Vector2IntMessagePack ChunkPos { get; set; }
         [Key(1)]
-        public int[,] BlockIds { get; set; }
+        public BlockDataMessagePack[] Blocks { get; set; }
         [Key(2)]
-        public int[,] BlockDirections { get; set; }
-        [Key(3)]
         public EntityMessagePack[] Entities { get; set; }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -132,11 +126,10 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public ChunkDataMessagePack(Vector2Int chunkPos, int[,] blockIds, int[,] blockDirections, EntityMessagePack[] entities)
+        public ChunkDataMessagePack(Vector2Int chunkPos,BlockDataMessagePack[] blocks, EntityMessagePack[] entities)
         {
             ChunkPos = new Vector2IntMessagePack(chunkPos);
-            BlockIds = blockIds;
-            BlockDirections = blockDirections;
+            Blocks = blocks;
             Entities = entities;
         }
     }

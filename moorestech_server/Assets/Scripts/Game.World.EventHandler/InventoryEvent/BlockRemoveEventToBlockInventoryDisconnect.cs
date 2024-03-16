@@ -29,14 +29,18 @@ namespace Game.World.EventHandler.InventoryEvent
 
 
             //削除されたブロックの東西南北にあるブロックインベントリを削除する
-            var connectOffsetBlockPositions = new List<Vector2Int> { new(1, 0), new (-1, 0), new(0, 1), new(0, -1) };
+            var connectOffsetBlockPositions = new List<Vector3Int>
+            {
+                new(1, 0,0), new (-1, 0,0), 
+                new(0, 1,0), new(0, -1,0),
+                new(0, 0,1), new(0, 0,-1),
+            };
 
             foreach (var offsetpos in connectOffsetBlockPositions)
                 //削除されたブロックの周りのブロックがIBlockInventoryを持っている時
                 if (_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(offsetpos + removePos))
                     //そのブロックの接続を削除する
-                    _worldBlockDatastore.GetBlock<IBlockInventory>(offsetpos + removePos)
-                        .RemoveOutputConnector(block);
+                    _worldBlockDatastore.GetBlock<IBlockInventory>(offsetpos + removePos).RemoveOutputConnector(block);
         }
     }
 }

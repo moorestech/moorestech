@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             {
                 var x = random.Next(-10000, 10000);
                 var y = random.Next(-10000, 10000);
-                var pos = new Vector2Int(x, y);
+                var pos = new Vector3Int(x, y);
                 var blockId = random.Next(1, 1000);
                 var direction = random.Next(0, 4);
 
@@ -86,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
         private TestBlockData AnalysisResponsePacket(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload);
+            var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload).BlockData;
 
             return new TestBlockData(data.BlockPos, data.BlockId, data.Direction);
         }
@@ -103,7 +103,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             public readonly int X;
             public readonly int Y;
 
-            public TestBlockData(Vector2Int pos, int id, int blockDirectionNum)
+            public TestBlockData(Vector3Int pos, int id, int blockDirectionNum)
             {
                 X = pos.x;
                 Y = pos.y;

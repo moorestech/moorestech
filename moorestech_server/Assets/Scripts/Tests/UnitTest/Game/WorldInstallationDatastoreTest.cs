@@ -30,7 +30,7 @@ namespace Tests.UnitTest.Game
 
                 var x = random.Next(-1000, 1000);
                 var y = random.Next(-1000, 1000);
-                var pos = new Vector2Int(x, y);
+                var pos = new Vector3Int(x, y);
 
                 worldData.AddBlock(ins, pos, BlockDirection.North);
                 var output = worldData.GetBlock(pos);
@@ -48,11 +48,11 @@ namespace Tests.UnitTest.Game
 
             var entityId = CreateBlockEntityId.Create();
             var i = CreateMachine(1, entityId);
-            worldData.AddBlock(i, new Vector2Int(1 ,1), BlockDirection.North);
+            worldData.AddBlock(i, new Vector3Int(1 ,1), BlockDirection.North);
 
             //座標だけ変えてintIDは同じ
             var i2 = CreateMachine(1, entityId);
-            Assert.False(worldData.AddBlock(i2, new Vector2Int(10 ,10), BlockDirection.North));
+            Assert.False(worldData.AddBlock(i2, new Vector3Int(10 ,10), BlockDirection.North));
         }
 
         [Test]
@@ -63,11 +63,11 @@ namespace Tests.UnitTest.Game
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var i = CreateMachine(1, CreateBlockEntityId.Create());
-            worldData.AddBlock(i, new Vector2Int(1 ,1), BlockDirection.North);
+            worldData.AddBlock(i, new Vector3Int(1 ,1), BlockDirection.North);
 
             //座標だけ変えてintIDは同じ
             var i2 = CreateMachine(1, CreateBlockEntityId.Create());
-            Assert.False(worldData.AddBlock(i2, new Vector2Int(1 ,1), BlockDirection.North));
+            Assert.False(worldData.AddBlock(i2, new Vector3Int(1 ,1), BlockDirection.North));
         }
 
         private VanillaMachineBase CreateMachine(int id, int entityId)

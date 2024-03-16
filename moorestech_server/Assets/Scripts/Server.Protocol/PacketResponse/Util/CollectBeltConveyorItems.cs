@@ -34,7 +34,7 @@ namespace Server.Protocol.PacketResponse.Util
             {
                 var x = i + chunk.x;
                 var y = j + chunk.y;
-                var pos = new Vector2Int(x, y);
+                var pos = new Vector3Int(x, y);
 
                 if (!worldBlockDatastore.TryGetBlock(pos, out var block)) continue;
 
@@ -53,7 +53,7 @@ namespace Server.Protocol.PacketResponse.Util
 
 
         private static List<IEntity> CollectItemFromBeltConveyor(IEntityFactory entityFactory,
-            VanillaBeltConveyor vanillaBeltConveyor, Vector2Int pos, BlockDirection blockDirection)
+            VanillaBeltConveyor vanillaBeltConveyor, Vector3Int pos, BlockDirection blockDirection)
         {
             var result = new List<IEntity>();
             for (var i = 0 ; i < vanillaBeltConveyor.InventoryItemNum; i++)

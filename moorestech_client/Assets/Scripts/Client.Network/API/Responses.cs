@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Item;
 using Game.World.Interface.DataStore;
+using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using UnityEngine;
@@ -36,12 +37,12 @@ namespace Client.Network.API
     public class ChunkResponse
     {
         public readonly Vector2Int ChunkPos;
-        public readonly BlockInfo[,] Blocks;
+        public readonly List<BlockInfo> Blocks;
         public readonly List<EntityResponse> Entities;
         
         //TODO レスポンスの種類を増やせるようにする
 
-        public ChunkResponse(Vector2Int chunkPos, BlockInfo[,] blocks, List<EntityResponse> entities)
+        public ChunkResponse(Vector2Int chunkPos, List<BlockInfo> blocks, List<EntityResponse> entities)
         {
             ChunkPos = chunkPos;
             Blocks = blocks;
@@ -51,13 +52,15 @@ namespace Client.Network.API
     
     public class BlockInfo
     {
-        public readonly BlockDirection BlockDirection;
+        public readonly Vector3Int BlockPos;
         public readonly int BlockId;
+        public readonly BlockDirection BlockDirection;
         
-        public BlockInfo(int blockId, BlockDirection blockDirection)
+        public BlockInfo(BlockDataMessagePack blockDataMessagePack)
         {
-            BlockId = blockId;
-            BlockDirection = blockDirection;
+            BlockPos = blockDataMessagePack.BlockPos;
+            BlockId = blockDataMessagePack.BlockId;
+            BlockDirection = (BlockDirection)blockDataMessagePack.BlockDirection;
         }
     }
 

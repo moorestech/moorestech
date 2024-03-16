@@ -47,17 +47,17 @@ namespace Tests.CombinedTest.Core
 
             #region Internal
 
-            (IMapVein mapVein,Vector2Int pos) GetMapVein()
+            (IMapVein mapVein,Vector3Int pos) GetMapVein()
             {
-                var pos = new Vector2Int(0, 0);
+                var pos = new Vector3Int(0, 0);
                 for (var i = 0; i < 500; i++)
                 {
                     for (var j = 0; j < 500; j++)
                     {
-                        var veins = mapVeinDatastore.GetOverVeins(new Vector2Int(i, j));
+                        var veins = mapVeinDatastore.GetOverVeins(new Vector3Int(i, j));
                         if (veins.Count == 0) continue;
                     
-                         return (veins[0], new Vector2Int(i, j));
+                         return (veins[0], new Vector3Int(i, j));
                     }
                 }
                 return (null, pos);

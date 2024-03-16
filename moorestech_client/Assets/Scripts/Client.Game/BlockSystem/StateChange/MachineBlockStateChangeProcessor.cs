@@ -1,11 +1,10 @@
 ﻿using System;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface.State;
-using MainGame.ModLoader.Glb;
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace MainGame.UnityView.Block.StateChange
+namespace Client.Game.BlockSystem.StateChange
 {
     public class MachineBlockStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {

@@ -22,7 +22,7 @@ namespace Server.Util.MessagePack
             Y = y;
         }
 
-        public Vector2MessagePack(Vector2Int vector2Int)
+        public Vector2MessagePack(Vector3Int vector2Int)
         {
             X = vector2Int.x;
             Y = vector2Int.y;

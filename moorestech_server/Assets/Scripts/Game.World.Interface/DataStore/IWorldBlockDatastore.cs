@@ -8,21 +8,21 @@ namespace Game.World.Interface.DataStore
 {
     public interface IWorldBlockDatastore
     {
-        public bool AddBlock(IBlock block, Vector2Int pos, BlockDirection blockDirection);
-        public bool RemoveBlock(Vector2Int pos);
-        public IBlock GetBlock(Vector2Int pos);
-        public WorldBlockData GetOriginPosBlock(Vector2Int pos);
-        public bool Exists(Vector2Int pos);
-        public bool TryGetBlock(Vector2Int pos, out IBlock block);
-        public Vector2Int GetBlockPosition(int entityId);
-        public BlockDirection GetBlockDirection(Vector2Int pos);
+        public bool AddBlock(IBlock block, Vector3Int pos, BlockDirection blockDirection);
+        public bool RemoveBlock(Vector3Int pos);
+        public IBlock GetBlock(Vector3Int pos);
+        public WorldBlockData GetOriginPosBlock(Vector3Int pos);
+        public bool Exists(Vector3Int pos);
+        public bool TryGetBlock(Vector3Int pos, out IBlock block);
+        public Vector3Int GetBlockPosition(int entityId);
+        public BlockDirection GetBlockDirection(Vector3Int pos);
         public List<SaveBlockData> GetSaveBlockDataList();
         public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList);
 
-        public bool ExistsComponentBlock<TComponent>(Vector2Int pos);
-        public TComponent GetBlock<TComponent>(Vector2Int pos);
-        public bool TryGetBlock<TComponent>(Vector2Int pos, out TComponent component);
+        public bool ExistsComponentBlock<TComponent>(Vector3Int pos);
+        public TComponent GetBlock<TComponent>(Vector3Int pos);
+        public bool TryGetBlock<TComponent>(Vector3Int pos, out TComponent component);
 
-        public event Action<(ChangedBlockState state, IBlock block, Vector2Int pos)> OnBlockStateChange;
+        public event Action<(ChangedBlockState state, IBlock block, Vector3Int pos)> OnBlockStateChange;
     }
 }

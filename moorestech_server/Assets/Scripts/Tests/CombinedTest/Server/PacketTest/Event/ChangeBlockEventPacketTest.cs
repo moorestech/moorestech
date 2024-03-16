@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //機械のブロックを作る
             var machine = (VanillaMachineBase)serviceProvider.GetService<IBlockFactory>().Create(UnitTestModBlockId.MachineId, 1);
             //機械のブロックを配置
-            serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine, new Vector2Int(0 ,0), BlockDirection.North);
+            serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine, new Vector3Int(0 ,0), BlockDirection.North);
             //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 

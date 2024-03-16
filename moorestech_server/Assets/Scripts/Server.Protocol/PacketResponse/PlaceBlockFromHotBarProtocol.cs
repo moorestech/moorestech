@@ -42,21 +42,10 @@ namespace Server.Protocol.PacketResponse
             //すでにブロックがある場合はそもまま処理を終了
             if (_worldBlockDatastore.Exists(data.Pos)) return null;
 
-
-            var blockDirection = data.Direction switch
-            {
-                0 => BlockDirection.North,
-                1 => BlockDirection.East,
-                2 => BlockDirection.South,
-                3 => BlockDirection.West,
-                _ => BlockDirection.North
-            };
-
-
             //ブロックの作成
             var block = _blockFactory.Create(_blockConfig.ItemIdToBlockId(item.Id), CreateBlockEntityId.Create());
             //ブロックの設置
-            _worldBlockDatastore.AddBlock(block, data.Pos, blockDirection);
+            _worldBlockDatastore.AddBlock(block, data.Pos, data.BlockDirection);
 
             //アイテムを減らし、セットする
             item = item.SubItem(1);
@@ -72,13 +61,13 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class SendPlaceHotBarBlockProtocolMessagePack : ProtocolMessagePackBase
     {
-        public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int direction, int slot, Vector2Int pos)
+        public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int direction, int slot, Vector3Int pos)
         {
             Tag = SendPlaceHotBarBlockProtocol.Tag;
             PlayerId = playerId;
             Direction = direction;
             Slot = slot;
-            Pos = new Vector2IntMessagePack(pos);
+            Pos = new Vector3IntMessagePack(pos);
         }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -90,10 +79,14 @@ namespace Server.Protocol.PacketResponse
         public int PlayerId { get; set; }
         [Key(3)]
         public int Direction { get; set; }
+        
+        [IgnoreMember]
+        public BlockDirection BlockDirection => (BlockDirection) Direction;
+        
         [Key(4)]
         public int Slot { get; set; }
 
         [Key(5)]
-        public Vector2IntMessagePack Pos { get; set; }
+        public Vector3IntMessagePack Pos { get; set; }
     }
 }

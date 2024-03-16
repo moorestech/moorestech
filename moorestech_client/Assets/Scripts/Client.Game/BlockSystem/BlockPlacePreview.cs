@@ -1,4 +1,5 @@
-﻿using Client.Game.Context;
+﻿using Client.Game.Block;
+using Client.Game.Context;
 using Game.World.Interface.DataStore;
 using Constant;
 using Game.Block.Config;
@@ -10,23 +11,25 @@ namespace MainGame.UnityView.Block
 {
     public class BlockPlacePreview : MonoBehaviour, IBlockPlacePreview
     {
-        private BlockGameObject _previewBlock;
+        private BlockPreviewObject _previewBlock;
         
-        public void SetPreview(Vector2Int blockPosition, BlockDirection blockDirection,BlockConfigData blockConfig)
+        public void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection,BlockConfigData blockConfig)
         {
-            var (pos,rot,scale) = SlopeBlockPlaceSystem.GetSlopeBeltConveyorTransform(blockConfig.Type,blockPosition, blockDirection,blockConfig.BlockSize);
+            var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(blockPosition, blockDirection, blockConfig.BlockId);
+            var rot = blockDirection.GetRotation();
             
             if (!_previewBlock || _previewBlock.BlockConfig.BlockId != blockConfig.BlockId) //TODO さっきと同じブロックだったら置き換え
             {
                 if (_previewBlock)
                     Destroy(_previewBlock.gameObject);
-                _previewBlock = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockConfig.BlockId, pos, rot, scale, transform, blockPosition);
+
+                _previewBlock = MoorestechContext.BlockGameObjectContainer.CreatePreviewBlock(blockConfig.BlockId);
+                _previewBlock.transform.SetParent(transform);
+                _previewBlock.transform.localPosition = Vector3.zero;
             }
             
             transform.position = pos;
-            _previewBlock.transform.localPosition = Vector3.zero;
             _previewBlock.transform.rotation = rot;
-            _previewBlock.transform.localScale = scale;
         }
 
         public void SetActive(bool active)

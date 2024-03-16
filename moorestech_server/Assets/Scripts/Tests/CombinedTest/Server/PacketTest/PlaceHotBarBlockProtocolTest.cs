@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             //ブロックが置かれているかチェック
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
-            Assert.AreEqual(PlacedBlockId, world.GetBlock(new Vector2Int(2,4)).BlockId);
+            Assert.AreEqual(PlacedBlockId, world.GetBlock(new Vector3Int(2,4)).BlockId);
             //アイテムが減っているかチェック
             Assert.AreEqual(2, inventory.MainOpenableInventory.GetItem(slot).Count);
 
@@ -60,7 +60,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             //さらにブロックを置こうとしても置けないテスト
             packet.GetPacketResponse(CreateUseHotBarProtocol(10, 10, 0));
-            Assert.AreEqual(BlockConst.EmptyBlockId, world.GetBlock(new Vector2Int(10,10)).BlockId);
+            Assert.AreEqual(BlockConst.EmptyBlockId, world.GetBlock(new Vector3Int(10,10)).BlockId);
         }
 
 
@@ -88,16 +88,16 @@ namespace Tests.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(CreateUseHotBarProtocol(2, 7, 3));
 
             //ブロックの向きをチェック
-            Assert.AreEqual(BlockDirection.North, worldBlockDatastore.GetBlockDirection(new Vector2Int(2,4)));
-            Assert.AreEqual(BlockDirection.East, worldBlockDatastore.GetBlockDirection(new Vector2Int(2,5)));
-            Assert.AreEqual(BlockDirection.South, worldBlockDatastore.GetBlockDirection(new Vector2Int(2,6)));
-            Assert.AreEqual(BlockDirection.West, worldBlockDatastore.GetBlockDirection(new Vector2Int(2,7)));
+            Assert.AreEqual(BlockDirection.North, worldBlockDatastore.GetBlockDirection(new Vector3Int(2,4)));
+            Assert.AreEqual(BlockDirection.East, worldBlockDatastore.GetBlockDirection(new Vector3Int(2,5)));
+            Assert.AreEqual(BlockDirection.South, worldBlockDatastore.GetBlockDirection(new Vector3Int(2,6)));
+            Assert.AreEqual(BlockDirection.West, worldBlockDatastore.GetBlockDirection(new Vector3Int(2,7)));
         }
 
         private List<byte> CreateUseHotBarProtocol(int x,int y, byte blockDirection)
         {
             return MessagePackSerializer
-                .Serialize(new SendPlaceHotBarBlockProtocolMessagePack(PlayerId, blockDirection, HotBarSlot, new Vector2Int(x,y)))
+                .Serialize(new SendPlaceHotBarBlockProtocolMessagePack(PlayerId, blockDirection, HotBarSlot, new Vector3Int(x,y)))
                 .ToList();
         }
     }

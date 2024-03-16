@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Client.Game.BlockSystem.StateChange;
 using Client.Game.Map;
 using Client.Game.Map.MapObject;
 using Client.Network.API;
@@ -13,7 +14,6 @@ using MainGame.Presenter.Inventory.Send;
 using MainGame.Presenter.PauseMenu;
 using MainGame.Presenter.Player;
 using MainGame.UnityView.Block;
-using MainGame.UnityView.Block.StateChange;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.Player;

@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //ブロックをセットアップ
             var block = blockFactory.Create(MachineBlockId, 1);
             var blockInventory = (IOpenableInventory)block;
-            worldBlockDataStore.AddBlock(block, new Vector2Int(5 ,7), BlockDirection.North);
+            worldBlockDataStore.AddBlock(block, new Vector3Int(5 ,7), BlockDirection.North);
 
 
             //インベントリを開く
@@ -92,10 +92,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //ブロック1をセットアップ
             var block1 = blockFactory.Create(MachineBlockId, 1);
             var block1Inventory = (IOpenableInventory)block1;
-            worldBlockDataStore.AddBlock(block1, new Vector2Int(5 ,7), BlockDirection.North);
+            worldBlockDataStore.AddBlock(block1, new Vector3Int(5 ,7), BlockDirection.North);
             //ブロック2をセットアップ
             var block2 = blockFactory.Create(MachineBlockId, 2);
-            worldBlockDataStore.AddBlock(block2, new Vector2Int(10 ,20), BlockDirection.North);
+            worldBlockDataStore.AddBlock(block2, new Vector3Int(10 ,20), BlockDirection.North);
 
 
             //一つ目のブロックインベントリを開く
@@ -116,7 +116,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
 
 
-        private List<byte> OpenCloseBlockInventoryPacket(Vector2Int pos, bool isOpen)
+        private List<byte> OpenCloseBlockInventoryPacket(Vector3Int pos, bool isOpen)
         {
             return MessagePackSerializer
                 .Serialize(new BlockInventoryOpenCloseProtocolMessagePack(PlayerId, pos, isOpen)).ToList();

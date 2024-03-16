@@ -68,7 +68,7 @@ namespace Client.Network.API
             return response?.MapObjects;
         }
         
-        public async UniTask<List<IItemStack>> GetBlockInventory(Vector2Int blockPos, CancellationToken ct)
+        public async UniTask<List<IItemStack>> GetBlockInventory(Vector3Int blockPos, CancellationToken ct)
         {
             var request = new RequestBlockInventoryRequestProtocolMessagePack(blockPos);
 
@@ -126,19 +126,11 @@ namespace Client.Network.API
 
             ChunkResponse ParseChunkResponse(ChunkDataMessagePack chunk)
             {
-                var blocks = new BlockInfo[chunk.BlockIds.GetLength(0), chunk.BlockIds.GetLength(1)];
-                for (int x = 0; x < chunk.BlockIds.GetLength(0); x++)
-                {
-                    for (int y = 0; y < chunk.BlockIds.GetLength(1); y++)
-                    {
-                        blocks[x, y] = new BlockInfo(chunk.BlockIds[x, y], (BlockDirection) chunk.BlockDirections[x, y]);
-                    }
-                }
-                
+                var blocks = chunk.Blocks.Select(b => new BlockInfo(b));
                 var entities = chunk.Entities.Select(e => new EntityResponse(e));
-                
                 var chunkPos = chunk.ChunkPos;
-                return new ChunkResponse(chunkPos, blocks, entities.ToList());
+                
+                return new ChunkResponse(chunkPos, blocks.ToList(), entities.ToList());
             }
 
             #endregion

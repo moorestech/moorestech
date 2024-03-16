@@ -1,6 +1,4 @@
-﻿using MainGame.ModLoader.Glb;
-
-namespace MainGame.UnityView.Block.StateChange
+﻿namespace Client.Game.BlockSystem.StateChange
 {
     /// <summary>
     ///     無機能のブロックに使うステートプロセッサー

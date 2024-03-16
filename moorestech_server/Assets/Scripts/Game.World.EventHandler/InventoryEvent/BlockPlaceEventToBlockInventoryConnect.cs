@@ -35,9 +35,11 @@ namespace Game.World.EventHandler.InventoryEvent
         /// <param name="blockPlaceEvent"></param>
         private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
         {
-            var connectOffsetBlockPositions = new List<Vector2Int>
+            var connectOffsetBlockPositions = new List<Vector3Int>
             {
-                new(1, 0), new(-1, 0), new(0, 1), new(0, -1)
+                new(1, 0,0), new(-1, 0,0), 
+                new(0, 1,0), new(0, -1,0),
+                new(0, 0,1), new(0, 0,-1),
             };
             var pos = blockPlaceEvent.Pos;
 
@@ -56,7 +58,7 @@ namespace Game.World.EventHandler.InventoryEvent
         ///     そのブロックのタイプはioConnectionDataDictionaryにあるか、
         ///     それぞれインプットとアウトプットの向きはあっているかを確認し、接続する
         /// </summary>
-        private void ConnectBlock(Vector2Int source, Vector2Int destination)
+        private void ConnectBlock(Vector3Int source, Vector3Int destination)
         {
             //接続元、接続先にBlockInventoryがなければ処理を終了
             if (!_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(source) ||
@@ -88,8 +90,7 @@ namespace Game.World.EventHandler.InventoryEvent
 
 
             //接続元の接続可能リストに接続先がなかったら終了
-            if (!_ioConnectionDataDictionary[sourceBlockType].ConnectableBlockType
-                    .Contains(destinationBlockType)) return;
+            if (!_ioConnectionDataDictionary[sourceBlockType].ConnectableBlockType.Contains(destinationBlockType)) return;
 
 
             //接続元から接続先へのブロックの距離を取得
@@ -105,49 +106,34 @@ namespace Game.World.EventHandler.InventoryEvent
             _worldBlockDatastore.GetBlock<IBlockInventory>(source).AddOutputConnector(
                 _worldBlockDatastore.GetBlock<IBlockInventory>(destination));
         }
-
+        
         /// <summary>
         ///     接続先のブロックの接続可能な位置を取得する
         /// </summary>
         /// <param name="blockType"></param>
         /// <param name="blockDirection"></param>
         /// <returns></returns>
-        private (List<ConnectDirection>, List<ConnectDirection>) GetConnectionPositions(string blockType,
-            BlockDirection blockDirection)
+        private (List<ConnectDirection>, List<ConnectDirection>) GetConnectionPositions(string blockType, BlockDirection blockDirection)
         {
             var rawInputConnector = _ioConnectionDataDictionary[blockType].InputConnector;
             var rawOutputConnector = _ioConnectionDataDictionary[blockType].OutputConnector;
-            var inputConnectionPositions = new List<ConnectDirection>();
-            var outputConnectionPositions = new List<ConnectDirection>();
 
-            //デフォルトは北向きなので、北向き以外の時は値を変更
-            switch (blockDirection)
+            var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
+
+            var inputPoss = rawInputConnector.Select(ConvertConnectDirection).ToList();
+            var outputPoss = rawOutputConnector.Select(ConvertConnectDirection).ToList();
+
+            return (inputPoss, outputPoss);
+
+            #region Internal
+
+            ConnectDirection ConvertConnectDirection(ConnectDirection connectDirection)
             {
-                case BlockDirection.North:
-                    inputConnectionPositions = rawInputConnector.ToList();
-                    outputConnectionPositions = rawOutputConnector.ToList();
-                    break;
-                case BlockDirection.East:
-                    inputConnectionPositions =
-                        rawInputConnector.Select(p => new ConnectDirection(-p.East, p.North)).ToList();
-                    outputConnectionPositions = rawOutputConnector.Select(p => new ConnectDirection(-p.East, p.North))
-                        .ToList();
-                    break;
-                case BlockDirection.South:
-                    inputConnectionPositions = rawInputConnector.Select(p => new ConnectDirection(-p.North, -p.East))
-                        .ToList();
-                    outputConnectionPositions =
-                        rawOutputConnector.Select(p => new ConnectDirection(-p.North, -p.East)).ToList();
-                    break;
-                case BlockDirection.West:
-                    inputConnectionPositions =
-                        rawInputConnector.Select(p => new ConnectDirection(p.East, -p.North)).ToList();
-                    outputConnectionPositions = rawOutputConnector.Select(p => new ConnectDirection(p.East, -p.North))
-                        .ToList();
-                    break;
+                var convertedVector = blockPosConvertAction(connectDirection.ToVector3Int());
+                return new ConnectDirection(convertedVector);
             }
 
-            return (inputConnectionPositions, outputConnectionPositions);
+            #endregion
         }
     }
 }

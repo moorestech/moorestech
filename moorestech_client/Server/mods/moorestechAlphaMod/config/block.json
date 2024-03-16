@@ -5,8 +5,11 @@
             "type": "Machine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "campfire",
-            "width": 2,
-            "height": 2,
+            "size": {
+                "x": 2,
+                "y": 1,
+                "z": 2
+            },
             "param": {
                 "inputSlot": 2,
                 "outputSlot": 1,
@@ -35,8 +38,11 @@
             "type": "Machine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "charcoal kiln",
-            "width": 1,
-            "height": 1,
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
             "param": {
                 "inputSlot": 2,
                 "outputSlot": 1,
@@ -65,8 +71,11 @@
             "type": "Machine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "bloomery",
-            "width": 1,
-            "height": 1,
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
             "param": {
                 "inputSlot": 2,
                 "outputSlot": 1,
@@ -95,8 +104,11 @@
             "type": "GearMachine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "bloomery with bellows",
-            "width": 1,
-            "height": 1,
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
             "param": {
                 "inputSlot": 2,
                 "outputSlot": 1,
@@ -125,8 +137,11 @@
             "type": "BeltConveyor",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "wooden belt conveyor",
-            "width": 1,
-            "height": 1,
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
             "param": {
                 "slot": 3,
                 "time": 10000
@@ -154,8 +169,11 @@
             "type": "GearMachine",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "gear ore crusher",
-            "width": 1,
-            "height": 1,
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
             "param": {
                 "inputSlot": 1,
                 "outputSlot": 1,
@@ -184,8 +202,11 @@
             "type": "GearMiner",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "gear miner",
-            "width": 1,
-            "height": 1,
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
             "param": {
                 "requiredPower": 100,
                 "outputSlot": 1,
@@ -225,8 +246,11 @@
             "type": "GearGenerator",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "water wheel",
-            "width": 1,
-            "height": 1,
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
             "param": {
                 "fuelSlot": 0,
                 "isInfinityPower": true,
@@ -256,8 +280,11 @@
             "type": "GearEnergyTransformer",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "wooden gearbox",
-            "width": 1,
-            "height": 1,
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
             "param": {
                 "poleConnectionRange": 2,
                 "machineConnectionRange": 2
@@ -285,16 +312,19 @@
             "type": "Chest",
             "itemModId": "sakastudio:moorestechAlphaMod",
             "itemName": "wooden chest",
-            "width": 1,
-            "height": 1,
+            "size": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+            },
             "param": {
                 "slot": 5
             },
             "modelTransform": {
                 "position": {
-                    "x": 0,
+                    "x": 0.5,
                     "y": 0,
-                    "z": 0
+                    "z": 0.5
                 },
                 "rotation": {
                     "x": 0,

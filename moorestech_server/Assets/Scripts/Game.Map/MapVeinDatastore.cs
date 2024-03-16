@@ -17,13 +17,13 @@ namespace Game.Map
             {
                 var itemId = itemConfig.GetItemId(veinJson.ItemModId, veinJson.ItemId);
                 var vein = new MapVein(itemId, 
-                    new Vector2Int(veinJson.XMin, veinJson.YMin), 
-                    new Vector2Int(veinJson.XMax, veinJson.YMax));
+                    new Vector3Int(veinJson.XMin, veinJson.YMin), 
+                    new Vector3Int(veinJson.XMax, veinJson.YMax));
                 _mapVeins.Add(vein);
             }
         }
         
-        public List<IMapVein> GetOverVeins(Vector2Int pos)
+        public List<IMapVein> GetOverVeins(Vector3Int pos)
         {
             var veins = new List<IMapVein>();
             foreach (var vein in _mapVeins)

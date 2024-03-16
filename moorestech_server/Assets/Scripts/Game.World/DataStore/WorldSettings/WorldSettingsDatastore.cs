@@ -9,11 +9,11 @@ namespace Game.World.DataStore.WorldSettings
     /// </summary>
     public class WorldSettingsDatastore : IWorldSettingsDatastore
     {
-        public Vector2Int WorldSpawnPoint { get; private set; }
+        public Vector3Int WorldSpawnPoint { get; private set; }
 
         public void Initialize()
         {
-            WorldSpawnPoint = Vector2Int.zero;
+            WorldSpawnPoint = Vector3Int.zero;
         }
 
         public WorldSettingSaveData GetSettingsSaveData()
@@ -23,7 +23,7 @@ namespace Game.World.DataStore.WorldSettings
 
         public void LoadSettingData(WorldSettingSaveData worldSettingSaveData)
         {
-            WorldSpawnPoint = new Vector2Int(worldSettingSaveData.SpawnX, worldSettingSaveData.SpawnY);
+            WorldSpawnPoint = new Vector3Int(worldSettingSaveData.SpawnX, worldSettingSaveData.SpawnY);
         }
     }
 }

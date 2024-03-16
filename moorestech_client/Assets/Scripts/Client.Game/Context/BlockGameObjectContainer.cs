@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.Block;
+using Client.Game.BlockSystem.StateChange;
 using Cysharp.Threading.Tasks;
 using Game.Block;
 using Game.Block.Interface.BlockConfig;
 using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Block;
-using MainGame.UnityView.Block.StateChange;
 using ServerServiceProvider;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -38,7 +39,7 @@ namespace Client.Game.Context
         }
 
 
-        public BlockGameObject CreateBlock(int blockId, Vector3 position, Quaternion rotation,Vector3 scale ,Transform parent, Vector2Int blockPosition)
+        public BlockGameObject CreateBlock(int blockId, Vector3 position, Quaternion rotation,Transform parent, Vector3Int blockPosition)
         {
             //ブロックIDは1から始まるので、オブジェクトのリストインデックスマイナス１する
             var blockConfigIndex = blockId - 1;
@@ -47,25 +48,48 @@ namespace Client.Game.Context
             if (blockConfigIndex < 0 || _blockObjectList.Count <= blockConfigIndex)
             {
                 //ブロックIDがないのでない時用のブロックを作る
-                Debug.LogWarning("Not Id " + blockConfigIndex);
+                Debug.LogError("Not Id " + blockConfigIndex);
                 var nothing = Object.Instantiate(_nothingIndexBlockObject, position, rotation, parent);
                 nothing.Initialize(blockConfig, blockPosition, new NullBlockStateChangeProcessor());
                 return nothing.GetComponent<BlockGameObject>();
             }
 
-
             //ブロックの作成とセットアップをして返す
-            var blockType = _blockObjectList[blockConfigIndex].Type;
-
             var block = Object.Instantiate(_blockObjectList[blockConfigIndex].BlockObject, position, rotation, parent);
-            block.transform.localScale = scale;
             
-            block.gameObject.SetActive(true);
-            block.Initialize(blockConfig, blockPosition, GetBlockStateChangeProcessor(block, blockType));
+            //コンポーネントの設定
+            var blockObj = block.AddComponent<BlockGameObject>();
+            //子要素のコンポーネントの設定
+            foreach (var mesh in blockObj.GetComponentsInChildren<MeshRenderer>())
+            {
+                mesh.gameObject.AddComponent<BlockGameObjectChild>();
+                mesh.gameObject.AddComponent<MeshCollider>();
+            }
+            
+            var blockType = _blockObjectList[blockConfigIndex].Type;
+            blockObj.gameObject.SetActive(true);
+            blockObj.Initialize(blockConfig, blockPosition, GetBlockStateChangeProcessor(blockObj, blockType));
 
             //ブロックが開けるものの場合はそのコンポーネントを付与する
             if (IsOpenableInventory(blockType)) block.gameObject.AddComponent<OpenableInventoryBlock>();
             return block.GetComponent<BlockGameObject>();
+        }
+
+        public BlockPreviewObject CreatePreviewBlock(int blockId)
+        {
+            var blockConfigIndex = blockId - 1;
+            if (blockConfigIndex < 0 || _blockObjectList.Count <= blockConfigIndex)
+            {
+                return null;
+            }
+
+            //ブロックの作成とセットアップをして返す
+            var block = Object.Instantiate(_blockObjectList[blockConfigIndex].BlockObject, Vector3.zero, Quaternion.identity);
+            block.SetActive(true);
+
+            var previewGameObject = block.AddComponent<BlockPreviewObject>();
+            previewGameObject.Initialize(_blockConfig.GetBlockConfig(blockId));
+            return previewGameObject;
         }
 
         public string GetName(int index)

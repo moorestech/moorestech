@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             //一個ブロックを削除
-            worldDataStore.RemoveBlock(new Vector2Int(4, 0));
+            worldDataStore.RemoveBlock(new Vector3Int(4, 0));
 
             //イベントを取得
             response = packetResponse.GetPacketResponse(EventRequestData(0));
@@ -56,8 +56,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, pos.y);
 
             //二個ブロックを削除
-            worldDataStore.RemoveBlock(new Vector2Int(3, 1));
-            worldDataStore.RemoveBlock(new Vector2Int(1, 4));
+            worldDataStore.RemoveBlock(new Vector3Int(3, 1));
+            worldDataStore.RemoveBlock(new Vector3Int(1, 4));
             //イベントを取得
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
@@ -72,7 +72,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
         private void BlockPlace(int x,int y, int id, IWorldBlockDatastore worldBlock, IBlockFactory blockFactory)
         {
-            worldBlock.AddBlock(blockFactory.Create(id, new Random().Next()), new Vector2Int(x,y), BlockDirection.North);
+            worldBlock.AddBlock(blockFactory.Create(id, new Random().Next()), new Vector3Int(x,y), BlockDirection.North);
         }
 
         private List<byte> EventRequestData(int plyaerID)
@@ -80,7 +80,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID)).ToList();
         }
 
-        private Vector2Int AnalysisResponsePacket(byte[] payload)
+        private Vector3Int AnalysisResponsePacket(byte[] payload)
         {
             var data = MessagePackSerializer.Deserialize<RemoveBlockEventMessagePack>(payload.ToArray());
 

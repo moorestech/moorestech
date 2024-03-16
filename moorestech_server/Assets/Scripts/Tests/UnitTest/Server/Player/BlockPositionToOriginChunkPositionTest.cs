@@ -27,7 +27,7 @@ namespace Tests.UnitTest.Server.Player
         [TestCase(-105, -415, -120, -420)]
         public void ConvertTest(int blockX, int blockY, int expectedChunkX, int expectedChunkY)
         {
-            var pos = ChunkResponseConst.BlockPositionToChunkOriginPosition(new Vector2Int(blockX, blockY));
+            var pos = ChunkResponseConst.BlockPositionToChunkOriginPosition(new Vector3Int(blockX, blockY));
             Assert.AreEqual(expectedChunkX, pos.x);
             Assert.AreEqual(expectedChunkY, pos.y);
         }

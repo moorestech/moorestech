@@ -50,7 +50,7 @@ namespace Server.Protocol.PacketResponse
         }
 
         //データのレスポンスを実行するdelegateを設定する
-        private delegate byte[] InventoryResponse(Vector2Int pos, IBlockConfigParam config);
+        private delegate byte[] InventoryResponse(Vector3Int pos, IBlockConfigParam config);
     }
 
 
@@ -62,14 +62,14 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public RequestBlockInventoryRequestProtocolMessagePack(Vector2Int pos)
+        public RequestBlockInventoryRequestProtocolMessagePack(Vector3Int pos)
         {
             Tag = BlockInventoryRequestProtocol.Tag;
-            Pos = new Vector2IntMessagePack(pos);
+            Pos = new Vector3IntMessagePack(pos);
         }
         
         [Key(2)]
-        public Vector2IntMessagePack Pos { get; set; }
+        public Vector3IntMessagePack Pos { get; set; }
     }
 
     [MessagePackObject]

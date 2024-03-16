@@ -31,14 +31,12 @@ namespace MainGame.ModLoader.Glb
                 blocks.AddRange(await GetBlocks(blockConfigs, mod.Value, blockPrefabsParent.transform));
             }
 
-
             return blocks;
         }
 
         private static async UniTask<List<BlockData>> GetBlocks(List<BlockConfigData> blockConfigs, Mod.Loader.Mod mod, Transform blockPrefabsParent)
         {
             var blocks = new List<BlockData>();
-
 
             foreach (var config in blockConfigs)
             {
@@ -56,15 +54,13 @@ namespace MainGame.ModLoader.Glb
             return blocks;
         }
 
-        private static BlockGameObject SetUpObject(GameObject blockModel, Transform blockPrefabsParent, BlockConfigData config, Mod.Loader.Mod mod)
+        private static GameObject SetUpObject(GameObject blockModel, Transform blockPrefabsParent, BlockConfigData config, Mod.Loader.Mod mod)
         {
             blockModel.name = "model";
             //ブロックモデルの位置をリセットしてから親の設定
             blockModel.transform.position = Vector3.zero;
             blockModel.transform.localScale = Vector3.one;
             blockModel.transform.rotation = Quaternion.Euler(Vector3.zero);
-            var blockParent = new GameObject($"{mod.ModMetaJson.ModId} : {config.Name}");
-            blockModel.transform.SetParent(blockParent.transform);
 
             //コンフィグにあるモデルのサイズを適応
             blockModel.transform.localPosition = config.ModelTransform.Position;
@@ -73,26 +69,18 @@ namespace MainGame.ModLoader.Glb
 
             //マテリアルをURPに変更
             ChangeStandardToUrpMaterial(blockModel);
-
-            //コンポーネントの設定
-            var blockObj = blockParent.AddComponent<BlockGameObject>();
-            //子要素のコンポーネントの設定
-            foreach (var mesh in blockObj.GetComponentsInChildren<MeshRenderer>())
-            {
-                mesh.gameObject.AddComponent<BlockGameObjectChild>();
-                mesh.gameObject.AddComponent<MeshCollider>();
-            }
+            
+            var blockParent = new GameObject($"{mod.ModMetaJson.ModId} : {config.Name}");
+            blockModel.transform.SetParent(blockParent.transform);
 
             //ヒエラルキーが散らばらないようにオブジェクトを設定
-            blockObj.gameObject.transform.SetParent(blockPrefabsParent);
-
-            blockObj.gameObject.SetActive(false);
-
+            blockParent.gameObject.transform.SetParent(blockPrefabsParent);
+            blockParent.gameObject.SetActive(false);
 
             //すべてのレイヤーをBlockに設定
-            foreach (var trnasform in blockObj.GetComponentsInChildren<Transform>()) trnasform.gameObject.layer = LayerConst.BlockLayer;
+            foreach (var transform in blockModel.GetComponentsInChildren<Transform>()) transform.gameObject.layer = LayerConst.BlockLayer;
 
-            return blockObj;
+            return blockParent;
         }
 
         private static void ChangeStandardToUrpMaterial(GameObject gameObject)
@@ -109,11 +97,11 @@ namespace MainGame.ModLoader.Glb
 
     public class BlockData
     {
-        public readonly BlockGameObject BlockObject;
+        public readonly GameObject BlockObject;
         public readonly string Name;
         public readonly string Type;
 
-        public BlockData(BlockGameObject blockObject, string name, string type)
+        public BlockData(GameObject blockObject, string name, string type)
         {
             BlockObject = blockObject;
             Name = name;

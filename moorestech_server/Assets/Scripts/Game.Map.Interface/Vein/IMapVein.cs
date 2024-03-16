@@ -6,8 +6,8 @@ namespace Game.Map.Interface.Vein
     {
         public int VeinItemId { get;  }
         
-        public Vector2Int VeinRangeMin { get; }
-        public Vector2Int VeinRangeMax { get; }
+        public Vector3Int VeinRangeMin { get; }
+        public Vector3Int VeinRangeMax { get; }
         
     }
 }

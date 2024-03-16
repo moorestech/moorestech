@@ -8,9 +8,9 @@ namespace Game.World.Interface.Event
     {
         public readonly IBlock Block;
         public readonly BlockDirection BlockDirection;
-        public readonly Vector2Int Pos;
+        public readonly Vector3Int Pos;
 
-        public BlockPlaceEventProperties(Vector2Int pos, IBlock block, BlockDirection blockDirection)
+        public BlockPlaceEventProperties(Vector3Int pos, IBlock block, BlockDirection blockDirection)
         {
             Pos = pos;
             Block = block;

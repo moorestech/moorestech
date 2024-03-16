@@ -62,15 +62,15 @@ namespace Server.Event.EventReceive
         {
         }
 
-        public OpenableBlockInventoryUpdateEventMessagePack(Vector2Int pos, int slot, IItemStack item)
+        public OpenableBlockInventoryUpdateEventMessagePack(Vector3Int pos, int slot, IItemStack item)
         {
-            Position = new Vector2IntMessagePack(pos);
+            Position = new Vector3IntMessagePack(pos);
             Slot = slot;
             Item = new ItemMessagePack(item.Id, item.Count);
         }
 
         [Key(0)]
-        public Vector2IntMessagePack Position { get; set; }
+        public Vector3IntMessagePack Position { get; set; }
         [Key(1)]
         public int Slot { get; set; }
         [Key(2)]

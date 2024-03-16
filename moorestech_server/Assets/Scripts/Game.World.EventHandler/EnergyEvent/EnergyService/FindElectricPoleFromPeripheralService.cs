@@ -18,7 +18,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         /// <param name="blockDatastore"></param>
         /// <returns></returns>
         public static List<IEnergyTransformer> Find(
-            Vector2Int pos,
+            Vector3Int pos,
             ElectricPoleConfigParam electricPoleConfigParam,
             IWorldBlockDatastore blockDatastore)
         {
@@ -34,7 +34,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             for (var j = startElectricY; j < startElectricY + poleRange; j++)
             {
                 //範囲内に電柱がある場合 ただし自身のブロックは除く
-                var electricPolePos = new Vector2Int(i, j);
+                var electricPolePos = new Vector3Int(i, j);
                 if (!blockDatastore.ExistsComponentBlock<IEnergyTransformer>(electricPolePos) || (i == pos.x && j == pos.y)) continue;
 
                 //電柱を追加
