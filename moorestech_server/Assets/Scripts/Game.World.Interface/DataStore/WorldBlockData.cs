@@ -13,7 +13,7 @@ namespace Game.World.Interface.DataStore
             Block = block;
             BlockSize = blockConfig.GetBlockConfig(block.BlockId).BlockSize;
             
-            MaxPos = CalcBlockGridMaxPos(originalPos, blockDirection, BlockSize);
+            MaxPos = CalcBlockMaxPos(originalPos, blockDirection, BlockSize);
         }
 
         /// <summary>
@@ -39,35 +39,33 @@ namespace Game.World.Interface.DataStore
         /// <summary>
         /// サーバー側管理のブロックの最大座標を計算する
         /// これはどのグリッドにブロックが存在しているかということに使われるため、サイズ 1,1 の場合、originとmaxの値はおなじになる
-        /// TODO これは命名も含めて修正したほうが良いかもしれない
         /// </summary>
-        public static Vector3Int CalcBlockGridMaxPos(Vector3Int originPos,BlockDirection direction,Vector3Int blockSize)
+        public static Vector3Int CalcBlockMaxPos(Vector3Int originPos,BlockDirection direction,Vector3Int blockSize)
         {
             var addPos = Vector3Int.zero;
             switch (direction)
             {
                 case BlockDirection.UpNorth:
                 case BlockDirection.UpSouth:
-                    addPos = new Vector3Int(blockSize.x, blockSize.y, blockSize.z);
+                case BlockDirection.DownNorth:
+                case BlockDirection.DownSouth:
+                    addPos = new Vector3Int(blockSize.x, blockSize.z, blockSize.y);
                     break;
                 case BlockDirection.UpEast:
                 case BlockDirection.UpWest:
-                    break
+                case BlockDirection.DownEast:
+                case BlockDirection.DownWest:
+                    addPos = new Vector3Int(blockSize.y, blockSize.z, blockSize.x);
+                    break;
                 
                 case BlockDirection.North:
                 case BlockDirection.South:
+                    addPos = new Vector3Int(blockSize.x, blockSize.y, blockSize.z);
                     break;
                 case BlockDirection.East:
                 case BlockDirection.West:
+                    addPos = new Vector3Int(blockSize.y, blockSize.x, blockSize.z);
                     break;
-                
-                case BlockDirection.DownNorth:
-                case BlockDirection.DownSouth:
-                    break;
-                case BlockDirection.DownEast:
-                case BlockDirection.DownWest:
-                    break;
-
             }
 
             // block sizeは1からとなっているが、ここで求めるのはブロックが占める範囲の最大値なので、-1している
