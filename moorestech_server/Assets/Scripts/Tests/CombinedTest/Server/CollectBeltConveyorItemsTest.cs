@@ -146,8 +146,8 @@ namespace Tests.CombinedTest.Server
             var belt1 = CreateOneItemInsertedItem(itemsStackFactory);
             var belt2 = new VanillaBeltConveyor(1, 11, 1, itemsStackFactory, 4, TimeOfItemEnterToExit);
             //二つのベルトコンベアを繋がるように設置
-            worldDataStore.AddBlock(belt1, new Vector3Int(0, 0), BlockDirection.North);
-            worldDataStore.AddBlock(belt2, new Vector3Int(0, 1), BlockDirection.North);
+            worldDataStore.AddBlock(belt1, new Vector3Int(0,0, 0), BlockDirection.North);
+            worldDataStore.AddBlock(belt2, new Vector3Int(0,0, 1), BlockDirection.North);
 
             //4秒間アップデートする
             var now = DateTime.Now;

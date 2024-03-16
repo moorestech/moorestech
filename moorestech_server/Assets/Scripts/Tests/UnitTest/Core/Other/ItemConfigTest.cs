@@ -45,7 +45,7 @@ namespace Tests.UnitTest.Core.Other
             var itemConfig = serviceProvider.GetService<IItemConfig>();
 
 
-            Assert.AreEqual(12, itemConfig.GetItemIds("Test Author:forUniTest").Count);
+            Assert.AreEqual(13, itemConfig.GetItemIds("Test Author:forUniTest").Count);
         }
     }
 }

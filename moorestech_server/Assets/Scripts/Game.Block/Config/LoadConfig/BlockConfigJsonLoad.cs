@@ -77,7 +77,8 @@ namespace Game.Block.Config.LoadConfig
                 var hash = BitConverter.ToInt64(xxHash.ComputeHash(modId + "/" + name).Hash);
 
                 var modelTransform = GetModelTransform(block);
-                var blockSize = new Vector3Int(block.size.x, block.size.y, block.size.z);
+                var size = block.size;
+                var blockSize = new Vector3Int((int)size.x, (int)size.y, (int)size.z);
 
                 blockDictionary.Add(new BlockConfigData(modId, id, name, hash, type, blockParam, itemId, modelTransform,blockSize));
             }

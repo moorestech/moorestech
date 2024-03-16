@@ -5,8 +5,11 @@
       "type": "Machine",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test1",
-      "width": 1,
-      "height": 1,
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
       "param": {
         "inputSlot": 2,
         "outputSlot": 3,
@@ -18,8 +21,11 @@
       "type": "Block",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test2",
-      "width": 1,
-      "height": 1,
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
       "param": {}
     },
     {
@@ -27,8 +33,11 @@
       "type": "BeltConveyor",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test3",
-      "width": 1,
-      "height": 1,
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
       "param": {
         "slot": 4,
         "time": 2000
@@ -39,8 +48,11 @@
       "type": "ElectricPole",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test4",
-      "width": 1,
-      "height": 1,
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
       "param": {
         "poleConnectionRange": 7,
         "machineConnectionRange": 5
@@ -51,8 +63,11 @@
       "type": "Generator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test5",
-      "width": 1,
-      "height": 1,
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
       "param": {
         "isInfinityPower": false,
         "infinityPower": 0,
@@ -78,8 +93,11 @@
       "type": "Miner",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test6",
-      "width": 1,
-      "height": 1,
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
       "param": {
         "requiredPower": 100,
         "outputSlot": 3,
@@ -97,8 +115,11 @@
       "type": "Chest",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test7",
-      "width": 1,
-      "height": 1,
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
       "param": {
         "slot": 5
       }
@@ -108,8 +129,11 @@
       "type": "Generator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test8",
-      "width": 1,
-      "height": 1,
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
       "param": {
         "isInfinityPower": true,
         "infinityPower": 10,
@@ -122,8 +146,11 @@
       "type": "Generator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test9",
-      "width": 1,
-      "height": 4,
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 4
+      },
       "param": {
         "isInfinityPower": true,
         "infinityPower": 10,
@@ -136,8 +163,28 @@
       "type": "Generator",
       "itemModId": "Test Author:forUniTest",
       "itemName": "Test10",
-      "width": 3,
-      "height": 2,
+      "size": {
+        "x": 3,
+        "y": 1,
+        "z": 2
+      },
+      "param": {
+        "isInfinityPower": true,
+        "infinityPower": 10,
+        "fuelSlot": 0,
+        "fuel": []
+      }
+    },
+    {
+      "name": "MultiBlock3",
+      "type": "Generator",
+      "itemModId": "Test Author:forUniTest",
+      "itemName": "Test11",
+      "size": {
+        "x": 1,
+        "y": 2,
+        "z": 3
+      },
       "param": {
         "isInfinityPower": true,
         "infinityPower": 10,

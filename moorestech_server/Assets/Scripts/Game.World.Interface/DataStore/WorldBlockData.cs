@@ -64,7 +64,7 @@ namespace Game.World.Interface.DataStore
                     break;
                 case BlockDirection.East:
                 case BlockDirection.West:
-                    addPos = new Vector3Int(blockSize.y, blockSize.x, blockSize.z);
+                    addPos = new Vector3Int(blockSize.z, blockSize.y, blockSize.x);
                     break;
             }
 
