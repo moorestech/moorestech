@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.Context;
 using Game.World.Interface.DataStore;
 using Constant;
 using UnityEngine;
@@ -10,6 +11,20 @@ namespace MainGame.UnityView.Block
     {
         
         public static readonly int GroundLayerMask = LayerMask.GetMask("Ground");
+
+        
+        /// <summary>
+        /// TODO ここの定義の場所を変える
+        /// </summary>
+        public static Vector3 GetBlockPositionToPlacePosition(Vector3Int blockPosition, BlockDirection blockDirection, int blockId)
+        {
+            // 大きさをBlockDirection系に変換
+            var blockSize = MoorestechContext.ServerServices.BlockConfig.GetBlockConfig(blockId).BlockSize;
+            var originPos = blockDirection.GetBlockOriginPos(blockPosition,blockSize);
+            
+            return originPos;
+        }
+        
         
         public static (Vector3 position, Quaternion rotation, Vector3 scale) GetSlopeBeltConveyorTransform(string blockType,Vector3Int blockPosition,BlockDirection blockDirection,Vector3Int blockSize)
         {
@@ -34,10 +49,9 @@ namespace MainGame.UnityView.Block
             
             if (!BlockSlopeDeformationType.IsDeformation(blockType))
             {
-                blockRotation = BlockDirectionAngle.GetRotation(blockDirection);
+                blockRotation = blockDirection.GetRotation();
                 blockScale = Vector3.one;
             }
-
             
             return (resultBlockPos, blockRotation, blockScale);
         }
@@ -68,7 +82,6 @@ namespace MainGame.UnityView.Block
             return Mathf.Max(heights.ToArray());
         }
         
-        
         private static Vector3 GetBlockFrontRayOffset(BlockDirection blockDirection)
         {
             return blockDirection switch
@@ -84,7 +97,7 @@ namespace MainGame.UnityView.Block
         private static Quaternion GetRotation(BlockDirection blockDirection, float blockAngle,bool isFrontUp)
         {
             blockAngle = isFrontUp ? -blockAngle : blockAngle;
-            var defaultAngle = BlockDirectionAngle.GetRotation(blockDirection).eulerAngles;
+            var defaultAngle = blockDirection.GetRotation().eulerAngles;
             return Quaternion.Euler(blockAngle, defaultAngle.y, defaultAngle.z);
         }
     }

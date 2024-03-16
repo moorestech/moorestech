@@ -16,21 +16,21 @@ namespace Game.World.EventHandler.InventoryEvent
             {
                 VanillaBlockType.Machine,
                 new IoConnectionData(
-                    new ConnectDirection[] { new(1, 0,0), new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
-                    new ConnectDirection[] { new(1, 0,0), new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
+                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
+                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new[] { VanillaBlockType.BeltConveyor })
             },
             {
                 VanillaBlockType.Chest,
                 new IoConnectionData(
-                    new ConnectDirection[] { new(1, 0,0), new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
-                    new ConnectDirection[] { new(1, 0,0), new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
+                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
+                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new[] { VanillaBlockType.BeltConveyor })
             },
             {
                 VanillaBlockType.Generator,
                 new IoConnectionData(
-                    new ConnectDirection[] { new(1, 0,0), new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
+                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new ConnectDirection[] { },
                     new[] { VanillaBlockType.BeltConveyor })
             },
@@ -38,15 +38,15 @@ namespace Game.World.EventHandler.InventoryEvent
                 VanillaBlockType.Miner,
                 new IoConnectionData(
                     new ConnectDirection[] { },
-                    new ConnectDirection[] { new(1, 0,0), new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
+                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new[] { VanillaBlockType.BeltConveyor })
             },
             {
                 VanillaBlockType.BeltConveyor, new IoConnectionData(
                     // 南、西、東をからの接続を受け、アイテムをインプットする
-                    new ConnectDirection[] { new(-1, 0,0), new(0, 1,0), new(0, -1,0) },
+                    new ConnectDirection[] { new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     //北向きに出力する
-                    new ConnectDirection[] { new(1, 0,0) },
+                    new ConnectDirection[] { new(1, 0, 0) },
                     new[]
                     {
                         VanillaBlockType.Machine, VanillaBlockType.Chest, VanillaBlockType.Generator,
@@ -84,6 +84,11 @@ namespace Game.World.EventHandler.InventoryEvent
         public readonly int Front; // Z、北向き
         public readonly int Right; // X、東向き
         public readonly int Up; // Y、上向き
+        
+        public Vector3Int ToVector3Int()
+        {
+            return new Vector3Int(Right, Up, Front);
+        }
 
         public ConnectDirection(int front, int right, int up)
         {

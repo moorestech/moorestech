@@ -106,8 +106,6 @@ namespace Game.World.EventHandler.InventoryEvent
             _worldBlockDatastore.GetBlock<IBlockInventory>(source).AddOutputConnector(
                 _worldBlockDatastore.GetBlock<IBlockInventory>(destination));
         }
-
-        delegate ConnectDirection ConvertAction(ConnectDirection pos);
         
         /// <summary>
         ///     接続先のブロックの接続可能な位置を取得する
@@ -120,55 +118,22 @@ namespace Game.World.EventHandler.InventoryEvent
             var rawInputConnector = _ioConnectionDataDictionary[blockType].InputConnector;
             var rawOutputConnector = _ioConnectionDataDictionary[blockType].OutputConnector;
 
-            ConvertAction convertAction = null;
+            var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
 
-            //デフォルトは北向きなので、北向き以外の時は値を変更
-            switch (blockDirection)
-            {
-                case BlockDirection.UpNorth:
-                    convertAction = p => new ConnectDirection(-p.Up,p.Right,p.Front);
-                    break;
-                case BlockDirection.UpEast:
-                    convertAction = p => new ConnectDirection(-p.Right,-p.Up,p.Front);
-                    break;
-                case BlockDirection.UpSouth:
-                    convertAction = p => new ConnectDirection(p.Up,-p.Right,p.Front);
-                    break;
-                case BlockDirection.UpWest:
-                    convertAction = p => new ConnectDirection(p.Right,p.Up,p.Front);
-                    break;
-                
-                case BlockDirection.North:
-                    convertAction = p => p;
-                    break;
-                case BlockDirection.East:
-                    convertAction = p => new ConnectDirection(-p.Right, p.Front, p.Up);
-                    break;
-                case BlockDirection.South:
-                    convertAction = p => new ConnectDirection(-p.Front, -p.Right, p.Up);
-                    break;
-                case BlockDirection.West:
-                    convertAction = p => new ConnectDirection(p.Right, -p.Front, p.Up);
-                    break;
-                
-                case BlockDirection.DownNorth:
-                    convertAction = p => new ConnectDirection(-p.Up,-p.Right,-p.Front);
-                    break;
-                case BlockDirection.DownEast:
-                    convertAction = p => new ConnectDirection(p.Right,-p.Up,-p.Front);
-                    break;
-                case BlockDirection.DownSouth:
-                    convertAction = p => new ConnectDirection(p.Up,p.Right,-p.Front);
-                    break;
-                case BlockDirection.DownWest:
-                    convertAction = p => new ConnectDirection(-p.Right,p.Up,-p.Front);
-                    break;
-            }
-            
-            var inputPoss = rawInputConnector.Select(p => convertAction(p)).ToList();
-            var outputPoss = rawOutputConnector.Select(p => convertAction(p)).ToList();
+            var inputPoss = rawInputConnector.Select(ConvertConnectDirection).ToList();
+            var outputPoss = rawOutputConnector.Select(ConvertConnectDirection).ToList();
 
             return (inputPoss, outputPoss);
+
+            #region Internal
+
+            ConnectDirection ConvertConnectDirection(ConnectDirection connectDirection)
+            {
+                var convertedVector = blockPosConvertAction(connectDirection.ToVector3Int());
+                return new ConnectDirection(convertedVector);
+            }
+
+            #endregion
         }
     }
 }

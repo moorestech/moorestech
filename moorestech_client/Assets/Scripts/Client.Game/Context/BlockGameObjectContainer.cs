@@ -38,7 +38,7 @@ namespace Client.Game.Context
         }
 
 
-        public BlockGameObject CreateBlock(int blockId, Vector3 position, Quaternion rotation,Vector3 scale ,Transform parent, Vector3Int blockPosition)
+        public BlockGameObject CreateBlock(int blockId, Vector3 position, Quaternion rotation,Transform parent, Vector3Int blockPosition)
         {
             //ブロックIDは1から始まるので、オブジェクトのリストインデックスマイナス１する
             var blockConfigIndex = blockId - 1;
@@ -58,8 +58,6 @@ namespace Client.Game.Context
             var blockType = _blockObjectList[blockConfigIndex].Type;
 
             var block = Object.Instantiate(_blockObjectList[blockConfigIndex].BlockObject, position, rotation, parent);
-            block.transform.localScale = scale;
-            
             block.gameObject.SetActive(true);
             block.Initialize(blockConfig, blockPosition, GetBlockStateChangeProcessor(block, blockType));
 

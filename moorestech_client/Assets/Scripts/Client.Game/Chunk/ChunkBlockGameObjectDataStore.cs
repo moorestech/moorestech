@@ -46,12 +46,11 @@ namespace MainGame.UnityView.Chunk
                 _blockObjectsDictionary.Remove(blockPosition);
             }
 
-
             //新しいブロックを設置
-            var blockConfig = MoorestechContext.ServerServices.BlockConfig.GetBlockConfig(blockId);
-            var (pos,rot,scale) = SlopeBlockPlaceSystem.GetSlopeBeltConveyorTransform(blockConfig.Type,blockPosition, blockDirection,blockConfig.BlockSize);
+            var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(blockPosition, blockDirection, blockId);
+            var rot = blockDirection.GetRotation();
             
-            var block = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot,scale, transform, blockPosition);
+            var block = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot,transform, blockPosition);
 
             _blockObjectsDictionary.Add(blockPosition, block);
             OnPlaceBlock?.Invoke(block);

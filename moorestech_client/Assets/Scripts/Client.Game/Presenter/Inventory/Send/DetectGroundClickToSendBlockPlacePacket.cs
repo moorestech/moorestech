@@ -26,20 +26,23 @@ namespace MainGame.Presenter.Inventory.Send
     {
         private IBlockPlacePreview _blockPlacePreview;
 
-        private BlockDirection _currentBlockDirection;
+        private BlockDirection _currentBlockDirection = BlockDirection.North;
         private HotBarView _hotBarView;
         private Camera _mainCamera;
         private UIStateControl _uiStateControl;
         private ILocalPlayerInventory _localPlayerInventory;
 
+        private int _heightOffset = 1;
+
         private void Update()
         {
+            UpdateHeightOffset();
             BlockDirectionControl();
             GroundClickControl();
         }
 
         [Inject]
-        public void Construct(Camera mainCamera, HotBarView hotBarView, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview,ILocalPlayerInventory localPlayerInventory)
+        public void Construct(Camera mainCamera, HotBarView hotBarView, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview, ILocalPlayerInventory localPlayerInventory)
         {
             _uiStateControl = uiStateControl;
             _hotBarView = hotBarView;
@@ -48,38 +51,89 @@ namespace MainGame.Presenter.Inventory.Send
             _localPlayerInventory = localPlayerInventory;
         }
 
+        private void UpdateHeightOffset()
+        {
+            if (Input.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
+            {
+                _heightOffset--;
+            }
+            else if (Input.GetKeyDown(KeyCode.E))
+            {
+                _heightOffset++;
+            }
+        }
+
         private void BlockDirectionControl()
         {
-            if (!InputManager.Playable.BlockPlaceRotation.GetKeyDown) return;
-
-            _currentBlockDirection = _currentBlockDirection switch
+            if (InputManager.Playable.BlockPlaceRotation.GetKeyDown)
             {
-                BlockDirection.North => BlockDirection.East,
-                BlockDirection.East => BlockDirection.South,
-                BlockDirection.South => BlockDirection.West,
-                BlockDirection.West => BlockDirection.North,
-                _ => _currentBlockDirection
-            };
+                // 東西南北の向きを変更する
+                _currentBlockDirection = _currentBlockDirection switch
+                {
+                    BlockDirection.UpNorth => BlockDirection.UpEast,
+                    BlockDirection.UpEast => BlockDirection.UpSouth,
+                    BlockDirection.UpSouth => BlockDirection.UpWest,
+                    BlockDirection.UpWest => BlockDirection.UpNorth,
+
+                    BlockDirection.North => BlockDirection.East,
+                    BlockDirection.East => BlockDirection.South,
+                    BlockDirection.South => BlockDirection.West,
+                    BlockDirection.West => BlockDirection.North,
+
+                    BlockDirection.DownNorth => BlockDirection.DownEast,
+                    BlockDirection.DownEast => BlockDirection.DownSouth,
+                    BlockDirection.DownSouth => BlockDirection.DownWest,
+                    BlockDirection.DownWest => BlockDirection.DownNorth,
+
+                    _ => _currentBlockDirection
+                };
+            }
+
+            //TODo シフトはインプットマネージャーに入れる
+            if (Input.GetKey(KeyCode.LeftShift) && InputManager.Playable.BlockPlaceRotation.GetKeyDown)
+            {
+                _currentBlockDirection = _currentBlockDirection switch
+                {
+                    BlockDirection.UpNorth => BlockDirection.DownNorth,
+                    BlockDirection.UpEast => BlockDirection.DownEast,
+                    BlockDirection.UpSouth => BlockDirection.DownSouth,
+                    BlockDirection.UpWest => BlockDirection.DownWest,
+
+                    BlockDirection.North => BlockDirection.UpNorth,
+                    BlockDirection.East => BlockDirection.UpEast,
+                    BlockDirection.South => BlockDirection.UpSouth,
+                    BlockDirection.West => BlockDirection.UpWest,
+
+                    BlockDirection.DownNorth => BlockDirection.North,
+                    BlockDirection.DownEast => BlockDirection.East,
+                    BlockDirection.DownSouth => BlockDirection.South,
+                    BlockDirection.DownWest => BlockDirection.West,
+
+                    _ => _currentBlockDirection
+                };
+            }
         }
 
 
         private void GroundClickControl()
         {
             var blockConfig = MoorestechContext.ServerServices.BlockConfig;
-            
+
             //基本はプレビュー非表示
             _blockPlacePreview.SetActive(false);
 
             //UIの状態がゲームホットバー選択中か
             if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return;
 
-            var selectIndex = (short)_hotBarView.SelectIndex;
+            var selectIndex = (short) _hotBarView.SelectIndex;
             var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
             //持っているアイテムがブロックじゃなかったら何もしない
-            if (!blockConfig.IsBlock(itemId)) return; 
+            if (!blockConfig.IsBlock(itemId)) return;
 
             //プレビューの座標を取得
             if (!TryGetRayHitPosition(out var hitPoint)) return;
+
+            hitPoint += new Vector3Int(0, _heightOffset, 0);
 
             //プレビュー表示
             _blockPlacePreview.SetActive(true);
@@ -87,14 +141,13 @@ namespace MainGame.Presenter.Inventory.Send
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
             {
-                MoorestechContext.VanillaApi.SendOnly.PlaceHotBarBlock(hitPoint,selectIndex,  _currentBlockDirection);
+                MoorestechContext.VanillaApi.SendOnly.PlaceHotBarBlock(hitPoint, selectIndex, _currentBlockDirection);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
                 return;
             }
 
-
             //クリックされてなかったらプレビューを表示する
-            _blockPlacePreview.SetPreview(hitPoint, _currentBlockDirection,blockConfig.ItemIdToBlockConfig(itemId));
+            _blockPlacePreview.SetPreview(hitPoint, _currentBlockDirection, blockConfig.ItemIdToBlockConfig(itemId));
         }
 
 
@@ -111,8 +164,8 @@ namespace MainGame.Presenter.Inventory.Send
             //基本的にブロックの原点は0,0なので、rayがヒットした座標を基準にブロックの原点を計算する
             var x = Mathf.FloorToInt(hit.point.x);
             var y = Mathf.FloorToInt(hit.point.y);
-            var z = Mathf.FloorToInt(hit.point.z); 
-            
+            var z = Mathf.FloorToInt(hit.point.z);
+
             pos = new Vector3Int(x, y, z);
 
             return true;
