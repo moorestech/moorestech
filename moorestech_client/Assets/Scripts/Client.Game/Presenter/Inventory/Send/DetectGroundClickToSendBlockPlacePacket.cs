@@ -1,3 +1,4 @@
+using ClassLibrary;
 using Client.Game.Context;
 using Client.Network.API;
 using Game.World.Interface.DataStore;
@@ -32,7 +33,7 @@ namespace MainGame.Presenter.Inventory.Send
         private UIStateControl _uiStateControl;
         private ILocalPlayerInventory _localPlayerInventory;
 
-        private int _heightOffset = 1;
+        private int _heightOffset = 0;
 
         private void Update()
         {
@@ -133,7 +134,18 @@ namespace MainGame.Presenter.Inventory.Send
             //プレビューの座標を取得
             if (!TryGetRayHitPosition(out var hitPoint)) return;
 
-            hitPoint += new Vector3Int(0, _heightOffset, 0);
+            var holdingBlockConfig = blockConfig.ItemIdToBlockConfig(itemId);
+
+            var convertAction = _currentBlockDirection.GetCoordinateConvertAction();
+            var convertedSize = convertAction(holdingBlockConfig.BlockSize).Abs();
+
+            var placePoint = Vector3Int.zero;
+            placePoint.x = Mathf.FloorToInt(hitPoint.x + (convertedSize.x % 2 == 0 ? 0.5f : 0));
+            placePoint.z = Mathf.FloorToInt(hitPoint.z + (convertedSize.z % 2 == 0 ? 0.5f : 0));
+            placePoint.y = Mathf.FloorToInt(hitPoint.y);
+            
+            placePoint += new Vector3Int(0, _heightOffset, 0);
+            placePoint -= convertedSize / 2;
 
             //プレビュー表示
             _blockPlacePreview.SetActive(true);
@@ -141,17 +153,17 @@ namespace MainGame.Presenter.Inventory.Send
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
             {
-                MoorestechContext.VanillaApi.SendOnly.PlaceHotBarBlock(hitPoint, selectIndex, _currentBlockDirection);
+                MoorestechContext.VanillaApi.SendOnly.PlaceHotBarBlock(placePoint, selectIndex, _currentBlockDirection);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
                 return;
             }
 
             //クリックされてなかったらプレビューを表示する
-            _blockPlacePreview.SetPreview(hitPoint, _currentBlockDirection, blockConfig.ItemIdToBlockConfig(itemId));
+            _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection,holdingBlockConfig);
         }
 
 
-        private bool TryGetRayHitPosition(out Vector3Int pos)
+        private bool TryGetRayHitPosition(out Vector3 pos)
         {
             pos = Vector3Int.zero;
             var ray = _mainCamera.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
@@ -162,11 +174,7 @@ namespace MainGame.Presenter.Inventory.Send
             if (hit.transform.GetComponent<GroundPlane>() == null) return false;
 
             //基本的にブロックの原点は0,0なので、rayがヒットした座標を基準にブロックの原点を計算する
-            var x = Mathf.FloorToInt(hit.point.x);
-            var y = Mathf.FloorToInt(hit.point.y);
-            var z = Mathf.FloorToInt(hit.point.z);
-
-            pos = new Vector3Int(x, y, z);
+            pos = hit.point;
 
             return true;
         }
