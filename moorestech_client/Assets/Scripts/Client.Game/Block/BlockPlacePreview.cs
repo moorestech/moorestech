@@ -12,7 +12,7 @@ namespace MainGame.UnityView.Block
     {
         private BlockGameObject _previewBlock;
         
-        public void SetPreview(Vector2Int blockPosition, BlockDirection blockDirection,BlockConfigData blockConfig)
+        public void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection,BlockConfigData blockConfig)
         {
             var (pos,rot,scale) = SlopeBlockPlaceSystem.GetSlopeBeltConveyorTransform(blockConfig.Type,blockPosition, blockDirection,blockConfig.BlockSize);
             

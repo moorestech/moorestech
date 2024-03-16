@@ -78,7 +78,7 @@ namespace Server.Protocol.PacketResponse
             PlayerId = playerId;
             Direction = direction;
             Slot = slot;
-            Pos = new Vector2IntMessagePack(pos);
+            Pos = new Vector3IntMessagePack(pos);
         }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -94,6 +94,6 @@ namespace Server.Protocol.PacketResponse
         public int Slot { get; set; }
 
         [Key(5)]
-        public Vector2IntMessagePack Pos { get; set; }
+        public Vector3IntMessagePack Pos { get; set; }
     }
 }

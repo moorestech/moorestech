@@ -46,7 +46,7 @@ namespace Server.Event.EventReceive
             PreviousState = state.PreviousState;
 
             CurrentStateJsonData = state.CurrentStateJsonData;
-            Position = new Vector2IntMessagePack(pos);
+            Position = new Vector3IntMessagePack(pos);
         }
 
         [Key(0)]
@@ -56,7 +56,7 @@ namespace Server.Event.EventReceive
         [Key(2)]
         public string CurrentStateJsonData { get; set; }
         [Key(3)]
-        public Vector2IntMessagePack Position { get; set; }
+        public Vector3IntMessagePack Position { get; set; }
 
         public TBlockState GetStateDat<TBlockState>()
         {

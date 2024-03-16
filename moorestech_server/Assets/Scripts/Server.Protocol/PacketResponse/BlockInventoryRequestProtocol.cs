@@ -65,11 +65,11 @@ namespace Server.Protocol.PacketResponse
         public RequestBlockInventoryRequestProtocolMessagePack(Vector3Int pos)
         {
             Tag = BlockInventoryRequestProtocol.Tag;
-            Pos = new Vector2IntMessagePack(pos);
+            Pos = new Vector3IntMessagePack(pos);
         }
         
         [Key(2)]
-        public Vector2IntMessagePack Pos { get; set; }
+        public Vector3IntMessagePack Pos { get; set; }
     }
 
     [MessagePackObject]

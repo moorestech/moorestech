@@ -10,9 +10,9 @@ namespace MainGame.UnityView.Control.MouseKeyboard
     {
         private Camera _mainCamera;
 
-        public bool TryGetCursorOnBlockPosition(out Vector2Int position)
+        public bool TryGetCursorOnBlockPosition(out Vector3Int position)
         {
-            position = Vector2Int.zero;
+            position = Vector3Int.zero;
 
             if (!TryGetCursorOnBlock(out var blockObject)) return false;
 
@@ -33,11 +33,11 @@ namespace MainGame.UnityView.Control.MouseKeyboard
             return false;
         }
 
-        public bool TryGetClickBlockPosition(out Vector2Int position)
+        public bool TryGetClickBlockPosition(out Vector3Int position)
         {
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && TryGetCursorOnBlockPosition(out position)) return true;
 
-            position = Vector2Int.zero;
+            position = Vector3Int.zero;
             return false;
         }
 

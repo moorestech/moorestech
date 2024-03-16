@@ -15,7 +15,7 @@ namespace Server.Protocol.PacketResponse.Util
     /// </summary>
     public static class CollectBeltConveyorItems
     {
-        public static List<IEntity> CollectItem(List<Vector3Int> collectChunks,
+        public static List<IEntity> CollectItem(List<Vector2Int> collectChunks,
             IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
@@ -26,7 +26,7 @@ namespace Server.Protocol.PacketResponse.Util
         }
 
 
-        public static List<IEntity> CollectItemFromChunk(Vector3Int chunk, IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
+        public static List<IEntity> CollectItemFromChunk(Vector2Int chunk, IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IEntityFactory entityFactory)
         {
             var result = new List<IEntity>();
             for (var i = 0; i < ChunkResponseConst.ChunkSize; i++)

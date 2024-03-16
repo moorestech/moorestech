@@ -51,7 +51,7 @@ namespace Server.Protocol.PacketResponse
         public BlockInventoryOpenCloseProtocolMessagePack(int playerId, Vector3Int pos, bool isOpen)
         {
             Tag = BlockInventoryOpenCloseProtocol.Tag;
-            Pos = new Vector2IntMessagePack(pos);
+            Pos = new Vector3IntMessagePack(pos);
             PlayerId = playerId;
             IsOpen = isOpen;
         }
@@ -59,7 +59,7 @@ namespace Server.Protocol.PacketResponse
         [Key(2)]
         public int PlayerId { get; set; }
         [Key(3)]
-        public Vector2IntMessagePack Pos { get; set; }
+        public Vector3IntMessagePack Pos { get; set; }
         [Key(4)]
         public bool IsOpen { get; set; }
     }

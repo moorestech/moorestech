@@ -43,7 +43,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             gameObject.SetActive(isActive);
         }
         
-        public void SetBlockInventoryType(BlockInventoryType type,Vector2Int blockPos,IBlockConfigParam param, int blockId)
+        public void SetBlockInventoryType(BlockInventoryType type,Vector3Int blockPos,IBlockConfigParam param, int blockId)
         {
             var itemStackFactory = MoorestechContext.ServerServices.ItemStackFactory;
             ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory,blockPos);

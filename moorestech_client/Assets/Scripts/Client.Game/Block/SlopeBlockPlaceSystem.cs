@@ -11,7 +11,7 @@ namespace MainGame.UnityView.Block
         
         public static readonly int GroundLayerMask = LayerMask.GetMask("Ground");
         
-        public static (Vector3 position, Quaternion rotation, Vector3 scale) GetSlopeBeltConveyorTransform(string blockType,Vector2Int blockPosition,BlockDirection blockDirection,Vector2Int blockSize)
+        public static (Vector3 position, Quaternion rotation, Vector3 scale) GetSlopeBeltConveyorTransform(string blockType,Vector3Int blockPosition,BlockDirection blockDirection,Vector3Int blockSize)
         {
             //実際のブロックのモデルは+0.5した値が中心になる
             var blockObjectPos = blockPosition.AddBlockPlaceOffset();
@@ -42,9 +42,9 @@ namespace MainGame.UnityView.Block
             return (resultBlockPos, blockRotation, blockScale);
         }
 
-        public static Vector3 GetGroundPoint(Vector2 pos,Color debugRayColor = default)
+        public static Vector3 GetGroundPoint(Vector3 pos,Color debugRayColor = default)
         {
-            var checkRay = new Ray(new Vector3(pos.x,1000,pos.y), Vector3.down);
+            var checkRay = new Ray(new Vector3(pos.x,1000,pos.z), Vector3.down);
             Debug.DrawRay(checkRay.origin, checkRay.direction * 1000, debugRayColor, 3);
             
             if (!Physics.Raycast(checkRay, out var checkHit, 1500, GroundLayerMask))
@@ -54,7 +54,7 @@ namespace MainGame.UnityView.Block
             return checkHit.point;
         }
 
-        public static float GetBlockFourCornerMaxHeight(Vector2Int blockPos,BlockDirection blockDirection,Vector2Int blockSize)
+        public static float GetBlockFourCornerMaxHeight(Vector3Int blockPos,BlockDirection blockDirection,Vector3Int blockSize)
         {
             var (minPos,maxPos) = blockPos.GetWorldBlockBoundingBox(blockDirection, blockSize);
             var heights = new List<float>
@@ -69,14 +69,14 @@ namespace MainGame.UnityView.Block
         }
         
         
-        private static Vector2 GetBlockFrontRayOffset(BlockDirection blockDirection)
+        private static Vector3 GetBlockFrontRayOffset(BlockDirection blockDirection)
         {
             return blockDirection switch
             {
-                BlockDirection.North => new Vector2(0, 0.5f),
-                BlockDirection.East => new Vector2(0.5f, 0),
-                BlockDirection.South => new Vector2(0, -0.5f),
-                BlockDirection.West => new Vector2(-0.5f, 0),
+                BlockDirection.North => new Vector3(0,0, 0.5f),
+                BlockDirection.East => new Vector3(0.5f,0, 0),
+                BlockDirection.South => new Vector3(0, 0,-0.5f),
+                BlockDirection.West => new Vector3(-0.5f,0, 0),
                 _ => throw new ArgumentOutOfRangeException(nameof(blockDirection), blockDirection, null)
             };
         }

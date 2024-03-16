@@ -38,7 +38,7 @@ namespace Client.Game.Context
         }
 
 
-        public BlockGameObject CreateBlock(int blockId, Vector3 position, Quaternion rotation,Vector3 scale ,Transform parent, Vector2Int blockPosition)
+        public BlockGameObject CreateBlock(int blockId, Vector3 position, Quaternion rotation,Vector3 scale ,Transform parent, Vector3Int blockPosition)
         {
             //ブロックIDは1から始まるので、オブジェクトのリストインデックスマイナス１する
             var blockConfigIndex = blockId - 1;

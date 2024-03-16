@@ -79,8 +79,7 @@ namespace MainGame.Presenter.Inventory.Send
             if (!blockConfig.IsBlock(itemId)) return; 
 
             //プレビューの座標を取得
-            var (isHit, hitPoint) = GetPreviewPosition();
-            if (!isHit) return;
+            if (!TryGetRayHitPosition(out var hitPoint)) return;
 
             //プレビュー表示
             _blockPlacePreview.SetActive(true);
@@ -99,20 +98,24 @@ namespace MainGame.Presenter.Inventory.Send
         }
 
 
-        private (bool, Vector2Int pos) GetPreviewPosition()
+        private bool TryGetRayHitPosition(out Vector3Int pos)
         {
+            pos = Vector3Int.zero;
             var ray = _mainCamera.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
 
             //画面からのrayが何かにヒットしているか
-            if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return (false, new Vector2Int());
+            if (!Physics.Raycast(ray, out var hit, 100, LayerConst.WithoutMapObjectAndPlayerLayerMask)) return false;
             //そのrayが地面のオブジェクトにヒットしてるか
-            if (hit.transform.GetComponent<GroundPlane>() == null) return (false, new Vector2Int());
+            if (hit.transform.GetComponent<GroundPlane>() == null) return false;
 
             //基本的にブロックの原点は0,0なので、rayがヒットした座標を基準にブロックの原点を計算する
             var x = Mathf.FloorToInt(hit.point.x);
-            var y = Mathf.FloorToInt(hit.point.z); //サーバー上のY軸がUnityのZ軸に相当する
+            var y = Mathf.FloorToInt(hit.point.y);
+            var z = Mathf.FloorToInt(hit.point.z); 
+            
+            pos = new Vector3Int(x, y, z);
 
-            return (true, new Vector2Int(x, y));
+            return true;
         }
     }
 

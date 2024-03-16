@@ -24,10 +24,10 @@ namespace Tests.CombinedTest.Server
         private const int RemainingTime = 1000;
         private const int ItemInstanceId = 100;
 
-        private readonly List<Vector3Int> _minusPlayerCoordinate = new()
-            { new Vector3Int(-ChunkResponseConst.ChunkSize, -ChunkResponseConst.ChunkSize) };
+        private readonly List<Vector2Int> _minusPlayerCoordinate = new()
+            { new Vector2Int(-ChunkResponseConst.ChunkSize, -ChunkResponseConst.ChunkSize) };
 
-        private readonly List<Vector3Int> _plusPlayerCoordinate = new() { new Vector3Int(0, 0) };
+        private readonly List<Vector2Int> _plusPlayerCoordinate = new() { new Vector2Int(0, 0) };
 
         /// <summary>
         ///     各方向に向いたベルトコンベア内のアイテムの位置が正しいかどうかをチェックする

@@ -90,7 +90,7 @@ namespace Server.Protocol.PacketResponse
         {
             Tag = RemoveBlockProtocol.Tag;
             PlayerId = playerId;
-            Pos = new Vector2IntMessagePack(pos);
+            Pos = new Vector3IntMessagePack(pos);
         }
 
 
@@ -102,6 +102,6 @@ namespace Server.Protocol.PacketResponse
         [Key(2)]
         public int PlayerId { get; set; }
         [Key(3)]
-        public Vector2IntMessagePack Pos { get; set; }
+        public Vector3IntMessagePack Pos { get; set; }
     }
 }

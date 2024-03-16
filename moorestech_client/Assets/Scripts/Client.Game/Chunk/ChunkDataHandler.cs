@@ -22,8 +22,6 @@ namespace MainGame.Presenter.Block
     /// </summary>
     public class ChunkDataHandler : IInitializable
     {
-        private readonly Dictionary<Vector2Int, BlockInfo[,]> _chunk = new();
-        
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private readonly EntityObjectDatastore _entitiesDatastore;
 
@@ -48,19 +46,12 @@ namespace MainGame.Presenter.Block
         {
             var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload);
             
-            var blockPos = data.BlockPos;
-            var chunkPos = ChunkConstant.BlockPositionToChunkOriginPosition(blockPos);
-
-            if (!_chunk.ContainsKey(chunkPos)) return;
-
-            //ブロックを置き換え
-            var (i, j) = (
-                GetBlockArrayIndex(chunkPos.x, blockPos.X),
-                GetBlockArrayIndex(chunkPos.y, blockPos.Y));
-            _chunk[chunkPos][i, j] = new BlockInfo(data.BlockId,(BlockDirection)data.Direction);
+            var blockPos = (Vector3Int)data.BlockData.BlockPos;
+            var blockId = data.BlockData.BlockId;
+            var blockDirection = data.BlockData.BlockDirection;
 
             //viewにブロックがおかれたことを通知する
-            PlaceOrRemoveBlock(blockPos, data.BlockId, (BlockDirection)data.Direction);
+            PlaceOrRemoveBlock(blockPos, blockId, blockDirection);
         }
 
         public void Initialize()
@@ -104,15 +95,9 @@ namespace MainGame.Presenter.Block
         
         private void ApplyChunkData(ChunkResponse chunk)
         {
-            var chunkPos = chunk.ChunkPos;
-            _chunk[chunkPos] = chunk.Blocks;
-            for (var i = 0; i < chunk.Blocks.GetLength(0); i++)
-            for (var j = 0; j < chunk.Blocks.GetLength(1); j++)
+            foreach (var block in chunk.Blocks)
             {
-                var blockPos = new Vector2Int(chunkPos.x + i, chunkPos.y + j);
-                var blockId = chunk.Blocks[i, j].BlockId;
-                var blockDirections = chunk.Blocks[i, j].BlockDirection;
-                PlaceOrRemoveBlock(blockPos, blockId, blockDirections);
+                PlaceOrRemoveBlock(block.BlockPos, block.BlockId, block.BlockDirection);
             }
 
             if (chunk.Entities == null)
@@ -124,7 +109,7 @@ namespace MainGame.Presenter.Block
         }
 
 
-        private void PlaceOrRemoveBlock(Vector2Int position, int id, BlockDirection blockDirection)
+        private void PlaceOrRemoveBlock(Vector3Int position, int id, BlockDirection blockDirection)
         {
             if (id == BlockConstant.NullBlockId)
             {

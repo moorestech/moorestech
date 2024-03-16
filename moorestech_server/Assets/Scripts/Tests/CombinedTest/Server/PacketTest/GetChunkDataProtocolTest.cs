@@ -62,16 +62,16 @@ namespace Tests.CombinedTest.Server.PacketTest
             {
                 //座標の確認
                 var c = r.ChunkPos;
-                //ブロックの確認
-                for (var i = 0; i < r.BlockIds.GetLength(0); i++)
-                for (var j = 0; j < r.BlockIds.GetLength(1); j++)
+                for (int i = 0; i < r.Blocks.Length; i++)
                 {
-                    var pos = new Vector3Int(c.X + i, c.Y + j);
+                    var block = r.Blocks[i];
+                    var pos = block.BlockPos;
+                    
                     var id = worldBlock.GetOriginPosBlock(pos)?.Block.BlockId ?? BlockConst.EmptyBlockId;
-                    Assert.AreEqual(id, r.BlockIds[i, j]);
+                    Assert.AreEqual(id, block.BlockId);
 
                     var direction = worldBlock.GetOriginPosBlock(pos)?.BlockDirection ?? BlockDirection.North;
-                    Assert.AreEqual(direction, (BlockDirection)r.BlockDirections[i, j]);
+                    Assert.AreEqual(direction, block.BlockDirection);
                 }
             }
         }
@@ -95,19 +95,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             var chunkData = responseChunks[0];
             
-            //座標の確認
-            var c = chunkData.ChunkPos;
-            Assert.AreEqual(new Vector3Int(0, 0), (Vector3Int)c);
-            //ブロックの確認
-            for (var i = 0; i < chunkData.BlockIds.GetLength(0); i++)
-            for (var j = 0; j < chunkData.BlockIds.GetLength(1); j++)
-                if (i == 0 && j == 0)
-                    Assert.AreEqual(Block_1x4_Id, chunkData.BlockIds[i, j]);
-                else
-                {
-                    Debug.Log(chunkData.BlockIds[i, j] + " " + i + " " + j);
-                    Assert.AreEqual(BlockConst.EmptyBlockId, chunkData.BlockIds[i, j]);
-                }
+            //ブロックが設置されていることを確認する
+            Assert.AreEqual(new Vector2Int(0, 0), (Vector2Int)chunkData.ChunkPos);
+            Assert.AreEqual(Block_1x4_Id, chunkData.Blocks[0].BlockId);
+            
         }
     }
 }

@@ -15,25 +15,25 @@ namespace MainGame.UnityView.Chunk
 {
     public class ChunkBlockGameObjectDataStore : MonoBehaviour
     {
-        private readonly Dictionary<Vector2Int, BlockGameObject> _blockObjectsDictionary = new();
+        private readonly Dictionary<Vector3Int, BlockGameObject> _blockObjectsDictionary = new();
 
-        public IReadOnlyDictionary<Vector2Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
+        public IReadOnlyDictionary<Vector3Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
 
         public event Action<BlockGameObject> OnPlaceBlock;
         
 
-        public BlockGameObject GetBlockGameObject(Vector2Int position)
+        public BlockGameObject GetBlockGameObject(Vector3Int position)
         {
             return _blockObjectsDictionary.ContainsKey(position) ? _blockObjectsDictionary[position] : null;
         }
 
-        public bool ContainsBlockGameObject(Vector2Int position)
+        public bool ContainsBlockGameObject(Vector3Int position)
         {
             return _blockObjectsDictionary.ContainsKey(position);
         }
 
 
-        public void GameObjectBlockPlace(Vector2Int blockPosition, int blockId, BlockDirection blockDirection)
+        public void GameObjectBlockPlace(Vector3Int blockPosition, int blockId, BlockDirection blockDirection)
         {
             //すでにブロックがあり、IDが違う場合は新しいブロックに置き換えるために削除する
             if (_blockObjectsDictionary.ContainsKey(blockPosition))
@@ -57,7 +57,7 @@ namespace MainGame.UnityView.Chunk
             OnPlaceBlock?.Invoke(block);
         }
 
-        public void GameObjectBlockRemove(Vector2Int blockPosition)
+        public void GameObjectBlockRemove(Vector3Int blockPosition)
         {
             //すでにブロックが置かれている時のみブロックを削除する
             if (!_blockObjectsDictionary.ContainsKey(blockPosition)) return;

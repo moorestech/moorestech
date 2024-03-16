@@ -137,7 +137,7 @@ namespace Server.Protocol.PacketResponse
             //メッセージパックでenumは重いらしいのでintを使う
             InventoryId = (int)info.ItemMoveInventoryType;
             Slot = slot;
-            Pos = new Vector2IntMessagePack(info.Pos);
+            Pos = new Vector3IntMessagePack(info.Pos);
         }
 
         [Obsolete("シリアライズ用の値です。InventoryTypeを使用してください。")]
@@ -150,6 +150,6 @@ namespace Server.Protocol.PacketResponse
         [Key(3)]
         public int Slot { get; set; }
         [Key(4)]
-        public Vector2IntMessagePack Pos { get; set; }
+        public Vector3IntMessagePack Pos { get; set; }
     }
 }

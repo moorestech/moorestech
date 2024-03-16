@@ -28,7 +28,7 @@ namespace MainGame.UnityView.UI.UIState
 
         private CancellationTokenSource _cancellationTokenSource;
         
-        private Vector2Int _openBlockPos;
+        private Vector3Int _openBlockPos;
 
         public BlockInventoryState(BlockInventoryView blockInventoryView, IBlockClickDetect blockClickDetect, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,PlayerInventoryViewController playerInventoryViewController)
         {
@@ -81,7 +81,7 @@ namespace MainGame.UnityView.UI.UIState
             _playerInventoryViewController.SetSubInventory(_blockInventoryView);
         }
 
-        private async UniTask UpdateBlockInventory(Vector2Int pos,CancellationToken ct)
+        private async UniTask UpdateBlockInventory(Vector3Int pos,CancellationToken ct)
         {
             var response = await MoorestechContext.VanillaApi.Response.GetBlockInventory(pos, ct);
             _blockInventoryView.SetItemList(response);

@@ -86,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
         private TestBlockData AnalysisResponsePacket(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload);
+            var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload).BlockData;
 
             return new TestBlockData(data.BlockPos, data.BlockId, data.Direction);
         }

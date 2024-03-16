@@ -6,9 +6,9 @@ namespace Constant
     {
         public const int ChunkSize = 20;
 
-        public static Vector2Int BlockPositionToChunkOriginPosition(Vector2Int blockPosition)
+        public static Vector2Int BlockPositionToChunkOriginPosition(Vector3Int blockPosition)
         {
-            return new Vector2Int(GetChunk(blockPosition.x), GetChunk(blockPosition.y));
+            return new Vector2Int(GetChunk(blockPosition.x), GetChunk(blockPosition.z));
         }
 
         private static int GetChunk(int n)
