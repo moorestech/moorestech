@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.Block;
 using Client.Game.Context;
 using Game.World.Interface.DataStore;
 using MainGame.ModLoader.Glb;

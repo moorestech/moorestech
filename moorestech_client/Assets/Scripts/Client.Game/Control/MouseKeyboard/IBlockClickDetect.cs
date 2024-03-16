@@ -1,3 +1,4 @@
+using Client.Game.Block;
 using MainGame.ModLoader.Glb;
 using UnityEngine;
 
