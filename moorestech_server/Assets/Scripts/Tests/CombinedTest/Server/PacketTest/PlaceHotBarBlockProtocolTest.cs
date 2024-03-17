@@ -82,10 +82,10 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //ブロックを置く
-            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4, 0));
-            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 5, 1));
-            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 6, 2));
-            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 7, 3));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4, BlockDirection.North));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 5, BlockDirection.East));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 6, BlockDirection.South));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 7, BlockDirection.West));
 
             //ブロックの向きをチェック
             Assert.AreEqual(BlockDirection.North, worldBlockDatastore.GetBlockDirection(new Vector3Int(2,4)));
@@ -94,7 +94,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(BlockDirection.West, worldBlockDatastore.GetBlockDirection(new Vector3Int(2,7)));
         }
 
-        private List<byte> CreateUseHotBarProtocol(int x,int y, byte blockDirection)
+        private List<byte> CreateUseHotBarProtocol(int x,int y, BlockDirection blockDirection)
         {
             return MessagePackSerializer
                 .Serialize(new SendPlaceHotBarBlockProtocolMessagePack(PlayerId, blockDirection, HotBarSlot, new Vector3Int(x,y)))

@@ -61,11 +61,11 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class SendPlaceHotBarBlockProtocolMessagePack : ProtocolMessagePackBase
     {
-        public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int direction, int slot, Vector3Int pos)
+        public SendPlaceHotBarBlockProtocolMessagePack(int playerId, BlockDirection direction, int slot, Vector3Int pos)
         {
             Tag = SendPlaceHotBarBlockProtocol.Tag;
             PlayerId = playerId;
-            Direction = direction;
+            Direction = (int)direction;
             Slot = slot;
             Pos = new Vector3IntMessagePack(pos);
         }

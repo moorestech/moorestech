@@ -38,7 +38,7 @@ namespace Client.Network.API
         
         public void PlaceHotBarBlock(Vector3Int pos, short hotBarSlot, BlockDirection blockDirection)
         {
-            var request = new SendPlaceHotBarBlockProtocolMessagePack(_playerId, (int)blockDirection, hotBarSlot, pos);
+            var request = new SendPlaceHotBarBlockProtocolMessagePack(_playerId, blockDirection, hotBarSlot, pos);
             _packetSender.Send(request);
         }
         
