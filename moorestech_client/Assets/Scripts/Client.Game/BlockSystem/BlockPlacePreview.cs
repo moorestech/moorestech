@@ -1,13 +1,11 @@
 ﻿using Client.Game.Block;
 using Client.Game.Context;
-using Game.World.Interface.DataStore;
-using Constant;
-using Game.Block.Config;
 using Game.Block.Interface.BlockConfig;
-using MainGame.ModLoader.Glb;
+using Game.World.Interface.DataStore;
+using MainGame.UnityView.Block;
 using UnityEngine;
 
-namespace MainGame.UnityView.Block
+namespace Client.Game.BlockSystem
 {
     public class BlockPlacePreview : MonoBehaviour, IBlockPlacePreview
     {

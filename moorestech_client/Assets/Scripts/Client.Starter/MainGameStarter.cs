@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Client.Game.BlockSystem;
 using Client.Game.BlockSystem.StateChange;
 using Client.Game.Map;
 using Client.Game.Map.MapObject;

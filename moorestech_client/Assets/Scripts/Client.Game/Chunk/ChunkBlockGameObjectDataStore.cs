@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.Block;
 using Client.Game.Context;
+using Cysharp.Threading.Tasks;
 using Game.World.Interface.DataStore;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Block;
@@ -47,7 +48,10 @@ namespace MainGame.UnityView.Chunk
             var rot = blockDirection.GetRotation();
             
             var block = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot,transform, blockPosition);
-
+            //設置アニメーションを再生
+            var placeAnimation = block.gameObject.AddComponent<BlockPlaceAnimation>();
+            placeAnimation.PlayAnimation().Forget();
+            
             _blockObjectsDictionary.Add(blockPosition, block);
             OnPlaceBlock?.Invoke(block);
         }
