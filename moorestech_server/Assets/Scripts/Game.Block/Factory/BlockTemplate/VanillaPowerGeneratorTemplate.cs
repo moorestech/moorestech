@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.Item;
+using Game.Block.Base;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;

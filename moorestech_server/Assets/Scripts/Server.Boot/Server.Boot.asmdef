@@ -28,7 +28,8 @@
         "Game.SaveLoad",
         "Mod.Base",
         "Core.Update",
-        "Server.Util"
+        "Server.Util",
+        "Game.Block.Base"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

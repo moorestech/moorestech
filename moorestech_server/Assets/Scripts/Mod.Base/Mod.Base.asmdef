@@ -11,7 +11,8 @@
         "Game.Quest.Interface",
         "Game.World.Interface",
         "Core.Update",
-        "UniRx"
+        "UniRx",
+        "Game.Block.Base"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

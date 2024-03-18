@@ -1,4 +1,6 @@
-﻿namespace Game.Block.Interface
+﻿using Game.Block.Interface;
+
+namespace Game.Block.Base
 {
     public interface IBlockFactory
     {

@@ -1,4 +1,5 @@
 using Core.Item.Config;
+using Game.Block.Base;
 using Game.Block.Blocks.Miner;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;

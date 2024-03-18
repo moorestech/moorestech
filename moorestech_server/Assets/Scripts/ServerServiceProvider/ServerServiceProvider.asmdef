@@ -9,7 +9,8 @@
         "Game.Block",
         "Core.Ore",
         "Server.Boot",
-        "Server.Protocol"
+        "Server.Protocol",
+        "Game.Block.Base"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

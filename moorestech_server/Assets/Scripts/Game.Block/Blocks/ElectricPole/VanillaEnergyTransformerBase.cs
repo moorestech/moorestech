@@ -1,5 +1,6 @@
 using System;
 using Core.EnergySystem;
+using Game.Block.Base;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
 

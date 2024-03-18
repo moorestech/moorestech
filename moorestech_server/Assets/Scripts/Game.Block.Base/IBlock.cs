@@ -1,7 +1,7 @@
 ﻿using System;
 using Game.Block.Interface.State;
 
-namespace Game.Block.Interface
+namespace Game.Block.Base
 {
     public interface IBlock
     {

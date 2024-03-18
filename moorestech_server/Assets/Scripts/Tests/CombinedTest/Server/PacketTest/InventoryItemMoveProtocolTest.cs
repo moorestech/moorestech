@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
+using Game.Block.Base;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
 using Game.PlayerInventory.Interface;

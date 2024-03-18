@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
 using Core.Item;
+using Game.Block.Base;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;

@@ -1,4 +1,5 @@
-﻿using Game.Block.Blocks.ElectricPole;
+﻿using Game.Block.Base;
+using Game.Block.Blocks.ElectricPole;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 

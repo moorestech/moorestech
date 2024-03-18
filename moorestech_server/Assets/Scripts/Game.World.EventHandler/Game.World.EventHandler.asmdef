@@ -8,7 +8,8 @@
         "Core.Util",
         "Core.Item",
         "Game.Block",
-        "Game.Map.Interface"
+        "Game.Map.Interface",
+        "Game.Block.Base"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

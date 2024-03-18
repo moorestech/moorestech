@@ -4,6 +4,7 @@ using System.Text;
 using Core.Const;
 using Core.Item;
 using Core.Update;
+using Game.Block.Base;
 using Game.Block.BlockInventory;
 using Game.Block.Interface;
 using Game.Block.Interface.State;

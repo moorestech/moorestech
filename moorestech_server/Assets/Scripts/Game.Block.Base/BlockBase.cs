@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Game.Block.Interface.Base
+namespace Game.Block.Base
 {
     public abstract class BlockBase : IDisposable
     {

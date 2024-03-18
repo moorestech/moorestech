@@ -1,6 +1,6 @@
 using System;
 
-namespace Game.Block.Interface.Base
+namespace Game.Block.Base
 {
     public abstract class BlockComponentBase : IDisposable
     {

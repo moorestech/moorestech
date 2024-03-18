@@ -4,6 +4,7 @@ using Core.EnergySystem;
 using Core.EnergySystem.Electric;
 using Core.Item;
 using Core.Item.Config;
+using Game.Block.Base;
 using Game.Block.Config;
 using Game.Block.Event;
 using Game.Block.Factory;

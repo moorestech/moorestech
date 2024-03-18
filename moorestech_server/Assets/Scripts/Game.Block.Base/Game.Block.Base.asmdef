@@ -1,5 +1,5 @@
 {
-    "name": "Game.Block.Interface",
+    "name": "Game.Block.Base",
     "rootNamespace": "",
     "references": [
         "Core.Item",

@@ -12,7 +12,8 @@
         "Game.PlayerInventory.Interface",
         "Game.Map.Interface",
         "Game.Quest.Interface",
-        "Server.Util"
+        "Server.Util",
+        "Game.Block.Base"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

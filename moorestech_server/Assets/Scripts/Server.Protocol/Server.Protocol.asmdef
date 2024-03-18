@@ -21,7 +21,8 @@
         "Game.Map.Interface",
         "Core.Ore",
         "Game.SaveLoad.Interface",
-        "Game.Crafting.Interface"
+        "Game.Crafting.Interface",
+        "Game.Block.Base"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
