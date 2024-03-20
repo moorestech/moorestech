@@ -10,11 +10,13 @@ namespace Client.DebugSystem
     public sealed class DebugSheetController : MonoBehaviour
     {
         [SerializeField] private GameObject runtimeHierarchyInspector;
+        [SerializeField] private DebugSheet debugSheet;
 
         private void Start()
         {
-            var rootPage = DebugSheet.Instance.GetOrCreateInitialPage();
-
+            debugSheet.gameObject.SetActive(true);
+            
+            var rootPage = debugSheet.GetOrCreateInitialPage();
 
             rootPage.AddPageLinkButton<ItemGetDebugSheet>("Get Item");
             rootPage.AddPageLinkButton<IngameDebugConsoleDebugPage>("In-Game Debug Console", onLoad: x => x.page.Setup(DebugLogManager.Instance));

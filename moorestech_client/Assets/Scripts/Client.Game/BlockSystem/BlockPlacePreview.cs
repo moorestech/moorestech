@@ -20,10 +20,12 @@ namespace Client.Game.BlockSystem
             {
                 if (_previewBlock)
                     Destroy(_previewBlock.gameObject);
-
+                
+                //プレビューブロックを設置
                 _previewBlock = MoorestechContext.BlockGameObjectContainer.CreatePreviewBlock(blockConfig.BlockId);
                 _previewBlock.transform.SetParent(transform);
                 _previewBlock.transform.localPosition = Vector3.zero;
+                //プレビューブロックのマテリアルを変更
             }
             
             transform.position = pos;

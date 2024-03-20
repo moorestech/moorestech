@@ -21,7 +21,7 @@ namespace Client.Game.Block
             }
         }
         
-        public void SetPlaceMaterial(Material placeMaterial)
+        public void SetMaterial(Material placeMaterial)
         {
             foreach (var material in _renderers.sharedMaterials)
             {

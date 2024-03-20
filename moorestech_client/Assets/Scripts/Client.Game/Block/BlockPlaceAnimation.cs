@@ -9,6 +9,8 @@ namespace Client.Game.Block
 {
     public class BlockPlaceAnimation : MonoBehaviour
     {
+        private const string PlaceBlockAnimationMaterial = "PlaceBlockAnimation";
+        
         private const string WorldMinY = "_WorldMinY";
         private const string WorldMaxY = "_WorldMaxY";
         private const string DevolveRate = "_DevolveRate";
@@ -21,13 +23,13 @@ namespace Client.Game.Block
             // 3Dモデルの最小、最大Y座標を取得する
             var worldMinY = float.MaxValue;
             var worldMaxY = float.MinValue;
-            var placeAnimationMaterial  = Resources.Load<Material>("PlaceBlockAnimation");
+            var placeAnimationMaterial  = Resources.Load<Material>(PlaceBlockAnimationMaterial);
             foreach (var renderer in GetComponentsInChildren<Renderer>())
             {
                 worldMinY = Mathf.Min(worldMinY, renderer.bounds.min.y);
                 worldMaxY = Mathf.Max(worldMaxY, renderer.bounds.max.y);
                 var rendererInfo = new RendererMaterialReplacer(renderer);
-                rendererInfo.SetPlaceMaterial(placeAnimationMaterial);
+                rendererInfo.SetMaterial(placeAnimationMaterial);
                 blockRendererInfos.Add(rendererInfo);
             }
 
