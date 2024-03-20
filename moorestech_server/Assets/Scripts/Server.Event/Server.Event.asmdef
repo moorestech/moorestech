@@ -11,7 +11,8 @@
         "Game.Block.Interface",
         "Game.PlayerInventory.Interface",
         "Game.Map.Interface",
-        "Server.Util"
+        "Server.Util",
+        "UniRx"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

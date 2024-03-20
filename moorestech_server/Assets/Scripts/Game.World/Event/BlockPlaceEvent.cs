@@ -1,7 +1,9 @@
+using System;
 using Game.World.Interface.Event;
 
 namespace Game.World.Event
 {
+    [Obsolete("TODO 後で消す")]
     public class BlockPlaceEvent : IBlockPlaceEvent
     {
         public void Subscribe(IBlockPlaceEvent.BlockPlaceEvent blockPlaceEvent)

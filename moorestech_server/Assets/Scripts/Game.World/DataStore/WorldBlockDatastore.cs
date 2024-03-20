@@ -7,6 +7,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.State;
 using Game.World.Event;
+using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 using UniRx;
@@ -27,23 +28,27 @@ namespace Game.World.DataStore
 
         private readonly BlockPlaceEvent _blockPlaceEvent;
         private readonly BlockRemoveEvent _blockRemoveEvent;
+        private readonly WorldBlockUpdateEvent _worldBlockUpdateEvent;
 
         //座標とキーの紐づけ
         private readonly Dictionary<Vector3Int, int> _coordinateDictionary = new();
 
+        
+        //イベント
+        public IObservable<(ChangedBlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
+        private readonly Subject<(ChangedBlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
 
         private readonly IBlock _nullBlock = new NullBlock();
 
-        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, IBlockFactory blockFactory,
+        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, IBlockFactory blockFactory,IWorldBlockUpdateEvent worldBlockUpdateEvent,
             IBlockRemoveEvent blockRemoveEvent, IBlockConfig blockConfig)
         {
             _blockFactory = blockFactory;
             _blockConfig = blockConfig;
             _blockRemoveEvent = (BlockRemoveEvent)blockRemoveEvent;
             _blockPlaceEvent = (BlockPlaceEvent)blockPlaceEvent;
+            _worldBlockUpdateEvent = (WorldBlockUpdateEvent)worldBlockUpdateEvent;
         }
-
-        public event Action<(ChangedBlockState state, IBlock block, Vector3Int pos)> OnBlockStateChange;
 
         public bool AddBlock(IBlock block, Vector3Int pos, BlockDirection blockDirection)
         {
@@ -55,8 +60,9 @@ namespace Game.World.DataStore
                 _blockMasterDictionary.Add(block.EntityId, data);
                 _coordinateDictionary.Add(pos, block.EntityId);
                 _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(pos, data.Block, blockDirection));
+                _worldBlockUpdateEvent.OnBlockPlaceEventInvoke(data);
 
-                block.BlockStateChange.Subscribe(state => { OnBlockStateChange?.Invoke((state, block, pos)); });
+                block.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext((state, data)); });
 
                 return true;
             }
@@ -74,6 +80,7 @@ namespace Game.World.DataStore
             var data = _blockMasterDictionary[entityId];
 
             _blockRemoveEvent.OnBlockRemoveEventInvoke(new BlockRemoveEventProperties(pos, data.Block));
+            _worldBlockUpdateEvent.OnBlockRemoveEventInvoke(data);
 
             _blockMasterDictionary.Remove(entityId);
             _coordinateDictionary.Remove(pos);
@@ -131,7 +138,7 @@ namespace Game.World.DataStore
         private WorldBlockData GetBlockDatastore(Vector3Int pos)
         {
             foreach (var block in
-                     _blockMasterDictionary.Where(block => block.Value.IsContain(pos)))
+                     _blockMasterDictionary.Where(block => block.Value.IsContainPos(pos)))
                 return block.Value;
 
             return null;
@@ -163,6 +170,7 @@ namespace Game.World.DataStore
             component = default;
             return false;
         }
+
 
         #endregion
 

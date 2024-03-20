@@ -29,7 +29,7 @@ namespace Game.World.Interface.DataStore
         public IBlock Block { get; }
         public BlockDirection BlockDirection { get; }
 
-        public bool IsContain(Vector3Int pos)
+        public bool IsContainPos(Vector3Int pos)
         {
             return OriginalPos.x <= pos.x && pos.x <= MaxPos.x &&
                    OriginalPos.y <= pos.y && pos.y <= MaxPos.y &&
