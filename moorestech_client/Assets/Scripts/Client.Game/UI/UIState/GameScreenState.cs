@@ -1,20 +1,12 @@
-﻿using MainGame.UnityView.Block;
+﻿using Client.Game.Control.MouseKeyboard;
+using MainGame.UnityView.Block;
 using MainGame.UnityView.Control;
-using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.UI.Inventory;
 
-namespace MainGame.UnityView.UI.UIState
+namespace Client.Game.UI.UIState
 {
     public class GameScreenState : IUIState
     {
-        private readonly IBlockClickDetect _blockClickDetect;
-        private readonly HotBarView _hotBarView;
-
-        public GameScreenState(IBlockClickDetect blockClickDetect, HotBarView hotBarView)
-        {
-            _blockClickDetect = blockClickDetect;
-            _hotBarView = hotBarView;
-        }
 
         public UIStateEnum GetNext()
         {
@@ -38,7 +30,7 @@ namespace MainGame.UnityView.UI.UIState
 
         private bool IsClickOpenableBlock()
         {
-            if (_blockClickDetect.TryGetClickBlock(out var block)) return block.GetComponent<OpenableInventoryBlock>();
+            if (BlockClickDetect.TryGetClickBlock(out var block)) return block.GetComponent<OpenableInventoryBlock>();
 
             return false;
         }

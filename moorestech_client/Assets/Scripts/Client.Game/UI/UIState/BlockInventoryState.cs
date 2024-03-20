@@ -1,27 +1,19 @@
 using System;
 using System.Threading;
 using Client.Game.Context;
-using Client.Network.API;
+using Client.Game.Control.MouseKeyboard;
 using Cysharp.Threading.Tasks;
 using Game.Block;
-using Game.Block.Config.LoadConfig.Param;
-using MainGame.Network.Send;
-using MainGame.Network.Settings;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
-using MainGame.UnityView.Control.MouseKeyboard;
-using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.Inventory.Sub;
-using MainGame.UnityView.UI.UIState.UIObject;
-using ServerServiceProvider;
 using UnityEngine;
 
-namespace MainGame.UnityView.UI.UIState
+namespace Client.Game.UI.UIState
 {
     public class BlockInventoryState : IUIState
     {
-        private readonly IBlockClickDetect _blockClickDetect;
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private readonly BlockInventoryView _blockInventoryView;
         private readonly PlayerInventoryViewController _playerInventoryViewController;
@@ -30,9 +22,8 @@ namespace MainGame.UnityView.UI.UIState
         
         private Vector3Int _openBlockPos;
 
-        public BlockInventoryState(BlockInventoryView blockInventoryView, IBlockClickDetect blockClickDetect, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,PlayerInventoryViewController playerInventoryViewController)
+        public BlockInventoryState(BlockInventoryView blockInventoryView, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,PlayerInventoryViewController playerInventoryViewController)
         {
-            _blockClickDetect = blockClickDetect;
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _playerInventoryViewController = playerInventoryViewController;
             _blockInventoryView = blockInventoryView;
@@ -49,7 +40,7 @@ namespace MainGame.UnityView.UI.UIState
 
         public void OnEnter(UIStateEnum lastStateEnum)
         {
-            if (!_blockClickDetect.TryGetCursorOnBlockPosition(out _openBlockPos)) Debug.LogError("開いたブロックの座標が取得できませんでした。UIステートに不具合があります。");
+            if (!BlockClickDetect.TryGetCursorOnBlockPosition(out _openBlockPos)) Debug.LogError("開いたブロックの座標が取得できませんでした。UIステートに不具合があります。");
             if (!_chunkBlockGameObjectDataStore.ContainsBlockGameObject(_openBlockPos)) return;
             
             InputManager.MouseCursorVisible(true);

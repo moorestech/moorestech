@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Common;
 using Game.Block.Interface.BlockConfig;
 using UnityEngine;
 
@@ -6,7 +7,6 @@ namespace Client.Game.Block
 {
     public class BlockPreviewObject : MonoBehaviour
     {
-        public const string PreviewPlaceBlockMaterial = "PreviewPlaceBlock";
 
         public BlockConfigData BlockConfig { get; private set; }
         
@@ -14,7 +14,7 @@ namespace Client.Game.Block
         {
             BlockConfig = blockConfigData;
             
-            var previewMaterial = Resources.Load<Material>(PreviewPlaceBlockMaterial);
+            var previewMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
             var blockRenderer = GetComponentsInChildren<Renderer>();
             foreach (var renderer in blockRenderer)
             {

@@ -1,9 +1,10 @@
-﻿using System;
-using Cinemachine;
+﻿using Cinemachine;
+using Client.Game.UI.UIState;
+using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.UIState;
 using UnityEngine;
 
-namespace MainGame.UnityView.Control.MouseKeyboard
+namespace Client.Game.Control.MouseKeyboard
 {
     public class CameraController : MonoBehaviour
     {

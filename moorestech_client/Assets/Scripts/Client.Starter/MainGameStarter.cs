@@ -1,8 +1,9 @@
 using System.Diagnostics;
 using Client.Game.BlockSystem;
 using Client.Game.BlockSystem.StateChange;
-using Client.Game.Map;
 using Client.Game.Map.MapObject;
+using Client.Game.UI.UIState;
+using Client.Game.UI.UIState.UIObject;
 using Client.Network.API;
 using GameConst;
 using MainGame.Control.UI.PauseMenu;
@@ -16,15 +17,11 @@ using MainGame.Presenter.PauseMenu;
 using MainGame.Presenter.Player;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
-using MainGame.UnityView.Control.MouseKeyboard;
 using MainGame.UnityView.Player;
 using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.Inventory.Sub;
-using MainGame.UnityView.UI.UIState;
-using MainGame.UnityView.UI.UIState.UIObject;
 using MainGame.UnityView.WorldMapTile;
-using ServerServiceProvider;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -45,12 +42,9 @@ namespace Client.Starter
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
 
-        [SerializeField] private GroundPlane groundPlane;
-
         [SerializeField] private ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
 
-        [SerializeField] private BlockClickDetect blockClickDetect;
         [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private DetectGroundClickToSendBlockPlacePacket detectGroundClickToSendBlockPlacePacket;
         [SerializeField] private HotBarView hotBarView;
@@ -112,7 +106,7 @@ namespace Client.Starter
             builder.Register<GameScreenState>(Lifetime.Singleton);
             builder.Register<PauseMenuState>(Lifetime.Singleton);
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
-            builder.Register<DeleteObjectInventoryState>(Lifetime.Singleton);
+            builder.Register<DeleteBlockState>(Lifetime.Singleton);
 
             //ScriptableObjectの登録
             builder.RegisterInstance(worldMapTileObject);
@@ -123,7 +117,6 @@ namespace Client.Starter
 
             builder.RegisterComponent(oreMapTileClickDetect);
             builder.RegisterComponent(mainCamera);
-            builder.RegisterComponent(groundPlane);
             builder.RegisterComponent(detectGroundClickToSendBlockPlacePacket);
             builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarView);
@@ -144,7 +137,6 @@ namespace Client.Starter
 
 
             builder.RegisterComponent<IPlayerObjectController>(playerObjectController);
-            builder.RegisterComponent<IBlockClickDetect>(blockClickDetect);
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
 
             builder.RegisterBuildCallback(objectResolver => { });

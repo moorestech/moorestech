@@ -5,7 +5,7 @@ using Object = UnityEngine.Object;
 
 namespace Client.Game.Block
 {
-    public class RendererMaterialReplacer : IDisposable
+    public class RendererMaterialReplacer
     {
         private readonly Renderer _renderers;
         private readonly List<Material> _originalMaterials;
@@ -50,7 +50,7 @@ namespace Client.Game.Block
             }
         }
 
-        public void Dispose()
+        public void ResetMaterial()
         {
             //作ったプレビュー用のマテリアルを削除
             foreach (var material in _replacedMaterials)

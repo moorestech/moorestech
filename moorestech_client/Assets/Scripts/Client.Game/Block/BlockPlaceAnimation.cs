@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Common;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
@@ -9,7 +10,6 @@ namespace Client.Game.Block
 {
     public class BlockPlaceAnimation : MonoBehaviour
     {
-        private const string PlaceBlockAnimationMaterial = "PlaceBlockAnimation";
         
         private const string WorldMinY = "_WorldMinY";
         private const string WorldMaxY = "_WorldMaxY";
@@ -23,7 +23,7 @@ namespace Client.Game.Block
             // 3Dモデルの最小、最大Y座標を取得する
             var worldMinY = float.MaxValue;
             var worldMaxY = float.MinValue;
-            var placeAnimationMaterial  = Resources.Load<Material>(PlaceBlockAnimationMaterial);
+            var placeAnimationMaterial  = Resources.Load<Material>(MaterialConst.PlaceBlockAnimationMaterial);
             foreach (var renderer in GetComponentsInChildren<Renderer>())
             {
                 worldMinY = Mathf.Min(worldMinY, renderer.bounds.min.y);
@@ -55,7 +55,7 @@ namespace Client.Game.Block
             //マテリアルをリセット
             foreach (var rendererInfo in blockRendererInfos)
             {
-                rendererInfo.Dispose();
+                rendererInfo.ResetMaterial();
             }
             blockRendererInfos.Clear();
 

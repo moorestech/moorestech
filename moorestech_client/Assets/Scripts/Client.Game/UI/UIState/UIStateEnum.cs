@@ -1,4 +1,4 @@
-﻿namespace MainGame.UnityView.UI.UIState
+﻿namespace Client.Game.UI.UIState
 {
     public enum UIStateEnum
     {
