@@ -1,9 +1,9 @@
 using ClassLibrary;
 using Client.Game.Context;
 using Client.Game.UI.UIState;
-using Game.World.Interface.DataStore;
 using Constant;
 using Game.PlayerInventory.Interface;
+using Game.World.Interface.DataStore;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
@@ -14,12 +14,12 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
 
-namespace MainGame.Presenter.Inventory.Send
+namespace Client.Game.BlockSystem
 {
     /// <summary>
     ///     マウスで地面をクリックしたときに発生するイベント
     /// </summary>
-    public class DetectGroundClickToSendBlockPlacePacket : MonoBehaviour
+    public class BlockPlaceSystem : MonoBehaviour
     {
         private IBlockPlacePreview _blockPlacePreview;
 
