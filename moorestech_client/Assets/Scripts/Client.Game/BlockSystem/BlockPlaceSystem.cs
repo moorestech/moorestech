@@ -1,9 +1,9 @@
 using ClassLibrary;
 using Client.Game.Context;
 using Client.Game.UI.UIState;
-using Game.World.Interface.DataStore;
 using Constant;
 using Game.PlayerInventory.Interface;
+using Game.World.Interface.DataStore;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
@@ -13,13 +13,14 @@ using MainGame.UnityView.UI.Inventory.Main;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer;
+using VContainer.Unity;
 
-namespace MainGame.Presenter.Inventory.Send
+namespace Client.Game.BlockSystem
 {
     /// <summary>
     ///     マウスで地面をクリックしたときに発生するイベント
     /// </summary>
-    public class DetectGroundClickToSendBlockPlacePacket : MonoBehaviour
+    public class BlockPlaceSystem : IPostTickable
     {
         private IBlockPlacePreview _blockPlacePreview;
 
@@ -31,15 +32,16 @@ namespace MainGame.Presenter.Inventory.Send
 
         private int _heightOffset = 0;
 
-        private void Update()
+        
+
+        public void PostTick()
         {
             UpdateHeightOffset();
             BlockDirectionControl();
-            GroundClickControl();
+            GroundClickControl(); 
         }
 
-        [Inject]
-        public void Construct(Camera mainCamera, HotBarView hotBarView, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview, ILocalPlayerInventory localPlayerInventory)
+        public BlockPlaceSystem(Camera mainCamera, HotBarView hotBarView, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview, ILocalPlayerInventory localPlayerInventory)
         {
             _uiStateControl = uiStateControl;
             _hotBarView = hotBarView;

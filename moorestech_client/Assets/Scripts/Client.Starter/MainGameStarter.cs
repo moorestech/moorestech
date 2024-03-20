@@ -11,8 +11,6 @@ using MainGame.Extension;
 using MainGame.Presenter.Block;
 using MainGame.Presenter.Command;
 using MainGame.Presenter.Entity;
-using MainGame.Presenter.Inventory;
-using MainGame.Presenter.Inventory.Send;
 using MainGame.Presenter.PauseMenu;
 using MainGame.Presenter.Player;
 using MainGame.UnityView.Block;
@@ -21,7 +19,6 @@ using MainGame.UnityView.Player;
 using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.Inventory.Sub;
-using MainGame.UnityView.WorldMapTile;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -37,8 +34,6 @@ namespace Client.Starter
         // Hierarchy上にある依存解決が必要なものをまとめたところ
         //TODO regionでちゃんと分類分けしたい
 
-        [SerializeField] private WorldMapTileObject worldMapTileObject;
-
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
 
@@ -46,7 +41,6 @@ namespace Client.Starter
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
 
         [SerializeField] private CommandUIInput commandUIInput;
-        [SerializeField] private DetectGroundClickToSendBlockPlacePacket detectGroundClickToSendBlockPlacePacket;
         [SerializeField] private HotBarView hotBarView;
         [SerializeField] private PlayerObjectController playerObjectController;
         [SerializeField] private MapObjectGetPresenter mapObjectGetPresenter;
@@ -61,7 +55,6 @@ namespace Client.Starter
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
 
         [SerializeField] private BlockPlacePreview blockPlacePreview;
-        [SerializeField] private OreMapTileClickDetect oreMapTileClickDetect;
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
@@ -97,6 +90,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<ChunkDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateEventHandler>();
+            builder.RegisterEntryPoint<BlockPlaceSystem>();
 
 
             //UIコントロール
@@ -107,16 +101,12 @@ namespace Client.Starter
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
             builder.Register<DeleteBlockState>(Lifetime.Singleton);
 
-            //ScriptableObjectの登録
-            builder.RegisterInstance(worldMapTileObject);
 
             //Hierarchy上にあるcomponent
             builder.RegisterComponent(chunkBlockGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore);
 
-            builder.RegisterComponent(oreMapTileClickDetect);
             builder.RegisterComponent(mainCamera);
-            builder.RegisterComponent(detectGroundClickToSendBlockPlacePacket);
             builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarView);
 
@@ -143,7 +133,6 @@ namespace Client.Starter
             //依存関係を解決
             _resolver = builder.Build();
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();
-            _resolver.Resolve<DetectGroundClickToSendBlockPlacePacket>();
             _resolver.Resolve<CommandUIInput>();
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<DisplayEnergizedRange>();
