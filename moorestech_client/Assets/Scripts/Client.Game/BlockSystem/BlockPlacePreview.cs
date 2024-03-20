@@ -1,13 +1,11 @@
 ﻿using Client.Game.Block;
 using Client.Game.Context;
-using Game.World.Interface.DataStore;
-using Constant;
-using Game.Block.Config;
 using Game.Block.Interface.BlockConfig;
-using MainGame.ModLoader.Glb;
+using Game.World.Interface.DataStore;
+using MainGame.UnityView.Block;
 using UnityEngine;
 
-namespace MainGame.UnityView.Block
+namespace Client.Game.BlockSystem
 {
     public class BlockPlacePreview : MonoBehaviour, IBlockPlacePreview
     {
@@ -22,10 +20,12 @@ namespace MainGame.UnityView.Block
             {
                 if (_previewBlock)
                     Destroy(_previewBlock.gameObject);
-
+                
+                //プレビューブロックを設置
                 _previewBlock = MoorestechContext.BlockGameObjectContainer.CreatePreviewBlock(blockConfig.BlockId);
                 _previewBlock.transform.SetParent(transform);
                 _previewBlock.transform.localPosition = Vector3.zero;
+                //プレビューブロックのマテリアルを変更
             }
             
             transform.position = pos;

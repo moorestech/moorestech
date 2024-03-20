@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using Client.Game.Context;
+using Client.Game.UI.UIState;
 using Constant;
 using Cysharp.Threading.Tasks;
 using Game.Map.Interface;
@@ -10,7 +11,6 @@ using MainGame.UnityView.Player;
 using MainGame.UnityView.SoundEffect;
 using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
-using MainGame.UnityView.UI.UIState;
 using MainGame.UnityView.UI.Util;
 using MainGame.UnityView.Util;
 using UnityEngine;

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MainGame.UnityView.Control.MouseKeyboard
+namespace Client.Game.Control.MouseKeyboard
 {
     public class UICursorFollowControl : MonoBehaviour
     {

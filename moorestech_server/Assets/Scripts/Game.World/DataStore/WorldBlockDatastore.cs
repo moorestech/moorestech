@@ -88,7 +88,7 @@ namespace Game.World.DataStore
         public WorldBlockData GetOriginPosBlock(Vector3Int pos)
         {
             return _coordinateDictionary.TryGetValue(pos, out var entityId)
-                ? _blockMasterDictionary[entityId]
+                ? _blockMasterDictionary.TryGetValue(entityId, out var data) ? data : null
                 : null;
         }
 
