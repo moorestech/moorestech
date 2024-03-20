@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using Core.Const;
 using Core.Item;
 using Core.Update;
 using Game.Block.Base;
 using Game.Block.BlockInventory;
-using Game.Block.Interface;
 using Game.Block.Interface.State;
 using UniRx;
-using UnityEngine;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
@@ -18,6 +15,10 @@ namespace Game.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyor : IBlock, IBlockInventory
     {
+        public IBlockComponentManager ComponentManager { get; }
+        
+        public IObservable<ChangedBlockState> OnBlockStateChange => _onBlockStateChange;
+        private Subject<ChangedBlockState> _onBlockStateChange;
 
         public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         public readonly int InventoryItemNum;
@@ -66,8 +67,6 @@ namespace Game.Block.Blocks.BeltConveyor
         public int EntityId { get; }
         public int BlockId { get; }
         public long BlockHash { get; }
-
-        public event Action<ChangedBlockState> OnBlockStateChange;
 
         public string GetSaveState()
         {
