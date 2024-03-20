@@ -1,5 +1,5 @@
 using System;
-using Game.Block.Base;
+using Game.Block.Interface;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
 using UniRx;

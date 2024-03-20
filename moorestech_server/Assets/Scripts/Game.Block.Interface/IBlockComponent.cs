@@ -1,6 +1,6 @@
 using System;
 
-namespace Game.Block.Base
+namespace Game.Block.Interface
 {
     public interface IBlockComponent
     {

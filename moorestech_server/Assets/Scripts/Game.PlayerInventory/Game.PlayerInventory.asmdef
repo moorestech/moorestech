@@ -7,8 +7,7 @@
         "Core.Item",
         "Game.World.Interface",
         "Core.Inventory",
-        "Game.Block.Interface",
-        "Game.Block.Base"
+        "Game.Block.Interface"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

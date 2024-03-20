@@ -1,5 +1,5 @@
 ﻿using Core.Item;
-using Game.Block.Base;
+using Game.Block.Interface;
 using Game.Block.Blocks.Chest;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;

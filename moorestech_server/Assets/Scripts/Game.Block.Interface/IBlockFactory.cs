@@ -1,6 +1,6 @@
 ﻿using Game.Block.Interface;
 
-namespace Game.Block.Base
+namespace Game.Block.Interface
 {
     public interface IBlockFactory
     {

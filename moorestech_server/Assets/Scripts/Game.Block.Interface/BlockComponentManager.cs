@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Game.Block.Base
+namespace Game.Block.Interface
 {
     public interface IBlockComponentManager
     {

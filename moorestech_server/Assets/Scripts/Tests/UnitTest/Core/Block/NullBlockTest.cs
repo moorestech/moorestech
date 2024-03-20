@@ -1,5 +1,5 @@
 using Core.Const;
-using Game.Block.Base;
+using Game.Block.Interface;
 using Game.Block.Interface;
 using NUnit.Framework;
 

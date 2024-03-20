@@ -4,7 +4,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.State;
 using UniRx;
 
-namespace Game.Block.Base
+namespace Game.Block.Interface
 {
     public class NullBlock : IBlock
     {

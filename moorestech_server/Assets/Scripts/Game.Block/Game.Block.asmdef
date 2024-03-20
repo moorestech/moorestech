@@ -3,7 +3,7 @@
     "rootNamespace": "",
     "references": [
         "Core.Item",
-        "Game.Block.Base",
+        "Game.Block.Interface",
         "Core.Update",
         "Core.Inventory",
         "Core.EnergySystem",

@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using Core.Item;
 using Core.Update;
-using Game.Block.Base;
+using Game.Block.Interface;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;

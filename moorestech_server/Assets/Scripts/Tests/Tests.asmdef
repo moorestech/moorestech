@@ -14,7 +14,7 @@
         "Core.Update",
         "Core.Util",
         "Game.Block",
-        "Game.Block.Base",
+        "Game.Block.Interface",
         "Game.Crafting",
         "Game.Crafting.Interface",
         "Game.Entity",

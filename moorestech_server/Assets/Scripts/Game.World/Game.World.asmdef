@@ -6,7 +6,7 @@
         "Core.Util",
         "Core.Const",
         "Core.EnergySystem",
-        "Game.Block.Base",
+        "Game.Block.Interface",
         "UniRx"
     ],
     "includePlatforms": [],

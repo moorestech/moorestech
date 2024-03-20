@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Core.Item;
-using Game.Block.Base;
+using Game.Block.Interface;
 using Game.Block.Blocks.Miner;
 using Game.Block.Interface;
 using Game.Map.Interface.Vein;

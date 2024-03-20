@@ -1,4 +1,4 @@
-using Game.Block.Base;
+using Game.Block.Interface;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
