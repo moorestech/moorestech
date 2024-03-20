@@ -1,7 +1,6 @@
 ﻿using Cinemachine;
 using Client.Game.UI.UIState;
 using MainGame.UnityView.Control;
-using MainGame.UnityView.UI.UIState;
 using UnityEngine;
 
 namespace Client.Game.Control.MouseKeyboard

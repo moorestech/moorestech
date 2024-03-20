@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Common;
 using Client.Game.BlockSystem.StateChange;
+using Cysharp.Threading.Tasks;
 using Game.Block.Interface.BlockConfig;
 using UnityEngine;
 
@@ -37,6 +38,13 @@ namespace Client.Game.Block
         public void ResetMaterial()
         {
             foreach (var replacer in _rendererMaterialReplacer) replacer.ResetMaterial();
+        }
+
+        public async UniTask DestroyBlock()
+        {
+            
+            
+            Destroy(gameObject);
         }
     }
 }

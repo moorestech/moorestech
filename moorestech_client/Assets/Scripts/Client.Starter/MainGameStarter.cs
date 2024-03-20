@@ -95,7 +95,6 @@ namespace Client.Starter
             //プレゼンターアセンブリ
             builder.RegisterEntryPoint<MachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<ChunkDataHandler>();
-            builder.RegisterEntryPoint<DeleteBlockDetectToSendPacket>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateEventHandler>();
 

@@ -6,7 +6,6 @@ using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.Inventory.Sub;
-using MainGame.UnityView.UI.UIState;
 
 namespace Client.Game.UI.UIState
 {
