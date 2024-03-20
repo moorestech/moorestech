@@ -759,8 +759,24 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Standalone: STARTER_ASSETS_PACKAGES_CHECKED;UDS_INGAMEDEBUGCOSOLE_SUPPORT;UDS_GRAPHY_SUPPORT;MAPMAGIC2;MM_NATIVE
-  additionalCompilerArguments: {}
+    Android: DOTWEEN
+    EmbeddedLinux: DOTWEEN
+    GameCoreScarlett: DOTWEEN
+    GameCoreXboxOne: DOTWEEN
+    LinuxHeadlessSimulation: DOTWEEN
+    Nintendo Switch: DOTWEEN
+    PS4: DOTWEEN
+    PS5: DOTWEEN
+    QNX: DOTWEEN
+    Stadia: DOTWEEN
+    Standalone: DOTWEEN;UNITASK_DOTWEEN_SUPPORT;STARTER_ASSETS_PACKAGES_CHECKED;UDS_INGAMEDEBUGCOSOLE_SUPPORT;UDS_GRAPHY_SUPPORT;MAPMAGIC2;MM_NATIVE
+    WebGL: DOTWEEN
+    Windows Store Apps: DOTWEEN
+    XboxOne: DOTWEEN
+    iPhone: DOTWEEN
+    tvOS: DOTWEEN
+  additionalCompilerArguments:
+    Standalone: []
   platformArchitecture: {}
   scriptingBackend:
     Standalone: 0

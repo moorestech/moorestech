@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.Block;
 using Client.Game.Context;
+using Cysharp.Threading.Tasks;
 using Game.World.Interface.DataStore;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Block;
@@ -20,7 +21,7 @@ namespace MainGame.UnityView.Chunk
 
         public BlockGameObject GetBlockGameObject(Vector3Int position)
         {
-            return _blockObjectsDictionary.ContainsKey(position) ? _blockObjectsDictionary[position] : null;
+            return _blockObjectsDictionary.TryGetValue(position, out var value) ? value : null;
         }
 
         public bool ContainsBlockGameObject(Vector3Int position)
@@ -29,7 +30,7 @@ namespace MainGame.UnityView.Chunk
         }
 
 
-        public void GameObjectBlockPlace(Vector3Int blockPosition, int blockId, BlockDirection blockDirection)
+        public void PlaceBlock(Vector3Int blockPosition, int blockId, BlockDirection blockDirection)
         {
             //すでにブロックがあり、IDが違う場合は新しいブロックに置き換えるために削除する
             if (_blockObjectsDictionary.ContainsKey(blockPosition))
@@ -47,17 +48,19 @@ namespace MainGame.UnityView.Chunk
             var rot = blockDirection.GetRotation();
             
             var block = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot,transform, blockPosition);
-
+            //設置アニメーションを再生
+            block.PlayPlaceAnimation().Forget();
+            
             _blockObjectsDictionary.Add(blockPosition, block);
             OnPlaceBlock?.Invoke(block);
         }
 
-        public void GameObjectBlockRemove(Vector3Int blockPosition)
+        public void RemoveBlock(Vector3Int blockPosition)
         {
             //すでにブロックが置かれている時のみブロックを削除する
             if (!_blockObjectsDictionary.ContainsKey(blockPosition)) return;
 
-            Destroy(_blockObjectsDictionary[blockPosition].gameObject);
+            _blockObjectsDictionary[blockPosition].DestroyBlock().Forget();
             _blockObjectsDictionary.Remove(blockPosition);
         }
     }

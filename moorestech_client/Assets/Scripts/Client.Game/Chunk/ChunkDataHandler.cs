@@ -8,6 +8,7 @@ using Constant;
 using Cysharp.Threading.Tasks;
 using MainGame.Presenter.Entity;
 using MainGame.UnityView.Chunk;
+using MainGame.UnityView.SoundEffect;
 using MessagePack;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse.Const;
@@ -31,6 +32,7 @@ namespace MainGame.Presenter.Block
             _entitiesDatastore = entitiesDatastore;
             //イベントをサブスクライブする
             MoorestechContext.VanillaApi.Event.RegisterEventResponse(PlaceBlockEventPacket.EventTag, OnBlockUpdate);
+            MoorestechContext.VanillaApi.Event.RegisterEventResponse(RemoveBlockToSetEventPacket.EventTag, OnBlockRemove);
 
             //初期ハンドシェイクのデータを適用する
             foreach (var chunk in initialHandshakeResponse.Chunks)
@@ -51,7 +53,16 @@ namespace MainGame.Presenter.Block
             var blockDirection = data.BlockData.BlockDirection;
 
             //viewにブロックがおかれたことを通知する
-            PlaceOrRemoveBlock(blockPos, blockId, blockDirection);
+            PlaceBlock(blockPos, blockId, blockDirection);
+        }
+
+        private void OnBlockRemove(byte[] packet)
+        {
+            var data = MessagePackSerializer.Deserialize<RemoveBlockEventMessagePack>(packet);
+            
+            //viewにブロックがおかれたことを通知する
+            SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.DestroyBlock);
+            _chunkBlockGameObjectDataStore.RemoveBlock(data.Position);
         }
 
         public void Initialize()
@@ -97,7 +108,7 @@ namespace MainGame.Presenter.Block
         {
             foreach (var block in chunk.Blocks)
             {
-                PlaceOrRemoveBlock(block.BlockPos, block.BlockId, block.BlockDirection);
+                PlaceBlock(block.BlockPos, block.BlockId, block.BlockDirection);
             }
 
             if (chunk.Entities == null)
@@ -108,18 +119,16 @@ namespace MainGame.Presenter.Block
             _entitiesDatastore.OnEntitiesUpdate(chunk.Entities);
         }
 
-
-        private void PlaceOrRemoveBlock(Vector3Int position, int id, BlockDirection blockDirection)
+        private void PlaceBlock(Vector3Int position, int id, BlockDirection blockDirection)
         {
             if (id == BlockConstant.NullBlockId)
             {
-                _chunkBlockGameObjectDataStore.GameObjectBlockRemove(position);
+                _chunkBlockGameObjectDataStore.RemoveBlock(position);
                 return;
             }
 
-            _chunkBlockGameObjectDataStore.GameObjectBlockPlace(position, id, blockDirection);
+            _chunkBlockGameObjectDataStore.PlaceBlock(position, id, blockDirection);
         }
-
 
         /// <summary>
         ///     ブロックの座標とチャンクの座標から、IDの配列のインデックスを取得する
