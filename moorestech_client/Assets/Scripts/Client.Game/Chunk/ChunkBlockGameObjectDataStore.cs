@@ -49,8 +49,7 @@ namespace MainGame.UnityView.Chunk
             
             var block = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot,transform, blockPosition);
             //設置アニメーションを再生
-            var placeAnimation = block.gameObject.AddComponent<BlockPlaceAnimation>();
-            placeAnimation.PlayAnimation().Forget();
+            block.PlayPlaceAnimation().Forget();
             
             _blockObjectsDictionary.Add(blockPosition, block);
             OnPlaceBlock?.Invoke(block);

@@ -100,7 +100,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1026860677826439319}
-  - component: {fileID: 4426243371036382355}
   - component: {fileID: 4192525954406032704}
   m_Layer: 0
   m_Name: Controller
@@ -124,18 +123,6 @@ Transform:
   m_Father: {fileID: 8466354111555762101}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4426243371036382355
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1971782199373254859}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5cc6049f1f94e5e8cbd3671fc6a0596, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &4192525954406032704
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4358,10 +4345,8 @@ MonoBehaviour:
   autoInjectGameObjects: []
   worldMapTileObject: {fileID: 11400000, guid: 8739e78e3bfce4a42a12c59e0582dadc, type: 2}
   mainCamera: {fileID: 3578403268787985468}
-  groundPlane: {fileID: 0}
   chunkBlockGameObjectDataStore: {fileID: 8650265669030383555}
   mapObjectGameObjectDatastore: {fileID: 2378660713236389372}
-  blockClickDetect: {fileID: 4426243371036382355}
   commandUIInput: {fileID: 8470828304828716410}
   detectGroundClickToSendBlockPlacePacket: {fileID: 4192525954406032704}
   hotBarView: {fileID: 1409822626637412669}
@@ -5344,7 +5329,7 @@ PrefabInstance:
       objectReference: {fileID: 4694271036350155273}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -24.525902
+      value: -24.577179
       objectReference: {fileID: 0}
     - target: {fileID: 5512517279608141341, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.y
@@ -5364,7 +5349,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6536760820669664449, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -24.525902
+      value: -24.577179
       objectReference: {fileID: 0}
     - target: {fileID: 6536760820669664449, guid: 78e6a0e58c3b68c4cad562111f7f0eb7, type: 3}
       propertyPath: m_LocalPosition.y
