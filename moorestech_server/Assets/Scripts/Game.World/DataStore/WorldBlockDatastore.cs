@@ -56,7 +56,7 @@ namespace Game.World.DataStore
                 _coordinateDictionary.Add(pos, block.EntityId);
                 _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(pos, data.Block, blockDirection));
 
-                block.OnBlockStateChange.Subscribe(state => { OnBlockStateChange?.Invoke((state, block, pos)); });
+                block.BlockStateChange.Subscribe(state => { OnBlockStateChange?.Invoke((state, block, pos)); });
 
                 return true;
             }

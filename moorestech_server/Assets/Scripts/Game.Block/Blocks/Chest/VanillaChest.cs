@@ -18,7 +18,7 @@ namespace Game.Block.Blocks.Chest
     public class VanillaChest : IBlock, IBlockInventory, IOpenableInventory
     {
         public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
-        public IObservable<ChangedBlockState> OnBlockStateChange => _onBlockStateChange;
+        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
         

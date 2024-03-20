@@ -8,7 +8,7 @@ namespace Game.Block.Interface
 {
     public class NullBlock : IBlock
     {
-        public IObservable<ChangedBlockState> OnBlockStateChange => _onBlockStateChange;
+        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
         Subject<ChangedBlockState> _onBlockStateChange;
         public int EntityId => BlockConst.NullBlockEntityId;
         public int BlockId => BlockConst.EmptyBlockId;

@@ -21,7 +21,7 @@ namespace Game.Block.Blocks.Miner
     public abstract class VanillaMinerBase : IBlock, IEnergyConsumer, IBlockInventory, IMiner, IOpenableInventory
     {
         public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
-        public IObservable<ChangedBlockState> OnBlockStateChange => _blockStateChangeSubject;
+        public IObservable<ChangedBlockState> BlockStateChange => _blockStateChangeSubject;
         private readonly Subject<ChangedBlockState> _blockStateChangeSubject = new(); 
 
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
@@ -50,8 +50,7 @@ namespace Game.Block.Blocks.Miner
             _itemStackFactory = itemStackFactory;
             _blockInventoryUpdate = openableInventoryUpdateEvent;
 
-            _openableInventoryItemDataStoreService =
-                new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlotCount);
+            _openableInventoryItemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlotCount);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
 
             GameUpdater.UpdateObservable.Subscribe(_ => Update());

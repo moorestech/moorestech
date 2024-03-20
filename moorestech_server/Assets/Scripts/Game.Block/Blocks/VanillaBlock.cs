@@ -9,7 +9,7 @@ namespace Game.Block.Blocks
     public class VanillaBlock : IBlock
     {
         public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
-        public IObservable<ChangedBlockState> OnBlockStateChange { get; } = new Subject<ChangedBlockState>();
+        public IObservable<ChangedBlockState> BlockStateChange { get; } = new Subject<ChangedBlockState>();
         public int EntityId { get; }
         public int BlockId { get; }
         public long BlockHash { get; }

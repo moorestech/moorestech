@@ -10,7 +10,7 @@ namespace Game.Block.Blocks.ElectricPole
     public abstract class VanillaEnergyTransformerBase : IEnergyTransformer, IBlock
     {
         public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
-        public IObservable<ChangedBlockState> OnBlockStateChange => _onBlockStateChange;
+        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
         protected readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
         protected VanillaEnergyTransformerBase(int blockId, int entityId, long blockHash)

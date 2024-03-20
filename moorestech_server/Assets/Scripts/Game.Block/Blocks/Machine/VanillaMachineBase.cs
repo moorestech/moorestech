@@ -21,8 +21,7 @@ namespace Game.Block.Blocks.Machine
     public abstract class VanillaMachineBase : IBlock, IBlockInventory, IEnergyConsumer, IOpenableInventory
     {
         public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
-        public IObservable<ChangedBlockState> OnBlockStateChange => _onBlockStateChange;
-        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
+        public IObservable<ChangedBlockState> BlockStateChange => _vanillaMachineRunProcess.ChangeState;
 
         private readonly ItemStackFactory _itemStackFactory;
         private readonly VanillaMachineBlockInventory _vanillaMachineBlockInventory;
@@ -41,8 +40,6 @@ namespace Game.Block.Blocks.Machine
             _itemStackFactory = itemStackFactory;
             BlockHash = blockHash;
             EntityId = entityId;
-
-            _vanillaMachineRunProcess.OnChangeState += state => { _onBlockStateChange.OnNext(state); };
         }
 
         public int EntityId { get; }

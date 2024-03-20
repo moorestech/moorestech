@@ -21,7 +21,7 @@ namespace Game.Block.Blocks.PowerGenerator
     public abstract class VanillaPowerGeneratorBase : IBlock, IEnergyGenerator, IBlockInventory, IOpenableInventory
     {
         public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
-        public IObservable<ChangedBlockState> OnBlockStateChange => _onBlockStateChange;
+        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
@@ -45,8 +45,7 @@ namespace Game.Block.Blocks.PowerGenerator
 
             BlockHash = data.BlockHash;
             _blockInventoryUpdate = data.BlockInventoryUpdate as BlockOpenableInventoryUpdateEvent;
-            _itemDataStoreService =
-                new OpenableInventoryItemDataStoreService(InvokeEvent, data.ItemStackFactory, data.FuelItemSlot);
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, data.ItemStackFactory, data.FuelItemSlot);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 

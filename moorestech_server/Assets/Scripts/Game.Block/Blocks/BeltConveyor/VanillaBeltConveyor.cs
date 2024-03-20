@@ -15,10 +15,10 @@ namespace Game.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyor : IBlock, IBlockInventory
     {
-        public IBlockComponentManager ComponentManager { get; }
+        public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
         
-        public IObservable<ChangedBlockState> OnBlockStateChange => _onBlockStateChange;
-        private Subject<ChangedBlockState> _onBlockStateChange;
+        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
+        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
         public readonly double TimeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
         public readonly int InventoryItemNum;
