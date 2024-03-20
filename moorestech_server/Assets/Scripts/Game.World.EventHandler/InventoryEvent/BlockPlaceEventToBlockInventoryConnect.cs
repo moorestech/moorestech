@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Game.Block.BlockInventory;
+using Game.Block.Component.IOConnector;
 using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
@@ -16,8 +17,7 @@ namespace Game.World.EventHandler.InventoryEvent
     {
         private readonly IBlockConfig _blockConfig;
 
-        private readonly Dictionary<string, IoConnectionData> _ioConnectionDataDictionary =
-            VanillaBlockInventoryConnectionData.IoConnectionData;
+        private readonly Dictionary<string, IOConnectionSetting> _ioConnectionDataDictionary = VanillaBlockInventoryConnectionData.IOConnectionData;
 
         private readonly IWorldBlockDatastore _worldBlockDatastore;
 
@@ -83,10 +83,7 @@ namespace Game.World.EventHandler.InventoryEvent
             //接続先のブロックタイプがDictionaryになければ処理を終了
             if (!_ioConnectionDataDictionary.ContainsKey(destinationBlockType)) return;
 
-            var (destinationBlockInputConnector, _) =
-                GetConnectionPositions(
-                    destinationBlockType,
-                    _worldBlockDatastore.GetBlockDirection(destination));
+            var (destinationBlockInputConnector, _) = GetConnectionPositions(destinationBlockType, _worldBlockDatastore.GetBlockDirection(destination));
 
 
             //接続元の接続可能リストに接続先がなかったら終了
