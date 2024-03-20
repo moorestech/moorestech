@@ -17,6 +17,11 @@ namespace Game.Block.Blocks.Chest
 {
     public class VanillaChest : IBlock, IBlockInventory, IOpenableInventory
     {
+        public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
+        public IObservable<ChangedBlockState> OnBlockStateChange => _onBlockStateChange;
+        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
+
+        
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
 
         private readonly List<IBlockInventory> _connectInventory = new();
@@ -53,7 +58,6 @@ namespace Game.Block.Blocks.Chest
         public int EntityId { get; }
         public int BlockId { get; }
         public long BlockHash { get; }
-        public event Action<ChangedBlockState> OnBlockStateChange;
 
         public string GetSaveState()
         {

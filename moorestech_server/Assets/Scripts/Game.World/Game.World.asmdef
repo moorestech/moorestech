@@ -3,12 +3,11 @@
     "rootNamespace": "",
     "references": [
         "Game.World.Interface",
-        "Game.Block.Interface",
         "Core.Util",
         "Core.Const",
         "Core.EnergySystem",
-        "Game.WorldMap",
-        "Game.Block.Base"
+        "Game.Block.Base",
+        "UniRx"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

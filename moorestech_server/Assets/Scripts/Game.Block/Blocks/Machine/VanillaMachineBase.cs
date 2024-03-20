@@ -10,6 +10,7 @@ using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Blocks.Machine.SaveLoad;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
+using UniRx;
 
 namespace Game.Block.Blocks.Machine
 {
@@ -19,6 +20,10 @@ namespace Game.Block.Blocks.Machine
     /// </summary>
     public abstract class VanillaMachineBase : IBlock, IBlockInventory, IEnergyConsumer, IOpenableInventory
     {
+        public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
+        public IObservable<ChangedBlockState> OnBlockStateChange => _onBlockStateChange;
+        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
+
         private readonly ItemStackFactory _itemStackFactory;
         private readonly VanillaMachineBlockInventory _vanillaMachineBlockInventory;
         private readonly VanillaMachineRunProcess _vanillaMachineRunProcess;
@@ -37,13 +42,12 @@ namespace Game.Block.Blocks.Machine
             BlockHash = blockHash;
             EntityId = entityId;
 
-            _vanillaMachineRunProcess.OnChangeState += state => { OnBlockStateChange?.Invoke(state); };
+            _vanillaMachineRunProcess.OnChangeState += state => { _onBlockStateChange.OnNext(state); };
         }
 
         public int EntityId { get; }
         public int BlockId { get; }
         public long BlockHash { get; }
-        public event Action<ChangedBlockState> OnBlockStateChange;
 
 
         #region IBlock implementation
@@ -52,6 +56,7 @@ namespace Game.Block.Blocks.Machine
         {
             return _vanillaMachineSave.Save();
         }
+
 
         #endregion
 

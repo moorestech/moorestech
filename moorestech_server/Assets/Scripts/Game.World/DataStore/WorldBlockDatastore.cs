@@ -9,6 +9,7 @@ using Game.Block.Interface.State;
 using Game.World.Event;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
+using UniRx;
 using UnityEngine;
 
 namespace Game.World.DataStore
@@ -55,7 +56,7 @@ namespace Game.World.DataStore
                 _coordinateDictionary.Add(pos, block.EntityId);
                 _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(pos, data.Block, blockDirection));
 
-                block.OnBlockStateChange += state => { OnBlockStateChange?.Invoke((state, block, pos)); };
+                block.OnBlockStateChange.Subscribe(state => { OnBlockStateChange?.Invoke((state, block, pos)); });
 
                 return true;
             }

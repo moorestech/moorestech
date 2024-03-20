@@ -11,7 +11,6 @@ using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Service;
 using Game.Block.Blocks.Util;
 using Game.Block.Event;
-using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using Newtonsoft.Json;
@@ -19,9 +18,12 @@ using UniRx;
 
 namespace Game.Block.Blocks.Miner
 {
-    public abstract class VanillaMinerBase : IBlock, IEnergyConsumer, IBlockInventory, IMiner,
-        IOpenableInventory
+    public abstract class VanillaMinerBase : IBlock, IEnergyConsumer, IBlockInventory, IMiner, IOpenableInventory
     {
+        public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
+        public IObservable<ChangedBlockState> OnBlockStateChange => _blockStateChangeSubject;
+        private readonly Subject<ChangedBlockState> _blockStateChangeSubject = new(); 
+
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly List<IBlockInventory> _connectInventory = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
@@ -79,7 +81,6 @@ namespace Game.Block.Blocks.Miner
         public int EntityId { get; }
         public int BlockId { get; }
         public long BlockHash { get; }
-        public event Action<ChangedBlockState> OnBlockStateChange;
 
         public string GetSaveState()
         {
@@ -195,9 +196,9 @@ namespace Game.Block.Blocks.Miner
         private void InvokeChangeStateEvent()
         {
             var processingRate = 1 - (float)_remainingMillSecond / _defaultMiningTime;
-            OnBlockStateChange?.Invoke(new ChangedBlockState(_currentState.ToStr(), _lastMinerState.ToStr(),
-                JsonConvert.SerializeObject(
-                    new CommonMachineBlockStateChangeData(_currentPower, RequestEnergy, processingRate))));
+            var jsonData = JsonConvert.SerializeObject(new CommonMachineBlockStateChangeData(_currentPower, RequestEnergy, processingRate));
+            var changeStateData = new ChangedBlockState(_currentState.ToStr(), _lastMinerState.ToStr(), jsonData);
+            _blockStateChangeSubject.OnNext(changeStateData);
         }
 
 

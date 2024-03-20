@@ -20,6 +20,10 @@ namespace Game.Block.Blocks.PowerGenerator
 {
     public abstract class VanillaPowerGeneratorBase : IBlock, IEnergyGenerator, IBlockInventory, IOpenableInventory
     {
+        public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
+        public IObservable<ChangedBlockState> OnBlockStateChange => _onBlockStateChange;
+        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
+
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
 
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
@@ -64,7 +68,6 @@ namespace Game.Block.Blocks.PowerGenerator
         public int EntityId { get; }
         public int BlockId { get; }
         public long BlockHash { get; }
-        public event Action<ChangedBlockState> OnBlockStateChange;
 
         public string GetSaveState()
         {
@@ -76,6 +79,7 @@ namespace Game.Block.Blocks.PowerGenerator
 
             return saveState;
         }
+
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
