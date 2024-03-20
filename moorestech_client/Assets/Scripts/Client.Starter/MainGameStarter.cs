@@ -41,7 +41,6 @@ namespace Client.Starter
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
 
         [SerializeField] private CommandUIInput commandUIInput;
-        [SerializeField] private BlockPlaceSystem blockPlaceSystem;
         [SerializeField] private HotBarView hotBarView;
         [SerializeField] private PlayerObjectController playerObjectController;
         [SerializeField] private MapObjectGetPresenter mapObjectGetPresenter;
@@ -91,6 +90,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<ChunkDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<BlockStateEventHandler>();
+            builder.RegisterEntryPoint<BlockPlaceSystem>();
 
 
             //UIコントロール
@@ -107,7 +107,6 @@ namespace Client.Starter
             builder.RegisterComponent(mapObjectGameObjectDatastore);
 
             builder.RegisterComponent(mainCamera);
-            builder.RegisterComponent(blockPlaceSystem);
             builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarView);
 
@@ -134,7 +133,6 @@ namespace Client.Starter
             //依存関係を解決
             _resolver = builder.Build();
             _resolver.Resolve<ChunkBlockGameObjectDataStore>();
-            _resolver.Resolve<BlockPlaceSystem>();
             _resolver.Resolve<CommandUIInput>();
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<DisplayEnergizedRange>();
