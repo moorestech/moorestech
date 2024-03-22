@@ -5,11 +5,14 @@ namespace Game.Block.Interface
 {
     public interface IBlockComponentManager
     {
-        public T GetComponent<T>() where T : IBlockComponent;
+        //public T GetComponent<T>() where T : IBlockComponent;
+        public T GetComponent<T>();
         
-        public bool ExistsComponent<T>() where T : IBlockComponent;
+        //public bool ExistsComponent<T>() where T : IBlockComponent;
+        public bool ExistsComponent<T>();
         
-        public bool TryGetComponent<T>(out T component) where T : IBlockComponent;
+        //public bool TryGetComponent<T>(out T component) where T : IBlockComponent;
+        public bool TryGetComponent<T>(out T component);
     }
     
     public class BlockComponentManager : IBlockComponentManager
@@ -37,21 +40,24 @@ namespace Game.Block.Interface
             _blockComponents.Remove(blockComponent);
         }
         
-        public T GetComponent<T>() where T : IBlockComponent
+        //public T GetComponent<T>() where T : IBlockComponent
+        public T GetComponent<T>()
         {
             if (IsDestroy) throw new InvalidOperationException("Block is already destroyed");
             
             return (T) _blockComponents.Find(x => x is T);
         }
         
-        public bool ExistsComponent<T>() where T : IBlockComponent
+        //public bool ExistsComponent<T>() where T : IBlockComponent
+        public bool ExistsComponent<T>()
         {
             if (IsDestroy) throw new InvalidOperationException("Block is already destroyed");
             
             return _blockComponents.Exists(x => x is T);
         }
 
-        public bool TryGetComponent<T>(out T component) where T : IBlockComponent
+        //public bool TryGetComponent<T>(out T component) where T : IBlockComponent
+        public bool TryGetComponent<T>(out T component)
         {
             if (IsDestroy) throw new InvalidOperationException("Block is already destroyed");
 

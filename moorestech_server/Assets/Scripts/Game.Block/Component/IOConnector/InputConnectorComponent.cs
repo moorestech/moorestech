@@ -25,7 +25,14 @@ namespace Game.Block.Component.IOConnector
         public void SetIOSetting(IOConnectionSetting ioConnectionSetting, Vector3Int blockPos, BlockDirection blockDirection)
         {
             var inputPoss = ConvertConnectDirection(ioConnectionSetting.InputConnector);
+            
+            
+            
             var outputPoss = ConvertConnectDirection(ioConnectionSetting.OutputConnector);
+            
+            
+            
+            
 
             #region Internal
 

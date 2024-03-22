@@ -6,6 +6,9 @@ using UniRx;
 
 namespace Game.Block.Interface
 {
+    /// <summary>
+    /// TODO このクラス意味ない気がするし消していいんじゃない？
+    /// </summary>
     public class NullBlock : IBlock
     {
         public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;

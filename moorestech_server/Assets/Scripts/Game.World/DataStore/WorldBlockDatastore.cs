@@ -72,7 +72,7 @@ namespace Game.World.DataStore
 
         public bool RemoveBlock(Vector3Int pos)
         {
-            if (!Exists(pos)) return false;
+            if (!this.Exists(pos)) return false;
 
             var entityId = GetEntityId(pos);
             if (!_blockMasterDictionary.ContainsKey(entityId)) return false;
@@ -100,13 +100,6 @@ namespace Game.World.DataStore
                 : null;
         }
 
-        public bool TryGetBlock(Vector3Int pos, out IBlock block)
-        {
-            block = GetBlock(pos);
-            block ??= _nullBlock;
-            return block != _nullBlock;
-        }
-
         public Vector3Int GetBlockPosition(int entityId)
         {
             if (_blockMasterDictionary.TryGetValue(entityId, out var data)) return data.OriginalPos;
@@ -119,12 +112,6 @@ namespace Game.World.DataStore
             var block = GetBlockDatastore(pos);
             //TODO ブロックないときの処理どうしよう
             return block?.BlockDirection ?? BlockDirection.North;
-        }
-
-
-        public bool Exists(Vector3Int pos)
-        {
-            return GetBlock(pos).BlockId != BlockConst.EmptyBlockId;
         }
 
         private int GetEntityId(Vector3Int pos)
@@ -143,37 +130,6 @@ namespace Game.World.DataStore
 
             return null;
         }
-
-        #region Component
-
-        public bool ExistsComponentBlock<TComponent>(Vector3Int pos)
-        {
-            return GetBlock(pos) is TComponent;
-        }
-
-        public TComponent GetBlock<TComponent>(Vector3Int pos)
-        {
-            var block = GetBlock(pos);
-            if (block is TComponent component) return component;
-
-            throw new Exception("Block is not " + typeof(TComponent));
-        }
-
-        public bool TryGetBlock<TComponent>(Vector3Int pos, out TComponent component)
-        {
-            if (ExistsComponentBlock<TComponent>(pos))
-            {
-                component = GetBlock<TComponent>(pos);
-                return true;
-            }
-
-            component = default;
-            return false;
-        }
-
-
-        #endregion
-
 
         #region Save&Load
 

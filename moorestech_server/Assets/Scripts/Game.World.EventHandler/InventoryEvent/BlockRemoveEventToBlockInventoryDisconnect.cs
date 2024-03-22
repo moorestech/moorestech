@@ -38,7 +38,7 @@ namespace Game.World.EventHandler.InventoryEvent
 
             foreach (var offsetpos in connectOffsetBlockPositions)
                 //削除されたブロックの周りのブロックがIBlockInventoryを持っている時
-                if (_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(offsetpos + removePos))
+                if (_worldBlockDatastore.ExistsComponent<IBlockInventory>(offsetpos + removePos))
                     //そのブロックの接続を削除する
                     _worldBlockDatastore.GetBlock<IBlockInventory>(offsetpos + removePos).RemoveOutputConnector(block);
         }

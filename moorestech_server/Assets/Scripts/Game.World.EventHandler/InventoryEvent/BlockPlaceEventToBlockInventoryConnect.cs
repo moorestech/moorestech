@@ -61,8 +61,8 @@ namespace Game.World.EventHandler.InventoryEvent
         private void ConnectBlock(Vector3Int source, Vector3Int destination)
         {
             //接続元、接続先にBlockInventoryがなければ処理を終了
-            if (!_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(source) ||
-                !_worldBlockDatastore.ExistsComponentBlock<IBlockInventory>(destination)) return;
+            if (!_worldBlockDatastore.ExistsComponent<IBlockInventory>(source) ||
+                !_worldBlockDatastore.ExistsComponent<IBlockInventory>(destination)) return;
 
 
             //接続元のブロックデータを取得
