@@ -27,18 +27,18 @@ namespace Tests.CombinedTest.Game
             var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
             //範囲内の電柱
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0), new Vector3Int(0 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 1), new Vector3Int(2 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 2), new Vector3Int(3 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 3), new Vector3Int(-3 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 4), new Vector3Int(0 ,3), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 5), new Vector3Int(0 ,-3), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0, new BlockPositionInfo(new Vector3Int(0 ,0), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 1, new BlockPositionInfo(new Vector3Int(2 ,0), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 2, new BlockPositionInfo(new Vector3Int(3 ,0), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 3, new BlockPositionInfo(new Vector3Int(-3 ,0), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 4, new BlockPositionInfo(new Vector3Int(0 ,3), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 5, new BlockPositionInfo(new Vector3Int(0 ,-3), BlockDirection.North, Vector3Int.one)));
 
             //範囲外の電柱
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 10), new Vector3Int(7 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 11), new Vector3Int(-7 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 12), new Vector3Int(0 ,7), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 13), new Vector3Int(0 ,-7), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 10, new BlockPositionInfo(new Vector3Int(7 ,0), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 11, new BlockPositionInfo(new Vector3Int(-7 ,0), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 12, new BlockPositionInfo(new Vector3Int(0 ,7), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 13, new BlockPositionInfo(new Vector3Int(0 ,-7), BlockDirection.North, Vector3Int.one)));
 
             var worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
             //セグメントの数を確認
@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Game
 
             //範囲外同士の接続確認
             //セグメント繋がる位置に電柱を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 15), new Vector3Int(5 ,0), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 15, new BlockPositionInfo(new Vector3Int(5 ,0), BlockDirection.North, Vector3Int.one)));
             //セグメントの数を確認
             Assert.AreEqual(4, worldElectricSegment.GetEnergySegmentListCount());
             //マージ後のセグメント、電柱を取得
@@ -81,21 +81,21 @@ namespace Tests.CombinedTest.Game
             var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
             //起点となる電柱の設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0), new Vector3Int(0,0), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0, new BlockPositionInfo(new Vector3Int(0,0), BlockDirection.North, Vector3Int.one)));
 
             //周りに機械を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 1), new Vector3Int(2 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 2), new Vector3Int(-2 ,0), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 1, new BlockPositionInfo(new Vector3Int(2 ,0), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 2, new BlockPositionInfo(new Vector3Int(-2 ,0), BlockDirection.North, Vector3Int.one)));
             //周りに発電機を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 3), new Vector3Int(0 ,2), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 4), new Vector3Int(0 ,-2), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 3, new BlockPositionInfo(new Vector3Int(0 ,2), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 4, new BlockPositionInfo(new Vector3Int(0 ,-2), BlockDirection.North, Vector3Int.one)));
 
             //範囲外に機械を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 10), new Vector3Int(3 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 11), new Vector3Int(-3 ,0), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 10, new BlockPositionInfo(new Vector3Int(3 ,0), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 11, new BlockPositionInfo(new Vector3Int(-3 ,0), BlockDirection.North, Vector3Int.one)));
             //範囲外に発電機を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 12), new Vector3Int(0 ,3), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 13), new Vector3Int(0 ,-3), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 12, new BlockPositionInfo(new Vector3Int(0 ,3), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 13, new BlockPositionInfo(new Vector3Int(0 ,-3), BlockDirection.North, Vector3Int.one)));
 
             var segmentDatastore = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
             //範囲内の設置
@@ -115,8 +115,8 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(4, powerGeneratorBlocks[4].EntityId);
 
             //範囲外の機械、発電機が繋がるように電柱を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 20), new Vector3Int(3 ,1), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 21), new Vector3Int(1 ,3), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 20, new BlockPositionInfo(new Vector3Int(3 ,1), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 21, new BlockPositionInfo(new Vector3Int(1 ,3), BlockDirection.North, Vector3Int.one)));
 
             segment = segmentDatastore.GetEnergySegment(0);
             electricBlocks = segment.Consumers;
@@ -141,22 +141,22 @@ namespace Tests.CombinedTest.Game
 
 
             //周りに機械を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 1), new Vector3Int(2 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 2), new Vector3Int(-2 ,0), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 1, new BlockPositionInfo(new Vector3Int(2 ,0), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 2, new BlockPositionInfo(new Vector3Int(-2 ,0), BlockDirection.North, Vector3Int.one)));
             //周りに発電機を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 3), new Vector3Int(0 ,2), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 4), new Vector3Int(0 ,-2), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 3, new BlockPositionInfo(new Vector3Int(0 ,2), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 4, new BlockPositionInfo(new Vector3Int(0 ,-2), BlockDirection.North, Vector3Int.one)));
 
             //範囲外に機械を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 10), new Vector3Int(3 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 11), new Vector3Int(-3 ,0), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 10, new BlockPositionInfo(new Vector3Int(3 ,0), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 11, new BlockPositionInfo(new Vector3Int(-3 ,0), BlockDirection.North, Vector3Int.one)));
             //範囲外に発電機を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 12), new Vector3Int(0 ,3), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 13), new Vector3Int(0 ,-3), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 12, new BlockPositionInfo(new Vector3Int(0 ,3), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 13, new BlockPositionInfo(new Vector3Int(0 ,-3), BlockDirection.North, Vector3Int.one)));
 
 
             //起点となる電柱の設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0), new Vector3Int(0 ,0), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0, new BlockPositionInfo(new Vector3Int(0 ,0), BlockDirection.North, Vector3Int.one)));
 
 
             //範囲内の設置
@@ -187,23 +187,23 @@ namespace Tests.CombinedTest.Game
             var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
             //一つ目のセグメントを設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0), new Vector3Int(0 ,0), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 0, new BlockPositionInfo(new Vector3Int(0 ,0), BlockDirection.North, Vector3Int.one)));
             //周りに機械と発電機を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 1), new Vector3Int(2 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 2), new Vector3Int(-2 ,0), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 1, new BlockPositionInfo(new Vector3Int(2 ,0), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 2, new BlockPositionInfo(new Vector3Int(-2 ,0), BlockDirection.North, Vector3Int.one)));
 
             //二つ目のセグメントを設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 10), new Vector3Int(6 ,0), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 10, new BlockPositionInfo(new Vector3Int(6 ,0), BlockDirection.North, Vector3Int.one)));
             //周りに機械と発電機を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 3), new Vector3Int(7 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 4), new Vector3Int(7 ,1), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MachineId, 3, new BlockPositionInfo(new Vector3Int(7 ,0), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(GenerateId, 4, new BlockPositionInfo(new Vector3Int(7 ,1), BlockDirection.North, Vector3Int.one)));
 
             var segmentDatastore = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
             //セグメントの数を確認
             Assert.AreEqual(2, segmentDatastore.GetEnergySegmentListCount());
 
             //セグメント同士をつなぐ電柱を設置
-            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 20), new Vector3Int(3 ,0), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(ElectricPoleId, 20, new BlockPositionInfo(new Vector3Int(3 ,0), BlockDirection.North, Vector3Int.one)));
             //セグメントの数を確認
             Assert.AreEqual(1, segmentDatastore.GetEnergySegmentListCount());
             //セグメントを取得

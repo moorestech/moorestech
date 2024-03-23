@@ -9,6 +9,7 @@ using Game.Block.Blocks.Miner;
 using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
+using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.Util;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.CombinedTest.Core
 {
@@ -41,7 +43,8 @@ namespace Tests.CombinedTest.Core
             var miningTime = miningSetting.MiningTime;
             var miningItemId = miningSetting.ItemId;
 
-            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, itemStackFactory, new BlockOpenableInventoryUpdateEvent()));
+            var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
+            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, itemStackFactory, new BlockOpenableInventoryUpdateEvent(),posInfo));
             miner.SetMiningItem(miningItemId, miningTime);
 
             var dummyInventory = new DummyBlockInventory(itemStackFactory);

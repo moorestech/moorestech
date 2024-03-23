@@ -8,7 +8,6 @@ using Game.Block.Interface;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
 using Game.Block.Event;
-using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using UniRx;
@@ -18,6 +17,7 @@ namespace Game.Block.Blocks.Chest
     public class VanillaChest : IBlock, IBlockInventory, IOpenableInventory
     {
         public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
+        public BlockPositionInfo BlockPositionInfo { get; }
         public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
@@ -29,11 +29,12 @@ namespace Game.Block.Blocks.Chest
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
 
         public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, ItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent blockInventoryUpdate)
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo)
         {
             BlockId = blockId;
             EntityId = entityId;
             _blockInventoryUpdate = blockInventoryUpdate;
+            BlockPositionInfo = blockPositionInfo;
             BlockHash = blockHash;
 
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, slotNum);
@@ -42,8 +43,8 @@ namespace Game.Block.Blocks.Chest
         }
 
         public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum,
-            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate) : this(blockId,
-            entityId, blockHash, slotNum, itemStackFactory, blockInventoryUpdate)
+            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo) : this(blockId,
+            entityId, blockHash, slotNum, itemStackFactory, blockInventoryUpdate, blockPositionInfo)
         {
             var split = saveData.Split(',');
             for (var i = 0; i < split.Length; i += 2)

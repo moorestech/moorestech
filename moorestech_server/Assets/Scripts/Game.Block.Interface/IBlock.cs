@@ -8,8 +8,8 @@ namespace Game.Block.Interface
         public int EntityId { get; }
         public int BlockId { get; }
         public long BlockHash { get; }
-        public string GetSaveState();
         public IBlockComponentManager ComponentManager { get; }
+        public BlockPositionInfo BlockPositionInfo { get; }
 
         /// <summary>
         ///     ブロックで何らかのステートが変化したときに呼び出されます
@@ -17,5 +17,6 @@ namespace Game.Block.Interface
         ///     クライアント側で稼働アニメーションや稼働音を実行するときに使用します
         /// </summary>
         public IObservable<ChangedBlockState> BlockStateChange { get; }
+        public string GetSaveState();
     }
 }

@@ -18,7 +18,7 @@ namespace Game.Block.Factory.BlockTemplate
         public delegate VanillaMachineBase CreateMachine(
             (int blockId, int entityId, long blockHash, VanillaMachineBlockInventory vanillaMachineBlockInventory,
                 VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess,
-                ItemStackFactory itemStackFactory) data);
+                ItemStackFactory itemStackFactory,BlockPositionInfo blockPositionInfo) data);
 
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
         private readonly CreateMachine _createMachine;
@@ -48,7 +48,8 @@ namespace Game.Block.Factory.BlockTemplate
                     new VanillaMachineBlockInventory(input, output),
                     new VanillaMachineSave(input, output, runProcess),
                     runProcess,
-                    _itemStackFactory
+                    _itemStackFactory,
+                    blockPositionInfo
                 ));
         }
 
@@ -64,7 +65,8 @@ namespace Game.Block.Factory.BlockTemplate
                     new VanillaMachineBlockInventory(input, output),
                     new VanillaMachineSave(input, output, runProcess),
                     runProcess,
-                    _itemStackFactory
+                    _itemStackFactory,
+                    blockPositionInfo
                 ));
         }
 

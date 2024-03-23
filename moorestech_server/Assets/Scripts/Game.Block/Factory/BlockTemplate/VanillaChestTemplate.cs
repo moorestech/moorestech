@@ -20,18 +20,16 @@ namespace Game.Block.Factory.BlockTemplate
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
         }
 
-        public IBlock New(BlockConfigData param, int entityId, long blockHash)
+        public IBlock New(BlockConfigData param, int entityId, long blockHash,BlockPositionInfo blockPositionInfo)
         {
             var chest = param.Param as ChestConfigParam;
-            return new VanillaChest(param.BlockId, entityId, blockHash, chest.ChestItemNum, _itemStackFactory,
-                _blockInventoryUpdateEvent);
+            return new VanillaChest(param.BlockId, entityId, blockHash, chest.ChestItemNum, _itemStackFactory, _blockInventoryUpdateEvent,blockPositionInfo);
         }
 
-        public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state)
+        public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state,BlockPositionInfo blockPositionInfo)
         {
             var chest = param.Param as ChestConfigParam;
-            return new VanillaChest(state, param.BlockId, entityId, blockHash, chest.ChestItemNum, _itemStackFactory,
-                _blockInventoryUpdateEvent);
+            return new VanillaChest(state, param.BlockId, entityId, blockHash, chest.ChestItemNum, _itemStackFactory, _blockInventoryUpdateEvent,blockPositionInfo);
         }
     }
 }

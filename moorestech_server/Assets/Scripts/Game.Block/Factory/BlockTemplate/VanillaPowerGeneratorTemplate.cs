@@ -40,7 +40,7 @@ namespace Game.Block.Factory.BlockTemplate
             return _newGenerator(new VanillaPowerGeneratorProperties(
                 param.BlockId, entityId, blockHash, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
                 generatorParam.InfinityPower, _itemStackFactory,
-                generatorParam.FuelSettings, _blockInventoryUpdateEven));
+                generatorParam.FuelSettings, _blockInventoryUpdateEven,blockPositionInfo));
         }
 
         public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state,BlockPositionInfo blockPositionInfo)
@@ -49,7 +49,7 @@ namespace Game.Block.Factory.BlockTemplate
             return _loadGenerator(new VanillaPowerGeneratorProperties(
                 param.BlockId, entityId, blockHash, generatorParam.FuelSlot, generatorParam.IsInfinityPower,
                 generatorParam.InfinityPower, _itemStackFactory,
-                generatorParam.FuelSettings, _blockInventoryUpdateEven), state);
+                generatorParam.FuelSettings, _blockInventoryUpdateEven,blockPositionInfo), state);
         }
     }
 
@@ -64,10 +64,11 @@ namespace Game.Block.Factory.BlockTemplate
         public readonly int InfinityPower;
         public readonly bool IsInfinityPower;
         public readonly ItemStackFactory ItemStackFactory;
+        public readonly BlockPositionInfo BlockPositionInfo;
 
         public VanillaPowerGeneratorProperties(int blockId, int entityId, long blockHash, int fuelItemSlot,
             bool isInfinityPower, int infinityPower, ItemStackFactory itemStackFactory,
-            Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate)
+            Dictionary<int, FuelSetting> fuelSettings, IBlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -78,6 +79,7 @@ namespace Game.Block.Factory.BlockTemplate
             ItemStackFactory = itemStackFactory;
             FuelSettings = fuelSettings;
             BlockInventoryUpdate = blockInventoryUpdate;
+            this.BlockPositionInfo = blockPositionInfo;
         }
     }
 }

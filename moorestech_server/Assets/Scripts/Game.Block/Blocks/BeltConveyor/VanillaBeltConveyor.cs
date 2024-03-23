@@ -21,6 +21,7 @@ namespace Game.Block.Blocks.BeltConveyor
     public class VanillaBeltConveyor : IBlock, IBlockInventory
     {
         public IBlockComponentManager ComponentManager => _blockComponentManager;
+        public BlockPositionInfo BlockPositionInfo { get; }
         private readonly BlockComponentManager _blockComponentManager = new();
         
         public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
@@ -41,6 +42,7 @@ namespace Game.Block.Blocks.BeltConveyor
             _itemStackFactory = itemStackFactory;
             InventoryItemNum = inventoryItemNum;
             TimeOfItemEnterToExit = timeOfItemEnterToExit;
+            BlockPositionInfo = blockPositionInfo;
             BlockHash = blockHash;
 
             _inventoryItems = new BeltConveyorInventoryItem[inventoryItemNum];

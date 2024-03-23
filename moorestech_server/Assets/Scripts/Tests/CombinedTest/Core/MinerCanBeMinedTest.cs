@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Core
             //採掘機を設置する位置を取得
             var (mapVein, pos) = GetMapVein();
 
-            worldBlockDatastore.AddBlock(blockFactory.Create(MinerId, 1), pos, BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(MinerId, 1, new BlockPositionInfo(pos, BlockDirection.North, Vector3Int.one)));
 
             var miner = worldBlockDatastore.GetBlock(pos) as VanillaMinerBase;
             //リフレクションでidを取得する

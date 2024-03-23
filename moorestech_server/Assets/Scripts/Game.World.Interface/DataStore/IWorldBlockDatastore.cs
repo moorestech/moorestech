@@ -11,7 +11,7 @@ namespace Game.World.Interface.DataStore
     {
         public IObservable<(ChangedBlockState state, WorldBlockData blockData)> OnBlockStateChange { get; }
 
-        public bool AddBlock(IBlock block, Vector3Int pos, BlockDirection blockDirection);
+        public bool AddBlock(IBlock block);
         public bool RemoveBlock(Vector3Int pos);
         public IBlock GetBlock(Vector3Int pos);
         public WorldBlockData GetOriginPosBlock(Vector3Int pos);

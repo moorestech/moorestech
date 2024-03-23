@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Const;
-using Game.Block.Interface;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.State;
@@ -28,19 +26,13 @@ namespace Game.World.DataStore
 
         private readonly BlockPlaceEvent _blockPlaceEvent;
         private readonly BlockRemoveEvent _blockRemoveEvent;
-        private readonly WorldBlockUpdateEvent _worldBlockUpdateEvent;
 
         //座標とキーの紐づけ
         private readonly Dictionary<Vector3Int, int> _coordinateDictionary = new();
-
-        
-        //イベント
-        public IObservable<(ChangedBlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
         private readonly Subject<(ChangedBlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
+        private readonly WorldBlockUpdateEvent _worldBlockUpdateEvent;
 
-        private readonly IBlock _nullBlock = new NullBlock();
-
-        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, IBlockFactory blockFactory,IWorldBlockUpdateEvent worldBlockUpdateEvent,
+        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, IBlockFactory blockFactory, IWorldBlockUpdateEvent worldBlockUpdateEvent,
             IBlockRemoveEvent blockRemoveEvent, IBlockConfig blockConfig)
         {
             _blockFactory = blockFactory;
@@ -50,8 +42,14 @@ namespace Game.World.DataStore
             _worldBlockUpdateEvent = (WorldBlockUpdateEvent)worldBlockUpdateEvent;
         }
 
-        public bool AddBlock(IBlock block, Vector3Int pos, BlockDirection blockDirection)
+        //イベント
+        public IObservable<(ChangedBlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
+
+        public bool AddBlock(IBlock block)
         {
+            var pos = block.BlockPositionInfo.OriginalPos;
+            var blockDirection = block.BlockPositionInfo.BlockDirection;
+
             //既にキーが登録されてないか、同じ座標にブロックを置こうとしてないかをチェック
             if (!_blockMasterDictionary.ContainsKey(block.EntityId) &&
                 !_coordinateDictionary.ContainsKey(pos))
@@ -90,7 +88,7 @@ namespace Game.World.DataStore
 
         public IBlock GetBlock(Vector3Int pos)
         {
-            return GetBlockDatastore(pos)?.Block ?? _nullBlock;
+            return GetBlockDatastore(pos)?.Block;
         }
 
         public WorldBlockData GetOriginPosBlock(Vector3Int pos)
@@ -154,11 +152,8 @@ namespace Game.World.DataStore
                 var pos = block.Pos;
                 var direction = (BlockDirection)block.Direction;
                 var size = _blockConfig.GetBlockConfig(block.BlockHash).BlockSize;
-                var blockData = new BlockPositionInfo(pos, direction,size);
-                AddBlock(
-                    _blockFactory.Load(block.BlockHash, block.EntityId, block.State,blockData),
-                    pos,
-                    direction);
+                var blockData = new BlockPositionInfo(pos, direction, size);
+                AddBlock(_blockFactory.Load(block.BlockHash, block.EntityId, block.State, blockData));
             }
         }
 

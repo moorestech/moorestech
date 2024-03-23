@@ -24,7 +24,8 @@ namespace Tests.UnitTest.Core.Block
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var minerHash = serviceProvider.GetService<IBlockConfig>().GetBlockConfig(MinerId).BlockHash;
 
-            var originalMiner = blockFactory.Create(MinerId, 1);
+            var minerPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
+            var originalMiner = blockFactory.Create(MinerId, 1,minerPosInfo);
             var originalRemainingMillSecond = 350;
 
             var inventory =
@@ -41,7 +42,7 @@ namespace Tests.UnitTest.Core.Block
             Debug.Log(json);
 
 
-            var loadedMiner = blockFactory.Load(minerHash, 1, json);
+            var loadedMiner = blockFactory.Load(minerHash, 1, json,minerPosInfo);
             var loadedInventory =
                 (OpenableInventoryItemDataStoreService)typeof(VanillaMinerBase)
                     .GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)

@@ -24,14 +24,19 @@ namespace Tests.CombinedTest.Game
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<IBlockFactory>();
 
-            var inputChest = (VanillaChest)blockFactory.Create(UnitTestModBlockId.ChestId, 1);
-            var beltConveyor = blockFactory.Create(UnitTestModBlockId.BeltConveyorId, 2);
-            var outputChest = (VanillaChest)blockFactory.Create(UnitTestModBlockId.ChestId, 3);
+            var inputChestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0,0), BlockDirection.North, Vector3Int.one);
+            var inputChest = (VanillaChest)blockFactory.Create(UnitTestModBlockId.ChestId, 1,inputChestPosInfo);
+            
+            var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0,1), BlockDirection.North, Vector3Int.one);
+            var beltConveyor = blockFactory.Create(UnitTestModBlockId.BeltConveyorId, 2,beltPosInfo);
+            
+            var outputChestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0,2), BlockDirection.North, Vector3Int.one);
+            var outputChest = (VanillaChest)blockFactory.Create(UnitTestModBlockId.ChestId, 3,outputChestPosInfo);
 
             //それぞれを設置
-            worldBlockDatastore.AddBlock(inputChest, new Vector3Int(0, 0,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(beltConveyor, new Vector3Int(0,0, 1), BlockDirection.North);
-            worldBlockDatastore.AddBlock(outputChest, new Vector3Int(0, 0,2), BlockDirection.North);
+            worldBlockDatastore.AddBlock(inputChest);
+            worldBlockDatastore.AddBlock(beltConveyor);
+            worldBlockDatastore.AddBlock(outputChest);
 
             //インプットチェストにアイテムを2つ入れる
             inputChest.SetItem(0, 1, 2);

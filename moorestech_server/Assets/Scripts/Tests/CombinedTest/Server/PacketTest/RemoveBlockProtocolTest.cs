@@ -4,7 +4,6 @@ using Core.Item;
 using Core.Item.Config;
 using Game.Block.Interface;
 using Game.Block.BlockInventory;
-using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
@@ -33,16 +32,16 @@ namespace Tests.CombinedTest.Server.PacketTest
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
-            var playerInventoryData =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
 
-            var block = blockFactory.Create(MachineBlockId, 0);
+            var blockPosInfo = new BlockPositionInfo(new Vector3Int(0 ,0), BlockDirection.North,Vector3Int.one);
+            var block = blockFactory.Create(MachineBlockId, 0,blockPosInfo);
             var blockInventory = (IBlockInventory)block;
             blockInventory.InsertItem(itemStackFactory.Create(10, 7));
             var blockConfigData = blockConfig.GetBlockConfig(block.BlockId);
 
             //削除するためのブロックの生成
-            worldBlock.AddBlock(block, new Vector3Int(0 ,0), BlockDirection.North);
+            worldBlock.AddBlock(block);
 
             Assert.AreEqual(0, worldBlock.GetBlock(new Vector3Int(0,  0)).EntityId);
 
@@ -80,9 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var itemConfig = serviceProvider.GetService<IItemConfig>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
-            var mainInventory =
-                serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId)
-                    .MainOpenableInventory;
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
 
             //インベントリの2つのスロットを残してインベントリを満杯にする
             for (var i = 2; i < mainInventory.GetSlotSize(); i++)
@@ -96,7 +93,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //削除するためのブロックの生成
-            var block = blockFactory.Create(MachineBlockId, 0);
+            var blockPosInfo = new BlockPositionInfo(new Vector3Int(0 ,0), BlockDirection.North,Vector3Int.one);
+            var block = blockFactory.Create(MachineBlockId, 0,blockPosInfo);
             var blockInventory = (IBlockInventory)block;
             //ブロックにはID3のアイテムを2個と、ID4のアイテムを5個入れる
             //このブロックを削除したときに、ID3のアイテムが1個だけ残る
@@ -104,7 +102,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             blockInventory.SetItem(1, itemStackFactory.Create(4, 5));
 
             //ブロックを設置
-            worldBlock.AddBlock(block, new Vector3Int(0 ,0), BlockDirection.North);
+            worldBlock.AddBlock(block);
 
 
             //プロトコルを使ってブロックを削除
@@ -143,8 +141,9 @@ namespace Tests.CombinedTest.Server.PacketTest
                 mainInventory.SetItem(i, itemStackFactory.Create(1000, 1));
 
             //ブロックを設置
-            var block = blockFactory.Create(MachineBlockId, 0);
-            worldBlock.AddBlock(block, new Vector3Int(0 ,0), BlockDirection.North);
+            var blockPosInfo = new BlockPositionInfo(new Vector3Int(0 ,0), BlockDirection.North,Vector3Int.one);
+            var block = blockFactory.Create(MachineBlockId, 0,blockPosInfo);
+            worldBlock.AddBlock(block);
 
 
             //プロトコルを使ってブロックを削除

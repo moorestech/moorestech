@@ -35,8 +35,7 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<SendPlaceHotBarBlockProtocolMessagePack>(payload.ToArray());
 
             var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(data.Slot);
-            var item = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory
-                .GetItem(inventorySlot);
+            var item = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory.GetItem(inventorySlot);
 
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
             if (!_blockConfig.IsBlock(item.Id)) return null;
@@ -44,9 +43,12 @@ namespace Server.Protocol.PacketResponse
             if (_worldBlockDatastore.Exists(data.Pos)) return null;
 
             //ブロックの作成
-            var block = _blockFactory.Create(_blockConfig.ItemIdToBlockId(item.Id), CreateBlockEntityId.Create());
+            var blockId = _blockConfig.ItemIdToBlockId(item.Id);
+            var blockSize = _blockConfig.GetBlockConfig(blockId).BlockSize;
+            var blockPositionInfo = new BlockPositionInfo(data.Pos, data.BlockDirection,blockSize);
+            var block = _blockFactory.Create(blockId, CreateBlockEntityId.Create(), blockPositionInfo);
             //ブロックの設置
-            _worldBlockDatastore.AddBlock(block, data.Pos, data.BlockDirection);
+            _worldBlockDatastore.AddBlock(block);
 
             //アイテムを減らし、セットする
             item = item.SubItem(1);

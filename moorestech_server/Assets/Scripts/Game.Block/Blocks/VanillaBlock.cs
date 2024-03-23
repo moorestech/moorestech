@@ -9,6 +9,7 @@ namespace Game.Block.Blocks
     public class VanillaBlock : IBlock
     {
         public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
+        public BlockPositionInfo BlockPositionInfo { get; }
         public IObservable<ChangedBlockState> BlockStateChange { get; } = new Subject<ChangedBlockState>();
         public int EntityId { get; }
         public int BlockId { get; }
@@ -19,11 +20,12 @@ namespace Game.Block.Blocks
             return string.Empty;
         }
 
-        public VanillaBlock(int blockId, int entityId, long blockHash)
+        public VanillaBlock(int blockId, int entityId, long blockHash, BlockPositionInfo blockPositionInfo)
         {
             BlockId = blockId;
             EntityId = entityId;
             BlockHash = blockHash;
+            BlockPositionInfo = blockPositionInfo;
         }
     }
 }

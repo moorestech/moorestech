@@ -14,11 +14,11 @@ namespace Game.Block.Factory.BlockTemplate
     {
         public delegate VanillaMinerBase LoadMiner(
             (string state, int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount,
-                ItemStackFactory itemFactory, BlockOpenableInventoryUpdateEvent openableInvEvent) data);
+                ItemStackFactory itemFactory, BlockOpenableInventoryUpdateEvent openableInvEvent,BlockPositionInfo blockPositionInfo) data);
 
         public delegate VanillaMinerBase NewMiner(
             (int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount, ItemStackFactory
-                itemFactory, BlockOpenableInventoryUpdateEvent openableInvEvent) data);
+                itemFactory, BlockOpenableInventoryUpdateEvent openableInvEvent,BlockPositionInfo blockPositionInfo) data);
 
         private readonly BlockOpenableInventoryUpdateEvent _blockOpenableInventoryUpdateEvent;
 
@@ -28,8 +28,7 @@ namespace Game.Block.Factory.BlockTemplate
 
         public readonly NewMiner _newMiner;
 
-        public VanillaMinerTemplate(ItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent, NewMiner newMiner, LoadMiner loadMiner)
+        public VanillaMinerTemplate(ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent, NewMiner newMiner, LoadMiner loadMiner)
         {
             _itemStackFactory = itemStackFactory;
             _blockOpenableInventoryUpdateEvent = blockOpenableInventoryUpdateEvent;
@@ -42,7 +41,7 @@ namespace Game.Block.Factory.BlockTemplate
             var (requestPower, outputSlot) = GetData(param, entityId);
 
             return _newMiner((param.BlockId, entityId, blockHash, requestPower, outputSlot,
-                _itemStackFactory, _blockOpenableInventoryUpdateEvent));
+                _itemStackFactory, _blockOpenableInventoryUpdateEvent,blockPositionInfo));
         }
 
         public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state,BlockPositionInfo blockPositionInfo)
@@ -51,7 +50,7 @@ namespace Game.Block.Factory.BlockTemplate
 
             return _loadMiner((state, param.BlockId, entityId, blockHash, requestPower,
                 outputSlot,
-                _itemStackFactory, _blockOpenableInventoryUpdateEvent));
+                _itemStackFactory, _blockOpenableInventoryUpdateEvent,blockPositionInfo));
         }
 
         private (int, int) GetData(BlockConfigData param, int entityId)

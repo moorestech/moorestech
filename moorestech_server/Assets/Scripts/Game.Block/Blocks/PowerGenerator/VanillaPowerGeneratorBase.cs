@@ -21,6 +21,7 @@ namespace Game.Block.Blocks.PowerGenerator
     public abstract class VanillaPowerGeneratorBase : IBlock, IEnergyGenerator, IBlockInventory, IOpenableInventory
     {
         public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
+        public BlockPositionInfo BlockPositionInfo { get; }
         public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
@@ -37,6 +38,7 @@ namespace Game.Block.Blocks.PowerGenerator
 
         protected VanillaPowerGeneratorBase(VanillaPowerGeneratorProperties data)
         {
+            BlockPositionInfo = data.BlockPositionInfo;
             BlockId = data.BlockId;
             EntityId = data.EntityId;
             _fuelSettings = data.FuelSettings;

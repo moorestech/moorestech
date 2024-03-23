@@ -20,16 +20,13 @@ namespace Game.Block.Factory.BlockTemplate
         public IBlock New(BlockConfigData param, int entityId, long blockHash,BlockPositionInfo blockPositionInfo)
         {
             var beltConveyor = param.Param as BeltConveyorConfigParam;
-            return new VanillaBeltConveyor(param.BlockId, entityId, blockHash, _itemStackFactory,
-                beltConveyor.BeltConveyorItemNum,
-                beltConveyor.TimeOfItemEnterToExit,blockPositionInfo);
+            return new VanillaBeltConveyor(param.BlockId, entityId, blockHash, _itemStackFactory, beltConveyor.BeltConveyorItemNum, beltConveyor.TimeOfItemEnterToExit,blockPositionInfo);
         }
 
         public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state,BlockPositionInfo blockPositionInfo)
         {
             var beltConveyor = param.Param as BeltConveyorConfigParam;
-            return new VanillaBeltConveyor(param.BlockId, entityId, blockHash, state, _itemStackFactory,
-                beltConveyor.BeltConveyorItemNum, beltConveyor.TimeOfItemEnterToExit,blockPositionInfo);
+            return new VanillaBeltConveyor(param.BlockId, entityId, blockHash, state, _itemStackFactory, beltConveyor.BeltConveyorItemNum, beltConveyor.TimeOfItemEnterToExit,blockPositionInfo);
         }
     }
 }

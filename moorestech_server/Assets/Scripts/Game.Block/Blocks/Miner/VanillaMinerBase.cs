@@ -21,6 +21,7 @@ namespace Game.Block.Blocks.Miner
     public abstract class VanillaMinerBase : IBlock, IEnergyConsumer, IBlockInventory, IMiner, IOpenableInventory
     {
         public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
+        public BlockPositionInfo BlockPositionInfo { get; }
         public IObservable<ChangedBlockState> BlockStateChange => _blockStateChangeSubject;
         private readonly Subject<ChangedBlockState> _blockStateChangeSubject = new(); 
 
@@ -40,7 +41,7 @@ namespace Game.Block.Blocks.Miner
         private int _remainingMillSecond = int.MaxValue;
 
         protected VanillaMinerBase(int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount,
-            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
+            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -49,6 +50,7 @@ namespace Game.Block.Blocks.Miner
 
             _itemStackFactory = itemStackFactory;
             _blockInventoryUpdate = openableInventoryUpdateEvent;
+            BlockPositionInfo = blockPositionInfo;
 
             _openableInventoryItemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlotCount);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
@@ -58,9 +60,9 @@ namespace Game.Block.Blocks.Miner
 
         protected VanillaMinerBase(string saveData, int blockId, int entityId, long blockHash, int requestPower,
             int outputSlotCount, ItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent)
+            BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo)
             : this(blockId, entityId, blockHash, requestPower, outputSlotCount, itemStackFactory,
-                openableInventoryUpdateEvent)
+                openableInventoryUpdateEvent, blockPositionInfo)
         {
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var split = saveData.Split(',');
