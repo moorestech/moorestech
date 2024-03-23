@@ -1,8 +1,10 @@
 using System;
-using System.Threading;
+using System.Collections.Generic;
 using Core.Item;
 using Core.Update;
+using Game.Block.BlockInventory;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
@@ -39,7 +41,7 @@ namespace Tests.CombinedTest.Core
                 var id = random.Next(0, 10);
 
                 var item = itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
-                var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue);
+                var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
 
                 var endTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
                 while (DateTime.Now < endTime.AddSeconds(0.2))
@@ -51,7 +53,9 @@ namespace Tests.CombinedTest.Core
                 Assert.AreEqual(item.Count, 1);
 
                 var dummy = new DummyBlockInventory(itemStackFactory);
-                beltConveyor.AddOutputConnector(dummy);
+
+                var connectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
+                connectInventory.Add(dummy);
                 GameUpdater.UpdateWithWait();
 
                 Assert.AreEqual(itemStackFactory.Create(id, 1).ToString(), dummy.InsertedItems[0].ToString());
@@ -78,17 +82,19 @@ namespace Tests.CombinedTest.Core
                 var count = random.Next(1, 10);
                 var item = itemStackFactory.Create(id, count);
                 var dummy = new DummyBlockInventory(itemStackFactory);
-                var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue);
-                beltConveyor.AddOutputConnector(dummy);
+                var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+
+                var connectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
+                connectInventory.Add(dummy);
 
                 var expectedEndTime = DateTime.Now.AddMilliseconds(config.TimeOfItemEnterToExit);
                 var outputItem = beltConveyor.InsertItem(item);
-                
+
                 //5秒以上経過したらループを抜ける 
-                while (!dummy.IsItemExists)  GameUpdater.UpdateWithWait();
-                
+                while (!dummy.IsItemExists) GameUpdater.UpdateWithWait();
+
                 Debug.Log($"{(DateTime.Now - expectedEndTime).TotalMilliseconds}");
-                
+
                 Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.2));
                 Assert.True(expectedEndTime.AddSeconds(-0.2) <= DateTime.Now);
 
@@ -118,8 +124,9 @@ namespace Tests.CombinedTest.Core
                 var id = random.Next(1, 11);
                 var item = itemStackFactory.Create(id, config.BeltConveyorItemNum + 1);
                 var dummy = new DummyBlockInventory(itemStackFactory, config.BeltConveyorItemNum);
-                var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue);
-                beltConveyor.AddOutputConnector(dummy);
+                var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+                var connectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
+                connectInventory.Add(dummy);
 
                 while (!dummy.IsItemExists)
                 {
@@ -149,7 +156,7 @@ namespace Tests.CombinedTest.Core
                 var item1 = itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
                 var item2 = itemStackFactory.Create(random.Next(1, 11), random.Next(1, 10));
 
-                var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue);
+                var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
 
                 var item1Out = beltConveyor.InsertItem(item1);
                 var item2Out = beltConveyor.InsertItem(item2);

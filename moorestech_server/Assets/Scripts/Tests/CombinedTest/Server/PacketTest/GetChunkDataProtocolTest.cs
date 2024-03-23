@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Const;
 using Game.Block.Interface;
+using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
 using MessagePack;
@@ -33,16 +34,19 @@ namespace Tests.CombinedTest.Server.PacketTest
             //ブロックの設置
             for (var i = 0; i < 1000; i++)
             {
-                IBlock b = null;
-                if (random.Next(0, 3) == 1)
-                    b = blockFactory.Create(random.Next(short.MaxValue, int.MaxValue), CreateBlockEntityId.Create());
-                else
-                    b = blockFactory.Create(random.Next(1, 500), CreateBlockEntityId.Create());
-
-
                 var blockDirection = (BlockDirection)random.Next(0, 4);
                 var pos = new Vector3Int(random.Next(-40, 40), random.Next(-40, 40));
-                worldBlock.AddBlock(b,pos , blockDirection);
+                
+                var posInfo = new BlockPositionInfo(pos, blockDirection, Vector3Int.one);
+                
+                IBlock b = null;
+                if (random.Next(0, 3) == 1)
+                    b = blockFactory.Create(random.Next(short.MaxValue, int.MaxValue), CreateBlockEntityId.Create(),posInfo);
+                else
+                    b = blockFactory.Create(random.Next(1, 500), CreateBlockEntityId.Create(),posInfo);
+
+
+                worldBlock.AddBlock(b);
             }
 
 
@@ -70,7 +74,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                     var id = worldBlock.GetOriginPosBlock(pos)?.Block.BlockId ?? BlockConst.EmptyBlockId;
                     Assert.AreEqual(id, block.BlockId);
 
-                    var direction = worldBlock.GetOriginPosBlock(pos)?.BlockDirection ?? BlockDirection.North;
+                    var direction = worldBlock.GetOriginPosBlock(pos)?.BlockPositionInfo.BlockDirection ?? BlockDirection.North;
                     Assert.AreEqual(direction, block.BlockDirection);
                 }
             }
@@ -85,8 +89,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
             //ブロックの設置
-            var b = blockFactory.Create(Block_1x4_Id, 1);
-            worldBlock.AddBlock(b, new Vector3Int(0 ,0), BlockDirection.North);
+            var posInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
+            var b = blockFactory.Create(Block_1x4_Id, 1,posInfo);
+            worldBlock.AddBlock(b);
 
             var requestChunks = new List<Vector2IntMessagePack>() { new (new (0, 0)) };
             var requestBytes = MessagePackSerializer.Serialize(new RequestChunkDataMessagePack(requestChunks));

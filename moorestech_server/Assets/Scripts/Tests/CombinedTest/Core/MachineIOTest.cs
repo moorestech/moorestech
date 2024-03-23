@@ -5,6 +5,7 @@ using System.Reflection;
 using Core.Const;
 using Core.Item;
 using Core.Update;
+using Game.Block.Interface;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
@@ -14,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.CombinedTest.Core
 {
@@ -33,7 +35,7 @@ namespace Tests.CombinedTest.Core
             var recipe = machineRecipeConfig.GetAllRecipeData()[0];
 
 
-            var block = (VanillaMachineBase)blockFactory.Create(recipe.BlockId, 1);
+            var block = (VanillaMachineBase)blockFactory.Create(recipe.BlockId, 1,new BlockPositionInfo(Vector3Int.one, BlockDirection.North,Vector3Int.one));
             foreach (var inputItem in recipe.ItemInputs)
                 block.InsertItem(itemStackFactory.Create(inputItem.Id, inputItem.Count));
 

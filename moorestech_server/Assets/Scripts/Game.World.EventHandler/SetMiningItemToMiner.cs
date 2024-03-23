@@ -1,4 +1,5 @@
 using Core.Item.Config;
+using Game.Block.Interface;
 using Game.Block.Blocks.Miner;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
@@ -36,7 +37,7 @@ namespace Game.WorldMap.EventListener
             var pos = blockPlaceEventProperties.Pos;
             
             //採掘機が設置されたか
-            if (!_worldBlockDatastore.ExistsComponentBlock<IMiner>(pos)) return;
+            if (!_worldBlockDatastore.ExistsComponent<IMiner>(pos)) return;
             
             //採掘機の下に鉱脈があるか
             var vein = _mapVeinDatastore.GetOverVeins(pos);

@@ -1,5 +1,6 @@
 using System.Reflection;
 using Game.Block.Interface;
+using Game.Block.Interface;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.World.Interface.DataStore;
@@ -31,9 +32,9 @@ namespace Tests.CombinedTest.Game
 
 
             //ブロックの追加
-            worldBlockDatastore.AddBlock(blockFactory.Create(1, 10), new Vector3Int(0 ,0), BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(2, 5), new Vector3Int(0 ,1), BlockDirection.East);
-            worldBlockDatastore.AddBlock(blockFactory.Create(3, 1000), new Vector3Int(30 ,-10), BlockDirection.West);
+            worldBlockDatastore.AddBlock(blockFactory.Create(1, 10, new BlockPositionInfo(new Vector3Int(0 ,0), BlockDirection.North, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(2, 5, new BlockPositionInfo(new Vector3Int(0 ,1), BlockDirection.East, Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(3, 1000, new BlockPositionInfo(new Vector3Int(30 ,-10), BlockDirection.West, Vector3Int.one)));
 
             saveServiceProvider.GetService<IWorldSaveDataSaver>().Save();
 

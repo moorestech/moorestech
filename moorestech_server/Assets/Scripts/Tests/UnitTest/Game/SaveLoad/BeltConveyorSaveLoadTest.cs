@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using Core.Item;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Component;
+using Game.Block.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -15,14 +17,14 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void SaveLoadTest()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemsStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var componentFactory = serviceProvider.GetService<ComponentFactory>();
 
-            var belt = new VanillaBeltConveyor(1, 10, 1, itemsStackFactory, 4, 4000);
+            var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
+            var belt = new VanillaBeltConveyor(1, 10, 1, itemsStackFactory, 4, 4000, beltPosInfo, componentFactory);
             //リフレクションで_inventoryItemsを取得
-            var inventoryItemsField =
-                typeof(VanillaBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
+            var inventoryItemsField = typeof(VanillaBeltConveyor).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
 
             var timeOfItemEnterToExit = belt.TimeOfItemEnterToExit;
@@ -35,7 +37,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var str = belt.GetSaveState();
             Debug.Log(str);
             //セーブデータをロード
-            var newBelt = new VanillaBeltConveyor(1, 10, 1, str, itemsStackFactory, 4, 4000);
+            var newBelt = new VanillaBeltConveyor(1, 10, 1, str, itemsStackFactory, 4, 4000, beltPosInfo, componentFactory);
             var newInventoryItems = (BeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
 
             //アイテムが一致するかチェック

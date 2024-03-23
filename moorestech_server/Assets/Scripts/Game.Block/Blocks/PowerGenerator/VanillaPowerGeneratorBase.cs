@@ -6,6 +6,7 @@ using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item;
 using Core.Update;
+using Game.Block.Interface;
 using Game.Block.BlockInventory;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
@@ -19,19 +20,26 @@ namespace Game.Block.Blocks.PowerGenerator
 {
     public abstract class VanillaPowerGeneratorBase : IBlock, IEnergyGenerator, IBlockInventory, IOpenableInventory
     {
+        public IBlockComponentManager ComponentManager => _blockComponentManager;
+        private readonly BlockComponentManager _blockComponentManager = new();
+
+        public BlockPositionInfo BlockPositionInfo { get; }
+        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
+        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
+
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
-
-        private readonly Dictionary<int, FuelSetting> _fuelSettings;
-        private readonly int _infinityPower;
-
-        private readonly bool _isInfinityPower;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
+        private readonly Dictionary<int, FuelSetting> _fuelSettings;
+
+        private readonly int _infinityPower;
+        private readonly bool _isInfinityPower;
 
         private int _fuelItemId = ItemConst.EmptyItemId;
         private double _remainingFuelTime;
 
         protected VanillaPowerGeneratorBase(VanillaPowerGeneratorProperties data)
         {
+            BlockPositionInfo = data.BlockPositionInfo;
             BlockId = data.BlockId;
             EntityId = data.EntityId;
             _fuelSettings = data.FuelSettings;
@@ -40,9 +48,10 @@ namespace Game.Block.Blocks.PowerGenerator
 
             BlockHash = data.BlockHash;
             _blockInventoryUpdate = data.BlockInventoryUpdate as BlockOpenableInventoryUpdateEvent;
-            _itemDataStoreService =
-                new OpenableInventoryItemDataStoreService(InvokeEvent, data.ItemStackFactory, data.FuelItemSlot);
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, data.ItemStackFactory, data.FuelItemSlot);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
+
+            _blockComponentManager.AddComponent(data.InputConnectorComponent);
         }
 
         protected VanillaPowerGeneratorBase(VanillaPowerGeneratorProperties data, string state) : this(data)
@@ -63,7 +72,6 @@ namespace Game.Block.Blocks.PowerGenerator
         public int EntityId { get; }
         public int BlockId { get; }
         public long BlockHash { get; }
-        public event Action<ChangedBlockState> OnBlockStateChange;
 
         public string GetSaveState()
         {
@@ -76,19 +84,10 @@ namespace Game.Block.Blocks.PowerGenerator
             return saveState;
         }
 
+
         public IItemStack InsertItem(IItemStack itemStack)
         {
             return _itemDataStoreService.InsertItem(itemStack);
-        }
-
-
-        //発電機は何かを出力したりしない
-        public void AddOutputConnector(IBlockInventory blockInventory)
-        {
-        }
-
-        public void RemoveOutputConnector(IBlockInventory blockInventory)
-        {
         }
 
         public IItemStack GetItem(int slot)
@@ -183,6 +182,22 @@ namespace Game.Block.Blocks.PowerGenerator
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
                 EntityId, slot, itemStack));
+        }
+
+        public bool Equals(IBlock other)
+        {
+            if (other is null) return false;
+            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is IBlock other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(EntityId, BlockId, BlockHash);
         }
     }
 }

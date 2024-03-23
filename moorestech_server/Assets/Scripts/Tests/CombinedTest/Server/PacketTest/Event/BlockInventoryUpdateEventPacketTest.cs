@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Inventory;
 using Core.Item;
 using Game.Block.Interface;
+using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,9 +36,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             //ブロックをセットアップ
-            var block = blockFactory.Create(MachineBlockId, 1);
+            var blockPositionInfo = new BlockPositionInfo(new Vector3Int(5, 7), BlockDirection.North, Vector3Int.one);
+            var block = blockFactory.Create(MachineBlockId, 1,blockPositionInfo);
             var blockInventory = (IOpenableInventory)block;
-            worldBlockDataStore.AddBlock(block, new Vector3Int(5 ,7), BlockDirection.North);
+            worldBlockDataStore.AddBlock(block);
 
 
             //インベントリを開く
@@ -90,12 +92,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             //ブロック1をセットアップ
-            var block1 = blockFactory.Create(MachineBlockId, 1);
+            var block1PosInfo = new BlockPositionInfo(new Vector3Int(5 ,7), BlockDirection.North, Vector3Int.one);
+            var block1 = blockFactory.Create(MachineBlockId, 1,block1PosInfo);
             var block1Inventory = (IOpenableInventory)block1;
-            worldBlockDataStore.AddBlock(block1, new Vector3Int(5 ,7), BlockDirection.North);
+            worldBlockDataStore.AddBlock(block1);
+            
             //ブロック2をセットアップ
-            var block2 = blockFactory.Create(MachineBlockId, 2);
-            worldBlockDataStore.AddBlock(block2, new Vector3Int(10 ,20), BlockDirection.North);
+            var block2PosInfo = new BlockPositionInfo(new Vector3Int(10, 20), BlockDirection.North, Vector3Int.one);
+            var block2 = blockFactory.Create(MachineBlockId, 2,block2PosInfo);
+            worldBlockDataStore.AddBlock(block2);
 
 
             //一つ目のブロックインベントリを開く

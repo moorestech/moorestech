@@ -27,8 +27,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var blockHash1 = blockConfig.GetBlockConfig(1).BlockHash;
             var blockHash2 = blockConfig.GetBlockConfig(2).BlockHash;
 
-            worldBlockDatastore.AddBlock(blockFactory.Create(1, 10),Vector3Int.zero, BlockDirection.North);
-            worldBlockDatastore.AddBlock(blockFactory.Create(2, 100), new Vector3Int(10, -15), BlockDirection.North);
+            worldBlockDatastore.AddBlock(blockFactory.Create(1, 10,new BlockPositionInfo(Vector3Int.zero, BlockDirection.North,Vector3Int.one)));
+            worldBlockDatastore.AddBlock(blockFactory.Create(2, 100, new BlockPositionInfo(new Vector3Int(10, -15), BlockDirection.North, Vector3Int.one)));
 
             var json = assembleSaveJsonText.AssembleSaveJson();
 

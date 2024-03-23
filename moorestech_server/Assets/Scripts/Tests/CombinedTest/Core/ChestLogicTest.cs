@@ -1,16 +1,19 @@
-using System;
+using System.Collections.Generic;
 using Core.Item;
 using Core.Update;
+using Game.Block.BlockInventory;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Chest;
+using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
-using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UnityEngine;
+using Random = System.Random;
 
 namespace Tests.CombinedTest.Core
 {
@@ -23,10 +26,7 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
-            var blockConfig = serviceProvider.GetService<IBlockConfig>();
-            var config = (BeltConveyorConfigParam)blockConfig.GetBlockConfig(3).Param;
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
             var random = new Random(4123);
@@ -34,13 +34,15 @@ namespace Tests.CombinedTest.Core
             var id = random.Next(1, 11);
             var count = 1;
             var item = itemStackFactory.Create(id, count);
-            var chest = (VanillaChest)blockFactory.Create(7, 0);
-            var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue);
-            beltConveyor.AddOutputConnector(chest);
+            var chest = (VanillaChest)blockFactory.Create(7, 0, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
 
-            var expectedEndTime = DateTime.Now.AddMilliseconds(
-                config.TimeOfItemEnterToExit);
-            var outputItem = beltConveyor.InsertItem(item);
+            var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(3, int.MaxValue, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            beltConveyor.InsertItem(item);
+
+            var beltConnectInventory = (List<IBlockInventory>)beltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
+            beltConnectInventory.Add(chest);
+
+
             while (!chest.GetItem(0).Equals(item)) GameUpdater.UpdateWithWait();
 
             Assert.True(chest.GetItem(0).Equals(item));
@@ -52,17 +54,15 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
-
-            var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
-            var chest = (VanillaChest)blockFactory.Create(7, 0);
-            var beltconveyor = (VanillaBeltConveyor)blockFactory.Create(3, 0);
-
+            var chest = (VanillaChest)blockFactory.Create(7, 0, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var beltconveyor = (VanillaBeltConveyor)blockFactory.Create(3, 0, new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
 
             chest.SetItem(0, 1, 1);
 
-            chest.AddOutputConnector(beltconveyor);
+            var chestConnectInventory = (List<IBlockInventory>)chest.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
+            chestConnectInventory.Add(beltconveyor);
             GameUpdater.UpdateWithWait();
 
 

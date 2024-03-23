@@ -6,9 +6,7 @@
         "Game.Block",
         "Game.Crafting.Interface",
         "Core.Item",
-        "Core.Ore",
         "Server.Protocol",
-        "Game.Quest.Interface",
         "Game.World.Interface",
         "Core.Update",
         "UniRx"

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Block;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;

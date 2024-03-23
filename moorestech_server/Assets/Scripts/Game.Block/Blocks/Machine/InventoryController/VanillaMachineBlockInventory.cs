@@ -48,16 +48,6 @@ namespace Game.Block.Blocks.Machine.InventoryController
             return _vanillaMachineInputInventory.InsertionCheck(itemStacks);
         }
 
-        public void AddConnector(IBlockInventory blockInventory)
-        {
-            _vanillaMachineOutputInventory.AddConnectInventory(blockInventory);
-        }
-
-        public void RemoveConnector(IBlockInventory blockInventory)
-        {
-            _vanillaMachineOutputInventory.RemoveConnectInventory(blockInventory);
-        }
-
         public IItemStack GetItem(int slot)
         {
             if (slot < _vanillaMachineInputInventory.InputSlot.Count)

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
+using Game.Block.Interface;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
 using Game.PlayerInventory.Interface;
@@ -27,10 +28,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) =
                 new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
-            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0)
-                .MainOpenableInventory;
-            var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0)
-                .GrabInventory;
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
+            var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
 
@@ -70,8 +69,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var worldDataStore = serviceProvider.GetService<IWorldBlockDatastore>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
-            var chest = (VanillaChest)blockFactory.Create(ChestBlockId, 1);
-            worldDataStore.AddBlock(chest, new Vector3Int(5 ,10), BlockDirection.North);
+            var chestPosInfo = new BlockPositionInfo(new Vector3Int(5 ,10), BlockDirection.North, Vector3Int.one);
+            var chest = (VanillaChest)blockFactory.Create(ChestBlockId, 1,chestPosInfo);
+            worldDataStore.AddBlock(chest);
 
             //ブロックインベントリの設定
             chest.SetItem(1, 1, 10);

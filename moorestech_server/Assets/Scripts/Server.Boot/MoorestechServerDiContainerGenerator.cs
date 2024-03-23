@@ -4,10 +4,11 @@ using Core.EnergySystem;
 using Core.EnergySystem.Electric;
 using Core.Item;
 using Core.Item.Config;
+using Game.Block.Component;
+using Game.Block.Interface;
 using Game.Block.Config;
 using Game.Block.Event;
 using Game.Block.Factory;
-using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
@@ -26,12 +27,13 @@ using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.World;
 using Game.World.DataStore;
 using Game.World.DataStore.WorldSettings;
 using Game.World.Event;
 using Game.World.EventHandler.EnergyEvent;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
-using Game.World.EventHandler.InventoryEvent;
+using Game.World.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 using Game.WorldMap.EventListener;
@@ -65,6 +67,7 @@ namespace Server.Boot
             services.AddSingleton<IBlockConfig, BlockConfig>();
             services.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             services.AddSingleton<IBlockFactory, BlockFactory>();
+            services.AddSingleton<ComponentFactory, ComponentFactory>();
 
 
             //ゲームプレイに必要なクラスのインスタンスを生成
@@ -72,6 +75,7 @@ namespace Server.Boot
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
             services.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
+            services.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             services.AddSingleton<IBlockInventoryOpenStateDataStore, BlockInventoryOpenStateDataStore>();
             services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
@@ -86,7 +90,7 @@ namespace Server.Boot
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
-            services.AddSingleton(new SaveJsonFileName("save_1.json")); 
+            services.AddSingleton(new SaveJsonFileName("save_1.json"));
             services.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
 
             //イベントを登録
@@ -103,8 +107,6 @@ namespace Server.Boot
             services.AddSingleton<GrabInventoryUpdateEventPacket>();
             services.AddSingleton<PlaceBlockEventPacket>();
             services.AddSingleton<RemoveBlockToSetEventPacket>();
-            services.AddSingleton<BlockPlaceEventToBlockInventoryConnect>();
-            services.AddSingleton<BlockRemoveEventToBlockInventoryDisconnect>();
 
             services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
 
@@ -125,8 +127,6 @@ namespace Server.Boot
             serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
             serviceProvider.GetService<PlaceBlockEventPacket>();
             serviceProvider.GetService<RemoveBlockToSetEventPacket>();
-            serviceProvider.GetService<BlockPlaceEventToBlockInventoryConnect>();
-            serviceProvider.GetService<BlockRemoveEventToBlockInventoryDisconnect>();
 
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IBlockElectricConsumer, IElectricGenerator, IElectricPole>>();
 

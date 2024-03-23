@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Linq;
 using Game.Block.Interface;
+using Game.Block.Interface;
 using Game.Block.Interface.State;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Newtonsoft.Json;
 using Server.Util.MessagePack;
+using UniRx;
 using UnityEngine;
 
 namespace Server.Event.EventReceive
@@ -20,12 +22,12 @@ namespace Server.Event.EventReceive
             IWorldBlockDatastore worldBlockDatastore)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            worldBlockDatastore.OnBlockStateChange += ChangeState;
+            worldBlockDatastore.OnBlockStateChange.Subscribe(ChangeState);
         }
 
-        private void ChangeState((ChangedBlockState state, IBlock block, Vector3Int pos) state)
+        private void ChangeState((ChangedBlockState state, WorldBlockData blockData) state)
         {
-            var messagePack = new ChangeBlockStateEventMessagePack(state.state, state.pos);
+            var messagePack = new ChangeBlockStateEventMessagePack(state.state, state.blockData.BlockPositionInfo.OriginalPos);
             var payload = MessagePackSerializer.Serialize(messagePack);
 
             _eventProtocolProvider.AddBroadcastEvent(EventTag,payload);

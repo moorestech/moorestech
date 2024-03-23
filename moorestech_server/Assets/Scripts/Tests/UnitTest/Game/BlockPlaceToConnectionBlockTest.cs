@@ -7,6 +7,7 @@ using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
+using Game.Block.Component.IOConnector;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
@@ -34,8 +35,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void BeltConveyorConnectMachineTest()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
@@ -65,22 +65,26 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(blockEntityId, connectorEntityId);
         }
 
-        private (int, int) BlockPlaceToGetMachineIdAndConnectorId(int machineX, int machineZ, int conveyorX,
-            int conveyorZ, BlockDirection direction, IBlockFactory blockFactory, IWorldBlockDatastore world)
+        private (int, int) BlockPlaceToGetMachineIdAndConnectorId(
+            int machineX, int machineZ,
+            int conveyorX, int conveyorZ,
+            BlockDirection direction, IBlockFactory blockFactory, IWorldBlockDatastore world)
         {
             //機械の設置
-            var vanillaMachine = blockFactory.Create(MachineId, CreateBlockEntityId.Create());
-            world.AddBlock(vanillaMachine,new Vector3Int( machineX,0, machineZ), BlockDirection.North);
+            var machinePosInfo = new BlockPositionInfo(new Vector3Int(machineX, 0, machineZ), direction, Vector3Int.one);
+            var vanillaMachine = blockFactory.Create(MachineId, CreateBlockEntityId.Create(), machinePosInfo);
+            world.AddBlock(vanillaMachine);
 
             //ベルトコンベアの設置
-            var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create());
-            world.AddBlock(beltConveyor, new Vector3Int(conveyorX,0, conveyorZ), direction);
+            var beltPosInfo = new BlockPositionInfo(new Vector3Int(conveyorX, 0, conveyorZ), direction, Vector3Int.one);
+            var beltConveyor = (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), beltPosInfo);
+            world.AddBlock(beltConveyor);
 
             //繋がっているコネクターを取得
-            var _connector = (VanillaMachineBase)typeof(VanillaBeltConveyor).GetField("_connector", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(beltConveyor);
+            var connectedMachine = (VanillaMachineBase)beltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory[0];
 
             //それぞれのentityIdを返却
-            return (vanillaMachine.EntityId, _connector.EntityId);
+            return (vanillaMachine.EntityId, connectedMachine.EntityId);
         }
 
         /// <summary>
@@ -97,33 +101,25 @@ namespace Tests.UnitTest.Game
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
             //機械の設置
-            var vanillaMachine = (VanillaMachineBase)blockFactory.Create(MachineId, CreateBlockEntityId.Create());
-            world.AddBlock(vanillaMachine, new Vector3Int(0,0), BlockDirection.North);
+            var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
+            var vanillaMachine = (VanillaMachineBase)blockFactory.Create(MachineId, CreateBlockEntityId.Create(), machinePosInfo);
+            world.AddBlock(vanillaMachine);
 
             //機械から4方向にベルトコンベアが出るように配置
             var beltConveyors = new List<VanillaBeltConveyor>
             {
-                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create()),
-                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create()),
-                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create()),
-                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create())
+                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(1, 0, 0), BlockDirection.North, Vector3Int.one)),
+                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(0, 0, 1), BlockDirection.East, Vector3Int.one)),
+                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(-1, 0, 0), BlockDirection.South, Vector3Int.one)),
+                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), new BlockPositionInfo(new Vector3Int(0, 0, -1), BlockDirection.West, Vector3Int.one))
             };
-            world.AddBlock(beltConveyors[0], new Vector3Int(1,0,0), BlockDirection.North);
-            world.AddBlock(beltConveyors[1], new Vector3Int(0,0,1), BlockDirection.East);
-            world.AddBlock(beltConveyors[2], new Vector3Int(-1,0,0), BlockDirection.South);
-            world.AddBlock(beltConveyors[3], new Vector3Int(0,0,-1), BlockDirection.West);
+            world.AddBlock(beltConveyors[0]);
+            world.AddBlock(beltConveyors[1]);
+            world.AddBlock(beltConveyors[2]);
+            world.AddBlock(beltConveyors[3]);
 
             //繋がっているコネクターを取得
-
-            var machineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
-                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(vanillaMachine);
-            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventory)
-                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(machineInventory);
-            var connectInventory = (List<IBlockInventory>)typeof(VanillaMachineOutputInventory)
-                .GetField("_connectInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(vanillaMachineOutputInventory);
+            var connectInventory = (List<IBlockInventory>)vanillaMachine.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
 
             Assert.AreEqual(4, connectInventory.Count);
 
@@ -134,12 +130,12 @@ namespace Tests.UnitTest.Game
                 Assert.True(_connectInventoryItem.Contains(beltConveyor.EntityId));
 
             //ベルトコンベアを削除する
-            world.RemoveBlock(new Vector3Int(1,0,0));
-            world.RemoveBlock(new Vector3Int(-1,0,0));
+            world.RemoveBlock(new Vector3Int(1, 0, 0));
+            world.RemoveBlock(new Vector3Int(-1, 0, 0));
             //接続しているコネクターが消えているか確認
             Assert.AreEqual(2, connectInventory.Count);
-            world.RemoveBlock(new Vector3Int(0,0,1));
-            world.RemoveBlock(new Vector3Int(0,0,-1));
+            world.RemoveBlock(new Vector3Int(0, 0, 1));
+            world.RemoveBlock(new Vector3Int(0, 0, -1));
 
             //接続しているコネクターが消えているか確認
             Assert.AreEqual(0, connectInventory.Count);
@@ -159,31 +155,32 @@ namespace Tests.UnitTest.Game
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
             //チェストの設置
-            var vanillaChest = (VanillaChest)blockFactory.Create(ChestId, CreateBlockEntityId.Create());
-            world.AddBlock(vanillaChest, new Vector3Int(0,0), BlockDirection.North);
+            var chestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
+            var vanillaChest = (VanillaChest)blockFactory.Create(ChestId, CreateBlockEntityId.Create(), chestPosInfo);
+            world.AddBlock(vanillaChest);
 
 
             //北向きにベルトコンベアを設置してチェック
-            BeltConveyorPlaceAndCheckConnector(new Vector3Int(0,0,-1), BlockDirection.North, vanillaChest, blockFactory, world);
+            BeltConveyorPlaceAndCheckConnector(new Vector3Int(0, 0, -1), BlockDirection.North, vanillaChest, blockFactory, world);
 
             //東向きにベルトコンベアを設置してチェック
-            BeltConveyorPlaceAndCheckConnector(new Vector3Int(-1,0,0), BlockDirection.East, vanillaChest, blockFactory, world);
+            BeltConveyorPlaceAndCheckConnector(new Vector3Int(-1, 0, 0), BlockDirection.East, vanillaChest, blockFactory, world);
 
             //南向きにベルトコンベアを設置してチェック
-            BeltConveyorPlaceAndCheckConnector(new Vector3Int(0,0,1), BlockDirection.South, vanillaChest, blockFactory, world);
+            BeltConveyorPlaceAndCheckConnector(new Vector3Int(0, 0, 1), BlockDirection.South, vanillaChest, blockFactory, world);
 
             //西向きにベルトコンベアを設置してチェック
-            BeltConveyorPlaceAndCheckConnector(new Vector3Int(1,0,0), BlockDirection.West, vanillaChest, blockFactory, world);
+            BeltConveyorPlaceAndCheckConnector(new Vector3Int(1, 0, 0), BlockDirection.West, vanillaChest, blockFactory, world);
         }
 
-        private void BeltConveyorPlaceAndCheckConnector(Vector3Int beltConveyorPos, BlockDirection direction,
-            VanillaChest targetChest, IBlockFactory blockFactory, IWorldBlockDatastore world)
+        private void BeltConveyorPlaceAndCheckConnector(Vector3Int beltConveyorPos, BlockDirection direction, VanillaChest targetChest, IBlockFactory blockFactory, IWorldBlockDatastore world)
         {
-            var northBeltConveyor =
-                (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create());
-            world.AddBlock(northBeltConveyor, beltConveyorPos, direction);
-            var connector = (VanillaChest)typeof(VanillaBeltConveyor)
-                .GetField("_connector", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(northBeltConveyor);
+            var posInfo = new BlockPositionInfo(beltConveyorPos, direction, Vector3Int.one);
+            var northBeltConveyor = (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), posInfo);
+
+            world.AddBlock(northBeltConveyor);
+
+            var connector = (VanillaChest)northBeltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory[0];
 
             Assert.AreEqual(targetChest.EntityId, connector.EntityId);
         }
@@ -194,37 +191,27 @@ namespace Tests.UnitTest.Game
         [Test]
         public void NotConnectableBlockTest()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
-
-            var machine = (VanillaMachineBase)blockFactory.Create(MachineId, CreateBlockEntityId.Create());
-            var chest = (VanillaChest)blockFactory.Create(ChestId, CreateBlockEntityId.Create());
-
             //機械とチェストを設置
-            world.AddBlock(machine, new Vector3Int(0,0), BlockDirection.North);
-            world.AddBlock(chest, new Vector3Int(0,1), BlockDirection.North);
+            var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
+            var machine = (VanillaMachineBase)blockFactory.Create(MachineId, CreateBlockEntityId.Create(), machinePosInfo);
+            world.AddBlock(machine);
+
+            var chestPosInfo = new BlockPositionInfo(new Vector3Int(0, 1), BlockDirection.North, Vector3Int.one);
+            var chest = (VanillaChest)blockFactory.Create(ChestId, CreateBlockEntityId.Create(), chestPosInfo);
+            world.AddBlock(chest);
 
             //機械のコネクターを取得
-            var machineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
-                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(machine);
-            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventory)
-                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(machineInventory);
-            var machineConnectInventory = (List<IBlockInventory>)typeof(VanillaMachineOutputInventory)
-                .GetField("_connectInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(vanillaMachineOutputInventory);
+            var machineConnectInventory = (List<IBlockInventory>)machine.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
 
             //接続されていないことをチェック
             Assert.AreEqual(0, machineConnectInventory.Count);
 
             //チェストのコネクターを取得
-            var chestConnectInventory = (List<IBlockInventory>)typeof(VanillaChest)
-                .GetField("_connectInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(chest);
+            var chestConnectInventory = (List<IBlockInventory>)chest.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
 
             //接続されていないことをチェック
             Assert.AreEqual(0, chestConnectInventory.Count);

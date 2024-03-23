@@ -53,7 +53,7 @@ namespace Tests.UnitTest.Game
             RetrieveNonExistentBlock(new Vector3Int(21, 1, 22));
             RetrieveNonExistentBlock(new Vector3Int(20, 2, 22));
             RetrieveNonExistentBlock(new Vector3Int(20, 1, 23));
-            
+
             PlaceBlock(Block_1x2x3_Id, new Vector3Int(40, 0, 40), BlockDirection.UpEast);
             RetrieveBlock(Block_1x2x3_Id, new Vector3Int(40, 0, 40));
             RetrieveBlock(Block_1x2x3_Id, new Vector3Int(41, 2, 40));
@@ -97,16 +97,18 @@ namespace Tests.UnitTest.Game
         }
 
         /// <summary>
-        /// ブロックを設置する
+        ///     ブロックを設置する
         /// </summary>
         private void PlaceBlock(int blockId, Vector3Int position, BlockDirection direction)
         {
-            var block = _blockFactory.Create(blockId, new Random().Next(0, 10000));
-            worldDatastore.AddBlock(block, position, direction);
+            var posInfo = new BlockPositionInfo(position, direction, Vector3Int.one);
+            var block = _blockFactory.Create(blockId, new Random().Next(0, 10000), posInfo);
+
+            worldDatastore.AddBlock(block);
         }
 
         /// <summary>
-        /// ブロックが設置されていることを確認する
+        ///     ブロックが設置されていることを確認する
         /// </summary>
         private void RetrieveBlock(int expectedBlockId, Vector3Int position)
         {
@@ -116,7 +118,7 @@ namespace Tests.UnitTest.Game
         }
 
         /// <summary>
-        /// ブロックが設置されていないことを確認する
+        ///     ブロックが設置されていないことを確認する
         /// </summary>
         private void RetrieveNonExistentBlock(Vector3Int position)
         {

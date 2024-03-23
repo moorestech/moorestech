@@ -18,21 +18,21 @@ namespace Tests.UnitTest.Game
         [Test]
         public void RegisteredDataCoordinateFromFetchTest()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var random = new Random(131513);
             for (var i = 0; i < 10; i++)
             {
                 var entityId = CreateBlockEntityId.Create();
-                var ins = CreateMachine(1, entityId);
 
                 var x = random.Next(-1000, 1000);
-                var y = random.Next(-1000, 1000);
-                var pos = new Vector3Int(x, y);
+                var z = random.Next(-1000, 1000);
+                var pos = new Vector3Int(x, 0, z);
 
-                worldData.AddBlock(ins, pos, BlockDirection.North);
+                var ins = CreateMachine(1, entityId, pos, BlockDirection.North);
+                worldData.AddBlock(ins);
+
                 var output = worldData.GetBlock(pos);
                 Assert.AreEqual(entityId, output.EntityId);
             }
@@ -42,44 +42,44 @@ namespace Tests.UnitTest.Game
         [Test]
         public void AlreadyRegisteredEntityIdSecondTimeFailTest()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var entityId = CreateBlockEntityId.Create();
-            var i = CreateMachine(1, entityId);
-            worldData.AddBlock(i, new Vector3Int(1 ,1), BlockDirection.North);
+
+            var block = CreateMachine(1, entityId, new Vector3Int(1, 1), BlockDirection.North);
+            worldData.AddBlock(block);
 
             //座標だけ変えてintIDは同じ
-            var i2 = CreateMachine(1, entityId);
-            Assert.False(worldData.AddBlock(i2, new Vector3Int(10 ,10), BlockDirection.North));
+            var block2 = CreateMachine(1, entityId, new Vector3Int(10, 10), BlockDirection.North);
+            Assert.False(worldData.AddBlock(block2));
         }
 
         [Test]
         public void AlreadyCoordinateSecondTimeFailTest()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
-            var i = CreateMachine(1, CreateBlockEntityId.Create());
-            worldData.AddBlock(i, new Vector3Int(1 ,1), BlockDirection.North);
+            var block = CreateMachine(1, CreateBlockEntityId.Create(), new Vector3Int(1, 1), BlockDirection.North);
+            worldData.AddBlock(block);
 
             //座標だけ変えてintIDは同じ
-            var i2 = CreateMachine(1, CreateBlockEntityId.Create());
-            Assert.False(worldData.AddBlock(i2, new Vector3Int(1 ,1), BlockDirection.North));
+            var block2 = CreateMachine(1, CreateBlockEntityId.Create(), new Vector3Int(1, 1), BlockDirection.North);
+            Assert.False(worldData.AddBlock(block2));
         }
 
-        private VanillaMachineBase CreateMachine(int id, int entityId)
+        private VanillaMachineBase CreateMachine(int id, int entityId, Vector3Int pos, BlockDirection direction)
         {
             if (_blockFactory == null)
             {
-                var (_, serviceProvider) =
-                    new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
                 _blockFactory = serviceProvider.GetService<IBlockFactory>();
             }
 
-            var machine = _blockFactory.Create(id, entityId) as VanillaMachineBase;
+            var posInfo = new BlockPositionInfo(pos, direction, Vector3Int.one);
+            var machine = _blockFactory.Create(id, entityId, posInfo) as VanillaMachineBase;
             return machine;
         }
     }

@@ -7,6 +7,7 @@ using Core.Item;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Blocks.Machine.SaveLoad;
+using Game.Block.Component.IOConnector;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
 
@@ -18,6 +19,8 @@ namespace Game.Block.Blocks.Machine
     /// </summary>
     public abstract class VanillaMachineBase : IBlock, IBlockInventory, IEnergyConsumer, IOpenableInventory
     {
+        private readonly BlockComponentManager _blockComponentManager = new();
+
         private readonly ItemStackFactory _itemStackFactory;
         private readonly VanillaMachineBlockInventory _vanillaMachineBlockInventory;
         private readonly VanillaMachineRunProcess _vanillaMachineRunProcess;
@@ -26,24 +29,28 @@ namespace Game.Block.Blocks.Machine
         protected VanillaMachineBase(int blockId, int entityId, long blockHash,
             VanillaMachineBlockInventory vanillaMachineBlockInventory,
             VanillaMachineSave vanillaMachineSave, VanillaMachineRunProcess vanillaMachineRunProcess,
-            ItemStackFactory itemStackFactory)
+            ItemStackFactory itemStackFactory, BlockPositionInfo blockPositionInfo, InputConnectorComponent inputConnectorComponent)
         {
             BlockId = blockId;
             _vanillaMachineBlockInventory = vanillaMachineBlockInventory;
             _vanillaMachineSave = vanillaMachineSave;
             _vanillaMachineRunProcess = vanillaMachineRunProcess;
             _itemStackFactory = itemStackFactory;
+            BlockPositionInfo = blockPositionInfo;
             BlockHash = blockHash;
             EntityId = entityId;
 
-            _vanillaMachineRunProcess.OnChangeState += state => { OnBlockStateChange?.Invoke(state); };
+            _blockComponentManager.AddComponent(inputConnectorComponent);
         }
 
         public int EntityId { get; }
         public int BlockId { get; }
         public long BlockHash { get; }
-        public event Action<ChangedBlockState> OnBlockStateChange;
 
+        public IBlockComponentManager ComponentManager => _blockComponentManager;
+
+        public BlockPositionInfo BlockPositionInfo { get; }
+        public IObservable<ChangedBlockState> BlockStateChange => _vanillaMachineRunProcess.ChangeState;
 
         #region IBlock implementation
 
@@ -75,17 +82,6 @@ namespace Game.Block.Blocks.Machine
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
             return _vanillaMachineBlockInventory.InsertionCheck(itemStacks);
-        }
-
-
-        public void AddOutputConnector(IBlockInventory blockInventory)
-        {
-            _vanillaMachineBlockInventory.AddConnector(blockInventory);
-        }
-
-        public void RemoveOutputConnector(IBlockInventory blockInventory)
-        {
-            _vanillaMachineBlockInventory.RemoveConnector(blockInventory);
         }
 
         #endregion
@@ -138,5 +134,23 @@ namespace Game.Block.Blocks.Machine
         }
 
         #endregion
+
+
+
+        public bool Equals(IBlock other)
+        {
+            if (other is null) return false;
+            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is IBlock other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(EntityId, BlockId, BlockHash);
+        }
     }
 }

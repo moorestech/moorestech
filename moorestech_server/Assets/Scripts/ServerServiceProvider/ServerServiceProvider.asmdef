@@ -7,7 +7,6 @@
         "Game.Crafting.Interface",
         "Core.Item",
         "Game.Block",
-        "Core.Ore",
         "Server.Boot",
         "Server.Protocol"
     ],

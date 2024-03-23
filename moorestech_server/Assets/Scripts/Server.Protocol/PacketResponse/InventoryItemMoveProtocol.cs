@@ -76,7 +76,7 @@ namespace Server.Protocol.PacketResponse
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
                     break;
                 case ItemMoveInventoryType.BlockInventory:
-                    inventory = _worldBlockDatastore.ExistsComponentBlock<IOpenableInventory>(pos)
+                    inventory = _worldBlockDatastore.ExistsComponent<IOpenableInventory>(pos)
                         ? _worldBlockDatastore.GetBlock<IOpenableInventory>(pos)
                         : null;
                     break;

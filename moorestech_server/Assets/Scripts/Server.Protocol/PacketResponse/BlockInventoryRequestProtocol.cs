@@ -30,7 +30,7 @@ namespace Server.Protocol.PacketResponse
                 MessagePackSerializer.Deserialize<RequestBlockInventoryRequestProtocolMessagePack>(payload.ToArray());
 
             //開けるインベントリを持つブロックが存在するかどうかをチェック
-            if (!_blockDatastore.ExistsComponentBlock<IOpenableInventory>(data.Pos))
+            if (!_blockDatastore.ExistsComponent<IOpenableInventory>(data.Pos))
                 return null;
 
 

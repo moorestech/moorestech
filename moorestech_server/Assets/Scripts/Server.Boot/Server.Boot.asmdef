@@ -13,8 +13,6 @@
         "Game.World.Interface",
         "Game.PlayerInventory.Interface",
         "Game.World.EventHandler",
-        "Core.Ore",
-        "Game.WorldMap",
         "Mod.Config",
         "Game.Crafting",
         "Mod.Loader",

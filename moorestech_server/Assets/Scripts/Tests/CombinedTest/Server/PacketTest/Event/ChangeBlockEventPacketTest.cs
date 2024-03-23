@@ -1,5 +1,6 @@
 using Core.Item;
 using Core.Update;
+using Game.Block.Interface;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
@@ -24,9 +25,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             GameUpdater.ResetUpdate();
 
             //機械のブロックを作る
-            var machine = (VanillaMachineBase)serviceProvider.GetService<IBlockFactory>().Create(UnitTestModBlockId.MachineId, 1);
+            var posInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
+            var machine = (VanillaMachineBase)serviceProvider.GetService<IBlockFactory>().Create(UnitTestModBlockId.MachineId, 1,posInfo);
             //機械のブロックを配置
-            serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine, new Vector3Int(0 ,0), BlockDirection.North);
+            serviceProvider.GetService<IWorldBlockDatastore>().AddBlock(machine);
             //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
