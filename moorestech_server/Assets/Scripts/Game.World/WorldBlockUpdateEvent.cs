@@ -14,24 +14,24 @@ namespace Game.World
         public IObservable<WorldBlockData> OnBlockRemoveEvent => _onBlockRemoveEvent;
         private readonly Subject<WorldBlockData> _onBlockRemoveEvent = new();
         
-        public IDisposable SubscribePlace(Vector3Int subscribePos, Action<WorldBlockData> blockPlaceEvent)
+        public IDisposable SubscribePlace(Vector3Int subscribePos, Action<BlockUpdateProperties> blockPlaceEvent)
         { 
             return _onBlockPlaceEvent.Subscribe(data =>
             {
                 if (data.IsContainPos(subscribePos))
                 {
-                    blockPlaceEvent(data);
+                    blockPlaceEvent(new BlockUpdateProperties(subscribePos, data));
                 }
             });
         }
 
-        public IDisposable SubscribeRemove(Vector3Int subscribePos, Action<WorldBlockData> blockPlaceEvent)
+        public IDisposable SubscribeRemove(Vector3Int subscribePos, Action<BlockUpdateProperties> blockPlaceEvent)
         {
             return _onBlockRemoveEvent.Subscribe(data =>
             {
                 if (data.IsContainPos(subscribePos))
                 {
-                    blockPlaceEvent(data);
+                    blockPlaceEvent(new BlockUpdateProperties(subscribePos, data));
                 }
             });
         }
