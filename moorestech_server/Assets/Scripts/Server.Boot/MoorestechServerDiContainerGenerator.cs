@@ -4,6 +4,7 @@ using Core.EnergySystem;
 using Core.EnergySystem.Electric;
 using Core.Item;
 using Core.Item.Config;
+using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Config;
 using Game.Block.Event;
@@ -68,6 +69,7 @@ namespace Server.Boot
             services.AddSingleton<IBlockConfig, BlockConfig>();
             services.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             services.AddSingleton<IBlockFactory, BlockFactory>();
+            services.AddSingleton<ComponentFactory, ComponentFactory>();
 
 
             //ゲームプレイに必要なクラスのインスタンスを生成
@@ -90,7 +92,7 @@ namespace Server.Boot
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
-            services.AddSingleton(new SaveJsonFileName("save_1.json")); 
+            services.AddSingleton(new SaveJsonFileName("save_1.json"));
             services.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
 
             //イベントを登録

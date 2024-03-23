@@ -5,6 +5,7 @@ namespace Game.Block.BlockInventory
     /// <summary>
     ///     ベルトコンベアに乗っているアイテムを機械に入れたり、機械からベルトコンベアにアイテムを載せるなどの処理をするための共通インターフェース
     ///     ブロック同士でアイテムをやり取りしたいときに使う
+    ///     TODO そのうちコンポーネント化する
     /// </summary>
     public interface IBlockInventory
     {

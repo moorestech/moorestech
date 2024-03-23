@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Game.Block.Interface;
 using Game.Entity.Interface;
 using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
@@ -19,11 +20,12 @@ namespace Game.SaveLoad.Json
         private readonly SaveJsonFileName _saveJsonFileName;
 
         private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly IBlockFactory _blockFactory;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
 
         public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
-            IMapObjectDatastore mapObjectDatastore)
+            IMapObjectDatastore mapObjectDatastore, IBlockFactory blockFactory)
         {
             _saveJsonFileName = saveJsonFileName;
             _worldBlockDatastore = worldBlockDatastore;
@@ -31,6 +33,7 @@ namespace Game.SaveLoad.Json
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;
             _mapObjectDatastore = mapObjectDatastore;
+            _blockFactory = blockFactory;
         }
 
         public void LoadOrInitialize()
@@ -62,7 +65,7 @@ namespace Game.SaveLoad.Json
         {
             var load = JsonConvert.DeserializeObject<WorldSaveAllInfoV1>(jsonText);
 
-            _worldBlockDatastore.LoadBlockDataList(load.World);
+            _worldBlockDatastore.LoadBlockDataList(load.World, _blockFactory);
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _worldSettingsDatastore.LoadSettingData(load.Setting);

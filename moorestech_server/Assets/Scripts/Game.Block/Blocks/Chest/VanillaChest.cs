@@ -4,10 +4,12 @@ using System.Collections.ObjectModel;
 using Core.Inventory;
 using Core.Item;
 using Core.Update;
-using Game.Block.Interface;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
+using Game.Block.Component;
+using Game.Block.Component.IOConnector;
 using Game.Block.Event;
+using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using UniRx;
@@ -16,20 +18,22 @@ namespace Game.Block.Blocks.Chest
 {
     public class VanillaChest : IBlock, IBlockInventory, IOpenableInventory
     {
-        public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
+        public IBlockComponentManager ComponentManager => _blockComponentManager;
         public BlockPositionInfo BlockPositionInfo { get; }
         public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
-        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
-        
+        public int EntityId { get; }
+        public int BlockId { get; }
+        public long BlockHash { get; }
+
+        private readonly BlockComponentManager _blockComponentManager = new();
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
-
-        private readonly List<IBlockInventory> _connectInventory = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
+        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
         public VanillaChest(int blockId, int entityId, long blockHash, int slotNum, ItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo)
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -37,14 +41,22 @@ namespace Game.Block.Blocks.Chest
             BlockPositionInfo = blockPositionInfo;
             BlockHash = blockHash;
 
+            var inputConnectorComponent = componentFactory.CreateInputConnectorComponent(blockPositionInfo,
+                new IOConnectionSetting(
+                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
+                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
+                    new[] { VanillaBlockType.BeltConveyor }));
+            _blockComponentManager.AddComponent(inputConnectorComponent);
+
+            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
+
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, slotNum);
-            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
         public VanillaChest(string saveData, int blockId, int entityId, long blockHash, int slotNum,
-            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo) : this(blockId,
-            entityId, blockHash, slotNum, itemStackFactory, blockInventoryUpdate, blockPositionInfo)
+            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory) : this(blockId,
+            entityId, blockHash, slotNum, itemStackFactory, blockInventoryUpdate, blockPositionInfo, componentFactory)
         {
             var split = saveData.Split(',');
             for (var i = 0; i < split.Length; i += 2)
@@ -56,10 +68,6 @@ namespace Game.Block.Blocks.Chest
             }
         }
 
-        public int EntityId { get; }
-        public int BlockId { get; }
-        public long BlockHash { get; }
-
         public string GetSaveState()
         {
             //itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
@@ -67,20 +75,6 @@ namespace Game.Block.Blocks.Chest
             foreach (var itemStack in _itemDataStoreService.Inventory)
                 saveState += $"{itemStack.ItemHash},{itemStack.Count},";
             return saveState.TrimEnd(',');
-        }
-
-        public void AddOutputConnector(IBlockInventory blockInventory)
-        {
-            _connectInventory.Add(blockInventory);
-            //NullInventoryは削除しておく
-            for (var i = _connectInventory.Count - 1; i >= 0; i--)
-                if (_connectInventory[i] is NullIBlockInventory)
-                    _connectInventory.RemoveAt(i);
-        }
-
-        public void RemoveOutputConnector(IBlockInventory blockInventory)
-        {
-            _connectInventory.Remove(blockInventory);
         }
 
         public void SetItem(int slot, IItemStack itemStack)
@@ -136,7 +130,6 @@ namespace Game.Block.Blocks.Chest
             return _itemDataStoreService.InsertionCheck(itemStacks);
         }
 
-
         private void Update()
         {
             for (var i = 0; i < _itemDataStoreService.Inventory.Count; i++)
@@ -148,6 +141,22 @@ namespace Game.Block.Blocks.Chest
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
                 EntityId, slot, itemStack));
+        }
+
+        public bool Equals(IBlock other)
+        {
+            if (other is null) return false;
+            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is IBlock other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(EntityId, BlockId, BlockHash);
         }
     }
 }

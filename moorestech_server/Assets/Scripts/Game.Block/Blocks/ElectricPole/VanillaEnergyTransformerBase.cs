@@ -9,6 +9,10 @@ namespace Game.Block.Blocks.ElectricPole
 {
     public abstract class VanillaEnergyTransformerBase : IEnergyTransformer, IBlock
     {
+        public int BlockId { get; }
+        public long BlockHash { get; }
+        public int EntityId { get; }
+
         public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
         public BlockPositionInfo BlockPositionInfo { get; }
         public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
@@ -22,15 +26,25 @@ namespace Game.Block.Blocks.ElectricPole
             BlockPositionInfo = blockPositionInfo;
         }
 
-        public int BlockId { get; }
-        public long BlockHash { get; }
-
         public string GetSaveState()
         {
             return string.Empty;
         }
 
+        public bool Equals(IBlock other)
+        {
+            if (other is null) return false;
+            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
+        }
 
-        public int EntityId { get; }
+        public override bool Equals(object obj)
+        {
+            return obj is IBlock other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(EntityId, BlockId, BlockHash);
+        }
     }
 }

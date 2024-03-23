@@ -27,5 +27,23 @@ namespace Game.Block.Blocks
             BlockHash = blockHash;
             BlockPositionInfo = blockPositionInfo;
         }
+
+
+
+        public bool Equals(IBlock other)
+        {
+            if (other is null) return false;
+            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is IBlock other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(EntityId, BlockId, BlockHash);
+        }
     }
 }

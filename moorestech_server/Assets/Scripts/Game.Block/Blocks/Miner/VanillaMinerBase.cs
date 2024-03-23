@@ -5,12 +5,14 @@ using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item;
 using Core.Update;
-using Game.Block.Interface;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Service;
 using Game.Block.Blocks.Util;
+using Game.Block.Component;
+using Game.Block.Component.IOConnector;
 using Game.Block.Event;
+using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using Newtonsoft.Json;
@@ -20,13 +22,10 @@ namespace Game.Block.Blocks.Miner
 {
     public abstract class VanillaMinerBase : IBlock, IEnergyConsumer, IBlockInventory, IMiner, IOpenableInventory
     {
-        public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
-        public BlockPositionInfo BlockPositionInfo { get; }
-        public IObservable<ChangedBlockState> BlockStateChange => _blockStateChangeSubject;
-        private readonly Subject<ChangedBlockState> _blockStateChangeSubject = new(); 
+        private readonly BlockComponentManager _blockComponentManager = new();
 
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
-        private readonly List<IBlockInventory> _connectInventory = new();
+        private readonly Subject<ChangedBlockState> _blockStateChangeSubject = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly ItemStackFactory _itemStackFactory;
         private readonly OpenableInventoryItemDataStoreService _openableInventoryItemDataStoreService;
@@ -41,7 +40,7 @@ namespace Game.Block.Blocks.Miner
         private int _remainingMillSecond = int.MaxValue;
 
         protected VanillaMinerBase(int blockId, int entityId, long blockHash, int requestPower, int outputSlotCount,
-            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo)
+            ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
         {
             BlockId = blockId;
             EntityId = entityId;
@@ -52,17 +51,25 @@ namespace Game.Block.Blocks.Miner
             _blockInventoryUpdate = openableInventoryUpdateEvent;
             BlockPositionInfo = blockPositionInfo;
 
+
+            var inputConnectorComponent = componentFactory.CreateInputConnectorComponent(blockPositionInfo,
+                new IOConnectionSetting(
+                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
+                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
+                    new[] { VanillaBlockType.BeltConveyor }));
+            _blockComponentManager.AddComponent(inputConnectorComponent);
+
             _openableInventoryItemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlotCount);
-            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
+            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
 
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
 
         protected VanillaMinerBase(string saveData, int blockId, int entityId, long blockHash, int requestPower,
             int outputSlotCount, ItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo)
+            BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory)
             : this(blockId, entityId, blockHash, requestPower, outputSlotCount, itemStackFactory,
-                openableInventoryUpdateEvent, blockPositionInfo)
+                openableInventoryUpdateEvent, blockPositionInfo, componentFactory)
         {
             //_remainingMillSecond,itemId1,itemCount1,itemId2,itemCount2,itemId3,itemCount3...
             var split = saveData.Split(',');
@@ -78,6 +85,10 @@ namespace Game.Block.Blocks.Miner
             for (var i = 0; i < inventoryItems.Count; i++)
                 _openableInventoryItemDataStoreService.SetItem(i, inventoryItems[i]);
         }
+        public IBlockComponentManager ComponentManager => _blockComponentManager;
+
+        public BlockPositionInfo BlockPositionInfo { get; }
+        public IObservable<ChangedBlockState> BlockStateChange => _blockStateChangeSubject;
 
         public int EntityId { get; }
         public int BlockId { get; }
@@ -91,16 +102,6 @@ namespace Game.Block.Blocks.Miner
                 saveState += $",{itemStack.ItemHash},{itemStack.Count}";
 
             return saveState;
-        }
-
-        public void AddOutputConnector(IBlockInventory blockInventory)
-        {
-            _connectInventory.Add(blockInventory);
-        }
-
-        public void RemoveOutputConnector(IBlockInventory blockInventory)
-        {
-            _connectInventory.Remove(blockInventory);
         }
 
         public IItemStack GetItem(int slot)
@@ -259,12 +260,30 @@ namespace Game.Block.Blocks.Miner
         }
 
         #endregion
+
+
+
+        public bool Equals(IBlock other)
+        {
+            if (other is null) return false;
+            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is IBlock other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(EntityId, BlockId, BlockHash);
+        }
     }
 
     public enum VanillaMinerState
     {
         Idle,
-        Mining
+        Mining,
     }
 
     public static class VanillaMinerBlockStateConst
@@ -285,7 +304,7 @@ namespace Game.Block.Blocks.Miner
             {
                 VanillaMinerState.Idle => VanillaMinerBlockStateConst.IdleState,
                 VanillaMinerState.Mining => VanillaMinerBlockStateConst.MiningState,
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
             };
         }
     }

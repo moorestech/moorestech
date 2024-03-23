@@ -3,7 +3,7 @@ using Game.Block.Interface.State;
 
 namespace Game.Block.Interface
 {
-    public interface IBlock
+    public interface IBlock : IEquatable<IBlock>
     {
         public int EntityId { get; }
         public int BlockId { get; }

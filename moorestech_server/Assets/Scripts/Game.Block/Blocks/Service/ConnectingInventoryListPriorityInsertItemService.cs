@@ -1,31 +1,32 @@
-using System.Collections.Generic;
 using Core.Const;
 using Core.Item;
-using Game.Block.BlockInventory;
+using Game.Block.Component.IOConnector;
 
 namespace Game.Block.Blocks.Service
 {
     /// <summary>
-    ///     優先度を持ってアイテムを挿入する
+    ///     順番にアイテムに入れ続けるシステム
     /// </summary>
     public class ConnectingInventoryListPriorityInsertItemService
     {
-        private readonly List<IBlockInventory> _blockInventories;
+        private readonly InputConnectorComponent _inputConnectorComponent;
 
         private int _index = -1;
 
-        public ConnectingInventoryListPriorityInsertItemService(List<IBlockInventory> blockInventories)
+        public ConnectingInventoryListPriorityInsertItemService(InputConnectorComponent inputConnectorComponent)
         {
-            _blockInventories = blockInventories;
+            _inputConnectorComponent = inputConnectorComponent;
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            for (var i = 0; i < _blockInventories.Count && itemStack.Id != ItemConst.EmptyItemId; i++)
-                lock (_blockInventories)
+            var inventories = _inputConnectorComponent.ConnectInventory;
+
+            for (var i = 0; i < inventories.Count && itemStack.Id != ItemConst.EmptyItemId; i++)
+                lock (inventories)
                 {
                     AddIndex();
-                    itemStack = _blockInventories[_index].InsertItem(itemStack);
+                    itemStack = inventories[_index].InsertItem(itemStack);
                 }
 
             return itemStack;
@@ -34,7 +35,7 @@ namespace Game.Block.Blocks.Service
         private void AddIndex()
         {
             _index++;
-            if (_blockInventories.Count <= _index) _index = 0;
+            if (_inputConnectorComponent.ConnectInventory.Count <= _index) _index = 0;
         }
     }
 }

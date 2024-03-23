@@ -5,6 +5,7 @@ using Core.Item;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
+using Game.Block.Component.IOConnector;
 using Game.Block.Event;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
@@ -14,8 +15,9 @@ namespace Game.Block.Blocks.Machine.Inventory
 {
     public class VanillaMachineOutputInventory
     {
+        public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;
+
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
-        private readonly List<IBlockInventory> _connectInventory = new();
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly int _entityId;
 
@@ -23,19 +25,15 @@ namespace Game.Block.Blocks.Machine.Inventory
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
 
         public VanillaMachineOutputInventory(int outputSlot, ItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId, int inputSlotSize)
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, int entityId, int inputSlotSize, InputConnectorComponent inputConnectorComponent)
         {
             _blockInventoryUpdate = blockInventoryUpdate;
             _entityId = entityId;
             _inputSlotSize = inputSlotSize;
-            _itemDataStoreService =
-                new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlot);
-            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(_connectInventory);
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlot);
+            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
-
-
-        public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;
 
         private void Update()
         {
@@ -79,20 +77,6 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             for (var i = 0; i < OutputSlot.Count; i++)
                 _itemDataStoreService.SetItem(i, _connectInventoryService.InsertItem(OutputSlot[i]));
-        }
-
-        public void AddConnectInventory(IBlockInventory blockInventory)
-        {
-            _connectInventory.Add(blockInventory);
-            //NullInventoryは削除しておく
-            for (var i = _connectInventory.Count - 1; i >= 0; i--)
-                if (_connectInventory[i] is NullIBlockInventory)
-                    _connectInventory.RemoveAt(i);
-        }
-
-        public void RemoveConnectInventory(IBlockInventory blockInventory)
-        {
-            _connectInventory.Remove(blockInventory);
         }
 
         public void SetItem(int slot, IItemStack itemStack)

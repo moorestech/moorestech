@@ -1,12 +1,17 @@
+using System;
 using System.Collections.Generic;
 using Core.Item;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
+using Game.Block.Component;
+using Game.Block.Component.IOConnector;
+using Game.Block.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.UnitTest.Core.Other
 {
@@ -18,9 +23,9 @@ namespace Tests.UnitTest.Core.Other
         [Test]
         public void Test()
         {
-            var (_, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
+            var componentFactory = serviceProvider.GetService<ComponentFactory>();
 
             var inventoryList = new List<IBlockInventory>();
 
@@ -32,7 +37,13 @@ namespace Tests.UnitTest.Core.Other
             inventoryList.Add(inventory2);
             inventoryList.Add(inventory3);
 
-            var service = new ConnectingInventoryListPriorityInsertItemService(inventoryList);
+            var componentPos = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
+            var connectionSetting = new IOConnectionSetting(Array.Empty<ConnectDirection>(), Array.Empty<ConnectDirection>(), Array.Empty<string>());
+            var inputConnectorComponent = componentFactory.CreateInputConnectorComponent(componentPos, connectionSetting);
+
+            ((List<IBlockInventory>)inputConnectorComponent.ConnectInventory).AddRange(inventoryList);
+
+            var service = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
 
             service.InsertItem(itemStackFactory.Create(1, 4));
             service.InsertItem(itemStackFactory.Create(2, 3));

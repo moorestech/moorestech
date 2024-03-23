@@ -1,9 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using Game.Block.BlockInventory;
-using Game.Block.Interface.BlockConfig;
-using Game.World.Interface.DataStore;
-using UnityEngine;
 
 namespace Game.Block.Component.IOConnector
 {
@@ -13,13 +8,6 @@ namespace Game.Block.Component.IOConnector
         {
             {
                 VanillaBlockType.Machine,
-                new IOConnectionSetting(
-                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
-                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
-                    new[] { VanillaBlockType.BeltConveyor })
-            },
-            {
-                VanillaBlockType.Chest,
                 new IOConnectionSetting(
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },

@@ -6,6 +6,7 @@ using Core.Item.Config;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Miner;
+using Game.Block.Component;
 using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
@@ -35,6 +36,8 @@ namespace Tests.CombinedTest.Core
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();
+            var componentFactory = serviceProvider.GetService<ComponentFactory>();
+
             var minerBlockConfigParam = blockConfig.GetBlockConfig(MinerId).Param as MinerBlockConfigParam;
 
             //手動で鉱石の設定を行う
@@ -44,14 +47,15 @@ namespace Tests.CombinedTest.Core
             var miningItemId = miningSetting.ItemId;
 
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
-            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, itemStackFactory, new BlockOpenableInventoryUpdateEvent(),posInfo));
+            var miner = new VanillaElectricMiner((MinerId, CreateBlockEntityId.Create(), 1, 100, outputCount, itemStackFactory, new BlockOpenableInventoryUpdateEvent(), posInfo, componentFactory));
             miner.SetMiningItem(miningItemId, miningTime);
 
             var dummyInventory = new DummyBlockInventory(itemStackFactory);
             //接続先ブロックの設定
             //本当はダメなことしているけどテストだから許してヒヤシンス
-            ((List<InputConnectorComponent>)miner.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory).Add(dummyInventory);
-            
+            var minerConnectors = (List<IBlockInventory>)miner.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
+            minerConnectors.Add(dummyInventory);
+
             //電力の設定
             var segment = new EnergySegment();
             segment.AddEnergyConsumer(miner);
@@ -69,7 +73,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(1, dummyInventory.InsertedItems[0].Count);
 
             //コネクターを外す
-            ((IBlockInventory)miner).RemoveOutputConnector(dummyInventory);
+            minerConnectors.Remove(dummyInventory);
 
             //鉱石2個分の採掘時間待機
             mineEndTime = DateTime.Now.AddMilliseconds(miningTime * 2);
@@ -81,11 +85,11 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(2, outputSlot.Count);
 
             //またコネクターをつなげる
-            ((IBlockInventory)miner).AddOutputConnector(dummyInventory);
+            minerConnectors.Add(dummyInventory);
 
             //コネクターにアイテムを入れるためのアップデート
             GameUpdater.UpdateWithWait();
-            
+
             //アイテムがさらに2個追加で入っているかチェック
             Assert.AreEqual(miningItemId, dummyInventory.InsertedItems[0].Id);
             Assert.AreEqual(3, dummyInventory.InsertedItems[0].Count);

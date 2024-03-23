@@ -7,6 +7,7 @@ using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;
+using Game.Block.Component.IOConnector;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Util;
@@ -34,8 +35,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void BeltConveyorConnectMachineTest()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
 
@@ -81,10 +81,10 @@ namespace Tests.UnitTest.Game
             world.AddBlock(beltConveyor);
 
             //繋がっているコネクターを取得
-            var _connector = (VanillaMachineBase)typeof(VanillaBeltConveyor).GetField("_connector", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(beltConveyor);
+            var connectedMachine = (VanillaMachineBase)beltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory[0];
 
             //それぞれのentityIdを返却
-            return (vanillaMachine.EntityId, _connector.EntityId);
+            return (vanillaMachine.EntityId, connectedMachine.EntityId);
         }
 
         /// <summary>
@@ -119,16 +119,7 @@ namespace Tests.UnitTest.Game
             world.AddBlock(beltConveyors[3]);
 
             //繋がっているコネクターを取得
-
-            var machineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
-                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(vanillaMachine);
-            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventory)
-                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(machineInventory);
-            var connectInventory = (List<IBlockInventory>)typeof(VanillaMachineOutputInventory)
-                .GetField("_connectInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(vanillaMachineOutputInventory);
+            var connectInventory = (List<IBlockInventory>)vanillaMachine.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
 
             Assert.AreEqual(4, connectInventory.Count);
 
@@ -182,15 +173,14 @@ namespace Tests.UnitTest.Game
             BeltConveyorPlaceAndCheckConnector(new Vector3Int(1, 0, 0), BlockDirection.West, vanillaChest, blockFactory, world);
         }
 
-        private void BeltConveyorPlaceAndCheckConnector(Vector3Int beltConveyorPos, BlockDirection direction,
-            VanillaChest targetChest, IBlockFactory blockFactory, IWorldBlockDatastore world)
+        private void BeltConveyorPlaceAndCheckConnector(Vector3Int beltConveyorPos, BlockDirection direction, VanillaChest targetChest, IBlockFactory blockFactory, IWorldBlockDatastore world)
         {
             var posInfo = new BlockPositionInfo(beltConveyorPos, direction, Vector3Int.one);
             var northBeltConveyor = (VanillaBeltConveyor)blockFactory.Create(BeltConveyorId, CreateBlockEntityId.Create(), posInfo);
 
             world.AddBlock(northBeltConveyor);
 
-            var connector = (VanillaChest)typeof(VanillaBeltConveyor).GetField("_connector", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(northBeltConveyor);
+            var connector = (VanillaChest)northBeltConveyor.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory[0];
 
             Assert.AreEqual(targetChest.EntityId, connector.EntityId);
         }
@@ -201,11 +191,9 @@ namespace Tests.UnitTest.Game
         [Test]
         public void NotConnectableBlockTest()
         {
-            var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var world = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
-
 
             //機械とチェストを設置
             var machinePosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
@@ -217,23 +205,13 @@ namespace Tests.UnitTest.Game
             world.AddBlock(chest);
 
             //機械のコネクターを取得
-            var machineInventory = (VanillaMachineBlockInventory)typeof(VanillaMachineBase)
-                .GetField("_vanillaMachineBlockInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(machine);
-            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventory)
-                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(machineInventory);
-            var machineConnectInventory = (List<IBlockInventory>)typeof(VanillaMachineOutputInventory)
-                .GetField("_connectInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(vanillaMachineOutputInventory);
+            var machineConnectInventory = (List<IBlockInventory>)machine.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
 
             //接続されていないことをチェック
             Assert.AreEqual(0, machineConnectInventory.Count);
 
             //チェストのコネクターを取得
-            var chestConnectInventory = (List<IBlockInventory>)typeof(VanillaChest)
-                .GetField("_connectInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(chest);
+            var chestConnectInventory = (List<IBlockInventory>)chest.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory;
 
             //接続されていないことをチェック
             Assert.AreEqual(0, chestConnectInventory.Count);

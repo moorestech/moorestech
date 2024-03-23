@@ -18,8 +18,10 @@ namespace Game.World.DataStore
     /// </summary>
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
+        //イベント
+        public IObservable<(ChangedBlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
+
         private readonly IBlockConfig _blockConfig;
-        private readonly IBlockFactory _blockFactory;
 
         //メインのデータストア
         private readonly Dictionary<int, WorldBlockData> _blockMasterDictionary = new();
@@ -32,18 +34,14 @@ namespace Game.World.DataStore
         private readonly Subject<(ChangedBlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
         private readonly WorldBlockUpdateEvent _worldBlockUpdateEvent;
 
-        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, IBlockFactory blockFactory, IWorldBlockUpdateEvent worldBlockUpdateEvent,
+        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, IWorldBlockUpdateEvent worldBlockUpdateEvent,
             IBlockRemoveEvent blockRemoveEvent, IBlockConfig blockConfig)
         {
-            _blockFactory = blockFactory;
             _blockConfig = blockConfig;
             _blockRemoveEvent = (BlockRemoveEvent)blockRemoveEvent;
             _blockPlaceEvent = (BlockPlaceEvent)blockPlaceEvent;
             _worldBlockUpdateEvent = (WorldBlockUpdateEvent)worldBlockUpdateEvent;
         }
-
-        //イベント
-        public IObservable<(ChangedBlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
 
         public bool AddBlock(IBlock block)
         {
@@ -145,7 +143,8 @@ namespace Game.World.DataStore
             return list;
         }
 
-        public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList)
+        //TODO ここに書くべきではないのでは？セーブも含めてこの処理は別で書くべきだと思う
+        public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList, IBlockFactory blockFactory)
         {
             foreach (var block in saveBlockDataList)
             {
@@ -153,7 +152,7 @@ namespace Game.World.DataStore
                 var direction = (BlockDirection)block.Direction;
                 var size = _blockConfig.GetBlockConfig(block.BlockHash).BlockSize;
                 var blockData = new BlockPositionInfo(pos, direction, size);
-                AddBlock(_blockFactory.Load(block.BlockHash, block.EntityId, block.State, blockData));
+                AddBlock(blockFactory.Load(block.BlockHash, block.EntityId, block.State, blockData));
             }
         }
 
