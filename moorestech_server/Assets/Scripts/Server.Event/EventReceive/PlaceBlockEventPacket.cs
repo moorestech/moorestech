@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 using MessagePack;

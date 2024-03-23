@@ -1,9 +1,7 @@
-
 using System;
-using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace Game.World.Interface.DataStore
+namespace Game.Block.Interface
 {
     /// <summary>
     /// 3次元的な方向に配置するため、上、下、通常の設置×4方向の向きが必要になる

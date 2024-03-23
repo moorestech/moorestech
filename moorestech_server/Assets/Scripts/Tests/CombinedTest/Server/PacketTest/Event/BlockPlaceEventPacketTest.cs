@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks;
+using Game.Block.Interface;
 using Game.World.Event;
 using Game.World.Interface.DataStore;
 using MessagePack;

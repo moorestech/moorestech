@@ -150,10 +150,16 @@ namespace Game.World.DataStore
         public void LoadBlockDataList(List<SaveBlockData> saveBlockDataList)
         {
             foreach (var block in saveBlockDataList)
+            {
+                var pos = block.Pos;
+                var direction = (BlockDirection)block.Direction;
+                var size = _blockConfig.GetBlockConfig(block.BlockHash).BlockSize;
+                var blockData = new BlockPositionInfo(pos, direction,size);
                 AddBlock(
-                    _blockFactory.Load(block.BlockHash, block.EntityId, block.State),
-                    block.Pos,
-                    (BlockDirection)block.Direction);
+                    _blockFactory.Load(block.BlockHash, block.EntityId, block.State,blockData),
+                    pos,
+                    direction);
+            }
         }
 
         #endregion

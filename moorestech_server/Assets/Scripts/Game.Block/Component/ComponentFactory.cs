@@ -1,4 +1,5 @@
 using Game.Block.Component.IOConnector;
+using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;

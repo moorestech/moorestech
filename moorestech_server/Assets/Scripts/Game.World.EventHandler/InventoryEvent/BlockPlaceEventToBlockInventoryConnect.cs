@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using Game.Block.BlockInventory;
 using Game.Block.Component.IOConnector;
+using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;

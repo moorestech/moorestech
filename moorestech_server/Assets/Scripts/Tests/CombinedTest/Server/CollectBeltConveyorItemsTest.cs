@@ -4,6 +4,7 @@ using System.Reflection;
 using Core.Item;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
