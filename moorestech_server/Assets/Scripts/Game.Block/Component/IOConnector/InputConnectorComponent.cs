@@ -26,10 +26,10 @@ namespace Game.Block.Component.IOConnector
         private readonly List<IDisposable> _blockUpdateEvents = new ();
         
         public InputConnectorComponent(IWorldBlockDatastore worldBlockDatastore,IBlockConfig blockConfig,IWorldBlockUpdateEvent worldBlockUpdateEvent,
-            IOConnectionSetting ioConnectionSetting, WorldBlockData worldBlockData)
+            IOConnectionSetting ioConnectionSetting, BlockPositionInfo blockPositionInfo)
         {
-            _blockPos = worldBlockData.OriginalPos;
-            _blockDirection = worldBlockData.BlockDirection;
+            _blockPos = blockPositionInfo.OriginalPos;
+            _blockDirection = blockPositionInfo.BlockDirection;
             _worldBlockDatastore = worldBlockDatastore;
             _blockConfig = blockConfig;
             _ioConnectionSetting = ioConnectionSetting;

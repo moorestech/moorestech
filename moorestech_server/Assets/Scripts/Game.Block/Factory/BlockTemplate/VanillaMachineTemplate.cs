@@ -9,6 +9,7 @@ using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.RecipeConfig;
+using Game.World.Interface.DataStore;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -36,7 +37,7 @@ namespace Game.Block.Factory.BlockTemplate
             _createMachine = createMachine;
         }
 
-        public IBlock New(BlockConfigData param, int entityId, long blockHash)
+        public IBlock New(BlockConfigData param, int entityId, long blockHash,BlockPositionInfo blockPositionInfo)
         {
             var (input, output, machineParam) = GetData(param, entityId);
 
@@ -51,7 +52,7 @@ namespace Game.Block.Factory.BlockTemplate
                 ));
         }
 
-        public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state)
+        public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state,BlockPositionInfo blockPositionInfo)
         {
             var (input, output, machineParam) = GetData(param, entityId);
 

@@ -4,6 +4,7 @@ using Game.Block.Interface;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.World.Interface.DataStore;
 
 namespace Game.Block.Factory
 {
@@ -18,20 +19,20 @@ namespace Game.Block.Factory
             _blockTypesDictionary = vanillaIBlockTemplates.BlockTypesDictionary;
         }
 
-        public IBlock Create(int blockId, int entityId)
+        public IBlock Create(int blockId, int entityId,BlockPositionInfo blockPositionInfo)
         {
             var config = _blockConfig.GetBlockConfig(blockId);
             if (_blockTypesDictionary.ContainsKey(config.Type))
-                return _blockTypesDictionary[config.Type].New(config, entityId, config.BlockHash);
+                return _blockTypesDictionary[config.Type].New(config, entityId, config.BlockHash,blockPositionInfo);
 
             throw new Exception("Block type not found :" + config.Type);
         }
 
-        public IBlock Load(long blockHash, int entityId, string state)
+        public IBlock Load(long blockHash, int entityId, string state,BlockPositionInfo blockPositionInfo)
         {
             var config = _blockConfig.GetBlockConfig(blockHash);
             if (_blockTypesDictionary.ContainsKey(config.Type))
-                return _blockTypesDictionary[config.Type].Load(config, entityId, config.BlockHash, state);
+                return _blockTypesDictionary[config.Type].Load(config, entityId, config.BlockHash, state,blockPositionInfo);
 
             throw new Exception("Block type not found :" + config.Type);
         }

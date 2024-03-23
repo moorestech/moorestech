@@ -100,8 +100,7 @@ namespace Game.World.EventHandler.InventoryEvent
 
 
             //接続元ブロックと接続先ブロックを接続
-            _worldBlockDatastore.GetBlock<IBlockInventory>(source).AddOutputConnector(
-                _worldBlockDatastore.GetBlock<IBlockInventory>(destination));
+            //_worldBlockDatastore.GetBlock<IBlockInventory>(source).AddOutputConnector(_worldBlockDatastore.GetBlock<IBlockInventory>(destination));
         }
         
         /// <summary>

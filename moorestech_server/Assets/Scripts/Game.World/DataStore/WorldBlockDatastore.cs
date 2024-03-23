@@ -102,7 +102,7 @@ namespace Game.World.DataStore
 
         public Vector3Int GetBlockPosition(int entityId)
         {
-            if (_blockMasterDictionary.TryGetValue(entityId, out var data)) return data.OriginalPos;
+            if (_blockMasterDictionary.TryGetValue(entityId, out var data)) return data.BlockPositionInfo.OriginalPos;
 
             throw new Exception("ブロックがありません");
         }
@@ -111,7 +111,7 @@ namespace Game.World.DataStore
         {
             var block = GetBlockDatastore(pos);
             //TODO ブロックないときの処理どうしよう
-            return block?.BlockDirection ?? BlockDirection.North;
+            return block?.BlockPositionInfo.BlockDirection ?? BlockDirection.North;
         }
 
         private int GetEntityId(Vector3Int pos)
@@ -125,7 +125,7 @@ namespace Game.World.DataStore
         private WorldBlockData GetBlockDatastore(Vector3Int pos)
         {
             foreach (var block in
-                     _blockMasterDictionary.Where(block => block.Value.IsContainPos(pos)))
+                     _blockMasterDictionary.Where(block => block.Value.BlockPositionInfo.IsContainPos(pos)))
                 return block.Value;
 
             return null;
@@ -138,11 +138,11 @@ namespace Game.World.DataStore
             var list = new List<SaveBlockData>();
             foreach (var block in _blockMasterDictionary)
                 list.Add(new SaveBlockData(
-                    block.Value.OriginalPos,
+                    block.Value.BlockPositionInfo.OriginalPos,
                     block.Value.Block.BlockHash,
                     block.Value.Block.EntityId,
                     block.Value.Block.GetSaveState(),
-                    (int)block.Value.BlockDirection));
+                    (int)block.Value.BlockPositionInfo.BlockDirection));
 
             return list;
         }

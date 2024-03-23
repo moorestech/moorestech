@@ -18,7 +18,7 @@ namespace Game.World
         { 
             return _onBlockPlaceEvent.Subscribe(data =>
             {
-                if (data.IsContainPos(subscribePos))
+                if (data.BlockPositionInfo.IsContainPos(subscribePos))
                 {
                     blockPlaceEvent(new BlockUpdateProperties(subscribePos, data));
                 }
@@ -29,7 +29,7 @@ namespace Game.World
         {
             return _onBlockRemoveEvent.Subscribe(data =>
             {
-                if (data.IsContainPos(subscribePos))
+                if (data.BlockPositionInfo.IsContainPos(subscribePos))
                 {
                     blockPlaceEvent(new BlockUpdateProperties(subscribePos, data));
                 }

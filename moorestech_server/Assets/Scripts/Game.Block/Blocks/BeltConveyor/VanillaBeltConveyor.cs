@@ -5,7 +5,12 @@ using Core.Item;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Block.BlockInventory;
+using Game.Block.Component;
+using Game.Block.Component.IOConnector;
+using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.State;
+using Game.World.Interface;
+using Game.World.Interface.DataStore;
 using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
@@ -15,7 +20,8 @@ namespace Game.Block.Blocks.BeltConveyor
     /// </summary>
     public class VanillaBeltConveyor : IBlock, IBlockInventory
     {
-        public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
+        public IBlockComponentManager ComponentManager => _blockComponentManager;
+        private readonly BlockComponentManager _blockComponentManager = new();
         
         public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
@@ -28,8 +34,7 @@ namespace Game.Block.Blocks.BeltConveyor
         
         private IBlockInventory _connector;
 
-        public VanillaBeltConveyor(int blockId, int entityId, long blockHash, ItemStackFactory itemStackFactory,
-            int inventoryItemNum, int timeOfItemEnterToExit)
+        public VanillaBeltConveyor(int blockId, int entityId, long blockHash, ItemStackFactory itemStackFactory, int inventoryItemNum, int timeOfItemEnterToExit,BlockPositionInfo blockPositionInfo)
         {
             EntityId = entityId;
             BlockId = blockId;
@@ -37,17 +42,27 @@ namespace Game.Block.Blocks.BeltConveyor
             InventoryItemNum = inventoryItemNum;
             TimeOfItemEnterToExit = timeOfItemEnterToExit;
             BlockHash = blockHash;
-            _connector = new NullIBlockInventory(_itemStackFactory);
 
             _inventoryItems = new BeltConveyorInventoryItem[inventoryItemNum];
             
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
+            
+            _blockComponentManager.AddComponent(ComponentFactory.Instance.CreateInputConnectorComponent(blockPositionInfo,new IOConnectionSetting(
+                // 南、西、東をからの接続を受け、アイテムをインプットする
+                new ConnectDirection[] { new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
+                //北向きに出力する
+                new ConnectDirection[] { new(1, 0, 0) },
+                new[]
+                {
+                    VanillaBlockType.Machine, VanillaBlockType.Chest, VanillaBlockType.Generator,
+                    VanillaBlockType.Miner, VanillaBlockType.BeltConveyor
+                })));
         }
 
         public VanillaBeltConveyor(int blockId, int entityId, long blockHash, string state,
             ItemStackFactory itemStackFactory,
-            int inventoryItemNum, int timeOfItemEnterToExit) : this(blockId, entityId, blockHash, itemStackFactory,
-            inventoryItemNum, timeOfItemEnterToExit)
+            int inventoryItemNum, int timeOfItemEnterToExit,BlockPositionInfo blockPositionInfo) : this(blockId, entityId, blockHash, itemStackFactory,
+            inventoryItemNum, timeOfItemEnterToExit,blockPositionInfo)
         {
             //stateから復元
             //データがないときは何もしない

@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using Core.EnergySystem;
 using Core.Item;
 using Core.Item.Config;
 using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Miner;
+using Game.Block.Component.IOConnector;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
 using Game.Block.Interface.BlockConfig;
@@ -44,7 +46,9 @@ namespace Tests.CombinedTest.Core
 
             var dummyInventory = new DummyBlockInventory(itemStackFactory);
             //接続先ブロックの設定
-            ((IBlockInventory)miner).AddOutputConnector(dummyInventory);
+            //本当はダメなことしているけどテストだから許してヒヤシンス
+            ((List<InputConnectorComponent>)miner.ComponentManager.GetComponent<InputConnectorComponent>().ConnectInventory).Add(dummyInventory);
+            
             //電力の設定
             var segment = new EnergySegment();
             segment.AddEnergyConsumer(miner);

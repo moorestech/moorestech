@@ -40,7 +40,8 @@ namespace Game.World.EventHandler.InventoryEvent
                 //削除されたブロックの周りのブロックがIBlockInventoryを持っている時
                 if (_worldBlockDatastore.ExistsComponent<IBlockInventory>(offsetpos + removePos))
                     //そのブロックの接続を削除する
-                    _worldBlockDatastore.GetBlock<IBlockInventory>(offsetpos + removePos).RemoveOutputConnector(block);
+                    Debug.Log("TODO remove output connector");
+                    //_worldBlockDatastore.GetBlock<IBlockInventory>(offsetpos + removePos).RemoveOutputConnector(block);
         }
     }
 }

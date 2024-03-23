@@ -7,16 +7,19 @@ namespace Game.World.Interface.DataStore
 {
     public class WorldBlockData
     {
+        public IBlock Block { get; }
+        public BlockPositionInfo BlockPositionInfo { get; }
+        
         public WorldBlockData(IBlock block, Vector3Int originalPos, BlockDirection blockDirection, IBlockConfig blockConfig)
         {
-            OriginalPos = originalPos;
-            BlockDirection = blockDirection;
             Block = block;
-            BlockSize = blockConfig.GetBlockConfig(block.BlockId).BlockSize;
-            
-            MaxPos = CalcBlockMaxPos(originalPos, blockDirection, BlockSize);
+            var blockSize = blockConfig.GetBlockConfig(block.BlockId).BlockSize;
+            BlockPositionInfo = new BlockPositionInfo(originalPos, blockDirection, blockSize);
         }
-
+    }
+    
+    public class BlockPositionInfo
+    {
         /// <summary>
         /// オリジナル座標は常に左下（ブロックが専有する範囲の最小の座標）になる
         /// </summary>
@@ -26,8 +29,16 @@ namespace Game.World.Interface.DataStore
         public Vector3Int MinPos => OriginalPos;
         public Vector3Int MaxPos { get; }
 
-        public IBlock Block { get; }
         public BlockDirection BlockDirection { get; }
+
+        public BlockPositionInfo(Vector3Int originalPos, BlockDirection blockDirection, Vector3Int blockSize)
+        {
+            OriginalPos = originalPos;
+            BlockDirection = blockDirection;
+            BlockSize = blockSize;
+            
+            MaxPos = CalcBlockMaxPos(originalPos, blockDirection, BlockSize);
+        }
 
         public bool IsContainPos(Vector3Int pos)
         {
@@ -36,12 +47,11 @@ namespace Game.World.Interface.DataStore
                    OriginalPos.z <= pos.z && pos.z <= MaxPos.z;
         }
 
-
         /// <summary>
         /// サーバー側管理のブロックの最大座標を計算する
         /// これはどのグリッドにブロックが存在しているかということに使われるため、サイズ 1,1 の場合、originとmaxの値はおなじになる
         /// </summary>
-        public static Vector3Int CalcBlockMaxPos(Vector3Int originPos,BlockDirection direction,Vector3Int blockSize)
+        private static Vector3Int CalcBlockMaxPos(Vector3Int originPos,BlockDirection direction,Vector3Int blockSize)
         {
             var addPos = Vector3Int.zero;
             switch (direction)
@@ -72,6 +82,7 @@ namespace Game.World.Interface.DataStore
             // block sizeは1からとなっているが、ここで求めるのはブロックが占める範囲の最大値なので、-1している
             return addPos + originPos - Vector3Int.one;
         }
+        
     }
     
 }

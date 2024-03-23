@@ -6,6 +6,7 @@ using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
+using Game.World.Interface.DataStore;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -33,7 +34,7 @@ namespace Game.Block.Factory.BlockTemplate
             _loadGenerator = loadGenerator;
         }
 
-        public IBlock New(BlockConfigData param, int entityId, long blockHash)
+        public IBlock New(BlockConfigData param, int entityId, long blockHash,BlockPositionInfo blockPositionInfo)
         {
             var generatorParam = param.Param as PowerGeneratorConfigParam;
             return _newGenerator(new VanillaPowerGeneratorProperties(
@@ -42,7 +43,7 @@ namespace Game.Block.Factory.BlockTemplate
                 generatorParam.FuelSettings, _blockInventoryUpdateEven));
         }
 
-        public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state)
+        public IBlock Load(BlockConfigData param, int entityId, long blockHash, string state,BlockPositionInfo blockPositionInfo)
         {
             var generatorParam = param.Param as PowerGeneratorConfigParam;
             return _loadGenerator(new VanillaPowerGeneratorProperties(

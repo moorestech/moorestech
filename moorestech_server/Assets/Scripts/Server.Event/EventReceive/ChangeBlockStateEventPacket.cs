@@ -27,7 +27,7 @@ namespace Server.Event.EventReceive
 
         private void ChangeState((ChangedBlockState state, WorldBlockData blockData) state)
         {
-            var messagePack = new ChangeBlockStateEventMessagePack(state.state, state.blockData.OriginalPos);
+            var messagePack = new ChangeBlockStateEventMessagePack(state.state, state.blockData.BlockPositionInfo.OriginalPos);
             var payload = MessagePackSerializer.Serialize(messagePack);
 
             _eventProtocolProvider.AddBroadcastEvent(EventTag,payload);

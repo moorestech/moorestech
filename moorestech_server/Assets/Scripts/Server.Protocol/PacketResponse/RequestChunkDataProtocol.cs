@@ -58,7 +58,7 @@ namespace Server.Protocol.PacketResponse
 
                     if (originalPosBlock == null) continue;
                     
-                    var blockDirection = originalPosBlock.BlockDirection;
+                    var blockDirection = originalPosBlock.BlockPositionInfo.BlockDirection;
                     var blockId = originalPosBlock.Block.BlockId;
                     blocks.Add(new BlockDataMessagePack(blockId, blockPos, blockDirection));
                 }
