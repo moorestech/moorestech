@@ -30,12 +30,12 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(VanillaBlockType.Chest, new VanillaChestTemplate(itemStackFactory, blockInventoryEvent, componentFactory));
 
             BlockTypesDictionary.Add(VanillaBlockType.Machine, new VanillaMachineTemplate(machineRecipeConfig, itemStackFactory, blockInventoryEvent, data => new VanillaElectricMachine(data), componentFactory));
-            BlockTypesDictionary.Add(VanillaBlockType.Generator, new VanillaPowerGeneratorTemplate(itemStackFactory, blockInventoryUpdateEvent, data => new VanillaElectricGenerator(data), (data, state) => new VanillaElectricGenerator(data, state)));
+            BlockTypesDictionary.Add(VanillaBlockType.Generator, new VanillaPowerGeneratorTemplate(itemStackFactory, blockInventoryUpdateEvent, componentFactory, data => new VanillaElectricGenerator(data), (data, state) => new VanillaElectricGenerator(data, state)));
             BlockTypesDictionary.Add(VanillaBlockType.Miner, new VanillaMinerTemplate(itemStackFactory, blockInventoryEvent, data => new VanillaElectricMiner(data), data => new VanillaElectricMiner(data), componentFactory));
 
 
             BlockTypesDictionary.Add(VanillaBlockType.GearMachine, new VanillaMachineTemplate(machineRecipeConfig, itemStackFactory, blockInventoryEvent, data => new VanillaGearMachine(data), componentFactory));
-            BlockTypesDictionary.Add(VanillaBlockType.GearGenerator, new VanillaPowerGeneratorTemplate(itemStackFactory, blockInventoryUpdateEvent, data => new VanillaGearGenerator(data), (data, state) => new VanillaGearGenerator(data, state)));
+            BlockTypesDictionary.Add(VanillaBlockType.GearGenerator, new VanillaPowerGeneratorTemplate(itemStackFactory, blockInventoryUpdateEvent, componentFactory, data => new VanillaGearGenerator(data), (data, state) => new VanillaGearGenerator(data, state)));
             BlockTypesDictionary.Add(VanillaBlockType.GearMiner, new VanillaMinerTemplate(itemStackFactory, blockInventoryEvent, data => new VanillaGearMiner(data), data => new VanillaGearMiner(data), componentFactory));
 
             BlockTypesDictionary.Add(VanillaBlockType.GearEnergyTransformer, new VanillaGearEnergyTransformerTemplate());

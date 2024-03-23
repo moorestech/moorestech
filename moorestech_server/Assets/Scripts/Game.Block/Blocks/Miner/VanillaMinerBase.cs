@@ -54,7 +54,7 @@ namespace Game.Block.Blocks.Miner
 
             var inputConnectorComponent = componentFactory.CreateInputConnectorComponent(blockPositionInfo,
                 new IOConnectionSetting(
-                    new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
+                    new ConnectDirection[] { },
                     new ConnectDirection[] { new(1, 0, 0), new(-1, 0, 0), new(0, 1, 0), new(0, -1, 0) },
                     new[] { VanillaBlockType.BeltConveyor }));
             _blockComponentManager.AddComponent(inputConnectorComponent);
@@ -260,8 +260,6 @@ namespace Game.Block.Blocks.Miner
         }
 
         #endregion
-
-
 
         public bool Equals(IBlock other)
         {

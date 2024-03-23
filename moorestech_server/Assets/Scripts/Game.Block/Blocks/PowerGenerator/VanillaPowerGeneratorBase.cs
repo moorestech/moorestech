@@ -20,18 +20,19 @@ namespace Game.Block.Blocks.PowerGenerator
 {
     public abstract class VanillaPowerGeneratorBase : IBlock, IEnergyGenerator, IBlockInventory, IOpenableInventory
     {
-        public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
+        public IBlockComponentManager ComponentManager => _blockComponentManager;
+        private readonly BlockComponentManager _blockComponentManager = new();
+
         public BlockPositionInfo BlockPositionInfo { get; }
         public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
         private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
-
-        private readonly Dictionary<int, FuelSetting> _fuelSettings;
-        private readonly int _infinityPower;
-
-        private readonly bool _isInfinityPower;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
+        private readonly Dictionary<int, FuelSetting> _fuelSettings;
+
+        private readonly int _infinityPower;
+        private readonly bool _isInfinityPower;
 
         private int _fuelItemId = ItemConst.EmptyItemId;
         private double _remainingFuelTime;
@@ -49,6 +50,8 @@ namespace Game.Block.Blocks.PowerGenerator
             _blockInventoryUpdate = data.BlockInventoryUpdate as BlockOpenableInventoryUpdateEvent;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, data.ItemStackFactory, data.FuelItemSlot);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
+
+            _blockComponentManager.AddComponent(data.InputConnectorComponent);
         }
 
         protected VanillaPowerGeneratorBase(VanillaPowerGeneratorProperties data, string state) : this(data)
@@ -85,16 +88,6 @@ namespace Game.Block.Blocks.PowerGenerator
         public IItemStack InsertItem(IItemStack itemStack)
         {
             return _itemDataStoreService.InsertItem(itemStack);
-        }
-
-
-        //発電機は何かを出力したりしない
-        public void AddOutputConnector(IBlockInventory blockInventory)
-        {
-        }
-
-        public void RemoveOutputConnector(IBlockInventory blockInventory)
-        {
         }
 
         public IItemStack GetItem(int slot)
@@ -190,9 +183,6 @@ namespace Game.Block.Blocks.PowerGenerator
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
                 EntityId, slot, itemStack));
         }
-
-
-
 
         public bool Equals(IBlock other)
         {
