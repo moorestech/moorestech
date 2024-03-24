@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.Block;
+using Client.Game.BlockSystem;
 using Client.Game.BlockSystem.StateChange;
 using Cysharp.Threading.Tasks;
 using Game.Block;
@@ -27,10 +28,10 @@ namespace Client.Game.Context
         public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory, BlockGameObject nothingIndexBlockObject, IBlockConfig blockConfig)
         {
             var blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory, blockConfig);
-            
+
             return new BlockGameObjectContainer(nothingIndexBlockObject, blockConfig, blockObjectList);
         }
-        
+
         public BlockGameObjectContainer(BlockGameObject nothingIndexBlockObject, IBlockConfig blockConfig, List<BlockData> blockObjectList)
         {
             _nothingIndexBlockObject = nothingIndexBlockObject;
@@ -39,7 +40,7 @@ namespace Client.Game.Context
         }
 
 
-        public BlockGameObject CreateBlock(int blockId, Vector3 position, Quaternion rotation,Transform parent, Vector3Int blockPosition)
+        public BlockGameObject CreateBlock(int blockId, Vector3 position, Quaternion rotation, Transform parent, Vector3Int blockPosition)
         {
             //ブロックIDは1から始まるので、オブジェクトのリストインデックスマイナス１する
             var blockConfigIndex = blockId - 1;
@@ -56,7 +57,7 @@ namespace Client.Game.Context
 
             //ブロックの作成とセットアップをして返す
             var block = Object.Instantiate(_blockObjectList[blockConfigIndex].BlockObject, position, rotation, parent);
-            
+
             //コンポーネントの設定
             var blockObj = block.AddComponent<BlockGameObject>();
             //子要素のコンポーネントの設定
@@ -65,7 +66,7 @@ namespace Client.Game.Context
                 mesh.gameObject.AddComponent<BlockGameObjectChild>();
                 mesh.gameObject.AddComponent<MeshCollider>();
             }
-            
+
             var blockType = _blockObjectList[blockConfigIndex].Type;
             blockObj.gameObject.SetActive(true);
             blockObj.Initialize(blockConfig, blockPosition, GetBlockStateChangeProcessor(blockObj, blockType));

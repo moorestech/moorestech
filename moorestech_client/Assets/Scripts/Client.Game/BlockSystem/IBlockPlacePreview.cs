@@ -1,10 +1,8 @@
-﻿using Game.World.Interface.DataStore;
-using Constant;
-using Game.Block.Config;
+﻿using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using UnityEngine;
 
-namespace MainGame.UnityView.Block
+namespace Client.Game.BlockSystem
 {
     public interface IBlockPlacePreview
     {

@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics;
+using Client.Common;
 using Client.Starter;
 using Cysharp.Threading.Tasks;
-using GameConst;
-using Constant;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;

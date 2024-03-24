@@ -1,5 +1,6 @@
 ﻿using Client.Game.Block;
 using Client.Game.Context;
+using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.DataStore;
 using MainGame.UnityView.Block;

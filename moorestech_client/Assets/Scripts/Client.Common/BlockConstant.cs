@@ -1,4 +1,4 @@
-﻿namespace Constant
+﻿namespace Client.Common
 {
     public static class BlockConstant
     {

@@ -1,7 +1,7 @@
 using Server.Util.MessagePack;
 using UnityEngine;
 
-namespace Constant
+namespace Client.Common
 {
     public class EntityProperties
     {

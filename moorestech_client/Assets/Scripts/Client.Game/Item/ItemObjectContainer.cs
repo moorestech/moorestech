@@ -1,5 +1,5 @@
 using System;
-using Constant;
+using Client.Common;
 using UnityEngine;
 
 namespace MainGame.UnityView.Item
@@ -31,16 +31,16 @@ namespace MainGame.UnityView.Item
     {
         public string ModId => modId;
         [SerializeField] private string modId = AlphaMod.ModId;
-        
+
         public string Name => name;
         [SerializeField] private string name;
-        
+
         public GameObject ItemPrefab => itemPrefab;
         [SerializeField] private GameObject itemPrefab;
-        
+
         public Vector3 Position => position;
         [SerializeField] private Vector3 position;
-        
+
         public Vector3 Rotation => rotation;
         [SerializeField] private Vector3 rotation;
     }

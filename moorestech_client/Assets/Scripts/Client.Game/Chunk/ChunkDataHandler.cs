@@ -1,17 +1,14 @@
-using System.Collections.Generic;
 using System.Threading;
+using Client.Common;
 using Client.Game.Context;
+using Client.Game.Entity;
 using Client.Network.API;
-using Client.Network.API;
-using Game.World.Interface.DataStore;
-using Constant;
 using Cysharp.Threading.Tasks;
-using MainGame.Presenter.Entity;
+using Game.Block.Interface;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.SoundEffect;
 using MessagePack;
 using Server.Event.EventReceive;
-using Server.Protocol.PacketResponse.Const;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -26,7 +23,7 @@ namespace MainGame.Presenter.Block
         private readonly ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
         private readonly EntityObjectDatastore _entitiesDatastore;
 
-        public ChunkDataHandler(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, EntityObjectDatastore entitiesDatastore,InitialHandshakeResponse initialHandshakeResponse)
+        public ChunkDataHandler(ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, EntityObjectDatastore entitiesDatastore, InitialHandshakeResponse initialHandshakeResponse)
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
             _entitiesDatastore = entitiesDatastore;
@@ -40,14 +37,14 @@ namespace MainGame.Presenter.Block
                 ApplyChunkData(chunk);
             }
         }
-        
+
         /// <summary>
         ///     単一のブロックの更新イベント
         /// </summary>
         private void OnBlockUpdate(byte[] payload)
         {
             var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload);
-            
+
             var blockPos = (Vector3Int)data.BlockData.BlockPos;
             var blockId = data.BlockData.BlockId;
             var blockDirection = data.BlockData.BlockDirection;
@@ -59,7 +56,7 @@ namespace MainGame.Presenter.Block
         private void OnBlockRemove(byte[] packet)
         {
             var data = MessagePackSerializer.Deserialize<RemoveBlockEventMessagePack>(packet);
-            
+
             //viewにブロックがおかれたことを通知する
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.DestroyBlock);
             _chunkBlockGameObjectDataStore.RemoveBlock(data.Position);
@@ -76,7 +73,7 @@ namespace MainGame.Presenter.Block
         private async UniTask OnChunkUpdate()
         {
             var ct = new CancellationTokenSource().Token;
-            
+
             while (true)
             {
                 await GetChunkAndApply();
@@ -92,18 +89,17 @@ namespace MainGame.Presenter.Block
                 {
                     return;
                 }
-                
+
                 foreach (var chunk in data)
                 {
                     ApplyChunkData(chunk);
                 }
             }
 
-
             #endregion
         }
-        
-        
+
+
         private void ApplyChunkData(ChunkResponse chunk)
         {
             foreach (var block in chunk.Blocks)
@@ -147,7 +143,4 @@ namespace MainGame.Presenter.Block
             return -chunkPos - -blockPos;
         }
     }
-    
-    
-
 }

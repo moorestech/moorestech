@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using Client.Common;
 using Client.Game.Context;
 using Client.Game.UI.UIState;
-using Constant;
 using Cysharp.Threading.Tasks;
 using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
@@ -43,7 +43,7 @@ namespace Client.Game.Map.MapObject
             _playerObjectController = playerObjectController;
             _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
         }
-        
+
         private MapObjectGameObject _currentMapObjectGameObject = null;
 
         private async UniTask Update()
@@ -52,7 +52,7 @@ namespace Client.Game.Map.MapObject
             {
                 return;
             }
-            
+
             UpdateCurrentMapObject();
             var isMinenable = IsStartMining();
 
@@ -67,10 +67,10 @@ namespace Client.Game.Map.MapObject
                 {
                     text = "このアイテムが必要です:" + string.Join(", ", GetRecommendItemId(_currentMapObjectGameObject.MapObjectType));
                 }
-                
-                MouseCursorExplainer.Instance.Show(text,isLocalize:isMinenable);
+
+                MouseCursorExplainer.Instance.Show(text, isLocalize: isMinenable);
             }
-            
+
             if (!isMinenable)
             {
                 return;
@@ -82,17 +82,17 @@ namespace Client.Game.Map.MapObject
             }
 
             await Mining();
-            
+
 
             #region Internal
 
             bool IsStartMining()
             {
                 if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return false;
-                
+
                 if (_currentMapObjectGameObject == null) return false;
-            
-                var (_,mineable) = GetMiningData(_currentMapObjectGameObject.MapObjectType);
+
+                var (_, mineable) = GetMiningData(_currentMapObjectGameObject.MapObjectType);
 
                 if (!mineable) return false;
 
@@ -105,13 +105,13 @@ namespace Client.Game.Map.MapObject
                 _miningCancellationTokenSource = new CancellationTokenSource();
 
                 //マイニングバーのUIを表示するやつを設定
-                var (miningTime,_) = GetMiningData(_currentMapObjectGameObject.MapObjectType);
+                var (miningTime, _) = GetMiningData(_currentMapObjectGameObject.MapObjectType);
                 miningObjectProgressbarPresenter.StartMining(miningTime, _miningCancellationTokenSource.Token).Forget();
-                
+
                 //_playerObjectController.SetAnimationState(PlayerAnimationState.Axe);
 
                 var isMiningFinish = await IsMiningFinishWait(miningTime);
-                
+
                 _playerObjectController.SetAnimationState(PlayerAnimationState.IdleWalkRunBlend);
 
                 //マイニングをキャンセルせずに終わったので、マイニング完了をサーバーに送信する
@@ -139,7 +139,7 @@ namespace Client.Game.Map.MapObject
                 }
 
                 if (_currentMapObjectGameObject == mapObject) return;
-                
+
                 if (_currentMapObjectGameObject != null)
                 {
                     _currentMapObjectGameObject.OutlineEnable(false);
@@ -204,14 +204,14 @@ namespace Client.Game.Map.MapObject
             {
                 return mapObjectType switch
                 {
-                    VanillaMapObjectType.VanillaTree => new List<string> {"iron ax", "stone ax", "stone tool"},
-                    VanillaMapObjectType.VanillaBigTree => new List<string> {"iron ax"},
-                    VanillaMapObjectType.VanillaCoal => new List<string> {"iron pickaxe"},
-                    VanillaMapObjectType.VanillaIronOre => new List<string> {"iron pickaxe"},
+                    VanillaMapObjectType.VanillaTree => new List<string> { "iron ax", "stone ax", "stone tool" },
+                    VanillaMapObjectType.VanillaBigTree => new List<string> { "iron ax" },
+                    VanillaMapObjectType.VanillaCoal => new List<string> { "iron pickaxe" },
+                    VanillaMapObjectType.VanillaIronOre => new List<string> { "iron pickaxe" },
                     _ => new List<string>()
                 };
             }
-            
+
             async UniTask<bool> IsMiningFinishWait(float miningTime)
             {
                 //map objectがフォーカスされ、クリックされているので採掘を行う
@@ -259,7 +259,7 @@ namespace Client.Game.Map.MapObject
 
                 SoundEffectManager.Instance.PlaySoundEffect(soundEffectType);
             }
-            
+
             #endregion
         }
 
@@ -270,15 +270,12 @@ namespace Client.Game.Map.MapObject
             if (!Physics.Raycast(ray, out var hit, 10)) return null;
             if (EventSystem.current.IsPointerOverGameObject()) return null;
             if (!hit.collider.gameObject.TryGetComponent(out MapObjectGameObject mapObject)) return null;
-                
+
             var playerPos = _playerObjectController.Position;
             var mapObjectPos = mapObject.transform.position;
             if (miningDistance < Vector3.Distance(playerPos, mapObjectPos)) return null;
 
             return mapObject;
         }
-
-
-
     }
 }

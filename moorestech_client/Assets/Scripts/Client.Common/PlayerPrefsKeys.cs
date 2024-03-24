@@ -1,4 +1,4 @@
-﻿namespace GameConst
+﻿namespace Client.Common
 {
     public class PlayerPrefsKeys
     {

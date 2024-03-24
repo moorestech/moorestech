@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using static System.IO.Path;
 
-namespace GameConst
+namespace Client.Common
 {
     public class ServerConst
     {

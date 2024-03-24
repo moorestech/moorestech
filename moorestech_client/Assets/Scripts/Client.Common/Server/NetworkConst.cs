@@ -1,4 +1,4 @@
-﻿namespace Constant.Server
+﻿namespace Client.Common.Server
 {
     public class NetworkConst
     {

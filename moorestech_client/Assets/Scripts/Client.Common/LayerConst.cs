@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Constant
+namespace Client.Common
 {
     public class LayerConst
     {
@@ -10,7 +10,7 @@ namespace Constant
 
         public static readonly int BlockOnlyLayerMask = 1 << BlockLayer;
         public static readonly int MapObjectOnlyLayerMask = 1 << MapObjectLayer;
-        
+
         public static readonly int WithoutMapObjectAndPlayerLayerMask = ~MapObjectOnlyLayerMask & ~PlayerLayer;
     }
 }

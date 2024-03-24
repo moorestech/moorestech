@@ -35,7 +35,7 @@ namespace Game.Block.Interface
         /// サーバー側管理のブロックの最大座標を計算する
         /// これはどのグリッドにブロックが存在しているかということに使われるため、サイズ 1,1 の場合、originとmaxの値はおなじになる
         /// </summary>
-        private static Vector3Int CalcBlockMaxPos(Vector3Int originPos,BlockDirection direction,Vector3Int blockSize)
+        public static Vector3Int CalcBlockMaxPos(Vector3Int originPos,BlockDirection direction,Vector3Int blockSize)
         {
             var addPos = Vector3Int.zero;
             switch (direction)

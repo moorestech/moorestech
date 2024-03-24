@@ -3,14 +3,10 @@ using System.Collections.Generic;
 using Client.Game.Context;
 using Client.Network.API;
 using Game.Entity.Interface;
-using Constant;
 using MainGame.UnityView.Entity;
-using MainGame.UnityView.Item;
-using MainGame.UnityView.UI.Inventory.Element;
 using UnityEngine;
-using VContainer;
 
-namespace MainGame.Presenter.Entity
+namespace Client.Game.Entity
 {
     public class EntityObjectDatastore : MonoBehaviour
     {

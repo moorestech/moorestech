@@ -1,4 +1,5 @@
-﻿using Client.Game.Control.MouseKeyboard;
+﻿using Client.Game.BlockSystem;
+using Client.Game.Control.MouseKeyboard;
 using MainGame.UnityView.Block;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory;
@@ -7,7 +8,6 @@ namespace Client.Game.UI.UIState
 {
     public class GameScreenState : IUIState
     {
-
         public UIStateEnum GetNext()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;

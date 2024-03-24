@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Client.Common;
 using CsvHelper;
-using GameConst;
 using UniRx;
 using UnityEngine;
 

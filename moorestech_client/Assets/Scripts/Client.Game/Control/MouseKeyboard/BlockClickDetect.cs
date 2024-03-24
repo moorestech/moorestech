@@ -1,5 +1,5 @@
+using Client.Common;
 using Client.Game.Block;
-using Constant;
 using MainGame.UnityView.Control;
 using UnityEngine;
 using UnityEngine.EventSystems;

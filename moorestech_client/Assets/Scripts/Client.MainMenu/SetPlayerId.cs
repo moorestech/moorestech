@@ -1,4 +1,4 @@
-﻿using GameConst;
+﻿using Client.Common;
 using UnityEngine;
 
 namespace MainMenu
