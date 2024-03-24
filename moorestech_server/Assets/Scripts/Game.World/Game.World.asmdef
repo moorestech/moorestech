@@ -1,21 +1,21 @@
 {
-    "name": "Game.World",
-    "rootNamespace": "",
-    "references": [
-        "Game.World.Interface",
-        "Core.Util",
-        "Core.Const",
-        "Core.EnergySystem",
-        "Game.Block.Interface",
-        "UniRx"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Game.World",
+  "rootNamespace": "",
+  "references": [
+    "Game.World.Interface",
+    "Core.Util",
+    "Core.Const",
+    "Core.EnergySystem",
+    "Game.Block.Interface",
+    "UniRx"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

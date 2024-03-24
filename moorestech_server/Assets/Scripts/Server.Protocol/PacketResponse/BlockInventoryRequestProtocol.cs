@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Core.Inventory;
 using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.DataStore;
@@ -67,7 +66,7 @@ namespace Server.Protocol.PacketResponse
             Tag = BlockInventoryRequestProtocol.Tag;
             Pos = new Vector3IntMessagePack(pos);
         }
-        
+
         [Key(2)]
         public Vector3IntMessagePack Pos { get; set; }
     }

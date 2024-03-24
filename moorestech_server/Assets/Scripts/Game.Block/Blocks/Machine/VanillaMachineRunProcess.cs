@@ -11,8 +11,6 @@ namespace Game.Block.Blocks.Machine
 {
     public class VanillaMachineRunProcess
     {
-        public Subject<ChangedBlockState> ChangeState = new();
-
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
 
@@ -20,6 +18,7 @@ namespace Game.Block.Blocks.Machine
         private int _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
         private MachineRecipeData _processingRecipeData;
+        public Subject<ChangedBlockState> ChangeState = new();
 
         public VanillaMachineRunProcess(
             VanillaMachineInputInventory vanillaMachineInputInventory,
@@ -124,7 +123,7 @@ namespace Game.Block.Blocks.Machine
     public enum ProcessState
     {
         Idle,
-        Processing
+        Processing,
     }
 
     public static class ProcessStateExtension
@@ -139,7 +138,7 @@ namespace Game.Block.Blocks.Machine
             {
                 ProcessState.Idle => VanillaMachineBlockStateConst.IdleState,
                 ProcessState.Processing => VanillaMachineBlockStateConst.ProcessingState,
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
             };
         }
     }

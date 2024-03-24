@@ -1,22 +1,22 @@
 {
-    "name": "Game.World.EventHandler",
-    "rootNamespace": "",
-    "references": [
-        "Core.EnergySystem",
-        "Game.Block.Interface",
-        "Game.World.Interface",
-        "Core.Util",
-        "Core.Item",
-        "Game.Block",
-        "Game.Map.Interface"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Game.World.EventHandler",
+  "rootNamespace": "",
+  "references": [
+    "Core.EnergySystem",
+    "Game.Block.Interface",
+    "Game.World.Interface",
+    "Core.Util",
+    "Core.Item",
+    "Game.Block",
+    "Game.Map.Interface"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

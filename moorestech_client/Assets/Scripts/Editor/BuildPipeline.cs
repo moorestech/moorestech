@@ -52,7 +52,7 @@ public class BuildPipeline
         {
             target = buildTarget,
             locationPathName = path + (buildTarget == BuildTarget.StandaloneWindows64 ? "/moorestech.exe" : "/moorestech"),
-            scenes = EditorBuildSettings.scenes.Select(s => s.path).ToArray()
+            scenes = EditorBuildSettings.scenes.Select(s => s.path).ToArray(),
         };
 
         var report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);

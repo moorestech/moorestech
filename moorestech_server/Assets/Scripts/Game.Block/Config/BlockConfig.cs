@@ -15,9 +15,9 @@ namespace Game.Block.Config
     {
         private readonly List<BlockConfigData> _blockConfigList;
         private readonly Dictionary<long, BlockConfigData> _bockHashToConfig = new();
+
+        private readonly Dictionary<int, int> _itemIdToBlockId = new();
         private readonly Dictionary<string, List<int>> _modIdToBlockIds = new();
-        
-        private readonly Dictionary<int,int> _itemIdToBlockId = new();
 
         public BlockConfig(ConfigJsonList configJson, IItemConfig itemConfig)
         {
@@ -30,13 +30,13 @@ namespace Game.Block.Config
                 _bockHashToConfig.Add(blockConfig.BlockHash, blockConfig);
 
                 var blockId = blockConfig.BlockId;
-                if (_modIdToBlockIds.TryGetValue(blockConfig.ModId, out var blockIds))
+                if (_modIdToBlockIds.TryGetValue(blockConfig.ModId, out List<int> blockIds))
                     blockIds.Add(blockId);
                 else
                     _modIdToBlockIds.Add(blockConfig.ModId, new List<int> { blockId });
             }
-            
-            
+
+
             for (var i = 1; i <= GetBlockConfigCount(); i++)
             {
                 var itemId = GetBlockConfig(i).ItemId;
@@ -96,7 +96,7 @@ namespace Game.Block.Config
 
         public List<int> GetBlockIds(string modId)
         {
-            return _modIdToBlockIds.TryGetValue(modId, out var blockIds) ? blockIds : new List<int>();
+            return _modIdToBlockIds.TryGetValue(modId, out List<int> blockIds) ? blockIds : new List<int>();
         }
 
         public bool IsBlock(int itemId)

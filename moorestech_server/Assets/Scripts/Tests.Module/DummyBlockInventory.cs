@@ -4,7 +4,6 @@ using Core.Const;
 using Core.Item;
 using Core.Item.Util;
 using Game.Block.BlockInventory;
-using UnityEngine;
 
 namespace Tests.Module
 {
@@ -53,14 +52,6 @@ namespace Tests.Module
             return itemStack;
         }
 
-        public void AddOutputConnector(IBlockInventory blockInventory)
-        {
-        }
-
-        public void RemoveOutputConnector(IBlockInventory blockInventory)
-        {
-        }
-
         public IItemStack GetItem(int slot)
         {
             return _insertedItems[slot];
@@ -74,6 +65,14 @@ namespace Tests.Module
         public int GetSlotSize()
         {
             return _insertedItems.Count;
+        }
+
+        public void AddOutputConnector(IBlockInventory blockInventory)
+        {
+        }
+
+        public void RemoveOutputConnector(IBlockInventory blockInventory)
+        {
         }
     }
 }

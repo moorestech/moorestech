@@ -14,7 +14,7 @@ namespace Server.Protocol.PacketResponse
     public class SetPlayerCoordinateProtocol : IPacketResponse
     {
         public const string Tag = "va:playerCoordinate";
-        
+
         private readonly IEntitiesDatastore _entitiesDatastore;
 
         public SetPlayerCoordinateProtocol(ServiceProvider serviceProvider)
@@ -27,7 +27,7 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<PlayerCoordinateSendProtocolMessagePack>(payload.ToArray());
 
             //プレイヤーの座標を更新する
-            var newPosition = new Vector3(data.Pos.X,0, data.Pos.Y);
+            var newPosition = new Vector3(data.Pos.X, 0, data.Pos.Y);
             _entitiesDatastore.SetPosition(data.PlayerId, newPosition);
 
             return null;
@@ -38,11 +38,6 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class PlayerCoordinateSendProtocolMessagePack : ProtocolMessagePackBase
     {
-        [Key(2)]
-        public int PlayerId { get; set; }
-        [Key(3)]
-        public Vector2MessagePack Pos { get; set; }
-        
         public PlayerCoordinateSendProtocolMessagePack(int playerId, Vector2 pos)
         {
             Tag = SetPlayerCoordinateProtocol.Tag;
@@ -52,5 +47,9 @@ namespace Server.Protocol.PacketResponse
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public PlayerCoordinateSendProtocolMessagePack() { }
+        [Key(2)]
+        public int PlayerId { get; set; }
+        [Key(3)]
+        public Vector2MessagePack Pos { get; set; }
     }
 }

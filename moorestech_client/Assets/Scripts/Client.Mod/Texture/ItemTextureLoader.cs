@@ -17,9 +17,9 @@ namespace MainGame.ModLoader.Texture
 
             var mods = new ModsResource(modDirectory);
 
-            foreach (var mod in mods.Mods)
+            foreach (KeyValuePair<string, Mod.Loader.Mod> mod in mods.Mods)
             {
-                var itemIds = itemConfig.GetItemIds(mod.Value.ModMetaJson.ModId);
+                List<int> itemIds = itemConfig.GetItemIds(mod.Value.ModMetaJson.ModId);
                 var itemConfigs = itemIds.Select(itemConfig.GetItemConfig).ToList();
 
                 textureList.AddRange(GetTextures(itemConfigs, mod.Value));
@@ -48,8 +48,6 @@ namespace MainGame.ModLoader.Texture
     public class ItemViewData
     {
         public readonly ItemConfigData ItemConfigData;
-        public int ItemId => ItemConfigData.ItemId;
-        public string ItemName => ItemConfigData.Name;
 
         public readonly Sprite ItemImage;
         public readonly UnityEngine.Texture ItemTexture;
@@ -60,5 +58,7 @@ namespace MainGame.ModLoader.Texture
             ItemConfigData = itemConfigData;
             ItemTexture = itemTexture;
         }
+        public int ItemId => ItemConfigData.ItemId;
+        public string ItemName => ItemConfigData.Name;
     }
 }

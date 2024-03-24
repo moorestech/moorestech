@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
 using Server.Protocol;
 using UnityEngine;
 
@@ -28,7 +27,7 @@ namespace Server.Boot.PacketHandle
 
                 var receiveThread = new Thread(() => new UserResponse(client, packetResponseCreator).StartListen());
                 receiveThread.Name = "[moorestech] 受信スレッド";
-                
+
                 receiveThread.Start();
             }
         }

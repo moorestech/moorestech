@@ -16,14 +16,6 @@ namespace Game.Block.BlockInventory
             return itemStack;
         }
 
-        public void AddOutputConnector(IBlockInventory blockInventory)
-        {
-        }
-
-        public void RemoveOutputConnector(IBlockInventory blockInventory)
-        {
-        }
-
         public IItemStack GetItem(int slot)
         {
             return _itemStackFactory.CreatEmpty();
@@ -36,6 +28,14 @@ namespace Game.Block.BlockInventory
         public int GetSlotSize()
         {
             return 0;
+        }
+
+        public void AddOutputConnector(IBlockInventory blockInventory)
+        {
+        }
+
+        public void RemoveOutputConnector(IBlockInventory blockInventory)
+        {
         }
     }
 }

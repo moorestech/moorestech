@@ -12,10 +12,6 @@ namespace Game.Block.Component.IOConnector
 {
     public class InputConnectorComponent : IBlockComponent
     {
-        public IReadOnlyList<IBlockInventory> ConnectInventory => _connectInventory;
-
-        public bool IsDestroy { get; private set; }
-
         private readonly IBlockConfig _blockConfig;
         private readonly BlockDirection _blockDirection;
 
@@ -37,7 +33,7 @@ namespace Game.Block.Component.IOConnector
             _ioConnectionSetting = ioConnectionSetting;
 
 
-            var outputPoss = ConvertConnectDirection(_ioConnectionSetting.OutputConnector);
+            List<Vector3Int> outputPoss = ConvertConnectDirection(_ioConnectionSetting.OutputConnector);
             foreach (var outputPos in outputPoss)
             {
                 _blockUpdateEvents.Add(worldBlockUpdateEvent.SubscribePlace(outputPos, b => PlaceBlock(b.Pos)));
@@ -57,12 +53,15 @@ namespace Game.Block.Component.IOConnector
             {
                 var blockPosConvertAction = _blockDirection.GetCoordinateConvertAction();
 
-                var convertedPositions = connectDirection.Select(c => blockPosConvertAction(c.ToVector3Int()) + _blockPos);
+                IEnumerable<Vector3Int> convertedPositions = connectDirection.Select(c => blockPosConvertAction(c.ToVector3Int()) + _blockPos);
                 return convertedPositions.ToList();
             }
 
             #endregion
         }
+        public IReadOnlyList<IBlockInventory> ConnectInventory => _connectInventory;
+
+        public bool IsDestroy { get; private set; }
 
         public void Destroy()
         {
@@ -84,7 +83,7 @@ namespace Game.Block.Component.IOConnector
             if (!_worldBlockDatastore.TryGetBlock<IBlockInventory>(destinationPos, out var blockInventory)) return;
 
             //接続元のブロックデータを取得
-            var (_, sourceBlockOutputConnector) = GetConnectionPositions(_ioConnectionSetting, _blockDirection);
+            (_, List<ConnectDirection> sourceBlockOutputConnector) = GetConnectionPositions(_ioConnectionSetting, _blockDirection);
 
 
             //接続先のブロックデータを取得
@@ -92,7 +91,7 @@ namespace Game.Block.Component.IOConnector
 
             var destinationSetting = destinationInputConnector._ioConnectionSetting;
             var destinationDirection = _worldBlockDatastore.GetBlockDirection(destinationPos);
-            var (destinationBlockInputConnector, _) = GetConnectionPositions(destinationSetting, destinationDirection);
+            (List<ConnectDirection> destinationBlockInputConnector, _) = GetConnectionPositions(destinationSetting, destinationDirection);
 
             //接続元の接続可能リストに接続先がなかったら終了
             if (!_ioConnectionSetting.ConnectableBlockType.Contains(destinationBlockType)) return;
@@ -121,8 +120,8 @@ namespace Game.Block.Component.IOConnector
             // 接続先のブロックの接続可能な位置を取得する
             (List<ConnectDirection> input, List<ConnectDirection> output) GetConnectionPositions(IOConnectionSetting connectionSetting, BlockDirection blockDirection)
             {
-                var rawInputConnector = connectionSetting.InputConnector;
-                var rawOutputConnector = connectionSetting.OutputConnector;
+                ConnectDirection[] rawInputConnector = connectionSetting.InputConnector;
+                ConnectDirection[] rawOutputConnector = connectionSetting.OutputConnector;
 
                 var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
 

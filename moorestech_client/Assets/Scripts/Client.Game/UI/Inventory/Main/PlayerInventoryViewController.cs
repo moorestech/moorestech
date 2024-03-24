@@ -4,19 +4,19 @@ using System.Linq;
 using ClassLibrary;
 using Client.Common;
 using Client.Game.Context;
+using Client.Game.UI.Inventory.Element;
 using Core.Const;
 using Core.Item;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Control;
-using MainGame.UnityView.UI.Inventory.Element;
 using UniRx;
 using UnityEngine;
 using VContainer;
 
-namespace MainGame.UnityView.UI.Inventory.Main
+namespace Client.Game.UI.Inventory.Main
 {
     /// <summary>
-    /// TODO フラグ管理をステートベースに変換する
+    ///     TODO フラグ管理をステートベースに変換する
     /// </summary>
     public class PlayerInventoryViewController : MonoBehaviour
     {
@@ -25,20 +25,19 @@ namespace MainGame.UnityView.UI.Inventory.Main
         [SerializeField] private List<ItemSlotObject> mainInventorySlotObjects;
         [SerializeField] private ItemSlotObject grabInventorySlotObject;
 
+        //現在スプリットドラッグしているスロットのリスト
+        private readonly List<ItemSplitDragSlot> _itemSplitDraggedSlots = new();
+        //ドラッグ中のアイテムをドラッグする前のGrabインベントリ
+        private IItemStack _grabInventoryBeforeDrag;
+        private bool _isItemOneDragging;
+        private bool _isItemSplitDragging;
+
         private LocalPlayerInventoryController _playerInventory;
 
         private ISubInventory _subInventory;
-        private List<IDisposable> _subInventorySlotUIEventUnsubscriber = new();
-        private bool _isItemSplitDragging;
-        private bool _isItemOneDragging;
+        private readonly List<IDisposable> _subInventorySlotUIEventUnsubscriber = new();
 
         private bool IsGrabItem => _playerInventory.GrabInventory.Id != ItemConst.EmptyItemId;
-
-        [Inject]
-        public void Construct(LocalPlayerInventoryController playerInventory)
-        {
-            _playerInventory = playerInventory;
-        }
 
         private void Awake()
         {
@@ -46,6 +45,18 @@ namespace MainGame.UnityView.UI.Inventory.Main
             {
                 mainInventorySlotObject.OnPointerEvent.Subscribe(ItemSlotUIEvent);
             }
+        }
+
+
+        private void Update()
+        {
+            InventoryViewUpdate();
+        }
+
+        [Inject]
+        public void Construct(LocalPlayerInventoryController playerInventory)
+        {
+            _playerInventory = playerInventory;
         }
 
         public void SetSubInventory(ISubInventory subInventory)
@@ -255,11 +266,6 @@ namespace MainGame.UnityView.UI.Inventory.Main
                 _isItemOneDragging = false;
         }
 
-        //現在スプリットドラッグしているスロットのリスト
-        private readonly List<ItemSplitDragSlot> _itemSplitDraggedSlots = new();
-        //ドラッグ中のアイテムをドラッグする前のGrabインベントリ
-        private IItemStack _grabInventoryBeforeDrag;
-
         private void SplitDraggingItem(int slotIndex, bool isMoveSendData)
         {
             if (!_playerInventory.LocalPlayerInventory[slotIndex].IsAllowedToAddWithRemain(_playerInventory.GrabInventory)) return;
@@ -312,7 +318,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
 
             var startIndex = isMain ? 0 : PlayerInventoryConst.MainInventorySize;
             var endIndex = isMain ? PlayerInventoryConst.MainInventorySize : PlayerInventoryConst.MainInventorySize + _subInventory.Count;
-            for (int i = startIndex; i < endIndex; i++)
+            for (var i = startIndex; i < endIndex; i++)
             {
                 _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub, slotIndex, LocalMoveInventoryType.MainOrSub, i, _playerInventory.LocalPlayerInventory[slotIndex].Count);
                 //アイテムがなくなったら終了する
@@ -325,15 +331,9 @@ namespace MainGame.UnityView.UI.Inventory.Main
             mainInventoryObject.SetActive(isActive);
         }
 
-
-        private void Update()
-        {
-            InventoryViewUpdate();
-        }
-
         private void InventoryViewUpdate()
         {
-            for (int i = 0; i < _playerInventory.LocalPlayerInventory.Count; i++)
+            for (var i = 0; i < _playerInventory.LocalPlayerInventory.Count; i++)
             {
                 var item = _playerInventory.LocalPlayerInventory[i];
                 var itemView = MoorestechContext.ItemImageContainer.GetItemView(item.Id);
@@ -356,13 +356,12 @@ namespace MainGame.UnityView.UI.Inventory.Main
 
     public class ItemSplitDragSlot
     {
-        public int Slot { get; }
-        public IItemStack BeforeDragItem { get; }
-
         public ItemSplitDragSlot(int slot, IItemStack beforeDragItem)
         {
             Slot = slot;
             BeforeDragItem = beforeDragItem;
         }
+        public int Slot { get; }
+        public IItemStack BeforeDragItem { get; }
     }
 }

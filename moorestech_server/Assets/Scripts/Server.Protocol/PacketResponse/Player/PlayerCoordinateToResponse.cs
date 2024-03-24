@@ -22,8 +22,8 @@ namespace Server.Protocol.PacketResponse.Player
 
             _lastGetTime = DateTime.Now;
 
-            var now = GetChunkCoordinates(coreVector2Int);
-            var last = GetChunkCoordinates(_lastCoreVector2Int);
+            List<Vector3Int> now = GetChunkCoordinates(coreVector2Int);
+            List<Vector3Int> last = GetChunkCoordinates(_lastCoreVector2Int);
             _lastCoreVector2Int = coreVector2Int;
             for (var i = now.Count - 1; i >= 0; i--)
             {

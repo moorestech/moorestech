@@ -1,17 +1,17 @@
 {
-    "name": "Mod.Config",
-    "rootNamespace": "",
-    "references": [
-        "Core.ConfigJson",
-        "Mod.Loader"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Mod.Config",
+  "rootNamespace": "",
+  "references": [
+    "Core.ConfigJson",
+    "Mod.Loader"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

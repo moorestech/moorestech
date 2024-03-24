@@ -1,18 +1,16 @@
 using Core.Item;
-using Game.Block.Interface;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
-using Game.World.Interface.DataStore;
 
 namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaBeltConveyorTemplate : IBlockTemplate
     {
-        private readonly ItemStackFactory _itemStackFactory;
         private readonly ComponentFactory _componentFactory;
+        private readonly ItemStackFactory _itemStackFactory;
 
         public VanillaBeltConveyorTemplate(ItemStackFactory itemStackFactory, ComponentFactory componentFactory)
         {

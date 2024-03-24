@@ -30,6 +30,6 @@ namespace Game.Map.Interface.Json
         }
 
         [JsonIgnore]
-        public Vector3 Position => new(x,y, z);
+        public Vector3 Position => new(x, y, z);
     }
 }

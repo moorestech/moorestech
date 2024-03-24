@@ -1,35 +1,32 @@
 using System;
 using Client.Game.Context;
-using Client.Network.API;
 using Core.Item;
 using Game.PlayerInventory.Interface;
-using MainGame.Network.Send;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
-using ServerServiceProvider;
 
-namespace MainGame.UnityView.UI.Inventory.Main
+namespace Client.Game.UI.Inventory.Main
 {
     public class LocalPlayerInventoryController
     {
-        public ILocalPlayerInventory LocalPlayerInventory => _mainAndSubCombine;
         private readonly LocalPlayerInventory _mainAndSubCombine;
-        public IItemStack GrabInventory { get; private set; }
-        
+
         private ISubInventory _subInventory;
-        
+
         public LocalPlayerInventoryController(ILocalPlayerInventory localPlayerInventoryMainAndSubCombine)
         {
             _mainAndSubCombine = (LocalPlayerInventory)localPlayerInventoryMainAndSubCombine;
             GrabInventory = MoorestechContext.ServerServices.ItemStackFactory.Create(0, 0);
         }
+        public ILocalPlayerInventory LocalPlayerInventory => _mainAndSubCombine;
+        public IItemStack GrabInventory { get; private set; }
 
-        public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count,bool isMoveSendData = true)
+        public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count, bool isMoveSendData = true)
         {
             var fromInvItem = from switch
             {
                 LocalMoveInventoryType.MainOrSub => LocalPlayerInventory[fromSlot],
                 LocalMoveInventoryType.Grab => GrabInventory,
-                _ => throw new ArgumentOutOfRangeException(nameof(from), from, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(from), from, null),
             };
 
             if (fromInvItem.Count < count)
@@ -45,19 +42,19 @@ namespace MainGame.UnityView.UI.Inventory.Main
             }
 
             #region InternalMethod
-            
+
             void SetInventory()
             {
                 var itemStackFactory = MoorestechContext.ServerServices.ItemStackFactory;
-                
+
                 var toInvItem = to switch
                 {
                     LocalMoveInventoryType.MainOrSub => LocalPlayerInventory[toSlot],
                     LocalMoveInventoryType.Grab => GrabInventory,
-                    _ => throw new ArgumentOutOfRangeException(nameof(to), to, null)
+                    _ => throw new ArgumentOutOfRangeException(nameof(to), to, null),
                 };
                 var moveItem = itemStackFactory.Create(fromInvItem.Id, count);
-                
+
                 var add = toInvItem.AddItem(moveItem);
                 switch (to)
                 {
@@ -83,25 +80,27 @@ namespace MainGame.UnityView.UI.Inventory.Main
                         break;
                 }
             }
+
             void SendMoveItemData()
             {
-                var fromInfo = GetServerInventoryInfo(from,fromSlot);
-                var toInfo = GetServerInventoryInfo(to,toSlot);
-                MoorestechContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromInfo,fromSlot, toInfo,toSlot);
+                var fromInfo = GetServerInventoryInfo(from, fromSlot);
+                var toInfo = GetServerInventoryInfo(to, toSlot);
+                MoorestechContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromInfo, fromSlot, toInfo, toSlot);
             }
 
-            ItemMoveInventoryInfo GetServerInventoryInfo(LocalMoveInventoryType localType,int localSlot)
+            ItemMoveInventoryInfo GetServerInventoryInfo(LocalMoveInventoryType localType, int localSlot)
             {
                 return localType switch
                 {
                     LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize ? new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory) : _subInventory.ItemMoveInventoryInfo,
                     LocalMoveInventoryType.Grab => new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory),
-                    _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null)
-                }; 
+                    _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
+                };
             }
+
             #endregion
         }
-        
+
         public void SetGrabItem(IItemStack itemStack)
         {
             GrabInventory = itemStack;
@@ -110,7 +109,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
         {
             _mainAndSubCombine[slot] = itemStack;
         }
-        
+
         public void SetSubInventory(ISubInventory subInventory)
         {
             _mainAndSubCombine.SetSubInventory(subInventory);
@@ -120,7 +119,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
 
     public enum LocalMoveInventoryType
     {
-        MainOrSub,//メインインベントリとサブインベントリの両方（ドラッグアンドドロップなどでは統一して扱うから
-        Grab //持ち手のインベントリ
+        MainOrSub, //メインインベントリとサブインベントリの両方（ドラッグアンドドロップなどでは統一して扱うから
+        Grab, //持ち手のインベントリ
     }
 }

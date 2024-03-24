@@ -18,12 +18,12 @@ namespace Mod.Loader
 
         /// <summary>
         ///     Mod内に格納されているリソースをロードする
-        /// TODO これもコンストラクタに入れる
+        ///     TODO これもコンストラクタに入れる
         /// </summary>
         public ModsResource(string modDirectory)
         {
             Mods = LoadModFromZip(modDirectory);
-            foreach (var mod in LoadModFromFolder(modDirectory)) Mods.Add(mod.Key, mod.Value);
+            foreach (KeyValuePair<string, Mod> mod in LoadModFromFolder(modDirectory)) Mods.Add(mod.Key, mod.Value);
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace Mod.Loader
                 foreach (var dllPath in Directory.GetFiles(modDirectory, "*.dll", SearchOption.AllDirectories))
                 {
                     var assembly = Assembly.LoadFrom(dllPath);
-                    var modBaseTypes = assembly.GetTypes()
+                    IEnumerable<Type> modBaseTypes = assembly.GetTypes()
                         .Where(t => t.IsSubclassOf(typeof(MoorestechServerModEntryPoint)));
                     foreach (var modBaseType in modBaseTypes)
                     {

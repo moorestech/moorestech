@@ -62,6 +62,24 @@ namespace Game.Block.Blocks.Machine
         #endregion
 
 
+
+        public bool Equals(IBlock other)
+        {
+            if (other is null) return false;
+            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is IBlock other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(EntityId, BlockId, BlockHash);
+        }
+
+
         #region IBlockInventory
 
         public IItemStack InsertItem(IItemStack itemStack)
@@ -134,23 +152,5 @@ namespace Game.Block.Blocks.Machine
         }
 
         #endregion
-
-
-
-        public bool Equals(IBlock other)
-        {
-            if (other is null) return false;
-            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is IBlock other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(EntityId, BlockId, BlockHash);
-        }
     }
 }

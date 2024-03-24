@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Sockets;
 using Server.Protocol;
 using Server.Util;
@@ -10,6 +11,9 @@ namespace Server.Boot.PacketHandle
     {
         private readonly Socket _client;
         private readonly PacketResponseCreator _packetResponseCreator;
+        private int _byteCount;
+
+        private DateTime _startTime;
 
         public UserResponse(Socket client, PacketResponseCreator packetResponseCreator)
         {
@@ -17,14 +21,11 @@ namespace Server.Boot.PacketHandle
             _client = client;
         }
 
-        private DateTime _startTime;
-        private int _byteCount;
-        
 
         public void StartListen()
         {
             _startTime = DateTime.Now;
-            
+
             var buffer = new byte[4096];
             //切断されるまでパケットを受信
             try
@@ -47,8 +48,8 @@ namespace Server.Boot.PacketHandle
                 Debug.Log(e);
             }
         }
-        
-        
+
+
 
         private bool ReceiveProcess(PacketBufferParser parser, byte[] buffer)
         {
@@ -56,12 +57,12 @@ namespace Server.Boot.PacketHandle
             if (length == 0) return true;
 
             //受信データをパケットに分割
-            var packets = parser.Parse(buffer, length);
+            List<List<byte>> packets = parser.Parse(buffer, length);
 
-            foreach (var packet in packets)
+            foreach (List<byte> packet in packets)
             {
-                var results = _packetResponseCreator.GetPacketResponse(packet);
-                foreach (var result in results)
+                List<List<byte>> results = _packetResponseCreator.GetPacketResponse(packet);
+                foreach (List<byte> result in results)
                 {
                     result.InsertRange(0, ToByteList.Convert(result.Count));
                     var array = result.ToArray();
@@ -74,17 +75,17 @@ namespace Server.Boot.PacketHandle
 
             return false;
         }
-        
+
         public static void LogDataConsumption(int bytesSent, DateTime startTime)
         {
             // Convert bytes to Megabytes
-            double megabytesSent = (double)bytesSent / (1024);
+            var megabytesSent = (double)bytesSent / 1024;
 
             // Calculate elapsed time in seconds
-            double elapsedTimeSeconds = (DateTime.Now - startTime).TotalSeconds;
+            var elapsedTimeSeconds = (DateTime.Now - startTime).TotalSeconds;
 
             // Calculate avg bandwidth in MB/s
-            double avgBandwidth = megabytesSent / elapsedTimeSeconds;
+            var avgBandwidth = megabytesSent / elapsedTimeSeconds;
 
             // Output the result
             Debug.Log($"送信量 {megabytesSent:F1} KB 平均消費帯域 {avgBandwidth:F1} KB/s 時間 {elapsedTimeSeconds}");

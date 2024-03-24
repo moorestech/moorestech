@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 using Client.Game.Block;
 using Client.Game.Context;
+using Client.Game.UI.Inventory;
+using Client.Game.UI.Inventory.Main;
 using Client.Game.UI.UIState;
 using Core.Const;
 using Game.Block;
 using Game.Block.Config.LoadConfig.Param;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Chunk;
-using MainGame.UnityView.UI.Inventory;
-using MainGame.UnityView.UI.Inventory.Main;
 using UnityEngine;
 using VContainer;
 
@@ -23,13 +23,13 @@ namespace MainGame.Extension
         private readonly List<EnergizedRangeObject> rangeObjects = new();
 
         private ChunkBlockGameObjectDataStore _chunkBlockGameObjectDataStore;
-        private ILocalPlayerInventory _localPlayerInventory;
         private HotBarView _hotBarView;
+        private ILocalPlayerInventory _localPlayerInventory;
 
         private bool isBlockPlaceState;
 
         [Inject]
-        public void Construct(HotBarView hotBarView, UIStateControl uiStateControl, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore,ILocalPlayerInventory localPlayerInventory)
+        public void Construct(HotBarView hotBarView, UIStateControl uiStateControl, ChunkBlockGameObjectDataStore chunkBlockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory)
         {
             _chunkBlockGameObjectDataStore = chunkBlockGameObjectDataStore;
 
@@ -116,7 +116,7 @@ namespace MainGame.Extension
             List<BlockGameObject> GetElectricalPoles()
             {
                 var resultBlocks = new List<BlockGameObject>();
-                foreach (var blocks in _chunkBlockGameObjectDataStore.BlockGameObjectDictionary)
+                foreach (KeyValuePair<Vector3Int, BlockGameObject> blocks in _chunkBlockGameObjectDataStore.BlockGameObjectDictionary)
                 {
                     var blockType = blockConfig.GetBlockConfig(blocks.Value.BlockId).Type;
                     if (blockType != VanillaBlockType.ElectricPole) continue;

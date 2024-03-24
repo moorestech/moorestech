@@ -6,7 +6,7 @@ namespace Client.Game.BlockSystem
 {
     public interface IBlockPlacePreview
     {
-        public void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection,BlockConfigData blockConfig);
+        public void SetPreview(Vector3Int blockPosition, BlockDirection blockDirection, BlockConfigData blockConfig);
 
         public void SetActive(bool active);
     }

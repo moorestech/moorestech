@@ -9,7 +9,7 @@ namespace MainGame.UnityView.UI.Util
         public const int DefaultFontSize = 36;
         // TODO hotbarから毎フレーム呼び出されると常にfalseになってしまうので、何か実装方法を考えたいな、、
         public void Hide();
-        public void Show(string key, int fontSize = DefaultFontSize,bool isLocalize = true);
+        public void Show(string key, int fontSize = DefaultFontSize, bool isLocalize = true);
     }
 
     /// <summary>
@@ -29,7 +29,7 @@ namespace MainGame.UnityView.UI.Util
             Instance = this;
         }
 
-        public void Show(string key, int fontSize = IMouseCursorExplainer.DefaultFontSize,bool isLocalize = true)
+        public void Show(string key, int fontSize = IMouseCursorExplainer.DefaultFontSize, bool isLocalize = true)
         {
             canvasGroup.alpha = 1;
             itemName.text = isLocalize ? Localize.Get(key) : key;

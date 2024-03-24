@@ -11,7 +11,7 @@ namespace Client.Game.Control.MouseKeyboard
         [SerializeField] private UIStateControl uiStateControl;
         [SerializeField] private Vector2 sensitivity = Vector2.one;
         [SerializeField] private float lerpSpeed = 5.0f; // Adjust this to change the lerp speed
-        
+
         private CinemachineFramingTransposer _cinemachineFraming;
         private Quaternion _targetRotation; // The rotation to smoothly rotate towards
 
@@ -25,13 +25,13 @@ namespace Client.Game.Control.MouseKeyboard
         {
             _cinemachineFraming.m_CameraDistance += InputManager.UI.SwitchHotBar.ReadValue<float>() / -100;
             _cinemachineFraming.m_CameraDistance = Mathf.Clamp(_cinemachineFraming.m_CameraDistance, 1, 75);
-            
+
             if (uiStateControl && uiStateControl.CurrentState != UIStateEnum.GameScreen && uiStateControl.CurrentState != UIStateEnum.DeleteBar) return;
-            
+
             //マウスのインプットによって向きを変える
             UpdateCameraRotation();
             LerpCameraRotation();
-            
+
             #region Internal
 
             void UpdateCameraRotation()
@@ -48,7 +48,7 @@ namespace Client.Game.Control.MouseKeyboard
                 {
                     rotation.x = 270;
                 }
-                
+
                 rotation.y += delta.x * sensitivity.x;
                 rotation.z = 0;
                 _targetRotation = Quaternion.Euler(rotation);
@@ -64,5 +64,4 @@ namespace Client.Game.Control.MouseKeyboard
             #endregion
         }
     }
-    
 }

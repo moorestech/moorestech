@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Core.Item;
 using Game.Block.Interface.Event;
 using Game.PlayerInventory.Interface;
@@ -12,7 +11,7 @@ using UnityEngine;
 namespace Server.Event.EventReceive
 {
     /// <summary>
-    /// TODO これいる？どうせステートの変更を送るんだから、そこに入れたらいいんじゃないの？
+    ///     TODO これいる？どうせステートの変更を送るんだから、そこに入れたらいいんじゃないの？
     /// </summary>
     public class OpenableBlockInventoryUpdateEventPacket
     {
@@ -38,17 +37,17 @@ namespace Server.Event.EventReceive
         private void InventoryUpdateEvent(BlockOpenableInventoryUpdateEventProperties properties)
         {
             //そのブロックを開いているプレイヤーをリストアップ
-            var playerIds = _inventoryOpenStateDataStore.GetBlockInventoryOpenPlayers(properties.EntityId);
+            List<int> playerIds = _inventoryOpenStateDataStore.GetBlockInventoryOpenPlayers(properties.EntityId);
             if (playerIds.Count == 0) return;
 
             var pos = _worldBlockDatastore.GetBlockPosition(properties.EntityId);
             var messagePack = new OpenableBlockInventoryUpdateEventMessagePack(pos, properties.Slot, properties.ItemStack);
             var payload = MessagePackSerializer.Serialize(messagePack);
-            
+
             //プレイヤーごとにイベントを送信
             foreach (var id in playerIds)
             {
-                _eventProtocolProvider.AddEvent(id,EventTag, payload);
+                _eventProtocolProvider.AddEvent(id, EventTag, payload);
             }
         }
     }

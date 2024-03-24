@@ -9,15 +9,14 @@ namespace Client.Game.Block
 {
     public class BlockGameObject : MonoBehaviour
     {
+        private BlockShaderAnimation _blockShaderAnimation;
+
+        private bool _isShaderAnimationing;
+        private List<RendererMaterialReplacer> _rendererMaterialReplacer;
         public int BlockId { get; private set; }
         public BlockConfigData BlockConfig { get; private set; }
         public Vector3Int BlockPosition { get; private set; } = Vector3Int.zero;
         public IBlockStateChangeProcessor BlockStateChangeProcessor { get; private set; }
-        
-        private BlockShaderAnimation _blockShaderAnimation;
-        private List<RendererMaterialReplacer> _rendererMaterialReplacer;
-        
-        private bool _isShaderAnimationing = false;
 
         public void Initialize(BlockConfigData blockConfig, Vector3Int position, IBlockStateChangeProcessor blockStateChangeProcessor)
         {
@@ -28,25 +27,25 @@ namespace Client.Game.Block
             _blockShaderAnimation = gameObject.AddComponent<BlockShaderAnimation>();
 
             foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>()) child.Init(this);
-            
+
             _rendererMaterialReplacer = new List<RendererMaterialReplacer>();
             foreach (var renderer in GetComponentsInChildren<Renderer>()) _rendererMaterialReplacer.Add(new RendererMaterialReplacer(renderer));
         }
 
-        public async  UniTask PlayPlaceAnimation()
+        public async UniTask PlayPlaceAnimation()
         {
             _isShaderAnimationing = true;
             await _blockShaderAnimation.PlaceAnimation();
             _isShaderAnimationing = false;
         }
-        
+
         public void SetRemovePreviewMaterial()
         {
             if (_isShaderAnimationing) return;
             var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewRemoveBlockMaterial);
             foreach (var replacer in _rendererMaterialReplacer) replacer.SetMaterial(placePreviewMaterial);
         }
-        
+
         public void ResetMaterial()
         {
             if (_isShaderAnimationing) return;

@@ -1,55 +1,51 @@
 using System.Collections.Generic;
 using Client.Game.Context;
+using Client.Game.UI.Inventory.Element;
 using Core.Item;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
-using MainGame.UnityView.UI.Inventory.Element;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
-using ServerServiceProvider;
 using TMPro;
 using UnityEngine;
-using VContainer;
 
-namespace MainGame.UnityView.UI.Inventory.Sub
+namespace Client.Game.UI.Inventory.Sub
 {
-    public class BlockInventoryView : MonoBehaviour,ISubInventory
+    public class BlockInventoryView : MonoBehaviour, ISubInventory
     {
-        public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects => _blockItemSlotObjects;
-        public List<IItemStack> SubInventory { get; private set;}
-        public int Count => _blockItemSlotObjects.Count;
-        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; private set; }
-        
-        
         [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
-        
+
+
         [SerializeField] private RectTransform chestItemParent;
-        
-        
+
+
         [SerializeField] private RectTransform minerItemParent;
-        
-        
+
+
         [SerializeField] private RectTransform machineInputItemParent;
         [SerializeField] private RectTransform machineOutputItemParent;
         [SerializeField] private TMP_Text machineBlockNameText;
-        
+
         [SerializeField] private RectTransform powerGeneratorFuelItemParent;
-        
-        
+
+
         private readonly List<ItemSlotObject> _blockItemSlotObjects = new();
-        
+        public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects => _blockItemSlotObjects;
+        public List<IItemStack> SubInventory { get; private set; }
+        public int Count => _blockItemSlotObjects.Count;
+        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; private set; }
+
         public void SetActive(bool isActive)
         {
             gameObject.SetActive(isActive);
         }
-        
-        public void SetBlockInventoryType(BlockInventoryType type,Vector3Int blockPos,IBlockConfigParam param, int blockId)
+
+        public void SetBlockInventoryType(BlockInventoryType type, Vector3Int blockPos, IBlockConfigParam param, int blockId)
         {
             var itemStackFactory = MoorestechContext.ServerServices.ItemStackFactory;
-            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory,blockPos);
-            
+            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockPos);
+
             Clear();
-            
+
             switch (type)
             {
                 case BlockInventoryType.Chest:
@@ -65,7 +61,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                     Generator();
                     break;
             }
-            
+
             #region Internal
 
             void Clear()
@@ -80,8 +76,8 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             void Chest()
             {
                 var itemList = new List<IItemStack>();
-                var chestParam = (ChestConfigParam) param;
-                for (int i = 0; i < chestParam.ChestItemNum; i++)
+                var chestParam = (ChestConfigParam)param;
+                for (var i = 0; i < chestParam.ChestItemNum; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, chestItemParent);
                     _blockItemSlotObjects.Add(slotObject);
@@ -89,12 +85,12 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                 }
                 SetItemList(itemList);
             }
-            
+
             void Miner()
             {
                 var itemList = new List<IItemStack>();
-                var minerParam = (MinerBlockConfigParam) param;
-                for (int i = 0; i < minerParam.OutputSlot; i++)
+                var minerParam = (MinerBlockConfigParam)param;
+                for (var i = 0; i < minerParam.OutputSlot; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, minerItemParent);
                     _blockItemSlotObjects.Add(slotObject);
@@ -102,34 +98,34 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                 }
                 SetItemList(itemList);
             }
-            
+
             void Machine()
             {
                 var itemList = new List<IItemStack>();
-                var machineParam = (MachineBlockConfigParam) param;
-                for (int i = 0; i < machineParam.InputSlot; i++)
+                var machineParam = (MachineBlockConfigParam)param;
+                for (var i = 0; i < machineParam.InputSlot; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, machineInputItemParent);
                     _blockItemSlotObjects.Add(slotObject);
                     itemList.Add(itemStackFactory.CreatEmpty());
                 }
-                for (int i = 0; i < machineParam.OutputSlot; i++)
+                for (var i = 0; i < machineParam.OutputSlot; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, machineOutputItemParent);
                     _blockItemSlotObjects.Add(slotObject);
                     itemList.Add(itemStackFactory.CreatEmpty());
                 }
 
-                var config =  MoorestechContext.ServerServices.BlockConfig.GetBlockConfig(blockId);
+                var config = MoorestechContext.ServerServices.BlockConfig.GetBlockConfig(blockId);
                 machineBlockNameText.text = config.Name;
                 SetItemList(itemList);
             }
-            
+
             void Generator()
             {
                 var itemList = new List<IItemStack>();
-                var generatorParam = (PowerGeneratorConfigParam) param;
-                for (int i = 0; i < generatorParam.FuelSlot; i++)
+                var generatorParam = (PowerGeneratorConfigParam)param;
+                for (var i = 0; i < generatorParam.FuelSlot; i++)
                 {
                     var slotObject = Instantiate(itemSlotObjectPrefab, powerGeneratorFuelItemParent);
                     _blockItemSlotObjects.Add(slotObject);
@@ -137,7 +133,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                 }
                 SetItemList(itemList);
             }
-            
+
             #endregion
         }
 
@@ -146,7 +142,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             SubInventory = itemStacks;
         }
 
-        public void SetItemSlot(int slot,IItemStack item)
+        public void SetItemSlot(int slot, IItemStack item)
         {
             if (SubInventory.Count <= slot)
             {

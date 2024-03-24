@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace MainGame.UnityView.Player
@@ -8,7 +7,7 @@ namespace MainGame.UnityView.Player
         [SerializeField] private Transform leftHandParent;
         [SerializeField] private Transform rightHandParent;
 
-        public void SetItem(GameObject item,bool isLeft,Vector3 position = default,Quaternion rotation = default)
+        public void SetItem(GameObject item, bool isLeft, Vector3 position = default, Quaternion rotation = default)
         {
             var parent = isLeft ? leftHandParent : rightHandParent;
             item.transform.SetParent(parent);

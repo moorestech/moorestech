@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Linq;
-using Game.Block.Interface;
-using Game.Block.Interface;
 using Game.Block.Interface.State;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -30,7 +27,7 @@ namespace Server.Event.EventReceive
             var messagePack = new ChangeBlockStateEventMessagePack(state.state, state.blockData.BlockPositionInfo.OriginalPos);
             var payload = MessagePackSerializer.Serialize(messagePack);
 
-            _eventProtocolProvider.AddBroadcastEvent(EventTag,payload);
+            _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
     }
 

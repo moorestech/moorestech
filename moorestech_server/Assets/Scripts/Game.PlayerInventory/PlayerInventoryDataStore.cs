@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Core.Item;
-using Game.Crafting.Interface;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
@@ -45,7 +44,7 @@ namespace Game.PlayerInventory
         {
             var savePlayerInventoryList = new List<SaveInventoryData>();
             //セーブデータに必要なデータをまとめる
-            foreach (var inventory in _playerInventoryData)
+            foreach (KeyValuePair<int, PlayerInventoryData> inventory in _playerInventoryData)
             {
                 var saveInventoryData = new SaveInventoryData(inventory.Key, inventory.Value);
                 savePlayerInventoryList.Add(saveInventoryData);
@@ -62,7 +61,7 @@ namespace Game.PlayerInventory
             foreach (var saveInventory in saveInventoryDataList)
             {
                 var playerId = saveInventory.PlayerId;
-                var (mainItems, craftItems, grabItem) = saveInventory.GetPlayerInventoryData(_itemStackFactory);
+                (List<IItemStack> mainItems, List<IItemStack> craftItems, var grabItem) = saveInventory.GetPlayerInventoryData(_itemStackFactory);
 
                 //アイテムを復元
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _itemStackFactory,

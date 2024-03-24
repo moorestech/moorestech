@@ -22,9 +22,9 @@ namespace MainGame.ModLoader.Glb
             var blockPrefabsParent = new GameObject("BlockPrefabsParent");
             Object.DontDestroyOnLoad(blockPrefabsParent);
 
-            foreach (var mod in mods.Mods)
+            foreach (KeyValuePair<string, Mod.Loader.Mod> mod in mods.Mods)
             {
-                var blockIds = blockConfig.GetBlockIds(mod.Value.ModMetaJson.ModId);
+                List<int> blockIds = blockConfig.GetBlockIds(mod.Value.ModMetaJson.ModId);
                 var blockConfigs = blockIds.Select(blockConfig.GetBlockConfig).ToList();
 
                 blocks.AddRange(await GetBlocks(blockConfigs, mod.Value, blockPrefabsParent.transform));
@@ -86,7 +86,7 @@ namespace MainGame.ModLoader.Glb
         {
             foreach (var meshRenderer in gameObject.GetComponentsInChildren<MeshRenderer>())
             {
-                var materials = meshRenderer.materials;
+                Material[] materials = meshRenderer.materials;
                 for (var i = 0; i < meshRenderer.sharedMaterials.Length; i++) materials[i] = meshRenderer.materials[i].StandardToUrpLit();
 
                 meshRenderer.materials = materials;

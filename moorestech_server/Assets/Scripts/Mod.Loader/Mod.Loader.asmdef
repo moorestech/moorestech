@@ -1,17 +1,17 @@
 {
-    "name": "Mod.Loader",
-    "rootNamespace": "",
-    "references": [
-        "Mod.Base",
-        "Game.Paths"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Mod.Loader",
+  "rootNamespace": "",
+  "references": [
+    "Mod.Base",
+    "Game.Paths"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

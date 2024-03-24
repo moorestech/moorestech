@@ -7,10 +7,6 @@ namespace Server.Util.MessagePack
     [MessagePackObject]
     public class Vector2MessagePack
     {
-        [Key(0)] public float X { get; set; }
-        [Key(1)] public float Y { get; set; }
-        
-        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public Vector2MessagePack()
         {
@@ -33,7 +29,9 @@ namespace Server.Util.MessagePack
             X = vector2.x;
             Y = vector2.y;
         }
-        
+        [Key(0)] public float X { get; set; }
+        [Key(1)] public float Y { get; set; }
+
         public static implicit operator Vector2(Vector2MessagePack pack)
         {
             return new Vector2(pack.X, pack.Y);

@@ -14,13 +14,13 @@ namespace Game.SaveLoad.Json
 {
     public class WorldLoaderFromJson : IWorldSaveDataLoader
     {
+        private readonly IBlockFactory _blockFactory;
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly IMapObjectDatastore _mapObjectDatastore;
         private readonly SaveJsonFileName _saveJsonFileName;
 
         private readonly IWorldBlockDatastore _worldBlockDatastore;
-        private readonly IBlockFactory _blockFactory;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
 
         public WorldLoaderFromJson(SaveJsonFileName saveJsonFileName, IWorldBlockDatastore worldBlockDatastore,

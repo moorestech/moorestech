@@ -21,8 +21,8 @@ using Debug = UnityEngine.Debug;
 namespace Client.Starter
 {
     /// <summary>
-    /// シーンのロード、アセットのロード、サーバーとの接続を行う
-    /// TODO 何かが失敗したらそのログを出すようにする
+    ///     シーンのロード、アセットのロード、サーバーとの接続を行う
+    ///     TODO 何かが失敗したらそのログを出すようにする
     /// </summary>
     public class InitializeScenePipeline : MonoBehaviour
     {
@@ -35,11 +35,6 @@ namespace Client.Starter
         private void Awake()
         {
             backToMainMenuButton.onClick.AddListener(() => SceneManager.LoadScene(SceneConstant.MainMenuSceneName));
-        }
-
-        public void SetProperty(InitializeProprieties proprieties)
-        {
-            _proprieties = proprieties;
         }
 
         private async UniTask Start()
@@ -162,6 +157,11 @@ namespace Client.Starter
             }
 
             #endregion
+        }
+
+        public void SetProperty(InitializeProprieties proprieties)
+        {
+            _proprieties = proprieties;
         }
     }
 }

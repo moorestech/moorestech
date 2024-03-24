@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Client.Game.Context;
 using Client.Network.API;
+using MessagePack;
 using Server.Event.EventReceive;
 using UnityEngine;
 using VContainer;
@@ -18,16 +20,16 @@ namespace Client.Game.Map.MapObject
 #if UNITY_EDITOR
         public IReadOnlyList<MapObjectGameObject> MapObjects => mapObjects;
 #endif
-        
+
         [Inject]
         public void Construct(InitialHandshakeResponse handshakeResponse)
         {
             //イベント登録
-            MoorestechContext.VanillaApi.Event.RegisterEventResponse(MapObjectUpdateEventPacket.EventTag,OnUpdateMapObject);
-            
+            MoorestechContext.VanillaApi.Event.RegisterEventResponse(MapObjectUpdateEventPacket.EventTag, OnUpdateMapObject);
+
             // mapObjectの破壊状況の初期設定
             foreach (var mapObject in mapObjects) _allMapObjects.Add(mapObject.InstanceId, mapObject);
-            
+
             foreach (var mapObjectInfo in handshakeResponse.MapObjects)
             {
                 var mapObject = _allMapObjects[mapObjectInfo.InstanceId];
@@ -40,15 +42,15 @@ namespace Client.Game.Map.MapObject
 
         private void OnUpdateMapObject(byte[] payLoad)
         {
-            var data = MessagePack.MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(payLoad);
-            
+            var data = MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(payLoad);
+
             switch (data.EventType)
             {
                 case MapObjectUpdateEventMessagePack.DestroyEventType:
                     _allMapObjects[data.InstanceId].DestroyMapObject();
                     break;
                 default:
-                    throw new System.Exception("MapObjectUpdateEventProtocol: EventTypeが不正か実装されていません");
+                    throw new Exception("MapObjectUpdateEventProtocol: EventTypeが不正か実装されていません");
             }
         }
     }

@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace MainGame.UnityView.UI.Inventory.Element
+namespace Client.Game.UI.Inventory.Element
 {
     public class ItemSlotObject : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler, IPointerMoveHandler
     {
@@ -224,19 +224,19 @@ namespace MainGame.UnityView.UI.Inventory.Element
         CursorExit,
         CursorMove,
 
-        DoubleClick
+        DoubleClick,
     }
 
     public enum ItemSlotType
     {
         Normal, // 通常のアイテム表示
-        NoneCross // アイテムが何もないクロス表示
+        NoneCross, // アイテムが何もないクロス表示
     }
 
     public enum ItemSlotFrameType
     {
         Normal,
         MachineSlot,
-        CraftRecipe
+        CraftRecipe,
     }
 }

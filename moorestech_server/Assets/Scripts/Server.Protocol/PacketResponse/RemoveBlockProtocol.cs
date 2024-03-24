@@ -68,7 +68,7 @@ namespace Server.Protocol.PacketResponse
             {
                 return null;
             }
-            
+
             //ブロックのIDを取得
             var blockItemId = _blockConfig.GetBlockConfig(blockId).ItemId;
             var remainBlockItem = playerMainInventory.InsertItem(_itemStackFactory.Create(blockItemId, 1));

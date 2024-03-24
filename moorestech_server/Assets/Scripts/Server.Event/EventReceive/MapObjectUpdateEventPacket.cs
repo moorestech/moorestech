@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Game.Map.Interface;
 using MessagePack;
 
@@ -27,8 +26,8 @@ namespace Server.Event.EventReceive
         {
             var messagePack = new MapObjectUpdateEventMessagePack(MapObjectUpdateEventMessagePack.DestroyEventType, mapObject.InstanceId);
             var data = MessagePackSerializer.Serialize(messagePack);
-            
-            _eventProtocolProvider.AddBroadcastEvent(EventTag,data);
+
+            _eventProtocolProvider.AddBroadcastEvent(EventTag, data);
         }
     }
 

@@ -22,7 +22,7 @@ namespace Mod.Config
 
             var configDict = new Dictionary<string, ConfigJson>();
             //zipファイルの中身のjsonファイルを読み込む
-            foreach (var mod in modResource.Mods)
+            foreach (KeyValuePair<string, Loader.Mod> mod in modResource.Mods)
             {
                 var extractedPath = mod.Value.ExtractedPath;
 

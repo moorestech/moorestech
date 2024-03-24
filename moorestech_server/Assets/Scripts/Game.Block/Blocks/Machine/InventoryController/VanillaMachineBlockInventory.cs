@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Core.Item;
 using Core.Item.Util;
-using Game.Block.BlockInventory;
 using Game.Block.Blocks.Machine.Inventory;
 
 namespace Game.Block.Blocks.Machine.InventoryController

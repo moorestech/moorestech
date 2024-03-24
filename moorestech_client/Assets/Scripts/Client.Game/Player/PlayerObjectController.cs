@@ -1,5 +1,4 @@
 ﻿using Client.Game.BlockSystem;
-using MainGame.UnityView.Block;
 using StarterAssets;
 using UnityEngine;
 
@@ -29,6 +28,14 @@ namespace MainGame.UnityView.Player
         [SerializeField] private ThirdPersonController controller;
         [SerializeField] private Animator animator;
 
+        private void LateUpdate()
+        {
+            if (transform.localPosition.y < -10)
+            {
+                SetPlayerPosition(new Vector2(transform.localPosition.x, transform.localPosition.z));
+            }
+        }
+
         public Vector3 Position => transform.position;
         public Vector2 Position2d => new(transform.position.x, transform.position.z);
 
@@ -52,14 +59,6 @@ namespace MainGame.UnityView.Player
         public void SetAnimationState(string state)
         {
             animator.Play(state);
-        }
-
-        private void LateUpdate()
-        {
-            if (transform.localPosition.y < -10)
-            {
-                SetPlayerPosition(new Vector2(transform.localPosition.x, transform.localPosition.z));
-            }
         }
     }
 }

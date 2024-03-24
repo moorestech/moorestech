@@ -19,18 +19,18 @@ namespace Game.Map.Interface.Json
         [JsonProperty("z")] public float Z;
 
         [JsonIgnore]
-        public Vector3 Position => new(X,Y, Z);
+        public Vector3 Position => new(X, Y, Z);
     }
 
     public class MapVeinInfoJson
     {
-        [JsonProperty("veinItemModId")] public string ItemModId;
         [JsonProperty("veinItemName")] public string ItemId;
-        
-        [JsonProperty("xMin")] public int XMin;
-        [JsonProperty("yMin")] public int YMin;
-        
+        [JsonProperty("veinItemModId")] public string ItemModId;
+
         [JsonProperty("xMax")] public int XMax;
+
+        [JsonProperty("xMin")] public int XMin;
         [JsonProperty("yMax")] public int YMax;
+        [JsonProperty("yMin")] public int YMin;
     }
 }

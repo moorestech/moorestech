@@ -1,17 +1,17 @@
 {
-    "name": "Game.Entity.Interface",
-    "rootNamespace": "",
-    "references": [
-        "Game.Base",
-        "Core.Item"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Game.Entity.Interface",
+  "rootNamespace": "",
+  "references": [
+    "Game.Base",
+    "Core.Item"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

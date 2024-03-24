@@ -10,19 +10,19 @@ namespace Game.Map
     {
         private readonly List<IMapVein> _mapVeins = new();
 
-        public MapVeinDatastore(MapInfoJson mapInfoJson,IItemConfig itemConfig)
+        public MapVeinDatastore(MapInfoJson mapInfoJson, IItemConfig itemConfig)
         {
             //configからmap obejctを生成
             foreach (var veinJson in mapInfoJson.MapVeins)
             {
                 var itemId = itemConfig.GetItemId(veinJson.ItemModId, veinJson.ItemId);
-                var vein = new MapVein(itemId, 
-                    new Vector3Int(veinJson.XMin, veinJson.YMin), 
+                var vein = new MapVein(itemId,
+                    new Vector3Int(veinJson.XMin, veinJson.YMin),
                     new Vector3Int(veinJson.XMax, veinJson.YMax));
                 _mapVeins.Add(vein);
             }
         }
-        
+
         public List<IMapVein> GetOverVeins(Vector3Int pos)
         {
             var veins = new List<IMapVein>();

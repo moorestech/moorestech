@@ -51,7 +51,7 @@ namespace Game.Map
                     _random.Next(1, 2)),
                 VanillaMapObjectType.VanillaIronOre => (
                     _itemConfig.GetItemId("sakastudio:moorestechAlphaMod", "iron ore"), _random.Next(1, 2)),
-                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
             };
         }
     }

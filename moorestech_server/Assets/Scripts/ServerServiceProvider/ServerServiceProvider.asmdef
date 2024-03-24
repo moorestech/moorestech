@@ -1,22 +1,22 @@
 {
-    "name": "ServerServiceProvider",
-    "rootNamespace": "",
-    "references": [
-        "Game.Block.Interface",
-        "Core.ConfigJson",
-        "Game.Crafting.Interface",
-        "Core.Item",
-        "Game.Block",
-        "Server.Boot",
-        "Server.Protocol"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "ServerServiceProvider",
+  "rootNamespace": "",
+  "references": [
+    "Game.Block.Interface",
+    "Core.ConfigJson",
+    "Game.Crafting.Interface",
+    "Core.Item",
+    "Game.Block",
+    "Server.Boot",
+    "Server.Protocol"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

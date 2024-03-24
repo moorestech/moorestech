@@ -108,7 +108,7 @@ namespace MooresNovel
     public enum MooresNovelEventType
     {
         Line,
-        Transition
+        Transition,
     }
 
 

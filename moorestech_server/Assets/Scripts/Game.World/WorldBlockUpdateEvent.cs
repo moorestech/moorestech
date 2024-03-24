@@ -8,14 +8,14 @@ namespace Game.World
 {
     public class WorldBlockUpdateEvent : IWorldBlockUpdateEvent
     {
-        public IObservable<WorldBlockData> OnBlockPlaceEvent => _onBlockPlaceEvent;
         private readonly Subject<WorldBlockData> _onBlockPlaceEvent = new();
-        
-        public IObservable<WorldBlockData> OnBlockRemoveEvent => _onBlockRemoveEvent;
         private readonly Subject<WorldBlockData> _onBlockRemoveEvent = new();
-        
+        public IObservable<WorldBlockData> OnBlockPlaceEvent => _onBlockPlaceEvent;
+
+        public IObservable<WorldBlockData> OnBlockRemoveEvent => _onBlockRemoveEvent;
+
         public IDisposable SubscribePlace(Vector3Int subscribePos, Action<BlockUpdateProperties> blockPlaceEvent)
-        { 
+        {
             return _onBlockPlaceEvent.Subscribe(data =>
             {
                 if (data.BlockPositionInfo.IsContainPos(subscribePos))
@@ -35,12 +35,12 @@ namespace Game.World
                 }
             });
         }
-        
+
         public void OnBlockPlaceEventInvoke(WorldBlockData worldBlockData)
         {
             _onBlockPlaceEvent.OnNext(worldBlockData);
         }
-        
+
         public void OnBlockRemoveEventInvoke(WorldBlockData worldBlockData)
         {
             _onBlockRemoveEvent.OnNext(worldBlockData);

@@ -1,15 +1,9 @@
 ﻿namespace Game.Block.Blocks.BeltConveyor
 {
-
     public class BeltConveyorInventoryItem
     {
         public readonly int ItemId;
         public readonly long ItemInstanceId;
-
-        /// <summary>
-        /// ベルトコンベア内のアイテムがあと何秒で出るかを入れるプロパティ
-        /// </summary>
-        public double RemainingTime { get; set; }
 
         public BeltConveyorInventoryItem(int itemId, double remainingTime, long itemInstanceId)
         {
@@ -17,5 +11,10 @@
             RemainingTime = remainingTime;
             ItemInstanceId = itemInstanceId;
         }
+
+        /// <summary>
+        ///     ベルトコンベア内のアイテムがあと何秒で出るかを入れるプロパティ
+        /// </summary>
+        public double RemainingTime { get; set; }
     }
 }

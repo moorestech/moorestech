@@ -19,9 +19,9 @@ namespace MainGame.UnityView.UI.Util
         [SerializeField] private bool displayEnable;
 
         [SerializeField] private int fontSize = IMouseCursorExplainer.DefaultFontSize;
+        private bool _isLocalize;
 
         private bool _pointerStay;
-        private bool _isLocalize = false;
 
         public void OnPointerMove(PointerEventData eventData)
         {
@@ -44,12 +44,12 @@ namespace MainGame.UnityView.UI.Util
             //表示する設定で、ポインターが乗ったので表示
             if (_pointerStay && displayEnable)
             {
-                MouseCursorExplainer.Instance.Show(textKey, fontSize,_isLocalize);
+                MouseCursorExplainer.Instance.Show(textKey, fontSize, _isLocalize);
                 return;
             }
 
             if (!_pointerStay || //ポインターから外れたので非表示
-                (_pointerStay && !displayEnable)) //ポインターからは外れてないけど非表示設定なったから非表示
+                _pointerStay && !displayEnable) //ポインターからは外れてないけど非表示設定なったから非表示
                 MouseCursorExplainer.Instance.Hide();
         }
 

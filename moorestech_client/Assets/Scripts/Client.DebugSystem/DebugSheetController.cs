@@ -15,7 +15,7 @@ namespace Client.DebugSystem
         private void Start()
         {
             debugSheet.gameObject.SetActive(true);
-            
+
             var rootPage = debugSheet.GetOrCreateInitialPage();
 
             rootPage.AddPageLinkButton<ItemGetDebugSheet>("Get Item");

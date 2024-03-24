@@ -45,7 +45,7 @@ namespace Game.Crafting.Config
                 var resultItem =
                     _itemStackFactory.Create(config.Result.ModId, config.Result.ItemName, config.Result.Count);
 
-                result.Add(new CraftingConfigData(items, resultItem,i));
+                result.Add(new CraftingConfigData(items, resultItem, i));
             }
 
             return result;

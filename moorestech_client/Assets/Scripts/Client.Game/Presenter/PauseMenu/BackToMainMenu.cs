@@ -1,12 +1,9 @@
 using System.Threading;
 using Client.Common;
 using Client.Game.Context;
-using Client.Network.API;
-using MainGame.Network.Settings;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using VContainer;
 
 namespace MainGame.Control.UI.PauseMenu
 {

@@ -7,11 +7,6 @@ namespace Server.Util.MessagePack
     [MessagePackObject]
     public class Vector3MessagePack
     {
-        [Key(0)] public float X { get; set; }
-        [Key(1)] public float Y { get; set; }
-        [Key(2)] public float Z { get; set; }
-        
-        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public Vector3MessagePack()
         {
@@ -30,7 +25,10 @@ namespace Server.Util.MessagePack
             Y = vector3.y;
             Z = vector3.z;
         }
-        
+        [Key(0)] public float X { get; set; }
+        [Key(1)] public float Y { get; set; }
+        [Key(2)] public float Z { get; set; }
+
         public static implicit operator Vector3(Vector3MessagePack pack)
         {
             return new Vector3(pack.X, pack.Y, pack.Z);

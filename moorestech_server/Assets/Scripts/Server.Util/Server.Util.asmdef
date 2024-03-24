@@ -1,20 +1,20 @@
 {
-    "name": "Server.Util",
-    "rootNamespace": "",
-    "references": [
-        "MessagePack.Annotations",
-        "Game.Entity.Interface",
-        "Core.Item",
-        "Core.Util",
-        "Game.Base"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Server.Util",
+  "rootNamespace": "",
+  "references": [
+    "MessagePack.Annotations",
+    "Game.Entity.Interface",
+    "Core.Item",
+    "Core.Util",
+    "Game.Base"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

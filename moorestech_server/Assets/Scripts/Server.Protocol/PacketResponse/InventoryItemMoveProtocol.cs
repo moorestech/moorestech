@@ -37,20 +37,20 @@ namespace Server.Protocol.PacketResponse
 
             var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.Pos);
             if (fromInventory == null) return null;
-            
+
             var fromSlot = data.FromInventory.Slot;
             if (data.FromInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
                 fromSlot -= PlayerInventoryConst.MainInventorySize;
-            
-            
+
+
             var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.Pos);
             if (toInventory == null) return null;
-            
+
             var toSlot = data.ToInventory.Slot;
             if (data.ToInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
                 toSlot -= PlayerInventoryConst.MainInventorySize;
 
-            
+
             switch (data.ItemMoveType)
             {
                 case ItemMoveType.SwapSlot:
@@ -95,17 +95,17 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public InventoryItemMoveProtocolMessagePack(int playerId, int count, ItemMoveType itemMoveType, 
-            ItemMoveInventoryInfo inventory,int fromSlot, 
-            ItemMoveInventoryInfo toInventory,int toSlot)
+        public InventoryItemMoveProtocolMessagePack(int playerId, int count, ItemMoveType itemMoveType,
+            ItemMoveInventoryInfo inventory, int fromSlot,
+            ItemMoveInventoryInfo toInventory, int toSlot)
         {
             Tag = InventoryItemMoveProtocol.Tag;
             PlayerId = playerId;
             Count = count;
 
             ItemMoveTypeId = (int)itemMoveType;
-            FromInventory = new ItemMoveInventoryInfoMessagePack(inventory,fromSlot);
-            ToInventory = new ItemMoveInventoryInfoMessagePack(toInventory,toSlot);
+            FromInventory = new ItemMoveInventoryInfoMessagePack(inventory, fromSlot);
+            ToInventory = new ItemMoveInventoryInfoMessagePack(toInventory, toSlot);
         }
 
         [Key(2)]
@@ -132,7 +132,7 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public ItemMoveInventoryInfoMessagePack(ItemMoveInventoryInfo info,int slot)
+        public ItemMoveInventoryInfoMessagePack(ItemMoveInventoryInfo info, int slot)
         {
             //メッセージパックでenumは重いらしいのでintを使う
             InventoryId = (int)info.ItemMoveInventoryType;
@@ -146,7 +146,7 @@ namespace Server.Protocol.PacketResponse
 
         [IgnoreMember]
         public ItemMoveInventoryType InventoryType => (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), InventoryId);
-        
+
         [Key(3)]
         public int Slot { get; set; }
         [Key(4)]

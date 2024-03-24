@@ -21,7 +21,7 @@ namespace Client.Game.Entity
         {
             //1秒以上経過していたら削除
             var removeEntities = new List<long>();
-            foreach (var entity in _entities)
+            foreach (KeyValuePair<long, (DateTime lastUpdate, IEntityObject objectEntity)> entity in _entities)
                 if ((DateTime.Now - entity.Value.lastUpdate).TotalSeconds > 1)
                     removeEntities.Add(entity.Key);
             foreach (var removeEntity in removeEntities)
@@ -32,7 +32,7 @@ namespace Client.Game.Entity
         }
 
         /// <summary>
-        /// エンティティの生成、更新を行う
+        ///     エンティティの生成、更新を行う
         /// </summary>
         public void OnEntitiesUpdate(List<EntityResponse> entities)
         {

@@ -1,10 +1,10 @@
 using Core.Const;
 using Core.Item;
-using Game.Block.Interface;
 using Game.Block.Blocks.Miner;
 using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
+using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 
 namespace Game.Block.Factory.BlockTemplate
@@ -20,10 +20,10 @@ namespace Game.Block.Factory.BlockTemplate
                 itemFactory, BlockOpenableInventoryUpdateEvent openableInvEvent, BlockPositionInfo blockPositionInfo, ComponentFactory componentFactory) data);
 
         private readonly BlockOpenableInventoryUpdateEvent _blockOpenableInventoryUpdateEvent;
+        private readonly ComponentFactory _componentFactory;
 
 
         private readonly ItemStackFactory _itemStackFactory;
-        private readonly ComponentFactory _componentFactory;
 
         public readonly LoadMiner _loadMiner;
 

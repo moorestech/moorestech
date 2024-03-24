@@ -12,7 +12,7 @@ using Game.Block.Interface.RecipeConfig;
 namespace Game.Block.Factory
 {
     /// <summary>
-    ///バニラのブロックの全てのテンプレートを作るクラス
+    ///     バニラのブロックの全てのテンプレートを作るクラス
     /// </summary>
     public class VanillaIBlockTemplates
     {

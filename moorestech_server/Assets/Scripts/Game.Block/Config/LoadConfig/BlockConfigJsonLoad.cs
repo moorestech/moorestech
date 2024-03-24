@@ -46,7 +46,7 @@ namespace Game.Block.Config.LoadConfig
             var xxHash = xxHashFactory.Instance.Create(new xxHashConfig
             {
                 Seed = xxHashConst.DefaultSeed,
-                HashSizeInBits = xxHashConst.DefaultSize
+                HashSizeInBits = xxHashConst.DefaultSize,
             });
 
 
@@ -80,7 +80,7 @@ namespace Game.Block.Config.LoadConfig
                 var size = block.size;
                 var blockSize = new Vector3Int((int)size.x, (int)size.y, (int)size.z);
 
-                blockDictionary.Add(new BlockConfigData(modId, id, name, hash, type, blockParam, itemId, modelTransform,blockSize));
+                blockDictionary.Add(new BlockConfigData(modId, id, name, hash, type, blockParam, itemId, modelTransform, blockSize));
             }
 
             return blockDictionary;

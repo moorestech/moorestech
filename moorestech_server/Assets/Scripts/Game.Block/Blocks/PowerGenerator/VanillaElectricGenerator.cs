@@ -1,6 +1,5 @@
 ﻿using Core.EnergySystem.Electric;
 using Game.Block.Factory.BlockTemplate;
-using Game.Block.Interface;
 
 namespace Game.Block.Blocks.PowerGenerator
 {

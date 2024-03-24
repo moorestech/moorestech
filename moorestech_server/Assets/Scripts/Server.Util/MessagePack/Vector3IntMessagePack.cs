@@ -12,7 +12,7 @@ namespace Server.Util.MessagePack
         {
         }
 
-        public Vector3IntMessagePack(int x, int y,int z)
+        public Vector3IntMessagePack(int x, int y, int z)
         {
             X = x;
             Y = y;
@@ -29,7 +29,7 @@ namespace Server.Util.MessagePack
         [Key(0)] public int X { get; set; }
         [Key(1)] public int Y { get; set; }
         [Key(2)] public int Z { get; set; }
-        
+
         public static implicit operator Vector3Int(Vector3IntMessagePack pack)
         {
             return new Vector3Int(pack.X, pack.Y, pack.Z);

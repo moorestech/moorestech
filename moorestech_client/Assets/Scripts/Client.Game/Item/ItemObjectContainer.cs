@@ -5,7 +5,7 @@ using UnityEngine;
 namespace MainGame.UnityView.Item
 {
     /// <summary>
-    /// TODO このコードはalpha2.0以降で消す
+    ///     TODO このコードはalpha2.0以降で消す
     /// </summary>
     [Obsolete("Alpha2.0用のコンテナ")]
     [CreateAssetMenu(fileName = "ItemObjectContainer", menuName = "ItemObjectContainer", order = 0)]
@@ -29,19 +29,19 @@ namespace MainGame.UnityView.Item
     [Serializable]
     public class ItemObjectData
     {
-        public string ModId => modId;
         [SerializeField] private string modId = AlphaMod.ModId;
+        [SerializeField] private string name;
+        [SerializeField] private GameObject itemPrefab;
+        [SerializeField] private Vector3 position;
+        [SerializeField] private Vector3 rotation;
+        public string ModId => modId;
 
         public string Name => name;
-        [SerializeField] private string name;
 
         public GameObject ItemPrefab => itemPrefab;
-        [SerializeField] private GameObject itemPrefab;
 
         public Vector3 Position => position;
-        [SerializeField] private Vector3 position;
 
         public Vector3 Rotation => rotation;
-        [SerializeField] private Vector3 rotation;
     }
 }

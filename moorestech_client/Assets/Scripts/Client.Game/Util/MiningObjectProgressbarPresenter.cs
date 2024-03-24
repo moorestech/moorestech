@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
+using Client.Game.UI.Inventory.HotBar;
 using Cysharp.Threading.Tasks;
-using MainGame.UnityView.UI.Inventory.HotBar;
 using UnityEngine;
 
 namespace MainGame.UnityView.Util

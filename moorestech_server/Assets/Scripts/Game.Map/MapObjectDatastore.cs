@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Game.Map.Interface;
 using Game.Map.Interface.Json;
-using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
-using Newtonsoft.Json;
 
 namespace Game.Map
 {

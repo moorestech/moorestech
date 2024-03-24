@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
@@ -14,16 +14,24 @@ using UnityEngine;
 namespace MainGame.Network
 {
     /// <summary>
-    /// C#の<see cref="Socket"/>クラスを用いて実際にサーバーと通信するクラス
-    /// 受信他データは<see cref="PacketExchangeManager"/>に送っている
+    ///     C#の<see cref="Socket" />クラスを用いて実際にサーバーと通信するクラス
+    ///     受信他データは<see cref="PacketExchangeManager" />に送っている
     /// </summary>
     public class ServerCommunicator
     {
-        private readonly Subject<Unit> _onDisconnect = new();
-        
-        private readonly Socket _socket;
         private readonly IPAddress _ipAddress;
-        
+        private readonly Subject<Unit> _onDisconnect = new();
+
+        private readonly Socket _socket;
+
+        private ServerCommunicator(Socket connectedSocket)
+        {
+            //ソケットを作成
+            _socket = connectedSocket;
+        }
+
+        public IObservable<Unit> OnDisconnect => _onDisconnect;
+
         public static async UniTask<ServerCommunicator> CreateConnectedInstance(ConnectionServerConfig connectionServerConfig)
         {
             //IPアドレスやポートを設定
@@ -41,17 +49,9 @@ namespace MainGame.Network
             await UniTask.WaitUntil(() => socket.Connected).Timeout(TimeSpan.FromSeconds(10));
 
             Debug.Log("サーバーに接続しました");
-            
+
             return new ServerCommunicator(socket);
         }
-        
-        private ServerCommunicator(Socket connectedSocket)
-        {
-            //ソケットを作成
-            _socket = connectedSocket;
-        }
-
-        public IObservable<Unit> OnDisconnect => _onDisconnect;
 
 
         public Task StartCommunicat(PacketExchangeManager packetExchangeManager)
@@ -72,8 +72,8 @@ namespace MainGame.Network
                     }
 
                     //解析をしてunity viewに送る
-                    var packets = parser.Parse(buffer, length);
-                    foreach (var packet in packets) packetExchangeManager.ExchangeReceivedPacket(packet).Forget();
+                    List<List<byte>> packets = parser.Parse(buffer, length);
+                    foreach (List<byte> packet in packets) packetExchangeManager.ExchangeReceivedPacket(packet).Forget();
                 }
             }
             catch (Exception e)
@@ -108,19 +108,19 @@ namespace MainGame.Network
             await UniTask.SwitchToMainThread();
             _onDisconnect.OnNext(Unit.Default);
         }
-        
+
         public void Send(byte[] data)
         {
             //先頭にパケット長を設定して送信
-            var byteCount = ToByteList.Convert(data.Length);
+            List<byte> byteCount = ToByteList.Convert(data.Length);
             var newData = new byte[byteCount.Count + data.Length];
-            
+
             byteCount.CopyTo(newData, 0);
             data.CopyTo(newData, byteCount.Count);
-            
+
             _socket.Send(newData);
         }
-        
+
         public void Close()
         {
             _socket.Close();

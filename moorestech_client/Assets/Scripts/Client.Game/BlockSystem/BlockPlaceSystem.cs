@@ -1,14 +1,14 @@
 using ClassLibrary;
 using Client.Common;
 using Client.Game.Context;
+using Client.Game.UI.Inventory;
+using Client.Game.UI.Inventory.Main;
 using Client.Game.UI.UIState;
 using Game.Block.Interface;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.SoundEffect;
-using MainGame.UnityView.UI.Inventory;
-using MainGame.UnityView.UI.Inventory.Main;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer.Unity;
@@ -20,22 +20,15 @@ namespace Client.Game.BlockSystem
     /// </summary>
     public class BlockPlaceSystem : IPostTickable
     {
-        private IBlockPlacePreview _blockPlacePreview;
+        private readonly IBlockPlacePreview _blockPlacePreview;
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
-        private HotBarView _hotBarView;
-        private Camera _mainCamera;
-        private UIStateControl _uiStateControl;
-        private ILocalPlayerInventory _localPlayerInventory;
 
-        private int _heightOffset = 0;
-
-        public void PostTick()
-        {
-            UpdateHeightOffset();
-            BlockDirectionControl();
-            GroundClickControl();
-        }
+        private int _heightOffset;
+        private readonly HotBarView _hotBarView;
+        private readonly ILocalPlayerInventory _localPlayerInventory;
+        private readonly Camera _mainCamera;
+        private readonly UIStateControl _uiStateControl;
 
         public BlockPlaceSystem(Camera mainCamera, HotBarView hotBarView, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview, ILocalPlayerInventory localPlayerInventory)
         {
@@ -44,6 +37,13 @@ namespace Client.Game.BlockSystem
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
             _localPlayerInventory = localPlayerInventory;
+        }
+
+        public void PostTick()
+        {
+            UpdateHeightOffset();
+            BlockDirectionControl();
+            GroundClickControl();
         }
 
         private void UpdateHeightOffset()
@@ -80,7 +80,7 @@ namespace Client.Game.BlockSystem
                     BlockDirection.DownSouth => BlockDirection.DownWest,
                     BlockDirection.DownWest => BlockDirection.DownNorth,
 
-                    _ => _currentBlockDirection
+                    _ => _currentBlockDirection,
                 };
             }
 
@@ -104,7 +104,7 @@ namespace Client.Game.BlockSystem
                     BlockDirection.DownSouth => BlockDirection.South,
                     BlockDirection.DownWest => BlockDirection.West,
 
-                    _ => _currentBlockDirection
+                    _ => _currentBlockDirection,
                 };
             }
         }

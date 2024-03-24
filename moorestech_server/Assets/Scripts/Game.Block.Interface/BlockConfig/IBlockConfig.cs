@@ -9,7 +9,7 @@ namespace Game.Block.Interface.BlockConfig
         public BlockConfigData GetBlockConfig(string modId, string blockName);
         public int GetBlockConfigCount();
         public List<int> GetBlockIds(string modId);
-        
+
         public bool IsBlock(int itemId);
         public int ItemIdToBlockId(int itemId);
         public BlockConfigData ItemIdToBlockConfig(int itemId);

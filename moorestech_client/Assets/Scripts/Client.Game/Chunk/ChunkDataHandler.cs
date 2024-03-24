@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using Client.Common;
 using Client.Game.Context;
@@ -38,6 +39,11 @@ namespace MainGame.Presenter.Block
             }
         }
 
+        public void Initialize()
+        {
+            OnChunkUpdate().Forget();
+        }
+
         /// <summary>
         ///     単一のブロックの更新イベント
         /// </summary>
@@ -62,13 +68,8 @@ namespace MainGame.Presenter.Block
             _chunkBlockGameObjectDataStore.RemoveBlock(data.Position);
         }
 
-        public void Initialize()
-        {
-            OnChunkUpdate().Forget();
-        }
-
         /// <summary>
-        /// 0.5秒に1回のチャンクの更新イベント
+        ///     0.5秒に1回のチャンクの更新イベント
         /// </summary>
         private async UniTask OnChunkUpdate()
         {
@@ -84,7 +85,7 @@ namespace MainGame.Presenter.Block
 
             async UniTask GetChunkAndApply()
             {
-                var data = await MoorestechContext.VanillaApi.Response.GetChunkInfos(ct);
+                List<ChunkResponse> data = await MoorestechContext.VanillaApi.Response.GetChunkInfos(ct);
                 if (data == null)
                 {
                     return;

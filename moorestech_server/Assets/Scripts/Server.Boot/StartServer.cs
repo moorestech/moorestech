@@ -63,13 +63,13 @@ namespace Server.Boot
             //サーバーの起動とゲームアップデートの開始
             var serverUpdateThread = new Thread(() => new PacketHandler().StartServer(packet));
             serverUpdateThread.Name = "[moorestech]通信受け入れスレッド";
-            
+
             var autoSaveTaskTokenSource = new CancellationTokenSource();
             Task.Run(
                 () => new AutoSaveSystem(serviceProvider.GetService<IWorldSaveDataSaver>()).AutoSave(
                     autoSaveTaskTokenSource), autoSaveTaskTokenSource.Token);
 
-            return (serverUpdateThread,autoSaveTaskTokenSource);
+            return (serverUpdateThread, autoSaveTaskTokenSource);
         }
     }
 }

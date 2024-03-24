@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using Core.ConfigJson;
 using Core.EnergySystem;
@@ -5,10 +6,10 @@ using Core.EnergySystem.Electric;
 using Core.Item;
 using Core.Item.Config;
 using Game.Block.Component;
-using Game.Block.Interface;
 using Game.Block.Config;
 using Game.Block.Event;
 using Game.Block.Factory;
+using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
@@ -57,7 +58,7 @@ namespace Server.Boot
             var mapPath = Path.Combine(serverDirectory, "map", "map.json");
 
             //コンフィグ、ファクトリーのインスタンスを登録
-            var (configJsons, modsResource) = ModJsonStringLoader.GetConfigString(modDirectory);
+            (Dictionary<string, ConfigJson> configJsons, var modsResource) = ModJsonStringLoader.GetConfigString(modDirectory);
             services.AddSingleton(new ConfigJsonList(configJsons));
             services.AddSingleton(modsResource);
             services.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();

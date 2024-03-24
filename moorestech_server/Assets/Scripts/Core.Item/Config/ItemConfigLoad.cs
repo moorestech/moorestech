@@ -16,7 +16,7 @@ namespace Core.Item.Config
             var xxHash = xxHashFactory.Instance.Create(new xxHashConfig
             {
                 Seed = xxHashConst.DefaultSeed,
-                HashSizeInBits = xxHashConst.DefaultSize
+                HashSizeInBits = xxHashConst.DefaultSize,
             });
 
             var itemConfigList = new List<ItemConfigData>();
@@ -26,11 +26,11 @@ namespace Core.Item.Config
 
                 try
                 {
-                    var itemConfigData = JsonConvert.DeserializeObject<ItemConfigJsonData[]>(json);
+                    ItemConfigJsonData[] itemConfigData = JsonConvert.DeserializeObject<ItemConfigJsonData[]>(json);
                     if (itemConfigData == null) continue;
 
 
-                    var configList = itemConfigData.ToList().Select(c => new ItemConfigData(c, mod, xxHash,itemConfigList.Count + 1));
+                    IEnumerable<ItemConfigData> configList = itemConfigData.ToList().Select(c => new ItemConfigData(c, mod, xxHash, itemConfigList.Count + 1));
                     itemConfigList.AddRange(configList);
                 }
                 catch (Exception e)
@@ -47,8 +47,8 @@ namespace Core.Item.Config
     public class ItemConfigData
     {
         public readonly long ItemHash;
-        public readonly string ModId;
         public readonly int ItemId;
+        public readonly string ModId;
 
         internal ItemConfigData(ItemConfigJsonData jsonData, string modId, IxxHash xxHash, int itemId)
         {

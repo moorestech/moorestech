@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Client.Game.Block;
 using Client.Game.BlockSystem;
@@ -6,12 +5,8 @@ using Client.Game.BlockSystem.StateChange;
 using Cysharp.Threading.Tasks;
 using Game.Block;
 using Game.Block.Interface.BlockConfig;
-using MainGame.ModLoader;
 using MainGame.ModLoader.Glb;
-using MainGame.UnityView.Block;
-using ServerServiceProvider;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Client.Game.Context
 {
@@ -21,22 +16,22 @@ namespace Client.Game.Context
     /// </summary>
     public class BlockGameObjectContainer
     {
-        private readonly BlockGameObject _nothingIndexBlockObject;
         private readonly IBlockConfig _blockConfig;
         private readonly List<BlockData> _blockObjectList;
-
-        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory, BlockGameObject nothingIndexBlockObject, IBlockConfig blockConfig)
-        {
-            var blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory, blockConfig);
-
-            return new BlockGameObjectContainer(nothingIndexBlockObject, blockConfig, blockObjectList);
-        }
+        private readonly BlockGameObject _nothingIndexBlockObject;
 
         public BlockGameObjectContainer(BlockGameObject nothingIndexBlockObject, IBlockConfig blockConfig, List<BlockData> blockObjectList)
         {
             _nothingIndexBlockObject = nothingIndexBlockObject;
             _blockConfig = blockConfig;
             _blockObjectList = blockObjectList;
+        }
+
+        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(string modDirectory, BlockGameObject nothingIndexBlockObject, IBlockConfig blockConfig)
+        {
+            List<BlockData> blockObjectList = await BlockGlbLoader.GetBlockLoader(modDirectory, blockConfig);
+
+            return new BlockGameObjectContainer(nothingIndexBlockObject, blockConfig, blockObjectList);
         }
 
 
@@ -119,7 +114,7 @@ namespace Client.Game.Context
             return blockType switch
             {
                 VanillaBlockType.Machine => block.gameObject.AddComponent<MachineBlockStateChangeProcessor>(),
-                _ => new NullBlockStateChangeProcessor()
+                _ => new NullBlockStateChangeProcessor(),
             };
         }
     }

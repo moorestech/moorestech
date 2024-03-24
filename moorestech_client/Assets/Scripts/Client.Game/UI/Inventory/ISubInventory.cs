@@ -1,9 +1,9 @@
 using System.Collections.Generic;
+using Client.Game.UI.Inventory.Element;
 using Core.Item;
-using MainGame.UnityView.UI.Inventory.Element;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 
-namespace MainGame.UnityView.UI.Inventory
+namespace Client.Game.UI.Inventory
 {
     public interface ISubInventory
     {
@@ -12,14 +12,9 @@ namespace MainGame.UnityView.UI.Inventory
         public int Count { get; }
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; }
     }
-    
+
     public class EmptySubInventory : ISubInventory
     {
-        public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects { get; }
-        public List<IItemStack> SubInventory { get; }
-        public int Count { get; }
-        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; }
-        
         public EmptySubInventory()
         {
             Count = 0;
@@ -27,5 +22,9 @@ namespace MainGame.UnityView.UI.Inventory
             SubInventory = new List<IItemStack>();
             ItemMoveInventoryInfo = null;
         }
+        public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects { get; }
+        public List<IItemStack> SubInventory { get; }
+        public int Count { get; }
+        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; }
     }
 }

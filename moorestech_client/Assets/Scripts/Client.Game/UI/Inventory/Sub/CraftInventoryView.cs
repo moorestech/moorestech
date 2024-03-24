@@ -1,16 +1,16 @@
 using System.Collections.Generic;
 using Client.Game.Context;
+using Client.Game.UI.Inventory.Element;
+using Client.Game.UI.Inventory.Main;
 using Core.Const;
 using Game.Crafting.Interface;
-using MainGame.UnityView.UI.Inventory.Element;
-using MainGame.UnityView.UI.Inventory.Main;
 using TMPro;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
-namespace MainGame.UnityView.UI.Inventory.Sub
+namespace Client.Game.UI.Inventory.Sub
 {
     public class CraftInventoryView : MonoBehaviour
     {
@@ -25,7 +25,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
         [SerializeField] private Button nextRecipeButton;
         [SerializeField] private Button prevRecipeButton;
         [SerializeField] private TMP_Text recipeCountText;
-        
+
         private readonly List<ItemSlotObject> _craftMaterialSlotList = new();
         private readonly List<ItemSlotObject> _itemListObjects = new();
         private ItemSlotObject _craftResultSlot;
@@ -59,7 +59,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
                 if (_currentCraftingConfigDataList.Count <= _currentCraftingConfigIndex) _currentCraftingConfigIndex = 0;
                 DisplayRecipe(_currentCraftingConfigIndex);
             });
-            
+
             prevRecipeButton.onClick.AddListener(() =>
             {
                 _currentCraftingConfigIndex--;
@@ -70,7 +70,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
             craftButton.OnCraftFinish.Subscribe(_ =>
             {
                 if (_currentCraftingConfigDataList?.Count == 0) return;
-                MoorestechContext.VanillaApi.SendOnly.Craft(_currentCraftingConfigDataList[_currentCraftingConfigIndex].RecipeId);                
+                MoorestechContext.VanillaApi.SendOnly.Craft(_currentCraftingConfigDataList[_currentCraftingConfigIndex].RecipeId);
             }).AddTo(this);
         }
 
@@ -86,7 +86,7 @@ namespace MainGame.UnityView.UI.Inventory.Sub
 
         private void OnItemChange(int slot)
         {
-            var enableItem = IsAllItemCraftable();
+            HashSet<int> enableItem = IsAllItemCraftable();
             foreach (var itemUI in _itemListObjects)
             {
                 var isGrayOut = enableItem.Contains(itemUI.ItemViewData.ItemId);

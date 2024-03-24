@@ -12,9 +12,6 @@ namespace Game.World.Interface.DataStore
 
         [JsonProperty("X")] public int X;
         [JsonProperty("Y")] public int Y;
-        
-        [JsonIgnore]
-        public Vector3Int Pos => new(X,Y);
 
         public SaveBlockData(Vector3Int pos, long blocHash, int entityId, string state, int direction)
         {
@@ -25,5 +22,8 @@ namespace Game.World.Interface.DataStore
             State = state;
             Direction = direction;
         }
+
+        [JsonIgnore]
+        public Vector3Int Pos => new(X, Y);
     }
 }

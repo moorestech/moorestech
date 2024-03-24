@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using Core.Item.Config;
-using Game.Block.Interface;
 using Game.Block.Blocks.Miner;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
@@ -18,8 +18,8 @@ namespace Game.WorldMap.EventListener
     {
         private readonly IBlockConfig _blockConfig;
         private readonly IItemConfig _itemConfig;
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IMapVeinDatastore _mapVeinDatastore;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
 
         public SetMiningItemToMiner(
             IBlockPlaceEvent blockPlaceEvent,
@@ -35,12 +35,12 @@ namespace Game.WorldMap.EventListener
         private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEventProperties)
         {
             var pos = blockPlaceEventProperties.Pos;
-            
+
             //採掘機が設置されたか
             if (!_worldBlockDatastore.ExistsComponent<IMiner>(pos)) return;
-            
+
             //採掘機の下に鉱脈があるか
-            var vein = _mapVeinDatastore.GetOverVeins(pos);
+            List<IMapVein> vein = _mapVeinDatastore.GetOverVeins(pos);
             if (vein.Count == 0) return;
 
 
@@ -52,7 +52,7 @@ namespace Game.WorldMap.EventListener
             {
                 //採掘可能な鉱石設定の中にあるか？
                 if (!vein.Exists(v => v.VeinItemId == mineSetting.ItemId)) return;
-                
+
                 //採掘時間、アイテムを設定する
                 miner.SetMiningItem(mineSetting.ItemId, mineSetting.MiningTime);
                 return;

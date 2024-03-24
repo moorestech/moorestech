@@ -30,7 +30,7 @@ namespace MainGame.UnityView.Control
                 return _instance;
             }
         }
-        
+
         public static void MouseCursorVisible(bool isVisible)
         {
             Cursor.lockState = isVisible ? CursorLockMode.None : CursorLockMode.Locked;

@@ -4,6 +4,9 @@ using Client.Game.BlockSystem;
 using Client.Game.BlockSystem.StateChange;
 using Client.Game.Entity;
 using Client.Game.Map.MapObject;
+using Client.Game.UI.Inventory;
+using Client.Game.UI.Inventory.Main;
+using Client.Game.UI.Inventory.Sub;
 using Client.Game.UI.UIState;
 using Client.Game.UI.UIState.UIObject;
 using Client.Network.API;
@@ -13,12 +16,8 @@ using MainGame.Presenter.Block;
 using MainGame.Presenter.Command;
 using MainGame.Presenter.PauseMenu;
 using MainGame.Presenter.Player;
-using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Player;
-using MainGame.UnityView.UI.Inventory;
-using MainGame.UnityView.UI.Inventory.Main;
-using MainGame.UnityView.UI.Inventory.Sub;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -72,6 +71,11 @@ namespace Client.Starter
 
         private int PlayerId = ServerConst.DefaultPlayerId;
         private int Port = ServerConst.LocalServerPort;
+
+        protected override void OnDestroy()
+        {
+            _resolver?.Dispose();
+        }
 
         public void StartGame(InitialHandshakeResponse initialHandshakeResponse)
         {
@@ -138,11 +142,6 @@ namespace Client.Starter
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<NetworkDisconnectPresenter>();
-        }
-
-        protected override void OnDestroy()
-        {
-            _resolver?.Dispose();
         }
     }
 }

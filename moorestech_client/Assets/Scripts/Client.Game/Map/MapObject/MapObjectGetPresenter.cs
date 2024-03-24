@@ -2,6 +2,8 @@
 using System.Threading;
 using Client.Common;
 using Client.Game.Context;
+using Client.Game.UI.Inventory;
+using Client.Game.UI.Inventory.Main;
 using Client.Game.UI.UIState;
 using Cysharp.Threading.Tasks;
 using Game.Map.Interface;
@@ -9,8 +11,6 @@ using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.Player;
 using MainGame.UnityView.SoundEffect;
-using MainGame.UnityView.UI.Inventory;
-using MainGame.UnityView.UI.Inventory.Main;
 using MainGame.UnityView.UI.Util;
 using MainGame.UnityView.Util;
 using UnityEngine;
@@ -28,23 +28,14 @@ namespace Client.Game.Map.MapObject
         [SerializeField] private HotBarView hotBarView;
         [SerializeField] private float miningDistance = 1.5f;
 
+        private MapObjectGameObject _currentMapObjectGameObject;
+
         private CancellationToken _gameObjectCancellationToken;
-        private CancellationTokenSource _miningCancellationTokenSource = new();
 
         private ILocalPlayerInventory _localPlayerInventory;
-        private UIStateControl _uiStateControl;
+        private CancellationTokenSource _miningCancellationTokenSource = new();
         private IPlayerObjectController _playerObjectController;
-
-        [Inject]
-        public void Constructor(UIStateControl uiStateControl, ILocalPlayerInventory localPlayerInventory, IPlayerObjectController playerObjectController)
-        {
-            _uiStateControl = uiStateControl;
-            _localPlayerInventory = localPlayerInventory;
-            _playerObjectController = playerObjectController;
-            _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
-        }
-
-        private MapObjectGameObject _currentMapObjectGameObject = null;
+        private UIStateControl _uiStateControl;
 
         private async UniTask Update()
         {
@@ -208,7 +199,7 @@ namespace Client.Game.Map.MapObject
                     VanillaMapObjectType.VanillaBigTree => new List<string> { "iron ax" },
                     VanillaMapObjectType.VanillaCoal => new List<string> { "iron pickaxe" },
                     VanillaMapObjectType.VanillaIronOre => new List<string> { "iron pickaxe" },
-                    _ => new List<string>()
+                    _ => new List<string>(),
                 };
             }
 
@@ -261,6 +252,15 @@ namespace Client.Game.Map.MapObject
             }
 
             #endregion
+        }
+
+        [Inject]
+        public void Constructor(UIStateControl uiStateControl, ILocalPlayerInventory localPlayerInventory, IPlayerObjectController playerObjectController)
+        {
+            _uiStateControl = uiStateControl;
+            _localPlayerInventory = localPlayerInventory;
+            _playerObjectController = playerObjectController;
+            _gameObjectCancellationToken = this.GetCancellationTokenOnDestroy();
         }
 
         private MapObjectGameObject GetOnMouseMapObject()

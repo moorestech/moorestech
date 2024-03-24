@@ -13,11 +13,15 @@ using UnityEngine;
 namespace Client.Network.API
 {
     /// <summary>
-    /// 送信されたパケットの応答パケットを<see cref="ServerCommunicator"/>から受け取り、呼び出し元に返すクラス
+    ///     送信されたパケットの応答パケットを<see cref="ServerCommunicator" />から受け取り、呼び出し元に返すクラス
     /// </summary>
     public class PacketExchangeManager
     {
         private readonly PacketSender _packetSender;
+
+        private readonly Dictionary<int, ResponseWaiter> _responseWaiters = new();
+
+        private int _sequenceId;
 
         public PacketExchangeManager(PacketSender packetSender)
         {
@@ -25,8 +29,6 @@ namespace Client.Network.API
             TimeOutUpdate().Forget();
         }
 
-        private readonly Dictionary<int, ResponseWaiter> _responseWaiters = new();
-        
         private async UniTask TimeOutUpdate()
         {
             while (true)
@@ -53,9 +55,9 @@ namespace Client.Network.API
         {
             var response = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(data.ToArray());
             var sequence = response.SequenceId;
-            
+
             await UniTask.SwitchToMainThread();
-                
+
             if (!_responseWaiters.ContainsKey(sequence))
             {
                 return;
@@ -64,13 +66,11 @@ namespace Client.Network.API
             _responseWaiters.Remove(sequence);
         }
 
-        private int _sequenceId = 0;
-
         [CanBeNull]
-        public async UniTask<TResponse> GetPacketResponse<TResponse>(ProtocolMessagePackBase request,CancellationToken ct) where TResponse : ProtocolMessagePackBase
+        public async UniTask<TResponse> GetPacketResponse<TResponse>(ProtocolMessagePackBase request, CancellationToken ct) where TResponse : ProtocolMessagePackBase
         {
             SendPacket();
-            
+
             return await WaitReceive();
 
             #region Internal
@@ -81,13 +81,13 @@ namespace Client.Network.API
                 request.SequenceId = _sequenceId;
                 _packetSender.Send(request);
             }
-            
+
             async UniTask<TResponse> WaitReceive()
             {
                 var responseWaiter = new ResponseWaiter(new Subject<List<byte>>());
-                _responseWaiters.Add(_sequenceId,responseWaiter);
+                _responseWaiters.Add(_sequenceId, responseWaiter);
 
-                var receiveData = await responseWaiter.WaitSubject.ToUniTask(true, ct);
+                List<byte> receiveData = await responseWaiter.WaitSubject.ToUniTask(true, ct);
                 if (receiveData == null)
                 {
                     Debug.Log("Receive null");
@@ -110,8 +110,7 @@ namespace Client.Network.API
             SendTime = DateTime.Now;
         }
 
-        public Subject<List<byte>> WaitSubject { get; private set; }
-        public DateTime SendTime { get; private set; }
-        
+        public Subject<List<byte>> WaitSubject { get; }
+        public DateTime SendTime { get; }
     }
 }

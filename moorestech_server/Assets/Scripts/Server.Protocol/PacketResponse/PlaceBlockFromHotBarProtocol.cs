@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
-using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
@@ -16,11 +15,11 @@ namespace Server.Protocol.PacketResponse
     public class SendPlaceHotBarBlockProtocol : IPacketResponse
     {
         public const string Tag = "va:palceHotbarBlock";
+        private readonly IBlockConfig _blockConfig;
         private readonly IBlockFactory _blockFactory;
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
-        private readonly IBlockConfig _blockConfig;
 
         public SendPlaceHotBarBlockProtocol(ServiceProvider serviceProvider)
         {
@@ -45,7 +44,7 @@ namespace Server.Protocol.PacketResponse
             //ブロックの作成
             var blockId = _blockConfig.ItemIdToBlockId(item.Id);
             var blockSize = _blockConfig.GetBlockConfig(blockId).BlockSize;
-            var blockPositionInfo = new BlockPositionInfo(data.Pos, data.BlockDirection,blockSize);
+            var blockPositionInfo = new BlockPositionInfo(data.Pos, data.BlockDirection, blockSize);
             var block = _blockFactory.Create(blockId, CreateBlockEntityId.Create(), blockPositionInfo);
             //ブロックの設置
             _worldBlockDatastore.AddBlock(block);
@@ -82,10 +81,10 @@ namespace Server.Protocol.PacketResponse
         public int PlayerId { get; set; }
         [Key(3)]
         public int Direction { get; set; }
-        
+
         [IgnoreMember]
-        public BlockDirection BlockDirection => (BlockDirection) Direction;
-        
+        public BlockDirection BlockDirection => (BlockDirection)Direction;
+
         [Key(4)]
         public int Slot { get; set; }
 

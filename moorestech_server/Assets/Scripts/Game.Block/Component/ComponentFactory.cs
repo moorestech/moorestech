@@ -8,8 +8,8 @@ namespace Game.Block.Component
 {
     public class ComponentFactory
     {
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IBlockConfig _blockConfig;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IWorldBlockUpdateEvent _worldBlockUpdateEvent;
 
         public ComponentFactory(IWorldBlockDatastore worldBlockDatastore, IBlockConfig blockConfig, IWorldBlockUpdateEvent worldBlockUpdateEvent)

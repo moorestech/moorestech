@@ -1,7 +1,5 @@
 using System;
-using System.Linq;
 using Game.Block.Interface;
-using Game.World.Interface.DataStore;
 using Game.World.Interface.Event;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -28,7 +26,7 @@ namespace Server.Event.EventReceive
             var messagePack = new PlaceBlockEventMessagePack(c, blockId, (int)blockPlaceEventProperties.BlockDirection);
             var payload = MessagePackSerializer.Serialize(messagePack);
 
-            _eventProtocolProvider.AddBroadcastEvent(EventTag,payload);
+            _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
     }
 
@@ -45,34 +43,33 @@ namespace Server.Event.EventReceive
         {
             BlockData = new BlockDataMessagePack(blockId, blockPos, (BlockDirection)direction);
         }
-        
+
         [Key(0)]
         public BlockDataMessagePack BlockData { get; set; }
     }
-    
-    
+
+
 
     [MessagePackObject]
     public class BlockDataMessagePack
     {
-        [Key(0)]
-        public int BlockId { get; set; }
-        [Key(1)]
-        public Vector3IntMessagePack BlockPos { get; set; }
-        [Key(2)]
-        public int Direction { get; set; }
-        
-        [IgnoreMember]
-        public BlockDirection BlockDirection => (BlockDirection)Direction;
-        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BlockDataMessagePack() { }
-        
+
         public BlockDataMessagePack(int blockId, Vector3Int blockPos, BlockDirection blockDirection)
         {
             BlockId = blockId;
             BlockPos = new Vector3IntMessagePack(blockPos);
             Direction = (int)blockDirection;
         }
+        [Key(0)]
+        public int BlockId { get; set; }
+        [Key(1)]
+        public Vector3IntMessagePack BlockPos { get; set; }
+        [Key(2)]
+        public int Direction { get; set; }
+
+        [IgnoreMember]
+        public BlockDirection BlockDirection => (BlockDirection)Direction;
     }
 }

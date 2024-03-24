@@ -48,7 +48,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 new[]
                 {
                     VanillaBlockType.Machine, VanillaBlockType.Chest, VanillaBlockType.Generator,
-                    VanillaBlockType.Miner, VanillaBlockType.BeltConveyor
+                    VanillaBlockType.Miner, VanillaBlockType.BeltConveyor,
                 }));
             _blockComponentManager.AddComponent(component);
         }
@@ -106,6 +106,14 @@ namespace Game.Block.Blocks.BeltConveyor
             //最後のカンマを削除
             state.Remove(state.Length - 1, 1);
             return state.ToString();
+        }
+
+
+
+        public bool Equals(IBlock other)
+        {
+            if (other is null) return false;
+            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
@@ -193,14 +201,6 @@ namespace Game.Block.Blocks.BeltConveyor
         public BeltConveyorInventoryItem GetBeltConveyorItem(int index)
         {
             return _inventoryItems[index];
-        }
-
-
-
-        public bool Equals(IBlock other)
-        {
-            if (other is null) return false;
-            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
         }
 
         public override bool Equals(object obj)

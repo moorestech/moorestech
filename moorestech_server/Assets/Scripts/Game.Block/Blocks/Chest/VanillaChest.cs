@@ -18,14 +18,6 @@ namespace Game.Block.Blocks.Chest
 {
     public class VanillaChest : IBlock, IBlockInventory, IOpenableInventory
     {
-        public IBlockComponentManager ComponentManager => _blockComponentManager;
-        public BlockPositionInfo BlockPositionInfo { get; }
-        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
-
-        public int EntityId { get; }
-        public int BlockId { get; }
-        public long BlockHash { get; }
-
         private readonly BlockComponentManager _blockComponentManager = new();
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
@@ -67,6 +59,13 @@ namespace Game.Block.Blocks.Chest
                 _itemDataStoreService.SetItem(i / 2, item);
             }
         }
+        public IBlockComponentManager ComponentManager => _blockComponentManager;
+        public BlockPositionInfo BlockPositionInfo { get; }
+        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
+
+        public int EntityId { get; }
+        public int BlockId { get; }
+        public long BlockHash { get; }
 
         public string GetSaveState()
         {
@@ -75,6 +74,12 @@ namespace Game.Block.Blocks.Chest
             foreach (var itemStack in _itemDataStoreService.Inventory)
                 saveState += $"{itemStack.ItemHash},{itemStack.Count},";
             return saveState.TrimEnd(',');
+        }
+
+        public bool Equals(IBlock other)
+        {
+            if (other is null) return false;
+            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
         }
 
         public void SetItem(int slot, IItemStack itemStack)
@@ -141,12 +146,6 @@ namespace Game.Block.Blocks.Chest
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
                 EntityId, slot, itemStack));
-        }
-
-        public bool Equals(IBlock other)
-        {
-            if (other is null) return false;
-            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
         }
 
         public override bool Equals(object obj)

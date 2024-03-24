@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 namespace Client.Starter
 {
     /// <summary>
-    /// <see cref="GameInitializerSceneLoader"/>があるシーンの場合はゲーム初期化シーンをロードする
+    ///     <see cref="GameInitializerSceneLoader" />があるシーンの場合はゲーム初期化シーンをロードする
     /// </summary>
     public class GameInitializerSceneLoader : MonoBehaviour
     {

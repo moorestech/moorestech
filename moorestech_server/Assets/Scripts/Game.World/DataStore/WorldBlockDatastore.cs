@@ -18,9 +18,6 @@ namespace Game.World.DataStore
     /// </summary>
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
-        //イベント
-        public IObservable<(ChangedBlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
-
         private readonly IBlockConfig _blockConfig;
 
         //メインのデータストア
@@ -42,6 +39,8 @@ namespace Game.World.DataStore
             _blockPlaceEvent = (BlockPlaceEvent)blockPlaceEvent;
             _worldBlockUpdateEvent = (WorldBlockUpdateEvent)worldBlockUpdateEvent;
         }
+        //イベント
+        public IObservable<(ChangedBlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
 
         public bool AddBlock(IBlock block)
         {
@@ -120,7 +119,7 @@ namespace Game.World.DataStore
         /// </summary>
         private WorldBlockData GetBlockDatastore(Vector3Int pos)
         {
-            foreach (var block in
+            foreach (KeyValuePair<int, WorldBlockData> block in
                      _blockMasterDictionary.Where(block => block.Value.BlockPositionInfo.IsContainPos(pos)))
                 return block.Value;
 
@@ -132,7 +131,7 @@ namespace Game.World.DataStore
         public List<SaveBlockData> GetSaveBlockDataList()
         {
             var list = new List<SaveBlockData>();
-            foreach (var block in _blockMasterDictionary)
+            foreach (KeyValuePair<int, WorldBlockData> block in _blockMasterDictionary)
                 list.Add(new SaveBlockData(
                     block.Value.BlockPositionInfo.OriginalPos,
                     block.Value.Block.BlockHash,

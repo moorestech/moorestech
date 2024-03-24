@@ -1,25 +1,25 @@
 {
-    "name": "Game.Block",
-    "rootNamespace": "",
-    "references": [
-        "Core.Item",
-        "Game.Block.Interface",
-        "Core.Update",
-        "Core.Inventory",
-        "Core.EnergySystem",
-        "Core.Const",
-        "Core.ConfigJson",
-        "Core.Util",
-        "Game.World.Interface",
-        "UniRx"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Game.Block",
+  "rootNamespace": "",
+  "references": [
+    "Core.Item",
+    "Game.Block.Interface",
+    "Core.Update",
+    "Core.Inventory",
+    "Core.EnergySystem",
+    "Core.Const",
+    "Core.ConfigJson",
+    "Core.Util",
+    "Game.World.Interface",
+    "UniRx"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

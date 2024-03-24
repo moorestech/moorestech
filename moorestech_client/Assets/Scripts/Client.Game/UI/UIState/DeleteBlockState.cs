@@ -3,16 +3,14 @@ using Client.Game.Context;
 using Client.Game.Control.MouseKeyboard;
 using Client.Game.UI.UIState.UIObject;
 using MainGame.UnityView.Control;
-using UnityEngine;
 
 namespace Client.Game.UI.UIState
 {
     public class DeleteBlockState : IUIState
     {
-        private BlockGameObject _removeTargetBlock;
-        
         private readonly DeleteBarObject _deleteBarObject;
-        
+        private BlockGameObject _removeTargetBlock;
+
         public DeleteBlockState(DeleteBarObject deleteBarObject)
         {
             _deleteBarObject = deleteBarObject;
@@ -49,7 +47,7 @@ namespace Client.Game.UI.UIState
                 var blockPosition = _removeTargetBlock.BlockPosition;
                 MoorestechContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
             }
-            
+
             return UIStateEnum.Current;
         }
 

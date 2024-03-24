@@ -28,7 +28,7 @@ namespace Core.Item.Config
                     throw new Exception("アイテム名 " + _itemConfigList[arrayIndex].Name + " は重複しています。");
                 _bockHashToId.Add(_itemConfigList[arrayIndex].ItemHash, itemId);
 
-                if (_modIdToItemIds.TryGetValue(_itemConfigList[arrayIndex].ModId, out var itemIds))
+                if (_modIdToItemIds.TryGetValue(_itemConfigList[arrayIndex].ModId, out List<int> itemIds))
                     itemIds.Add(itemId);
                 else
                     _modIdToItemIds.Add(_itemConfigList[arrayIndex].ModId, new List<int> { itemId });
@@ -47,7 +47,7 @@ namespace Core.Item.Config
             if (id < _itemConfigList.Count) return _itemConfigList[id];
 
             //TODO ログ基盤に入れる
-            return new ItemConfigData("undefined id " + id, DefaultItemMaxCount, "mod is not found",id);
+            return new ItemConfigData("undefined id " + id, DefaultItemMaxCount, "mod is not found", id);
         }
 
         public ItemConfigData GetItemConfig(long itemHash)
@@ -66,7 +66,7 @@ namespace Core.Item.Config
         public List<int> GetItemIds(string modId)
         {
             if (modId == null) throw new ArgumentException("Mod id is null");
-            return _modIdToItemIds.TryGetValue(modId, out var itemIds) ? itemIds : new List<int>();
+            return _modIdToItemIds.TryGetValue(modId, out List<int> itemIds) ? itemIds : new List<int>();
         }
 
 

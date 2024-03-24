@@ -36,7 +36,7 @@ namespace Server.Util
                     {
                         _packetLength = payloadLength;
                         //パケット長のshort型の4バイトを取り除く
-                        reminderLength -= _packetLength　+ headerLength;
+                        reminderLength -= _packetLength + headerLength;
                         actualStartPacketDataIndex += headerLength;
                     }
                     else
@@ -112,7 +112,7 @@ namespace Server.Util
                     bytes[startIndex],
                     bytes[startIndex + 1],
                     bytes[startIndex + 2],
-                    bytes[startIndex + 3]
+                    bytes[startIndex + 3],
                 };
             }
 

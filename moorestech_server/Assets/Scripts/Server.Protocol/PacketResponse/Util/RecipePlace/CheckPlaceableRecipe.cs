@@ -21,14 +21,14 @@ namespace Server.Protocol.PacketResponse.Util.RecipePlace
             IOpenableInventory mainInventory, ItemMessagePack[] recipeItem)
         {
             //必要なアイテムがMainインベントリにあるかチェックするための必要アイテム数辞書を作成
-            var requiredItemCount = CreateRequiredItemCount(recipeItem);
+            Dictionary<int, int> requiredItemCount = CreateRequiredItemCount(recipeItem);
 
             //必要なアイテム数があるかチェックするためにMainインベントリを走査
-            var mainInventoryRequiredItemCount = CreateMainInventoryRequiredItemCount(mainInventory, requiredItemCount);
+            Dictionary<int, int> mainInventoryRequiredItemCount = CreateMainInventoryRequiredItemCount(mainInventory, requiredItemCount);
 
 
             //アイテム数が足りているかチェックする
-            foreach (var item in requiredItemCount)
+            foreach (KeyValuePair<int, int> item in requiredItemCount)
             {
                 if (!mainInventoryRequiredItemCount.ContainsKey(item.Key))
                     return (false, mainInventoryRequiredItemCount);

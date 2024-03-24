@@ -1,23 +1,23 @@
 {
-    "name": "Mod.Base",
-    "rootNamespace": "",
-    "references": [
-        "Game.Block.Interface",
-        "Game.Block",
-        "Game.Crafting.Interface",
-        "Core.Item",
-        "Server.Protocol",
-        "Game.World.Interface",
-        "Core.Update",
-        "UniRx"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Mod.Base",
+  "rootNamespace": "",
+  "references": [
+    "Game.Block.Interface",
+    "Game.Block",
+    "Game.Crafting.Interface",
+    "Core.Item",
+    "Server.Protocol",
+    "Game.World.Interface",
+    "Core.Update",
+    "UniRx"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

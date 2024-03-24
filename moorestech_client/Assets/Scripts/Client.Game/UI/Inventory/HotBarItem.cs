@@ -1,10 +1,9 @@
-using System;
+using Client.Game.UI.Inventory.Element;
 using MainGame.ModLoader.Texture;
-using MainGame.UnityView.UI.Inventory.Element;
 using TMPro;
 using UnityEngine;
 
-namespace MainGame.UnityView.UI.Inventory
+namespace Client.Game.UI.Inventory
 {
     public class HotBarItem : MonoBehaviour
     {
@@ -13,19 +12,18 @@ namespace MainGame.UnityView.UI.Inventory
 
         private void Awake()
         {
-            
         }
 
         public void SetItem(ItemViewData itemViewData, int count)
         {
             itemSlotObject.SetItem(itemViewData, count);
         }
-        
+
         public void SetKeyBoardText(string text)
         {
             keyBoardText.text = text;
         }
-        
+
         public void SetSelect(bool isSelect)
         {
             itemSlotObject.SetHotBarSelect(isSelect);

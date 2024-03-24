@@ -13,7 +13,7 @@ namespace Client.Game.BlockSystem
         public static readonly int GroundLayerMask = LayerMask.GetMask("Ground");
 
         /// <summary>
-        /// TODO ここの定義の場所を変える
+        ///     TODO ここの定義の場所を変える
         /// </summary>
         public static Vector3 GetBlockPositionToPlacePosition(Vector3Int blockPosition, BlockDirection blockDirection, int blockId)
         {
@@ -74,7 +74,7 @@ namespace Client.Game.BlockSystem
                 GetGroundPoint(new Vector2(minPos.x, minPos.y), Color.red).y,
                 GetGroundPoint(new Vector2(minPos.x, maxPos.y), Color.magenta).y,
                 GetGroundPoint(new Vector2(maxPos.x, minPos.y), Color.cyan).y,
-                GetGroundPoint(new Vector2(maxPos.x, maxPos.y), Color.blue).y
+                GetGroundPoint(new Vector2(maxPos.x, maxPos.y), Color.blue).y,
             };
 
             return Mathf.Max(heights.ToArray());
@@ -88,7 +88,7 @@ namespace Client.Game.BlockSystem
                 BlockDirection.East => new Vector3(0.5f, 0, 0),
                 BlockDirection.South => new Vector3(0, 0, -0.5f),
                 BlockDirection.West => new Vector3(-0.5f, 0, 0),
-                _ => throw new ArgumentOutOfRangeException(nameof(blockDirection), blockDirection, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(blockDirection), blockDirection, null),
             };
         }
 

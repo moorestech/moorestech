@@ -1,6 +1,5 @@
 using Core.EnergySystem;
 using Core.EnergySystem.Electric;
-using Game.Block.Interface;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
@@ -60,7 +59,7 @@ namespace Game.World.EventHandler.EnergyEvent
                 //範囲内に電柱がある場合
                 //電柱に接続
                 var machinePos = blockPlaceEvent.Pos;
-                ConnectToElectricPole(polePos,machinePos);
+                ConnectToElectricPole(polePos, machinePos);
             }
         }
 

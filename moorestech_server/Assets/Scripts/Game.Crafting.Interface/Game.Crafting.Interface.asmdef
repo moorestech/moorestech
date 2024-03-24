@@ -1,17 +1,17 @@
 {
-    "name": "Game.Crafting.Interface",
-    "rootNamespace": "",
-    "references": [
-        "Core.Item",
-        "Core.Inventory"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Game.Crafting.Interface",
+  "rootNamespace": "",
+  "references": [
+    "Core.Item",
+    "Core.Inventory"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MainGame.Network.Settings
+﻿namespace MainGame.Network.Settings
 {
     public class PlayerConnectionSetting
     {

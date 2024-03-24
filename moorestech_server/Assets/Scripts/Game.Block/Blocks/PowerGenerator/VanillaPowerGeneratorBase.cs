@@ -6,7 +6,6 @@ using Core.EnergySystem;
 using Core.Inventory;
 using Core.Item;
 using Core.Update;
-using Game.Block.Interface;
 using Game.Block.BlockInventory;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Event;
@@ -20,19 +19,15 @@ namespace Game.Block.Blocks.PowerGenerator
 {
     public abstract class VanillaPowerGeneratorBase : IBlock, IEnergyGenerator, IBlockInventory, IOpenableInventory
     {
-        public IBlockComponentManager ComponentManager => _blockComponentManager;
         private readonly BlockComponentManager _blockComponentManager = new();
 
-        public BlockPositionInfo BlockPositionInfo { get; }
-        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
-        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
-
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
-        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly Dictionary<int, FuelSetting> _fuelSettings;
 
         private readonly int _infinityPower;
         private readonly bool _isInfinityPower;
+        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
+        private readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
         private int _fuelItemId = ItemConst.EmptyItemId;
         private double _remainingFuelTime;
@@ -68,6 +63,10 @@ namespace Game.Block.Blocks.PowerGenerator
                 slot++;
             }
         }
+        public IBlockComponentManager ComponentManager => _blockComponentManager;
+
+        public BlockPositionInfo BlockPositionInfo { get; }
+        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
 
         public int EntityId { get; }
         public int BlockId { get; }
@@ -82,6 +81,12 @@ namespace Game.Block.Blocks.PowerGenerator
                 saveState += $",{itemStack.ItemHash},{itemStack.Count}";
 
             return saveState;
+        }
+
+        public bool Equals(IBlock other)
+        {
+            if (other is null) return false;
+            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
         }
 
 
@@ -182,12 +187,6 @@ namespace Game.Block.Blocks.PowerGenerator
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
                 EntityId, slot, itemStack));
-        }
-
-        public bool Equals(IBlock other)
-        {
-            if (other is null) return false;
-            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
         }
 
         public override bool Equals(object obj)

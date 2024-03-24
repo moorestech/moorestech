@@ -46,6 +46,6 @@ namespace MainGame.UnityView.SoundEffect
         DestroyStone,
         DestroyTree,
         DestroyBush,
-        PlaceBlock
+        PlaceBlock,
     }
 }

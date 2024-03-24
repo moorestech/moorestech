@@ -27,7 +27,7 @@ namespace Server.Util.MessagePack
         [Key(0)] public int X { get; set; }
 
         [Key(1)] public int Y { get; set; }
-        
+
         public static implicit operator Vector2Int(Vector2IntMessagePack pack)
         {
             return new Vector2Int(pack.X, pack.Y);

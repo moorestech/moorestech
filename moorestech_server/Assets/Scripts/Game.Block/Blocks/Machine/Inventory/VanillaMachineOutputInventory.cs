@@ -3,7 +3,6 @@ using System.Linq;
 using Core.Inventory;
 using Core.Item;
 using Core.Update;
-using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
 using Game.Block.Component.IOConnector;
 using Game.Block.Event;
@@ -15,8 +14,6 @@ namespace Game.Block.Blocks.Machine.Inventory
 {
     public class VanillaMachineOutputInventory
     {
-        public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;
-
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
         private readonly int _entityId;
@@ -34,6 +31,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
+        public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.Inventory;
 
         private void Update()
         {

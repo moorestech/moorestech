@@ -1,21 +1,21 @@
 {
-    "name": "Game.PlayerInventory",
-    "rootNamespace": "",
-    "references": [
-        "Game.PlayerInventory.Interface",
-        "Game.Crafting.Interface",
-        "Core.Item",
-        "Game.World.Interface",
-        "Core.Inventory",
-        "Game.Block.Interface"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Game.PlayerInventory",
+  "rootNamespace": "",
+  "references": [
+    "Game.PlayerInventory.Interface",
+    "Game.Crafting.Interface",
+    "Core.Item",
+    "Game.World.Interface",
+    "Core.Inventory",
+    "Game.Block.Interface"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

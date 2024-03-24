@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.EnergySystem;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
@@ -46,7 +47,7 @@ namespace Game.World.EventHandler.EnergyEvent
 
 
             //接続範囲内の電柱を取得
-            var electricPoles = FindElectricPoleFromPeripheralService.Find(
+            List<IEnergyTransformer> electricPoles = FindElectricPoleFromPeripheralService.Find(
                 blockRemoveEvent.Pos, _blockConfig.GetBlockConfig(blockRemoveEvent.Block.BlockId).Param as ElectricPoleConfigParam,
                 _worldBlockDatastore);
 

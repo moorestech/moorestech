@@ -37,7 +37,7 @@ namespace Server.Protocol
         {
             var request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray());
             var response = _packetResponseDictionary[request.Tag].GetResponse(payload);
-            
+
             if (response == null)
             {
                 return new List<List<byte>>();
@@ -45,8 +45,8 @@ namespace Server.Protocol
 
             response.SequenceId = request.SequenceId;
             var responseBytes = MessagePackSerializer.Serialize(Convert.ChangeType(response, response.GetType()));
-            
-            return new List<List<byte>> {responseBytes.ToList()};
+
+            return new List<List<byte>> { responseBytes.ToList() };
         }
     }
 }

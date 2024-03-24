@@ -21,10 +21,10 @@ namespace Game.Block.RecipeConfig
         private List<MachineRecipeData> Load(IBlockConfig blockConfig, ItemStackFactory itemStackFactory, string json)
         {
             //JSONデータの読み込み
-            var data = JsonConvert.DeserializeObject<MachineRecipeJsonData[]>(json);
+            MachineRecipeJsonData[] data = JsonConvert.DeserializeObject<MachineRecipeJsonData[]>(json);
 
             //レシピデータを実際に使用する形式に変換
-            var r = data.ToList().Select((r, index) =>
+            IEnumerable<MachineRecipeData> r = data.ToList().Select((r, index) =>
             {
                 var inputItem =
                     r.ItemInputs.ToList().Select(item => itemStackFactory.Create(item.ModId, item.ItemName, item.Count))
@@ -33,7 +33,7 @@ namespace Game.Block.RecipeConfig
 
                 inputItem = inputItem.OrderBy(i => i.Id).ToList();
 
-                var outputs =
+                IEnumerable<ItemOutput> outputs =
                     r.ItemOutputs.Select(r =>
                         new ItemOutput(itemStackFactory.Create(r.ModId, r.ItemName, r.Count), r.Percent));
 

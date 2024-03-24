@@ -9,14 +9,6 @@ using UnityEngine;
 
 public class MapExportAndSetting : EditorWindow
 {
-    [MenuItem("moorestech/MapExportAndSetting")]
-    private static void ShowWindow()
-    {
-        var window = GetWindow<MapExportAndSetting>();
-        window.titleContent = new GUIContent("MapExportAndSetting");
-        window.Show();
-    }
-
     private void OnGUI()
     {
         if (!GUILayout.Button("Export and Setting Map"))
@@ -27,7 +19,7 @@ public class MapExportAndSetting : EditorWindow
         var mapObjectConfig = new MapInfoJson
         {
             MapObjects = SetUpMapObjectInfos(),
-            MapVeins = GetMapVeinInfo()
+            MapVeins = GetMapVeinInfo(),
         };
 
         // jsonに変換
@@ -57,7 +49,7 @@ public class MapExportAndSetting : EditorWindow
                     InstanceId = mapObject.InstanceId,
                     X = mapObject.GetPosition().x,
                     Y = mapObject.GetPosition().y,
-                    Z = mapObject.GetPosition().z
+                    Z = mapObject.GetPosition().z,
                 };
                 result.Add(config);
             }
@@ -67,7 +59,7 @@ public class MapExportAndSetting : EditorWindow
 
         List<MapVeinInfoJson> GetMapVeinInfo()
         {
-            var veins = FindObjectsOfType<MapVeinGameObject>();
+            MapVeinGameObject[] veins = FindObjectsOfType<MapVeinGameObject>();
             var result = new List<MapVeinInfoJson>();
 
             foreach (var vein in veins)
@@ -79,7 +71,7 @@ public class MapExportAndSetting : EditorWindow
                     XMin = vein.VeinRangeMinPos.x,
                     YMin = vein.VeinRangeMinPos.y,
                     XMax = vein.VeinRangeMaxPos.x,
-                    YMax = vein.VeinRangeMaxPos.y
+                    YMax = vein.VeinRangeMaxPos.y,
                 };
                 result.Add(config);
             }
@@ -88,5 +80,12 @@ public class MapExportAndSetting : EditorWindow
         }
 
         #endregion
+    }
+    [MenuItem("moorestech/MapExportAndSetting")]
+    private static void ShowWindow()
+    {
+        var window = GetWindow<MapExportAndSetting>();
+        window.titleContent = new GUIContent("MapExportAndSetting");
+        window.Show();
     }
 }

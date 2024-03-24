@@ -28,16 +28,16 @@ namespace Client.Common.Util
         private static Material CopyProperties(Material material, Material newMaterial, Dictionary<string, string> colorIndex, Dictionary<string, string> textureIndex, Dictionary<string, string> floatIndex)
         {
             newMaterial.name = material.name;
-            foreach (var index in colorIndex) newMaterial.SetColor(index.Value, material.GetColor(index.Key));
-            foreach (var index in colorIndex) newMaterial.SetColor(index.Value, material.GetColor(index.Key));
-            foreach (var index in textureIndex)
+            foreach (KeyValuePair<string, string> index in colorIndex) newMaterial.SetColor(index.Value, material.GetColor(index.Key));
+            foreach (KeyValuePair<string, string> index in colorIndex) newMaterial.SetColor(index.Value, material.GetColor(index.Key));
+            foreach (KeyValuePair<string, string> index in textureIndex)
             {
                 newMaterial.SetTexture(index.Value, material.GetTexture(index.Key));
                 newMaterial.SetTextureOffset(index.Value, material.GetTextureOffset(index.Key));
                 newMaterial.SetTextureScale(index.Value, material.GetTextureScale(index.Key));
             }
 
-            foreach (var index in floatIndex) newMaterial.SetFloat(index.Value, material.GetFloat(index.Key));
+            foreach (KeyValuePair<string, string> index in floatIndex) newMaterial.SetFloat(index.Value, material.GetFloat(index.Key));
             return newMaterial;
         }
     }

@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using Core.Const;
 using Core.Item;
+using Game.Block.BlockInventory;
 using Game.Block.Component.IOConnector;
 
 namespace Game.Block.Blocks.Service
@@ -20,7 +22,7 @@ namespace Game.Block.Blocks.Service
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            var inventories = _inputConnectorComponent.ConnectInventory;
+            IReadOnlyList<IBlockInventory> inventories = _inputConnectorComponent.ConnectInventory;
 
             for (var i = 0; i < inventories.Count && itemStack.Id != ItemConst.EmptyItemId; i++)
                 lock (inventories)

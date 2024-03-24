@@ -11,17 +11,16 @@ namespace Client.Network.API
 {
     public class VanillaApiEvent
     {
+        private readonly Dictionary<string, Action<byte[]>> _eventResponseInfos = new();
         private readonly PacketExchangeManager _packetExchangeManager;
         private readonly PlayerConnectionSetting _playerConnectionSetting;
-        
-        private readonly Dictionary<string,Action<byte[]>> _eventResponseInfos = new ();
         public VanillaApiEvent(PacketExchangeManager packetExchangeManager, PlayerConnectionSetting playerConnectionSetting)
         {
             _packetExchangeManager = packetExchangeManager;
             _playerConnectionSetting = playerConnectionSetting;
             CollectEvent().Forget();
         }
-        
+
         private async UniTask CollectEvent()
         {
             while (true)
@@ -45,12 +44,12 @@ namespace Client.Network.API
             async UniTask RequestAndParse(CancellationToken ct)
             {
                 var request = new EventProtocolMessagePack(_playerConnectionSetting.PlayerId);
-            
+
                 var response = await _packetExchangeManager.GetPacketResponse<ResponseEventProtocolMessagePack>(request, ct);
-            
+
                 foreach (var eventMessagePack in response.Events)
                 {
-                    if (_eventResponseInfos.TryGetValue(eventMessagePack.Tag, out var action))
+                    if (_eventResponseInfos.TryGetValue(eventMessagePack.Tag, out Action<byte[]> action))
                     {
                         action(eventMessagePack.Payload);
                     }
@@ -59,12 +58,12 @@ namespace Client.Network.API
 
             #endregion
         }
-        
-        public void RegisterEventResponse(string tag,Action<byte[]> responseAction)
+
+        public void RegisterEventResponse(string tag, Action<byte[]> responseAction)
         {
             _eventResponseInfos.Add(tag, responseAction);
         }
-        
+
         public void UnRegisterEventResponse(string tag)
         {
             _eventResponseInfos.Remove(tag);

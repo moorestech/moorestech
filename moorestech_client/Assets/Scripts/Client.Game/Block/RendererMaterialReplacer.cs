@@ -1,14 +1,12 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Client.Game.Block
 {
     public class RendererMaterialReplacer
     {
-        private readonly Renderer _renderers;
         private readonly List<Material> _originalMaterials;
+        private readonly Renderer _renderers;
         private readonly List<Material> _replacedMaterials = new();
 
         public RendererMaterialReplacer(Renderer renderers)
@@ -20,7 +18,7 @@ namespace Client.Game.Block
                 _originalMaterials.Add(material);
             }
         }
-        
+
         public void SetMaterial(Material placeMaterial)
         {
             foreach (var material in _renderers.sharedMaterials)
@@ -33,7 +31,7 @@ namespace Client.Game.Block
                     mainTexture = mainTexture,
                     mainTextureOffset = material.mainTextureOffset,
                     mainTextureScale = material.mainTextureScale,
-                    color = mainColor
+                    color = mainColor,
                 };
 
                 _replacedMaterials.Add(newMaterial);
@@ -41,7 +39,7 @@ namespace Client.Game.Block
 
             _renderers.materials = _replacedMaterials.ToArray();
         }
-        
+
         public void SetPlaceMaterialProperty(string propertyName, float value)
         {
             foreach (var material in _replacedMaterials)

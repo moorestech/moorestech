@@ -1,6 +1,5 @@
 {
   "name": "Client.Network",
-
   "rootNamespace": "",
   "references": [
     "moorestechServer",

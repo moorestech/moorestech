@@ -1,7 +1,6 @@
 using System;
 using Core.EnergySystem;
 using Game.Block.Interface;
-using Game.Block.Interface;
 using Game.Block.Interface.State;
 using UniRx;
 
@@ -9,13 +8,6 @@ namespace Game.Block.Blocks.ElectricPole
 {
     public abstract class VanillaEnergyTransformerBase : IEnergyTransformer, IBlock
     {
-        public int BlockId { get; }
-        public long BlockHash { get; }
-        public int EntityId { get; }
-
-        public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
-        public BlockPositionInfo BlockPositionInfo { get; }
-        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
         protected readonly Subject<ChangedBlockState> _onBlockStateChange = new();
 
         protected VanillaEnergyTransformerBase(int blockId, int entityId, long blockHash, BlockPositionInfo blockPositionInfo)
@@ -25,6 +17,12 @@ namespace Game.Block.Blocks.ElectricPole
             BlockHash = blockHash;
             BlockPositionInfo = blockPositionInfo;
         }
+        public int BlockId { get; }
+        public long BlockHash { get; }
+
+        public IBlockComponentManager ComponentManager { get; } = new BlockComponentManager();
+        public BlockPositionInfo BlockPositionInfo { get; }
+        public IObservable<ChangedBlockState> BlockStateChange => _onBlockStateChange;
 
         public string GetSaveState()
         {
@@ -36,6 +34,7 @@ namespace Game.Block.Blocks.ElectricPole
             if (other is null) return false;
             return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
         }
+        public int EntityId { get; }
 
         public override bool Equals(object obj)
         {

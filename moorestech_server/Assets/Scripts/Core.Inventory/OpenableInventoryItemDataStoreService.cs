@@ -34,7 +34,7 @@ namespace Core.Inventory
             //インベントリのアイテムをコピー
             var inventoryCopy = new List<IItemStack>(_inventory);
             //挿入を実行する
-            var result = InventoryInsertItem.InsertItem(itemStacks, inventoryCopy, _itemStackFactory);
+            List<IItemStack> result = InventoryInsertItem.InsertItem(itemStacks, inventoryCopy, _itemStackFactory);
             //結果のアイテム数が0だったら挿入可能
             return result.Count == 0;
         }

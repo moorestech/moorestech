@@ -104,6 +104,12 @@ namespace Game.Block.Blocks.Miner
             return saveState;
         }
 
+        public bool Equals(IBlock other)
+        {
+            if (other is null) return false;
+            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
+        }
+
         public IItemStack GetItem(int slot)
         {
             return _openableInventoryItemDataStoreService.GetItem(slot);
@@ -219,6 +225,16 @@ namespace Game.Block.Blocks.Miner
                 new BlockOpenableInventoryUpdateEventProperties(EntityId, slot, itemStack));
         }
 
+        public override bool Equals(object obj)
+        {
+            return obj is IBlock other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(EntityId, BlockId, BlockHash);
+        }
+
 
         #region Implimantion IOpenableInventory
 
@@ -260,22 +276,6 @@ namespace Game.Block.Blocks.Miner
         }
 
         #endregion
-
-        public bool Equals(IBlock other)
-        {
-            if (other is null) return false;
-            return EntityId == other.EntityId && BlockId == other.BlockId && BlockHash == other.BlockHash;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is IBlock other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(EntityId, BlockId, BlockHash);
-        }
     }
 
     public enum VanillaMinerState

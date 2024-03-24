@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Game.World.Interface.Event;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -21,10 +20,10 @@ namespace Server.Event.EventReceive
         private void ReceivedEvent(BlockRemoveEventProperties blockPlaceEventProperties)
         {
             var c = blockPlaceEventProperties.Pos;
-            
+
             var payload = MessagePackSerializer.Serialize(new RemoveBlockEventMessagePack(c));
-            
-            _eventProtocolProvider.AddBroadcastEvent(EventTag,payload);
+
+            _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
     }
 

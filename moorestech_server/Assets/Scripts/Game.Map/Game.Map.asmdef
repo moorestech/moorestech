@@ -1,20 +1,20 @@
 {
-    "name": "Game.Map",
-    "rootNamespace": "",
-    "references": [
-        "Game.Map.Interface",
-        "Core.Item",
-        "Game.Base",
-        "Game.SaveLoad.Interface",
-        "Game.SaveLoad"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Game.Map",
+  "rootNamespace": "",
+  "references": [
+    "Game.Map.Interface",
+    "Core.Item",
+    "Game.Base",
+    "Game.SaveLoad.Interface",
+    "Game.SaveLoad"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

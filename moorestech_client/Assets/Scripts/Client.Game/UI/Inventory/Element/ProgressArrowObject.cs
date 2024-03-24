@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace MainGame.UnityView.UI.Builder.Unity
+namespace Client.Game.UI.Inventory.Element
 {
     public class ProgressArrowObject : MonoBehaviour
     {

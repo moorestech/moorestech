@@ -1,5 +1,4 @@
 ﻿using Core.Item;
-using Game.Block.Interface;
 using Game.Block.Blocks.Chest;
 using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;
@@ -12,8 +11,8 @@ namespace Game.Block.Factory.BlockTemplate
     public class VanillaChestTemplate : IBlockTemplate
     {
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
-        private readonly ItemStackFactory _itemStackFactory;
         private readonly ComponentFactory _componentFactory;
+        private readonly ItemStackFactory _itemStackFactory;
 
         public VanillaChestTemplate(ItemStackFactory itemStackFactory, BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, ComponentFactory componentFactory)
         {

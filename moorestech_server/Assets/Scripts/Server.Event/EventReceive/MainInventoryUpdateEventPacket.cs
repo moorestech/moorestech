@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Core.Item;
 using Game.PlayerInventory.Interface.Event;
 using MessagePack;
@@ -25,7 +24,7 @@ namespace Server.Event.EventReceive
             var messagePack = new MainInventoryUpdateEventMessagePack(playerInventoryUpdateEvent.InventorySlot, playerInventoryUpdateEvent.ItemStack);
             var payload = MessagePackSerializer.Serialize(messagePack);
 
-            _eventProtocolProvider.AddEvent(playerInventoryUpdateEvent.PlayerId,EventTag, payload);
+            _eventProtocolProvider.AddEvent(playerInventoryUpdateEvent.PlayerId, EventTag, payload);
         }
     }
 

@@ -1,5 +1,3 @@
-using System;
-
 namespace Game.Block.Interface
 {
     public interface IBlockComponent

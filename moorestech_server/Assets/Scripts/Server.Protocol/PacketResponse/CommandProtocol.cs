@@ -4,7 +4,6 @@ using Core.Item;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
