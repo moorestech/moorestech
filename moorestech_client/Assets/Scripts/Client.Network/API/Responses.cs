@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.Item;
+using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;

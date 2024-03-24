@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using Client.Common;
 using Client.Starter;
-using GameConst;
-using Constant;
 using MainMenu.PopUp;
 using TMPro;
 using UnityEngine;
@@ -79,7 +78,7 @@ namespace MainMenu
             var playerId = PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey);
 
             var properties = new InitializeProprieties(false, null, ip, port, playerId);
-            
+
             starter.SetProperty(properties);
         }
     }

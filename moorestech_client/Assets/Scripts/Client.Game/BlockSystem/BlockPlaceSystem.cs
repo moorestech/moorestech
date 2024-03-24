@@ -1,10 +1,9 @@
 using ClassLibrary;
+using Client.Common;
 using Client.Game.Context;
 using Client.Game.UI.UIState;
-using Constant;
+using Game.Block.Interface;
 using Game.PlayerInventory.Interface;
-using Game.World.Interface.DataStore;
-using MainGame.UnityView.Block;
 using MainGame.UnityView.Chunk;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.SoundEffect;
@@ -12,7 +11,6 @@ using MainGame.UnityView.UI.Inventory;
 using MainGame.UnityView.UI.Inventory.Main;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using VContainer;
 using VContainer.Unity;
 
 namespace Client.Game.BlockSystem
@@ -32,13 +30,11 @@ namespace Client.Game.BlockSystem
 
         private int _heightOffset = 0;
 
-        
-
         public void PostTick()
         {
             UpdateHeightOffset();
             BlockDirectionControl();
-            GroundClickControl(); 
+            GroundClickControl();
         }
 
         public BlockPlaceSystem(Camera mainCamera, HotBarView hotBarView, UIStateControl uiStateControl, IBlockPlacePreview blockPlacePreview, ILocalPlayerInventory localPlayerInventory)
@@ -124,7 +120,7 @@ namespace Client.Game.BlockSystem
             //UIの状態がゲームホットバー選択中か
             if (_uiStateControl.CurrentState != UIStateEnum.GameScreen) return;
 
-            var selectIndex = (short) _hotBarView.SelectIndex;
+            var selectIndex = (short)_hotBarView.SelectIndex;
             var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
             //持っているアイテムがブロックじゃなかったら何もしない
             if (!blockConfig.IsBlock(itemId)) return;
@@ -141,7 +137,7 @@ namespace Client.Game.BlockSystem
             placePoint.x = Mathf.FloorToInt(hitPoint.x + (convertedSize.x % 2 == 0 ? 0.5f : 0));
             placePoint.z = Mathf.FloorToInt(hitPoint.z + (convertedSize.z % 2 == 0 ? 0.5f : 0));
             placePoint.y = Mathf.FloorToInt(hitPoint.y);
-            
+
             placePoint += new Vector3Int(0, _heightOffset, 0);
             placePoint -= convertedSize / 2;
 
@@ -157,7 +153,7 @@ namespace Client.Game.BlockSystem
             }
 
             //クリックされてなかったらプレビューを表示する
-            _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection,holdingBlockConfig);
+            _blockPlacePreview.SetPreview(placePoint, _currentBlockDirection, holdingBlockConfig);
         }
 
 

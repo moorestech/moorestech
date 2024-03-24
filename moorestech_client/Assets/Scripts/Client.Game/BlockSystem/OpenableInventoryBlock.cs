@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MainGame.UnityView.Block
+namespace Client.Game.BlockSystem
 {
     //todo これをオミットしてIDからチェックできるようにする
     public class OpenableInventoryBlock : MonoBehaviour

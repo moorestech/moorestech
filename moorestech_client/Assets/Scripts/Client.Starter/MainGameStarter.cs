@@ -1,16 +1,16 @@
 using System.Diagnostics;
+using Client.Common;
 using Client.Game.BlockSystem;
 using Client.Game.BlockSystem.StateChange;
+using Client.Game.Entity;
 using Client.Game.Map.MapObject;
 using Client.Game.UI.UIState;
 using Client.Game.UI.UIState.UIObject;
 using Client.Network.API;
-using GameConst;
 using MainGame.Control.UI.PauseMenu;
 using MainGame.Extension;
 using MainGame.Presenter.Block;
 using MainGame.Presenter.Command;
-using MainGame.Presenter.Entity;
 using MainGame.Presenter.PauseMenu;
 using MainGame.Presenter.Player;
 using MainGame.UnityView.Block;
@@ -82,7 +82,7 @@ namespace Client.Starter
 
             //インベントリのUIコントロール
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
-            builder.Register<ILocalPlayerInventory,LocalPlayerInventory>(Lifetime.Singleton);
+            builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
 
             //プレゼンターアセンブリ

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.Block;
+using Client.Game.BlockSystem;
 using Client.Game.Context;
 using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
 using Game.World.Interface.DataStore;
 using MainGame.ModLoader.Glb;
 using MainGame.UnityView.Block;
@@ -17,7 +19,7 @@ namespace MainGame.UnityView.Chunk
         public IReadOnlyDictionary<Vector3Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
 
         public event Action<BlockGameObject> OnPlaceBlock;
-        
+
 
         public BlockGameObject GetBlockGameObject(Vector3Int position)
         {
@@ -46,11 +48,11 @@ namespace MainGame.UnityView.Chunk
             //新しいブロックを設置
             var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(blockPosition, blockDirection, blockId);
             var rot = blockDirection.GetRotation();
-            
-            var block = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot,transform, blockPosition);
+
+            var block = MoorestechContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot, transform, blockPosition);
             //設置アニメーションを再生
             block.PlayPlaceAnimation().Forget();
-            
+
             _blockObjectsDictionary.Add(blockPosition, block);
             OnPlaceBlock?.Invoke(block);
         }

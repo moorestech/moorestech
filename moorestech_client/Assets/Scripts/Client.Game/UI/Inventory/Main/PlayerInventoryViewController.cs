@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClassLibrary;
+using Client.Common;
 using Client.Game.Context;
 using Core.Const;
 using Core.Item;
-using Constant;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.UI.Inventory.Element;
-using ServerServiceProvider;
 using UniRx;
 using UnityEngine;
 using VContainer;
@@ -22,17 +21,17 @@ namespace MainGame.UnityView.UI.Inventory.Main
     public class PlayerInventoryViewController : MonoBehaviour
     {
         [SerializeField] private GameObject mainInventoryObject;
-        
+
         [SerializeField] private List<ItemSlotObject> mainInventorySlotObjects;
         [SerializeField] private ItemSlotObject grabInventorySlotObject;
-        
+
         private LocalPlayerInventoryController _playerInventory;
-        
+
         private ISubInventory _subInventory;
         private List<IDisposable> _subInventorySlotUIEventUnsubscriber = new();
         private bool _isItemSplitDragging;
         private bool _isItemOneDragging;
-         
+
         private bool IsGrabItem => _playerInventory.GrabInventory.Id != ItemConst.EmptyItemId;
 
         [Inject]
@@ -65,7 +64,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
             }
         }
 
-        private void ItemSlotUIEvent((ItemSlotObject slotObject,ItemUIEventType itemUIEvent) eventProperty)
+        private void ItemSlotUIEvent((ItemSlotObject slotObject, ItemUIEventType itemUIEvent) eventProperty)
         {
             var (slotObject, itemUIEvent) = eventProperty;
             var index = mainInventorySlotObjects.IndexOf(slotObject);
@@ -78,21 +77,33 @@ namespace MainGame.UnityView.UI.Inventory.Main
             }
             switch (itemUIEvent)
             {
-                case ItemUIEventType.LeftClickDown: LeftClickDown(index); break;
-                case ItemUIEventType.RightClickDown: RightClickDown(index); break;
-                case ItemUIEventType.LeftClickUp: LeftClickUp(index); break;
-                case ItemUIEventType.RightClickUp: RightClickUp(index); break;
-                case ItemUIEventType.CursorEnter: CursorEnter(index); break;
-                case ItemUIEventType.DoubleClick: DoubleClick(index); break;
+                case ItemUIEventType.LeftClickDown:
+                    LeftClickDown(index);
+                    break;
+                case ItemUIEventType.RightClickDown:
+                    RightClickDown(index);
+                    break;
+                case ItemUIEventType.LeftClickUp:
+                    LeftClickUp(index);
+                    break;
+                case ItemUIEventType.RightClickUp:
+                    RightClickUp(index);
+                    break;
+                case ItemUIEventType.CursorEnter:
+                    CursorEnter(index);
+                    break;
+                case ItemUIEventType.DoubleClick:
+                    DoubleClick(index);
+                    break;
                 case ItemUIEventType.CursorExit: break;
                 case ItemUIEventType.CursorMove: break;
                 default: throw new ArgumentOutOfRangeException(nameof(itemUIEvent), itemUIEvent, null);
             }
         }
-        
-        
-        
-        
+
+
+
+
         private void DoubleClick(int slotIndex)
         {
             if (_isItemSplitDragging || _isItemOneDragging) return;
@@ -113,13 +124,9 @@ namespace MainGame.UnityView.UI.Inventory.Main
                 fromType = LocalMoveInventoryType.MainOrSub;
                 fromSlot = slotIndex;
             }
-            
-            var collectTargetSotIndex = _playerInventory.LocalPlayerInventory.
-                Select((item, index) => new { item, index }).
-                Where(i => i.item.Id == collectTargetItem.Id).
-                OrderBy(i => i.item.Count).
-                Select(i => i.index).ToList();
-            
+
+            var collectTargetSotIndex = _playerInventory.LocalPlayerInventory.Select((item, index) => new { item, index }).Where(i => i.item.Id == collectTargetItem.Id).OrderBy(i => i.item.Count).Select(i => i.index).ToList();
+
             //一つのスロットに集める場合は集める先のスロットのインデックスをターゲットから除外する
             if (!IsGrabItem)
             {
@@ -132,10 +139,10 @@ namespace MainGame.UnityView.UI.Inventory.Main
 
                 //アイテムを何個移したのかを計算
                 var collectItemCount = _playerInventory.LocalPlayerInventory[index].Count - added.RemainderItemStack.Count;
-                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub,index,fromType,fromSlot,collectItemCount);
+                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub, index, fromType, fromSlot, collectItemCount);
 
                 collectTargetItem = added.ProcessResultItemStack;
-                
+
                 //足したあまりがあるということはスロットにそれ以上入らないということなので、ここで処理を終了する
                 if (added.RemainderItemStack.Count != 0) break;
             }
@@ -145,8 +152,9 @@ namespace MainGame.UnityView.UI.Inventory.Main
         {
             if (_isItemSplitDragging)
             {
-                SplitDraggingItem(slotIndex,false);
-            }else if (_isItemOneDragging)
+                SplitDraggingItem(slotIndex, false);
+            }
+            else if (_isItemOneDragging)
             {
                 //ドラッグ中の時はマウスカーソルが乗ったスロットをドラッグされたと判定する
                 PlaceOneItem(slotIndex);
@@ -155,7 +163,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
 
         private void RightClickUp(int slotIndex)
         {
-            if (_isItemOneDragging)  _isItemOneDragging = false;
+            if (_isItemOneDragging) _isItemOneDragging = false;
         }
 
         private void LeftClickUp(int slotIndex)
@@ -163,7 +171,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
             //左クリックを離したときはドラッグ中のスロットを解除する
             if (_isItemSplitDragging)
             {
-                SplitDraggingItem(slotIndex,true);
+                SplitDraggingItem(slotIndex, true);
                 _itemSplitDraggedSlots.Clear();
                 _isItemSplitDragging = false;
             }
@@ -181,15 +189,15 @@ namespace MainGame.UnityView.UI.Inventory.Main
             else
             {
                 //アイテムを持ってない時に右クリックするとアイテムを半分とる処理
-                
-                
+
+
                 //空スロットの時はアイテムを持たない
                 var item = _playerInventory.LocalPlayerInventory[slotIndex];
                 if (item.Id == ItemConstant.NullItemId) return;
 
                 var halfItemCount = item.Count / 2;
-                
-                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub,slotIndex, LocalMoveInventoryType.Grab, 0, halfItemCount);
+
+                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub, slotIndex, LocalMoveInventoryType.Grab, 0, halfItemCount);
             }
         }
 
@@ -204,13 +212,13 @@ namespace MainGame.UnityView.UI.Inventory.Main
                     //アイテムを持っている時に左クリックするとアイテムを置くもしくは置き換える処理
                     _isItemSplitDragging = true;
                     _grabInventoryBeforeDrag = _playerInventory.GrabInventory;
-                    SplitDraggingItem(slotIndex,false);
+                    SplitDraggingItem(slotIndex, false);
                 }
                 else
                 {
-                    _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.MainOrSub, slotIndex, _playerInventory.GrabInventory.Count);
+                    _playerInventory.MoveItem(LocalMoveInventoryType.Grab, 0, LocalMoveInventoryType.MainOrSub, slotIndex, _playerInventory.GrabInventory.Count);
                 }
-                    
+
                 return;
             }
 
@@ -223,27 +231,27 @@ namespace MainGame.UnityView.UI.Inventory.Main
             {
                 var slotItemCount = _playerInventory.LocalPlayerInventory[slotIndex].Count;
                 //アイテムを持ってない時に左クリックするとアイテムを取る処理
-                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub,slotIndex, LocalMoveInventoryType.Grab, 0, slotItemCount);
+                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub, slotIndex, LocalMoveInventoryType.Grab, 0, slotItemCount);
             }
         }
-        
-        
-        
-        
+
+
+
+
 
         private void PlaceOneItem(int slotIndex)
         {
             var oneItem = MoorestechContext.ServerServices.ItemStackFactory.Create(_playerInventory.GrabInventory.Id, 1);
             var currentItem = _playerInventory.LocalPlayerInventory[slotIndex];
-                
+
             //追加できない場合はスキップ
-            if (!currentItem.IsAllowedToAdd(oneItem))  return;
-                   
+            if (!currentItem.IsAllowedToAdd(oneItem)) return;
+
             //アイテムを追加する
-            _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.MainOrSub, slotIndex, 1);
-                
+            _playerInventory.MoveItem(LocalMoveInventoryType.Grab, 0, LocalMoveInventoryType.MainOrSub, slotIndex, 1);
+
             //Grabインベントリがなくなったらドラッグを終了する
-            if(_playerInventory.GrabInventory.Count == 0)
+            if (_playerInventory.GrabInventory.Count == 0)
                 _isItemOneDragging = false;
         }
 
@@ -252,33 +260,33 @@ namespace MainGame.UnityView.UI.Inventory.Main
         //ドラッグ中のアイテムをドラッグする前のGrabインベントリ
         private IItemStack _grabInventoryBeforeDrag;
 
-        private void SplitDraggingItem(int slotIndex,bool isMoveSendData)
+        private void SplitDraggingItem(int slotIndex, bool isMoveSendData)
         {
             if (!_playerInventory.LocalPlayerInventory[slotIndex].IsAllowedToAddWithRemain(_playerInventory.GrabInventory)) return;
 
-            if (!_itemSplitDraggedSlots.Exists(i => i.Slot == slotIndex) && 
-                (_playerInventory.LocalPlayerInventory[slotIndex].Id == ItemConstant.NullItemId  || _playerInventory.LocalPlayerInventory[slotIndex].Id == _grabInventoryBeforeDrag.Id))
+            if (!_itemSplitDraggedSlots.Exists(i => i.Slot == slotIndex) &&
+                (_playerInventory.LocalPlayerInventory[slotIndex].Id == ItemConstant.NullItemId || _playerInventory.LocalPlayerInventory[slotIndex].Id == _grabInventoryBeforeDrag.Id))
             {
                 //まだスロットをドラッグしてない時 か アイテムがない時か、同じアイテムがあるとき
                 //ドラッグ中のアイテムに設定
                 _itemSplitDraggedSlots.Add(new ItemSplitDragSlot(slotIndex, _playerInventory.LocalPlayerInventory[slotIndex]));
             }
-                
+
             //一度Grabインベントリをリセットする
             _playerInventory.SetGrabItem(_grabInventoryBeforeDrag);
             foreach (var itemSplit in _itemSplitDraggedSlots)
             {
                 _playerInventory.SetMainItem(itemSplit.Slot, itemSplit.BeforeDragItem);
             }
-            
-            
+
+
             var grabItem = _playerInventory.GrabInventory;
 
             //1スロットあたりのアイテム数
             var dragItemCount = grabItem.Count / _itemSplitDraggedSlots.Count;
             //余っているアイテム数
             var remainItemNum = grabItem.Count - dragItemCount * _itemSplitDraggedSlots.Count;
-            
+
             var itemStackFactory = MoorestechContext.ServerServices.ItemStackFactory;
 
             foreach (var dragSlot in _itemSplitDraggedSlots)
@@ -287,11 +295,11 @@ namespace MainGame.UnityView.UI.Inventory.Main
                 var addedItem = dragSlot.BeforeDragItem.AddItem(itemStackFactory.Create(grabItem.Id, dragItemCount));
                 var moveItemCount = addedItem.ProcessResultItemStack.Count - dragSlot.BeforeDragItem.Count;
 
-                _playerInventory.MoveItem(LocalMoveInventoryType.Grab,0, LocalMoveInventoryType.MainOrSub, dragSlot.Slot, moveItemCount,isMoveSendData);
+                _playerInventory.MoveItem(LocalMoveInventoryType.Grab, 0, LocalMoveInventoryType.MainOrSub, dragSlot.Slot, moveItemCount, isMoveSendData);
                 //余ったアイテムを加算する
                 remainItemNum += addedItem.RemainderItemStack.Count;
             }
-            
+
             //あまりのアイテムをGrabインベントリに設定する
             _playerInventory.SetGrabItem(itemStackFactory.Create(grabItem.Id, remainItemNum));
         }
@@ -299,19 +307,19 @@ namespace MainGame.UnityView.UI.Inventory.Main
 
         private void DirectMove(int slotIndex)
         {
-             //そのスロットがメインインベントリかサブインベントリを判定する
-             var isMain = slotIndex < PlayerInventoryConst.MainInventorySize;
-             
-             var startIndex = isMain ? 0 : PlayerInventoryConst.MainInventorySize;
-             var endIndex = isMain ? PlayerInventoryConst.MainInventorySize : PlayerInventoryConst.MainInventorySize + _subInventory.Count;
-             for (int i = startIndex; i < endIndex; i++)
-             {
-                 _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub,slotIndex,LocalMoveInventoryType.MainOrSub, i, _playerInventory.LocalPlayerInventory[slotIndex].Count);
-                 //アイテムがなくなったら終了する
-                 if (_playerInventory.LocalPlayerInventory[slotIndex].Count == 0) break;
-             }
+            //そのスロットがメインインベントリかサブインベントリを判定する
+            var isMain = slotIndex < PlayerInventoryConst.MainInventorySize;
+
+            var startIndex = isMain ? 0 : PlayerInventoryConst.MainInventorySize;
+            var endIndex = isMain ? PlayerInventoryConst.MainInventorySize : PlayerInventoryConst.MainInventorySize + _subInventory.Count;
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub, slotIndex, LocalMoveInventoryType.MainOrSub, i, _playerInventory.LocalPlayerInventory[slotIndex].Count);
+                //アイテムがなくなったら終了する
+                if (_playerInventory.LocalPlayerInventory[slotIndex].Count == 0) break;
+            }
         }
-        
+
         public void SetActive(bool isActive)
         {
             mainInventoryObject.SetActive(isActive);
@@ -322,7 +330,7 @@ namespace MainGame.UnityView.UI.Inventory.Main
         {
             InventoryViewUpdate();
         }
-        
+
         private void InventoryViewUpdate()
         {
             for (int i = 0; i < _playerInventory.LocalPlayerInventory.Count; i++)
@@ -332,12 +340,12 @@ namespace MainGame.UnityView.UI.Inventory.Main
 
                 if (i < mainInventorySlotObjects.Count)
                 {
-                    mainInventorySlotObjects[i].SetItem(itemView,item.Count);
+                    mainInventorySlotObjects[i].SetItem(itemView, item.Count);
                 }
                 else
                 {
                     var subIndex = i - mainInventorySlotObjects.Count;
-                    _subInventory.SubInventorySlotObjects[subIndex].SetItem(itemView,item.Count);
+                    _subInventory.SubInventorySlotObjects[subIndex].SetItem(itemView, item.Count);
                 }
             }
             grabInventorySlotObject.SetActive(IsGrabItem);

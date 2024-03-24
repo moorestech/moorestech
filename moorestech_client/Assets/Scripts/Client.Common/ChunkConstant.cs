@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Constant
+namespace Client.Common
 {
     public static class ChunkConstant
     {

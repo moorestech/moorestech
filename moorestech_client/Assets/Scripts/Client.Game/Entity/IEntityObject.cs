@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace MainGame.UnityView.Entity
+namespace Client.Game.Entity
 {
     public interface IEntityObject
     {

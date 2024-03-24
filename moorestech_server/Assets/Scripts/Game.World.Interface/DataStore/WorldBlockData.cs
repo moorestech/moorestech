@@ -17,7 +17,4 @@ namespace Game.World.Interface.DataStore
             BlockPositionInfo = new BlockPositionInfo(originalPos, blockDirection, blockSize);
         }
     }
-    
-
-    
 }

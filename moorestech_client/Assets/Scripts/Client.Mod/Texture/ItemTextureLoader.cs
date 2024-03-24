@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Client.Common;
 using Core.Item.Config;
-using Constant;
 using Mod.Loader;
-using ServerServiceProvider;
 using UnityEngine;
 
 namespace MainGame.ModLoader.Texture
@@ -43,15 +42,15 @@ namespace MainGame.ModLoader.Texture
             return textureList;
         }
     }
-    
-    
+
+
 
     public class ItemViewData
     {
         public readonly ItemConfigData ItemConfigData;
         public int ItemId => ItemConfigData.ItemId;
         public string ItemName => ItemConfigData.Name;
-        
+
         public readonly Sprite ItemImage;
         public readonly UnityEngine.Texture ItemTexture;
 

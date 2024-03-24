@@ -1,4 +1,5 @@
-﻿using MainGame.UnityView.Block;
+﻿using Client.Game.BlockSystem;
+using MainGame.UnityView.Block;
 using StarterAssets;
 using UnityEngine;
 
@@ -10,9 +11,10 @@ namespace MainGame.UnityView.Player
         public Vector2 Position2d { get; }
         public void SetPlayerPosition(Vector2 playerPos);
         public void SetActive(bool active);
-        
+
         public void SetAnimationState(string state);
     }
+
     public class PlayerAnimationState
     {
         public const string IdleWalkRunBlend = "Idle Walk Run Blend";
@@ -21,7 +23,7 @@ namespace MainGame.UnityView.Player
         public const string JumpLand = "JumpLand";
         public const string Axe = "Axe";
     }
-    
+
     public class PlayerObjectController : MonoBehaviour, IPlayerObjectController
     {
         [SerializeField] private ThirdPersonController controller;
@@ -56,7 +58,7 @@ namespace MainGame.UnityView.Player
         {
             if (transform.localPosition.y < -10)
             {
-                SetPlayerPosition(new Vector2(transform.localPosition.x,transform.localPosition.z));
+                SetPlayerPosition(new Vector2(transform.localPosition.x, transform.localPosition.z));
             }
         }
     }

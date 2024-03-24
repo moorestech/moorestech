@@ -1,6 +1,6 @@
 ﻿using System;
+using Client.Common;
 using Client.Game.Context;
-using Constant;
 using MainGame.Network;
 using UniRx;
 using UnityEngine;

@@ -1,4 +1,5 @@
-using Constant.Server;
+using Client.Common.Server;
+using Client.Game.Entity;
 using UnityEngine;
 
 namespace MainGame.UnityView.Entity

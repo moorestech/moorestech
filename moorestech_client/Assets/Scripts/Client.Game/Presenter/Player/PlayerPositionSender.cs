@@ -1,6 +1,6 @@
+using Client.Common.Server;
 using Client.Game.Context;
 using Client.Network.API;
-using Constant.Server;
 using MainGame.Network.Send;
 using MainGame.UnityView.Player;
 using UnityEngine;
@@ -20,8 +20,6 @@ namespace MainGame.Presenter.Player
         public PlayerPositionSender(IPlayerObjectController playerObjectController)
         {
             _playerObjectController = playerObjectController;
-
-
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using GameConst;
+using Client.Common;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;

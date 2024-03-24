@@ -1,14 +1,11 @@
 ﻿using Client.Game.Context;
-using Client.Network.API;
-using Game.Block.Interface.BlockConfig;
 using MainGame.UnityView.Chunk;
 using MessagePack;
 using Server.Event.EventReceive;
-using ServerServiceProvider;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace MainGame.Presenter.Block
+namespace Client.Game.BlockSystem
 {
     public class BlockStateEventHandler : IInitializable
     {
@@ -27,7 +24,7 @@ namespace MainGame.Presenter.Block
         private void OnStateChange(byte[] payload)
         {
             var data = MessagePackSerializer.Deserialize<ChangeBlockStateEventMessagePack>(payload);
-            
+
             var pos = data.Position;
             if (!_chunkBlockGameObjectDataStore.BlockGameObjectDictionary.TryGetValue(pos, out var _))
             {
@@ -39,7 +36,6 @@ namespace MainGame.Presenter.Block
                 blockObject.BlockStateChangeProcessor.OnChangeState(data.CurrentState, data.PreviousState, data.CurrentStateJsonData);
 
                 var blockConfig = MoorestechContext.ServerServices.BlockConfig.GetBlockConfig(blockObject.BlockId);
-
             }
         }
     }
