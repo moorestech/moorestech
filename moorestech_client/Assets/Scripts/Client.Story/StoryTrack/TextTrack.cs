@@ -1,0 +1,19 @@
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+
+namespace Client.Story.StoryTrack
+{
+    public class TextTrack : IStoryTrack
+    {
+        public async UniTask ExecuteTrack(StoryContext storyContext, string[] parameters)
+        {
+            var characterName = parameters[1];
+            var text = parameters[2];
+            
+            storyContext.StoryUI.SetText(characterName, text);
+            
+            //クリックされるまで待機
+            await UniTask.WaitUntil(() => Input.GetMouseButtonDown(0));
+        }
+    }
+}

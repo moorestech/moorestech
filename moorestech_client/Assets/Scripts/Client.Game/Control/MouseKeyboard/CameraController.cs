@@ -5,8 +5,16 @@ using UnityEngine;
 
 namespace Client.Game.Control.MouseKeyboard
 {
-    public class CameraController : MonoBehaviour
+    public interface ICameraController
     {
+        public void SetEnable(bool enable);
+    }
+    
+    public class CameraController : MonoBehaviour, ICameraController
+    {
+        //TODO カメラをちゃんと管理するクラスを作りたいなぁ
+        public static ICameraController Instance { get; private set; } 
+        
         [SerializeField] private CinemachineVirtualCamera virtualCamera;
         [SerializeField] private UIStateControl uiStateControl;
         [SerializeField] private Vector2 sensitivity = Vector2.one;
@@ -17,6 +25,7 @@ namespace Client.Game.Control.MouseKeyboard
 
         private void Awake()
         {
+            Instance = this;
             _cinemachineFraming = virtualCamera.GetCinemachineComponent<CinemachineFramingTransposer>();
             _targetRotation = transform.rotation; // Initialize target rotation to current rotation
         }
@@ -62,6 +71,10 @@ namespace Client.Game.Control.MouseKeyboard
             }
 
             #endregion
+        }
+        public void SetEnable(bool enable)
+        {
+            enabled = enable;
         }
     }
 }
