@@ -39,7 +39,7 @@ jobs:
         with:
           projectPath: moorestech_server/
           githubToken: ${{ steps.generate_token.outputs.token }}
-          unityVersion: 2022.3.1f1
+          unityVersion: 2022.3.18f1
           testMode: editmode
 
       # テストの実行結果をアーティファクトにアップロードしてダウンロードして参照できるようにする
