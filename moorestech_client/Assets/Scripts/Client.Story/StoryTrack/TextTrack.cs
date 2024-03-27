@@ -13,7 +13,14 @@ namespace Client.Story.StoryTrack
             storyContext.StoryUI.SetText(characterName, text);
             
             //クリックされるまで待機
-            await UniTask.WaitUntil(() => Input.GetMouseButtonDown(0));
+            while (true)
+            {
+                if (Input.GetMouseButtonDown(0))
+                {
+                    return;
+                }
+                await UniTask.Yield();
+            }
         }
     }
 }

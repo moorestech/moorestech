@@ -1,0 +1,9 @@
+CharacterTransform,主人公,pos,0,0,0,rot,0,0,0,,,,,,,,,
+CharacterTransform,友人,pos,0,0,1,rot,0,0,0,,,,,,,,,
+CharacterTransform,AI,pos,1,0,0,rot,0,0,0,,,,,,,,,
+Camerawork,2,Linear,pos,0,0,0,rot,0,0,0,pos,1,1,1,rot,0,0,0
+Text,主人公,主人公テスト1,,,,,,,,,,,,,,,,
+Text,AI,AIテスト2,,,,,,,,,,,,,,,,
+CharacterMotion,主人公,Jump,,,,,,,,,,,,,,,,
+Transition,TRUE,,,,,,,,,,,,,,,,,
+End,,,,,,,,,,,,,,,,,,
