@@ -7,6 +7,8 @@ namespace Client.Story.StoryTrack
     {
         public async UniTask ExecuteTrack(StoryContext storyContext, string[] parameters)
         {
+            // TODO ボイス再生とリップシンク
+            
             var characterName = parameters[1];
             var text = parameters[2];
             
