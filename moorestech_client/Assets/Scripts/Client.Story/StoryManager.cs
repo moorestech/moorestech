@@ -12,9 +12,10 @@ namespace Client.Story
         [SerializeField] private StoryCamera storyCamera;
         [SerializeField] private CameraController cameraController;
         [SerializeField] private TextAsset storyCsv;
-        
+
         [SerializeField] private CharacterDefine characterDefine;
-        
+        [SerializeField] private VoiceDefine voiceDefine;
+
         public async UniTask StartStory()
         {
             //前処理
@@ -25,12 +26,12 @@ namespace Client.Story
                 character.Initialize(transform);
                 characters.Add(characterInfo.CharacterKey, character);
             }
-            
-            var storyContext = new StoryContext(storyUI, characters, storyCamera);
-            
+
+            var storyContext = new StoryContext(storyUI, characters, storyCamera, voiceDefine);
+
             storyCamera.SetEnabled(true);
             if (cameraController) cameraController.SetEnable(false);
-            
+
             // CSVを1行ずつ読んで処理をする
             var lines = storyCsv.text.Split('\n');
             foreach (var line in lines)
@@ -42,7 +43,7 @@ namespace Client.Story
                 {
                     break;
                 }
-                
+
                 Debug.Log($"トラックを実行 : {trackKey}\nパラメータ : {string.Join(", ", values)}");
                 var track = StoryTrackDefine.GetStoryTrack(trackKey);
                 if (track == null)
@@ -53,7 +54,7 @@ namespace Client.Story
 
                 await track.ExecuteTrack(storyContext, values);
             }
-            
+
             //後処理
             storyCamera.SetEnabled(false);
             if (cameraController) cameraController.SetEnable(true);

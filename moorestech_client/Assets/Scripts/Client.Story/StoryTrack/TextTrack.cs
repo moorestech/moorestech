@@ -7,12 +7,17 @@ namespace Client.Story.StoryTrack
     {
         public async UniTask ExecuteTrack(StoryContext storyContext, string[] parameters)
         {
-            // TODO ボイス再生とリップシンク
-
             var characterName = parameters[1];
             var text = parameters[2];
 
             storyContext.StoryUI.SetText(characterName, text);
+
+            var voiceAudioClip = storyContext.VoiceDefine.GetVoiceClip(characterName, text);
+            if (voiceAudioClip != null)
+            {
+                var character = storyContext.GetCharacter(characterName);
+                character.PlayVoice(voiceAudioClip);
+            }
 
             //クリックされるまで待機
             while (true)

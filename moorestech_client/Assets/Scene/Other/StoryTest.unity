@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18018535, g: 0.22559482, b: 0.30677685, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -958,8 +958,9 @@ MonoBehaviour:
   storyUI: {fileID: 4105933801933203950}
   storyCamera: {fileID: 5604946922832410896}
   cameraController: {fileID: 0}
-  characterDefine: {fileID: 11400000, guid: 6ebd59b4837234f869c3f4310dbadad8, type: 2}
   storyCsv: {fileID: 4900000, guid: 3bad25b0c048c4dbf847950e9479f0bc, type: 3}
+  characterDefine: {fileID: 11400000, guid: 6ebd59b4837234f869c3f4310dbadad8, type: 2}
+  voiceDefine: {fileID: 11400000, guid: 35e15cc239b931343ac758d613d94927, type: 2}
 --- !u!114 &7805113362366623712
 MonoBehaviour:
   m_ObjectHideFlags: 0

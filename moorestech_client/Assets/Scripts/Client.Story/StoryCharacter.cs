@@ -7,6 +7,7 @@ namespace Client.Story
 {
     public class StoryCharacter : MonoBehaviour
     {
+        [SerializeField] private AudioSource voiceAudioSource;
         [SerializeField] private SkinnedMeshRenderer faceSkinnedMeshRenderer;
         [SerializeField] private Animator animator;
 
@@ -24,6 +25,12 @@ namespace Client.Story
         public void PlayAnimation(string animationName)
         {
             animator.Play(animationName);
+        }
+
+        public void PlayVoice(AudioClip voiceClip)
+        {
+            voiceAudioSource.clip = voiceClip;
+            voiceAudioSource.Play();
         }
 
         public void SetEmotion(EmotionType emotion, float duration)
