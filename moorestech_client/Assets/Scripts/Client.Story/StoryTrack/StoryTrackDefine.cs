@@ -10,6 +10,7 @@ namespace Client.Story.StoryTrack
                 "Text" => new TextTrack(),
                 "CharacterTransform" => new CharacterTransformTrack(),
                 "CharacterMotion" => new CharacterMotionTrack(),
+                "CharacterEmotion" => new CharacterEmotionTrack(),
                 "WaitTime" => new WaitTimeTrack(),
                 "Transition" => new TransitionTrack(),
                 _ => null

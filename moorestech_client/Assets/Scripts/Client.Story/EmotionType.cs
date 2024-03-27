@@ -4,8 +4,5 @@ namespace Client.Story
     {
         Normal,
         Happy,
-        Angry,
-        Sad,
-        Surprised,
     }
 }

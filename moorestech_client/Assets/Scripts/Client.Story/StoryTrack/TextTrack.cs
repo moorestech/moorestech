@@ -8,17 +8,19 @@ namespace Client.Story.StoryTrack
         public async UniTask ExecuteTrack(StoryContext storyContext, string[] parameters)
         {
             // TODO ボイス再生とリップシンク
-            
+
             var characterName = parameters[1];
             var text = parameters[2];
-            
+
             storyContext.StoryUI.SetText(characterName, text);
-            
+
             //クリックされるまで待機
             while (true)
             {
                 if (Input.GetMouseButtonDown(0))
                 {
+                    // 1フレーム待たないとクリックが即座に次のテキストに反映されてしまう
+                    await UniTask.Yield();
                     return;
                 }
                 await UniTask.Yield();

@@ -7468,6 +7468,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ebe608a4340463589845e6e3649a79f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  faceSkinnedMeshRenderer: {fileID: 4973981533521473828}
   animator: {fileID: 6864820402579280616}
 --- !u!1 &7543156789390074712
 GameObject:

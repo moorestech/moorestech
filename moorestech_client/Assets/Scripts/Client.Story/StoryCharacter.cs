@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 
 namespace Client.Story
@@ -23,24 +25,29 @@ namespace Client.Story
         {
             animator.Play(animationName);
         }
-        
+
         public void SetEmotion(EmotionType emotion, float duration)
         {
-            
-            
-            
+            var blendShapeData = ToBlendShapeData(emotion);
+
+            // Tween BlendShape
+            foreach (var (key, value) in blendShapeData)
+            {
+                DOTween.To(
+                    () => faceSkinnedMeshRenderer.GetBlendShapeWeight(key),
+                    x => faceSkinnedMeshRenderer.SetBlendShapeWeight(key, x),
+                    value,
+                    duration);
+            }
+
             #region Internal
-            
-            int ToBlendShapeIndex(EmotionType emotionType)
+
+            Dictionary<int, float> ToBlendShapeData(EmotionType emotionType)
             {
                 return emotionType switch
                 {
-                    EmotionType.Normal => 0,
-                    EmotionType.Happy => 1,
-                    EmotionType.Sad => 2,
-                    EmotionType.Angry => 3,
-                    EmotionType.Surprised => 4,
-                    _ => throw new System.ArgumentOutOfRangeException()
+                    EmotionType.Normal => new Dictionary<int, float> { { 11, 0f } },
+                    EmotionType.Happy => new Dictionary<int, float> { { 11, 100 } },
                 };
             }
 
