@@ -11,8 +11,9 @@ namespace Client.Story
         [SerializeField] private SkinnedMeshRenderer faceSkinnedMeshRenderer;
         [SerializeField] private Animator animator;
 
-        public void Initialize(Transform parent)
+        public void Initialize(Transform parent, string name)
         {
+            gameObject.name = name + " (StoryCharacter)";
             transform.SetParent(parent);
         }
 

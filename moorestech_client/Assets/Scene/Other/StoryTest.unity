@@ -153,7 +153,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0.01, z: 0}
-  m_LocalScale: {x: 100, y: 1, z: 100}
+  m_LocalScale: {x: 5, y: 1, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -627,6 +627,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1360717616759343578}
+  - component: {fileID: 8545315879031579500}
   - component: {fileID: 406495772184216351}
   - component: {fileID: 8545315879031579499}
   - component: {fileID: 4702016330470889346}
@@ -1156,6 +1157,18 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3711483802209565271}
   m_Enabled: 1
+--- !u!114 &8545315879031579500
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3711483802209565271}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c876a43851d4f4195795a17fb288335, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8658096485489961927
 GameObject:
   m_ObjectHideFlags: 0

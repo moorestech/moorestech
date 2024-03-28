@@ -23,7 +23,7 @@ namespace Client.Story
             foreach (var characterInfo in characterDefine.CharacterInfos)
             {
                 var character = Instantiate(characterInfo.CharacterPrefab);
-                character.Initialize(transform);
+                character.Initialize(transform, characterInfo.CharacterKey);
                 characters.Add(characterInfo.CharacterKey, character);
             }
 
