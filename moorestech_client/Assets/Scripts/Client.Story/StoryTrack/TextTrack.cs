@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -5,11 +7,11 @@ namespace Client.Story.StoryTrack
 {
     public class TextTrack : IStoryTrack
     {
-        public async UniTask ExecuteTrack(StoryContext storyContext, string[] parameters)
+        public async UniTask<string> ExecuteTrack(StoryContext storyContext, List<string> parameters)
         {
-            var characterName = parameters[1];
-            var text = parameters[2];
-
+            var characterName = parameters[0];
+            var text = parameters[1];
+            
             storyContext.StoryUI.SetText(characterName, text);
 
             var voiceAudioClip = storyContext.VoiceDefine.GetVoiceClip(characterName, text);
@@ -26,7 +28,7 @@ namespace Client.Story.StoryTrack
                 {
                     // 1フレーム待たないとクリックが即座に次のテキストに反映されてしまう
                     await UniTask.Yield();
-                    return;
+                    return null;
                 }
                 await UniTask.Yield();
             }
