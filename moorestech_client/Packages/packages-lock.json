@@ -21,6 +21,16 @@
       "dependencies": {},
       "hash": "010fd5df0d8a9931a70473e71d896642581405c1"
     },
+    "com.hecomi.ulipsync": {
+      "version": "https://github.com/hecomi/uLipSync.git#upm",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.burst": "1.4.11",
+        "com.unity.mathematics": "1.2.5"
+      },
+      "hash": "aa14664642f2fc99625ceea5e03744a33411e636"
+    },
     "com.neuecc.unirx": {
       "version": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
       "depth": 0,
