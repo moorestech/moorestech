@@ -5,6 +5,6 @@ namespace Client.Story.StoryTrack
 {
     public interface IStoryTrack
     {
-        public UniTask ExecuteTrack(StoryContext storyContext, List<string> parameters);
+        public UniTask<string> ExecuteTrack(StoryContext storyContext, List<string> parameters);
     }
 }

@@ -5,10 +5,12 @@ namespace Client.Story.StoryTrack
 {
     public class WaitTimeTrack : IStoryTrack
     {
-        public UniTask ExecuteTrack(StoryContext storyContext, List<string> parameters)
+        public async UniTask<string> ExecuteTrack(StoryContext storyContext, List<string> parameters)
         {
             var time = float.Parse(parameters[0]);
-            return UniTask.Delay((int)(time * 1000));
+            await UniTask.Delay((int)(time * 1000));
+            
+            return null;
         }
     }
 }

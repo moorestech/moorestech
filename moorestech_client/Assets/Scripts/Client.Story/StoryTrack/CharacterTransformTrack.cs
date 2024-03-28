@@ -6,7 +6,7 @@ namespace Client.Story.StoryTrack
 {
     public class CharacterTransformTrack : IStoryTrack
     {
-        public async UniTask ExecuteTrack(StoryContext storyContext, List<string> parameters)
+        public async UniTask<string> ExecuteTrack(StoryContext storyContext, List<string> parameters)
         {
             var characterKey = parameters[0];
             
@@ -23,6 +23,8 @@ namespace Client.Story.StoryTrack
             var character = storyContext.GetCharacter(characterKey);
             
             character.SetTransform(pos,rot);
+
+            return null;
         }
     }
 }

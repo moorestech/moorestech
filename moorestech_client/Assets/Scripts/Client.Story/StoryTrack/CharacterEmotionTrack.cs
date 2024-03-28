@@ -8,7 +8,7 @@ namespace Client.Story.StoryTrack
     public class CharacterEmotionTrack : IStoryTrack
     {
         
-        public async UniTask ExecuteTrack(StoryContext storyContext, List<string> parameters)
+        public async UniTask<string> ExecuteTrack(StoryContext storyContext, List<string> parameters)
         {
             var characterKey = parameters[0];
             var emotion = (EmotionType)Parse(typeof(EmotionType), parameters[1]);
@@ -16,6 +16,8 @@ namespace Client.Story.StoryTrack
             
             var character = storyContext.GetCharacter(characterKey);
             character.SetEmotion(emotion, duration);
+            
+            return null;
         }
     }
 }

@@ -19,52 +19,106 @@ namespace Client.Story
         public async UniTask StartStory()
         {
             //前処理
-            var characters = new Dictionary<string, StoryCharacter>();
-            foreach (var characterInfo in characterDefine.CharacterInfos)
-            {
-                var character = Instantiate(characterInfo.CharacterPrefab);
-                character.Initialize(transform);
-                characters.Add(characterInfo.CharacterKey, character);
-            }
-
-            var storyContext = new StoryContext(storyUI, characters, storyCamera, voiceDefine);
-
-            storyCamera.SetEnabled(true);
-            if (cameraController) cameraController.SetEnable(false);
-
-            // CSVを1行ずつ読んで処理をする
+            var storyContext = PreProcess();
             var lines = storyCsv.text.Split('\n');
-            foreach (var line in lines)
+            var tagIndexTable = CreateTagIndexTable(storyCsv.text.Split('\n'));
+
+            for (var i = 0; i < lines.Length; i++)
             {
-                var values = line.Split(',');
-                var trackValue = values[0];
+                var values = lines[i].Split(',');
+
                 var trackKey = values[1];
 
-                if (trackKey == "End")
-                {
-                    break;
-                }
+                if (trackKey == "End") break;
 
-                Debug.Log($"トラックを実行 : {trackKey}\nパラメータ : {string.Join(", ", values)}");
                 var track = StoryTrackDefine.GetStoryTrack(trackKey);
                 if (track == null)
                 {
                     Debug.LogError($"トラックが見つかりません : {trackKey}\nパラメータ : {string.Join(", ", values)}");
-                    continue;
-                }
-                
-                var parameters = new List<string>();
-                for (var i = 2; i < values.Length; i++)
-                {
-                    parameters.Add(values[i]);
+                    break;
                 }
 
-                await track.ExecuteTrack(storyContext, parameters);
+                var parameters = CreateParameter(values);
+                var nextTag = await track.ExecuteTrack(storyContext, parameters);
+                if (nextTag == null) continue;
+                
+                var nextIndex = GetTagIndex(lines, nextTag);
+                if (nextIndex == -1)
+                {
+                    Debug.LogError($"次のタグが見つかりません : トラック : {trackKey} 当該タグ : {nextTag}\nパラメータ : {string.Join(", ", values)}");
+                    break;
+                }
+                i = nextIndex - 1;
             }
 
             //後処理
             storyCamera.SetEnabled(false);
             if (cameraController) cameraController.SetEnable(true);
+
+            #region Internal
+
+            StoryContext PreProcess()
+            {
+                //キャラクターを生成
+                var characters = new Dictionary<string, StoryCharacter>();
+                foreach (var characterInfo in characterDefine.CharacterInfos)
+                {
+                    var character = Instantiate(characterInfo.CharacterPrefab);
+                    character.Initialize(transform);
+                    characters.Add(characterInfo.CharacterKey, character);
+                }
+
+                //カメラの設定
+                storyCamera.SetEnabled(true);
+                if (cameraController) cameraController.SetEnable(false);
+
+                return new StoryContext(storyUI, characters, storyCamera, voiceDefine);
+            }
+
+            List<string> CreateParameter(string[] values)
+            {
+                var parameters = new List<string>();
+                for (var j = 2; j < values.Length; j++)
+                {
+                    parameters.Add(values[j]);
+                }
+
+                return parameters;
+            }
+            
+            Dictionary<string,int> CreateTagIndexTable(string[] lines)
+            {
+                var tagIndex = new Dictionary<string, int>();
+                for (var i = 0; i < lines.Length; i++)
+                {
+                    var line = lines[i];
+                    var values = line.Split(',');
+
+                    if (values.Length < 2) continue;
+                    var tag = values[0];
+                    tagIndex.Add(tag, i);
+                }
+
+                return tagIndex;
+            }
+
+            int GetTagIndex(string[] lines, string tag)
+            {
+                for (var i = 0; i < lines.Length; i++)
+                {
+                    var line = lines[i];
+                    var values = line.Split(',');
+
+                    if (values[0] == tag)
+                    {
+                        return i;
+                    }
+                }
+
+                return -1;
+            }
+
+            #endregion
         }
     }
 }

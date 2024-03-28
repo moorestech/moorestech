@@ -8,7 +8,7 @@ namespace Client.Story.StoryTrack
 {
     public class CameraworkTrack : IStoryTrack
     {
-        public async UniTask ExecuteTrack(StoryContext storyContext, List<string> parameters)
+        public async UniTask<string> ExecuteTrack(StoryContext storyContext, List<string> parameters)
         {
             var duration = float.Parse(parameters[0]);
             var easing = (Ease)Parse(typeof(Ease), parameters[1]);
@@ -20,6 +20,8 @@ namespace Client.Story.StoryTrack
             var toRot = new Vector3(float.Parse(parameters[15]), float.Parse(parameters[16]), float.Parse(parameters[17]));
             
             storyContext.StoryCamera.TweenCamera(fromPos, fromRot, toPos, toRot, duration, easing);
+            
+            return null;
         }
     }
 }
