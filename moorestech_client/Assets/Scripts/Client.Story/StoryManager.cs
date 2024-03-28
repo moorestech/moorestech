@@ -23,14 +23,15 @@ namespace Client.Story
             var lines = storyCsv.text.Split('\n');
             var tagIndexTable = CreateTagIndexTable(storyCsv.text.Split('\n'));
 
+            //トラックの実行処理
             for (var i = 0; i < lines.Length; i++)
             {
                 var values = lines[i].Split(',');
-
+                
+                //トラックの取得と終了判定
                 var trackKey = values[1];
-
                 if (trackKey == "End") break;
-
+                
                 var track = StoryTrackDefine.GetStoryTrack(trackKey);
                 if (track == null)
                 {
@@ -38,12 +39,15 @@ namespace Client.Story
                     break;
                 }
 
+                //トラックの実行
                 var parameters = CreateParameter(values);
                 var nextTag = await track.ExecuteTrack(storyContext, parameters);
+                
+                //タグがなかったのでそのまま継続
                 if (nextTag == null) continue;
                 
-                var nextIndex = GetTagIndex(lines, nextTag);
-                if (nextIndex == -1)
+                //次のタグにジャンプ
+                if (!tagIndexTable.TryGetValue(nextTag, out var nextIndex))
                 {
                     Debug.LogError($"次のタグが見つかりません : トラック : {trackKey} 当該タグ : {nextTag}\nパラメータ : {string.Join(", ", values)}");
                     break;
@@ -100,22 +104,6 @@ namespace Client.Story
                 }
 
                 return tagIndex;
-            }
-
-            int GetTagIndex(string[] lines, string tag)
-            {
-                for (var i = 0; i < lines.Length; i++)
-                {
-                    var line = lines[i];
-                    var values = line.Split(',');
-
-                    if (values[0] == tag)
-                    {
-                        return i;
-                    }
-                }
-
-                return -1;
             }
 
             #endregion
