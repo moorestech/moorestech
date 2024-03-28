@@ -36,7 +36,8 @@ namespace Client.Story
             foreach (var line in lines)
             {
                 var values = line.Split(',');
-                var trackKey = values[0];
+                var trackValue = values[0];
+                var trackKey = values[1];
 
                 if (trackKey == "End")
                 {
@@ -50,8 +51,14 @@ namespace Client.Story
                     Debug.LogError($"トラックが見つかりません : {trackKey}\nパラメータ : {string.Join(", ", values)}");
                     continue;
                 }
+                
+                var parameters = new List<string>();
+                for (var i = 2; i < values.Length; i++)
+                {
+                    parameters.Add(values[i]);
+                }
 
-                await track.ExecuteTrack(storyContext, values);
+                await track.ExecuteTrack(storyContext, parameters);
             }
             
             //後処理
