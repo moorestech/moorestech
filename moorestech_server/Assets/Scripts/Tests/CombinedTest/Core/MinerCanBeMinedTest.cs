@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Core
         public void MinerTest()
         {
             var (_, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var mapVeinDatastore = serviceProvider.GetService<IMapVeinDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();

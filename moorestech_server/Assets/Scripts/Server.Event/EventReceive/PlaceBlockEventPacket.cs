@@ -1,8 +1,10 @@
 using System;
 using Game.Block.Interface;
-using Game.World.Interface.Event;
+using Game.Context;
+using Game.World.Interface;
 using MessagePack;
 using Server.Util.MessagePack;
+using UniRx;
 using UnityEngine;
 
 namespace Server.Event.EventReceive
@@ -12,18 +14,19 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:blockPlace";
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public PlaceBlockEventPacket(IBlockPlaceEvent blockPlaceEvent, EventProtocolProvider eventProtocolProvider)
+        public PlaceBlockEventPacket(EventProtocolProvider eventProtocolProvider)
         {
-            blockPlaceEvent.Subscribe(ReceivedEvent);
             _eventProtocolProvider = eventProtocolProvider;
+            ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
         }
 
-        private void ReceivedEvent(BlockPlaceEventProperties blockPlaceEventProperties)
+        private void OnBlockRemove(BlockUpdateProperties updateProperties)
         {
-            var c = blockPlaceEventProperties.Pos;
-            var blockId = blockPlaceEventProperties.Block.BlockId;
+            var pos = updateProperties.Pos;
+            var direction = updateProperties.BlockData.BlockPositionInfo.BlockDirection;
+            var blockId = updateProperties.BlockData.Block.BlockId;
 
-            var messagePack = new PlaceBlockEventMessagePack(c, blockId, (int)blockPlaceEventProperties.BlockDirection);
+            var messagePack = new PlaceBlockEventMessagePack(pos, blockId, (int)direction);
             var payload = MessagePackSerializer.Serialize(messagePack);
 
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);

@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void RemoveBlockEvent()
         {
-            var (packetResponse, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             //イベントキューにIDを登録する
             var response = packetResponse.GetPacketResponse(EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());

@@ -19,7 +19,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var playerId = 1;
 
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
 
             //からの時のデータ要求

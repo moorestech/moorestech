@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void RemoveTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
@@ -73,7 +73,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void InventoryFullToRemoveBlockSomeItemRemainTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();
@@ -126,7 +126,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void InventoryFullToCantRemoveBlockTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldBlock = serviceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemConfig = serviceProvider.GetService<IItemConfig>();

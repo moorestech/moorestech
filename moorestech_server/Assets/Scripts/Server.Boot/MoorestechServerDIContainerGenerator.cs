@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.IO;
 using Core.ConfigJson;
 using Core.EnergySystem;
@@ -14,6 +13,7 @@ using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;
 using Game.Block.RecipeConfig;
+using Game.Context;
 using Game.Crafting.Config;
 using Game.Crafting.Interface;
 using Game.Entity;
@@ -31,12 +31,10 @@ using Game.SaveLoad.Json;
 using Game.World;
 using Game.World.DataStore;
 using Game.World.DataStore.WorldSettings;
-using Game.World.Event;
 using Game.World.EventHandler.EnergyEvent;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Event;
 using Game.WorldMap.EventListener;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
@@ -47,7 +45,7 @@ using Server.Protocol;
 
 namespace Server.Boot
 {
-    public class MoorestechServerDiContainerGenerator
+    public class MoorestechServerDIContainerGenerator
     {
         //TODO セーブファイルのディレクトリもここで指定できるようにする
         public (PacketResponseCreator, ServiceProvider) Create(string serverDirectory)
@@ -73,28 +71,22 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             
-            initializerCollection.AddSingleton<IBlockPlaceEvent, BlockPlaceEvent>();
-            initializerCollection.AddSingleton<IBlockRemoveEvent, BlockRemoveEvent>();
-            
             var initializerProvider = initializerCollection.BuildServiceProvider();
+            new ServerContext(
+                initializerProvider.GetService<IItemConfig>(),
+                initializerProvider.GetService<IBlockConfig>(),
+                initializerProvider.GetService<ICraftingConfig>(),
+                initializerProvider.GetService<IMachineRecipeConfig>(),
+                initializerProvider.GetService<ItemStackFactory>(),
+                initializerProvider.GetService<IBlockFactory>(),
+                initializerProvider.GetService<IWorldBlockDatastore>(),
+                initializerProvider.GetService<IWorldBlockUpdateEvent>(),
+                initializerProvider.GetService<IBlockOpenableInventoryUpdateEvent>()
+                );
 
 
             //コンフィグ、ファクトリーのインスタンスを登録
             var services = new ServiceCollection();
-            
-            //TODO のちのち削除する
-            services.AddSingleton(initializerProvider.GetService<IMachineRecipeConfig>());
-            services.AddSingleton(initializerProvider.GetService<IItemConfig>());
-            services.AddSingleton(initializerProvider.GetService<IBlockConfig>());
-            services.AddSingleton(initializerProvider.GetService<ICraftingConfig>());
-            services.AddSingleton(initializerProvider.GetService<ItemStackFactory>());
-            services.AddSingleton(initializerProvider.GetService<IWorldBlockDatastore>());
-            services.AddSingleton(initializerProvider.GetService<IWorldBlockUpdateEvent>());
-            services.AddSingleton(initializerProvider.GetService<IBlockPlaceEvent>());
-            services.AddSingleton(initializerProvider.GetService<IBlockRemoveEvent>());
-            services.AddSingleton(initializerProvider.GetService<IBlockFactory>());
-            services.AddSingleton(initializerProvider.GetService<ComponentFactory>());
-            services.AddSingleton(initializerProvider.GetService<IBlockOpenableInventoryUpdateEvent>());
             
             //ゲームプレイに必要なクラスのインスタンスを生成
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();

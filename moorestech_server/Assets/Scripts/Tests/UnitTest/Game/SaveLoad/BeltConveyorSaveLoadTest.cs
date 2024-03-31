@@ -17,7 +17,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void SaveLoadTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemsStackFactory = serviceProvider.GetService<ItemStackFactory>();
             var componentFactory = serviceProvider.GetService<ComponentFactory>();
 

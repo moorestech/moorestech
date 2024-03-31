@@ -3,9 +3,11 @@ using Core.EnergySystem.Electric;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
+using Game.World.Interface;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Event;
+using UniRx;
 using UnityEngine;
 
 namespace Game.World.EventHandler.EnergyEvent
@@ -25,8 +27,7 @@ namespace Game.World.EventHandler.EnergyEvent
         private readonly IWorldEnergySegmentDatastore<TSegment> _worldEnergySegmentDatastore;
 
 
-        public ConnectMachineToElectricSegment(IBlockPlaceEvent blockPlaceEvent,
-            IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
+        public ConnectMachineToElectricSegment(IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
             IBlockConfig blockConfig,
             MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange,
             IWorldBlockDatastore worldBlockDatastore)
@@ -35,17 +36,18 @@ namespace Game.World.EventHandler.EnergyEvent
             _blockConfig = blockConfig;
             _worldBlockDatastore = worldBlockDatastore;
             _maxMachineConnectionRange = maxElectricPoleMachineConnectionRange.Get();
-            blockPlaceEvent.Subscribe(OnBlockPlace);
+            ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
         }
 
-        private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEvent)
+        private void OnBlockPlace(BlockUpdateProperties updateProperties)
         {
             //設置されたブロックが電柱だった時の処理
-            var x = blockPlaceEvent.Pos.x;
-            var y = blockPlaceEvent.Pos.y;
+            var pos = updateProperties.Pos;
+            var x = updateProperties.Pos.x;
+            var y = updateProperties.Pos.y;
 
             //設置されたブロックが発電機か機械以外はスルー処理
-            if (!IsElectricMachine(blockPlaceEvent.Pos)) return;
+            if (!IsElectricMachine(pos)) return;
 
             //最大の電柱の接続範囲を取得探索して接続する
             var startMachineX = x - _maxMachineConnectionRange / 2;
@@ -58,8 +60,7 @@ namespace Game.World.EventHandler.EnergyEvent
 
                 //範囲内に電柱がある場合
                 //電柱に接続
-                var machinePos = blockPlaceEvent.Pos;
-                ConnectToElectricPole(polePos, machinePos);
+                ConnectToElectricPole(polePos, pos);
             }
         }
 

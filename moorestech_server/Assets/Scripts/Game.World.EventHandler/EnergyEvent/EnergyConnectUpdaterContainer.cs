@@ -2,7 +2,6 @@
 using Game.Block.Interface.BlockConfig;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Event;
 
 namespace Game.World.EventHandler.EnergyEvent
 {
@@ -16,20 +15,15 @@ namespace Game.World.EventHandler.EnergyEvent
         where TTransformer : IEnergyTransformer
     {
         public EnergyConnectUpdaterContainer(
-            IBlockRemoveEvent blockRemoveEvent,
             IBlockConfig blockConfig,
             IWorldEnergySegmentDatastore<TSegment> worldEnergySegmentDatastore,
             MaxElectricPoleMachineConnectionRange maxElectricPoleMachineConnectionRange,
-            IWorldBlockDatastore worldBlockDatastore,
-            IBlockPlaceEvent blockPlaceEvent)
+            IWorldBlockDatastore worldBlockDatastore)
         {
-            new ConnectElectricPoleToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(blockPlaceEvent,
-                worldEnergySegmentDatastore, blockConfig, worldBlockDatastore);
-            new ConnectMachineToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(blockPlaceEvent,
-                worldEnergySegmentDatastore, blockConfig, maxElectricPoleMachineConnectionRange, worldBlockDatastore);
+            new ConnectElectricPoleToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore, blockConfig, worldBlockDatastore);
+            new ConnectMachineToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore, blockConfig, maxElectricPoleMachineConnectionRange, worldBlockDatastore);
 
-            new DisconnectElectricPoleToFromElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(
-                blockRemoveEvent, blockConfig, worldEnergySegmentDatastore, worldBlockDatastore);
+            new DisconnectElectricPoleToFromElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(blockConfig, worldEnergySegmentDatastore, worldBlockDatastore);
         }
     }
 }

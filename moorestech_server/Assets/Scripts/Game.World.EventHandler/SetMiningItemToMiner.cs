@@ -1,12 +1,13 @@
 using System.Collections.Generic;
-using Core.Item.Config;
 using Game.Block.Blocks.Miner;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
+using Game.Context;
 using Game.Map.Interface.Vein;
+using Game.World.Interface;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Event;
+using UniRx;
 
 namespace Game.WorldMap.EventListener
 {
@@ -17,24 +18,20 @@ namespace Game.WorldMap.EventListener
     public class SetMiningItemToMiner
     {
         private readonly IBlockConfig _blockConfig;
-        private readonly IItemConfig _itemConfig;
         private readonly IMapVeinDatastore _mapVeinDatastore;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
 
-        public SetMiningItemToMiner(
-            IBlockPlaceEvent blockPlaceEvent,
-            IBlockConfig blockConfig, IWorldBlockDatastore worldBlockDatastore, IMapVeinDatastore mapVeinDatastore, IItemConfig itemConfig)
+        public SetMiningItemToMiner(IBlockConfig blockConfig, IWorldBlockDatastore worldBlockDatastore, IMapVeinDatastore mapVeinDatastore)
         {
-            _itemConfig = itemConfig;
             _blockConfig = blockConfig;
             _worldBlockDatastore = worldBlockDatastore;
             _mapVeinDatastore = mapVeinDatastore;
-            blockPlaceEvent.Subscribe(OnBlockPlace);
+            ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
         }
 
-        private void OnBlockPlace(BlockPlaceEventProperties blockPlaceEventProperties)
+        private void OnBlockRemove(BlockUpdateProperties updateProperties)
         {
-            var pos = blockPlaceEventProperties.Pos;
+            var pos = updateProperties.Pos;
 
             //採掘機が設置されたか
             if (!_worldBlockDatastore.ExistsComponent<IMiner>(pos)) return;

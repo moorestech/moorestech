@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void MachineInventoryRequest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
 

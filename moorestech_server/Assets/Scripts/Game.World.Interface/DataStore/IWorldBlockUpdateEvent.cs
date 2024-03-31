@@ -6,8 +6,8 @@ namespace Game.World.Interface
 {
     public interface IWorldBlockUpdateEvent
     {
-        public IObservable<WorldBlockData> OnBlockPlaceEvent { get; }
-        public IObservable<WorldBlockData> OnBlockRemoveEvent { get; }
+        public IObservable<BlockUpdateProperties> OnBlockPlaceEvent { get; }
+        public IObservable<BlockUpdateProperties> OnBlockRemoveEvent { get; }
 
         /// <summary>
         ///     特定の座標にブロックが置かれた時のイベントを購読する

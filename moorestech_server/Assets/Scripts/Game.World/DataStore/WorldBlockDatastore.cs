@@ -4,10 +4,8 @@ using System.Linq;
 using Game.Block.Interface;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.State;
-using Game.World.Event;
 using Game.World.Interface;
 using Game.World.Interface.DataStore;
-using Game.World.Interface.Event;
 using UniRx;
 using UnityEngine;
 
@@ -23,19 +21,14 @@ namespace Game.World.DataStore
         //メインのデータストア
         private readonly Dictionary<int, WorldBlockData> _blockMasterDictionary = new();
 
-        private readonly BlockPlaceEvent _blockPlaceEvent;
-        private readonly BlockRemoveEvent _blockRemoveEvent;
-
         //座標とキーの紐づけ
         private readonly Dictionary<Vector3Int, int> _coordinateDictionary = new();
         private readonly Subject<(ChangedBlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
         private readonly WorldBlockUpdateEvent _worldBlockUpdateEvent;
 
-        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, IWorldBlockUpdateEvent worldBlockUpdateEvent, IBlockRemoveEvent blockRemoveEvent, IBlockConfig blockConfig)
+        public WorldBlockDatastore(IWorldBlockUpdateEvent worldBlockUpdateEvent, IBlockConfig blockConfig)
         {
             _blockConfig = blockConfig;
-            _blockRemoveEvent = (BlockRemoveEvent)blockRemoveEvent;
-            _blockPlaceEvent = (BlockPlaceEvent)blockPlaceEvent;
             _worldBlockUpdateEvent = (WorldBlockUpdateEvent)worldBlockUpdateEvent;
         }
         //イベント
@@ -53,8 +46,7 @@ namespace Game.World.DataStore
                 var data = new WorldBlockData(block, pos, blockDirection, _blockConfig);
                 _blockMasterDictionary.Add(block.EntityId, data);
                 _coordinateDictionary.Add(pos, block.EntityId);
-                _blockPlaceEvent.OnBlockPlaceEventInvoke(new BlockPlaceEventProperties(pos, data.Block, blockDirection));
-                _worldBlockUpdateEvent.OnBlockPlaceEventInvoke(data);
+                _worldBlockUpdateEvent.OnBlockPlaceEventInvoke(pos, data);
 
                 block.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext((state, data)); });
 
@@ -72,9 +64,7 @@ namespace Game.World.DataStore
             if (!_blockMasterDictionary.ContainsKey(entityId)) return false;
 
             var data = _blockMasterDictionary[entityId];
-
-            _blockRemoveEvent.OnBlockRemoveEventInvoke(new BlockRemoveEventProperties(pos, data.Block));
-            _worldBlockUpdateEvent.OnBlockRemoveEventInvoke(data);
+            _worldBlockUpdateEvent.OnBlockRemoveEventInvoke(pos, data);
 
             _blockMasterDictionary.Remove(entityId);
             _coordinateDictionary.Remove(pos);

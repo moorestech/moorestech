@@ -24,7 +24,7 @@ namespace ServerServiceProvider
 
         public MoorestechServerServiceProvider(string serverDirectory)
         {
-            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(serverDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(serverDirectory);
 
             ServiceProvider = serviceProvider;
             CraftingConfig = serviceProvider.GetService<ICraftingConfig>();

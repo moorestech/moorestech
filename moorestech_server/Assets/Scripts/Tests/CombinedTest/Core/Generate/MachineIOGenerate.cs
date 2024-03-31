@@ -17,7 +17,7 @@ namespace Tests.CombinedTest.Core.Generate
             var testCase = new List<MachineIOTest>();
 
             var (_, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 
             var recipes = recipe.Recipes;

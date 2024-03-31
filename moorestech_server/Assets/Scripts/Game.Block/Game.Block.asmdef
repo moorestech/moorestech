@@ -11,7 +11,8 @@
     "Core.ConfigJson",
     "Core.Util",
     "Game.World.Interface",
-    "UniRx"
+    "UniRx",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

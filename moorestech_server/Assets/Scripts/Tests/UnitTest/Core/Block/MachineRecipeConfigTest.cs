@@ -18,7 +18,7 @@ namespace Tests.UnitTest.Core.Block
         public void Setup()
         {
             var (_, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             _itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             _machineRecipeConfig = serviceProvider.GetService<IMachineRecipeConfig>();
         }

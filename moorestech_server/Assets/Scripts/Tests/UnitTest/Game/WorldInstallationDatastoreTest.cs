@@ -18,7 +18,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void RegisteredDataCoordinateFromFetchTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var random = new Random(131513);
@@ -42,7 +42,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void AlreadyRegisteredEntityIdSecondTimeFailTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
             var entityId = CreateBlockEntityId.Create();
@@ -58,7 +58,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void AlreadyCoordinateSecondTimeFailTest()
         {
-            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var worldData = serviceProvider.GetService<IWorldBlockDatastore>();
 
@@ -74,7 +74,7 @@ namespace Tests.UnitTest.Game
         {
             if (_blockFactory == null)
             {
-                var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
                 _blockFactory = serviceProvider.GetService<IBlockFactory>();
             }
 

@@ -6,7 +6,8 @@
     "Core.Item",
     "Game.Base",
     "Game.SaveLoad.Interface",
-    "Game.SaveLoad"
+    "Game.SaveLoad",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

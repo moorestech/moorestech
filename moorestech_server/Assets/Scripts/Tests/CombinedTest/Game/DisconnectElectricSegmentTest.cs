@@ -22,7 +22,7 @@ namespace Tests.CombinedTest.Game
         public void RemoveElectricPoleToDisconnectSegment()
         {
             var (_, saveServiceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             /*設置する電柱、機械、発電機の場所
              * M □  □ G □  □ M
              * P □  □ P □  □ P
@@ -91,7 +91,7 @@ namespace Tests.CombinedTest.Game
              * G □ □ G
              */
             var (_, saveServiceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             var worldBlockDatastore = saveServiceProvider.GetService<IWorldBlockDatastore>();
             var blockFactory = saveServiceProvider.GetService<IBlockFactory>();

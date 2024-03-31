@@ -1,0 +1,19 @@
+{
+    "name": "Game.Context",
+    "rootNamespace": "",
+    "references": [
+        "Core.Item",
+        "Game.World.Interface",
+        "Game.Block.Interface",
+        "Game.Crafting.Interface"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FullInsertAndChangeConnectorBeltConveyorTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
@@ -66,7 +66,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void InsertBeltConveyorTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
             var blockConfig = serviceProvider.GetService<IBlockConfig>();
@@ -109,7 +109,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FullInsertBeltConveyorTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             GameUpdater.ResetUpdate();
 
 
@@ -145,7 +145,7 @@ namespace Tests.CombinedTest.Core
         public void Insert2ItemBeltConveyorTest()
         {
             var (_, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
             var blockFactory = serviceProvider.GetService<IBlockFactory>();
             var itemStackFactory = serviceProvider.GetService<ItemStackFactory>();
 

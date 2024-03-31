@@ -44,7 +44,7 @@ namespace Server.Boot
 
             Debug.Log("データをロードします　パス:" + serverDirectory);
 
-            var (packet, serviceProvider) = new MoorestechServerDiContainerGenerator().Create(serverDirectory);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(serverDirectory);
 
             //マップをロードする
             serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();

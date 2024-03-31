@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Game
         public void BlockPlaceAndGetTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             _blockFactory = serviceProvider.GetService<IBlockFactory>();
             worldDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
@@ -67,7 +67,7 @@ namespace Tests.UnitTest.Game
         public void OverlappingBlockTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             _blockFactory = serviceProvider.GetService<IBlockFactory>();
             worldDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
@@ -83,7 +83,7 @@ namespace Tests.UnitTest.Game
         public void BoundaryBlockTest()
         {
             var (packet, serviceProvider) =
-                new MoorestechServerDiContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+                new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
 
             _blockFactory = serviceProvider.GetService<IBlockFactory>();
             worldDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
