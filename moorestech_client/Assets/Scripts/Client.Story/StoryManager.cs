@@ -28,11 +28,12 @@ namespace Client.Story
             for (var i = 0; i < lines.Length; i++)
             {
                 var values = lines[i].Split(',');
-                
+
                 //トラックの取得と終了判定
                 var trackKey = values[1];
+                if (trackKey == string.Empty) continue; //空行はスキップ
                 if (trackKey == "End") break;
-                
+
                 var track = StoryTrackDefine.GetStoryTrack(trackKey);
                 if (track == null)
                 {
@@ -43,10 +44,10 @@ namespace Client.Story
                 //トラックの実行
                 var parameters = CreateParameter(values);
                 var nextTag = await track.ExecuteTrack(storyContext, parameters);
-                
+
                 //タグがなかったのでそのまま継続
                 if (nextTag == null) continue;
-                
+
                 //次のタグにジャンプ
                 if (!tagIndexTable.TryGetValue(nextTag, out var nextIndex))
                 {
@@ -90,17 +91,22 @@ namespace Client.Story
 
                 return parameters;
             }
-            
-            Dictionary<string,int> CreateTagIndexTable(string[] lines)
+
+            Dictionary<string, int> CreateTagIndexTable(string[] lines)
             {
                 var tagIndex = new Dictionary<string, int>();
                 for (var i = 0; i < lines.Length; i++)
                 {
-                    var line = lines[i];
-                    var values = line.Split(',');
-
-                    if (values.Length < 2) continue;
+                    var values = lines[i].Split(',');
                     var tag = values[0];
+                    if (tag == string.Empty) continue;
+
+                    if (tagIndex.ContainsKey(tag))
+                    {
+                        Debug.LogError($"タグが重複しています : {tag} {i}");
+                        break;
+                    }
+
                     tagIndex.Add(tag, i);
                 }
 

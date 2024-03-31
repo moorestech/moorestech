@@ -7,31 +7,33 @@ namespace Client.Story.StoryTrack
     {
         public async UniTask<string> ExecuteTrack(StoryContext storyContext, List<string> parameters)
         {
-           storyContext.StoryUI.ShowSelectionUI(true);
+            storyContext.StoryUI.ShowSelectionUI(true);
 
-           var jumpTags = new List<string>();
-           var selectionTexts = new List<string>();
+            var jumpTags = new List<string>();
+            var selectionTexts = new List<string>();
 
-           for (int i = 0; i < parameters.Count; i+=2)
-           {
-               var tag = parameters[i];
-               var text = parameters[i + 1];
-               //テキストが空文字列だったら終了
-               if (text == string.Empty) break;
-               
-               jumpTags.Add(tag); 
-               selectionTexts.Add(text);
-           }
+            for (int i = 0; i < parameters.Count; i += 2)
+            {
+                var tag = parameters[i];
+                var text = parameters[i + 1];
+                //テキストが空文字列だったら終了
+                if (text == string.Empty) break;
 
-           var selectedIndex = await storyContext.StoryUI.WaitSelectText(selectionTexts);
+                jumpTags.Add(tag);
+                selectionTexts.Add(text);
+            }
 
-           var selectedTag = jumpTags[selectedIndex];
-           if (selectedTag == string.Empty)
-           {
+            var selectedIndex = await storyContext.StoryUI.WaitSelectText(selectionTexts);
+
+            storyContext.StoryUI.ShowSelectionUI(false);
+
+            var selectedTag = jumpTags[selectedIndex];
+            if (selectedTag == string.Empty)
+            {
                 return null;
-           }
-           
-           return selectedTag;
+            }
+
+            return selectedTag;
         }
     }
 }

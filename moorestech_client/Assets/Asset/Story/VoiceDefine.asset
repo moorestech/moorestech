@@ -15,7 +15,7 @@ MonoBehaviour:
   characterVoices:
   - characterKey: "\u4E3B\u4EBA\u516C"
     voiceInfos:
-    - sentence: "\u3053\u3093\u306B\u3061\u306F\u3001\u3053\u308C\u306Fmoorestech\u306E\u30B9\u30C8\u30FC\u30EA\u30FC\u30C6\u30B9\u30C8\u3067\u3059"
+    - sentence: "\u3053\u3093\u306B\u3061\u306F\u3001\u3053\u308C\u306Fmoorestech\u306E\u30B9\u30C8\u30FC\u30EA\u30FC\u30C6\u30B9\u30C8\u3067\u3059\u3002"
       voiceClip: {fileID: 8300000, guid: 0960e56f4ac3a4c49b4000a028e69678, type: 3}
     credit: "VOICEVOX:\u732B\u4F7F\u30D3\u30A3"
   - characterKey: AI

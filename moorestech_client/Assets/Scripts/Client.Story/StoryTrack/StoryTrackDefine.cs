@@ -13,6 +13,8 @@ namespace Client.Story.StoryTrack
                 "CharacterEmotion" => new CharacterEmotionTrack(),
                 "WaitTime" => new WaitTimeTrack(),
                 "Transition" => new TransitionTrack(),
+                "SelectionTrack" => new SelectionTrack(),
+                "Jump" => new JumpTrack(),
                 _ => null
             };
         }
