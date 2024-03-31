@@ -19,7 +19,7 @@ namespace Game.Block.Config
         private readonly Dictionary<int, int> _itemIdToBlockId = new();
         private readonly Dictionary<string, List<int>> _modIdToBlockIds = new();
 
-        public BlockConfig(ConfigJsonList configJson, IItemConfig itemConfig)
+        public BlockConfig(ConfigJsonFileContainer configJson, IItemConfig itemConfig)
         {
             _blockConfigList = new BlockConfigJsonLoad(itemConfig).LoadFromJsons(configJson.BlockConfigs, configJson.SortedModIds);
             foreach (var blockConfig in _blockConfigList)

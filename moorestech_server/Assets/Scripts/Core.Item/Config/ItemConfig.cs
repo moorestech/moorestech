@@ -14,7 +14,7 @@ namespace Core.Item.Config
         private readonly List<ItemConfigData> _itemConfigList;
         private readonly Dictionary<string, List<int>> _modIdToItemIds = new();
 
-        public ItemConfig(ConfigJsonList configPath)
+        public ItemConfig(ConfigJsonFileContainer configPath)
         {
             _itemConfigList = new ItemConfigLoad().LoadFromJsons(configPath.ItemConfigs, configPath.SortedModIds);
 

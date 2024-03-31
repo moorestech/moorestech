@@ -14,9 +14,7 @@ namespace Mod.Config
         private const string OreConfigPath = "config/ore.json";
         private const string QuestConfigPath = "config/quest.json";
 
-
-        public static (Dictionary<string, ConfigJson> configJsons, ModsResource modsResource) GetConfigString(
-            string modDirectory)
+        public static Dictionary<string, ConfigJson>  GetConfigString(string modDirectory)
         {
             var modResource = new ModsResource(modDirectory);
 
@@ -38,7 +36,7 @@ namespace Mod.Config
                         machineRecipeConfigJson, craftRecipeConfigJson, oreConfigJson, questConfigJson));
             }
 
-            return (configDict, modResource);
+            return configDict;
         }
 
         private static string LoadConfigFile(string extractedPath, string configPath)

@@ -13,7 +13,7 @@ namespace ServerServiceProvider
     {
         public readonly IBlockConfig BlockConfig;
 
-        public readonly ConfigJsonList ConfigJsonList;
+        public readonly ConfigJsonFileContainer ConfigJsonFileContainer;
         public readonly ICraftingConfig CraftingConfig;
         public readonly IItemConfig ItemConfig;
 
@@ -32,7 +32,7 @@ namespace ServerServiceProvider
             ItemConfig = serviceProvider.GetService<IItemConfig>();
             ItemStackFactory = serviceProvider.GetService<ItemStackFactory>();
             BlockConfig = serviceProvider.GetService<IBlockConfig>();
-            ConfigJsonList = serviceProvider.GetService<ConfigJsonList>();
+            ConfigJsonFileContainer = serviceProvider.GetService<ConfigJsonFileContainer>();
         }
     }
 }

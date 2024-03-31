@@ -31,8 +31,7 @@ namespace Game.World.DataStore
         private readonly Subject<(ChangedBlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
         private readonly WorldBlockUpdateEvent _worldBlockUpdateEvent;
 
-        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, IWorldBlockUpdateEvent worldBlockUpdateEvent,
-            IBlockRemoveEvent blockRemoveEvent, IBlockConfig blockConfig)
+        public WorldBlockDatastore(IBlockPlaceEvent blockPlaceEvent, IWorldBlockUpdateEvent worldBlockUpdateEvent, IBlockRemoveEvent blockRemoveEvent, IBlockConfig blockConfig)
         {
             _blockConfig = blockConfig;
             _blockRemoveEvent = (BlockRemoveEvent)blockRemoveEvent;

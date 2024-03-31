@@ -52,31 +52,54 @@ namespace Server.Boot
         //TODO セーブファイルのディレクトリもここで指定できるようにする
         public (PacketResponseCreator, ServiceProvider) Create(string serverDirectory)
         {
-            var services = new ServiceCollection();
-
+            //必要な各種インスタンスを手動で作成
+            var initializerCollection = new ServiceCollection();
             var modDirectory = Path.Combine(serverDirectory, "mods");
             var mapPath = Path.Combine(serverDirectory, "map", "map.json");
 
+            var configJsons = ModJsonStringLoader.GetConfigString(modDirectory);
+            initializerCollection.AddSingleton(new ConfigJsonFileContainer(configJsons));
+            initializerCollection.AddSingleton<IItemConfig, ItemConfig>();
+            initializerCollection.AddSingleton<IBlockConfig, BlockConfig>();
+            initializerCollection.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
+            initializerCollection.AddSingleton<ICraftingConfig, CraftConfig>();
+            initializerCollection.AddSingleton<ItemStackFactory>();
+            
+            initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
+            initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
+            initializerCollection.AddSingleton<ComponentFactory, ComponentFactory>();
+            
+            initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
+            initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
+            initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
+            
+            initializerCollection.AddSingleton<IBlockPlaceEvent, BlockPlaceEvent>();
+            initializerCollection.AddSingleton<IBlockRemoveEvent, BlockRemoveEvent>();
+            
+            var initializerProvider = initializerCollection.BuildServiceProvider();
+
+
             //コンフィグ、ファクトリーのインスタンスを登録
-            (Dictionary<string, ConfigJson> configJsons, var modsResource) = ModJsonStringLoader.GetConfigString(modDirectory);
-            services.AddSingleton(new ConfigJsonList(configJsons));
-            services.AddSingleton(modsResource);
-            services.AddSingleton<IMachineRecipeConfig, MachineRecipeConfig>();
-            services.AddSingleton<IItemConfig, ItemConfig>();
-            services.AddSingleton<ICraftingConfig, CraftConfig>();
-            services.AddSingleton<ItemStackFactory, ItemStackFactory>();
-            services.AddSingleton<IBlockConfig, BlockConfig>();
-            services.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
-            services.AddSingleton<IBlockFactory, BlockFactory>();
-            services.AddSingleton<ComponentFactory, ComponentFactory>();
-
-
+            var services = new ServiceCollection();
+            
+            //TODO のちのち削除する
+            services.AddSingleton(initializerProvider.GetService<IMachineRecipeConfig>());
+            services.AddSingleton(initializerProvider.GetService<IItemConfig>());
+            services.AddSingleton(initializerProvider.GetService<IBlockConfig>());
+            services.AddSingleton(initializerProvider.GetService<ICraftingConfig>());
+            services.AddSingleton(initializerProvider.GetService<ItemStackFactory>());
+            services.AddSingleton(initializerProvider.GetService<IWorldBlockDatastore>());
+            services.AddSingleton(initializerProvider.GetService<IWorldBlockUpdateEvent>());
+            services.AddSingleton(initializerProvider.GetService<IBlockPlaceEvent>());
+            services.AddSingleton(initializerProvider.GetService<IBlockRemoveEvent>());
+            services.AddSingleton(initializerProvider.GetService<IBlockFactory>());
+            services.AddSingleton(initializerProvider.GetService<ComponentFactory>());
+            services.AddSingleton(initializerProvider.GetService<IBlockOpenableInventoryUpdateEvent>());
+            
             //ゲームプレイに必要なクラスのインスタンスを生成
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
-            services.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
-            services.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             services.AddSingleton<IBlockInventoryOpenStateDataStore, BlockInventoryOpenStateDataStore>();
             services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
@@ -95,9 +118,6 @@ namespace Server.Boot
             services.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
 
             //イベントを登録
-            services.AddSingleton<IBlockPlaceEvent, BlockPlaceEvent>();
-            services.AddSingleton<IBlockRemoveEvent, BlockRemoveEvent>();
-            services.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
 
