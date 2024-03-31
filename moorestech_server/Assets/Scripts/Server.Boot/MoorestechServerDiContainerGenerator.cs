@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
-using Server.Core.ConfigJson;
-using Server.Core.EnergySystem;
-using Server.Core.EnergySystem.Electric;
-using Server.Core.Item;
-using Server.Core.Item.Config;
+using Core.ConfigJson;
+using Core.EnergySystem;
+using Core.EnergySystem.Electric;
+using Core.Item;
+using Core.Item.Config;
 using Game.Block.Component;
 using Game.Block.Config;
 using Game.Block.Event;
@@ -41,7 +41,6 @@ using Game.WorldMap.EventListener;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
 using Newtonsoft.Json;
-using Server.Core.Block;
 using Server.Event;
 using Server.Event.EventReceive;
 using Server.Protocol;
@@ -66,7 +65,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<ICraftingConfig, CraftConfig>();
             initializerCollection.AddSingleton<ItemStackFactory>();
             
-            initializerCollection.AddSingleton<IBlockTemplates, VanillaBlockTemplates>();
+            initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
             initializerCollection.AddSingleton<ComponentFactory, ComponentFactory>();
             

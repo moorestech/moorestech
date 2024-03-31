@@ -1,0 +1,17 @@
+{
+  "name": "Core.EnergySystem",
+  "rootNamespace": "",
+  "references": [
+    "Core.Update",
+    "UniRx"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

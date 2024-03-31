@@ -1,4 +1,4 @@
-using Server.Core.Update;
+using Core.Update;
 using UniRx;
 
 namespace Mod.Base

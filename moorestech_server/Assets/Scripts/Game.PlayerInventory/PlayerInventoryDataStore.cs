@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Server.Core.Item;
+using Core.Item;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;

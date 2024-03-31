@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Server.Core.Item;
+using Core.Item;
 using Game.Block.Interface;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;

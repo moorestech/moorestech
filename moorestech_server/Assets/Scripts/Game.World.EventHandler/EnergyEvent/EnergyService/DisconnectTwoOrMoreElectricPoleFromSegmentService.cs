@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Server.Core.EnergySystem;
-using Server.Core.EnergySystem.Electric;
+using Core.EnergySystem;
+using Core.EnergySystem.Electric;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;
 

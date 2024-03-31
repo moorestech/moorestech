@@ -5,7 +5,7 @@ using Client.Game.Context;
 using Client.Game.Control.MouseKeyboard;
 using Client.Game.UI.Inventory.Main;
 using Client.Game.UI.Inventory.Sub;
-using Server.Core.Item;
+using Core.Item;
 using Cysharp.Threading.Tasks;
 using Game.Block;
 using MainGame.UnityView.Chunk;

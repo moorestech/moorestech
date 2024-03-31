@@ -1,5 +1,5 @@
-using Server.Core.Inventory;
-using Server.Core.Item;
+using Core.Inventory;
+using Core.Item;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;

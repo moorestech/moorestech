@@ -8,7 +8,7 @@
     "Game.PlayerInventory.Interface",
     "Game.World.Interface",
     "Game.SaveLoad.Interface",
-    "Server.Core"
+    "Game.Block.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

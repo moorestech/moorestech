@@ -4,7 +4,7 @@ using Client.Game.Context;
 using Client.Game.UI.Inventory;
 using Client.Game.UI.Inventory.Main;
 using Client.Game.UI.UIState;
-using Server.Core.Const;
+using Core.Const;
 using Game.Block;
 using Game.Block.Config.LoadConfig.Param;
 using Game.PlayerInventory.Interface;

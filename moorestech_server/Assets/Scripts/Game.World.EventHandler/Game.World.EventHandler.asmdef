@@ -6,7 +6,7 @@
     "Game.Block.Interface",
     "Game.World.Interface",
     "Core.Util",
-    "Server.Core",
+    "Core.Item",
     "Game.Block",
     "Game.Map.Interface"
   ],

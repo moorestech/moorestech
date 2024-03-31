@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Server.Core.Item;
-using Server.Core.Item.Config;
+using Core.Item;
+using Core.Item.Config;
 using Game.Block.Interface;
 using Game.Block.BlockInventory;
 using Game.Block.Interface.BlockConfig;

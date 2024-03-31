@@ -1,4 +1,4 @@
-﻿using Server.Core.Item;
+﻿using Core.Item;
 using Game.Block.Blocks.Chest;
 using Game.Block.Component;
 using Game.Block.Config.LoadConfig.Param;

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
-using Server.Core.ConfigJson;
+using Core.ConfigJson;
 using Mod.Loader;
 
 namespace Mod.Config

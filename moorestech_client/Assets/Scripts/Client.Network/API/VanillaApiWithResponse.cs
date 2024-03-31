@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Server.Core.Item;
+using Core.Item;
 using Cysharp.Threading.Tasks;
 using MainGame.Network.Settings;
 using Server.Protocol.PacketResponse;

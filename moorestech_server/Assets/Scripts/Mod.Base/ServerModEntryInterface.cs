@@ -1,5 +1,5 @@
-using Server.Core.Item;
-using Server.Core.Item.Config;
+using Core.Item;
+using Core.Item.Config;
 using Game.Block.Factory;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.RecipeConfig;

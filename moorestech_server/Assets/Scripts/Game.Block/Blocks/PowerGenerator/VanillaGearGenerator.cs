@@ -1,4 +1,4 @@
-﻿using Server.Core.EnergySystem.Gear;
+﻿using Core.EnergySystem.Gear;
 using Game.Block.Factory.BlockTemplate;
 
 namespace Game.Block.Blocks.PowerGenerator

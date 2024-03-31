@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Server.Core.Inventory;
-using Server.Core.Item;
+using Core.Inventory;
+using Core.Item;
 using Game.Block.Interface;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;

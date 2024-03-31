@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Server.Core.EnergySystem;
+using Core.EnergySystem;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
 using Game.World.EventHandler.EnergyEvent.EnergyService;

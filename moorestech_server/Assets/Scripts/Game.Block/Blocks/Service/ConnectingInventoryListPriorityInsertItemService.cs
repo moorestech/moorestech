@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Server.Core.Const;
-using Server.Core.Item;
+using Core.Const;
+using Core.Item;
 using Game.Block.BlockInventory;
 using Game.Block.Component.IOConnector;
 

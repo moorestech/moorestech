@@ -1,4 +1,4 @@
-using Server.Core.Inventory;
+using Core.Inventory;
 
 namespace Game.PlayerInventory.Interface
 {

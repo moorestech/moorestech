@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.Context;
 using Client.Game.UI.Inventory.Element;
-using Server.Core.Item;
+using Core.Item;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface.BlockConfig;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;

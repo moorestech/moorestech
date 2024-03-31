@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Server.Core.Const;
-using Server.Core.Item;
+using Core.Const;
+using Core.Item;
 using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;

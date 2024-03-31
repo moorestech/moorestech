@@ -1,5 +1,5 @@
 using System;
-using Server.Core.Update;
+using Core.Update;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Util;
 using Game.Block.Interface.RecipeConfig;

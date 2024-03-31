@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using Server.Core.Inventory;
-using Server.Core.Item;
+using Core.Inventory;
+using Core.Item;
 using Game.Block.Event;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.RecipeConfig;

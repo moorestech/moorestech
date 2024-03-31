@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Text;
-using Server.Core.Const;
-using Server.Core.Item;
-using Server.Core.Update;
+using Core.Const;
+using Core.Item;
+using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Component;
 using Game.Block.Component.IOConnector;

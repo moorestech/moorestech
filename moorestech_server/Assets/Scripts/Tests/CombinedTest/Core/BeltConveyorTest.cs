@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Server.Core.Item;
-using Server.Core.Update;
+using Core.Item;
+using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component.IOConnector;

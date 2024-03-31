@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Server.Core.Inventory;
+using Core.Inventory;
 using Game.Block.Interface.BlockConfig;
 using Game.World.Interface.DataStore;
 using MessagePack;

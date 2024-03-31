@@ -1,4 +1,4 @@
-using Server.Core.Item;
+using Core.Item;
 
 namespace Game.PlayerInventory.Interface.Event
 {

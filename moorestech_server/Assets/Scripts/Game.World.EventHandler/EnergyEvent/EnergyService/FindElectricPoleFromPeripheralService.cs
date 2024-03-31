@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Server.Core.EnergySystem;
+using Core.EnergySystem;
 using Game.Block.Config.LoadConfig.Param;
 using Game.World.Interface.DataStore;
 using UnityEngine;

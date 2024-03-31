@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Server.Core.Inventory;
+using Core.Inventory;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using UnityEngine;

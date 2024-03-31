@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Server.Core.Item;
+using Core.Item;
 
 namespace Game.Crafting.Interface
 {

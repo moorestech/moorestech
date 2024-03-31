@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Server.Core.EnergySystem;
+using Core.EnergySystem;
 using Game.World.Interface.DataStore;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService

@@ -1,6 +1,6 @@
-using Server.Core.ConfigJson;
-using Server.Core.Item;
-using Server.Core.Item.Config;
+using Core.ConfigJson;
+using Core.Item;
+using Core.Item.Config;
 using Game.Block.Interface.BlockConfig;
 using Game.Block.Interface.RecipeConfig;
 using Game.Crafting.Interface;

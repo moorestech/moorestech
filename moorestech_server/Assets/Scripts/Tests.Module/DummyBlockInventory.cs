@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using Server.Core.Const;
-using Server.Core.Item;
-using Server.Core.Item.Util;
+using Core.Const;
+using Core.Item;
+using Core.Item.Util;
 using Game.Block.BlockInventory;
 
 namespace Tests.Module

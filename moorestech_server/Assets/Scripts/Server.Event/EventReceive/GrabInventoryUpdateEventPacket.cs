@@ -1,5 +1,5 @@
 using System;
-using Server.Core.Item;
+using Core.Item;
 using Game.PlayerInventory.Interface.Event;
 using MessagePack;
 using Server.Util.MessagePack;

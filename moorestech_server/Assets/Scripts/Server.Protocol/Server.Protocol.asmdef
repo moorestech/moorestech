@@ -10,7 +10,7 @@
     "MessagePack",
     "Game.Block.Interface",
     "Core.Inventory",
-    "Server.Core",
+    "Core.Item",
     "Core.Const",
     "Game.PlayerInventory.Interface",
     "Game.Block",

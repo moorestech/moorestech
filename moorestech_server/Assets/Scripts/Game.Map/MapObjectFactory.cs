@@ -1,5 +1,5 @@
 ﻿using System;
-using Server.Core.Item.Config;
+using Core.Item.Config;
 using Game.Map.Interface;
 using UnityEngine;
 using Random = System.Random;

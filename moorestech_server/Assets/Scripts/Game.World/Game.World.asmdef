@@ -3,7 +3,7 @@
   "rootNamespace": "",
   "references": [
     "Game.World.Interface",
-    "Server.Core",
+    "Core.Util",
     "Core.Const",
     "Core.EnergySystem",
     "Game.Block.Interface",

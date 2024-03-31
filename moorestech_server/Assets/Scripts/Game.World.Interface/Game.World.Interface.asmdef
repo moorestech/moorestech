@@ -3,7 +3,9 @@
   "rootNamespace": "",
   "references": [
     "Game.Block.Interface",
-    "Server.Core"
+    "Core.Util",
+    "Core.EnergySystem",
+    "Core.Const"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

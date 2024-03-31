@@ -3,7 +3,7 @@
   "rootNamespace": "",
   "references": [
     "Game.Crafting.Interface",
-    "Server.Core",
+    "Core.Item",
     "Core.ConfigJson",
     "Game.PlayerInventory.Interface",
     "Core.Inventory"

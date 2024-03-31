@@ -2,7 +2,7 @@
   "name": "Game.Block",
   "rootNamespace": "",
   "references": [
-    "Server.Core",
+    "Core.Item",
     "Game.Block.Interface",
     "Core.Update",
     "Core.Inventory",

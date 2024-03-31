@@ -1,5 +1,5 @@
 using System;
-using Server.Core.Item;
+using Core.Item;
 using MessagePack;
 
 namespace Server.Util.MessagePack

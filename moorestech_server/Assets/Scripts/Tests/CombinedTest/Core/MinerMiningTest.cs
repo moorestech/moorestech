@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Server.Core.EnergySystem;
-using Server.Core.Item;
-using Server.Core.Item.Config;
-using Server.Core.Update;
+using Core.EnergySystem;
+using Core.Item;
+using Core.Item.Config;
+using Core.Update;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Miner;
 using Game.Block.Component;

@@ -6,7 +6,7 @@
     "MessagePack",
     "Core.Inventory",
     "Core.Util",
-    "Server.Core",
+    "Core.Item",
     "Game.World.Interface",
     "Game.Block.Interface",
     "Game.PlayerInventory.Interface",

@@ -1,4 +1,4 @@
-using Server.Core.EnergySystem;
+using Core.EnergySystem;
 
 namespace Game.World.Interface.DataStore
 {

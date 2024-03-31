@@ -1,4 +1,4 @@
-using Server.Core.Update;
+using Core.Update;
 
 namespace Game.Block.Blocks.Util
 {

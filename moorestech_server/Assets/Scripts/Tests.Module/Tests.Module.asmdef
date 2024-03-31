@@ -8,7 +8,7 @@
     "Core.Const",
     "Core.EnergySystem",
     "Core.Inventory",
-    "Server.Core",
+    "Core.Item",
     "Core.Update",
     "Core.Util",
     "Game.Block",

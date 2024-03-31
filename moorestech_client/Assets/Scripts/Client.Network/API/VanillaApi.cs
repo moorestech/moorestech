@@ -1,6 +1,6 @@
 using System;
 using System.Diagnostics;
-using Server.Core.Item;
+using Core.Item;
 using MainGame.Network;
 using MainGame.Network.Settings;
 using UniRx;

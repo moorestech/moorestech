@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Server.Core.Item;
-using Server.Core.Update;
+using Core.Item;
+using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
 using Game.Block.Interface;

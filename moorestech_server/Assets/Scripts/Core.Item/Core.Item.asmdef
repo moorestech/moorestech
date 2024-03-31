@@ -1,0 +1,17 @@
+{
+  "name": "Core.Item",
+  "rootNamespace": "",
+  "references": [
+    "Core.Const",
+    "Core.ConfigJson"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

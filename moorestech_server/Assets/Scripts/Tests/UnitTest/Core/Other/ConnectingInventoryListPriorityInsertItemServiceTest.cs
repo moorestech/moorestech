@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Server.Core.Item;
+using Core.Item;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Service;
 using Game.Block.Component;

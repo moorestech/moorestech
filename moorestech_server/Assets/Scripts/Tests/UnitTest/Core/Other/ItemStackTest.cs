@@ -1,6 +1,6 @@
 using System;
-using Server.Core.Const;
-using Server.Core.Item;
+using Core.Const;
+using Core.Item;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;

@@ -1,6 +1,6 @@
 using System.Reflection;
-using Server.Core.Item;
-using Server.Core.Update;
+using Core.Item;
+using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.InventoryController;

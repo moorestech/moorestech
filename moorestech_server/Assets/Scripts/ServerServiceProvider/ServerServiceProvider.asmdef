@@ -5,7 +5,7 @@
     "Game.Block.Interface",
     "Core.ConfigJson",
     "Game.Crafting.Interface",
-    "Server.Core",
+    "Core.Item",
     "Game.Block",
     "Server.Boot",
     "Server.Protocol"

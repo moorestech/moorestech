@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Client.Game.Context;
-using Server.Core.Item;
+using Core.Item;
 using Game.PlayerInventory.Interface;
 using UniRx;
 using UnityEngine;

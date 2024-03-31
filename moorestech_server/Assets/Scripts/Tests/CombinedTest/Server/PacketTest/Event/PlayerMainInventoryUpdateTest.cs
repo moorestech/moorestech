@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Server.Core.Item;
+using Core.Item;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;

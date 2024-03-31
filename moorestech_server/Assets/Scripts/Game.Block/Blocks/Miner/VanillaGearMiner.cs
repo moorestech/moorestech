@@ -1,5 +1,5 @@
-﻿using Server.Core.EnergySystem.Gear;
-using Server.Core.Item;
+﻿using Core.EnergySystem.Gear;
+using Core.Item;
 using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
