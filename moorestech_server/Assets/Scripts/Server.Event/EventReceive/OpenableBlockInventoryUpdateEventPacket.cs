@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Core.Item;
+using Server.Core.Item;
 using Game.Block.Interface.Event;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;

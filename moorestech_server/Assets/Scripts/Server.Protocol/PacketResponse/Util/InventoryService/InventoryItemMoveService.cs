@@ -1,6 +1,6 @@
 using System;
-using Core.Inventory;
-using Core.Item;
+using Server.Core.Inventory;
+using Server.Core.Item;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util.InventoryService

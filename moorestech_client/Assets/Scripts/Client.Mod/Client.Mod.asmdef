@@ -19,7 +19,7 @@
     "Core.Const",
     "Core.EnergySystem",
     "Core.Inventory",
-    "Core.Item",
+    "Server.Core",
     "Core.Ore",
     "Core.Update",
     "Core.Util",

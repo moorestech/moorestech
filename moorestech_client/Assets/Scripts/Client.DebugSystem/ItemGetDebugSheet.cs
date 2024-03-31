@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Client.Game.Context;
-using Core.Item.Config;
+using Server.Core.Item.Config;
 using UnityDebugSheet.Runtime.Core.Scripts;
 
 namespace Client.DebugSystem

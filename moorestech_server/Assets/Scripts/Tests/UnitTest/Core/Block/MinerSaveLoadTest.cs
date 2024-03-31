@@ -1,5 +1,5 @@
 using System.Reflection;
-using Core.Inventory;
+using Server.Core.Inventory;
 using Game.Block.Interface;
 using Game.Block.Blocks.Miner;
 using Game.Block.Interface;

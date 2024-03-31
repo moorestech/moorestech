@@ -2,7 +2,7 @@
   "name": "Mod.Config",
   "rootNamespace": "",
   "references": [
-    "Core.ConfigJson",
+    "Server.Core",
     "Mod.Loader"
   ],
   "includePlatforms": [],

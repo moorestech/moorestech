@@ -4,7 +4,7 @@
   "references": [
     "Game.PlayerInventory.Interface",
     "Game.Crafting.Interface",
-    "Core.Item",
+    "Server.Core",
     "Game.World.Interface",
     "Core.Inventory",
     "Game.Block.Interface"

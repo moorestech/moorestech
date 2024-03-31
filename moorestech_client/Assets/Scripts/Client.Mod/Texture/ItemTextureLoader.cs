@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
-using Core.Item.Config;
+using Server.Core.Item.Config;
 using Mod.Loader;
 using UnityEngine;
 

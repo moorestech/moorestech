@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Client.Game.Context;
 using Client.Game.UI.Inventory.Element;
 using Client.Game.UI.Inventory.Main;
-using Core.Const;
+using Server.Core.Const;
 using Game.Crafting.Interface;
 using TMPro;
 using UniRx;

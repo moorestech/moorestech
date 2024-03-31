@@ -3,7 +3,7 @@
   "rootNamespace": "",
   "references": [
     "Game.Map.Interface",
-    "Core.Item",
+    "Server.Core",
     "Game.Base",
     "Game.SaveLoad.Interface",
     "Game.SaveLoad"

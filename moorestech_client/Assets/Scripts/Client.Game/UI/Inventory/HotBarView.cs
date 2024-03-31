@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using Client.Game.Context;
 using Client.Game.UI.Inventory.Main;
-using Core.Const;
-using Core.Item;
+using Server.Core.Const;
+using Server.Core.Item;
 using Game.PlayerInventory.Interface;
 using MainGame.UnityView.Control;
 using MainGame.UnityView.Item;
@@ -16,11 +16,11 @@ namespace Client.Game.UI.Inventory
     public class HotBarView : MonoBehaviour
     {
         public static HotBarView Instance { get; private set; }
-        
+
         [SerializeField] private List<HotBarItem> hotBarItems;
         [SerializeField] private ItemObjectContainer itemObjectContainer;
         [SerializeField] private PlayerGrabItemManager playerGrabItemManager;
-        
+
         private GameObject _currentGrabItem;
         private ILocalPlayerInventory _localPlayerInventory;
 

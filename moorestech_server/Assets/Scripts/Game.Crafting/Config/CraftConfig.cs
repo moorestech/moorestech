@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.ConfigJson;
-using Core.Item;
+using Server.Core.ConfigJson;
+using Server.Core.Item;
 using Game.Crafting.Interface;
 
 namespace Game.Crafting.Config

@@ -1,5 +1,5 @@
 ﻿using System;
-using Core.Const;
+using Server.Core.Const;
 using MainGame.ModLoader.Texture;
 using MainGame.UnityView.UI.Util;
 using TMPro;

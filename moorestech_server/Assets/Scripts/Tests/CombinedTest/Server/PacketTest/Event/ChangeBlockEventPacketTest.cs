@@ -1,5 +1,5 @@
-using Core.Item;
-using Core.Update;
+using Server.Core.Item;
+using Server.Core.Update;
 using Game.Block.Interface;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;

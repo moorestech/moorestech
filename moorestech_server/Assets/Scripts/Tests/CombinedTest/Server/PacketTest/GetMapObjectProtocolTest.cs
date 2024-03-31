@@ -1,5 +1,5 @@
 using System.Linq;
-using Core.Item;
+using Server.Core.Item;
 using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;

@@ -1,5 +1,5 @@
-using Core.EnergySystem;
-using Core.EnergySystem.Electric;
+using Server.Core.EnergySystem;
+using Server.Core.EnergySystem.Electric;
 using Game.Block.Interface;
 using Game.Block.Interface;
 using Game.World.Interface.DataStore;

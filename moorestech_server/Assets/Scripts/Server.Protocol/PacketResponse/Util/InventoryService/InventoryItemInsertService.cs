@@ -1,5 +1,5 @@
 using System;
-using Core.Inventory;
+using Server.Core.Inventory;
 
 namespace Server.Protocol.PacketResponse.Util.InventoryService
 {

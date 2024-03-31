@@ -2,7 +2,7 @@
   "name": "Game.PlayerInventory.Interface",
   "rootNamespace": "",
   "references": [
-    "Core.Item",
+    "Server.Core",
     "Core.Inventory"
   ],
   "includePlatforms": [],

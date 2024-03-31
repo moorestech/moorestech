@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Item;
+using Server.Core.Item;
 using Game.Crafting.Interface;
 using Newtonsoft.Json;
 using UnityEngine;

@@ -1,4 +1,4 @@
-using Core.EnergySystem.Electric;
+using Server.Core.EnergySystem.Electric;
 
 namespace Tests.Module
 {

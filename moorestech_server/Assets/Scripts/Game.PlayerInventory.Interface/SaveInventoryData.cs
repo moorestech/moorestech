@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core.Item;
+using Server.Core.Item;
 using Newtonsoft.Json;
 
 namespace Game.PlayerInventory.Interface

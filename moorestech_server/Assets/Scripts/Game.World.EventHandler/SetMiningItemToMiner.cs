@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core.Item.Config;
+using Server.Core.Item.Config;
 using Game.Block.Blocks.Miner;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;

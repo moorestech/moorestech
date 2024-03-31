@@ -1,4 +1,4 @@
-﻿using Core.EnergySystem.Electric;
+﻿using Server.Core.EnergySystem.Electric;
 using Game.Block.Interface;
 
 namespace Game.Block.Blocks.ElectricPole

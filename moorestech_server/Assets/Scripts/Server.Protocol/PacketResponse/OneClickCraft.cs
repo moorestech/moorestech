@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Core.Inventory;
-using Core.Item;
+using Server.Core.Inventory;
+using Server.Core.Item;
 using Game.Crafting.Interface;
 using Game.PlayerInventory.Interface;
 using MessagePack;

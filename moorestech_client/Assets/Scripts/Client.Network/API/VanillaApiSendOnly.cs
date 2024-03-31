@@ -1,4 +1,4 @@
-using Core.Item;
+using Server.Core.Item;
 using Game.Block.Interface;
 using MainGame.Network.Settings;
 using Server.Protocol.PacketResponse;

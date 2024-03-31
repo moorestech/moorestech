@@ -1,6 +1,6 @@
-using Core.EnergySystem;
-using Core.EnergySystem.Electric;
-using Core.Update;
+using Server.Core.EnergySystem;
+using Server.Core.EnergySystem.Electric;
+using Server.Core.Update;
 using NUnit.Framework;
 using Tests.Module;
 

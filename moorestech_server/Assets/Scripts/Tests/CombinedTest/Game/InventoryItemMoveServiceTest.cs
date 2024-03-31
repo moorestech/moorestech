@@ -1,4 +1,4 @@
-using Core.Item;
+using Server.Core.Item;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;

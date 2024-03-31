@@ -1,5 +1,5 @@
-﻿using Core.EnergySystem.Electric;
-using Core.Item;
+﻿using Server.Core.EnergySystem.Electric;
+using Server.Core.Item;
 using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Blocks.Machine.SaveLoad;
 using Game.Block.Component.IOConnector;

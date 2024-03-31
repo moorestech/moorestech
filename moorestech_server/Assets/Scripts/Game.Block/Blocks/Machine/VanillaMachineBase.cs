@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Core.EnergySystem;
-using Core.Inventory;
-using Core.Item;
+using Server.Core.EnergySystem;
+using Server.Core.Inventory;
+using Server.Core.Item;
 using Game.Block.BlockInventory;
 using Game.Block.Blocks.Machine.InventoryController;
 using Game.Block.Blocks.Machine.SaveLoad;

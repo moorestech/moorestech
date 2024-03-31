@@ -1,5 +1,5 @@
 using System;
-using Core.EnergySystem;
+using Server.Core.EnergySystem;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
 using UniRx;

@@ -1,4 +1,4 @@
-using Core.Item.Config;
+using Server.Core.Item.Config;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;

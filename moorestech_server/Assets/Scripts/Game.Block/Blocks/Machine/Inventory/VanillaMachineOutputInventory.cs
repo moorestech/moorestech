@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Core.Inventory;
-using Core.Item;
-using Core.Update;
+using Server.Core.Inventory;
+using Server.Core.Item;
+using Server.Core.Update;
 using Game.Block.Blocks.Service;
 using Game.Block.Component.IOConnector;
 using Game.Block.Event;

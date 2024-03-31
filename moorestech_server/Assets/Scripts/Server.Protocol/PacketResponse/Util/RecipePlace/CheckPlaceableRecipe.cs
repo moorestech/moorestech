@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Core.Inventory;
+using Server.Core.Inventory;
 using Game.PlayerInventory.Interface;
 using Server.Util.MessagePack;
 

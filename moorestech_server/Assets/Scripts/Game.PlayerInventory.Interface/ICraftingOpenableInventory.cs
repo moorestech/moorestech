@@ -1,5 +1,5 @@
-using Core.Inventory;
-using Core.Item;
+using Server.Core.Inventory;
+using Server.Core.Item;
 
 namespace Game.PlayerInventory.Interface
 {

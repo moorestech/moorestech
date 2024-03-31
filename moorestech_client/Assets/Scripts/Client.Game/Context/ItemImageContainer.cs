@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Core.Item.Config;
+using Server.Core.Item.Config;
 using MainGame.ModLoader.Texture;
 using UnityEngine;
 

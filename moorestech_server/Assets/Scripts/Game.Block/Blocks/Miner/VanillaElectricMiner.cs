@@ -1,5 +1,5 @@
-﻿using Core.EnergySystem.Electric;
-using Core.Item;
+﻿using Server.Core.EnergySystem.Electric;
+using Server.Core.Item;
 using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;

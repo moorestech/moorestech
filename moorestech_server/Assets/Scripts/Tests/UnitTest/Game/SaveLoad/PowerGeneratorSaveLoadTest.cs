@@ -1,6 +1,6 @@
 using System.Reflection;
-using Core.Inventory;
-using Core.Item;
+using Server.Core.Inventory;
+using Server.Core.Item;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Config.LoadConfig.Param;
 using Game.Block.Interface;

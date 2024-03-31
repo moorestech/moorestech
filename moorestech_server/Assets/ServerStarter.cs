@@ -1,7 +1,6 @@
-using System;
 using System.Threading;
-using Core.Update;
 using Server.Boot;
+using Server.Core.Update;
 using UnityEngine;
 
 public class ServerStarter : MonoBehaviour

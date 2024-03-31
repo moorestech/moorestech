@@ -1,4 +1,4 @@
-﻿using Core.Item;
+﻿using Server.Core.Item;
 using UnityEngine;
 
 namespace Game.Entity.Interface.EntityInstance
