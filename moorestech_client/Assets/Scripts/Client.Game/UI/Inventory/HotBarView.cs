@@ -15,14 +15,14 @@ namespace Client.Game.UI.Inventory
 {
     public class HotBarView : MonoBehaviour
     {
+        public static HotBarView Instance { get; private set; }
+        
         [SerializeField] private List<HotBarItem> hotBarItems;
-
         [SerializeField] private ItemObjectContainer itemObjectContainer;
         [SerializeField] private PlayerGrabItemManager playerGrabItemManager;
+        
         private GameObject _currentGrabItem;
-
         private ILocalPlayerInventory _localPlayerInventory;
-        public static HotBarView Instance { get; private set; }
 
         public int SelectIndex { get; private set; }
 

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48587b020ce14b5ab95175cde56e874b, type: 3}
+  m_Name: VoiceDefine
+  m_EditorClassIdentifier: 
+  characterVoices:
+  - characterKey: "\u4E3B\u4EBA\u516C"
+    voiceInfos:
+    - sentence: "\u3053\u3093\u306B\u3061\u306F\u3001\u3053\u308C\u306Fmoorestech\u306E\u30B9\u30C8\u30FC\u30EA\u30FC\u30C6\u30B9\u30C8\u3067\u3059\u3002"
+      voiceClip: {fileID: 8300000, guid: 0960e56f4ac3a4c49b4000a028e69678, type: 3}
+    credit: "VOICEVOX:\u732B\u4F7F\u30D3\u30A3"
+  - characterKey: AI
+    voiceInfos: []
+    credit: "VOICEVOX:\u96E8\u6674\u306F\u3046"
+  - characterKey: "\u89AA\u53CB"
+    voiceInfos: []
+    credit: "VOICEVOX:\u6625\u6B4C\u30CA\u30CA"

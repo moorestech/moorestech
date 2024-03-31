@@ -30,7 +30,7 @@ namespace Client.Game.Control.MouseKeyboard
 
             //マウスのインプットによって向きを変える
             UpdateCameraRotation();
-            LerpCameraRotation();
+            LeapCameraRotation();
 
             #region Internal
 
@@ -54,7 +54,7 @@ namespace Client.Game.Control.MouseKeyboard
                 _targetRotation = Quaternion.Euler(rotation);
             }
 
-            void LerpCameraRotation()
+            void LeapCameraRotation()
             {
                 var resultRotation = Quaternion.Lerp(transform.rotation, _targetRotation, lerpSpeed * Time.deltaTime);
                 resultRotation = Quaternion.Euler(resultRotation.eulerAngles.x, resultRotation.eulerAngles.y, 0);
@@ -62,6 +62,10 @@ namespace Client.Game.Control.MouseKeyboard
             }
 
             #endregion
+        }
+        public void SetEnable(bool enable)
+        {
+            enabled = enable;
         }
     }
 }
