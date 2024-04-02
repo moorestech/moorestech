@@ -25,7 +25,7 @@ namespace Client.Story
 
         public void PlayAnimation(string animationName)
         {
-            animator.Play(animationName);
+            animator.SetTrigger(animationName);
         }
 
         public void PlayVoice(AudioClip voiceClip)

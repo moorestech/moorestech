@@ -7,6 +7,7 @@ namespace Client.Story.StoryTrack
             return key switch
             {
                 "Camerawork" => new CameraworkTrack(),
+                "CameraWarp" => new CameraWarpTrack(),
                 "Text" => new TextTrack(),
                 "CharacterTransform" => new CharacterTransformTrack(),
                 "CharacterMotion" => new CharacterMotionTrack(),
